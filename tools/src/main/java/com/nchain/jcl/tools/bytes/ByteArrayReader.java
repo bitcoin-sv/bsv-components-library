@@ -36,20 +36,6 @@ public class ByteArrayReader {
         return result;
     }
 
-    /*
-    public byte[] readWithDanger(int length) {
-        byte[] result = builder.extractReader(length).getFullContentAndClose();
-        bytesReadCount += length;
-        return result;
-    }
-    */
-
-    public byte[] readWithDanger(int length) {
-        byte[] result = builder.extractBytes(length);
-        bytesReadCount += length;
-        return result;
-    }
-
     public byte[] extract(int length)       { return builder.extractBytes(length); }
     public long readUint32()                { return ByteTools.readUint32(read(4)); }
     public byte read()                      { return read(1)[0]; }

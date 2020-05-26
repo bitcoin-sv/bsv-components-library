@@ -114,11 +114,6 @@ public class ByteArrayReaderOptimized extends ByteArrayReader {
         return result;
     }
 
-    @Override
-    public byte[] readWithDanger(int length) {
-        return read(length);
-    }
-
     public byte[] getFullContentAndClose() {
         super.builder.extractBytes(bytesConsumed);
         byte[] result = builder.getFullContent();

@@ -33,7 +33,7 @@ public class ByteArrayBuilder {
     // Adds a new buffer to the list and returns it. Depending on the current workingState of the memory, the new Buffer
     // will be based on memory or on File.
     private ByteArray addBuffer() {
-        buffers.add(new ByteArrayImpl(memoryConfig));
+        buffers.add(new ByteArrayImpl(memoryConfig.getByteArraySize()));
 
         return buffers.get(buffers.size() - 1);
     }
@@ -142,7 +142,7 @@ public class ByteArrayBuilder {
         checkArgument(size() >= length,
                 "trying to extract too many bytes, current: " + size() + ", requested: " + length);
 
-        ByteArray result = new ByteArrayImpl(length, true);
+        ByteArray result = new ByteArrayImpl(length);
 
         // For removing empty buffers after the extraction:
         List<ByteArray> buffersToRemove = new ArrayList<>();
@@ -210,7 +210,7 @@ public class ByteArrayBuilder {
      * Returns the Full Content of the Builder.
      */
     protected byte[] getFullContent() {
-        ByteArray result =  new ByteArrayImpl((int) this.size(), true);
+        ByteArray result =  new ByteArrayImpl((int) this.size());
         for (int i = 0; i < buffers.size(); i++) {
             ByteArray bufferItem = buffers.get(i);
             byte[] bufferItemContent = bufferItem.get();

@@ -17,7 +17,7 @@ import static com.google.common.base.Preconditions.checkArgument;
  * Distributed under the Open BSV software license, see the accompanying file LICENSE.
  * @date 2020-03-07 22:19
  *
- * Base class with common implementation for other "ByteArray" implementations.
+ * This class is the implementation for a NIO ByteArray.
  *
  */
 public class ByteArrayImpl implements ByteArray {
@@ -28,27 +28,9 @@ public class ByteArrayImpl implements ByteArray {
     protected int remaining;
 
 
-    /**
-     *
-     * @param memoryConfig - override the default memory configurations
-     *
-     * Constructor.
-     * Creates a new instance of a ByteBuffer with the capacity specified. IF "useNativeMemory = true", then
-     * the memory is allocated from the Native (off-heap memory), otherwise the Heap is used.
-     */
-    public ByteArrayImpl(ByteArrayMemoryConfiguration memoryConfig) {
-        this.capacity = memoryConfig.getByteArraySize();
-        this.buffer = (memoryConfig.isByteArrayUseNativeMemory())
-                ? ByteBuffer.allocateDirect(capacity) : ByteBuffer.allocate(capacity);
-        this.dataSize = buffer.position();
-        this.remaining = buffer.remaining();
-    }
-
-    /** Constructor without memory management control */
-    public ByteArrayImpl(int capacity, boolean useNativeMemory) {
+    public ByteArrayImpl(int capacity) {
         this.capacity = capacity;
-        this.buffer = (useNativeMemory)
-                ? ByteBuffer.allocateDirect(capacity) : ByteBuffer.allocate(capacity);
+        this.buffer = ByteBuffer.allocateDirect(capacity);
         this.dataSize = buffer.position();
         this.remaining = buffer.remaining();
     }
