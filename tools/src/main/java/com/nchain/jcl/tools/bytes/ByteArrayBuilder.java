@@ -22,7 +22,7 @@ public class ByteArrayBuilder {
     protected List<ByteArray> buffers = Collections.synchronizedList(new ArrayList<ByteArray>());
 
     public ByteArrayBuilder(){
-
+        this.memoryConfig = ByteArrayMemoryConfiguration.builder().build();
     }
 
     public ByteArrayBuilder(ByteArrayMemoryConfiguration memoryConfig) {
@@ -116,7 +116,8 @@ public class ByteArrayBuilder {
             bytesRemaining -= numBytesToExtractFromThisBuffer;
             index++;
         }
-
+        // We remove those ByteArrays that are now empty after the extraction...
+        buffers.removeAll(buffersToRemove);
 
         return new ByteArrayReader(writeBuilder);
     }

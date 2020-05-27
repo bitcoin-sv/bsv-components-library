@@ -7,7 +7,6 @@ import lombok.Setter;
 import javax.annotation.concurrent.GuardedBy;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
