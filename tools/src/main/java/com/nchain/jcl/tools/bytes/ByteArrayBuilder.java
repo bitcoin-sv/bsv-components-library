@@ -30,8 +30,7 @@ public class ByteArrayBuilder {
     }
 
 
-    // Adds a new buffer to the list and returns it. Depending on the current workingState of the memory, the new Buffer
-    // will be based on memory or on File.
+    // Adds a new buffer to the list and returns it
     private ByteArray addBuffer() {
         buffers.add(new ByteArrayImpl(memoryConfig.getByteArraySize()));
 
@@ -153,7 +152,6 @@ public class ByteArrayBuilder {
         while (bytesRemaining > 0) {
             ByteArray buffer = buffers.get(indexBuffer);
 
-            // We copy files from this ByteArray...
             int bytesToWriteLength = (int) ((buffer.size() >= bytesRemaining) ? bytesRemaining : (buffer.size()));
             byte[] bufferBytes = buffer.extract(bytesToWriteLength);
             result.add(bufferBytes);
@@ -176,7 +174,7 @@ public class ByteArrayBuilder {
     }
 
     /**
-     * Cleans the data. If some data is backed by Files on disk, those are removed. For the data stored in Memory, it
+     * Cleans the data. For the data stored in Memory, it
      * becomes eligible for the Garbage Collector, so it will be eventually cleaned as well.
      */
     public void clear() {
