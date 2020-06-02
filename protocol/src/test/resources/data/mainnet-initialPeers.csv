@@ -1,0 +1,533 @@
+address,port,user_agent,version,asn,aso,country,city,last_seen,last_height,is_masternode,2h,8h,24h,7d,30d,address_type,is_active
+68.183.222.164,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Germany,Frankfurt am Main,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+142.93.38.96,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United Kingdom,London,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+185.25.60.199,8329,/Bitcoin SV:0.1.0(EB128.0)/,70015,8496.0,Optibit LLC,Russia,,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+68.183.87.83,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",India,Bengaluru,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+2a01:4f8:150:90ca::2,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv6,True
+2001:bc8:4400:2b00::1c:b05,10001,/Bitcoin SV:0.1.1(EB128.0)/,70015,12876.0,Online S.a.s.,France,,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv6,False
+89.38.99.93,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,49981.0,WorldStream B.V.,Netherlands,,1566994895,593979,False,1.0,1.0,1.0,1.0,0.996,IPv4,False
+82.221.128.33,8335,/Bitcoin SV:0.1.1(EB128.0)/,70015,50613.0,Advania Island ehf,Iceland,,1566994038,592656,False,0.75,0.8,0.758,0.776,0.738,IPv4,False
+136.144.184.242,8333,/Bitcoin SV:0.1.1(EB128.0)/,70015,20857.0,Transip B.V.,Netherlands,Eindhoven,1566994895,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+13.114.252.176,8333,/Bitcoin SV:0.1.0(EB128.0)/,70015,16509.0,"Amazon.com, Inc.",Japan,Tokyo,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+54.36.173.115,8333,/Bitcoin SV:0.2.0(EB2000.0)/,70015,16276.0,OVH SAS,Poland,,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+116.203.66.164,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994895,597520,False,1.0,1.0,1.0,1.0,0.997,IPv4,True
+159.89.202.12,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Singapore,,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+2a01:4f8:190:61c9::2,9333,/Bitcoin SV:0.2.0(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv6,True
+120.77.46.167,8333,/Bitcoin SV:0.2.0(EB2000.0)/,70015,37963.0,"Hangzhou Alibaba Advertising Co.,Ltd.",China,Hangzhou,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+2a01:4f8:210:14ab::2,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv6,True
+176.9.114.109,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+188.214.30.95,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,51177.0,THC Projects SRL,Romania,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+167.99.45.238,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Netherlands,Amsterdam,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+142.93.153.6,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Canada,Toronto,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+139.59.15.48,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",India,Bengaluru,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+167.99.219.11,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Netherlands,Amsterdam,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+54.37.243.31,8333,/Bitcoin SV:0.1.1(EB128.0)/,70015,16276.0,OVH SAS,France,,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+97.120.245.173,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,209.0,"CenturyLink Communications, LLC",United States,Portland,1566569157,596814,False,0.0,0.0,0.0,0.546,0.644,IPv4,False
+209.97.137.231,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United Kingdom,London,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+35.204.210.124,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,15169.0,Google LLC,,,1566984033,597505,False,0.0,0.5,0.532,0.204,0.15,IPv4,False
+52.81.34.17,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,1.0,0.988,IPv4,True
+54.218.10.171,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,16509.0,"Amazon.com, Inc.",United States,Boardman,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+120.24.63.25,8333,/Bitcoin SV:0.2.1(EB512.0)/,70015,37963.0,"Hangzhou Alibaba Advertising Co.,Ltd.",China,Hangzhou,1566994941,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+2001:41d0:203:2f50::,8337,/Bitcoin SV:0.2.1(EB2000.0)/,70015,16276.0,OVH SAS,France,,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv6,True
+47.75.53.157,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,45102.0,"Alibaba (US) Technology Co., Ltd.",Hong Kong,Central,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+178.62.199.113,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Netherlands,Amsterdam,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+93.90.193.195,8332,/Bitcoin SV:0.2.1(EB2000.0)/,70015,8560.0,1&1 Internet SE,Germany,,1566994941,597520,False,1.0,1.0,0.88,0.907,0.736,IPv4,True
+52.57.6.223,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,16509.0,"Amazon.com, Inc.",Germany,Frankfurt am Main,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+139.59.11.1,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",India,Bengaluru,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+2a01:7e00::f03c:91ff:fe54:4620,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,63949.0,"Linode, LLC",United Kingdom,London,1566994941,597520,False,1.0,1.0,1.0,0.995,0.928,IPv6,True
+148.251.52.199,9104,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+2a01:7e00::f03c:91ff:fe89:1faa,8333,/Bitcoin SV:0.2.0(EB2000.0)/,70015,63949.0,"Linode, LLC",United Kingdom,London,1566994941,597520,False,1.0,0.9,0.968,0.995,0.955,IPv6,True
+3.120.108.75,8333,/Bitcoin SV:0.1.0(EB128.0)/,70015,16509.0,"Amazon.com, Inc.",Germany,Frankfurt am Main,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+209.97.187.207,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United Kingdom,London,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+159.65.153.65,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",India,Bengaluru,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+178.128.90.188,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Singapore,,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+138.197.163.213,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Canada,Toronto,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+2a03:b0c0:3:e0::29b:2001,8333,/Bitcoin SV:0.2.0(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Germany,Frankfurt am Main,1566552013,575831,False,0.0,0.0,0.0,0.083,0.083,IPv6,False
+178.128.166.204,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United Kingdom,London,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+139.59.17.0,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",India,Bengaluru,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+206.189.18.14,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United Kingdom,London,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+2a01:4f8:140:5225::2,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994894,592656,False,1.0,1.0,1.0,1.0,0.999,IPv6,False
+52.82.14.73,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,135629.0,Ningxia West Cloud Data Technology Co.Ltd.,China,,1566994941,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+52.81.36.25,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,1.0,0.99,IPv4,True
+68.183.224.202,8333,/Bitcoin SV:0.1.0(EB128.0)/,70015,14061.0,"DigitalOcean, LLC",Singapore,,1566994896,592656,False,1.0,1.0,1.0,0.998,0.999,IPv4,False
+52.199.36.243,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,16509.0,"Amazon.com, Inc.",Japan,Tokyo,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+13.231.92.219,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,16509.0,"Amazon.com, Inc.",Japan,Tokyo,1566994896,597520,False,1.0,1.0,1.0,0.998,0.998,IPv4,True
+207.180.199.39,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,51167.0,Contabo GmbH,Germany,Nuremberg,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+89.40.14.53,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,62282.0,UAB Rakrejus,Republic of Lithuania,,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+97.120.176.15,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,209.0,"CenturyLink Communications, LLC",United States,Portland,1566621011,596907,False,0.0,0.0,0.0,0.025,0.025,IPv4,False
+178.128.244.38,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Netherlands,Amsterdam,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+139.59.3.162,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",India,Bengaluru,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+104.248.156.78,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Singapore,,1566994896,597520,False,1.0,1.0,1.0,0.998,0.999,IPv4,True
+178.128.248.26,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Netherlands,Amsterdam,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+2604:880:221:35::47b:a17d,8333,/Bitcoin SV:0.1.0(EB128.0)/,70015,54540.0,"HIVELOCITY, Inc.",United States,,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv6,False
+2a01:4f8:10b:2e30::2,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,0.901,0.673,IPv6,True
+2a01:4f8:191:808f::2,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv6,True
+2a01:4f8:221:3f4d::2,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv6,True
+35.208.155.128,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,19527.0,Google LLC,United States,Mountain View,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+50.225.198.67,6667,/Bitcoin SV:0.2.1(EB2000.0)/,70015,7922.0,"Comcast Cable Communications, LLC",United States,Darien,1566994941,597520,False,1.0,1.0,1.0,0.993,0.93,IPv4,True
+68.183.77.158,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Germany,Frankfurt am Main,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+52.81.108.106,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,1.0,0.99,IPv4,True
+79.180.33.247,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,8551.0,Bezeq International,Israel,Haifa,1566994941,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+18.185.13.179,8333,/Bitcoin SV:0.2.1(EB2000.0; bitcoin)/,70015,16509.0,"Amazon.com, Inc.",Germany,Frankfurt am Main,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+185.154.159.164,9900,/Bitcoin SV:0.1.0(EB128.0)/,70015,202779.0,EVOBITS Information Technology SRL,Netherlands,,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+138.197.144.224,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Canada,Toronto,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+206.189.119.159,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United Kingdom,London,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+68.183.190.40,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Singapore,,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+13.125.224.253,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,16509.0,"Amazon.com, Inc.",Republic of Korea,Incheon,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+138.68.252.11,8333,/Bitcoin SV:0.1.1(EB128.0)/,70015,14061.0,"DigitalOcean, LLC",United States,Santa Clara,1566994896,592656,False,1.0,1.0,1.0,1.0,0.999,IPv4,False
+159.65.243.110,8333,/Bitcoin SV:0.1.0(EB128.0)/,70015,14061.0,"DigitalOcean, LLC",United States,Clifton,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+52.231.154.13,8333,/Bitcoin SV:0.1.0(EB128.0)/,70015,8075.0,Microsoft Corporation,Republic of Korea,Busan,1566994895,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+52.80.177.230,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,1.0,0.979,IPv4,True
+206.189.17.216,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United Kingdom,London,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+206.189.46.239,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Singapore,,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+68.183.182.227,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Singapore,,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+142.93.153.130,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Canada,Toronto,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+209.97.140.47,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United Kingdom,London,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+157.230.31.146,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Germany,Frankfurt am Main,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+52.80.124.38,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,1.0,0.992,IPv4,True
+93.185.103.71,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,43541.0,VSHosting s.r.o.,Czechia,,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+167.99.183.188,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Canada,Toronto,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+138.197.136.138,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Canada,Toronto,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+2604:880:221:35::73db:9a62,8333,/Bitcoin SV:0.1.0(EB128.0)/,70015,54540.0,"HIVELOCITY, Inc.",United States,,1566994895,592656,False,1.0,1.0,1.0,1.0,1.0,IPv6,False
+2601:602:8800:9a:dc0b:2ff:fea7:1664,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,7922.0,"Comcast Cable Communications, LLC",United States,Seattle,1566411955,596559,False,0.0,0.0,0.0,0.076,0.725,IPv6,False
+52.81.28.91,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,1.0,0.986,IPv4,True
+13.125.26.12,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,16509.0,"Amazon.com, Inc.",Republic of Korea,Incheon,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+95.216.37.250,8333,/Bitcoin SV:0.1.1(EB128.0)/,70015,24940.0,Hetzner Online GmbH,Finland,,1566983107,592656,False,0.0,0.55,0.855,0.978,0.995,IPv4,False
+85.217.222.125,8398,/Bitcoin SV:0.2.0(EB2000.0)/,70015,201133.0,Verdina Ltd.,Bulgaria,,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+178.128.232.19,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Canada,Toronto,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+52.81.76.51,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994896,597520,False,1.0,1.0,1.0,0.998,0.992,IPv4,True
+47.245.11.220,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,45102.0,"Alibaba (US) Technology Co., Ltd.",Japan,,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+116.203.133.36,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994895,597520,False,1.0,1.0,1.0,1.0,0.966,IPv4,True
+52.81.49.66,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,1.0,0.99,IPv4,True
+52.81.73.233,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,1.0,0.99,IPv4,True
+52.81.29.152,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,0.998,0.99,IPv4,True
+52.81.62.126,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,1.0,0.982,IPv4,True
+159.203.63.95,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Canada,Toronto,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+104.248.242.41,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Germany,Frankfurt am Main,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+94.23.58.222,8445,/Bitcoin SV:0.2.1(EB2000.0)/,70015,16276.0,OVH SAS,France,,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+148.251.124.172,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+144.76.117.234,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+188.214.30.232,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,51177.0,THC Projects SRL,Romania,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+2a01:4f8:120:64c6::2,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv6,True
+54.222.211.99,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,1.0,0.991,IPv4,True
+52.80.75.186,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,1.0,0.99,IPv4,True
+47.254.173.235,8333,/Bitcoin SV:0.2.1(EB512.0)/,70015,45102.0,"Alibaba (US) Technology Co., Ltd.",Germany,Frankfurt am Main,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+37.59.32.10,8933,/Bitcoin SV:0.2.0(EB2000.0)/,70015,16276.0,OVH SAS,France,,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+52.82.60.185,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,135629.0,Ningxia West Cloud Data Technology Co.Ltd.,China,,1566541209,596768,False,0.0,0.0,0.0,0.5,0.943,IPv4,False
+52.81.22.170,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994896,597520,False,1.0,1.0,1.0,1.0,0.99,IPv4,True
+159.89.230.79,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United States,North Bergen,1566994896,597520,False,1.0,1.0,1.0,1.0,0.893,IPv4,True
+52.82.17.135,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,135629.0,Ningxia West Cloud Data Technology Co.Ltd.,China,,1566994941,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+213.239.206.88,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,Nuremberg,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+188.214.30.208,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,51177.0,THC Projects SRL,Romania,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+188.166.88.161,8333,/Bitcoin SV:0.2.0(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Netherlands,Amsterdam,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+39.105.102.84,8333,/Bitcoin SV:0.2.1(EB512.0)/,70015,37963.0,"Hangzhou Alibaba Advertising Co.,Ltd.",China,Hangzhou,1566994941,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+5.9.151.49,8733,/Bitcoin SV:0.1.0(EB128.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994895,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+106.14.176.25,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,37963.0,"Hangzhou Alibaba Advertising Co.,Ltd.",China,Hangzhou,1566994896,597520,False,1.0,1.0,1.0,1.0,0.994,IPv4,True
+213.133.103.103,9104,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,Nuremberg,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+159.89.163.191,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",India,Bengaluru,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+142.93.146.114,8333,/Bitcoin SV:0.2.0(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Canada,Toronto,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+178.62.228.194,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Netherlands,Amsterdam,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+39.105.149.36,8333,/Bitcoin SV:0.2.1(EB512.0)/,70015,37963.0,"Hangzhou Alibaba Advertising Co.,Ltd.",China,Hangzhou,1566994941,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+68.183.207.240,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Canada,Toronto,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+47.91.95.186,8333,/Bitcoin SV:0.2.1(EB512.0)/,70015,45102.0,"Alibaba (US) Technology Co., Ltd.",Germany,Frankfurt am Main,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+2a01:4f8:160:23ab::2,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv6,True
+39.98.228.208,8333,/Bitcoin SV:0.2.0(EB2000.0)/,70015,37963.0,"Hangzhou Alibaba Advertising Co.,Ltd.",China,Hangzhou,1566525640,596742,False,0.0,0.0,0.0,0.489,0.905,IPv4,False
+139.59.164.217,8333,/Bitcoin SV:0.1.0(EB128.0)/,70015,14061.0,"DigitalOcean, LLC",United Kingdom,London,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+157.230.26.198,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Germany,Frankfurt am Main,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+39.105.53.98,8333,/Bitcoin SV:0.2.1(EB512.0)/,70015,37963.0,"Hangzhou Alibaba Advertising Co.,Ltd.",China,Hangzhou,1566994941,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+52.80.10.245,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,1.0,0.982,IPv4,True
+91.121.181.140,8333,/Bitcoin SV:0.1.0(EB128.0)/,70015,16276.0,OVH SAS,France,,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+142.93.158.191,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Canada,Toronto,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+206.189.118.3,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United Kingdom,London,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+178.62.228.184,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Netherlands,Amsterdam,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+64.38.152.149,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,18530.0,"Isomedia, Inc.",United States,,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+52.81.22.70,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994896,597520,False,1.0,1.0,1.0,1.0,0.992,IPv4,True
+52.59.220.223,8333,/Bitcoin SV:0.2.1(EB2000.0; bitcoin-sv)/,70015,16509.0,"Amazon.com, Inc.",Germany,Frankfurt am Main,1566994941,597520,False,1.0,0.95,0.935,0.91,0.857,IPv4,True
+188.214.30.76,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,51177.0,THC Projects SRL,Romania,,1566720010,597068,False,0.0,0.0,0.0,0.783,0.907,IPv4,False
+52.82.8.11,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,135629.0,Ningxia West Cloud Data Technology Co.Ltd.,China,,1566994896,597520,False,1.0,1.0,1.0,1.0,0.998,IPv4,True
+68.183.186.84,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Singapore,,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+68.183.182.93,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Singapore,,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+39.105.151.223,8333,/Bitcoin SV:0.2.1(EB512.0)/,70015,37963.0,"Hangzhou Alibaba Advertising Co.,Ltd.",China,Hangzhou,1566994941,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+185.194.143.151,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,197540.0,netcup GmbH,Germany,,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+50.57.119.10,8333,/Bitcoin SV:0.2.0(EB2000.0)/,70015,19994.0,Rackspace Hosting,United States,San Antonio,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+144.76.94.143,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+2a01:4f9:2a:9c5::2,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv6,True
+128.199.53.113,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Netherlands,Amsterdam,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+198.54.113.200,8340,/Bitcoin SV:0.2.1(EB2000.0; BSVForeverFund.com)/,70015,22612.0,"Namecheap, Inc.",United States,Los Angeles,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+121.78.223.189,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,9286.0,KINX,Republic of Korea,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+178.62.208.238,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Netherlands,Amsterdam,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+178.128.104.235,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Singapore,,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+46.166.162.126,20378,/Bitcoin SV:0.1.0(EB128.0)/,70015,16125.0,UAB Cherry Servers,Republic of Lithuania,,1566994895,592656,False,1.0,1.0,1.0,1.0,0.999,IPv4,False
+176.58.96.173,8333,/Bitcoin SV:0.2.0(EB2000.0)/,70015,63949.0,"Linode, LLC",United Kingdom,London,1566994941,597520,False,1.0,0.9,0.968,0.995,0.955,IPv4,True
+167.99.84.141,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United Kingdom,London,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+206.189.113.93,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United Kingdom,London,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+138.197.220.146,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United States,Santa Clara,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+18.195.95.73,8333,/Bitcoin SV:0.2.1(EB512.0)/,70015,16509.0,"Amazon.com, Inc.",Germany,Frankfurt am Main,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+2a03:b0c0:1:e0::228:8001,18080,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United Kingdom,London,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv6,True
+142.93.158.245,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Canada,Toronto,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+157.230.16.169,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Germany,Frankfurt am Main,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+52.81.96.3,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,0.998,0.981,IPv4,True
+68.65.120.10,8340,/Bitcoin SV:0.2.1(EB2000.0; BSVForeverFund.com)/,70015,22612.0,"Namecheap, Inc.",United States,Los Angeles,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+120.25.106.67,8333,/Bitcoin SV:0.2.1(EB512.0)/,70015,37963.0,"Hangzhou Alibaba Advertising Co.,Ltd.",China,Hangzhou,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+52.81.74.200,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994896,597520,False,1.0,1.0,1.0,1.0,0.979,IPv4,True
+5.188.187.130,6333,/Bitcoin SV:0.1.1(EB128.0)/,70015,50340.0,OOO Network of data-centers Selectel,Russia,,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+178.238.224.213,20337,/Bitcoin SV:0.1.0(EB128.0)/,70015,51167.0,Contabo GmbH,Germany,Munich,1566994895,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+202.177.24.140,8341,/Bitcoin SV:0.1.0(EB128.0)/,70015,7479.0,KDD HONG KONG LIMITED,Hong Kong,,1566994895,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+93.115.26.186,20379,/Bitcoin SV:0.1.0(EB128.0)/,70015,16125.0,UAB Cherry Servers,Republic of Lithuania,,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+95.216.32.249,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Finland,,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+2a01:4f9:2a:2106::2,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv6,True
+176.9.145.168,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+206.189.108.169,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Netherlands,Amsterdam,1566994896,597520,False,1.0,1.0,1.0,0.998,0.999,IPv4,True
+107.155.94.13,8333,/Bitcoin SV:0.1.0(EB128.0)/,70015,54540.0,"HIVELOCITY, Inc.",United States,Tampa,1566994896,592656,False,1.0,1.0,1.0,1.0,0.999,IPv4,False
+52.192.31.164,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,16509.0,"Amazon.com, Inc.",Japan,Tokyo,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+2a01:4f8:202:1183::2,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv6,True
+2a00:c98:2030:a007:11::,20833,/Bitcoin SV:0.1.1(EB128.0)/,70015,28753.0,Leaseweb Deutschland GmbH,Germany,,1566994896,592656,False,1.0,1.0,1.0,1.0,0.995,IPv6,False
+2a01:4f8:192:74e1::2,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv6,True
+2a01:4f9:2a:cd2::2,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv6,True
+159.203.12.203,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Canada,Toronto,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+157.230.28.101,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Germany,Frankfurt am Main,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+188.166.14.105,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Netherlands,Amsterdam,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+206.189.133.1,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",India,Bengaluru,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+39.105.173.160,8333,/Bitcoin SV:0.2.1(EB512.0)/,70015,37963.0,"Hangzhou Alibaba Advertising Co.,Ltd.",China,Hangzhou,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+24.91.86.78,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,7922.0,"Comcast Cable Communications, LLC",United States,Leominster,1566994895,597520,False,1.0,1.0,1.0,1.0,0.921,IPv4,True
+46.4.74.235,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994894,592656,False,1.0,1.0,1.0,1.0,0.999,IPv4,False
+52.82.26.103,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,135629.0,Ningxia West Cloud Data Technology Co.Ltd.,China,,1566994896,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+52.82.32.195,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,135629.0,Ningxia West Cloud Data Technology Co.Ltd.,China,,1566994896,597520,False,1.0,1.0,1.0,0.998,0.999,IPv4,True
+52.81.97.142,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,1.0,0.987,IPv4,True
+52.81.44.13,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994896,597520,False,1.0,1.0,1.0,1.0,0.987,IPv4,True
+50.47.119.219,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,5650.0,"Frontier Communications of America, Inc.",United States,Seattle,1566994941,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+2a01:4f9:4a:10a0::fc,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv6,True
+68.183.229.64,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Singapore,,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+2a01:4f8:192:4329::2,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv6,True
+2a01:4f8:140:902d::2,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv6,True
+88.99.169.67,8336,/Bitcoin SV:0.1.0(EB128.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+206.189.19.111,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United Kingdom,London,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+142.93.36.227,8333,/Bitcoin SV:0.2.0(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United Kingdom,London,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+104.248.41.102,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Germany,Frankfurt am Main,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+47.244.11.40,8887,/Bitcoin SV:0.2.1(EB2000.0)/,70015,45102.0,"Alibaba (US) Technology Co., Ltd.",China,,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+97.120.246.222,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,209.0,"CenturyLink Communications, LLC",United States,Portland,1566615611,596899,False,0.0,0.0,0.0,0.259,0.259,IPv4,False
+47.254.151.246,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,45102.0,"Alibaba (US) Technology Co., Ltd.",Germany,Frankfurt am Main,1566994895,597520,False,1.0,1.0,1.0,1.0,0.996,IPv4,True
+142.93.40.95,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United Kingdom,London,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+31.20.184.25,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,50266.0,T-Mobile Thuis BV,Netherlands,Amstelveen,1566994895,597520,False,1.0,1.0,1.0,1.0,0.998,IPv4,True
+159.89.164.112,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",India,Bengaluru,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+157.230.22.219,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Germany,Frankfurt am Main,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+68.183.211.135,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Germany,Frankfurt am Main,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+54.223.117.34,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,1.0,0.99,IPv4,True
+50.34.65.219,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,5650.0,"Frontier Communications of America, Inc.",United States,Seattle,1566994941,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+178.128.232.188,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Canada,Toronto,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+54.223.216.44,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,1.0,0.989,IPv4,True
+63.32.243.220,8333,/Bitcoin SV:0.1.0(EB128.0)/,70015,16509.0,"Amazon.com, Inc.",Ireland,Dublin,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+139.59.61.44,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",India,Bengaluru,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+104.248.250.171,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Germany,Frankfurt am Main,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+82.217.133.145,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,33915.0,Vodafone Libertel B.V.,Netherlands,Amstelveen,1566994896,597520,False,1.0,1.0,1.0,0.998,0.992,IPv4,True
+52.81.24.3,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,1.0,0.992,IPv4,True
+47.90.246.229,8333,/Bitcoin SV:0.2.1(EB512.0)/,70015,45102.0,"Alibaba (US) Technology Co., Ltd.",United States,San Mateo,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+47.90.188.32,8333,/Bitcoin SV:0.2.1(EB512.0)/,70015,45102.0,"Alibaba (US) Technology Co., Ltd.",United States,San Mateo,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+188.166.41.76,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Netherlands,Amsterdam,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+2a01:4f8:160:31a6::2,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv6,True
+157.230.26.108,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Germany,Frankfurt am Main,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+159.65.131.112,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Singapore,,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+178.128.231.219,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Canada,Toronto,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+2a01:4f8:192:72e9::2,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv6,True
+139.59.42.1,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",India,Bengaluru,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+52.195.19.127,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,16509.0,"Amazon.com, Inc.",Japan,Tokyo,1566994895,597520,False,1.0,1.0,1.0,1.0,0.998,IPv4,True
+52.80.146.104,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,1.0,0.987,IPv4,True
+52.80.157.68,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,0.998,0.991,IPv4,True
+2a01:4f9:2a:2605::2,8333,/Bitcoin SV:0.1.1(EB128.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566983107,592656,False,0.0,0.55,0.855,0.978,0.995,IPv6,False
+138.197.174.215,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Canada,Toronto,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+68.183.186.45,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Singapore,,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+167.99.238.22,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United States,North Bergen,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+95.79.35.133,6333,/Bitcoin SV:0.1.1(EB128.0)/,70015,42682.0,JSC ER-Telecom Holding,Russia,Nizhniy Novgorod,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+95.216.5.89,19932,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Finland,,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+2001:41d0:403:10e::,8333,/Bitcoin SV:0.1.0(EB128.0)/,70015,16276.0,OVH SAS,France,,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv6,False
+68.183.186.160,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Singapore,,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+178.128.228.109,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Canada,Toronto,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+167.99.191.215,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Canada,Toronto,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+144.76.200.114,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+144.76.103.42,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+144.76.202.44,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+104.215.14.250,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,8075.0,Microsoft Corporation,Japan,Osaka,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+5.39.83.142,8333,/Bitcoin SV:0.2.0(EB2000.0)/,70015,16276.0,OVH SAS,France,,1566994895,597520,False,1.0,1.0,1.0,1.0,0.995,IPv4,True
+2a03:4000:1c:498::1,28333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,197540.0,netcup GmbH,Germany,,1566994895,597520,False,1.0,1.0,1.0,1.0,0.991,IPv6,True
+43.229.135.100,8333,/Bitcoin SV:0.1.0(EB128.0)/,70015,56309.0,408 Fl4 CATTOWER,Thailand,,1566994896,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+142.93.153.5,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Canada,Toronto,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+178.128.237.215,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Canada,Toronto,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+209.97.173.210,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Singapore,,1566994896,597520,False,1.0,1.0,1.0,0.998,0.999,IPv4,True
+178.128.45.197,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United Kingdom,London,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+47.244.8.87,8333,/Bitcoin SV:0.2.0(EB2000.0)/,70015,45102.0,"Alibaba (US) Technology Co., Ltd.",China,,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+5.45.75.22,8334,/Bitcoin SV:0.1.0(EB128.0)/,70015,50673.0,Serverius Holding B.V.,Netherlands,,1566984032,592656,False,0.0,0.6,0.871,0.98,0.985,IPv4,False
+2a07:b400:1:34c::2:1002,8337,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14576.0,Hosting Solution Ltd.,Netherlands,,1566852882,597289,False,0.0,0.0,0.0,0.894,0.827,IPv6,False
+13.231.139.183,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,16509.0,"Amazon.com, Inc.",Japan,Tokyo,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+206.189.81.233,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Singapore,,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+178.128.147.160,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United States,North Bergen,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+94.244.97.244,8433,/Bitcoin SV:0.2.1(EB2000.0)/,70015,25190.0,UAB Kauno interneto sistemos,Republic of Lithuania,Kaunas,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+167.99.92.186,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United Kingdom,London,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+13.231.20.63,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,16509.0,"Amazon.com, Inc.",Japan,Tokyo,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+47.244.132.56,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,45102.0,"Alibaba (US) Technology Co., Ltd.",China,,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+159.89.167.184,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",India,Bengaluru,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+52.82.52.69,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,135629.0,Ningxia West Cloud Data Technology Co.Ltd.,China,,1566994941,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+52.81.64.119,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,1.0,0.992,IPv4,True
+52.81.81.143,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,1.0,0.992,IPv4,True
+142.44.214.159,8333,/Bitcoin SV:0.2.0(EB2000.0)/,70015,16276.0,OVH SAS,Canada,Montreal,1566994896,597520,False,1.0,1.0,1.0,1.0,0.728,IPv4,True
+52.80.38.232,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994896,597520,False,1.0,1.0,1.0,1.0,0.985,IPv4,True
+209.97.186.32,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United Kingdom,London,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+178.128.64.98,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United States,Santa Clara,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+52.82.42.185,8333,/Bitcoin SV:0.2.1(EB512.0)/,70015,135629.0,Ningxia West Cloud Data Technology Co.Ltd.,China,,1566994941,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+52.82.30.248,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,135629.0,Ningxia West Cloud Data Technology Co.Ltd.,China,,1566994941,597520,False,1.0,1.0,1.0,0.998,0.999,IPv4,True
+52.82.42.0,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,135629.0,Ningxia West Cloud Data Technology Co.Ltd.,China,,1566994941,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+52.82.27.108,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,135629.0,Ningxia West Cloud Data Technology Co.Ltd.,China,,1566541210,596768,False,0.0,0.0,0.0,0.5,0.943,IPv4,False
+52.82.33.107,8333,/Bitcoin SV:0.2.1(EB2000.0; bitcoin)/,70015,135629.0,Ningxia West Cloud Data Technology Co.Ltd.,China,,1566994941,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+206.189.109.219,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Netherlands,Amsterdam,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+52.82.39.205,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,135629.0,Ningxia West Cloud Data Technology Co.Ltd.,China,,1566994941,597520,False,1.0,0.95,0.984,0.998,0.998,IPv4,True
+52.81.91.180,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,1.0,0.99,IPv4,True
+2a01:4f8:13a:4e::2,9011,/Bitcoin SV:0.1.1(EB128.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv6,False
+47.92.24.153,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,37963.0,"Hangzhou Alibaba Advertising Co.,Ltd.",China,Hangzhou,1566994941,597520,False,1.0,1.0,1.0,0.998,0.999,IPv4,True
+46.242.56.75,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,42610.0,Rostelecom,Russia,Moscow,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+85.214.101.62,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,6724.0,Strato AG,Germany,Berlin,1566944465,597447,False,0.0,0.0,0.556,0.949,0.989,IPv4,False
+47.92.247.197,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,37963.0,"Hangzhou Alibaba Advertising Co.,Ltd.",China,Hangzhou,1566994941,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+2a01:4f9:2b:2cd6::2,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv6,True
+106.10.40.104,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,23576.0,NBP,Republic of Korea,,1566994896,597520,False,1.0,1.0,1.0,1.0,0.75,IPv4,True
+144.76.102.2,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+2a01:4f9:2a:b46::2,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv6,True
+95.216.5.31,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Finland,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+178.128.246.87,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Netherlands,Amsterdam,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+139.59.78.5,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",India,Bengaluru,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+206.189.107.249,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Netherlands,Amsterdam,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+188.166.66.115,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Netherlands,Amsterdam,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+52.81.20.211,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,1.0,0.989,IPv4,True
+95.216.227.169,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Finland,,1566994894,597520,False,1.0,1.0,1.0,1.0,0.983,IPv4,True
+52.82.67.219,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,135629.0,Ningxia West Cloud Data Technology Co.Ltd.,China,,1566994941,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+176.9.148.163,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+47.244.175.33,10333,/Bitcoin SV:0.1.0(EB128.0)/,70015,45102.0,"Alibaba (US) Technology Co., Ltd.",China,,1566994896,592656,False,1.0,1.0,1.0,1.0,0.993,IPv4,False
+194.67.222.6,1333,/Bitcoin SV:0.2.0(EB2000.0)/,70015,48666.0,MAROSNET Telecommunication Company LLC,Russia,Moscow,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+39.100.133.11,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,37963.0,"Hangzhou Alibaba Advertising Co.,Ltd.",China,Hangzhou,1566994941,597520,False,1.0,1.0,1.0,0.998,0.996,IPv4,True
+77.74.192.2,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,42831.0,UK Dedicated Servers Limited,United Kingdom,,1566994895,597520,False,1.0,1.0,1.0,1.0,0.998,IPv4,True
+144.76.67.215,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+95.216.11.57,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Finland,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+144.76.119.226,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+5.189.181.158,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,51167.0,Contabo GmbH,Germany,Nuremberg,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+2a01:4f9:2a:c0d::2,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv6,True
+95.216.18.241,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Finland,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+176.9.125.101,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+176.9.143.146,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+176.9.157.146,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+78.46.95.150,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+144.76.117.233,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+2a01:4f9:2a:104::2,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv6,True
+95.216.9.186,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Finland,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+167.86.100.92,15571,/Bitcoin SV:0.2.1(EB2000.0)/,70015,51167.0,Contabo GmbH,Germany,Nuremberg,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+85.214.208.227,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,6724.0,Strato AG,Germany,Berlin,1566944466,597447,False,0.0,0.0,0.556,0.949,0.952,IPv4,False
+120.27.232.146,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,37963.0,"Hangzhou Alibaba Advertising Co.,Ltd.",China,Hangzhou,1566548501,9352,False,0.0,0.0,0.0,0.324,0.136,IPv4,False
+47.91.73.203,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,45102.0,"Alibaba (US) Technology Co., Ltd.",Germany,Frankfurt am Main,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+31.52.218.136,8333,/Bitcoin SV:0.1.0(EB128.0)/,70015,2856.0,British Telecommunications PLC,United Kingdom,City of Westminster,1566994896,592604,False,1.0,1.0,1.0,1.0,0.991,IPv4,False
+2a01:4f8:200:832b::2,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv6,True
+35.165.190.24,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,16509.0,"Amazon.com, Inc.",United States,Boardman,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+188.214.30.137,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,51177.0,THC Projects SRL,Romania,,1566994894,597520,False,1.0,1.0,1.0,0.952,0.972,IPv4,True
+176.9.47.42,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+47.104.242.36,8833,/Bitcoin SV:0.2.1(EB2000.0)/,70015,37963.0,"Hangzhou Alibaba Advertising Co.,Ltd.",China,Hangzhou,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+77.120.119.27,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,25229.0,Volia,Ukraine,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+95.216.0.251,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Finland,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+78.46.91.94,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+97.120.228.243,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,209.0,"CenturyLink Communications, LLC",United States,Astoria,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+47.52.64.168,8334,/Bitcoin SV:0.1.0(EB128.0)/,70015,45102.0,"Alibaba (US) Technology Co., Ltd.",Hong Kong,,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+167.99.207.236,18080,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United Kingdom,London,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+52.196.172.57,8333,/Bitcoin SV:0.1.0(EB128.0)/,70015,16509.0,"Amazon.com, Inc.",Japan,Tokyo,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+5.9.59.153,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+95.216.96.167,8998,/Bitcoin SV:0.1.0(EB128.0)/,70015,24940.0,Hetzner Online GmbH,Finland,,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+199.247.6.147,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,20473.0,"Choopa, LLC",Germany,Frankfurt am Main,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+178.128.162.125,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United Kingdom,London,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+34.90.227.246,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,15169.0,Google LLC,United States,,1566956657,597466,False,0.0,0.0,0.082,0.109,0.329,IPv4,False
+159.89.167.255,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",India,Bengaluru,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+178.128.237.60,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Canada,Toronto,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+142.93.216.223,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",India,Bengaluru,1566994896,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+185.194.143.218,28333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,197540.0,netcup GmbH,Germany,,1566994895,597520,False,1.0,1.0,1.0,1.0,0.991,IPv4,True
+68.183.42.63,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United Kingdom,London,1566994895,597520,False,1.0,1.0,1.0,1.0,0.996,IPv4,True
+159.89.237.181,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United States,North Bergen,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+139.59.13.190,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",India,Bengaluru,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+54.36.164.16,8333,/Bitcoin SV:0.1.0(EB128.0)/,70015,16276.0,OVH SAS,United Kingdom,,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+68.183.180.221,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Singapore,,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+178.128.248.64,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Netherlands,Amsterdam,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+52.80.9.170,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,1.0,0.988,IPv4,True
+34.68.70.123,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,15169.0,Google LLC,United States,,1566994895,597520,False,1.0,1.0,1.0,1.0,0.998,IPv4,True
+95.216.11.237,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Finland,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+68.183.75.83,8333,/Bitcoin SV:0.2.0(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Germany,Frankfurt am Main,1566552013,575841,False,0.0,0.0,0.0,0.099,0.099,IPv4,False
+2a01:4f8:c0c:6c9::2,8336,/Bitcoin SV:0.1.0(EB128.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv6,False
+40.115.69.175,8333,/Bitcoin SV:0.2.0(EB2000.0)/,70015,8075.0,Microsoft Corporation,Australia,Melbourne,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+68.183.182.92,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Singapore,,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+95.213.171.116,8333,/Bitcoin SV:0.1.0(EB128.0)/,70015,49505.0,OOO Network of data-centers Selectel,Russia,,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+139.162.198.175,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,63949.0,"Linode, LLC",United Kingdom,London,1566994941,597520,False,1.0,1.0,1.0,0.995,0.786,IPv4,True
+52.53.129.41,8333,/Bitcoin SV:0.1.0(EB128.0)/,70015,16509.0,"Amazon.com, Inc.",United States,San Jose,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+52.82.32.124,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,135629.0,Ningxia West Cloud Data Technology Co.Ltd.,China,,1566994941,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+52.77.194.245,8333,/Bitcoin SV:0.1.0(EB128.0; bitcoin-sv)/,70015,16509.0,"Amazon.com, Inc.",Singapore,Singapore,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+178.128.37.60,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United Kingdom,London,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+68.183.221.244,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Germany,Frankfurt am Main,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+139.59.69.12,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",India,Bengaluru,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+159.65.87.136,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United Kingdom,London,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+37.187.140.168,8599,/Bitcoin SV:0.2.1(EB2000.0)/,70015,16276.0,OVH SAS,France,,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+120.25.224.24,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,37963.0,"Hangzhou Alibaba Advertising Co.,Ltd.",China,Hangzhou,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+104.248.134.215,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Germany,Frankfurt am Main,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+52.82.45.176,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,135629.0,Ningxia West Cloud Data Technology Co.Ltd.,China,,1566994941,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+174.138.5.253,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Netherlands,Amsterdam,1566994895,597520,False,1.0,1.0,1.0,1.0,0.996,IPv4,True
+157.230.41.128,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Singapore,,1566994895,597520,False,1.0,1.0,1.0,1.0,0.996,IPv4,True
+85.25.119.28,8333,/Bitcoin SV:0.2.0(EB2000.0)/,70015,8972.0,Host Europe GmbH,Germany,,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+112.74.180.216,8554,/Bitcoin SV:0.2.1(EB2000.0)/,70015,37963.0,"Hangzhou Alibaba Advertising Co.,Ltd.",China,Hangzhou,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+2a01:7c8:aac8:511:5054:ff:fe4c:bebe,8333,/Bitcoin SV:0.1.1(EB128.0)/,70015,20857.0,Transip B.V.,Netherlands,,1566994895,592656,False,1.0,1.0,1.0,1.0,1.0,IPv6,False
+23.233.55.92,28334,/Bitcoin SV:0.1.1(EB128.0)/,70015,5645.0,"TekSavvy Solutions, Inc.",Canada,Cambridge,1566957189,592656,False,0.0,0.0,0.031,0.281,0.236,IPv4,False
+52.82.17.252,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,135629.0,Ningxia West Cloud Data Technology Co.Ltd.,China,,1566994941,597520,False,1.0,1.0,1.0,1.0,0.998,IPv4,True
+54.67.57.47,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,16509.0,"Amazon.com, Inc.",United States,San Jose,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+13.125.234.126,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,16509.0,"Amazon.com, Inc.",Republic of Korea,Incheon,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+95.216.9.240,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Finland,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+188.214.30.3,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,51177.0,THC Projects SRL,Romania,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+2a01:4f8:160:438c::2,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv6,True
+2a01:4f9:2b:20d6::2,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994894,597520,False,1.0,1.0,1.0,1.0,0.983,IPv6,True
+2a01:4f8:192:4212::2,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv6,True
+159.69.153.20,8333,/Bitcoin SV:0.1.0(EB128.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+142.93.34.239,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United Kingdom,London,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+142.93.149.224,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Canada,Toronto,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+52.81.8.202,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,0.998,0.991,IPv4,True
+52.80.133.10,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,1.0,0.992,IPv4,True
+82.200.205.30,8329,/Bitcoin SV:0.2.1(EB2000.0)/,70015,9198.0,JSC Kazakhtelecom,Kazakhstan,,1566994896,597520,False,1.0,1.0,1.0,1.0,0.998,IPv4,True
+95.216.11.156,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Finland,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+178.128.168.207,8333,/Bitcoin SV:0.2.0(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United Kingdom,London,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+104.248.245.82,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Germany,Frankfurt am Main,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+68.183.190.207,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Singapore,,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+206.189.15.84,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Netherlands,Amsterdam,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+167.99.88.160,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United Kingdom,London,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+39.105.177.143,8333,/Bitcoin SV:0.2.1(EB512.0)/,70015,37963.0,"Hangzhou Alibaba Advertising Co.,Ltd.",China,Hangzhou,1566994941,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+52.82.54.6,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,135629.0,Ningxia West Cloud Data Technology Co.Ltd.,China,,1566994941,597520,False,1.0,1.0,1.0,1.0,0.998,IPv4,True
+52.82.35.243,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,135629.0,Ningxia West Cloud Data Technology Co.Ltd.,China,,1566994941,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+52.81.98.17,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994896,597520,False,1.0,1.0,1.0,1.0,0.992,IPv4,True
+52.80.65.133,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994896,597520,False,1.0,1.0,1.0,1.0,0.986,IPv4,True
+46.101.37.119,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United Kingdom,London,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+128.199.59.13,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Netherlands,Amsterdam,1566994896,597520,False,1.0,1.0,1.0,1.0,0.991,IPv4,True
+159.89.167.155,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",India,Bengaluru,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+206.189.128.174,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",India,Bengaluru,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+52.80.57.183,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,1.0,0.991,IPv4,True
+2a04:2180:1:11:f000::15,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,61272.0,"Informacines sistemos ir technologijos, UAB",Republic of Lithuania,,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv6,True
+52.80.215.182,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994896,597520,False,1.0,1.0,1.0,1.0,0.99,IPv4,True
+23.92.74.110,8333,/Bitcoin SV:0.2.0(EB2000.0)/,70015,54540.0,"HIVELOCITY, Inc.",United States,Tampa,1566994896,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+52.80.81.153,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994896,597520,False,1.0,1.0,1.0,1.0,0.99,IPv4,True
+206.124.149.68,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,18530.0,"Isomedia, Inc.",United States,,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+2001:41d0:8:958e::1,8333,/Bitcoin SV:0.2.0(EB2000.0)/,70015,16276.0,OVH SAS,France,,1566994895,597520,False,1.0,1.0,1.0,1.0,0.995,IPv6,True
+54.222.165.54,8333,/Bitcoin SV:0.2.1(EB2000.0; bitcoin)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+94.130.64.143,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,0.798,IPv4,True
+47.75.145.137,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,45102.0,"Alibaba (US) Technology Co., Ltd.",China,Beijing,1566994895,597520,False,1.0,1.0,1.0,1.0,0.995,IPv4,True
+121.78.223.149,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,9286.0,KINX,Republic of Korea,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+178.128.162.45,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United Kingdom,London,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+40.115.159.63,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,8075.0,Microsoft Corporation,Japan,Tokyo,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+52.81.98.235,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994896,597520,False,1.0,1.0,1.0,1.0,0.991,IPv4,True
+51.15.16.54,8333,/Bitcoin SV:0.1.1(EB128.0)/,70015,12876.0,Online S.a.s.,Netherlands,Haarlem,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+95.216.11.242,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Finland,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+148.251.69.164,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+159.89.229.134,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United States,North Bergen,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+188.166.9.23,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Netherlands,Amsterdam,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+157.230.180.123,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United States,North Bergen,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+2001:41d0:1:f68c::1,8333,/Bitcoin SV:0.1.0(EB128.0)/,70015,16276.0,OVH SAS,France,,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv6,False
+198.44.66.210,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,54290.0,Hostwinds LLC.,United States,Seattle,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+159.65.94.26,19333,/Bitcoin SV:0.1.0(EB128.0)/,70015,14061.0,"DigitalOcean, LLC",United Kingdom,London,1566994894,556767,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+2a01:4f8:10b:2099::881,8333,/Bitcoin SV:0.1.0(EB128.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,592656,False,1.0,1.0,1.0,1.0,1.0,IPv6,False
+159.89.205.94,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Singapore,,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+159.203.18.129,8333,/Bitcoin SV:0.2.0(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Canada,Toronto,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+47.90.251.188,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,45102.0,"Alibaba (US) Technology Co., Ltd.",United States,San Mateo,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+206.189.104.98,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Netherlands,Amsterdam,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+178.128.101.186,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Singapore,,1566994894,597520,False,1.0,1.0,1.0,1.0,0.992,IPv4,True
+79.137.41.14,8333,/Bitcoin SV:0.1.0(EB128.0)/,70015,16276.0,OVH SAS,France,,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+54.38.81.80,8337,/Bitcoin SV:0.2.1(EB2000.0)/,70015,16276.0,OVH SAS,France,,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+46.4.98.182,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+136.243.32.11,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+129.204.52.54,8133,/Bitcoin SV:0.1.0(EB128.0)/,70015,45090.0,Shenzhen Tencent Computer Systems Company Limited,China,,1566994895,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+88.198.46.36,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,Nuremberg,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+2a01:4f9:2a:be3::2,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv6,True
+54.169.116.120,8333,/Bitcoin SV:0.2.0(EB2000.0)/,70015,16509.0,"Amazon.com, Inc.",Singapore,Singapore,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+159.65.152.200,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",India,Bengaluru,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+68.183.213.86,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Germany,Frankfurt am Main,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+140.82.16.20,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,20473.0,"Choopa, LLC",United States,Los Angeles,1566994895,597520,False,1.0,1.0,1.0,1.0,0.998,IPv4,True
+46.4.23.220,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994894,597520,False,1.0,1.0,1.0,1.0,0.988,IPv4,True
+68.183.217.44,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Germany,Frankfurt am Main,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+2a02:7b40:5928:e35::1,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,62282.0,UAB Rakrejus,Republic of Lithuania,,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv6,True
+2a01:4f8:212:a::2,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv6,True
+2a01:4f8:200:8171::2,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv6,True
+2a01:4f9:2a:130e::2,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv6,True
+139.59.91.8,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",India,Bengaluru,1566994895,597520,False,1.0,1.0,1.0,1.0,0.998,IPv4,True
+104.248.181.157,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United States,Santa Clara,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+52.83.229.114,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,135629.0,Ningxia West Cloud Data Technology Co.Ltd.,China,,1566994941,597520,False,1.0,1.0,1.0,1.0,0.998,IPv4,True
+157.230.26.77,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Germany,Frankfurt am Main,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+68.183.218.29,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Germany,Frankfurt am Main,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+193.29.187.50,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,51177.0,THC Projects SRL,Romania,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+52.80.154.84,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+206.189.108.35,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Netherlands,Amsterdam,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+3.113.7.235,8333,/Bitcoin SV:0.1.0(EB128.0)/,70015,16509.0,"Amazon.com, Inc.",Japan,Tokyo,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+47.75.120.27,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,45102.0,"Alibaba (US) Technology Co., Ltd.",Hong Kong,Central,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+54.93.220.19,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,16509.0,"Amazon.com, Inc.",Germany,Frankfurt am Main,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+52.82.39.119,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,135629.0,Ningxia West Cloud Data Technology Co.Ltd.,China,,1566994941,597520,False,1.0,1.0,1.0,0.998,0.999,IPv4,True
+142.93.208.179,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",India,Bengaluru,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+70.114.25.192,8333,/Bitcoin SV:0.2.0(EB2000.0)/,70015,11427.0,Charter Communications Inc,United States,New Braunfels,1566994941,597520,False,1.0,1.0,1.0,0.988,0.971,IPv4,True
+95.217.34.169,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Finland,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+52.80.208.153,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,0.984,0.998,0.989,IPv4,True
+79.181.110.253,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,8551.0,Bezeq International,Israel,Ofakim,1566934809,597429,False,0.0,0.0,0.45,0.939,0.939,IPv4,False
+163.172.142.149,10001,/Bitcoin SV:0.1.1(EB128.0)/,70015,12876.0,Online S.a.s.,France,,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+159.65.192.20,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Netherlands,Amsterdam,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+167.99.15.90,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United States,North Bergen,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+54.255.240.88,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,16509.0,"Amazon.com, Inc.",Singapore,Singapore,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+2a01:4f8:1c1c:b20::1,8333,/Bitcoin SV:0.1.0(EB128.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv6,False
+178.128.213.123,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Singapore,,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+46.165.221.209,20833,/Bitcoin SV:0.1.1(EB128.0)/,70015,28753.0,Leaseweb Deutschland GmbH,Germany,,1566994896,592656,False,1.0,1.0,1.0,1.0,0.995,IPv4,False
+167.99.199.110,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United Kingdom,London,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+206.189.101.111,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Netherlands,Amsterdam,1566994895,597520,False,1.0,1.0,1.0,1.0,0.998,IPv4,True
+178.128.244.222,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Netherlands,Amsterdam,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+34.209.204.38,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,16509.0,"Amazon.com, Inc.",United States,Boardman,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+109.70.144.176,8333,/Bitcoin SV:0.1.1(EB128.0)/,70015,25369.0,Hydra Communications Ltd,United Kingdom,Twickenham,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+148.251.178.72,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+104.248.30.60,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Germany,Frankfurt am Main,1566994895,597520,False,1.0,1.0,1.0,1.0,0.998,IPv4,True
+2001:4801:7809:54:4240:faff:fe9e:c75c,8333,/Bitcoin SV:0.2.0(EB2000.0)/,70015,19994.0,Rackspace Hosting,United States,,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv6,True
+47.52.247.114,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,45102.0,"Alibaba (US) Technology Co., Ltd.",Hong Kong,,1566994895,597520,False,1.0,1.0,1.0,1.0,0.998,IPv4,True
+157.230.28.234,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Germany,Frankfurt am Main,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+139.59.90.66,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",India,Bengaluru,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+157.230.26.203,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Germany,Frankfurt am Main,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+159.203.44.100,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Canada,Toronto,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+107.155.94.22,8333,/Bitcoin SV:0.2.0(EB2000.0)/,70015,54540.0,"HIVELOCITY, Inc.",United States,Tampa,1566994896,597520,False,1.0,1.0,1.0,1.0,0.998,IPv4,True
+46.101.13.140,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United Kingdom,London,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+2001:41d0:800:e10::,8333,/Bitcoin SV:0.1.0(EB128.0)/,70015,16276.0,OVH SAS,France,,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv6,False
+157.230.26.46,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Germany,Frankfurt am Main,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+142.93.145.75,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Canada,Toronto,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+31.25.241.224,8337,/Bitcoin SV:0.1.1(EB128.0)/,70015,39741.0,data-centr ekaterinburg OOO,Russia,,1566994895,592656,False,1.0,1.0,1.0,1.0,0.998,IPv4,False
+68.183.64.156,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Germany,Frankfurt am Main,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+148.251.51.132,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+148.251.135.131,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+2a01:4f8:120:80cc::2,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv6,True
+52.81.29.71,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,1.0,0.99,IPv4,True
+206.189.124.223,8333,/Bitcoin SV:0.1.1(EB128.0)/,70015,14061.0,"DigitalOcean, LLC",United Kingdom,London,1566994894,592656,False,1.0,1.0,1.0,1.0,1.0,IPv4,False
+47.75.153.68,8887,/Bitcoin SV:0.2.1(EB2000.0)/,70015,45102.0,"Alibaba (US) Technology Co., Ltd.",China,Beijing,1566994895,594359,False,1.0,1.0,1.0,1.0,0.932,IPv4,False
+68.183.219.133,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Germany,Frankfurt am Main,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+157.230.30.239,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Germany,Frankfurt am Main,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+159.65.149.74,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",India,Bengaluru,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+52.81.107.203,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,1.0,0.99,IPv4,True
+198.211.113.177,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",United States,North Bergen,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+52.81.27.61,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,1.0,0.989,IPv4,True
+52.81.23.161,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+68.183.184.29,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Singapore,,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+178.128.214.119,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Singapore,,1566994896,597520,False,1.0,1.0,1.0,0.998,0.999,IPv4,True
+188.166.7.87,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Netherlands,Amsterdam,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+52.82.22.167,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,135629.0,Ningxia West Cloud Data Technology Co.Ltd.,China,,1566994941,597520,False,1.0,1.0,1.0,1.0,0.998,IPv4,True
+54.223.30.224,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,0.984,0.998,0.992,IPv4,True
+52.80.255.84,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994941,597520,False,1.0,1.0,1.0,1.0,0.99,IPv4,True
+139.59.67.18,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",India,Bengaluru,1566994896,597520,False,1.0,1.0,1.0,0.998,0.998,IPv4,True
+54.223.111.75,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994896,597520,False,1.0,1.0,1.0,1.0,0.991,IPv4,True
+2a01:4f8:192:23c7::2,8333,/Bitcoin SV:0.2.0(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv6,True
+144.76.93.243,8333,/Bitcoin SV:0.2.0(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+3.120.31.184,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,16509.0,"Amazon.com, Inc.",Germany,Frankfurt am Main,1566994894,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+39.100.60.185,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,37963.0,"Hangzhou Alibaba Advertising Co.,Ltd.",China,Hangzhou,1566994896,597520,False,1.0,1.0,1.0,1.0,0.992,IPv4,True
+120.77.45.167,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,37963.0,"Hangzhou Alibaba Advertising Co.,Ltd.",China,Hangzhou,1566994941,10540,False,1.0,1.0,1.0,0.963,0.978,IPv4,False
+47.110.61.22,8343,/Bitcoin SV:0.2.1(EB2000.0)/,70015,37963.0,"Hangzhou Alibaba Advertising Co.,Ltd.",China,Hangzhou,1566994941,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+95.211.89.68,8338,/Bitcoin SV:0.2.1(EB2000.0)/,70015,60781.0,LeaseWeb Netherlands B.V.,Netherlands,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+176.9.57.215,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+176.9.57.181,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+95.216.12.173,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Finland,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+144.76.108.175,8333,/Bitcoin SV:0.2.1(EB2000.0; bitcore; bitcore)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994941,597520,False,1.0,0.8,0.823,0.829,0.829,IPv4,True
+195.201.174.169,8333,/Bitcoin SV:0.2.1(EB2000.0; bitcore)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994894,597520,False,1.0,1.0,1.0,0.905,0.905,IPv4,True
+35.160.205.35,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,16509.0,"Amazon.com, Inc.",United States,Boardman,1566994895,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+148.251.236.180,8533,/Bitcoin SV:0.2.1(EB2000.0)/,70015,24940.0,Hetzner Online GmbH,Germany,,1566994896,597520,False,1.0,1.0,1.0,1.0,1.0,IPv4,True
+39.98.63.1,8333,/Bitcoin SV:0.2.0(EB2000.0)/,70015,37963.0,"Hangzhou Alibaba Advertising Co.,Ltd.",China,Hangzhou,1566994941,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+68.183.219.233,8333,/Bitcoin SV:0.2.0(EB2000.0)/,70015,14061.0,"DigitalOcean, LLC",Germany,Frankfurt am Main,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True
+52.80.24.44,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,55960.0,Beijing Guanghuan Xinwang Digital,China,Beijing,1566994896,597520,False,1.0,1.0,1.0,1.0,0.991,IPv4,True
+35.167.99.57,8333,/Bitcoin SV:0.2.1(EB2000.0)/,70015,16509.0,"Amazon.com, Inc.",United States,Boardman,1566994895,597520,False,1.0,1.0,1.0,1.0,0.999,IPv4,True

@@ -1,0 +1,65 @@
+package com.nchain.jcl.protocol.serialization.common;
+
+
+
+import com.nchain.jcl.protocol.messages.*;
+import com.nchain.jcl.protocol.serialization.*;
+
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * @author i.fernandez@nchain.com
+ * Copyright (c) 2018-2019 Bitcoin Association
+ * Distributed under the Open BSV software license, see the accompanying file LICENSE.
+ * @date 2019-07-15
+ *
+ * A registry of all the MessageBuilder and MessageSerializers developed. If you want to use the
+ * {@link BitcoinMsgSerializer} to serialize/deserialize a new type of Message, make sure that the
+ * Builders and Serializer Classes for that Message are registered here.
+ */
+public class MsgSerializersFactory {
+
+    private static Map<String, MessageSerializer> serializers = new HashMap<>();
+
+    private MsgSerializersFactory() {}
+
+    static {
+
+        // We register the message Serializers:
+        // Only COMPLETE Message Serializers need to be registered here, but no harm in registering all
+        // of them though
+
+        serializers.put(HeaderMsg.MESSAGE_TYPE.toUpperCase(), HeaderMsgSerializer.getInstance());
+        serializers.put(NetAddressMsg.MESSAGE_TYPE.toUpperCase(), NetAddressMsgSerializer.getInstance());
+        serializers.put(VarIntMsg.MESSAGE_TYPE.toUpperCase(), VarIntMsgSerializer.getInstance());
+        serializers.put(VarStrMsg.MESSAGE_TYPE.toUpperCase(), VarStrMsgSerializer.getinstance());
+        serializers.put(VersionAckMsg.MESSAGE_TYPE.toUpperCase(), VersionAckMsgSerializer.getInstance());
+        serializers.put(VersionMsg.MESSAGE_TYPE.toUpperCase(), VersionMsgSerializer.getInstance());
+        serializers.put(RejectMsg.MESSAGE_TYPE.toUpperCase(), RejectMsgSerializer.getInstance());
+        serializers.put(PingMsg.MESSAGE_TYPE.toUpperCase(), PingMsgSerializer.getInstance());
+        serializers.put(PongMsg.MESSAGE_TYPE.toUpperCase(), PongMsgSerializer.getInstance());
+        serializers.put(GetAddrMsg.MESSAGE_TYPE.toUpperCase(), GetAddrMsgSerializer.getInstance());
+        serializers.put(AddrMsg.MESSAGE_TYPE.toUpperCase(), AddrMsgSerialzer.getInstance());
+        serializers.put(InventoryVectorMsg.MESSAGE_TYPE.toUpperCase(), InventoryVectorMsgSerializer.getInstance());
+        serializers.put(InvMessage.MESSAGE_TYPE.toUpperCase(), InvMsgSerializer.getInstance());
+        serializers.put(GetdataMsg.MESSAGE_TYPE.toUpperCase(), GetdataMsgSerializer.getInstance());
+        serializers.put(NotFoundMsg.MESSAGE_TYPE.toUpperCase(), NotFoundMsgSerilaizer.getInstance());
+        serializers.put(GetBlocksMsg.MESSAGE_TYPE.toUpperCase(), GetblocksMsgSerializer.getInstance());
+        serializers.put(GetHeadersMsg.MESSAGE_TYPE.toUpperCase(), GetHeadersMsgSerializer.getInstance());
+        serializers.put(BaseGetDataAndHeaderMsg.MESSAGE_TYPE.toUpperCase(), BaseGetDataAndHeaderMsgSerializer.getInstance());
+        serializers.put(TxOutPointMsg.MESSAGE_TYPE.toUpperCase(), TxOutPointMsgSerializer.getInstance());
+        serializers.put(TxInputMessage.MESSAGE_TYPE.toUpperCase(), TxInputMessageSerializer.getInstance());
+        serializers.put(TransactionMsg.MESSAGE_TYPE.toUpperCase(), TransactionMsgSerializer.getInstance());
+        serializers.put(BlockMsg.MESSAGE_TYPE.toUpperCase(), BlockMsgSerializer.getInstance());
+        serializers.put(BlockHeaderMsg.MESSAGE_TYPE.toUpperCase(), BlockHeaderMsgSerializer.getInstance());
+        serializers.put(FeeFilterMsg.MESSAGE_TYPE.toUpperCase(), FeeFilterMsgSerializer.getInstance());
+
+    }
+
+    public static MessageSerializer getSerializer(String command) {
+        return serializers.get(command.toUpperCase());
+    }
+
+}

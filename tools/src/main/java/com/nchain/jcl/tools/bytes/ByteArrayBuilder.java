@@ -83,8 +83,7 @@ public class ByteArrayBuilder {
         // We build the result with another Builder:
         ByteArrayBuilder writeBuilder = new ByteArrayBuilder(memoryConfig);
 
-        // For those buffers that need to be removed from this buffer (but not clean from the memoryManager), since they
-        // have been moved to the result
+        // For those buffers that need to be removed from this buffer
         List<ByteArray> buffersToRemove = new ArrayList<>();
 
         long bytesRemaining = length;
