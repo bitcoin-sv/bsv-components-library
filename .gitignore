@@ -1,0 +1,21 @@
+# OS related files
+Thumbs.db
+.DS_Store
+
+# IDE related resources
+.gradle
+.idea
+.project
+.settings
+.classpath
+*.ipr
+*.iml
+*.iws
+
+# build & temporal folders
+build/
+out/
+daemon/target/
+
+/bna-data
+/bna-postgres-data
