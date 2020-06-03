@@ -138,7 +138,6 @@ class ByteArrayReaderWriterSpec extends Specification {
                 executor.awaitTermination(NUM_ITEMS_TO_WRITE * 1000 + 5000, TimeUnit.MILLISECONDS)
                 executor.shutdownNow()
             } catch (InterruptedException ie) {}
-            ByteArrayTestUtils.forceGC()
         then:
             noExceptionThrown()
     }
