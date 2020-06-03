@@ -55,7 +55,7 @@ public class ByteArrayReader {
         close();
         return result;
     }
-q
+
     public String readString(int length, String charset) {
         try {
             String result = new String(read(length), charset);
