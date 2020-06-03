@@ -7,16 +7,19 @@ import java.io.UnsupportedEncodingException;
  * Copyright (c) 2018-2020 Bitcoin Association
  * Distributed under the Open BSV software license, see the accompanying file LICENSE.
  * @date 2020-03-08 21:24
- *
+ * <p>
  * This class allows for reading data out of a ByteArray, and automatically converts the data into useful
  * representations, like unsigned Integers, etc.
- *
+ * <p>
  * IMPORTANT: The Reader CONSUMES the data as it reads them, so its not possible to use the same Reader twice.
  */
 public class ByteArrayReader {
 
     public ByteArrayBuilder builder; // TODO :Move it back to protected
     protected long bytesReadCount = 0; // Number of bytes read....
+
+    private static final int WAIT_FOR_BYTES_CHECK_INTERVAL = 100;
+    private static final int WAIT_FOR_BYTES_MIN_BYTES_PER_SECOND = 100;
 
     public ByteArrayReader(ByteArrayBuilder builder)    { this(builder, null); }
     public ByteArrayReader(ByteArrayWriter writer)      { this(writer.builder, null);}
@@ -52,7 +55,7 @@ public class ByteArrayReader {
         close();
         return result;
     }
-
+q
     public String readString(int length, String charset) {
         try {
             String result = new String(read(length), charset);
@@ -60,5 +63,25 @@ public class ByteArrayReader {
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /*
+     * Waits for the bytes to be written before returning. This will cause the thread to be blocked.
+     */
+    public void waitForBytes(int length) throws RuntimeException {
+        //this isn't commutative
+        long timeout = System.currentTimeMillis() + (length * 1000L / WAIT_FOR_BYTES_MIN_BYTES_PER_SECOND );
+
+        while (builder.size() < length) {
+            if (System.currentTimeMillis() > timeout) {
+                throw new RuntimeException();
+            }
+
+            try {
+                Thread.sleep(WAIT_FOR_BYTES_CHECK_INTERVAL);
+            } catch (InterruptedException ex) {}
+        }
+
+        return;
     }
 }
