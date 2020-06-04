@@ -2,13 +2,99 @@ package com.nchain.jcl.tools.bytes
 
 import spock.lang.Specification
 
+import javax.swing.text.html.HTMLDocument
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Consumer
 
 class ByteArrayReaderWriterSpec extends Specification {
+
+    /**
+     * We're testing that the waitForBytes times out when it's threshold is exceeded
+     */
+    def "Testing synchronous timeout"() {
+        given:
+        ByteArrayWriter writer = new ByteArrayWriter()
+        ByteArrayReader reader = new ByteArrayReader(writer)
+
+        when:
+        reader.waitForBytes(1);
+
+        then:
+        thrown RuntimeException
+    }
+
+    /**
+     * We're testing that the waitForBytes function synchronously blocks the thread until the data being written becomes available.
+     */
+    def "Testing synchronous reading"(int bytesToWrite, int waitByteLen, int delayMs) {
+        given:
+        ByteArrayWriter writer = new ByteArrayWriter()
+        ByteArrayReader reader = new ByteArrayReader(writer)
+
+        String[] data = new String[bytesToWrite];
+
+        //populate the data which we want to write
+        String dataString = "Test Data";
+        for (int i = 0; i < data.length; i++) {
+            data[i] = dataString;
+        }
+
+        when:
+        //thread to write data, takes a break after each write to make time for reader
+        Runnable writerWorker = {
+            try {
+                for (int i = 0; i < data.length; i++) {
+                    writer.writeStr(data[i])
+                    println("Writing Data:" + data[i])
+                    Thread.sleep(delayMs)
+                }
+            } catch (InterruptedException e) {
+            }
+        }
+
+        //thread to read data, checks and sleeps until data is available to read
+        Runnable readerWorker = {
+            println("awaiting byte data...")
+
+            //we want to synchronously wait for bytes
+            reader.waitForBytes(waitByteLen * dataString.length())
+
+            println("byte data received...")
+
+            //once bytes are read, validate the data
+            for (int i = 0; i < waitByteLen; i++) {
+                String value = reader.readString(data[i].length(), "UTF-8")
+
+                println("reading data:" + value);
+            }
+        }
+
+        //define and execute, terminating after specified time
+        ExecutorService executor = Executors.newFixedThreadPool(2)
+        Future writerFuture = executor.submit(writerWorker)
+        Future readerFuture = executor.submit(readerWorker)
+        executor.awaitTermination(bytesToWrite * 1000 + 5000, TimeUnit.MILLISECONDS)
+
+        // Throw any exceptions from the threads now they've finished executing
+        readerFuture.get()
+        writerFuture.get()
+
+        executor.shutdownNow()
+
+        then:
+        notThrown Exception
+
+        where:
+        bytesToWrite |  waitByteLen | delayMs
+             5       |      5       |  1
+             10      |      5       |  5
+    }
+
 
     /**
      * We test that when a ByteArrayReader and a ByteArrayWriter are linked together, the data we write and read is
@@ -89,14 +175,6 @@ class ByteArrayReaderWriterSpec extends Specification {
     def "Reading and Writing in multiThread"() {
         given:
 
-            // These flags how if the callbacks have been triggered:
-
-            // We create the memory Manager and link the callbacks
-            ByteArrayMemoryConfiguration memoryConfig = ByteArrayMemoryConfiguration.builder()
-                .byteArraySize(3)
-                .build();
-
-
             // We configure the data to be used for the Tests: We use here Strings...
             int NUM_ITEMS_TO_WRITE = 20;
             String[] DATA = new String[NUM_ITEMS_TO_WRITE];
@@ -133,13 +211,18 @@ class ByteArrayReaderWriterSpec extends Specification {
                 }
 
                 ExecutorService executor = Executors.newFixedThreadPool(2)
-                executor.submit(writerWorker)
-                executor.submit(readerWorker)
+                Future writerFuture = executor.submit(writerWorker)
+                Future readerFuture = executor.submit(readerWorker)
                 executor.awaitTermination(NUM_ITEMS_TO_WRITE * 1000 + 5000, TimeUnit.MILLISECONDS)
+
+                //throw any exceptions from the executed threads
+                writerFuture.get()
+                readerFuture.get()
+
                 executor.shutdownNow()
+
             } catch (InterruptedException ie) {}
-            ByteArrayTestUtils.forceGC()
         then:
-            noExceptionThrown()
+            notThrown Exception
     }
 }

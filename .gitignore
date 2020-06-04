@@ -16,5 +16,6 @@ Thumbs.db
 build/
 out/
 daemon/target/
-gradlew
-gradlew.bat
+
+/bna-data
+/bna-postgres-data
