@@ -37,6 +37,7 @@ public class BaseGetDataAndHeaderMsgSerializer implements MessageSerializer<Base
 
     @Override
     public BaseGetDataAndHeaderMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
+        byteReader.waitForBytes(4);
         long version = byteReader.readUint32();
         VarIntMsg hashCount = VarIntMsgSerializer.getInstance().deserialize(context,byteReader);
 
@@ -73,6 +74,7 @@ public class BaseGetDataAndHeaderMsgSerializer implements MessageSerializer<Base
     }
 
     protected HashMsg readHashMsg(DeserializerContext context, ByteArrayReader byteReader)  {
+        byteReader.waitForBytes(HashMsg.HASH_LENGTH);
         // We are not using the HashMsgSerializer for deserialize as
         // We have to flip it around, as it's been read off the wire in little endian.
         // Not the most efficient way to do this but the clearest.

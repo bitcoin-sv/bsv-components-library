@@ -34,18 +34,26 @@ public class VarIntMsgSerializer implements MessageSerializer<VarIntMsg> {
     public VarIntMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
         long value;
 
+        byteReader.waitForBytes(1);
+
         int firstByte = 0xFF & byteReader.read();
 
         // We calculate how to read the value from the byte Array.
         // the size in bytes used to store the value will be calculated automatically by the Builder later on:
-
-        if (firstByte < 253)        value = firstByte;
-        else if (firstByte == 253)  value = (0xFF & byteReader.read()) | ((0xFF & byteReader.read()) << 8);
-        else if (firstByte == 254)  value = byteReader.readUint32();
-        else                        value = byteReader.readInt64LE();
+        if (firstByte < 253){
+            value = firstByte;
+        } else if (firstByte == 253){
+            byteReader.waitForBytes(2);
+            value = (0xFF & byteReader.read()) | ((0xFF & byteReader.read()) << 8);
+        } else if (firstByte == 254) {
+            byteReader.waitForBytes(4);
+            value = byteReader.readUint32();
+        } else {
+            byteReader.waitForBytes(8);
+            value = byteReader.readInt64LE();
+        }
 
         // We assign the value to the builder:
-
         return VarIntMsg.builder().value(value).build();
     }
 

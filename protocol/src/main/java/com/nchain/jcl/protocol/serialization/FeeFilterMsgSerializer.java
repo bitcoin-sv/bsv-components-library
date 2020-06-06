@@ -35,6 +35,7 @@ public class FeeFilterMsgSerializer implements MessageSerializer<FeeFilterMsg> {
 
     @Override
     public FeeFilterMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
+        byteReader.waitForBytes(8);
         Long fee = byteReader.readInt64LE();
         return FeeFilterMsg.builder().fee(fee).build();
     }

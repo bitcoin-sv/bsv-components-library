@@ -32,6 +32,7 @@ public class PongMsgSerializer implements MessageSerializer<PongMsg> {
 
     @Override
     public PongMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
+        byteReader.waitForBytes(8);
         long nonce = byteReader.readInt64LE();
         return  PongMsg.builder().nonce(nonce).build();
     }
