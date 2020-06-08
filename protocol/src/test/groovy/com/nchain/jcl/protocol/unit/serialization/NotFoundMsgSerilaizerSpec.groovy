@@ -7,6 +7,7 @@ import com.nchain.jcl.protocol.messages.common.BitcoinMsg
 import com.nchain.jcl.protocol.messages.common.BitcoinMsgBuilder
 import com.nchain.jcl.protocol.serialization.NotFoundMsgSerilaizer
 import com.nchain.jcl.protocol.serialization.common.*
+import com.nchain.jcl.protocol.unit.tools.ByteArrayArtificalStreamProducer
 import com.nchain.jcl.tools.bytes.HEX
 import com.nchain.jcl.tools.crypto.Sha256Wrapper
 import com.nchain.jcl.tools.bytes.ByteArrayReader
@@ -57,7 +58,7 @@ class NotFoundMsgSerilaizerSpec extends Specification {
             messageSerialized.equals(REF_NOTFOUND_MSG_BODY)
     }
 
-    def "testing notFoundMsg  BODY De-Serializing"() {
+    def "testing notFoundMsg  BODY De-Serializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
@@ -65,12 +66,15 @@ class NotFoundMsgSerilaizerSpec extends Specification {
                 .maxBytesToRead((long) (REF_NOTFOUND_MSG_BODY.length()/2))
                 .build()
             NotFoundMsg inventoryMsg = null
-            ByteArrayReader byteReader = new ByteArrayReader(HEX.decode(REF_NOTFOUND_MSG_BODY))
+        ByteArrayReader byteArrayReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_NOTFOUND_MSG_BODY), byteInterval, delayMs);
         when:
-            inventoryMsg = NotFoundMsgSerilaizer.getInstance().deserialize(context, byteReader)
+            inventoryMsg = NotFoundMsgSerilaizer.getInstance().deserialize(context, byteArrayReader)
         then:
             inventoryMsg.getMessageType().equals(NotFoundMsg.MESSAGE_TYPE)
             inventoryMsg.getCount().value.toString().equals("1")
+        where:
+            byteInterval | delayMs
+                10       |    75
     }
 
     def "testing notFoundMessage COMPLETE Serializing"() {
@@ -97,17 +101,17 @@ class NotFoundMsgSerilaizerSpec extends Specification {
             serialized.equals(REF_NOTFOUND_MSG_FULL)
     }
 
-    def "testing notFoundMessage COMPLETE De-serializing"() {
+    def "testing notFoundMessage COMPLETE De-serializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
                 .protocolconfig(config)
                 .maxBytesToRead((long) (REF_NOTFOUND_MSG_FULL.length() / 2))
                 .build()
-            ByteArrayReader byteReader = new ByteArrayReader(HEX.decode(REF_NOTFOUND_MSG_FULL))
             BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
+            ByteArrayReader byteArrayReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_NOTFOUND_MSG_FULL), byteInterval, delayMs);
         when:
-            BitcoinMsg<NotFoundMsg> getDataMsg = bitcoinSerializer.deserialize(context, byteReader, NotFoundMsg.MESSAGE_TYPE)
+            BitcoinMsg<NotFoundMsg> getDataMsg = bitcoinSerializer.deserialize(context, byteArrayReader, NotFoundMsg.MESSAGE_TYPE)
         then:
             getDataMsg.getHeader().getMagic().equals(config.getMagicPackage())
             getDataMsg.getHeader().getCommand().equals(NotFoundMsg.MESSAGE_TYPE)
@@ -115,5 +119,8 @@ class NotFoundMsgSerilaizerSpec extends Specification {
             InventoryVectorMsg inventoryVectorMsg = inventoryList.get(0)
             inventoryList.size() == 1
             inventoryVectorMsg.getType() == InventoryVectorMsg.VectorType.MSG_TX
+        where:
+            byteInterval | delayMs
+                10       |    50
     }
 }
