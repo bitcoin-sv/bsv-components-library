@@ -37,12 +37,14 @@ public class TxOutputMessageSerializer implements MessageSerializer<TxOutputMess
 
     @Override
     public TxOutputMessage deserialize(DeserializerContext context, ByteArrayReader byteReader) {
+
+        byteReader.waitForBytes(8);
         long txValue = byteReader.readInt64LE();
-        VarIntMsg scriptLen = varIntMsgSerializer.deserialize(context, byteReader);
-        // Before ...
-        //String builderContentLeft = HEX.encode(byteReader.builder.get(300));
-        byte[] pk_script = byteReader.read((int)  scriptLen.getValue());
-        String scriptStr = HEX.encode(pk_script);
+        int scriptLen = (int) varIntMsgSerializer.deserialize(context, byteReader).getValue();
+
+        byteReader.waitForBytes(scriptLen);
+        byte[] pk_script = byteReader.read(scriptLen);
+
         return TxOutputMessage.builder().txValue(txValue).pk_script(pk_script).build();
     }
 

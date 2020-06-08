@@ -40,6 +40,7 @@ public class BlockHeaderMsgSerializer implements MessageSerializer<BlockHeaderMs
     @Override
     public BlockHeaderMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
 
+        byteReader.waitForBytes(HEADER_LENGTH);
         byte[] blockHeaderBytes = byteReader.read(HEADER_LENGTH);
 
         HashMsg hash =  HashMsg.builder().hash(
@@ -47,7 +48,7 @@ public class BlockHeaderMsgSerializer implements MessageSerializer<BlockHeaderMs
                         Sha256Wrapper.twiceOf(blockHeaderBytes).getBytes()).getBytes())
                 .build();
 
-        String blockHashStr = HEX.encode(hash.getHashBytes());
+       // String blockHashStr = HEX.encode(hash.getHashBytes());
 
         // We create a Reader on the Header Bytes, since we need those values again now to serialize the
         // whole Header...

@@ -34,14 +34,16 @@ public class VersionMsgSerializer implements MessageSerializer<VersionMsg> {
 
     @Override
     public VersionMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
+
+        byteReader.waitForBytes(20);
         long version = byteReader.readUint32();
         long services = byteReader.readInt64LE();
         long timestamp = byteReader.readInt64LE();
 
         NetAddressMsg addr_from = NetAddressMsgSerializer.getInstance().deserialize(context, byteReader);
-
         NetAddressMsg addr_recv = NetAddressMsgSerializer.getInstance().deserialize(context, byteReader);
 
+        byteReader.waitForBytes(12);
         long nonce = byteReader.readInt64LE(); // TODO: We need to know who to process this field
         VarStrMsg user_agent = VarStrMsgSerializer.getinstance().deserialize(context, byteReader);
         long start_height = byteReader.readUint32();
@@ -49,9 +51,10 @@ public class VersionMsgSerializer implements MessageSerializer<VersionMsg> {
 
 
         // The "RELAY" Field is optional. For version >= 70001, this field might be included or not.
-
-        if (byteReader.getBytesReadCount() == (context.getMaxBytesToRead() - 1))
+        if (byteReader.getBytesReadCount() == (context.getMaxBytesToRead() - 1)) {
+            byteReader.waitForBytes(1);
             relay = byteReader.readBoolean();
+        }
 
         VersionMsg versionMsg = VersionMsg.builder()
                 .version(version)

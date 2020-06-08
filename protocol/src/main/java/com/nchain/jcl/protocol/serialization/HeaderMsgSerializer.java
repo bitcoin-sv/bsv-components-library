@@ -34,6 +34,7 @@ public class HeaderMsgSerializer implements MessageSerializer<HeaderMsg> {
 
     @Override
     public HeaderMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
+        byteReader.waitForBytes(24);
         long  magic = byteReader.readUint32();
 
         // The "command" field is NULL-padded, so we remove the NULL values before

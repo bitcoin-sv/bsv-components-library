@@ -3,6 +3,7 @@ package com.nchain.jcl.protocol.serialization;
 
 import com.nchain.jcl.protocol.messages.VarIntMsg;
 import com.nchain.jcl.protocol.messages.VarStrMsg;
+import com.nchain.jcl.protocol.messages.VersionMsg;
 import com.nchain.jcl.protocol.serialization.common.*;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.tools.bytes.ByteArrayWriter;
@@ -32,10 +33,14 @@ public class VarStrMsgSerializer implements MessageSerializer<VarStrMsg> {
 
     @Override
     public  VarStrMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
+
+
+        byteReader.waitForBytes(1);
         // the first part of the message is a VarInt, containing the length of the String:
         VarIntMsg lengthStrMsg = VarIntMsgSerializer.getInstance().deserialize(context, byteReader);
         int length = (int) lengthStrMsg.getValue();
 
+        byteReader.waitForBytes(length);
         // The second part is the String itself:
         String str = (lengthStrMsg.getValue() == 0) ? "" : byteReader.readString(length, "UTF-8");
 

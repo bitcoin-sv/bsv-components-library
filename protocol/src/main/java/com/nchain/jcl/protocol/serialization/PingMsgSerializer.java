@@ -33,6 +33,7 @@ public class PingMsgSerializer implements MessageSerializer<PingMsg> {
     @Override
     public PingMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
         try {
+            byteReader.waitForBytes(8);
             long nonce = byteReader.readInt64LE();
             return PingMsg.builder().nonce(nonce).build();
         } catch (Exception e) {

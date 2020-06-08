@@ -39,9 +39,11 @@ public class TxInputMessageSerializer implements MessageSerializer<TxInputMessag
     @Override
     public TxInputMessage deserialize(DeserializerContext context, ByteArrayReader byteReader) {
         TxOutPointMsg txOutPointMsg = txOutPointMsgSerializer.deserialize(context, byteReader);
-        //System.out.println("after outpoint: " + HEX.encode(byteReader.getFullContent()));
-        VarIntMsg scriptLen = varIntMsgSerializer.deserialize(context, byteReader);
-        byte[] sig_script = byteReader.read((int) scriptLen.getValue());
+
+        int scriptLen = (int) varIntMsgSerializer.deserialize(context, byteReader).getValue();
+
+        byteReader.waitForBytes(scriptLen + 4);
+        byte[] sig_script = byteReader.read(scriptLen);
         long sequence = byteReader.readUint32();
 
         return TxInputMessage.builder().pre_outpoint(txOutPointMsg).signature_script(sig_script).sequence(sequence).build();
