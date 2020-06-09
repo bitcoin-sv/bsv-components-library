@@ -7,6 +7,7 @@ import com.nchain.jcl.protocol.messages.common.BitcoinMsg
 import com.nchain.jcl.protocol.messages.common.BitcoinMsgBuilder
 import com.nchain.jcl.protocol.serialization.PongMsgSerializer
 import com.nchain.jcl.protocol.serialization.common.*
+import com.nchain.jcl.protocol.unit.tools.ByteArrayArtificalStreamProducer
 import com.nchain.jcl.tools.bytes.HEX
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
@@ -34,7 +35,7 @@ class PongMsgSerializerSpec extends Specification {
     private static final String REF_PONG_MSG = "e3e1f3e8706f6e670000000000000000080000006fd6f567a2d34110b0761803"
     private static final long  REF_PONG_NONCE = 223058680113910690
 
-    def "testing Pong Message Body Deserializing"() {
+    def "testing Pong Message Body Deserializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
@@ -42,12 +43,14 @@ class PongMsgSerializerSpec extends Specification {
                     .build()
             PongMsg message = null
             ByteArrayReader byteReader = new ByteArrayReader(HEX.decode(REF_BODY_PONG_MSG))
-
         when:
             message = PongMsgSerializer.getInstance().deserialize(context, byteReader)
 
         then:
             message.getNonce() == REF_BODY_NONCE
+        where:
+            byteInterval | delayMs
+                10       |    25
 
     }
 
@@ -68,13 +71,13 @@ class PongMsgSerializerSpec extends Specification {
             messageSerialized.equals(REF_BODY_PONG_MSG)
     }
 
-    def "testing Pong Message COMPLETE de-serializing"() {
+    def "testing Pong Message COMPLETE de-serializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
                 .protocolconfig(config)
                 .build()
-            ByteArrayReader byteReader = new ByteArrayReader(HEX.decode(REF_PONG_MSG))
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_PONG_MSG), byteInterval, delayMs)
             BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
             BitcoinMsg<PongMsg> message = bitcoinSerializer.deserialize(context, byteReader, PongMsg.MESSAGE_TYPE)
@@ -82,6 +85,9 @@ class PongMsgSerializerSpec extends Specification {
             message.getHeader().getMagic().equals(config.getMagicPackage())
             message.getHeader().getCommand().toUpperCase().equals(PongMsg.MESSAGE_TYPE.toUpperCase())
             message.getBody().nonce == REF_PONG_NONCE
+        where:
+            byteInterval | delayMs
+                10       |    25
     }
 
     def "testing Pong Message COMPLETE Serializing"() {

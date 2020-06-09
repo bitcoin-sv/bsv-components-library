@@ -7,6 +7,7 @@ import com.nchain.jcl.protocol.messages.common.BitcoinMsg
 import com.nchain.jcl.protocol.messages.common.BitcoinMsgBuilder
 import com.nchain.jcl.protocol.serialization.BlockMsgSerializer
 import com.nchain.jcl.protocol.serialization.common.*
+import com.nchain.jcl.protocol.unit.tools.ByteArrayArtificalStreamProducer
 import com.nchain.jcl.tools.bytes.HEX
 import com.nchain.jcl.tools.crypto.Sha256Wrapper
 import com.nchain.jcl.tools.bytes.ByteArrayReader
@@ -41,7 +42,7 @@ class BlockMsgSerializerSpec extends Specification {
 
 
 
-    def "testing blockMessage BlockMsgSerializer Deserialize"() {
+    def "testing blockMessage BlockMsgSerializer Deserialize"(int byteInterval, int delayMs) {
         given:
 
             ProtocolConfig config = new ProtocolBSVMainConfig()
@@ -51,9 +52,11 @@ class BlockMsgSerializerSpec extends Specification {
             BlockMsgSerializer serializer = BlockMsgSerializer.getInstance()
             BlockMsg blockMsg
 
+
         when:
             byte[] blockBytes = HEX.decode(BLOCK_BYTES)
-            blockMsg = serializer.deserialize(context, new ByteArrayReader(blockBytes))
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(blockBytes, byteInterval, delayMs);
+            blockMsg = serializer.deserialize(context, byteReader)
         then:
             blockMsg.blockHeader.version.longValue() == Long.valueOf(1).longValue()
             blockMsg.blockHeader.prevBlockHash.getHashBytes() == Sha256Wrapper.wrapReversed(PREV_BLOCK_HASH).bytes
@@ -69,17 +72,19 @@ class BlockMsgSerializerSpec extends Specification {
             blockMsg.transactionMsg.get(1).getTx_in_count().value == Long.valueOf(1).longValue()
             blockMsg.transactionMsg.get(1).getTx_out_count().value == Long.valueOf(2).longValue()
             blockMsg.messageType == BlockMsg.MESSAGE_TYPE
+        where:
+            byteInterval | delayMs
+                10       |    15
     }
 
-    def "testing blockMessage BitcoinMsgSerializer Deserialize"() {
+    def "testing blockMessage BitcoinMsgSerializer Deserialize"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
                 .protocolconfig(config)
                 .build()
-            ByteArrayReader byteReader = new ByteArrayReader(HEX.decode(REF_MSG_FULL))
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_MSG_FULL), byteInterval, delayMs);
             BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
-
         when:
             BitcoinMsg<BlockMsg> blockMsgBody = bitcoinSerializer.deserialize(context, byteReader, BlockMsg.MESSAGE_TYPE)
 
@@ -101,6 +106,9 @@ class BlockMsgSerializerSpec extends Specification {
             blockMsgBody.getBody().transactionMsg.get(1).getTx_in_count().value == Long.valueOf(1).longValue()
             blockMsgBody.getBody().transactionMsg.get(1).getTx_out_count().value == Long.valueOf(2).longValue()
             blockMsgBody.getBody().messageType == BlockMsg.MESSAGE_TYPE
+        where:
+            byteInterval | delayMs
+                10       |    15
     }
 
     def "testing blockMessage BlockMsgSerializer Serializing"() {

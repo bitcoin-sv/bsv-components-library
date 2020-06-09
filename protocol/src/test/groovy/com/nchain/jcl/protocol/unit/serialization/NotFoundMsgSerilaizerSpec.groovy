@@ -121,6 +121,6 @@ class NotFoundMsgSerilaizerSpec extends Specification {
             inventoryVectorMsg.getType() == InventoryVectorMsg.VectorType.MSG_TX
         where:
             byteInterval | delayMs
-                10       |    50
+                10       |    15
     }
 }

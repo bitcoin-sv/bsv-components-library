@@ -10,6 +10,7 @@ import com.nchain.jcl.protocol.messages.common.BitcoinMsg
 import com.nchain.jcl.protocol.messages.common.BitcoinMsgBuilder
 import com.nchain.jcl.protocol.serialization.VersionMsgSerializer
 import com.nchain.jcl.protocol.serialization.common.*
+import com.nchain.jcl.protocol.unit.tools.ByteArrayArtificalStreamProducer
 import com.nchain.jcl.tools.bytes.HEX
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
@@ -49,7 +50,7 @@ class VersionMsgSerializationSpec extends Specification {
     private static final long REF_TIMESTAMP = 1563438675
 
 
-    def "testing VersionMSg BODY De-serializing"() {
+    def "testing VersionMSg BODY De-serializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
@@ -58,7 +59,8 @@ class VersionMsgSerializationSpec extends Specification {
                     .insideVersionMsg(true)
                     .build()
             VersionMsg message = null
-            ByteArrayReader byteReader = new ByteArrayReader(HEX.decode(REF_BODY_ADDRESS_MSG))
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_BODY_ADDRESS_MSG), byteInterval, delayMs);
+
         when:
             message = VersionMsgSerializer.getInstance().deserialize(context, byteReader)
         then:
@@ -68,6 +70,9 @@ class VersionMsgSerializationSpec extends Specification {
             message.getAddr_from().getAddress().getIp().getCanonicalHostName().equals(REF_BODY_ADDRESS.getIp().getCanonicalHostName())
             message.getAddr_recv().getAddress().getIp().getCanonicalHostName().equals(REF_BODY_ADDRESS.getIp().getCanonicalHostName())
             message.isRelay() == REF_BODY_RELAY
+        where:
+            byteInterval | delayMs
+                10       |    15
     }
 
     def "testing VersionMsg BODY Serializing"() {
@@ -102,14 +107,15 @@ class VersionMsgSerializationSpec extends Specification {
             messageSerialized.equals(REF_BODY_ADDRESS_MSG)
     }
 
-    def "testing Version Message COMPLETE de-serializing"() {
+    def "testing Version Message COMPLETE de-serializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
                 .protocolconfig(config)
                 .insideVersionMsg(true)
                 .build()
-            ByteArrayReader byteReader = new ByteArrayReader(HEX.decode(REF_ADDRESS_MSG))
+
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_ADDRESS_MSG), byteInterval, delayMs);
             BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
             BitcoinMsg<VersionMsg> message = bitcoinSerializer.deserialize(context, byteReader, VersionMsg.MESSAGE_TYPE)
@@ -122,6 +128,9 @@ class VersionMsgSerializationSpec extends Specification {
             message.getBody().getAddr_from().getAddress().getIp().getCanonicalHostName().equals(REF_BODY_ADDRESS.getIp().getCanonicalHostName())
             message.getBody().getAddr_recv().getAddress().getIp().getCanonicalHostName().equals(REF_BODY_ADDRESS.getIp().getCanonicalHostName())
             message.getBody().isRelay() == REF_BODY_RELAY
+        where:
+            byteInterval | delayMs
+                10       |    25
     }
 
     def "testing Version Message COMPLETE Serializing"() {

@@ -8,6 +8,7 @@ import com.nchain.jcl.protocol.messages.common.BitcoinMsg
 import com.nchain.jcl.protocol.messages.common.BitcoinMsgBuilder
 import com.nchain.jcl.protocol.serialization.GetblocksMsgSerializer
 import com.nchain.jcl.protocol.serialization.common.*
+import com.nchain.jcl.protocol.unit.tools.ByteArrayArtificalStreamProducer
 import com.nchain.jcl.tools.bytes.HEX
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
@@ -50,7 +51,7 @@ class GetblocksMsgSerializerSpec extends Specification {
              messageSerialized.equals(REF_GETBLOCKS_MSG_BODY)
     }
 
-    def "testing getBlocksMessage Message BODY De-Serializing"() {
+    def "testing getBlocksMessage Message BODY De-Serializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
@@ -58,7 +59,7 @@ class GetblocksMsgSerializerSpec extends Specification {
                     .maxBytesToRead((long) (REF_GETBLOCKS_MSG_BODY.length()/2))
                     .build()
             GetBlocksMsg getBlocksMsg
-            ByteArrayReader byteReader = new ByteArrayReader(HEX.decode(REF_GETBLOCKS_MSG_BODY))
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_GETBLOCKS_MSG_BODY), byteInterval, delayMs);
         when:
             getBlocksMsg = GetblocksMsgSerializer.getInstance().deserialize(context, byteReader)
         then:
@@ -66,6 +67,9 @@ class GetblocksMsgSerializerSpec extends Specification {
             getBlocksMsg.baseGetDataAndHeaderMsg.hashCount.value == 1
             getBlocksMsg.baseGetDataAndHeaderMsg.blockLocatorHash.size() == 1
             getBlocksMsg.messageType == GetBlocksMsg.MESSAGE_TYPE
+        where:
+            byteInterval | delayMs
+                10       |    15
 
     }
 
@@ -87,20 +91,23 @@ class GetblocksMsgSerializerSpec extends Specification {
             msgSerialized.equals(REF_GETBLOCKS_MSG_FULL)
     }
 
-    def "testing getBlocksMessage COMPLETE De-serializing"() {
+    def "testing getBlocksMessage COMPLETE De-serializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
                     .protocolconfig(config)
                     .maxBytesToRead((long) (REF_GETBLOCKS_MSG_FULL.length() / 2))
                     .build()
-            ByteArrayReader byteReader = new ByteArrayReader(HEX.decode(REF_GETBLOCKS_MSG_FULL))
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_GETBLOCKS_MSG_FULL), byteInterval, delayMs);
             BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
         when:
             BitcoinMsg<GetBlocksMsg> getBlocksMsgBitcoinMsg = bitcoinSerializer.deserialize(context, byteReader, GetBlocksMsg.MESSAGE_TYPE)
         then:
             getBlocksMsgBitcoinMsg.getHeader().getMagic().equals(config.getMagicPackage())
             getBlocksMsgBitcoinMsg.getHeader().getCommand().equals(GetBlocksMsg.MESSAGE_TYPE)
+        where:
+            byteInterval | delayMs
+                10       |    15
     }
 
 }

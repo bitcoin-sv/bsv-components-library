@@ -10,7 +10,7 @@ import com.nchain.jcl.protocol.serialization.common.BitcoinMsgSerializer
 import com.nchain.jcl.protocol.serialization.common.BitcoinMsgSerializerImpl
 import com.nchain.jcl.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.protocol.serialization.common.SerializerContext
-
+import com.nchain.jcl.protocol.unit.tools.ByteArrayArtificalStreamProducer
 import com.nchain.jcl.tools.bytes.HEX
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
@@ -42,7 +42,7 @@ class TransactionMsgSerializerSpec extends Specification {
             "403fe8cf4a89403b" +
             "02b51e058960520bd1e3ffffffff02b3bb0200000000001976a914f7d52018971f4ab9b56f0036958f84ae0325ccdc88ac98100700000000001976a914f230f0a16a98433eca0fa70487b85fb83f7b61cd88ac00000000"
 
-    def "Testing TransactionMsg Deserialize"() {
+    def "Testing TransactionMsg Deserialize"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
@@ -51,7 +51,8 @@ class TransactionMsgSerializerSpec extends Specification {
             TransactionMsgSerializer serializer = TransactionMsgSerializer.getInstance()
             TransactionMsg message
         when:
-            message = serializer.deserialize(context, new ByteArrayReader(HEX.decode(REF_MSG)))
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_MSG), byteInterval, delayMs)
+            message = serializer.deserialize(context, byteReader)
         then:
 
             message.getMessageType() == TransactionMsg.MESSAGE_TYPE
@@ -68,6 +69,9 @@ class TransactionMsgSerializerSpec extends Specification {
 
             message.tx_out.get(1).txValue == 463000
             message.tx_out.get(1).pk_script== pk_script_two
+        where:
+            byteInterval | delayMs
+                10       |    25
     }
 
     def "Testing TxInputMessage Serializing"() {
@@ -103,13 +107,13 @@ class TransactionMsgSerializerSpec extends Specification {
              messageSerializedBytes == REF_MSG
     }
 
-    def "testing TransactionMsg COMPLETE de-serializing"() {
+    def "testing TransactionMsg COMPLETE de-serializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
                     .protocolconfig(config)
                     .build()
-            ByteArrayReader byteReader = new ByteArrayReader(HEX.decode(REF_MSG_FULL))
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_MSG_FULL), byteInterval, delayMs)
             BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
             BitcoinMsg<TransactionMsg> message = bitcoinSerializer.deserialize(context, byteReader, TransactionMsg.MESSAGE_TYPE)
@@ -131,7 +135,9 @@ class TransactionMsgSerializerSpec extends Specification {
 
             message.getBody().tx_out.get(1).txValue == 463000
             message.getBody().tx_out.get(1).pk_script== pk_script_two
-
+        where:
+            byteInterval | delayMs
+                50       |    3
     }
 
     def "testing Version Message COMPLETE Serializing"() {

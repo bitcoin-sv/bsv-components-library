@@ -5,7 +5,7 @@ import com.nchain.jcl.protocol.messages.FeeFilterMsg
 import com.nchain.jcl.protocol.serialization.FeeFilterMsgSerializer
 import com.nchain.jcl.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.protocol.serialization.common.SerializerContext
-
+import com.nchain.jcl.protocol.unit.tools.ByteArrayArtificalStreamProducer
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
 import com.nchain.jcl.tools.bytes.HEX
@@ -27,7 +27,7 @@ import spock.lang.Specification
 class FeeFilterMsgSerializerSpec extends Specification {
 
 
-    def "testing Serialization/Deserialization"() {
+    def "testing Serialization/Deserialization"(int byteInterval, int delayMs) {
         given:
             FeeFilterMsg msg = FeeFilterMsg.builder().fee(555).build()
             SerializerContext serializerContext = SerializerContext.builder().build();
@@ -37,13 +37,15 @@ class FeeFilterMsgSerializerSpec extends Specification {
             // First we Serialize the Message:
             ByteArrayWriter writer = new ByteArrayWriter()
             FeeFilterMsgSerializer.getInstance().serialize(serializerContext, msg, writer)
-            ByteArrayReader reader = writer.reader();
-            String deserialized = HEX.encode(reader.getFullContent())
+
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(writer.reader().getFullContent(), byteInterval, delayMs);
 
             // Now we deserialize it back and compare it to the initial version
-            FeeFilterMsg newMsg = FeeFilterMsgSerializer.getInstance().deserialize(deserializerContext, reader);
-
+            FeeFilterMsg newMsg = FeeFilterMsgSerializer.getInstance().deserialize(deserializerContext, byteReader);
         then:
             msg.getFee() == newMsg.getFee()
+        where:
+            byteInterval | delayMs
+                10       |    15
     }
 }

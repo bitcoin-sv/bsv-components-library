@@ -15,11 +15,11 @@ import java.io.UnsupportedEncodingException;
  */
 public class ByteArrayReader {
 
-    public ByteArrayBuilder builder; // TODO :Move it back to protected
+    protected ByteArrayBuilder builder;
     protected long bytesReadCount = 0; // Number of bytes read....
 
-    private static final int WAIT_FOR_BYTES_CHECK_INTERVAL = 100;
-    private static final int WAIT_FOR_BYTES_MIN_BYTES_PER_SECOND = 100;
+    protected static final int WAIT_FOR_BYTES_CHECK_INTERVAL = 100;
+    protected static final int WAIT_FOR_BYTES_MIN_BYTES_PER_SECOND = 100;
 
     public ByteArrayReader(ByteArrayBuilder builder)    { this(builder, null); }
     public ByteArrayReader(ByteArrayWriter writer)      { this(writer.builder, null);}
@@ -74,7 +74,7 @@ public class ByteArrayReader {
 
         while (builder.size() < length) {
             if (System.currentTimeMillis() > timeout) {
-                throw new RuntimeException();
+                throw new RuntimeException("timed out waiting for bytes");
             }
 
             try {

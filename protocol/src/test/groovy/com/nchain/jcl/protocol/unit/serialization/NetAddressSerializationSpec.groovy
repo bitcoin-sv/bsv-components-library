@@ -7,6 +7,7 @@ import com.nchain.jcl.protocol.messages.NetAddressMsg
 import com.nchain.jcl.protocol.serialization.NetAddressMsgSerializer
 import com.nchain.jcl.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.protocol.serialization.common.SerializerContext
+import com.nchain.jcl.protocol.unit.tools.ByteArrayArtificalStreamProducer
 import com.nchain.jcl.tools.bytes.HEX
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
@@ -31,7 +32,7 @@ class NetAddressSerializationSpec extends Specification {
     private static final int REF_PORT = 8333
     private static final PeerAddress REF_ADDRESS = new PeerAddress(InetAddress.getByName("localhost"), REF_PORT)
 
-    def "Testing NetAddress Deserializing"() {
+    def "Testing NetAddress Deserializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
@@ -39,13 +40,16 @@ class NetAddressSerializationSpec extends Specification {
                     .build()
         NetAddressMsgSerializer serializer = NetAddressMsgSerializer.getInstance()
         NetAddressMsg address = null
-
+        ByteArrayReader byteArrayReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_ADDRESS_MSG), byteInterval, delayMs);
         when:
-            address = serializer.deserialize(context, new ByteArrayReader(HEX.decode(REF_ADDRESS_MSG)))
+            address = serializer.deserialize(context, byteArrayReader)
         then:
             address.getLengthInBytes() == NetAddressMsg.MESSAGE_LENGTH
             address.getAddress().getIp().getCanonicalHostName().equals(REF_ADDRESS.getIp().getCanonicalHostName())
             address.getAddress().getPort() == config.getPort()
+        where:
+            byteInterval | delayMs
+                10       |    15
     }
 
     def "Testing NetAddress Serializing"() {
