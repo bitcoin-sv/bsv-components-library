@@ -8,6 +8,7 @@ import com.nchain.jcl.protocol.messages.TxOutPointMsg
 import com.nchain.jcl.protocol.serialization.TxInputMessageSerializer
 import com.nchain.jcl.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.protocol.serialization.common.SerializerContext
+import com.nchain.jcl.protocol.unit.tools.ByteArrayArtificalStreamProducer
 import com.nchain.jcl.tools.bytes.ByteArrayReaderOptimized
 import com.nchain.jcl.tools.bytes.HEX
 import com.nchain.jcl.tools.crypto.Sha256Wrapper
@@ -32,7 +33,7 @@ class TxInputMessageSerializerSpec extends Specification {
     public static final byte[] REF_BITES = Sha256Wrapper.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6").getBytes();
     public static final long SEQUENCE = 65536
 
-    def "Testing TxInputMessage Deserializing"() {
+    def "Testing TxInputMessage Deserializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
@@ -41,12 +42,14 @@ class TxInputMessageSerializerSpec extends Specification {
             TxInputMessageSerializer serializer = TxInputMessageSerializer.getInstance()
             TxInputMessage message
         when:
-            ByteArrayReader reader = new ByteArrayReader(HEX.decode(REF_MSG))
-            System.out.println("init: " + HEX.encode(reader.builder.getFullContent()));
-           message = serializer.deserialize(context, new ByteArrayReaderOptimized(reader))
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_MSG), byteInterval, delayMs)
+           message = serializer.deserialize(context, new ByteArrayReaderOptimized(byteReader))
         then:
            message.getSequence()  == SEQUENCE
            message.getMessageType() == TxInputMessage.MESSAGE_TYPE
+        where:
+            byteInterval | delayMs
+                10       |    25
     }
 
 

@@ -34,8 +34,6 @@ public class VarStrMsgSerializer implements MessageSerializer<VarStrMsg> {
     @Override
     public  VarStrMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
 
-
-        byteReader.waitForBytes(1);
         // the first part of the message is a VarInt, containing the length of the String:
         VarIntMsg lengthStrMsg = VarIntMsgSerializer.getInstance().deserialize(context, byteReader);
         int length = (int) lengthStrMsg.getValue();

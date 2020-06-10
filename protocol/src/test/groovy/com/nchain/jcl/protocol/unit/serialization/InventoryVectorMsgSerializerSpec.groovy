@@ -8,6 +8,7 @@ import com.nchain.jcl.protocol.messages.common.BitcoinMsg
 import com.nchain.jcl.protocol.messages.common.BitcoinMsgBuilder
 import com.nchain.jcl.protocol.serialization.InventoryVectorMsgSerializer
 import com.nchain.jcl.protocol.serialization.common.*
+import com.nchain.jcl.protocol.unit.tools.ByteArrayArtificalStreamProducer
 import com.nchain.jcl.tools.bytes.HEX
 import com.nchain.jcl.tools.crypto.Sha256Wrapper
 import com.nchain.jcl.tools.bytes.ByteArrayReader
@@ -55,7 +56,7 @@ class InventoryVectorMsgSerializerSpec extends Specification {
              messageSerialized.equals(REF_INV_VEC_BODY_MSG)
     }
 
-    def "testing InventoryVector Message BODY De-Serializing"() {
+    def "testing InventoryVector Message BODY De-Serializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
@@ -63,11 +64,14 @@ class InventoryVectorMsgSerializerSpec extends Specification {
                     .maxBytesToRead((long) (REF_INV_VEC_BODY_MSG.length()/2))
                     .build()
             InventoryVectorMsg inventoryVectorMsg = null
-            ByteArrayReader byteReader = new ByteArrayReader(HEX.decode(REF_INV_VEC_BODY_MSG))
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_INV_VEC_BODY_MSG), byteInterval, delayMs);
         when:
              inventoryVectorMsg = InventoryVectorMsgSerializer.getInstance().deserialize(context, byteReader)
         then:
              inventoryVectorMsg.getType().getValue().equals(REF_INV_VEC_TYPE.value)
+        where:
+            byteInterval | delayMs
+                10       |    15
     }
 
     def "testing InventoryVector Message COMPLETE Serializing"() {
@@ -89,13 +93,13 @@ class InventoryVectorMsgSerializerSpec extends Specification {
             rejectMsgSerialized.equals(REF_INV_VEC_FULL_MSG)
     }
 
-    def "testing InventoryVector Message COMPLETE De-serializing"() {
+    def "testing InventoryVector Message COMPLETE De-serializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
                     .protocolconfig(config)
                     .build()
-            ByteArrayReader byteReader = new ByteArrayReader(HEX.decode(REF_INV_VEC_FULL_MSG))
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_INV_VEC_FULL_MSG), byteInterval, delayMs);
             BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
         when:
             BitcoinMsg<InventoryVectorMsg> bitcoinMsg = bitcoinSerializer.deserialize(
@@ -104,6 +108,9 @@ class InventoryVectorMsgSerializerSpec extends Specification {
             bitcoinMsg.getHeader().getMagic().equals(config.getMagicPackage())
             bitcoinMsg.getHeader().getCommand().equals(InventoryVectorMsg.MESSAGE_TYPE)
             bitcoinMsg.getBody().type.getValue().equals(REF_INV_VEC_TYPE.value)
+        where:
+            byteInterval | delayMs
+                10       |    15
     }
 
 }

@@ -8,6 +8,7 @@ import com.nchain.jcl.protocol.messages.common.BitcoinMsg
 import com.nchain.jcl.protocol.messages.common.BitcoinMsgBuilder
 import com.nchain.jcl.protocol.serialization.GetHeadersMsgSerializer
 import com.nchain.jcl.protocol.serialization.common.*
+import com.nchain.jcl.protocol.unit.tools.ByteArrayArtificalStreamProducer
 import com.nchain.jcl.tools.bytes.HEX
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
@@ -52,9 +53,10 @@ class GetHeadersMsgSerializerSpec extends Specification{
             String messageSerialized = HEX.encode(messageBytes)
         then:
             messageSerialized == REF_GETHEADERS_MSG_BODY
+
     }
 
-    def "testing getGetHeadersMessage BODY De-Serializing"() {
+    def "testing getGetHeadersMessage BODY De-Serializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
@@ -62,7 +64,7 @@ class GetHeadersMsgSerializerSpec extends Specification{
                     .maxBytesToRead((long) (REF_GETHEADERS_MSG_BODY.length()/2))
                     .build()
             GetHeadersMsg getHeadersMsg
-            ByteArrayReader byteReader = new ByteArrayReader(HEX.decode(REF_GETHEADERS_MSG_BODY))
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_GETHEADERS_MSG_BODY), byteInterval, delayMs);
         when:
             getHeadersMsg = GetHeadersMsgSerializer.getInstance().deserialize(context, byteReader)
         then:
@@ -70,6 +72,9 @@ class GetHeadersMsgSerializerSpec extends Specification{
             getHeadersMsg.baseGetDataAndHeaderMsg.hashCount.value == 1
             getHeadersMsg.baseGetDataAndHeaderMsg.blockLocatorHash.size() == 1
             getHeadersMsg.messageType == GetHeadersMsg.MESSAGE_TYPE
+        where:
+            byteInterval | delayMs
+                10       |    15
     }
 
     def "testing getGetHeadersMessage COMPLETE Serializing"() {
@@ -92,19 +97,23 @@ class GetHeadersMsgSerializerSpec extends Specification{
             msgSerialized.equals(REF_GETHEADERS_MSG_FULL)
     }
 
-    def "testing getGetHeadersMessage COMPLETE De-serializing"() {
+    def "testing getGetHeadersMessage COMPLETE De-serializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
                     .protocolconfig(config)
                     .maxBytesToRead((long) (REF_GETHEADERS_MSG_FULL.length() / 2))
                     .build()
-            ByteArrayReader byteReader = new ByteArrayReader(HEX.decode(REF_GETHEADERS_MSG_FULL))
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_GETHEADERS_MSG_FULL), byteInterval, delayMs);
+
             BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
         when:
             BitcoinMsg<GetHeadersMsg> getHeaderMsg = bitcoinSerializer.deserialize(context, byteReader, GetHeadersMsg.MESSAGE_TYPE)
         then:
             getHeaderMsg.getHeader().getMagic().equals(config.getMagicPackage())
             getHeaderMsg.getHeader().getCommand().equals(GetHeadersMsg.MESSAGE_TYPE)
+        where:
+            byteInterval | delayMs
+                10       |    15
     }
 }

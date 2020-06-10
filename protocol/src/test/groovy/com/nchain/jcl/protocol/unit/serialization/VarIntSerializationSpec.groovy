@@ -6,6 +6,7 @@ import com.nchain.jcl.protocol.messages.VarIntMsg
 import com.nchain.jcl.protocol.serialization.VarIntMsgSerializer
 import com.nchain.jcl.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.protocol.serialization.common.SerializerContext
+import com.nchain.jcl.protocol.unit.tools.ByteArrayArtificalStreamProducer
 import com.nchain.jcl.tools.bytes.HEX
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
@@ -25,7 +26,7 @@ class VarIntSerializationSpec extends Specification {
     private static final String REF_VARINT_MSG = "fd1f02"
     private static final int VAR_VALUE = 543
 
-    def "Testing VarInt Deserializing"() {
+    def "Testing VarInt Deserializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
@@ -33,10 +34,14 @@ class VarIntSerializationSpec extends Specification {
                     .build()
             VarIntMsgSerializer serializer = VarIntMsgSerializer.getInstance()
             VarIntMsg message = null
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_VARINT_MSG), byteInterval, delayMs)
         when:
-            message = serializer.deserialize(context, new ByteArrayReader(HEX.decode(REF_VARINT_MSG)))
+            message = serializer.deserialize(context, byteReader)
         then:
             message.getValue() == VAR_VALUE
+        where:
+            byteInterval | delayMs
+                20       |   2
     }
 
     def "Testing VarInt Serializing"() {

@@ -34,7 +34,8 @@ class ByteArrayReaderWriterSpec extends Specification {
     def "Testing synchronous reading"(int bytesToWrite, int waitByteLen, int delayMs) {
         given:
         ByteArrayWriter writer = new ByteArrayWriter()
-        ByteArrayReader reader = new ByteArrayReader(writer)
+        ByteArrayReader reader = new ByteArrayReader(writer);
+        reader.setWaitForBytesEnabled(true)
 
         String[] data = new String[bytesToWrite];
 

@@ -8,6 +8,7 @@ import com.nchain.jcl.protocol.messages.VarIntMsg
 import com.nchain.jcl.protocol.serialization.BaseGetDataAndHeaderMsgSerializer
 import com.nchain.jcl.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.protocol.serialization.common.SerializerContext
+import com.nchain.jcl.protocol.unit.tools.ByteArrayArtificalStreamProducer
 import com.nchain.jcl.tools.bytes.HEX
 import com.nchain.jcl.tools.crypto.Sha256Wrapper
 import com.nchain.jcl.tools.bytes.ByteArrayReader
@@ -44,7 +45,7 @@ class BaseGetDataAndHeaderMsgSerializerSpec extends Specification {
             messageSerialized.equals(REF_MSG_BODY)
     }
 
-    def "testing BaseGetDataAndHeaderMsg   De-Serializing"() {
+    def "testing BaseGetDataAndHeaderMsg   De-Serializing"(int byteInterval, int delayMs) {
         given:
 
             ProtocolConfig config = new ProtocolBSVMainConfig()
@@ -53,7 +54,7 @@ class BaseGetDataAndHeaderMsgSerializerSpec extends Specification {
                     .maxBytesToRead((long)(REF_MSG_BODY.length()/2))
                     .build()
 
-            ByteArrayReader byteReader = new ByteArrayReader(HEX.decode(REF_MSG_BODY))
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_MSG_BODY), byteInterval, delayMs);
             BaseGetDataAndHeaderMsg baseMsg
         when:
              baseMsg = BaseGetDataAndHeaderMsgSerializer.getInstance().deserialize(context, byteReader)
@@ -61,6 +62,9 @@ class BaseGetDataAndHeaderMsgSerializerSpec extends Specification {
              baseMsg.getVersion().longValue() == Long.valueOf(70013).longValue()
              baseMsg.getHashCount().getValue() == Long.valueOf(1).longValue()
              baseMsg.getBlockLocatorHash().size() == 1
+        where:
+            byteInterval | delayMs
+                10       |    15
 
     }
 

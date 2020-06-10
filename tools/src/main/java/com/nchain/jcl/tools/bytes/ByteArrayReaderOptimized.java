@@ -33,7 +33,7 @@ public class ByteArrayReaderOptimized extends ByteArrayReader {
     private int bytesConsumed = 0;
 
     public ByteArrayReaderOptimized(ByteArrayReader reader) {
-        super(reader.builder);
+        super(reader.builder, null, reader.waitForBytesEnabled);
     }
 
     private void refreshBuffer() throws IOException {
@@ -119,5 +119,25 @@ public class ByteArrayReaderOptimized extends ByteArrayReader {
         byte[] result = builder.getFullContent();
         close();
         return result;
+    }
+
+    /*
+     * Waits for the bytes to be written before returning. This will cause the thread to be blocked.
+     */
+    @Override
+    public void waitForBytes(int length) throws RuntimeException {
+        //this isn't commutative
+        long timeout = System.currentTimeMillis() + (length * 1000L / WAIT_FOR_BYTES_MIN_BYTES_PER_SECOND );
+
+        while (size() < length) {
+            if (System.currentTimeMillis() > timeout || !super.waitForBytesEnabled) {
+                throw new RuntimeException("timed out waiting for bytes");
+            }
+            try {
+                Thread.sleep(WAIT_FOR_BYTES_CHECK_INTERVAL);
+            } catch (InterruptedException ex) {}
+        }
+
+        return;
     }
 }

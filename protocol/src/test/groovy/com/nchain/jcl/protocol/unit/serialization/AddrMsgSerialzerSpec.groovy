@@ -9,6 +9,7 @@ import com.nchain.jcl.protocol.messages.common.BitcoinMsg
 import com.nchain.jcl.protocol.messages.common.BitcoinMsgBuilder
 import com.nchain.jcl.protocol.serialization.AddrMsgSerialzer
 import com.nchain.jcl.protocol.serialization.common.*
+import com.nchain.jcl.protocol.unit.tools.ByteArrayArtificalStreamProducer
 import com.nchain.jcl.tools.bytes.HEX
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
@@ -43,7 +44,7 @@ class AddrMsgSerialzerSpec extends Specification {
     private static final String REF_COMPLETE_ADDRESS_MSG = "e3e1f3e86164647200000000000000001f00000077b42c0c010b6d2f5" +
             "d000000000000000000000000000000000000ffff7f000001208d"
 
-    def "Testing AddrMsg Body Deserializing"() {
+    def "Testing AddrMsg Body Deserializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
@@ -52,7 +53,7 @@ class AddrMsgSerialzerSpec extends Specification {
                         .build()
             AddrMsgSerialzer serializer = AddrMsgSerialzer.getInstance()
             AddrMsg address = null
-            ByteArrayReader byteReader = new ByteArrayReader(HEX.decode(REF_ADDRESS_MSG))
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_ADDRESS_MSG), byteInterval, delayMs);
         when:
              address = serializer.deserialize(context,byteReader)
         then:
@@ -60,6 +61,9 @@ class AddrMsgSerialzerSpec extends Specification {
              address.count.value == 1
              address.getAddrList().get(0).timestamp == REF_TIMESTAMP
              address.getAddrList().get(0).getAddress() == REF_PEER_ADDRESS
+        where:
+            byteInterval | delayMs
+                10       |    15
 
     }
 
@@ -111,14 +115,14 @@ class AddrMsgSerialzerSpec extends Specification {
         return addMessages
     }
 
-    def "testing Address Message COMPLETE de-serializing"() {
+    def "testing Address Message COMPLETE de-serializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
                     .protocolconfig(config)
                     .maxBytesToRead((long) (REF_ADDRESS_MSG.length()/2))
                     .build()
-            ByteArrayReader byteReader = new ByteArrayReader(HEX.decode(REF_COMPLETE_ADDRESS_MSG))
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_COMPLETE_ADDRESS_MSG), byteInterval, delayMs);
             BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
             BitcoinMsg<AddrMsg> message = bitcoinSerializer.deserialize(context, byteReader, AddrMsg.MESSAGE_TYPE)
@@ -128,6 +132,9 @@ class AddrMsgSerialzerSpec extends Specification {
             message.getBody().getCount().value == 1
             message.getBody().getAddrList().get(0).timestamp == REF_TIMESTAMP
             message.getBody().getAddrList().get(0).getAddress() == REF_PEER_ADDRESS
+        where:
+            byteInterval | delayMs
+                10       |    15
     }
 
 }

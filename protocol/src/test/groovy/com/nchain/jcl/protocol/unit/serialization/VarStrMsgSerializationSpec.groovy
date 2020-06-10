@@ -6,6 +6,7 @@ import com.nchain.jcl.protocol.messages.VarStrMsg
 import com.nchain.jcl.protocol.serialization.VarStrMsgSerializer
 import com.nchain.jcl.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.protocol.serialization.common.SerializerContext
+import com.nchain.jcl.protocol.unit.tools.ByteArrayArtificalStreamProducer
 import com.nchain.jcl.tools.bytes.HEX
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
@@ -21,7 +22,7 @@ class VarStrMsgSerializationSpec extends Specification {
     private static final String VARSTR_MSG_VARINT = "1f"
     private static final String VARSTR_MSG_VARSTR = "Testing Serialization of VarStr"
 
-    def "testing De-serializing VarStr"() {
+    def "testing De-serializing VarStr"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
@@ -29,6 +30,7 @@ class VarStrMsgSerializationSpec extends Specification {
                     .build()
             VarStrMsgSerializer serializer = VarStrMsgSerializer.getinstance()
             VarStrMsg message
+
         when:
             // We convert the String in a ByteArray, Careful here, since the "VarInt" part is in HEX format,
             // but the "VarStr" part is in Char Format:
@@ -37,12 +39,16 @@ class VarStrMsgSerializationSpec extends Specification {
             byte[] varStrWhole = new byte[varIntBytes.length + varStrBytes.length]
             System.arraycopy(varIntBytes, 0, varStrWhole, 0, varIntBytes.length)
             System.arraycopy(varStrBytes, 0, varStrWhole, varIntBytes.length, varStrBytes.length)
-            message = serializer.deserialize(context, new ByteArrayReader(varStrWhole))
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(varStrWhole, byteInterval, delayMs)
+            message = serializer.deserialize(context, byteReader)
         then:
             message.getStr().equals("Testing Serialization of VarStr")
+        where:
+            byteInterval | delayMs
+                10       |    15
     }
 
-    def "testing Serializing VarStr"() {
+    def "testing Serializing VarStr"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             SerializerContext contextS = SerializerContext.builder()
@@ -58,9 +64,13 @@ class VarStrMsgSerializationSpec extends Specification {
             byte[] serializedBytes = byteWriter.reader().getFullContent()
             // We convert it to String. But we cannot do it directly since the "varInt" part and the "varStr" are
             // encoded differently. So we need to Deserialize it:
-            VarStrMsg message2 = serializer.deserialize(contextD, new ByteArrayReader(serializedBytes))
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(serializedBytes, byteInterval, delayMs)
+            VarStrMsg message2 = serializer.deserialize(contextD, byteReader)
             serialized = message2.getStr()
         then:
             serialized.equals(VARSTR_MSG_VARSTR)
+        where:
+            byteInterval | delayMs
+                10       |    50
     }
 }

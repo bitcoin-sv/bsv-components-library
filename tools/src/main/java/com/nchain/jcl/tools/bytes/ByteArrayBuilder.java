@@ -1,8 +1,8 @@
 package com.nchain.jcl.tools.bytes;
 
+
 import javax.annotation.concurrent.GuardedBy;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -17,9 +17,8 @@ import static com.google.common.base.Preconditions.checkArgument;
  * where each item is a ByteArray Implementation. This items will be a NIO(memory)-based implementation.
  */
 public class ByteArrayBuilder {
-    private ByteArrayMemoryConfiguration memoryConfig;
-
-    protected List<ByteArray> buffers = Collections.synchronizedList(new ArrayList<ByteArray>());
+    @GuardedBy("this") private ByteArrayMemoryConfiguration memoryConfig;
+    @GuardedBy("this") private List<ByteArray> buffers = new ArrayList<>();
 
     public ByteArrayBuilder(){
         this.memoryConfig = ByteArrayMemoryConfiguration.builder().build();
@@ -31,15 +30,14 @@ public class ByteArrayBuilder {
 
 
     // Adds a new buffer to the list and returns it
-    private ByteArray addBuffer() {
+    private synchronized ByteArray addBuffer() {
         buffers.add(new ByteArrayImpl(memoryConfig.getByteArraySize()));
 
         return buffers.get(buffers.size() - 1);
     }
 
     /** Adds a byte Array to the end of the current data */
-    @GuardedBy("this")
-    public ByteArrayBuilder add(byte[] data) {
+    public synchronized ByteArrayBuilder add(byte[] data) {
         int bytesRemaining = data.length;
         if (buffers.size() == 0) addBuffer();
         while (bytesRemaining > 0) {
@@ -60,9 +58,9 @@ public class ByteArrayBuilder {
     }
 
     /** Adds a single byte to the end of the data */
-    @GuardedBy("this")
-    public ByteArrayBuilder add(ByteArray byteArray) {
+    public synchronized ByteArrayBuilder add(ByteArray byteArray) {
         buffers.add(byteArray);
+
         return this;
     }
 
@@ -71,8 +69,7 @@ public class ByteArrayBuilder {
      * operation, the data size will be reduced in "length" bytes.
      * If we try to extractReader more bytes than stored in the Builder it will throw an Exception
      * */
-    @GuardedBy("this")
-    public ByteArrayReader extractReader(long length, ByteArrayMemoryConfiguration memoryConfig) {
+    public synchronized ByteArrayReader extractReader(long length, ByteArrayMemoryConfiguration memoryConfig) {
         checkArgument(size() >= length,
                 "trying to extractReader too many bytes, current: " + size() + ", requested: " + length);
 
@@ -120,13 +117,11 @@ public class ByteArrayBuilder {
         return new ByteArrayReader(writeBuilder);
     }
 
-    @GuardedBy("this")
     public ByteArrayReader extractReader(long length) {
         return this.extractReader(length, memoryConfig);
     }
 
-    @GuardedBy("this")
-    public ByteArrayReader extractReader() {
+    public synchronized ByteArrayReader extractReader() {
         return new ByteArrayReader(this);
     }
 
@@ -136,8 +131,7 @@ public class ByteArrayBuilder {
      * Since we are returning a whole byte[], we control that we are extracting a "safe" number of bytes.
      * If we try to extractReader more bytes than stored in the Builder it will throw an Exception
      * */
-    @GuardedBy("this")
-    public byte[] extractBytes(int length) {
+    public synchronized byte[] extractBytes(int length) {
         checkArgument(size() >= length,
                 "trying to extract too many bytes, current: " + size() + ", requested: " + length);
 
@@ -168,7 +162,7 @@ public class ByteArrayBuilder {
     }
 
     /** Returns the number of bytes stored */
-    public long size() {
+    public synchronized long size() {
         return buffers.stream().mapToLong(b -> b.size()).sum();
     }
 
@@ -176,7 +170,7 @@ public class ByteArrayBuilder {
      * Cleans the data. For the data stored in Memory, it
      * becomes eligible for the Garbage Collector, so it will be eventually cleaned as well.
      */
-    public void clear() {
+    public synchronized void clear() {
         buffers.forEach(b -> b.destroy());
         buffers.clear();
     }
@@ -186,7 +180,7 @@ public class ByteArrayBuilder {
      * OutOfMemory, we check that the max size we are extracting is BYTE_ARRAY_SIZE.
      * @param length    length of the data
      */
-    public byte[] get(int length) {
+    public synchronized byte[] get(int length) {
         checkArgument(length <= this.size(),
                 " trying to extractReader too much data (not enough in the builder)");
 
@@ -201,13 +195,14 @@ public class ByteArrayBuilder {
             bytesRemaining -= bytesToWriteLength;
             index++;
         }
+
         return result;
     }
 
     /**
      * Returns the Full Content of the Builder.
      */
-    protected byte[] getFullContent() {
+    protected synchronized byte[] getFullContent() {
         ByteArray result =  new ByteArrayImpl((int) this.size());
         for (int i = 0; i < buffers.size(); i++) {
             ByteArray bufferItem = buffers.get(i);
@@ -217,8 +212,7 @@ public class ByteArrayBuilder {
         return result.get();
     }
 
-    @GuardedBy("this")
-    public void updateMemoryConfig(ByteArrayMemoryConfiguration memoryConfig) {
+    public synchronized void updateMemoryConfig(ByteArrayMemoryConfiguration memoryConfig) {
         this.memoryConfig = memoryConfig;
     }
 }

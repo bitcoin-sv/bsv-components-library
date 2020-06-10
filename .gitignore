@@ -16,6 +16,7 @@ Thumbs.db
 build/
 out/
 daemon/target/
+log-Tera-J.txt
 
 /bna-data
 /bna-postgres-data

@@ -34,7 +34,7 @@ class PingMsgSerializerSpec extends Specification {
     private static final String REF_BODY_PING_MSG = "72be75ff2b9e1c3d"
     private static final long  REF_BODY_NONCE = 4403568447468191346
 
-    def "testing Ping Message Body Deserializing"() {
+    def "testing Ping Message Body Deserializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
@@ -48,6 +48,9 @@ class PingMsgSerializerSpec extends Specification {
 
         then:
             message.getNonce() == REF_BODY_NONCE
+        where:
+            byteInterval | delayMs
+                10       |    25
 
     }
 
@@ -67,7 +70,7 @@ class PingMsgSerializerSpec extends Specification {
             messageSerialized.equals(REF_BODY_PING_MSG)
     }
 
-    def "testing Ping Message COMPLETE de-serializing"() {
+    def "testing Ping Message COMPLETE de-serializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
@@ -81,6 +84,9 @@ class PingMsgSerializerSpec extends Specification {
             message.getHeader().getMagic().equals(config.getMagicPackage())
             message.getHeader().getCommand().toUpperCase().equals(PingMsg.MESSAGE_TYPE.toUpperCase())
             message.getBody().nonce == REF_PING_NONCE
+        where:
+            byteInterval | delayMs
+                10       |    25
     }
 
     def "testing Ping Message COMPLETE Serializing"() {

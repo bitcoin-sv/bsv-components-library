@@ -9,6 +9,7 @@ import com.nchain.jcl.protocol.messages.common.BitcoinMsg
 import com.nchain.jcl.protocol.messages.common.BitcoinMsgBuilder
 import com.nchain.jcl.protocol.serialization.GetdataMsgSerializer
 import com.nchain.jcl.protocol.serialization.common.*
+import com.nchain.jcl.protocol.unit.tools.ByteArrayArtificalStreamProducer
 import com.nchain.jcl.tools.bytes.HEX
 import com.nchain.jcl.tools.crypto.Sha256Wrapper
 import com.nchain.jcl.tools.bytes.ByteArrayReader
@@ -34,7 +35,7 @@ class GetdataMsgSerializerSpec extends Specification {
 
     private static final String REF_GETDATA_MSG_FULL = "e3e1f3e867657464617461000000000025000000e27152ce0101000000a69d45e7abc3b8fc363d13b88aaa2f2ec62bf77b6881e8bd7bd1012fd81d802b"
 
-    def "testing getDataMessage  BODY De-Serializing"() {
+    def "testing getDataMessage  BODY De-Serializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
@@ -42,12 +43,15 @@ class GetdataMsgSerializerSpec extends Specification {
                 .maxBytesToRead((long) (REF_GETDATA_MSG_BODY.length()/2))
                 .build()
             GetdataMsg inventoryMsg
-            ByteArrayReader byteReader = new ByteArrayReader(HEX.decode(REF_GETDATA_MSG_BODY))
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_GETDATA_MSG_BODY), byteInterval, delayMs);
         when:
             inventoryMsg = GetdataMsgSerializer.getInstance().deserialize(context, byteReader)
         then:
             inventoryMsg.getMessageType().equals(GetdataMsg.MESSAGE_TYPE)
             inventoryMsg.getCount().value.toString().equals("1")
+        where:
+            byteInterval | delayMs
+                10       |    15
     }
 
     def "testing getDataMessage BODY Serializing"() {
@@ -74,14 +78,14 @@ class GetdataMsgSerializerSpec extends Specification {
             messageSerialized.equals(REF_GETDATA_MSG_BODY)
     }
 
-    def "testing getDataMessage COMPLETE De-serializing"() {
+    def "testing getDataMessage COMPLETE De-serializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
                     .protocolconfig(config)
                     .maxBytesToRead((long) (REF_GETDATA_MSG_FULL.length() / 2))
                     .build()
-            ByteArrayReader byteReader = new ByteArrayReader(HEX.decode(REF_GETDATA_MSG_FULL))
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_GETDATA_MSG_FULL), byteInterval, delayMs);
             BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
         when:
             BitcoinMsg<GetdataMsg> getDataMsg = bitcoinSerializer.deserialize(context, byteReader, GetdataMsg.MESSAGE_TYPE)
@@ -92,6 +96,9 @@ class GetdataMsgSerializerSpec extends Specification {
             InventoryVectorMsg inventoryVectorMsg = inventoryList.get(0)
             inventoryList.size() == 1
             inventoryVectorMsg.getType() == InventoryVectorMsg.VectorType.MSG_TX
+        where:
+            byteInterval | delayMs
+                10       |    15
     }
 
     def "testing getData COMPLETE Serializing"() {

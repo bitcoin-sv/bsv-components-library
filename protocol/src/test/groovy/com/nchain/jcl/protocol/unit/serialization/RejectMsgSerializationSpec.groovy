@@ -11,7 +11,7 @@ import com.nchain.jcl.protocol.serialization.common.BitcoinMsgSerializer
 import com.nchain.jcl.protocol.serialization.common.BitcoinMsgSerializerImpl
 import com.nchain.jcl.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.protocol.serialization.common.SerializerContext
-
+import com.nchain.jcl.protocol.unit.tools.ByteArrayArtificalStreamProducer
 import com.nchain.jcl.tools.bytes.HEX
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
@@ -63,7 +63,7 @@ class RejectMsgSerializationSpec extends Specification {
             messageSerialized.equals(REF_REJECT_BODY_MSG)
     }
 
-    def "testing Reject Message BODY De-Serializing"() {
+    def "testing Reject Message BODY De-Serializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
@@ -71,7 +71,7 @@ class RejectMsgSerializationSpec extends Specification {
                     .maxBytesToRead((long) (REF_REJECT_BODY_MSG.length() / 2))
                     .build()
             RejectMsg rejectMsg = null
-            ByteArrayReader byteReader = new ByteArrayReader(HEX.decode(REF_REJECT_BODY_MSG))
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_REJECT_BODY_MSG), byteInterval, delayMs)
         when:
             rejectMsg = RejectMsgSerializer.getInstance().deserialize(context, byteReader)
         then:
@@ -79,6 +79,9 @@ class RejectMsgSerializationSpec extends Specification {
             rejectMsg.getCcode().equals(REF_CCODE)
             rejectMsg.getReason().getStr().equals(REF_REASON)
             (rejectMsg.getData() == null || rejectMsg.getData().length == 0)
+        where:
+            byteInterval | delayMs
+                10       |    25
     }
 
     def "testing Reject Message COMPLETE Serializing"() {
@@ -100,14 +103,14 @@ class RejectMsgSerializationSpec extends Specification {
             rejectMsgSerialized.equals(REF_REJECT_MSG)
     }
 
-    def "testing Reject Message COMPLETE De-serializing"() {
+    def "testing Reject Message COMPLETE De-serializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
                     .protocolconfig(config)
                     .maxBytesToRead((long) (REF_REJECT_BODY_MSG.length() / 2))
                     .build()
-            ByteArrayReader byteReader = new ByteArrayReader(HEX.decode(REF_REJECT_MSG))
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_REJECT_MSG), byteInterval, delayMs)
             BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
         when:
             BitcoinMsg<RejectMsg> rejectBitcoinMsg = bitcoinSerializer.deserialize(context, byteReader, RejectMsg.MESSAGE_TYPE)
@@ -118,5 +121,8 @@ class RejectMsgSerializationSpec extends Specification {
             rejectBitcoinMsg.getBody().getCcode().equals(REF_CCODE)
             rejectBitcoinMsg.getBody().getReason().getStr().equals(REF_REASON)
             ((rejectBitcoinMsg.getBody().getData() == null) || (rejectBitcoinMsg.getBody().getData().length == 0))
+        where:
+            byteInterval | delayMs
+                10       |    25
     }
 }

@@ -6,6 +6,7 @@ import com.nchain.jcl.protocol.messages.TxOutputMessage
 import com.nchain.jcl.protocol.serialization.TxOutputMessageSerializer
 import com.nchain.jcl.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.protocol.serialization.common.SerializerContext
+import com.nchain.jcl.protocol.unit.tools.ByteArrayArtificalStreamProducer
 import com.nchain.jcl.tools.bytes.HEX
 import com.nchain.jcl.tools.crypto.Sha256Wrapper
 import com.nchain.jcl.tools.bytes.ByteArrayReader
@@ -30,7 +31,7 @@ class TxOutputMessageSerializerSpec extends Specification {
     //2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6
     public static final long COIN_VALUE = 5000000000
 
-    def "Testing TxOutputMessage Deserializing"() {
+    def "Testing TxOutputMessage Deserializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
@@ -38,13 +39,17 @@ class TxOutputMessageSerializerSpec extends Specification {
                     .build()
             TxOutputMessageSerializer serializer = TxOutputMessageSerializer.getInstance()
             TxOutputMessage  message
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_MSG), byteInterval, delayMs)
         when:
-            message = serializer.deserialize(context, new ByteArrayReader(HEX.decode(REF_MSG)))
+            message = serializer.deserialize(context, byteReader)
         then:
 
             message.getMessageType() == TxOutputMessage.MESSAGE_TYPE
             message.txValue == COIN_VALUE
             message.pk_script == REF_BITES
+        where:
+            byteInterval | delayMs
+                10       |    50
 
     }
 
