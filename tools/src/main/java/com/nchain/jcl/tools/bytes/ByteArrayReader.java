@@ -1,5 +1,7 @@
 package com.nchain.jcl.tools.bytes;
 
+import lombok.Setter;
+
 import java.io.UnsupportedEncodingException;
 
 /**
@@ -17,19 +19,21 @@ public class ByteArrayReader {
 
     protected ByteArrayBuilder builder;
     protected long bytesReadCount = 0; // Number of bytes read....
+    @Setter protected boolean waitForBytesEnabled;
 
     protected static final int WAIT_FOR_BYTES_CHECK_INTERVAL = 100;
     protected static final int WAIT_FOR_BYTES_MIN_BYTES_PER_SECOND = 100;
 
-    public ByteArrayReader(ByteArrayBuilder builder)    { this(builder, null); }
-    public ByteArrayReader(ByteArrayWriter writer)      { this(writer.builder, null);}
+    public ByteArrayReader(ByteArrayBuilder builder)    { this(builder, null, false); }
+    public ByteArrayReader(ByteArrayWriter writer)      { this(writer.builder, null, false);}
 
     public ByteArrayReader(byte[] initialData) {
-        this(new ByteArrayBuilder(), initialData);
+        this(new ByteArrayBuilder(), initialData, false);
     }
 
-    public ByteArrayReader(ByteArrayBuilder builder, byte[] initialData) {
+    public ByteArrayReader(ByteArrayBuilder builder, byte[] initialData, boolean waitForBytes) {
         this.builder = builder;
+        this.waitForBytesEnabled = waitForBytes;
         if (initialData != null) this.builder.add(initialData);
     }
 
@@ -73,7 +77,7 @@ public class ByteArrayReader {
         long timeout = System.currentTimeMillis() + (length * 1000L / WAIT_FOR_BYTES_MIN_BYTES_PER_SECOND );
 
         while (builder.size() < length) {
-            if (System.currentTimeMillis() > timeout) {
+            if (System.currentTimeMillis() > timeout || !waitForBytesEnabled) {
                 throw new RuntimeException("timed out waiting for bytes");
             }
 

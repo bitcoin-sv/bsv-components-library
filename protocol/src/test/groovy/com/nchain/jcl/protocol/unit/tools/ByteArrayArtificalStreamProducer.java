@@ -1,6 +1,7 @@
 package com.nchain.jcl.protocol.unit.tools;
 
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
+import com.nchain.jcl.tools.bytes.ByteArrayReaderOptimized;
 import com.nchain.jcl.tools.bytes.ByteArrayWriter;
 
 
@@ -10,6 +11,7 @@ public class ByteArrayArtificalStreamProducer {
 
         ByteArrayWriter byteArrayWriter = new ByteArrayWriter();
         ByteArrayReader byteArrayReader = new ByteArrayReader(byteArrayWriter);
+        byteArrayReader.setWaitForBytesEnabled(true);
 
         new Thread(() -> {
             for (int i = 0; i < streamedData.length; i++) {
@@ -27,6 +29,6 @@ public class ByteArrayArtificalStreamProducer {
 
         }).start();
 
-        return byteArrayReader;
+        return new ByteArrayReaderOptimized(byteArrayReader);
     }
 }

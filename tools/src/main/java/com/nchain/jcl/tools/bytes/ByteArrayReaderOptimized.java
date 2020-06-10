@@ -33,7 +33,7 @@ public class ByteArrayReaderOptimized extends ByteArrayReader {
     private int bytesConsumed = 0;
 
     public ByteArrayReaderOptimized(ByteArrayReader reader) {
-        super(reader.builder);
+        super(reader.builder, null, reader.waitForBytesEnabled);
     }
 
     private void refreshBuffer() throws IOException {
@@ -130,7 +130,7 @@ public class ByteArrayReaderOptimized extends ByteArrayReader {
         long timeout = System.currentTimeMillis() + (length * 1000L / WAIT_FOR_BYTES_MIN_BYTES_PER_SECOND );
 
         while (size() < length) {
-            if (System.currentTimeMillis() > timeout) {
+            if (System.currentTimeMillis() > timeout || !super.waitForBytesEnabled) {
                 throw new RuntimeException("timed out waiting for bytes");
             }
             try {
