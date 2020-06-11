@@ -5,6 +5,7 @@ import com.nchain.jcl.protocol.config.ProtocolConfig;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author i.fernandez@nchain.com
@@ -18,9 +19,16 @@ import lombok.Getter;
  * This class is immutable and safe for Multithreading
  */
 @Getter
+@Setter
 @AllArgsConstructor
 @Builder(toBuilder = true)
 public final class SerializerContext {
+
+    //The Magic Value used in the Messages Header, to identify the Network
+    private long magicPackage;
+
+    // The Protocol Version used
+    private int handshakeProtocolVersion;
 
     // Global Protocol Configuration
     private ProtocolConfig protocolconfig;
