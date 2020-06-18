@@ -9,8 +9,13 @@ import lombok.Getter;
  * Distributed under the Open BSV software license, see the accompanying file LICENSE.
  * @date 2020-04-06 13:27
  *
- * It stores the Byte Array configuration. This configure here will determine how the ByteArrays will
- * be created in terms of Size.
+ * This class stores the parameters that determine how much memory is used when ByteArrays are created, this is
+ * heavily used during Serialization/Deserialization.
+ *
+ * As a rule of thumb, the bigger the array, the faster the Serialization/Deserialization is, but it might also be
+ * a waste of space and a risk for out-of-memory errors. The safest approach is to use a "regular" size for most
+ * situation, as defined in ARRAY_SIZE_NORMAL. and when we have to work with a Big Message or w expect a Big
+ * Message coming down the wire, we use ARRAY_SIZE_FOR_DOWNLOADING.
  */
 
 public class ByteArrayMemoryConfiguration {
@@ -30,7 +35,5 @@ public class ByteArrayMemoryConfiguration {
     @Builder(toBuilder = true)
     public ByteArrayMemoryConfiguration(Integer byteArraySize) {
         this.byteArraySize = (byteArraySize != null) ? byteArraySize: ARRAY_SIZE_NORMAL;
-
     }
-
 }

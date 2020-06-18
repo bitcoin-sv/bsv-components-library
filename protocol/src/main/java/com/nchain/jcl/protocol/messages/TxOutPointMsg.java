@@ -22,7 +22,7 @@ import lombok.Value;
  *    The index of the specific output in the transaction. The first output is 0, etc.
  */
 @Value
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode
 public class TxOutPointMsg extends Message {
 
     public static final String MESSAGE_TYPE = "OutPoint";

@@ -18,7 +18,7 @@ import lombok.Value;
  * finding potential nodes in the network. This message consists of only a message  header with the command  "getaddr".
  */
 @Value
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode
 public final class GetAddrMsg extends Message {
 
     // Message Type (stored in the "command" field in the HeaderMsg of a Bitcoin Message

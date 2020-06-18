@@ -25,7 +25,7 @@ import javax.print.attribute.standard.MediaSize;
  */
 @Getter
 @ToString
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode
 public class FeeFilterMsg extends Message {
 
     public static final String MESSAGE_TYPE = "feefilter";

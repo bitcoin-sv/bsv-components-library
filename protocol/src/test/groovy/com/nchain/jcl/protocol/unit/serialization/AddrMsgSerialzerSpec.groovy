@@ -122,7 +122,7 @@ class AddrMsgSerialzerSpec extends Specification {
                     .protocolconfig(config)
                     .maxBytesToRead((long) (REF_ADDRESS_MSG.length()/2))
                     .build()
-            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_COMPLETE_ADDRESS_MSG), byteInterval, delayMs);
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_COMPLETE_ADDRESS_MSG), byteInterval, delayMs)
             BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
             BitcoinMsg<AddrMsg> message = bitcoinSerializer.deserialize(context, byteReader, AddrMsg.MESSAGE_TYPE)

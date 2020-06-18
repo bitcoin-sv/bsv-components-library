@@ -27,7 +27,7 @@ import lombok.Value;
  *    The string itself (can be empty)
  */
 @Value
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 public final class VarStrMsg extends Message {
 
     public static final String MESSAGE_TYPE = "varStr";

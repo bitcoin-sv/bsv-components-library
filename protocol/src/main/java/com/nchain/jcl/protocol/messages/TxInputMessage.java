@@ -28,7 +28,7 @@ import lombok.Value;
  *   Transaction version as defined by the sender.
  */
 @Value
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode
 public class TxInputMessage extends Message {
     private static final int sequence_len = 4;
     public static final String MESSAGE_TYPE = "TxIn";

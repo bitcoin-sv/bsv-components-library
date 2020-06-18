@@ -36,7 +36,7 @@ import lombok.ToString;
  */
 @Getter
 @ToString
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode
 public class RejectMsg extends Message {
 
     /**

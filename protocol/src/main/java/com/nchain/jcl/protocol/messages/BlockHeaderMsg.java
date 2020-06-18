@@ -16,7 +16,7 @@ import lombok.Value;
  * It's also used in the HEADERS and GETHEADERS packages.
  */
 @Value
-@EqualsAndHashCode(callSuper=true)
+@EqualsAndHashCode
 public class BlockHeaderMsg extends Message {
 
     public static final String MESSAGE_TYPE = "BlockHeader";

@@ -17,7 +17,7 @@ import lombok.Value;
  *
  */
 @Value
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode
 public class GetBlocksMsg extends Message {
 
     public static final String MESSAGE_TYPE = "getblocks";

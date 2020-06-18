@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  * notfound is a response to a getdata, sent if any requested data items could not be relayed.
  */
 @Value
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode
 public class NotFoundMsg extends Message {
     public static final String MESSAGE_TYPE = "notfound";
     private static final long MAX_ADDRESSES = 50000;

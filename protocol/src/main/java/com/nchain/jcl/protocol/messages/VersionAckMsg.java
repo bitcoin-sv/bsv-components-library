@@ -3,6 +3,7 @@ package com.nchain.jcl.protocol.messages;
 
 import com.nchain.jcl.protocol.messages.common.Message;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 
 /**
  * @author i.fernandez@nchain.com
@@ -15,7 +16,7 @@ import lombok.Builder;
  * header with the command string "verack".
  *
  */
-
+@EqualsAndHashCode
 public final class VersionAckMsg extends Message {
 
     // Message Type (stored in the "command" field in the HeaderMsg of a Bitcoin Message

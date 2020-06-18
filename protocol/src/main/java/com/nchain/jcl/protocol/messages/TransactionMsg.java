@@ -34,7 +34,7 @@ import java.util.Optional;
  *  The block number or timestamp at which this transaction is unlocked:
  */
 @Data
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode
 public class TransactionMsg extends Message {
 
     public static final String MESSAGE_TYPE = "tx";

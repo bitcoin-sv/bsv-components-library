@@ -2,6 +2,7 @@ package com.nchain.jcl.protocol.messages.common;
 
 import com.google.common.base.Objects;
 import com.nchain.jcl.protocol.messages.HeaderMsg;
+import lombok.EqualsAndHashCode;
 
 
 /**
@@ -18,6 +19,7 @@ import com.nchain.jcl.protocol.messages.HeaderMsg;
  *
  * This class is immutable nd safe for multithreading
  */
+@EqualsAndHashCode
 public class BitcoinMsg<M extends Message> {
     private HeaderMsg header;
     private M body;

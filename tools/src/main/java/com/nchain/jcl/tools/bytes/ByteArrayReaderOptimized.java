@@ -1,5 +1,7 @@
 package com.nchain.jcl.tools.bytes;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.IOException;
 
 /**
@@ -24,6 +26,7 @@ import java.io.IOException;
  * it, moving content from the regular Builder we still have and into the Buffer. But since the buffer is big enough,
  * this refresh should happen not very frequently.
  */
+@Slf4j
 public class ByteArrayReaderOptimized extends ByteArrayReader {
 
     private int BUFFER_SIZE = 1_000_000;
@@ -38,6 +41,7 @@ public class ByteArrayReaderOptimized extends ByteArrayReader {
 
     private void refreshBuffer() throws IOException {
         // We extract from the buffer the bytes already consumed
+        log.trace("Before refreshing buffer. Buffer: " + bytesConsumed + " consumed, " + bufferDataSize + " Total. Builder size: " + builder.size());
         super.builder.extractBytes(bytesConsumed);
 
         // We fill the buffer with content fom the builder
@@ -45,6 +49,7 @@ public class ByteArrayReaderOptimized extends ByteArrayReader {
         System.arraycopy(bytesToAddBuffer, 0, buffer, 0, bytesToAddBuffer.length);
         bufferDataSize = bytesToAddBuffer.length;
         bytesConsumed = 0;
+        log.trace("After refreshing buffer. Buffer: " + bytesConsumed + " consumed, " + bufferDataSize + " Total (" + bytesToAddBuffer.length + " bytes added from Builder. Builder size: " + builder.size());
     }
 
     private void resetBuffer() {
@@ -55,11 +60,13 @@ public class ByteArrayReaderOptimized extends ByteArrayReader {
     @Override
     public byte[] extract(int length) {
         resetBuffer();
+        log.trace("extracting " + length + "bytes from builder...");
         return builder.extractBytes(length);
     }
 
     private void adjustBufferIfNeededForReading(int length) {
         try {
+            log.trace("checking if we can read " + length + " bytes...");
             if ((bufferDataSize - bytesConsumed) < length)
                 refreshBuffer();
         } catch (IOException ioe) {
@@ -119,25 +126,5 @@ public class ByteArrayReaderOptimized extends ByteArrayReader {
         byte[] result = builder.getFullContent();
         close();
         return result;
-    }
-
-    /*
-     * Waits for the bytes to be written before returning. This will cause the thread to be blocked.
-     */
-    @Override
-    public void waitForBytes(int length) throws RuntimeException {
-        //this isn't commutative
-        long timeout = System.currentTimeMillis() + (length * 1000L / WAIT_FOR_BYTES_MIN_BYTES_PER_SECOND );
-
-        while (size() < length) {
-            if (System.currentTimeMillis() > timeout || !super.waitForBytesEnabled) {
-                throw new RuntimeException("timed out waiting for bytes");
-            }
-            try {
-                Thread.sleep(WAIT_FOR_BYTES_CHECK_INTERVAL);
-            } catch (InterruptedException ex) {}
-        }
-
-        return;
     }
 }

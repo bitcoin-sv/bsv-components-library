@@ -35,7 +35,7 @@ import lombok.Value;
  *
  */
 @Value
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 public final class VarIntMsg extends Message {
 
     public static final String MESSAGE_TYPE = "varInt";

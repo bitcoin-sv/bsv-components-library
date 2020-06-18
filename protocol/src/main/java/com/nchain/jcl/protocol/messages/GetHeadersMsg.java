@@ -16,7 +16,7 @@ import lombok.Value;
  *
  */
 @Value
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode
 public class GetHeadersMsg extends Message {
     public static final String MESSAGE_TYPE = "getheaders";
     BaseGetDataAndHeaderMsg baseGetDataAndHeaderMsg;

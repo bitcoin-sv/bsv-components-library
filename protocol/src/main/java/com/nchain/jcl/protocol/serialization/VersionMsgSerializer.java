@@ -43,9 +43,10 @@ public class VersionMsgSerializer implements MessageSerializer<VersionMsg> {
         NetAddressMsg addr_from = NetAddressMsgSerializer.getInstance().deserialize(context, byteReader);
         NetAddressMsg addr_recv = NetAddressMsgSerializer.getInstance().deserialize(context, byteReader);
 
-        byteReader.waitForBytes(12);
+        byteReader.waitForBytes(8);
         long nonce = byteReader.readInt64LE(); // TODO: We need to know who to process this field
         VarStrMsg user_agent = VarStrMsgSerializer.getinstance().deserialize(context, byteReader);
+        byteReader.waitForBytes(4);
         long start_height = byteReader.readUint32();
         boolean relay = true;
 

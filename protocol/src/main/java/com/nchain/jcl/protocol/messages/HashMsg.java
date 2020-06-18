@@ -16,7 +16,7 @@ import lombok.*;
  * to represent hash of the object.
  */
 @Data
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 public class HashMsg extends Message {
     public static final String MESSAGE_TYPE = "hash";
     public static final int HASH_LENGTH = 32;//32 bits

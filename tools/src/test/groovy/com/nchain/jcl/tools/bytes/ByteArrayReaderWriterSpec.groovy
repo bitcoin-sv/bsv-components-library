@@ -35,7 +35,7 @@ class ByteArrayReaderWriterSpec extends Specification {
         given:
         ByteArrayWriter writer = new ByteArrayWriter()
         ByteArrayReader reader = new ByteArrayReader(writer);
-        reader.setWaitForBytesEnabled(true)
+        reader.enableWaitForBytes()
 
         String[] data = new String[bytesToWrite];
 

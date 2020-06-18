@@ -53,7 +53,7 @@ import lombok.Value;
  *    Whether the remote peer should announce relayed transactions or not, see BIP 0037
  */
 @Value
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 public class VersionMsg extends Message {
     // The only field which a variable length in the Version Message is the "getHandshakeUserAgent" field.
     // The rest of the Message has a fixed length of 85 bytes.

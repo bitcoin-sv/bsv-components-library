@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
  * *
  */
 @Value
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode
 public class BlockMsg extends Message {
 
     public static final String MESSAGE_TYPE = "Block";

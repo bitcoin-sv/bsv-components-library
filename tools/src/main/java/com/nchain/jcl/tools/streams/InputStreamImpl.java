@@ -43,6 +43,7 @@ import java.util.function.Function;
 public abstract class InputStreamImpl<I,R> implements InputStream<R> {
 
     protected EventBus eventBus;
+    protected InputStream<I> source;
 
     /**
      * Constructor.
@@ -57,6 +58,7 @@ public abstract class InputStreamImpl<I,R> implements InputStream<R> {
     public InputStreamImpl(ExecutorService executor,
                            InputStream<I> source) {
         this.eventBus = EventBus.builder().executor(executor).build();
+        this.source = source;
         if (source != null) linkSource(source);
     }
 
@@ -75,9 +77,18 @@ public abstract class InputStreamImpl<I,R> implements InputStream<R> {
         eventBus.subscribe(StreamCloseEvent.class, eventHandler);
     }
 
-    private synchronized void receiveAndTransform(StreamDataEvent<I> dataEvent) {
-        List<StreamDataEvent<R>> dataTransformed = transform(dataEvent);
-        if (dataTransformed != null) dataTransformed.forEach(e -> eventBus.publish(e));
+    @Override
+    public void onError(Consumer<? extends StreamErrorEvent> eventHandler) {
+        eventBus.subscribe(StreamErrorEvent.class, eventHandler);
+    }
+
+    protected synchronized void receiveAndTransform(StreamDataEvent<I> dataEvent) {
+        try {
+            List<StreamDataEvent<R>> dataTransformed = transform(dataEvent);
+            if (dataTransformed != null) dataTransformed.forEach(e -> eventBus.publish(e));
+        } catch (Throwable e) {
+            eventBus.publish(new StreamErrorEvent(e));
+        }
     }
 
     /** This class implements the Transformation over the data, before is returned to the "client" */

@@ -33,7 +33,7 @@
 
     <!-- tools -->
     <logger name="com.nchain.jcl.tools" additivity="false">
-        <level value="OFF" />
+        <level value="TRACE" />
         <appender-ref ref="STDOUT" />
         <!--<appender-ref ref="FILE" />-->
     </logger>

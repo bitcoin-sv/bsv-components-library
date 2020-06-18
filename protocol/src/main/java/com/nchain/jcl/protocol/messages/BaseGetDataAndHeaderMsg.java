@@ -32,7 +32,7 @@ import java.util.List;
  *   hash of the last desired block; set to zero to get as many blocks as possible (500)
  */
 @Value
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode
 public  class BaseGetDataAndHeaderMsg extends Message {
     private long version;
     private VarIntMsg hashCount;

@@ -35,7 +35,7 @@ import lombok.Value;
  *    getPort number, network byte order
  */
 @Value
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 public final class NetAddressMsg extends Message {
     // An NetAddressMsg has a length of 30 Bytes or 26 bytes, depending whether it has a timestamp or not.
     public static final int MESSAGE_LENGTH = 30;

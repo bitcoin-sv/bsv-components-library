@@ -25,7 +25,7 @@ import lombok.Value;
  *   Usually contains the public key as a Bitcoin script setting up conditions to claim this output.
  */
 @Value
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode
 public class TxOutputMessage extends Message {
     public static final String MESSAGE_TYPE = "TxOut";
     private static final int txValue_length = 8;

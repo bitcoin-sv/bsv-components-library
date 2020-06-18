@@ -30,7 +30,7 @@ import java.util.List;
  *
  */
 @Value
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode
 public class AddrMsg extends Message {
     private static final long MAX_ADDRESSES = 1000;
     public static final String MESSAGE_TYPE = "addr";

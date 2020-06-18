@@ -1,6 +1,6 @@
 package com.nchain.jcl.tools.bytes;
 
-import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.UnsupportedEncodingException;
 
@@ -15,14 +15,17 @@ import java.io.UnsupportedEncodingException;
  * <p>
  * IMPORTANT: The Reader CONSUMES the data as it reads them, so its not possible to use the same Reader twice.
  */
+@Slf4j
 public class ByteArrayReader {
+
+    protected static final int WAIT_FOR_BYTES_CHECK_INTERVAL = 10;
+    protected static final int WAIT_FOR_BYTES_MIN_BYTES_PER_SECOND = 50;
 
     protected ByteArrayBuilder builder;
     protected long bytesReadCount = 0; // Number of bytes read....
-    @Setter protected boolean waitForBytesEnabled;
+    protected boolean waitForBytesEnabled;
+    protected int minSpeedBytesSec = WAIT_FOR_BYTES_MIN_BYTES_PER_SECOND;
 
-    protected static final int WAIT_FOR_BYTES_CHECK_INTERVAL = 100;
-    protected static final int WAIT_FOR_BYTES_MIN_BYTES_PER_SECOND = 100;
 
     public ByteArrayReader(ByteArrayBuilder builder)    { this(builder, null, false); }
     public ByteArrayReader(ByteArrayWriter writer)      { this(writer.builder, null, false);}
@@ -31,9 +34,19 @@ public class ByteArrayReader {
         this(new ByteArrayBuilder(), initialData, false);
     }
 
+    public ByteArrayReader(byte[] initialData, boolean waitingForBytes) {
+        this(new ByteArrayBuilder(), initialData, waitingForBytes);
+    }
+
     public ByteArrayReader(ByteArrayBuilder builder, byte[] initialData, boolean waitForBytes) {
+        this(builder, initialData, waitForBytes, WAIT_FOR_BYTES_MIN_BYTES_PER_SECOND);
+    }
+
+    public ByteArrayReader(ByteArrayBuilder builder, byte[] initialData, boolean waitForBytes, int minSpeedBytesSec) {
         this.builder = builder;
-        this.waitForBytesEnabled = waitForBytes;
+        if (waitForBytes) {
+            enableWaitForBytes(minSpeedBytesSec);
+        }
         if (initialData != null) this.builder.add(initialData);
     }
 
@@ -69,23 +82,40 @@ public class ByteArrayReader {
         }
     }
 
+    public void enableWaitForBytes() {
+        enableWaitForBytes(minSpeedBytesSec);
+    }
+
+    public void enableWaitForBytes(int minSpeedBytesSec) {
+        this.waitForBytesEnabled = true;
+        this.minSpeedBytesSec = minSpeedBytesSec;
+    }
+
+    public void disableWaitForBytes() {
+        this.waitForBytesEnabled = false;
+    }
+
     /*
      * Waits for the bytes to be written before returning. This will cause the thread to be blocked.
      */
     public void waitForBytes(int length) throws RuntimeException {
         //this isn't commutative
-        long timeout = System.currentTimeMillis() + (length * 1000L / WAIT_FOR_BYTES_MIN_BYTES_PER_SECOND );
+        int millisecsToWait = (int) (length / (((double) minSpeedBytesSec) / 1000));
+        long timeout = System.currentTimeMillis() + millisecsToWait;
 
-        while (builder.size() < length) {
-            if (System.currentTimeMillis() > timeout || !waitForBytesEnabled) {
+
+        while (size() < length) {
+            if (!waitForBytesEnabled) throw new RuntimeException("Not enough bytes to read");
+            else if (System.currentTimeMillis() > timeout) {
                 throw new RuntimeException("timed out waiting for bytes");
             }
 
             try {
+                log.trace("waiting for " + (millisecsToWait) + " millisecs to get " + length + " bytes, builder Size: " + builder.size());
                 Thread.sleep(WAIT_FOR_BYTES_CHECK_INTERVAL);
             } catch (InterruptedException ex) {}
         }
-
+        log.trace("WAit finish, bufferSize: " + builder.size());
         return;
     }
 }

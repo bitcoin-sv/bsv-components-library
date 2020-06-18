@@ -30,7 +30,7 @@ import lombok.Value;
  *   payload = bytes serialized of the Body of the Bitcoin Message that goes with this Header
  */
 @Value
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 public final class HeaderMsg extends Message {
 
     public static final String MESSAGE_TYPE = "header";

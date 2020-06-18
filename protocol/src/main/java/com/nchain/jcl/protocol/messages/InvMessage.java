@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  */
 @Getter
 @ToString
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode
 public class InvMessage extends Message {
     private static final long MAX_ADDRESSES = 50000;
     public static final String MESSAGE_TYPE = "inv";

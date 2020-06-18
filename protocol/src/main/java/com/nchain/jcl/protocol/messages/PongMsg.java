@@ -22,7 +22,7 @@ import lombok.Value;
  *   The pong message sends back the same nonce received in the ping message it is replying to.
  */
 @Value
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode
 public class PongMsg extends Message {
     protected static int FIXED_MESSAGE_LENGTH = 8;
     public static final String MESSAGE_TYPE = "pong";

@@ -3,6 +3,7 @@ package com.nchain.jcl.protocol.messages;
 
 import com.nchain.jcl.protocol.messages.common.MessageBuilder;
 import com.nchain.jcl.tools.crypto.Sha256Wrapper;
+import lombok.EqualsAndHashCode;
 
 /**
  * @author i.fernandez@nchain.com
@@ -12,6 +13,7 @@ import com.nchain.jcl.tools.crypto.Sha256Wrapper;
  *
  * A builder for instances of {@link RejectMsg}
  */
+@EqualsAndHashCode
 public class RejectMsgBuilder extends MessageBuilder<RejectMsg> {
 
     // This value os the Minimum Length of this message. But it might be larger depending on

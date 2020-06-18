@@ -18,7 +18,7 @@ import lombok.Value;
  */
 
 @Value
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 public class InventoryVectorMsg extends Message {
 
     public static final String MESSAGE_TYPE = "inventoryVec";

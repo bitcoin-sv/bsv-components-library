@@ -26,4 +26,5 @@ import java.util.function.Consumer;
 public interface InputStream<T> {
     void onData(Consumer<? extends StreamDataEvent<T>> eventHandler);
     void onClose(Consumer<? extends StreamCloseEvent> eventHandler);
+    void onError(Consumer<? extends StreamErrorEvent> eventHandler);
 }

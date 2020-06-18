@@ -25,7 +25,7 @@ import lombok.Value;
  *
  */
 @Value
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode
 public class PingMsg extends Message {
     public static final String MESSAGE_TYPE = "ping";
     protected static int FIXED_MESSAGE_LENGTH = 8;

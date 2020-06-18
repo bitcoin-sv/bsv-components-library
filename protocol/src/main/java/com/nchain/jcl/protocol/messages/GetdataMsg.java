@@ -28,7 +28,7 @@ import java.util.List;
  *   Inventory vectors.
  */
 @Value
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode
 public class GetdataMsg extends Message {
     private static final long MAX_ADDRESSES = 50000;
     public static final String MESSAGE_TYPE = "getdata";
