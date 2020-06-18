@@ -71,7 +71,7 @@ class TransactionMsgSerializerSpec extends Specification {
             message.tx_out.get(1).pk_script== pk_script_two
         where:
             byteInterval | delayMs
-                10       |    25
+                10       |    15
     }
 
     def "Testing TxInputMessage Serializing"() {
