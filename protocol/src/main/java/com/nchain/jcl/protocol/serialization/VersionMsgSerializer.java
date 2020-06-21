@@ -34,6 +34,7 @@ public class VersionMsgSerializer implements MessageSerializer<VersionMsg> {
 
     @Override
     public VersionMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
+        context.setInsideVersionMsg(true);
 
         byteReader.waitForBytes(20);
         long version = byteReader.readUint32();
@@ -73,6 +74,8 @@ public class VersionMsgSerializer implements MessageSerializer<VersionMsg> {
 
     @Override
     public void serialize(SerializerContext context, VersionMsg message, ByteArrayWriter byteWriter) {
+        context.setInsideVersionMsg(true);
+
         byteWriter.writeUint32LE(message.getVersion());
         byteWriter.writeUint64LE(message.getServices()); // TODO: Check this!!!
         byteWriter.writeUint64LE(message.getTimestamp()); // TODO: Check this!!

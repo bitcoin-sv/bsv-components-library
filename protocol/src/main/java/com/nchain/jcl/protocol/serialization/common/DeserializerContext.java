@@ -5,6 +5,7 @@ import com.nchain.jcl.protocol.config.ProtocolConfig;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author i.fernandez@nchain.com
@@ -20,6 +21,7 @@ import lombok.Getter;
 
 // TODO: Document THIS...
 @Getter
+@Setter
 @AllArgsConstructor
 @Builder(toBuilder = true)
 public final class DeserializerContext {
