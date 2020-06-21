@@ -3,6 +3,8 @@ package com.nchain.jcl.protocol.config.provided;
 import com.nchain.jcl.protocol.config.RuntimeConfigImpl;
 import com.nchain.jcl.tools.bytes.ByteArrayMemoryConfiguration;
 
+import java.time.Duration;
+
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 Bitcoin Association
@@ -18,11 +20,11 @@ public class RuntimeConfigDefault extends RuntimeConfigImpl {
     // Any message bigger than 10MB is considered a  "Big" Message:
     private static final int REAL_TIME_PROCESSING_MIN_BYTES = 10_000_000;
 
-    // We expect at least 100 bytes/Sec when processing a Big Message
-    private static final int MIN_SPEED_BYTES_PER_SEC = 100;
+    // We Wait for 5 secs at the most in Real-time
+    private static final Duration MAX_WAIING_REAL_TIME = Duration.ofMillis(2000);
 
     /** Constructor */
     public RuntimeConfigDefault() {
-        super(byteArrayMemoryConfiguration, REAL_TIME_PROCESSING_MIN_BYTES, MIN_SPEED_BYTES_PER_SEC);
+        super(byteArrayMemoryConfiguration, REAL_TIME_PROCESSING_MIN_BYTES, MAX_WAIING_REAL_TIME);
     }
 }

@@ -13,7 +13,7 @@ public class ByteArrayArtificalStreamProducer {
 
         ByteArrayWriter byteArrayWriter = new ByteArrayWriter();
         ByteArrayReader byteArrayReader = new ByteArrayReader(byteArrayWriter);
-        byteArrayReader.enableWaitForBytes();
+        byteArrayReader.enableRealTime();
         new Thread(() -> {
             for (int i = 0; i < streamedData.length; i++) {
                 //log.trace("Feeding 1 byte...");

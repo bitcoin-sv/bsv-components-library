@@ -43,7 +43,7 @@ public class HashMsg extends Message {
 
     @Override
     protected void validateMessage() {
-        Preconditions.checkArgument( HASH_LENGTH == this.hashBytes.length,"Hash Length is not 32 bits");
+        Preconditions.checkArgument( HASH_LENGTH == this.hashBytes.length,"Hash Length is not 32 bytes");
     }
 
     @Override

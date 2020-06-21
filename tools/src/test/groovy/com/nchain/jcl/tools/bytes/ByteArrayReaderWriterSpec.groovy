@@ -2,14 +2,10 @@ package com.nchain.jcl.tools.bytes
 
 import spock.lang.Specification
 
-import javax.swing.text.html.HTMLDocument
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.function.Consumer
 
 class ByteArrayReaderWriterSpec extends Specification {
 
@@ -35,7 +31,7 @@ class ByteArrayReaderWriterSpec extends Specification {
         given:
         ByteArrayWriter writer = new ByteArrayWriter()
         ByteArrayReader reader = new ByteArrayReader(writer);
-        reader.enableWaitForBytes()
+        reader.enableRealTime()
 
         String[] data = new String[bytesToWrite];
 

@@ -12,7 +12,7 @@ import java.util.List;
 
 
 /**
- * @author n.srivastava @nchain.com
+ * @author i.fernandez @nchain.com
  * Copyright (c) 2018-2019 Bitcoin Association
  * Distributed under the Open BSV software license, see the accompanying file LICENSE.
  * @date 01/10/2019 15:37
@@ -20,7 +20,7 @@ import java.util.List;
  * * A Serializer for {@link BlockMsg} messages
  */
 @Slf4j
-public class BlockMsgSerializer extends MessageSerializerKillable<BlockMsg> implements MessageSerializer<BlockMsg> {
+public class BlockMsgSerializer implements MessageSerializer<BlockMsg> {
 
     private BlockMsgSerializer() { }
 
@@ -40,9 +40,6 @@ public class BlockMsgSerializer extends MessageSerializerKillable<BlockMsg> impl
         // The transactions are taken from the Block Body...since the Block Header has been already extracted
         // from the "byteReader", the information remaining in there are the Block Transactions...
 
-        // We deserialize the list of Txs. Since this might be a very heavy-process, on eah iteration we check if
-        // this Serializer has received the "kill" signal, and we leave in that case...
-
         // We are logging the Deserialization process. But we only log every 1% of progress, so no we do some Math
         // to calculate how many Txs we need to process before we log them...
 
@@ -54,8 +51,6 @@ public class BlockMsgSerializer extends MessageSerializerKillable<BlockMsg> impl
 
         List<TransactionMsg> transactionMsgList = new ArrayList<>();
         for (int i = 0; i < numTxs; i++) {
-            if (super.isHasBeenKilled())
-                throw new RuntimeException("Block Serializer Killed in the middle of Deserialization!!!!");
             if ((accumulateNumTxs++) > numTxsForEachLog) {
                 accumulateNumTxs = 0;
                 int progress = (i * 100) / numTxs;

@@ -39,13 +39,4 @@ public interface MessageSerializer<M extends Message> {
      */
     void serialize(SerializerContext context, M message, ByteArrayWriter byteWriter);
 
-
-    /**
-     * It sends a signal to this Serializer so it stops immediately, throwing a RuntimeException. The time when the
-     * Serializer really stops after receiving this signal, depends on the implementation.
-     */
-    default void kill() {}
-
-    /** Indicates if this Serializer is killable or not */
-    default boolean isKillable() { return false; }
 }

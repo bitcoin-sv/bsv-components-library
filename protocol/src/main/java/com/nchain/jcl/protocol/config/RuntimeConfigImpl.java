@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.Duration;
+
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 Bitcoin Association
@@ -22,5 +24,5 @@ public class RuntimeConfigImpl implements RuntimeConfig {
     @Getter
     int msgSizeInBytesForRealTimeProcessing;
     @Getter
-    int minSpeedBytesPerSec;
+    Duration maxWaitingTimeForBytesInRealTime;
 }

@@ -2,6 +2,8 @@ package com.nchain.jcl.protocol.config;
 
 import com.nchain.jcl.tools.bytes.ByteArrayMemoryConfiguration;
 
+import java.time.Duration;
+
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 Bitcoin Association
@@ -21,10 +23,8 @@ public interface RuntimeConfig {
     int getMsgSizeInBytesForRealTimeProcessing();
 
     /**
-     * Returns the minimun (bytes/Sec) we expect in the network.
-     * It only applies for Big Messages (Real-Time processing). When a Big Message is being received, its content is
-     * processed as it arrives (in Real-Time), without waiting for the whole Message. If the speed by which that
-     * message is received is slower than this value, then the deserialization is aborted.
+     * If we are processing bytes in real time and wehave to wait for longer than the value returned by this method,
+     * then the process is interrupted.
      */
-    int getMinSpeedBytesPerSec();
+    Duration getMaxWaitingTimeForBytesInRealTime();
 }

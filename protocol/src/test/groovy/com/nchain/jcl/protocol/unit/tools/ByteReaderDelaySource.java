@@ -25,18 +25,18 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class ByteReaderDelaySource extends InputStreamSourceImpl<ByteArrayReader> {
 
-    // Number of Bytes that can be send without delay between them
-    private int bytesInterval = 5;
-    // delay between bytes
-    private Duration delay;
+    // Speed
+    final int bytesPerSec;
+    // bytesBatchSize: This is the minimum number of bytes that can be feed ina single go. The dealy must be applied
+    // between different batches. If the sze of the buffe ris less than this, no dealy is applied.
+    final int bytesBatchsize = 10;
 
     private ByteArrayBuilder byteArrayBuilder;
     private ExecutorService executorService;
 
     public ByteReaderDelaySource(ExecutorService executor, int bytesPerSec) {
         super(executor);
-        // We calculate the Delay:
-        this.delay = Duration.ofMillis((bytesInterval * 1000L) / bytesPerSec);
+        this.bytesPerSec = bytesPerSec;
 
         this.byteArrayBuilder = new ByteArrayBuilder();
         this.executorService = Executors.newSingleThreadExecutor();
@@ -62,16 +62,23 @@ public class ByteReaderDelaySource extends InputStreamSourceImpl<ByteArrayReader
     private void feedBytesWithDelay() {
         try {
             while (true) {
-                // We send some bytes to the Source...
-                int bytesToSend = (int) Math.min(byteArrayBuilder.size(), bytesInterval);
-                if (bytesToSend > 0) {
-                    //log.trace("Feeding " + bytesToSend + " to the Stream...");
+                long bufferSize = byteArrayBuilder.size();
+                if (byteArrayBuilder.size() > 0) {
+                    // the time that will take to send the whole buffer...
+                    long millisecsWholeSend = (long) ((byteArrayBuilder.size() / bytesPerSec) * 1000);
+
+                    int numBatches = ((int) bufferSize / bytesBatchsize) + 1;
+
+                    // The delay between each bytes:
+                    Duration delay = Duration.ofMillis(millisecsWholeSend / numBatches);
+
+                    int bytesToSend = (int) Math.min(byteArrayBuilder.size(), bytesBatchsize);
                     ByteArrayReader byteReader = new ByteArrayReader(byteArrayBuilder.extractBytes(bytesToSend));
                     super.send(new StreamDataEvent<>(byteReader));
 
                     // Now we wait...
                     Thread.sleep(delay.toMillis());
-                }
+                } else Thread.sleep(500); // We wait until the buffer is fed with some bytes...
 
             }
         } catch (Exception e) {

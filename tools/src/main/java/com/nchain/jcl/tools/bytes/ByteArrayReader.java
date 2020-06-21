@@ -3,6 +3,7 @@ package com.nchain.jcl.tools.bytes;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.UnsupportedEncodingException;
+import java.time.Duration;
 
 /**
  * @author i.fernandez@nchain.com
@@ -18,13 +19,13 @@ import java.io.UnsupportedEncodingException;
 @Slf4j
 public class ByteArrayReader {
 
-    protected static final int WAIT_FOR_BYTES_CHECK_INTERVAL = 10;
-    protected static final int WAIT_FOR_BYTES_MIN_BYTES_PER_SECOND = 50;
+    protected static final Duration THRESHOLD_WAITING = Duration.ofMillis(5000); // 5 sec
+    protected static final Duration WAITING_INTERVAL = Duration.ofMillis(100);
 
     protected ByteArrayBuilder builder;
     protected long bytesReadCount = 0; // Number of bytes read....
-    protected boolean waitForBytesEnabled;
-    protected int minSpeedBytesSec = WAIT_FOR_BYTES_MIN_BYTES_PER_SECOND;
+    protected boolean realTimeProcessingEnabled;
+    protected Duration thresholdWaiting = THRESHOLD_WAITING;
 
 
     public ByteArrayReader(ByteArrayBuilder builder)    { this(builder, null, false); }
@@ -39,13 +40,13 @@ public class ByteArrayReader {
     }
 
     public ByteArrayReader(ByteArrayBuilder builder, byte[] initialData, boolean waitForBytes) {
-        this(builder, initialData, waitForBytes, WAIT_FOR_BYTES_MIN_BYTES_PER_SECOND);
+        this(builder, initialData, waitForBytes, THRESHOLD_WAITING);
     }
 
-    public ByteArrayReader(ByteArrayBuilder builder, byte[] initialData, boolean waitForBytes, int minSpeedBytesSec) {
+    public ByteArrayReader(ByteArrayBuilder builder, byte[] initialData, boolean waitForBytes, Duration thresholdWaiting) {
         this.builder = builder;
         if (waitForBytes) {
-            enableWaitForBytes(minSpeedBytesSec);
+            enableRealTime(thresholdWaiting);
         }
         if (initialData != null) this.builder.add(initialData);
     }
@@ -82,40 +83,39 @@ public class ByteArrayReader {
         }
     }
 
-    public void enableWaitForBytes() {
-        enableWaitForBytes(minSpeedBytesSec);
+    public void enableRealTime() {
+        enableRealTime(thresholdWaiting);
     }
 
-    public void enableWaitForBytes(int minSpeedBytesSec) {
-        this.waitForBytesEnabled = true;
-        this.minSpeedBytesSec = minSpeedBytesSec;
+    public void enableRealTime(Duration thresholdWaiting) {
+        this.realTimeProcessingEnabled = true;
+        this.thresholdWaiting = thresholdWaiting;
     }
 
-    public void disableWaitForBytes() {
-        this.waitForBytesEnabled = false;
+    public void disableRealTime() {
+        this.realTimeProcessingEnabled = false;
     }
 
     /*
      * Waits for the bytes to be written before returning. This will cause the thread to be blocked.
      */
     public void waitForBytes(int length) throws RuntimeException {
-        //this isn't commutative
-        int millisecsToWait = (int) (length / (((double) minSpeedBytesSec) / 1000));
-        long timeout = System.currentTimeMillis() + millisecsToWait;
+
+        long timeout = System.currentTimeMillis() + thresholdWaiting.toMillis();
 
 
         while (size() < length) {
-            if (!waitForBytesEnabled) throw new RuntimeException("Not enough bytes to read");
+            if (!realTimeProcessingEnabled) throw new RuntimeException("Not enough bytes to read");
             else if (System.currentTimeMillis() > timeout) {
-                throw new RuntimeException("timed out waiting for bytes");
+                throw new RuntimeException("timed out waiting longer than " + thresholdWaiting.toMillis() + " millisecs for " + length + " bytes");
             }
 
             try {
-                log.trace("waiting for " + (millisecsToWait) + " millisecs to get " + length + " bytes, builder Size: " + builder.size());
-                Thread.sleep(WAIT_FOR_BYTES_CHECK_INTERVAL);
+                //log.trace("waiting for " + (millisecsToWait) + " millisecs to get " + length + " bytes, builder Size: " + builder.size());
+                Thread.sleep(WAITING_INTERVAL.toMillis());
             } catch (InterruptedException ex) {}
         }
-        log.trace("WAit finish, bufferSize: " + builder.size());
+        //log.trace("WAit finish, bufferSize: " + builder.size());
         return;
     }
 }

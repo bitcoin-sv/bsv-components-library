@@ -4,6 +4,8 @@ package com.nchain.jcl.protocol.serialization.common;
 
 import com.nchain.jcl.protocol.messages.*;
 import com.nchain.jcl.protocol.serialization.*;
+import com.nchain.jcl.protocol.serialization.largeMsgs.BigBlockDeserializer;
+import com.nchain.jcl.protocol.serialization.largeMsgs.LargeMessageDeserializer;
 
 
 import java.util.HashMap;
@@ -60,6 +62,26 @@ public class MsgSerializersFactory {
 
     public static MessageSerializer getSerializer(String command) {
         return serializers.get(command.toUpperCase());
+    }
+
+
+    /**
+     * It returns an instance of a Deserializer for Large Messages. The Deserializers for Large Messages have STATE
+     * (they need to store the callbacks that will be triggered when different parts of the Message are deserialized)
+     * , so that means that they are NOT singletons. We need to create one new instance every time we need to
+     * deserialize a message
+     *
+     * @param command   Message Type to Deserialize
+     */
+    public static LargeMessageDeserializer getLargeMsgDeserializer(String command) {
+        LargeMessageDeserializer result = null;
+        switch(command) {
+            case BlockMsg.MESSAGE_TYPE: {
+                result = new BigBlockDeserializer();
+                break;
+            }
+        } // switch:
+        return result;
     }
 
 }

@@ -36,12 +36,12 @@ public class ByteArrayReaderOptimized extends ByteArrayReader {
     private int bytesConsumed = 0;
 
     public ByteArrayReaderOptimized(ByteArrayReader reader) {
-        super(reader.builder, null, reader.waitForBytesEnabled);
+        super(reader.builder, null, reader.realTimeProcessingEnabled);
     }
 
-    private void refreshBuffer() throws IOException {
+    public void refreshBuffer() throws IOException {
         // We extract from the buffer the bytes already consumed
-        log.trace("Before refreshing buffer. Buffer: " + bytesConsumed + " consumed, " + bufferDataSize + " Total. Builder size: " + builder.size());
+        //log.trace("Before refreshing buffer. Buffer: " + bytesConsumed + " consumed, " + bufferDataSize + " Total. Builder size: " + builder.size());
         super.builder.extractBytes(bytesConsumed);
 
         // We fill the buffer with content fom the builder
@@ -49,7 +49,7 @@ public class ByteArrayReaderOptimized extends ByteArrayReader {
         System.arraycopy(bytesToAddBuffer, 0, buffer, 0, bytesToAddBuffer.length);
         bufferDataSize = bytesToAddBuffer.length;
         bytesConsumed = 0;
-        log.trace("After refreshing buffer. Buffer: " + bytesConsumed + " consumed, " + bufferDataSize + " Total (" + bytesToAddBuffer.length + " bytes added from Builder. Builder size: " + builder.size());
+        //log.trace("After refreshing buffer. Buffer: " + bytesConsumed + " consumed, " + bufferDataSize + " Total (" + bytesToAddBuffer.length + " bytes added from Builder. Builder size: " + builder.size());
     }
 
     private void resetBuffer() {
@@ -60,13 +60,13 @@ public class ByteArrayReaderOptimized extends ByteArrayReader {
     @Override
     public byte[] extract(int length) {
         resetBuffer();
-        log.trace("extracting " + length + "bytes from builder...");
+        //log.trace("extracting " + length + "bytes from builder...");
         return builder.extractBytes(length);
     }
 
     private void adjustBufferIfNeededForReading(int length) {
         try {
-            log.trace("checking if we can read " + length + " bytes...");
+            //log.trace("checking if we can read " + length + " bytes...");
             if ((bufferDataSize - bytesConsumed) < length)
                 refreshBuffer();
         } catch (IOException ioe) {
