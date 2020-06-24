@@ -11,6 +11,7 @@ package com.nchain.jcl.tools.streams;
  * // TODO: Pending to Test and extend Documentation
  */
 public interface StreamEndpoint<T> extends Stream<T> {
+    void init();
     InputStreamSource<T> source();
     OutputStreamDestination<T> destination();
 }

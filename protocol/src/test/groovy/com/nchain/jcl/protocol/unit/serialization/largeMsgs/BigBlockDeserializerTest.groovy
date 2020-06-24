@@ -1,20 +1,14 @@
 package com.nchain.jcl.protocol.unit.serialization.largeMsgs
 
 import com.nchain.jcl.protocol.config.ProtocolConfig
-import com.nchain.jcl.protocol.config.RuntimeConfig
 import com.nchain.jcl.protocol.config.provided.ProtocolBSVMainConfig
-import com.nchain.jcl.protocol.config.provided.RuntimeConfigDefault
-import com.nchain.jcl.protocol.messages.BlockMsg
 import com.nchain.jcl.protocol.messages.PartialBlockHeaderMsg
 import com.nchain.jcl.protocol.messages.PartialBlockTXsMsg
-import com.nchain.jcl.protocol.serialization.BlockMsgSerializer
 import com.nchain.jcl.protocol.serialization.common.DeserializerContext
-import com.nchain.jcl.protocol.serialization.common.SerializerContext
 import com.nchain.jcl.protocol.serialization.largeMsgs.BigBlockDeserializer
 import com.nchain.jcl.protocol.unit.tools.MsgTest
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayReaderOptimized
-import com.nchain.jcl.tools.bytes.ByteArrayWriter
 import com.nchain.jcl.tools.bytes.HEX
 import spock.lang.Specification
 

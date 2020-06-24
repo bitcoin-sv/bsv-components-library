@@ -1,6 +1,4 @@
-package com.nchain.jcl.protocol.serialization.largeMsgs;
-
-import com.nchain.jcl.tools.events.Event;
+package com.nchain.jcl.tools.streams;
 
 /**
  * @author j.bloggs@nchain.com
@@ -8,7 +6,7 @@ import com.nchain.jcl.tools.events.Event;
  * Copyright (c) 2009-2016 The Bitcoin Core developers
  * Copyright (c) 2018-2020 Bitcoin Association
  * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-19 12:08
+ * @date 2020-06-22 13:21
  */
-public class MsgDeserializationFinishedEvent extends Event {
+public class StreamState {
 }

@@ -3,6 +3,7 @@ package com.nchain.jcl.protocol.serialization.streams;
 import com.nchain.jcl.protocol.messages.HeaderMsg;
 import com.nchain.jcl.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.protocol.messages.common.Message;
+import com.nchain.jcl.tools.streams.StreamState;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,7 +21,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 @Getter
-public class DeserializerStreamState {
+public class DeserializerStreamState extends StreamState {
 
     /**
      * State of the Deserialization process. The bytes form a Message might not come at the same time, so every time

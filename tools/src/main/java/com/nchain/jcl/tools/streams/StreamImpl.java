@@ -15,16 +15,26 @@ import java.util.concurrent.ExecutorService;
 @AllArgsConstructor
 public abstract class StreamImpl<S,T> implements Stream<S> {
 
+    protected ExecutorService executor;
+    protected Stream<T> streamOrigin;
+
     private InputStream<S> inputStream;
     private OutputStream<S> outputStream;
 
     public StreamImpl(ExecutorService executor, Stream<T> streamOrigin) {
-        this.inputStream = buildInputStream(executor, streamOrigin.input());
-        this.outputStream = buildOutputStream(executor, streamOrigin.output());
+        this.executor = executor;
+        this.streamOrigin = streamOrigin;
     }
 
-    public abstract InputStream<S> buildInputStream(ExecutorService executor, InputStream<T> source);
-    public abstract OutputStream<S> buildOutputStream(ExecutorService executor, OutputStream<T> destination);
+    public abstract InputStream<S> buildInputStream();
+    public abstract OutputStream<S> buildOutputStream();
+
+
+    @Override
+    public void init() {
+        this.inputStream = buildInputStream();
+        this.outputStream = buildOutputStream();
+    }
 
     @Override
     public InputStream<S> input() {

@@ -1,4 +1,4 @@
-package com.nchain.jcl.protocol.config;
+package com.nchain.jcl.tools.config;
 
 import com.nchain.jcl.tools.bytes.ByteArrayMemoryConfiguration;
 import lombok.AllArgsConstructor;

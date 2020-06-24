@@ -1,6 +1,6 @@
-package com.nchain.jcl.protocol.config.provided;
+package com.nchain.jcl.tools.config.provided;
 
-import com.nchain.jcl.protocol.config.RuntimeConfigImpl;
+import com.nchain.jcl.tools.config.RuntimeConfigImpl;
 import com.nchain.jcl.tools.bytes.ByteArrayMemoryConfiguration;
 
 import java.time.Duration;

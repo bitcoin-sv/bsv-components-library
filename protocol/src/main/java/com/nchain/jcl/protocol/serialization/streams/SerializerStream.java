@@ -10,6 +10,7 @@ import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.tools.streams.OutputStream;
 import com.nchain.jcl.tools.streams.OutputStreamImpl;
 import com.nchain.jcl.tools.streams.StreamDataEvent;
+import lombok.Getter;
 
 import java.util.Arrays;
 import java.util.List;
@@ -32,6 +33,7 @@ import java.util.concurrent.ExecutorService;
 public class SerializerStream extends OutputStreamImpl<BitcoinMsg<?>, ByteArrayReader> implements PeerStream {
 
     private final SerializerContext serializerContext;
+    @Getter private SerializerStreamState state;
 
     /** Constructor.*/
     public SerializerStream(ExecutorService executor,

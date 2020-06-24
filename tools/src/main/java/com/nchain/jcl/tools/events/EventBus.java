@@ -1,6 +1,7 @@
 package com.nchain.jcl.tools.events;
 
 import lombok.Builder;
+import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +30,7 @@ public class EventBus {
     private Map<Class<? extends Event>, List<Consumer<? extends Event>>> eventHandlers = new ConcurrentHashMap<>();
 
     // An executorService for notifying the Subscribers asynchronously
-    private final ExecutorService executor;
+    @Getter private final ExecutorService executor;
 
     @Builder
     private EventBus(ExecutorService executor) {

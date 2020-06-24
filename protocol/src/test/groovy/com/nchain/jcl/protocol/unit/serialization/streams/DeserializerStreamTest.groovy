@@ -1,9 +1,9 @@
 package com.nchain.jcl.protocol.unit.serialization.streams
 
 import com.nchain.jcl.protocol.config.ProtocolConfig
-import com.nchain.jcl.protocol.config.RuntimeConfig
+import com.nchain.jcl.tools.config.RuntimeConfig
 import com.nchain.jcl.protocol.config.provided.ProtocolBSVMainConfig
-import com.nchain.jcl.protocol.config.provided.RuntimeConfigDefault
+import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault
 import com.nchain.jcl.protocol.serialization.streams.DeserializerStream
 import com.nchain.jcl.protocol.unit.tools.ByteReaderDelaySource
 import com.nchain.jcl.protocol.unit.tools.MsgTest
@@ -14,7 +14,6 @@ import spock.lang.Specification
 
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
 class DeserializerStreamTest extends Specification {

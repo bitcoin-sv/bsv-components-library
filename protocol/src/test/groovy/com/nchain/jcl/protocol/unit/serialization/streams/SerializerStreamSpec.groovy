@@ -42,6 +42,7 @@ class SerializerStreamSpec extends Specification {
             super(executor)
             this.peerAddress = peerAddress
         }
+        StreamState getState() { return null} // Not used now...
         PeerAddress getPeerAddress() { return peerAddress}
     }
 

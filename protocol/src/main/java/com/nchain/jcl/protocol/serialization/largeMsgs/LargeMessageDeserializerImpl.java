@@ -7,21 +7,24 @@ import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
 /**
- * @author j.bloggs@nchain.com
- * Copyright (c) 2009-2010 Satoshi Nakamoto
- * Copyright (c) 2009-2016 The Bitcoin Core developers
+ * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 Bitcoin Association
  * Distributed under the Open BSV software license, see the accompanying file LICENSE.
  * @date 2020-06-18 15:09
+ *
+ * Base implementation of a Large Message Deserializer. Imlements basic initilization stuff
+ * and convenience methods.
  */
 public abstract class LargeMessageDeserializerImpl implements LargeMessageDeserializer {
 
+    // USed to trigger the callbacks
     private EventBus eventBus;
 
+    /** Constructor. The ServiceExecutor will be used to trigger the callbacks in a different Thread */
     public LargeMessageDeserializerImpl(ExecutorService executor) {
         this.eventBus = EventBus.builder().executor(executor).build();
     }
-
+    /** Constructor. Since no Executot Service is specified here, al the callbacks are blocking */
     public LargeMessageDeserializerImpl() {
         this(null);
     }
@@ -36,15 +39,11 @@ public abstract class LargeMessageDeserializerImpl implements LargeMessageDeseri
         eventBus.subscribe(MsgPartDeserializationErrorEvent.class, eventHandler);
     }
 
-    @Override
-    public void onFinish(Consumer<MsgDeserializationFinishedEvent> eventHandler) {
-        eventBus.subscribe(MsgDeserializationFinishedEvent.class, eventHandler);
-    }
-
+    // Convenience method to call when we ned to notify something has been deserialized
     public void notifyDeserialization(Message message) {
         eventBus.publish(new MsgPartDeserializedEvent<>(message));
     }
-
+    // Convenience method to call when we need to notify about an error
     public void notifyError(Exception e) {
         eventBus.publish(new MsgPartDeserializationErrorEvent(e));
     }

@@ -3,7 +3,7 @@ package com.nchain.jcl.protocol.serialization.streams;
 import com.nchain.jcl.network.PeerAddress;
 import com.nchain.jcl.network.PeerStream;
 import com.nchain.jcl.protocol.config.ProtocolConfig;
-import com.nchain.jcl.protocol.config.RuntimeConfig;
+import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.protocol.messages.HeaderMsg;
 import com.nchain.jcl.protocol.messages.VersionMsg;
 import com.nchain.jcl.protocol.messages.common.BitcoinMsg;
@@ -16,11 +16,11 @@ import com.nchain.jcl.protocol.serialization.largeMsgs.LargeMessageDeserializer;
 import com.nchain.jcl.tools.bytes.ByteArrayBuilder;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.tools.bytes.ByteArrayReaderOptimized;
-import com.nchain.jcl.tools.bytes.HEX;
 import com.nchain.jcl.tools.streams.InputStream;
 import com.nchain.jcl.tools.streams.InputStreamImpl;
 import com.nchain.jcl.tools.streams.StreamDataEvent;
 import com.nchain.jcl.tools.streams.StreamErrorEvent;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -75,7 +75,7 @@ public class DeserializerStream extends InputStreamImpl<ByteArrayReader, Bitcoin
     // State of this Stream. This variable contains all the information about whats going on at any time
     // Along the execution of this Stream this state wil be updated any time we receive new bytes, or we
     // deserialize different arts of the incoming message.
-    DeserializerStreamState state; // immutable Class
+    @Getter DeserializerStreamState state; // immutable Class
 
 
     // Basic attributes

@@ -15,18 +15,25 @@ import java.util.concurrent.ExecutorService;
  */
 @AllArgsConstructor
 public abstract class StreamEndpointImpl<T>  implements StreamEndpoint<T>, Stream<T> {
+    protected ExecutorService executor;
+
     private InputStreamSourceImpl<T> source;
     private OutputStreamDestinationImpl<T> destination;
 
 
     public StreamEndpointImpl(ExecutorService executor) {
-        this.source = buildSource(executor);
-        this.destination = buildDestination(executor);
+        this.executor = executor;
+
     }
 
-    public abstract InputStreamSourceImpl<T> buildSource(ExecutorService executor);
-    public abstract OutputStreamDestinationImpl<T> buildDestination(ExecutorService executor);
+    public abstract InputStreamSourceImpl<T> buildSource();
+    public abstract OutputStreamDestinationImpl<T> buildDestination();
 
+    @Override
+    public void init() {
+        this.source = buildSource();
+        this.destination = buildDestination();
+    }
     @Override
     public InputStreamSource<T> source() {
         return source;

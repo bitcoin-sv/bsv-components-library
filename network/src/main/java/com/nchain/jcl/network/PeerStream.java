@@ -1,5 +1,7 @@
 package com.nchain.jcl.network;
 
+import com.nchain.jcl.tools.streams.StreamState;
+
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 Bitcoin Association
@@ -14,4 +16,6 @@ package com.nchain.jcl.network;
 public interface PeerStream {
     /** Returns the Peer the Stream its connected to */
     PeerAddress getPeerAddress();
+
+    StreamState getState();
 }

@@ -13,6 +13,9 @@ package com.nchain.jcl.tools.streams;
  * // TODO: Pending to Test and extend Documentation
  */
 public interface Stream<T> {
+
+    void init();
+
     /** Returns the InputStream that allows us to react to data/events received */
     InputStream<T> input();
     /** Returns the OutputStream that allows us to send data/events */
