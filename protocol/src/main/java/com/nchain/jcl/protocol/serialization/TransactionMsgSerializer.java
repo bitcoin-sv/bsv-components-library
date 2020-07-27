@@ -77,7 +77,7 @@ public class TransactionMsgSerializer implements MessageSerializer<TransactionMs
         if (context.isCalculateHashes()) {
             // To calculate the TX Hash, we need to Serialize the TX itself...
             SerializerContext serializerContext = SerializerContext.builder()
-                    .protocolconfig(context.getProtocolconfig())
+                    .protocolBasicConfig(context.getProtocolBasicConfig())
                     .insideVersionMsg(context.isInsideVersionMsg())
                     .build();
             ByteArrayWriter writer = new ByteArrayWriter();

@@ -37,7 +37,7 @@ class TxInputMessageSerializerSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
             TxInputMessageSerializer serializer = TxInputMessageSerializer.getInstance()
             TxInputMessage message
@@ -57,7 +57,7 @@ class TxInputMessageSerializerSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             SerializerContext context = SerializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
             TxInputMessageSerializer serializer = TxInputMessageSerializer.getInstance()
             HashMsg hash = HashMsg.builder().hash(REF_BITES).build();

@@ -7,7 +7,6 @@ import com.nchain.jcl.protocol.serialization.HashMsgSerializer
 import com.nchain.jcl.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.protocol.serialization.common.SerializerContext
 import com.nchain.jcl.protocol.unit.tools.ByteArrayArtificalStreamProducer
-import com.nchain.jcl.tools.bytes.HEX
 import com.nchain.jcl.tools.crypto.Sha256Wrapper
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
@@ -36,7 +35,7 @@ class HashMsgSerializerSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
             HashMsgSerializer serializer = HashMsgSerializer.getInstance()
             HashMsg message
@@ -56,7 +55,7 @@ class HashMsgSerializerSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             SerializerContext context = SerializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
             HashMsg message = HashMsg.builder().hash(REF_HASH_CONTENT_BYTES).build()
             HashMsgSerializer serializer = HashMsgSerializer.getInstance()

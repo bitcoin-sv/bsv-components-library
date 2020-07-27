@@ -25,7 +25,7 @@ class VerackSerializationSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
             BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
             BitcoinMsg<VersionAckMsg> version = null
@@ -34,7 +34,7 @@ class VerackSerializationSpec extends Specification {
             version = bitcoinSerializer.<VersionAckMsg>deserialize(context, byteReader, VersionAckMsg.MESSAGE_TYPE)
         then:
             version.getHeader().getCommand().equals(VersionAckMsg.MESSAGE_TYPE)
-            version.getHeader().getMagic() == config.getMagicPackage()
+            version.getHeader().getMagic() == config.getBasicConfig().getMagicPackage()
         where:
             byteInterval | delayMs
                 10       |    15
@@ -44,9 +44,9 @@ class VerackSerializationSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             SerializerContext context = SerializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
-            BitcoinMsg<VersionAckMsg> versionAck = new BitcoinMsgBuilder<>(config, VersionAckMsg.builder().build()).build()
+            BitcoinMsg<VersionAckMsg> versionAck = new BitcoinMsgBuilder<>(config.getBasicConfig(), VersionAckMsg.builder().build()).build()
             BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
             String msgSerializedHex = null
         when:

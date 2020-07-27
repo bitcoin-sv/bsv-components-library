@@ -18,8 +18,8 @@ public abstract class StreamImpl<S,T> implements Stream<S> {
     protected ExecutorService executor;
     protected Stream<T> streamOrigin;
 
-    private InputStream<S> inputStream;
-    private OutputStream<S> outputStream;
+    protected InputStream<S> inputStream;
+    protected OutputStream<S> outputStream;
 
     public StreamImpl(ExecutorService executor, Stream<T> streamOrigin) {
         this.executor = executor;

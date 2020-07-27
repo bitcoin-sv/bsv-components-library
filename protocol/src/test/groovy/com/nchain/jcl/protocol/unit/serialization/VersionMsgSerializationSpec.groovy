@@ -54,7 +54,7 @@ class VersionMsgSerializationSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .maxBytesToRead(HEX.decode(REF_ADDRESS_MSG).length)
                     .insideVersionMsg(true)
                     .build()
@@ -79,7 +79,7 @@ class VersionMsgSerializationSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             SerializerContext context = SerializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .insideVersionMsg(true)
                     .build()
             VarStrMsg userAgentMsg = VarStrMsg.builder().str(REF_BODY_USER_AGENT).build();
@@ -89,7 +89,7 @@ class VersionMsgSerializationSpec extends Specification {
                 .build();
 
             VersionMsg message = VersionMsg.builder()
-                    .version(config.getHandshakeProtocolVersion())
+                    .version(config.getBasicConfig().getProtocolVersion())
                     .timestamp(REF_BODY_TIMESTAMP)
                     .user_agent(userAgentMsg)
                     .start_height(REF_BODY_START_HEIGHT)
@@ -111,7 +111,7 @@ class VersionMsgSerializationSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
-                .protocolconfig(config)
+                .protocolBasicConfig(config.getBasicConfig())
                 .insideVersionMsg(true)
                 .build()
 
@@ -120,7 +120,7 @@ class VersionMsgSerializationSpec extends Specification {
         when:
             BitcoinMsg<VersionMsg> message = bitcoinSerializer.deserialize(context, byteReader, VersionMsg.MESSAGE_TYPE)
         then:
-            message.getHeader().getMagic().equals(config.getMagicPackage())
+            message.getHeader().getMagic().equals(config.getBasicConfig().getMagicPackage())
             message.getHeader().getCommand().toUpperCase().equals(VersionMsg.MESSAGE_TYPE.toUpperCase())
             message.getBody().getStart_height() == REF_BODY_START_HEIGHT
             message.getBody().getUser_agent().getStr().equals(REF_BODY_USER_AGENT)
@@ -137,7 +137,7 @@ class VersionMsgSerializationSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             SerializerContext context = SerializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .insideVersionMsg(true)
                     .build()
             VarStrMsg userAgentMsg = VarStrMsg.builder().str(REF_BODY_USER_AGENT).build();
@@ -146,14 +146,14 @@ class VersionMsgSerializationSpec extends Specification {
                 .timestamp(System.currentTimeMillis())
                 .build();
             VersionMsg versionMsg  = VersionMsg.builder()
-                    .version(config.getHandshakeProtocolVersion())
+                    .version(config.getBasicConfig().protocolVersion)
                     .timestamp(REF_TIMESTAMP)
                     .user_agent(userAgentMsg)
                     .start_height(REF_BODY_START_HEIGHT)
                     .addr_from(body_addr)
                     .addr_recv(body_addr)
                     .relay(true).build()
-            BitcoinMsg<VersionMsg> bitcoinVersionMsg = new BitcoinMsgBuilder<>(config, versionMsg).build()
+            BitcoinMsg<VersionMsg> bitcoinVersionMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), versionMsg).build()
             BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
             byte[] versionMsgBytes = bitcoinSerializer.serialize(context, bitcoinVersionMsg, VersionMsg.MESSAGE_TYPE).getFullContent()

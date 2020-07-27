@@ -1,6 +1,6 @@
 package com.nchain.jcl.protocol.messages.common;
 
-import com.nchain.jcl.protocol.config.ProtocolConfig;
+import com.nchain.jcl.protocol.config.ProtocolBasicConfig;
 import com.nchain.jcl.protocol.messages.HeaderMsg;
 
 
@@ -18,7 +18,7 @@ import com.nchain.jcl.protocol.messages.HeaderMsg;
 public class BitcoinMsgBuilder<M extends Message> {
 
     private M bodyMsg;
-    private ProtocolConfig config;
+    private ProtocolBasicConfig config;
 
     /**
      * Constructor.
@@ -26,10 +26,10 @@ public class BitcoinMsgBuilder<M extends Message> {
      * The Header is automatically created by this builder, but the Body must be created a separate builder
      * received as a parameter.
      *
-     * @param config            Protocol Configuration
+     * @param config            P2P Configuration
      * @param bodyBuilder       Builder to create instances of the Message used a Body of the Message
      */
-    public BitcoinMsgBuilder(ProtocolConfig config, MessageBuilder<M> bodyBuilder) {
+    public BitcoinMsgBuilder(ProtocolBasicConfig config, MessageBuilder<M> bodyBuilder) {
         this(config, bodyBuilder.build());
     }
 
@@ -38,10 +38,10 @@ public class BitcoinMsgBuilder<M extends Message> {
      * It allows to build instances of {@link BitcoinMsg}.
      * The Header is automatically created by this builder, and the Body is provided.
      *
-     * @param config            Protocol Configuration
+     * @param config            P2P Configuration
      * @param bodyMsg           body Msg
      */
-    public BitcoinMsgBuilder(ProtocolConfig config, M bodyMsg) {
+    public BitcoinMsgBuilder(ProtocolBasicConfig config, M bodyMsg) {
         this.config = config;
         this.bodyMsg = bodyMsg;
     }

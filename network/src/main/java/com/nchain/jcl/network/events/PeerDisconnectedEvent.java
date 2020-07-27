@@ -26,4 +26,9 @@ public class PeerDisconnectedEvent extends Event {
     }
     private PeerAddress peerAddress;
     private DisconnectedReason reason;
+
+    @Override
+    public String toString() {
+        return "Event[Peer Disconnected]: " + peerAddress.toString() + ": " + reason;
+    }
 }

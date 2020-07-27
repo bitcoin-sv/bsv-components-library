@@ -1,10 +1,13 @@
 package com.nchain.jcl.tools.config;
 
 import com.nchain.jcl.tools.bytes.ByteArrayMemoryConfiguration;
+import com.nchain.jcl.tools.files.FileUtils;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+import java.nio.file.Path;
 import java.time.Duration;
 
 /**
@@ -18,11 +21,14 @@ import java.time.Duration;
  */
 @Builder(toBuilder = true)
 @AllArgsConstructor
+@NoArgsConstructor
 public class RuntimeConfigImpl implements RuntimeConfig {
     @Getter
-    ByteArrayMemoryConfiguration byteArrayMemoryConfig;
+    protected ByteArrayMemoryConfiguration byteArrayMemoryConfig;
     @Getter
-    int msgSizeInBytesForRealTimeProcessing;
+    protected int msgSizeInBytesForRealTimeProcessing;
     @Getter
-    Duration maxWaitingTimeForBytesInRealTime;
+    protected Duration maxWaitingTimeForBytesInRealTime;
+    @Getter
+    protected FileUtils fileUtils;
 }

@@ -2,6 +2,11 @@ package com.nchain.jcl.tools.config.provided;
 
 import com.nchain.jcl.tools.config.RuntimeConfigImpl;
 import com.nchain.jcl.tools.bytes.ByteArrayMemoryConfiguration;
+import com.nchain.jcl.tools.files.FileUtils;
+import com.nchain.jcl.tools.files.FileUtilsBuilder;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Value;
 
 import java.time.Duration;
 
@@ -13,18 +18,30 @@ import java.time.Duration;
  *
  * Default RuntimeConfiguration.
  */
+@Value
 public class RuntimeConfigDefault extends RuntimeConfigImpl {
-    private static final ByteArrayMemoryConfiguration byteArrayMemoryConfiguration =
-            ByteArrayMemoryConfiguration.builder().byteArraySize(ByteArrayMemoryConfiguration.ARRAY_SIZE_NORMAL).build();
-
-    // Any message bigger than 10MB is considered a  "Big" Message:
-    private static final int REAL_TIME_PROCESSING_MIN_BYTES = 10_000_000;
-
-    // We Wait for 5 secs at the most in Real-time
-    private static final Duration MAX_WAIING_REAL_TIME = Duration.ofMillis(2000);
+    @Getter
+    private ByteArrayMemoryConfiguration byteArrayMemoryConfig = ByteArrayMemoryConfiguration.builder()
+            .byteArraySize(ByteArrayMemoryConfiguration.ARRAY_SIZE_NORMAL)
+            .build();
+    @Getter
+    private int msgSizeInBytesForRealTimeProcessing = 10_000_000;
+    @Getter
+    private Duration maxWaitingTimeForBytesInRealTime = Duration.ofMillis(2000);
+    @Getter
+    private FileUtils fileUtils;
 
     /** Constructor */
     public RuntimeConfigDefault() {
-        super(byteArrayMemoryConfiguration, REAL_TIME_PROCESSING_MIN_BYTES, MAX_WAIING_REAL_TIME);
+        super();
+        super.byteArrayMemoryConfig = byteArrayMemoryConfig;
+        super.msgSizeInBytesForRealTimeProcessing = msgSizeInBytesForRealTimeProcessing;
+        super.maxWaitingTimeForBytesInRealTime = maxWaitingTimeForBytesInRealTime;
+        try {
+            fileUtils = new FileUtilsBuilder().useTempFolder().copyFromClasspath().build();
+            super.fileUtils = fileUtils;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

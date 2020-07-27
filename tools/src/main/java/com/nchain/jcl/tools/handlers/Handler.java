@@ -16,6 +16,14 @@ import com.nchain.jcl.tools.events.EventBus;
  * bitcoin protocol.
  */
 public interface Handler {
+    /** Returns the Handler Id */
+    String getId();
+    /** Returns the Handler Config */
+    HandlerConfig getConfig();
+    /** Returns the current State of this Handler */
     HandlerState getState();
+    /** Links to this Handler to this EventBus, for events subscription and publishing */
     void useEventBus(EventBus eventBus);
+    /** Initializes the Handler. It must be called right after "useEventBus()" */
+    void init();
 }

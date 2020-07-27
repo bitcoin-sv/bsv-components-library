@@ -13,7 +13,7 @@ import lombok.Value;
  * @date 2019-07-16
  *
  * A VarIntMSg is not a fully Bitcoin Message itself, but it's a structure that is reused by different other
- * messages in the Bitcoin Protocol. It represents a numeric valueInteger that can be encoded depending on
+ * messages in the Bitcoin P2P. It represents a numeric valueInteger that can be encoded depending on
  * the represented value to save space. Variable length integers always precede an array/vector of a type of
  * data that may vary in length. Longer numbers are encoded in little endian.
  *
@@ -61,7 +61,7 @@ public final class VarIntMsg extends Message {
 
     /**
      * Returns the size in bytes that will be taken by this value, following the algorithm as its specified in
-     * the Bitcoin Protocol (code from BitcoinJ)
+     * the Bitcoin P2P (code from BitcoinJ)
      *
      */
     private int getSizeInbytes() {

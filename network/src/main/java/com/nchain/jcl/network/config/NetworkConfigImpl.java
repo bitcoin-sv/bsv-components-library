@@ -1,5 +1,6 @@
 package com.nchain.jcl.network.config;
 
+import com.nchain.jcl.tools.handlers.HandlerConfig;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,7 +18,7 @@ import java.util.OptionalInt;
 @Getter
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class NetworkConfigImpl implements NetworkConfig {
+public class NetworkConfigImpl extends HandlerConfig implements NetworkConfig {
     private int port;
     private OptionalInt maxSocketConnections;
     private OptionalInt maxSocketPendingConnections;

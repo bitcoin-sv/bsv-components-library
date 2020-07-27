@@ -50,7 +50,7 @@ public abstract class Message {
     /**
      * Returns the Identifier of the Type of this message. Each subclass wil have to provide an implementation
      * returning a Value. For the "body" messages, this is the value that will be stored in the "COMMAND" field
-     * in the Header, so its value must meet the specification in the Bitcoin Protocol.
+     * in the Header, so its value must meet the specification in the Bitcoin P2P.
      * If the Message is not a "Body" message, then this value is ony informative.
      */
     abstract public String getMessageType();

@@ -17,8 +17,8 @@ import java.util.concurrent.ExecutorService;
 public abstract class StreamEndpointImpl<T>  implements StreamEndpoint<T>, Stream<T> {
     protected ExecutorService executor;
 
-    private InputStreamSourceImpl<T> source;
-    private OutputStreamDestinationImpl<T> destination;
+    protected InputStreamSourceImpl<T> source;
+    protected OutputStreamDestinationImpl<T> destination;
 
 
     public StreamEndpointImpl(ExecutorService executor) {

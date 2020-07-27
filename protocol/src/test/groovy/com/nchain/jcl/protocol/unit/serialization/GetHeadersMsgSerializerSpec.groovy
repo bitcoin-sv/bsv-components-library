@@ -37,10 +37,10 @@ class GetHeadersMsgSerializerSpec extends Specification{
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             SerializerContext context  = SerializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
 
-            BaseGetDataAndHeaderMsg baseMsg = BaseGetDataAndHeaderMsgSerializerSpec.buildBaseMsg(config)
+            BaseGetDataAndHeaderMsg baseMsg = BaseGetDataAndHeaderMsgSerializerSpec.buildBaseMsg(config.getBasicConfig())
 
             GetHeadersMsg getHeadersMsg  =  GetHeadersMsg.builder()
                     .baseGetDataAndHeaderMsg(baseMsg)
@@ -60,7 +60,7 @@ class GetHeadersMsgSerializerSpec extends Specification{
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .maxBytesToRead((long) (REF_GETHEADERS_MSG_BODY.length()/2))
                     .build()
             GetHeadersMsg getHeadersMsg
@@ -81,14 +81,14 @@ class GetHeadersMsgSerializerSpec extends Specification{
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             SerializerContext context = SerializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
-            BaseGetDataAndHeaderMsg baseMsg = BaseGetDataAndHeaderMsgSerializerSpec.buildBaseMsg(config)
+            BaseGetDataAndHeaderMsg baseMsg = BaseGetDataAndHeaderMsgSerializerSpec.buildBaseMsg(config.getBasicConfig())
             GetHeadersMsg  getHeadersMsg =  GetHeadersMsg.builder().baseGetDataAndHeaderMsg(baseMsg).build();
             ByteArrayReader byteReader = new ByteArrayReader(HEX.decode(REF_GETHEADERS_MSG_BODY))
 
 
-            BitcoinMsg<GetHeadersMsg> getHeadersMsgBitcoinMsg = new BitcoinMsgBuilder<>(config, getHeadersMsg).build()
+            BitcoinMsg<GetHeadersMsg> getHeadersMsgBitcoinMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), getHeadersMsg).build()
             BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
             byte[] bytes = serializer.serialize(context, getHeadersMsgBitcoinMsg, GetHeadersMsg.MESSAGE_TYPE).getFullContent()
@@ -101,7 +101,7 @@ class GetHeadersMsgSerializerSpec extends Specification{
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .maxBytesToRead((long) (REF_GETHEADERS_MSG_FULL.length() / 2))
                     .build()
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_GETHEADERS_MSG_FULL), byteInterval, delayMs);
@@ -110,7 +110,7 @@ class GetHeadersMsgSerializerSpec extends Specification{
         when:
             BitcoinMsg<GetHeadersMsg> getHeaderMsg = bitcoinSerializer.deserialize(context, byteReader, GetHeadersMsg.MESSAGE_TYPE)
         then:
-            getHeaderMsg.getHeader().getMagic().equals(config.getMagicPackage())
+            getHeaderMsg.getHeader().getMagic().equals(config.getBasicConfig().getMagicPackage())
             getHeaderMsg.getHeader().getCommand().equals(GetHeadersMsg.MESSAGE_TYPE)
         where:
             byteInterval | delayMs

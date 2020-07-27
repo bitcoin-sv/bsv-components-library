@@ -46,7 +46,7 @@ class TransactionMsgSerializerSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
             TransactionMsgSerializer serializer = TransactionMsgSerializer.getInstance()
             TransactionMsg message
@@ -78,7 +78,7 @@ class TransactionMsgSerializerSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             SerializerContext context = SerializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
             TransactionMsgSerializer serializer = TransactionMsgSerializer.getInstance()
 
@@ -111,7 +111,7 @@ class TransactionMsgSerializerSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_MSG_FULL), byteInterval, delayMs)
             BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
@@ -119,7 +119,7 @@ class TransactionMsgSerializerSpec extends Specification {
             BitcoinMsg<TransactionMsg> message = bitcoinSerializer.deserialize(context, byteReader, TransactionMsg.MESSAGE_TYPE)
 
         then:
-            message.getHeader().getMagic().equals(config.getMagicPackage())
+            message.getHeader().getMagic().equals(config.getBasicConfig().getMagicPackage())
             message.getHeader().getCommand().toUpperCase().equals(TransactionMsg.MESSAGE_TYPE.toUpperCase())
             message.getBody().getMessageType() == TransactionMsg.MESSAGE_TYPE
             message.getBody().getTx_in_count().value == 1
@@ -144,7 +144,7 @@ class TransactionMsgSerializerSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             SerializerContext context = SerializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
 
             TxOutputMessage txOutputMessageOne = TxOutputMessage.builder().txValue(179123).pk_script(pk_script_one).build();
@@ -166,7 +166,7 @@ class TransactionMsgSerializerSpec extends Specification {
 
             TransactionMsg transactionMsg = TransactionMsg.builder().version(1).tx_in(txInputs).tx_out(txOutputMsgs).build()
 
-            BitcoinMsg<VersionMsg> bitcoinVersionMsg = new BitcoinMsgBuilder<>(config, transactionMsg).build()
+            BitcoinMsg<VersionMsg> bitcoinVersionMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), transactionMsg).build()
             BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
             byte[] msgBytes = bitcoinSerializer.serialize(context, bitcoinVersionMsg, TransactionMsg.MESSAGE_TYPE).getFullContent()

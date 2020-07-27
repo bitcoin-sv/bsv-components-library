@@ -1,5 +1,7 @@
 package com.nchain.jcl.network.config;
 
+import com.nchain.jcl.tools.handlers.HandlerConfig;
+
 import java.util.OptionalInt;
 
 /**

@@ -1,11 +1,13 @@
 package com.nchain.jcl.network;
 
 import com.google.common.base.Objects;
+import com.nchain.jcl.tools.files.CSVSerializable;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 
 /**
  * @author i.fernandez@nchain.com
@@ -16,11 +18,11 @@ import java.util.List;
  * A class that wraps the info to locate a Peer in the Blockchain Network.
  * This class is immutable and safe for MultiThreading
  */
-public final class PeerAddress {
+public final class PeerAddress implements CSVSerializable {
 
     private String address;
     private InetAddress ip;
-    private final int port;
+    private int port;
     private boolean verified;
 
     /**
@@ -108,7 +110,6 @@ public final class PeerAddress {
         } else {
             result = new PeerAddress(ip, portNumber);
         }
-
         return result;
     }
 
@@ -154,5 +155,23 @@ public final class PeerAddress {
         if (!(obj instanceof PeerAddress)) return false;
         PeerAddress other = (PeerAddress) obj;
         return Objects.equal(this.port, other.port) && Objects.equal(this.ip, other.ip);
+    }
+    @Override
+    public String toCSVLine() {
+        return this.ip.toString() + CSVSerializable.SEPARATOR + this.port;
+    }
+
+    @Override
+    public void fromCSVLine(String line) {
+        if (line == null) return;
+        try {
+            StringTokenizer tokens = new StringTokenizer(line, CSVSerializable.SEPARATOR);
+            String hostAddress = tokens.nextToken();
+            String port = tokens.nextToken();
+            this.ip = InetAddress.getByName(hostAddress + ":" + port);
+            this.port = Integer.parseInt(port);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

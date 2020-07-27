@@ -14,7 +14,7 @@ import lombok.Value;
  * @date 2019-07-15
  *
  * A NetMshAddr is not a fully Bitcoin Message itself, but it's a structure that is reused by different other
- * messages in the Bitcoin Protocol. When a network address is needed somewhere, this structure is used.
+ * messages in the Bitcoin P2P. When a network address is needed somewhere, this structure is used.
  * Network addresses are not prefixed with a timestamp in the version message.
  *
  * Structure of the Message:

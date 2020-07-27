@@ -1,175 +1,64 @@
 package com.nchain.jcl.protocol.config;
 
-import java.time.Duration;
-import java.util.Optional;
-import java.util.OptionalInt;
+import com.nchain.jcl.protocol.handlers.blacklist.BlacklistHandlerConfig;
+import com.nchain.jcl.protocol.handlers.discovery.DiscoveryHandlerConfig;
+import com.nchain.jcl.protocol.handlers.handshake.HandshakeHandlerConfig;
+import com.nchain.jcl.protocol.handlers.message.MessageHandlerConfig;
+import com.nchain.jcl.protocol.handlers.pingPong.PingPongHandlerConfig;
+import com.nchain.jcl.tools.handlers.HandlerConfig;
+
+import java.util.Map;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2019 Bitcoin Association
+ * Copyright (c) 2018-2020 Bitcoin Association
  * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2019-07-11
+ * @date 2020-07-17 10:36
  *
- * Configuration interface for the Protocol Component. Implementations will provide specific values
- * for different Protocol configurations (like mainnet, testnet, or specific values to define custom
- * behaviour)
+ * Operations to get Configuration information of the P2P that is running.
+ *
+ * The "P2P" is just a set of different P2P-Handlers, each one of them taking care of
+ * one specific aspect (Handshake, node-Discovery, blacklist, etc). Each one of those Handlers
+ * have a HandlerConfiguration Class, so the Global P2P Configuration is the sum of all the
+ * individual Handler Configuration classes.
+ *
+ * All these configuration classes are stored in a MAP, where the key is the Handler ID, and the Value
+ * is the Configuration class itself.
+ *
+ * The P2P is flexible in the sense that additional handler can be included in it in real time, so
+ * thats why the Handlers Configurations are sored in a Map, since we don't know how many are there, it
+ * depends on the handlers that have been added to the P2P in real time
+ *
+ * But even though the P2P is flexible nad the number of Handlers (and therefore Handler configurations)
+ * is flexible, there is a DEFAULT set of Handlers which are mandatory if we want the protocol to work.
+ * These handlers are:
+ * - Network Handler
+ * - Message Handler
+ * - Handshake Handler
+ * - PingPong Handler
+ * - Discovery Handler
+ * - Blacklist Handler
+ *
+ * For convenience, this interface contains operations to deal with these configuration above specifically.
  */
-public interface ProtocolConfig {
 
-    // Basic Configuration:
-
-    /** Returns this Configuration Id */
+public interface ProtocolConfig{
+    /** Returns a Configuration ID (for logging, mostly) */
     String getId();
-    /** Returns the Magic Value used in the Messages Header, to identify the Network */
-    long getMagicPackage();
-    /** Returns the Port used to connect to remote Peers */
-    int getPort();
-    /** Returns the Max size of a Message. Any incoming Message bigger than this will be considered incorrect */
-    int getMaxMessageSizeInBytes();
-    /** Indicates if the messages checksum is checked during Serialization */
-    boolean isCheckingMessageChecksum();
-    /** Returns the Number indicating the services supported */
-    int getServicesSupported();
-    /** Indicates if the connection to a Remote Peer is disconnected when an unknown message is received, or just ignored */
-    boolean isDisconnectingOnUnknownMessage();
-    /** Indicates if the Listeners at protocol Level run in the same Thread (blocking) or not (not blocking) */
-    boolean isBlockingOnListeners();
 
     /**
-     * If we receive a message with a size equals or bigger, then it must be serialized ashyncronously
-     * as a "Large Message"
+     * Returns the Basic P2P Configuration. This is a minimal set of variables that are most interesting
+     * from the business standpoint.
      */
-    long getLargeMsgsMinSize();
+    ProtocolBasicConfig getBasicConfig();
 
+    /** Returns the MAp containing the configuration for all the Handlers */
+    Map<String, HandlerConfig> getHandlersConfig();
 
-    // Node Discovery Configuration:
-
-    enum DiscoveryMethod {
-        DNS,                // Hardcoded DNS List
-        PEERS               // Hardcoded List of initial Peers
-    }
-
-    /** Returns a list of DNS Seed used for Initial Node Discovery */
-    String[] getDiscoveryDnsSeeds();
-
-    /** Returns the Discovery Method used */
-    DiscoveryMethod getDiscoveryMethod();
-
-    /**
-     * Returns how often we ask for new Addresses to other Nodes. If not present, we do NOT ask for Addresses at all
-     */
-    Optional<Duration> getDiscoveryADDRFrequency();
-
-    /**
-     * If presents, specifies how many Peers we ask for new Addresses. Its a percentage, so if for example we are
-     * connected to 200 Peers (not only connected, but also handshaked) and this value is 30, then 60 Peers are
-     * randomly selected and we send GETADDR messages to them.
-     */
-    OptionalInt getDiscoveryADDRPercentage();
-
-    /** Max number of Addresses we store. If we already have this much, we ignore all further incoming ADDR. */
-    OptionalInt getDiscoveryMaxAddresses();
-
-    /** If the ADDR Message is coming from a Peer which version is less than this one, then the Message is ignored. */
-    OptionalInt getDiscoveryMinVersion();
-
-    /** Minimum number of Address we isHandshakeUsingRelay to to other Peers. If we have less than this, we do not rely them. */
-    OptionalInt getDiscoveryRelayMinAddresses();
-
-    /** If TRUE, each Address discovered in the Network will be checks for reachability before trying to stablish */
-    boolean isDiscoveryCheckingPeerReachability();
-
-    // HANDSHAKE Configuration parameters:
-
-
-    /** Returns the Protocol Version used */
-    int getHandshakeProtocolVersion();
-    /** The USER_AGENT Field used in the VERSION Messages, during the Handshake */
-    String getHandshakeUserAgent();
-    /**
-     * Minimun number of Peers to perform a Handshake with. If the number of current handshakes goes below this
-     * number, the Network Handler will start accepting new connections again.
-     */
-    OptionalInt getHandshakeMinPeers();
-    /**
-     * Maximum number of Peers to perform a Handshake with . If the Handshakes performed
-     * exceed this number, The Network Handler will stop accepting new connections and will disconnect those ones
-     * that exceed this number.
-     */
-    OptionalInt getHandshakeMaxPeers();
-
-
-    /**
-     * If a VERSION Msg coming from a Remote Peer during the Handshake contains any of these Strings, the
-     * Handshake is Failed.
-     */
-    String[] getHandshakeBlacklistPatterns();
-
-    /**
-     * If a VERSION Msg coming from a Remote Peer during the Handshake does NOT contains at least one of these String, the
-     * Handshake is Failed
-     */
-    String[] getHandshakeWhitelistPatterns();
-
-
-    /** Indicates whether the remote peer should announce relayed Transactions or not, see BIP 0037 */
-    boolean isHandshakeUsingRelay();
-
-    // PING/PONG Configuration parameters:
-
-    /**
-     * If a Peer is inactive during a period of time longer than this value, then we start the PING-PONG
-     * Protocol with it, to ensure the connection is still alive.
-     * The time is measured in milliseconds
-     */
-    long getPingPongInactivityTimeout();
-
-    /**
-     * If, after sending a PING Message to a Peer, it takes it longer time that this value, then we assume
-     * that the connection is not alive.
-     * The time is measured in milliseconds
-     */
-    long getPingPongResponseTimeout();
-
-    // BLACKLIST Configuration parameters:
-
-    /** If TRue, the List of blacklisted Hosts is stored so it can be loaded next time we launch the server */
-    boolean isBlacklistPersistent();
-
-    // BLOCK DOWNLOAD configuration:
-
-    /** Maximun number of Blocks that can be downloaded at the same time */
-    int getBlockDownloadingMaxBlocksInParallel();
-
-    /** If downloading a block from a remote Peer takes more time than this, the peer is disconnected */
-    Duration getBlockDownloadingAndSerializationTimeout();
-
-    /** If a Peer is downloading a Block but does NOT send any data from longer than this, it gets disconnected */
-    Duration getBlockDownloadingIdleTimeout();
-
-    /** If after this number of attempts the Bocks cannot be downloaded, we give up */
-    int getBlockDownloadingMaxAttempts();
-
-    /** If Serializing/Deserializing a Block takes longer than this, it might get rejected */
-    Duration getBlockSerializationTimeout();
-
-    /**
-     * When the size of a Block is bigger than "getLargeMsgsMinSize", then it will be downloaded asyncbhronously: the
-     * Block Header will be downloaded first, and then the Txs. The Txs will be returned back to the client via
-     * callbacks, sending a list of Txs on each call. The number of Txs on each call depends on 2 thresholds:
-     *  - A constant defined im the Block Deserializer (default to 10000)
-     *  - the size (in bytes) those Tx take
-     */
-
-    /**
-     * If the size (in Bytes)of the TXs take more than the value returned by this method, then they will be sent to the client
-     *  even if we haven't reached the threshold specified.
-     */
-    int getBlockAsyncDownloadBatchMaxTxsLengthInBytes();
-
-    /**
-     * If the number of TXs that are being deserialized asynchronously is bigger than this number, then they will be
-     * returned to the client via callback, even if their length (in bytes) is below the threshold.
-     */
-    int getBlockAsyncDownloadBatchMaxTxsNum();
+    // Convenience methods: They return the Configuration for the Default built-in Handlers
+    MessageHandlerConfig    getMessageConfig();
+    HandshakeHandlerConfig  getHandshakeConfig();
+    PingPongHandlerConfig   getPingPongConfig();
+    DiscoveryHandlerConfig  getDiscoveryConfig();
+    BlacklistHandlerConfig  getBlacklistConfig();
 }

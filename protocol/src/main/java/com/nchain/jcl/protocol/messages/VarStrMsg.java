@@ -13,7 +13,7 @@ import lombok.Value;
  * @date 2019-07-16
  *
  * A VarStrMSg is not a fully Bitcoin Message itself, but it's a structure that is reused by different other
- *  messages in the Bitcoin Protocol. It represents a Variable Length String, so we only store as many bytes
+ *  messages in the Bitcoin P2P. It represents a Variable Length String, so we only store as many bytes
  *  as we need o store it. Since it's a flexible structure (its size depends on the size of the String), we
  *  follow this consensus to store it:
  *  - variable length integer (VerIntMsg) followed by the string itself.

@@ -33,7 +33,7 @@ class TxOutPointMsgSerializerSpec extends Specification {
        given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
             TxOutPointMsgSerializer serializer = TxOutPointMsgSerializer.getInstance()
             TxOutPointMsg message
@@ -52,7 +52,7 @@ class TxOutPointMsgSerializerSpec extends Specification {
        given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             SerializerContext context = SerializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
            HashMsg hash = HashMsg.builder().hash(REF_BITES).build();
 

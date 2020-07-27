@@ -1,7 +1,7 @@
 package com.nchain.jcl.protocol.serialization.common;
 
 
-import com.nchain.jcl.protocol.config.ProtocolConfig;
+import com.nchain.jcl.protocol.config.ProtocolBasicConfig;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -29,8 +29,8 @@ public final class DeserializerContext {
     //calculate the hashes when deserialzing block data
     private boolean calculateHashes;
 
-    // Global Protocol Configuration
-    private ProtocolConfig protocolconfig;
+    // Global P2P Configuration
+    private ProtocolBasicConfig protocolBasicConfig;
 
     // Indicates whether the current Serialization is happening inside a Version Message (since some
     // serialization logic is slightly different in that case)

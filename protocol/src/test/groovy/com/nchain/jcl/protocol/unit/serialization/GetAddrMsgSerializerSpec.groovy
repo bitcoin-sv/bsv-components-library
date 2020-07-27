@@ -28,9 +28,10 @@ class GetAddrMsgSerializerSpec extends Specification {
 
     def "Testing GetAddr Full Message Deserializing"(int byteInterval, int delayMs) {
         given:
-            ProtocolConfig config = new ProtocolBSVMainConfig()
+        ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
-                    .protocolconfig(config).build()
+                    .protocolBasicConfig(config.getBasicConfig())
+                    .build()
             BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
             BitcoinMsg<GetAddrMsg> getAddrMsg = null
         ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(GETADDR_MSG), byteInterval, delayMs);
@@ -39,7 +40,7 @@ class GetAddrMsgSerializerSpec extends Specification {
                     byteReader, GetAddrMsg.MESSAGE_TYPE)
         then:
             getAddrMsg.getHeader().getCommand().equals(GetAddrMsg.MESSAGE_TYPE)
-            getAddrMsg.getHeader().getMagic() == config.getMagicPackage()
+            getAddrMsg.getHeader().getMagic() == config.getBasicConfig().getMagicPackage()
         where:
             byteInterval | delayMs
                 10       |    15
@@ -49,9 +50,9 @@ class GetAddrMsgSerializerSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             SerializerContext context = SerializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
-            BitcoinMsg<GetAddrMsg> getAddrMsg = new BitcoinMsgBuilder<>(config, GetAddrMsg.builder().build()).build()
+            BitcoinMsg<GetAddrMsg> getAddrMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), GetAddrMsg.builder().build()).build()
             BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
             String msgSerializedHex = null
         when:

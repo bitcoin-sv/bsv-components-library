@@ -36,7 +36,7 @@ class NetAddressSerializationSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
         NetAddressMsgSerializer serializer = NetAddressMsgSerializer.getInstance()
         NetAddressMsg address = null
@@ -46,7 +46,7 @@ class NetAddressSerializationSpec extends Specification {
         then:
             address.getLengthInBytes() == NetAddressMsg.MESSAGE_LENGTH
             address.getAddress().getIp().getCanonicalHostName().equals(REF_ADDRESS.getIp().getCanonicalHostName())
-            address.getAddress().getPort() == config.getPort()
+            address.getAddress().getPort() == config.getBasicConfig().getPort()
         where:
             byteInterval | delayMs
                 10       |    15
@@ -56,13 +56,13 @@ class NetAddressSerializationSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             SerializerContext context = SerializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
             NetAddressMsgSerializer serializer = NetAddressMsgSerializer.getInstance()
 
             NetAddressMsg address = NetAddressMsg.builder()
                     .timestamp(REF_TIMESTAMP)
-                    .address(new PeerAddress(InetAddress.getByName("localhost"), config.getPort()))
+                    .address(new PeerAddress(InetAddress.getByName("localhost"), config.getBasicConfig().getPort()))
                     .build()
             String msgSerializedHex = null
         when:

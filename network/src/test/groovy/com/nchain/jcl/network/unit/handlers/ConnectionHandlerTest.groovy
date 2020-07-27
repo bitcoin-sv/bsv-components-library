@@ -11,6 +11,7 @@ import com.nchain.jcl.network.handlers.NetworkHandler
 import com.nchain.jcl.tools.config.RuntimeConfig
 import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault
 import com.nchain.jcl.tools.events.EventBus
+import com.nchain.jcl.tools.files.FileUtilsBuilder
 import com.nchain.jcl.tools.thread.ThreadUtils
 import groovy.util.logging.Slf4j
 import spock.lang.Specification
@@ -33,6 +34,9 @@ class ConnectionHandlerTest extends Specification {
 
             // Basic Configuration is the same for both of them...
             RuntimeConfig runtimeConfig = new RuntimeConfigDefault()
+            runtimeConfig = runtimeConfig.toBuilder()
+                    .fileUtils(new FileUtilsBuilder().useClassPath().build())
+                    .build()
             NetworkConfig networkConfig = new NetworkConfigDefault()
 
             // Each one has its own Event-Bus, for events and callbacks handling...
@@ -40,12 +44,12 @@ class ConnectionHandlerTest extends Specification {
             EventBus clientEventBus = EventBus.builder().executor(clientExecutor).build()
 
             // We initialize them:
-            NetworkHandler server = new NetworkHandlerImpl("server", runtimeConfig, networkConfig, PeerAddress.localhost(8333))
+            NetworkHandler server = new NetworkHandlerImpl("server", runtimeConfig, networkConfig, PeerAddress.localhost(0))
             server.useEventBus(serverEventBus)
-            NetworkHandler client = new NetworkHandlerImpl("client", runtimeConfig, networkConfig, PeerAddress.localhost(8111))
+            NetworkHandler client = new NetworkHandlerImpl("client", runtimeConfig, networkConfig, PeerAddress.localhost(0))
             client.useEventBus(clientEventBus)
 
-            // We keep track of the events in these variabes:
+            // We keep track of the events in these variables:
             AtomicBoolean serverConnected = new AtomicBoolean(false)
             AtomicBoolean serverDisconnected = new AtomicBoolean(false)
 
@@ -105,7 +109,7 @@ class ConnectionHandlerTest extends Specification {
             EventBus clientEventBus = EventBus.builder().executor(clientExecutor).build()
 
             // We initialize it:
-            NetworkHandler client = new NetworkHandlerImpl("client", runtimeConfig, networkConfig, PeerAddress.localhost(8111))
+            NetworkHandler client = new NetworkHandlerImpl("client", runtimeConfig, networkConfig, PeerAddress.localhost(0))
             client.useEventBus(clientEventBus)
 
             // We keep track of the events in these variabes:

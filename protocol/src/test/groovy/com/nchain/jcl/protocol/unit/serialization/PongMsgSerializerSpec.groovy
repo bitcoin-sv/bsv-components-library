@@ -39,7 +39,7 @@ class PongMsgSerializerSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
             PongMsg message = null
             ByteArrayReader byteReader = new ByteArrayReader(HEX.decode(REF_BODY_PONG_MSG))
@@ -58,7 +58,7 @@ class PongMsgSerializerSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             SerializerContext context = SerializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
             PongMsg message = PongMsg.builder().nonce(REF_BODY_NONCE).build()
             ByteArrayWriter byteWriter = new ByteArrayWriter()
@@ -75,14 +75,14 @@ class PongMsgSerializerSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
-                .protocolconfig(config)
+                .protocolBasicConfig(config.getBasicConfig())
                 .build()
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_PONG_MSG), byteInterval, delayMs)
             BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
             BitcoinMsg<PongMsg> message = bitcoinSerializer.deserialize(context, byteReader, PongMsg.MESSAGE_TYPE)
         then:
-            message.getHeader().getMagic().equals(config.getMagicPackage())
+            message.getHeader().getMagic().equals(config.getBasicConfig().getMagicPackage())
             message.getHeader().getCommand().toUpperCase().equals(PongMsg.MESSAGE_TYPE.toUpperCase())
             message.getBody().nonce == REF_PONG_NONCE
         where:
@@ -94,10 +94,10 @@ class PongMsgSerializerSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             SerializerContext context = SerializerContext.builder()
-                .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
             PongMsg pongBody = PongMsg.builder().nonce(REF_PONG_NONCE).build()
-            BitcoinMsg<PongMsg> bitcoinPongMsg = new BitcoinMsgBuilder<>(config, pongBody).build()
+            BitcoinMsg<PongMsg> bitcoinPongMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), pongBody).build()
             BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
             byte[] pongMsgBytes = bitcoinSerializer.serialize(context, bitcoinPongMsg, PongMsg.MESSAGE_TYPE).getFullContent()

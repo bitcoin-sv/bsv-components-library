@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 /**
@@ -32,6 +33,7 @@ public class EventBus {
     // An executorService for notifying the Subscribers asynchronously
     @Getter private final ExecutorService executor;
 
+
     @Builder
     private EventBus(ExecutorService executor) {
         this.executor = executor;
@@ -50,7 +52,9 @@ public class EventBus {
     }
 
     public void publish(Event event) {
-        if (eventHandlers.containsKey(event.getClass()))
-            eventHandlers.get(event.getClass()).forEach(handler -> runAndIgnoreException(handler, event));
+        for (Class eventClass : eventHandlers.keySet()) {
+            if (eventClass.isInstance(event))
+                eventHandlers.get(eventClass).forEach(handler -> runAndIgnoreException(handler, event));
+        }
     }
 }

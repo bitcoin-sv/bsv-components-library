@@ -13,7 +13,7 @@ import lombok.EqualsAndHashCode;
  *
  * A Bitcoin Message is a Message sent over the wire in the Blockchain Network with a
  * specific structure: a HeaderMsg and a Body. Both Header and Body extend the Message class themselves, but
- * the Header has an specific structure as defined in the Protocol.
+ * the Header has an specific structure as defined in the P2P.
  *
  * This class is just a Wrapper, storing a reference to the Header and the Body.
  *

@@ -12,7 +12,7 @@ import lombok.*;
  * @date 18/09/2019
  *
  * A HashMsg is not a fully Bitcoin Message itself, but it's a structure that is reused by different other
- * messages in the Bitcoin Protocol. It represents a char array that store as many bytes
+ * messages in the Bitcoin P2P. It represents a char array that store as many bytes
  * to represent hash of the object.
  */
 @Data

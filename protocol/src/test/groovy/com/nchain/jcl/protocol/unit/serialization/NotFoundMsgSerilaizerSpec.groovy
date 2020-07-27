@@ -37,7 +37,7 @@ class NotFoundMsgSerilaizerSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             SerializerContext context  = SerializerContext.builder()
-                .protocolconfig(config)
+                .protocolBasicConfig(config.getBasicConfig())
                 .build()
             InventoryVectorMsg inventoryVectorMsg  = InventoryVectorMsg.builder()
                 .type(InventoryVectorMsg.VectorType.MSG_TX)
@@ -62,7 +62,7 @@ class NotFoundMsgSerilaizerSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
-                .protocolconfig(config)
+                .protocolBasicConfig(config.getBasicConfig())
                 .maxBytesToRead((long) (REF_NOTFOUND_MSG_BODY.length()/2))
                 .build()
             NotFoundMsg inventoryMsg = null
@@ -81,7 +81,7 @@ class NotFoundMsgSerilaizerSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             SerializerContext context = SerializerContext.builder()
-                .protocolconfig(config)
+                .protocolBasicConfig(config.getBasicConfig())
                 .build()
             InventoryVectorMsg inventoryVectorMsg  = InventoryVectorMsg.builder()
                 .type(InventoryVectorMsg.VectorType.MSG_TX)
@@ -92,7 +92,7 @@ class NotFoundMsgSerilaizerSpec extends Specification {
             VarIntMsg count = VarIntMsg.builder().value(msgList.size()).build();
             NotFoundMsg getdataMsg = NotFoundMsg.builder().invVectorMsgList(msgList).count(count).build();
 
-            BitcoinMsg<NotFoundMsg> notFoundMsgBitcoinMsg = new BitcoinMsgBuilder<>(config, getdataMsg).build()
+            BitcoinMsg<NotFoundMsg> notFoundMsgBitcoinMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), getdataMsg).build()
             BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
             byte[] bytes = serializer.serialize(context, notFoundMsgBitcoinMsg, NotFoundMsg.MESSAGE_TYPE).getFullContent()
@@ -105,7 +105,7 @@ class NotFoundMsgSerilaizerSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
-                .protocolconfig(config)
+                .protocolBasicConfig(config.getBasicConfig())
                 .maxBytesToRead((long) (REF_NOTFOUND_MSG_FULL.length() / 2))
                 .build()
             BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
@@ -113,7 +113,7 @@ class NotFoundMsgSerilaizerSpec extends Specification {
         when:
             BitcoinMsg<NotFoundMsg> getDataMsg = bitcoinSerializer.deserialize(context, byteArrayReader, NotFoundMsg.MESSAGE_TYPE)
         then:
-            getDataMsg.getHeader().getMagic().equals(config.getMagicPackage())
+            getDataMsg.getHeader().getMagic().equals(config.getBasicConfig().getMagicPackage())
             getDataMsg.getHeader().getCommand().equals(NotFoundMsg.MESSAGE_TYPE)
             List<InventoryVectorMsg> inventoryList = getDataMsg.getBody().getInvVectorList()
             InventoryVectorMsg inventoryVectorMsg = inventoryList.get(0)

@@ -1,6 +1,10 @@
 package com.nchain.jcl.network.events;
 
+import com.nchain.jcl.network.PeerAddress;
 import com.nchain.jcl.tools.events.Event;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Value;
 
 /**
  * @author i.fernandez@nchain.com
@@ -10,5 +14,10 @@ import com.nchain.jcl.tools.events.Event;
  *
  * An Event Triggered when the Network Activity Starts
  */
+@Value
+@Builder(toBuilder = true)
+@AllArgsConstructor
 public class NetStartEvent extends Event {
+    // Local Address of our PRocess:
+    private PeerAddress localAddress;
 }

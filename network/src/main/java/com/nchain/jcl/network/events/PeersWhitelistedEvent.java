@@ -1,6 +1,5 @@
 package com.nchain.jcl.network.events;
 
-import com.nchain.jcl.network.PeerAddress;
 import com.nchain.jcl.tools.events.Event;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,4 +21,12 @@ import java.util.List;
 @AllArgsConstructor
 public class PeersWhitelistedEvent extends Event {
     private List<InetAddress> inetAddresses;
+
+    @Override
+    public String toString() {
+        return "Event[Peer Whitelisted]: "
+                + ((inetAddresses.size() == 1)
+                    ? inetAddresses.get(0).toString()
+                    : inetAddresses.size() + " IPs whitelisted");
+    }
 }

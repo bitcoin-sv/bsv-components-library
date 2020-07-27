@@ -1,7 +1,9 @@
 package com.nchain.jcl.tools.config;
 
 import com.nchain.jcl.tools.bytes.ByteArrayMemoryConfiguration;
+import com.nchain.jcl.tools.files.FileUtils;
 
+import java.nio.file.Path;
 import java.time.Duration;
 
 /**
@@ -27,4 +29,7 @@ public interface RuntimeConfig {
      * then the process is interrupted.
      */
     Duration getMaxWaitingTimeForBytesInRealTime();
+
+    /** File Utils used to read/write info in disk */
+    FileUtils getFileUtils();
 }

@@ -1,7 +1,7 @@
 package com.nchain.jcl.protocol.serialization.common;
 
 
-import com.nchain.jcl.protocol.config.ProtocolConfig;
+import com.nchain.jcl.protocol.config.ProtocolBasicConfig;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -27,11 +27,11 @@ public final class SerializerContext {
     //The Magic Value used in the Messages Header, to identify the Network
     private long magicPackage;
 
-    // The Protocol Version used
+    // The P2P Version used
     private int handshakeProtocolVersion;
 
-    // Global Protocol Configuration
-    private ProtocolConfig protocolconfig;
+    // Global P2P Configuration
+    private ProtocolBasicConfig protocolBasicConfig;
 
     // Indicates whether the current Serialization is happening inside a Version Message (since some
     // serialization logic is slightly different in that case)

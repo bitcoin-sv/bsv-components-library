@@ -16,20 +16,26 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 /**
- * @author j.bloggs@nchain.com
- * Copyright (c) 2009-2010 Satoshi Nakamoto
- * Copyright (c) 2009-2016 The Bitcoin Core developers
+ * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 Bitcoin Association
  * Distributed under the Open BSV software license, see the accompanying file LICENSE.
  * @date 2020-06-18 15:25
+ *
+ * An implementation of Big Blocks Deserializer. Its based on the LargeMessageDeserializerImpl, do the general
+ * behaviour consists of deserializing "small" parts of the Block and notify them using the convenience methods
+ * "notify" provided vby the parent Class. Those notification will trigger callbacks that previously must have been
+ * fed byt he client of this class.
  */
 @Slf4j
 public class BigBlockDeserializer extends LargeMessageDeserializerImpl {
 
+    // The TX are Deserialized and notified in batches:
     private static final int TX_BATCH = 1000;
 
+    /** Constructor */
     public BigBlockDeserializer(ExecutorService executor) { super(executor); }
 
+    /** Constructor. Callbacks will be blocking */
     public BigBlockDeserializer() { super(); }
 
     @Override

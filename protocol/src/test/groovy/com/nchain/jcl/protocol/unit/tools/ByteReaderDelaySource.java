@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
  * Distributed under the Open BSV software license, see the accompanying file LICENSE.
  * @date 2020-06-15 10:33
  *
- * An implementation of a InutStreamSource that also simulates ral nework activity by adding a Delay
+ * An implementation of a InputStreamSource that also simulates ral nework activity by adding a Delay
  * when sending bytes down the Stream
  */
 

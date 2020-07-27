@@ -35,7 +35,7 @@ class TxOutputMessageSerializerSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
             TxOutputMessageSerializer serializer = TxOutputMessageSerializer.getInstance()
             TxOutputMessage  message
@@ -58,7 +58,7 @@ class TxOutputMessageSerializerSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             SerializerContext context = SerializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
             TxOutputMessageSerializer serializer = TxOutputMessageSerializer.getInstance()
             TxOutputMessage txOutputMessage = TxOutputMessage.builder().txValue(COIN_VALUE).pk_script(REF_BITES).build();

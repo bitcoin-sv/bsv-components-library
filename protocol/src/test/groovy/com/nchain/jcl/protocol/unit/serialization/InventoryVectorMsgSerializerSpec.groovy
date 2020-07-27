@@ -39,7 +39,7 @@ class InventoryVectorMsgSerializerSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             SerializerContext context = SerializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
             InventoryVectorMsg inventoryVectorMsg  = InventoryVectorMsg.builder()
                     .type(REF_INV_VEC_TYPE)
@@ -60,7 +60,7 @@ class InventoryVectorMsgSerializerSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .maxBytesToRead((long) (REF_INV_VEC_BODY_MSG.length()/2))
                     .build()
             InventoryVectorMsg inventoryVectorMsg = null
@@ -78,13 +78,13 @@ class InventoryVectorMsgSerializerSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             SerializerContext context = SerializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
             InventoryVectorMsg msg = InventoryVectorMsg.builder()
                     .type(REF_INV_VEC_TYPE)
                     .hashMsg(REF_HASH_MSG).build()
 
-        BitcoinMsg<InventoryVectorMsg> inventoryBitcoinMsg = new BitcoinMsgBuilder<>(config, msg).build()
+        BitcoinMsg<InventoryVectorMsg> inventoryBitcoinMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), msg).build()
         BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
             byte[] bytes = serializer.serialize(context, inventoryBitcoinMsg, InventoryVectorMsg.MESSAGE_TYPE).getFullContent()
@@ -97,7 +97,7 @@ class InventoryVectorMsgSerializerSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_INV_VEC_FULL_MSG), byteInterval, delayMs);
             BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
@@ -105,7 +105,7 @@ class InventoryVectorMsgSerializerSpec extends Specification {
             BitcoinMsg<InventoryVectorMsg> bitcoinMsg = bitcoinSerializer.deserialize(
                     context, byteReader, InventoryVectorMsg.MESSAGE_TYPE)
         then:
-            bitcoinMsg.getHeader().getMagic().equals(config.getMagicPackage())
+            bitcoinMsg.getHeader().getMagic().equals(config.getBasicConfig().getMagicPackage())
             bitcoinMsg.getHeader().getCommand().equals(InventoryVectorMsg.MESSAGE_TYPE)
             bitcoinMsg.getBody().type.getValue().equals(REF_INV_VEC_TYPE.value)
         where:

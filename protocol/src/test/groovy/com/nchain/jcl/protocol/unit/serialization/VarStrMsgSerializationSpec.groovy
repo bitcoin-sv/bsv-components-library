@@ -26,7 +26,7 @@ class VarStrMsgSerializationSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
             VarStrMsgSerializer serializer = VarStrMsgSerializer.getinstance()
             VarStrMsg message
@@ -52,9 +52,9 @@ class VarStrMsgSerializationSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             SerializerContext contextS = SerializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
-            DeserializerContext contextD = DeserializerContext.builder().protocolconfig(config).build()
+            DeserializerContext contextD = DeserializerContext.builder().protocolBasicConfig(config.getBasicConfig()).build()
             VarStrMsgSerializer serializer = VarStrMsgSerializer.getinstance()
             VarStrMsg message = VarStrMsg.builder().str(VARSTR_MSG_VARSTR).build()
             String serialized

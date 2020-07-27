@@ -48,7 +48,7 @@ class AddrMsgSerialzerSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
-                        .protocolconfig(config)
+                        .protocolBasicConfig(config.getBasicConfig())
                         .maxBytesToRead((Long) (REF_ADDRESS_MSG.length()/2))
                         .build()
             AddrMsgSerialzer serializer = AddrMsgSerialzer.getInstance()
@@ -72,7 +72,7 @@ class AddrMsgSerialzerSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             SerializerContext context = SerializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
             AddrMsgSerialzer serializer = AddrMsgSerialzer.getInstance()
             AddrMsg addMessages = buildAddrMsg()
@@ -90,12 +90,12 @@ class AddrMsgSerialzerSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             SerializerContext context = SerializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
 
            AddrMsg addMessages = buildAddrMsg()
 
-            BitcoinMsg<AddrMsg> bitcoinVersionMsg = new BitcoinMsgBuilder<>(config, addMessages).build()
+            BitcoinMsg<AddrMsg> bitcoinVersionMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), addMessages).build()
             BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
             byte[] addrMsgBytes = bitcoinSerializer.serialize(context, bitcoinVersionMsg, AddrMsg.MESSAGE_TYPE).getFullContent()
@@ -119,7 +119,7 @@ class AddrMsgSerialzerSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .maxBytesToRead((long) (REF_ADDRESS_MSG.length()/2))
                     .build()
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_COMPLETE_ADDRESS_MSG), byteInterval, delayMs)
@@ -127,7 +127,7 @@ class AddrMsgSerialzerSpec extends Specification {
         when:
             BitcoinMsg<AddrMsg> message = bitcoinSerializer.deserialize(context, byteReader, AddrMsg.MESSAGE_TYPE)
         then:
-            message.getHeader().getMagic().equals(config.getMagicPackage())
+            message.getHeader().getMagic().equals(config.getBasicConfig().getMagicPackage())
             message.getHeader().getCommand().toUpperCase().equals(AddrMsg.MESSAGE_TYPE.toUpperCase())
             message.getBody().getCount().value == 1
             message.getBody().getAddrList().get(0).timestamp == REF_TIMESTAMP

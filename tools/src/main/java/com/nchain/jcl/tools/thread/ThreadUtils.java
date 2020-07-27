@@ -2,24 +2,25 @@ package com.nchain.jcl.tools.thread;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 
 /**
- * @author j.bloggs@nchain.com
- * Copyright (c) 2009-2010 Satoshi Nakamoto
- * Copyright (c) 2009-2016 The Bitcoin Core developers
+ * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 Bitcoin Association
  * Distributed under the Open BSV software license, see the accompanying file LICENSE.
  * @date 2020-06-23 10:07
+ *
+ * An utility Class for MultiThread purposes.
  */
 public class ThreadUtils {
 
 
     /**
-     * A ThreadFactory that returns Daemon Threads. This is the ThreadFactory used when running the
-     * Listeners in the Applications
+     * A ThreadFactory that returns Daemon Threads. This is the ThreadFactory used when running the callbacks
+     * triggered by the data received/sent by the Peers.
      */
-    static class NetworkStreamThreadFactory implements ThreadFactory {
+    static class PeerStreamThreadFactory implements ThreadFactory {
         public Thread newThread(Runnable r) {
             Thread thread = new Thread(r);
             thread.setPriority(Thread.MAX_PRIORITY);
@@ -30,8 +31,8 @@ public class ThreadUtils {
     }
 
     /**
-     * A ThreadFactory that returns Daemon Threads. This is the ThreadFactory used when running the
-     * Listeners in the Applications
+     * A ThreadFactory that returns Daemon Threads. This is the ThreadFactory used when evetns/Requests are triggered
+     * and captured among the different Handlers i the Network and Protocol packages.
      */
     static class EventBusThreadFactory implements ThreadFactory {
         public Thread newThread(Runnable r) {
@@ -43,10 +44,14 @@ public class ThreadUtils {
         }
     }
 
-    public static ExecutorService PROTOCOL_EVENT_BUS_EXECUTOR = Executors.newSingleThreadExecutor(new EventBusThreadFactory());
-    public static ExecutorService NETWORK_STREAM_EXECUTOR = Executors.newSingleThreadExecutor(new NetworkStreamThreadFactory());
+    // A built-in Executor used for the EventBus shared by all the Network and Protocol Handlers
+    public static ExecutorService EVENT_BUS_EXECUTOR = Executors.newCachedThreadPool(new EventBusThreadFactory());
 
+    // A built-in Executor for the Streams connected to the Remote Peers. This Stream needs to be Single-thread,
+    // otherwise the order of the bytes coming in/out from the Peer cannot be guaranteed
+    public static ExecutorService PEER_STREAM_EXECUTOR = Executors.newSingleThreadExecutor(new PeerStreamThreadFactory());
 
+    // Convenience method to create a ThreadPoolFactory with the name given and other parameters. Useful for testing
     private static ThreadFactory getThreadFactory(String name, int priority, boolean daemon) {
         return new ThreadFactory() {
             @Override
@@ -60,12 +65,21 @@ public class ThreadUtils {
         };
     }
 
+    // Convenience method to create a Thread Pool Executor Service
     public static ExecutorService getThreadPoolExecutorService(String threadName) {
         return Executors.newCachedThreadPool(getThreadFactory(threadName, Thread.MAX_PRIORITY, true));
     }
-
+    // Convenience method to create a Thread Pool Executor Service
     public static ExecutorService getSingleThreadExecutorService(String threadName) {
         return Executors.newCachedThreadPool(getThreadFactory(threadName, Thread.MAX_PRIORITY, true));
+    }
+    public static ExecutorService getSingleThreadExecutorService(String threadName, int maxThreads) {
+        return Executors.newFixedThreadPool(maxThreads, getThreadFactory(threadName, Thread.MAX_PRIORITY, true));
+    }
+
+    // Convenience method to create a Thread Pool ScheduledExecutor Service
+    public static ScheduledExecutorService getSingleThreadScheduledExecutorService(String threadName) {
+        return Executors.newSingleThreadScheduledExecutor(getThreadFactory(threadName, Thread.MAX_PRIORITY, true));
     }
 
     /**

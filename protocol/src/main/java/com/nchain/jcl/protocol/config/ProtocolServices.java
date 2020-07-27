@@ -6,7 +6,7 @@ package com.nchain.jcl.protocol.config;
  * Distributed under the Open BSV software license, see the accompanying file LICENSE.
  * @date 2019-07-15
  *
- * A Repository for the possible values of the "services" field in the Bitcoin Protocol.
+ * A Repository for the possible values of the "services" field in the Bitcoin P2P.
  */
 public enum ProtocolServices {
         NODE_NETWORK(1 << 0),

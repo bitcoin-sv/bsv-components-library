@@ -45,7 +45,7 @@ public class NetAddressMsgSerializer implements MessageSerializer<NetAddressMsg>
 
             // if applied, we read the timestamp. 4 bytes
             if  ((!context.isInsideVersionMsg()) &&
-                    (context.getProtocolconfig().getHandshakeProtocolVersion() >= ProtocolVersion.ENABLE_TIMESTAMP_ADDRESS.getBitcoinProtocolVersion())) {
+                    (context.getProtocolBasicConfig().getProtocolVersion() >= ProtocolVersion.ENABLE_TIMESTAMP_ADDRESS.getBitcoinProtocolVersion())) {
                 byteReader.waitForBytes(4);
                 timestamp  = byteReader.readUint32();
             }
@@ -75,7 +75,7 @@ public class NetAddressMsgSerializer implements MessageSerializer<NetAddressMsg>
     public void serialize(SerializerContext context, NetAddressMsg message, ByteArrayWriter byteWriter) {
         // if applied, we write the timestamp. 4 bytes
         if  ((!context.isInsideVersionMsg()) &&
-                (context.getProtocolconfig().getHandshakeProtocolVersion() >= ProtocolVersion.ENABLE_TIMESTAMP_ADDRESS.getBitcoinProtocolVersion())) {
+                (context.getProtocolBasicConfig().getProtocolVersion() >= ProtocolVersion.ENABLE_TIMESTAMP_ADDRESS.getBitcoinProtocolVersion())) {
             byteWriter.writeUint32LE(message.getTimestamp());
         }
 

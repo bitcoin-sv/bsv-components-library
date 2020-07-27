@@ -46,7 +46,7 @@ public class LoggerUtil {
         result.append(instanceId);
         if (groupId != null) result.append(" :: ").append(groupId);
         if (objs.length > 0)
-            for (Object obj : objs) result.append(" :: ").append(obj.toString());
+            for (Object obj : objs) if (obj != null) result.append(" :: ").append(obj.toString());
         return result.toString();
     }
 

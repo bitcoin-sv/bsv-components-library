@@ -6,7 +6,7 @@ package com.nchain.jcl.protocol.config;
  * Distributed under the Open BSV software license, see the accompanying file LICENSE.
  * @date 2019-07-15
  *
- * A repository for all the Protocol Version that migh be used during Serialization or message processing.
+ * A repository for all the P2P Version that migh be used during Serialization or message processing.
  */
 public enum ProtocolVersion {
     ENABLE_TIMESTAMP_ADDRESS(31402),

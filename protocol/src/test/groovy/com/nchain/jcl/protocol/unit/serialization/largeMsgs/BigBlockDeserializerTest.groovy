@@ -39,7 +39,7 @@ class BigBlockDeserializerTest extends Specification {
         when:
             // We configure the Deserializer and feed it with callbacks, so we get notified when its different parts are
             // Deserialized:
-            DeserializerContext deserializedContext = DeserializerContext.builder().protocolconfig(protocolConfig).build()
+            DeserializerContext deserializedContext = DeserializerContext.builder().protocolBasicConfig(protocolConfig.getBasicConfig()).build()
             ByteArrayReader reader = new ByteArrayReader(HEX.decode(BLOCK_HEX))
             ByteArrayReader optimizedReader = new ByteArrayReaderOptimized(reader)
             BigBlockDeserializer bigBlockDeserializer = new BigBlockDeserializer()

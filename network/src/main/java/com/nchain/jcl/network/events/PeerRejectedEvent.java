@@ -29,4 +29,9 @@ public class PeerRejectedEvent extends Event {
     private PeerAddress peerAddress;
     private RejectedReason reason;
     private String detail; // might be null
+
+    @Override
+    public String toString() {
+        return "Event[PerRejected]: " + peerAddress.toString() + " : " + reason + " : " + ((detail != null)? detail : " no reason specified");
+    }
 }

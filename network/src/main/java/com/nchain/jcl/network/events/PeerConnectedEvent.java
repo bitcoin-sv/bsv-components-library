@@ -14,7 +14,7 @@ import lombok.Value;
  *
  * An Event triggered when a Peer is Connected. This is a physical connection (Socket Connection),
  * so the real communication with this Peer has not even started yet. Most probably you will be interested in the
- * PeerHandshakedEvent, whic is triggered when a Peer is connected and the handshake is done, so real
+ * PeerHandshakedEvent, which is triggered when a Peer is connected and the handshake is done, so real
  * communication can be performed.
  */
 @Value
@@ -22,4 +22,10 @@ import lombok.Value;
 @Builder(toBuilder = true)
 public class PeerConnectedEvent extends Event {
     private PeerAddress peerAddress;
+
+    @Override
+    public String toString() {
+        return "Event[Peer Connected]: " + peerAddress.toString();
+    }
+
 }

@@ -1,7 +1,7 @@
 package com.nchain.jcl.protocol.unit.serialization.streams
 
 import com.nchain.jcl.network.PeerAddress
-import com.nchain.jcl.network.PeerStream
+import com.nchain.jcl.network.streams.PeerStreamInfo
 import com.nchain.jcl.protocol.config.ProtocolConfig
 import com.nchain.jcl.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.protocol.messages.HeaderMsg
@@ -13,13 +13,12 @@ import com.nchain.jcl.protocol.serialization.VersionMsgSerializer
 import com.nchain.jcl.protocol.serialization.common.BitcoinMsgSerializerImpl
 import com.nchain.jcl.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.protocol.serialization.common.SerializerContext
-import com.nchain.jcl.protocol.serialization.streams.SerializerStream
+import com.nchain.jcl.protocol.streams.SerializerStream
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
 import com.nchain.jcl.tools.bytes.ByteTools
 import com.nchain.jcl.tools.crypto.Sha256
 import com.nchain.jcl.tools.streams.*
-import lombok.Getter
 import spock.lang.Specification
 
 import java.util.concurrent.ExecutorService
@@ -36,7 +35,7 @@ class SerializerStreamSpec extends Specification {
 
     /** Definition of a Destination connected to a Peer */
 
-    class PeerDestination extends OutputStreamDestinationImpl<ByteArrayReader> implements PeerStream {
+    class PeerDestination extends OutputStreamDestinationImpl<ByteArrayReader> implements PeerStreamInfo {
         private PeerAddress peerAddress;
         PeerDestination(ExecutorService executor,  PeerAddress peerAddress) {
             super(executor)
@@ -59,8 +58,8 @@ class SerializerStreamSpec extends Specification {
             ExecutorService executor = Executors.newSingleThreadExecutor()
             VarStrMsg userAgentMsg = VarStrMsg.builder().str(REF_BODY_USER_AGENT).build();
             ProtocolConfig config = new ProtocolBSVMainConfig()
-            DeserializerContext deserializerContext = DeserializerContext.builder().protocolconfig(config).build()
-            SerializerContext serializerContext = SerializerContext.builder().protocolconfig(config).build()
+            DeserializerContext deserializerContext = DeserializerContext.builder().protocolBasicConfig(config.getBasicConfig()).build()
+            SerializerContext serializerContext = SerializerContext.builder().protocolBasicConfig(config.getBasicConfig()).build()
 
             // generate a serialized version message
             NetAddressMsg body_addr = NetAddressMsg.builder()
@@ -68,7 +67,7 @@ class SerializerStreamSpec extends Specification {
                     .timestamp(0)
                     .build();
             VersionMsg versionMsg = VersionMsg.builder()
-                    .version(config.getHandshakeProtocolVersion())
+                    .version(config.getBasicConfig().protocolVersion)
                     .timestamp(REF_BODY_TIMESTAMP)
                     .user_agent(userAgentMsg)
                     .start_height(REF_BODY_START_HEIGHT)
@@ -87,7 +86,7 @@ class SerializerStreamSpec extends Specification {
             HeaderMsg header = HeaderMsg.builder()
                     .command(versionMsg.getMessageType())
                     .length((int) versionMsg.getLengthInBytes())
-                    .magic(config.getMagicPackage())
+                    .magic(config.getBasicConfig().getMagicPackage())
                     .checksum(checksum)
                     .build();
 
@@ -103,7 +102,7 @@ class SerializerStreamSpec extends Specification {
             destination.onData({ e -> receivedMessage = BitcoinMsgSerializerImpl.getInstance().deserialize(deserializerContext, e.getData(), VersionMsg.MESSAGE_TYPE) })
 
             // We create our Output Stream:
-            OutputStream<ByteArrayReader> myOutputStream = new SerializerStream(executor, destination, config)
+            OutputStream<ByteArrayReader> myOutputStream = new SerializerStream(executor, destination, config.getBasicConfig())
 
         when:
             myOutputStream.send(new StreamDataEvent<BitcoinMsg>(sentMessage))

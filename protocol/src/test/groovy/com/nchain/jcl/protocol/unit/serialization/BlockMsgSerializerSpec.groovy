@@ -47,7 +47,7 @@ class BlockMsgSerializerSpec extends Specification {
 
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
             BlockMsgSerializer serializer = BlockMsgSerializer.getInstance()
             BlockMsg blockMsg
@@ -81,7 +81,7 @@ class BlockMsgSerializerSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
-                .protocolconfig(config)
+                .protocolBasicConfig(config.getBasicConfig())
                 .build()
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_MSG_FULL), byteInterval, delayMs);
             BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
@@ -90,7 +90,7 @@ class BlockMsgSerializerSpec extends Specification {
 
         then:
 
-            blockMsgBody.getHeader().getMagic() == config.getMagicPackage()
+            blockMsgBody.getHeader().getMagic() == config.getBasicConfig().getMagicPackage()
             blockMsgBody.getHeader().getCommand().toUpperCase() == BlockMsg.MESSAGE_TYPE.toUpperCase()
             blockMsgBody.getBody().blockHeader.version.longValue() == Long.valueOf(1).longValue()
             blockMsgBody.getBody().blockHeader.prevBlockHash.getHashBytes() == Sha256Wrapper.wrapReversed(PREV_BLOCK_HASH).bytes
@@ -115,7 +115,7 @@ class BlockMsgSerializerSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             SerializerContext context = SerializerContext.builder()
-                .protocolconfig(config)
+                .protocolBasicConfig(config.getBasicConfig())
                 .build()
             BlockMsgSerializer serializer = BlockMsgSerializer.getInstance()
             List<TransactionMsg> transactionMsgList = new ArrayList<>()

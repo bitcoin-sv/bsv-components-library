@@ -33,12 +33,12 @@ class GetblocksMsgSerializerSpec extends Specification {
 
     def "testing getBlocksMessage BODY Serializing"() {
         given:
-            ProtocolConfig config = new ProtocolBSVMainConfig()
+        ProtocolConfig config = new ProtocolBSVMainConfig()
             SerializerContext context  = SerializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
 
-            BaseGetDataAndHeaderMsg baseMsg = BaseGetDataAndHeaderMsgSerializerSpec.buildBaseMsg(config)
+            BaseGetDataAndHeaderMsg baseMsg = BaseGetDataAndHeaderMsgSerializerSpec.buildBaseMsg(config.getBasicConfig())
             GetBlocksMsg getBlocksMsg = GetBlocksMsg.builder().baseGetDataAndHeaderMsg(baseMsg).build()
 
             ByteArrayWriter byteWriter = new ByteArrayWriter()
@@ -55,7 +55,7 @@ class GetblocksMsgSerializerSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .maxBytesToRead((long) (REF_GETBLOCKS_MSG_BODY.length()/2))
                     .build()
             GetBlocksMsg getBlocksMsg
@@ -77,12 +77,12 @@ class GetblocksMsgSerializerSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             SerializerContext context = SerializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
-            BaseGetDataAndHeaderMsg baseMsg = BaseGetDataAndHeaderMsgSerializerSpec.buildBaseMsg(config)
+            BaseGetDataAndHeaderMsg baseMsg = BaseGetDataAndHeaderMsgSerializerSpec.buildBaseMsg(config.getBasicConfig())
             GetBlocksMsg getblockMsg  = GetBlocksMsg.builder().baseGetDataAndHeaderMsg(baseMsg).build()
 
-         BitcoinMsg<GetBlocksMsg> getBlocksMsgBitcoinMsg = new BitcoinMsgBuilder<>(config, getblockMsg).build()
+         BitcoinMsg<GetBlocksMsg> getBlocksMsgBitcoinMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), getblockMsg).build()
             BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
             byte[] bytes = serializer.serialize(context, getBlocksMsgBitcoinMsg, GetBlocksMsg.MESSAGE_TYPE).getFullContent()
@@ -95,7 +95,7 @@ class GetblocksMsgSerializerSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .maxBytesToRead((long) (REF_GETBLOCKS_MSG_FULL.length() / 2))
                     .build()
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_GETBLOCKS_MSG_FULL), byteInterval, delayMs);
@@ -103,7 +103,7 @@ class GetblocksMsgSerializerSpec extends Specification {
         when:
             BitcoinMsg<GetBlocksMsg> getBlocksMsgBitcoinMsg = bitcoinSerializer.deserialize(context, byteReader, GetBlocksMsg.MESSAGE_TYPE)
         then:
-            getBlocksMsgBitcoinMsg.getHeader().getMagic().equals(config.getMagicPackage())
+            getBlocksMsgBitcoinMsg.getHeader().getMagic().equals(config.getBasicConfig().getMagicPackage())
             getBlocksMsgBitcoinMsg.getHeader().getCommand().equals(GetBlocksMsg.MESSAGE_TYPE)
         where:
             byteInterval | delayMs

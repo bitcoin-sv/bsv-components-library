@@ -1,5 +1,7 @@
 package com.nchain.jcl.protocol.unit.serialization
 
+
+import com.nchain.jcl.protocol.config.ProtocolBasicConfig
 import com.nchain.jcl.protocol.config.ProtocolConfig
 import com.nchain.jcl.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.protocol.messages.BaseGetDataAndHeaderMsg
@@ -30,10 +32,10 @@ class BaseGetDataAndHeaderMsgSerializerSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             SerializerContext context = SerializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
 
-            BaseGetDataAndHeaderMsg baseMsg = buildBaseMsg(config)
+            BaseGetDataAndHeaderMsg baseMsg = buildBaseMsg(config.getBasicConfig())
             ByteArrayWriter byteWriter = new ByteArrayWriter()
             byte[] messageBytes
             String messageSerialized
@@ -50,7 +52,7 @@ class BaseGetDataAndHeaderMsgSerializerSpec extends Specification {
 
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .maxBytesToRead((long)(REF_MSG_BODY.length()/2))
                     .build()
 
@@ -68,7 +70,7 @@ class BaseGetDataAndHeaderMsgSerializerSpec extends Specification {
 
     }
 
-    public static BaseGetDataAndHeaderMsg buildBaseMsg(ProtocolBSVMainConfig config) {
+    public static BaseGetDataAndHeaderMsg buildBaseMsg(ProtocolBasicConfig config) {
         List<HashMsg> locators = new ArrayList<Byte[]>();
         byte[] locatorHash = Sha256Wrapper.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6").getBytes()
         HashMsg hashMsg = HashMsg.builder().hash(locatorHash).build()
@@ -78,7 +80,7 @@ class BaseGetDataAndHeaderMsgSerializerSpec extends Specification {
         HashMsg stopHashMsg = HashMsg.builder().hash(stopHash).build()
         VarIntMsg hashCount = VarIntMsg.builder().value(locators.size()).build();
         BaseGetDataAndHeaderMsg  baseMsg =  BaseGetDataAndHeaderMsg.builder()
-                .version(config.getHandshakeProtocolVersion())
+                .version(config.protocolVersion)
                 .hashCount(hashCount)
                 .blockLocatorHash(locators)
                 .hashStop(stopHashMsg)

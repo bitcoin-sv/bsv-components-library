@@ -30,7 +30,7 @@ class VarIntSerializationSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
             VarIntMsgSerializer serializer = VarIntMsgSerializer.getInstance()
             VarIntMsg message = null
@@ -48,7 +48,7 @@ class VarIntSerializationSpec extends Specification {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
             SerializerContext context = SerializerContext.builder()
-                    .protocolconfig(config)
+                    .protocolBasicConfig(config.getBasicConfig())
                     .build()
             VarIntMsg message = VarIntMsg.builder().value(VAR_VALUE).build()
             VarIntMsgSerializer serializer = VarIntMsgSerializer.getInstance()
