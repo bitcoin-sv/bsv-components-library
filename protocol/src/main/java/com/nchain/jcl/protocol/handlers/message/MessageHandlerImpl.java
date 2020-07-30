@@ -9,6 +9,7 @@ import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.handlers.HandlerImpl;
 import com.nchain.jcl.tools.log.LoggerUtil;
 import com.nchain.jcl.tools.streams.StreamDataEvent;
+import com.nchain.jcl.tools.streams.StreamErrorEvent;
 import com.nchain.jcl.tools.thread.ThreadUtils;
 import lombok.Getter;
 
@@ -77,10 +78,12 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
     }
     // Event Handler:
     private void onPeerStreamConnected(PeerNIOStreamConnectedEvent event) {
+        PeerAddress peerAddress = event.getStream().getPeerAddress();
         MessageStream msgStream = new MessageStream(ThreadUtils.PEER_STREAM_EXECUTOR, super.runtimeConfig, config.getBasicConfig(), event.getStream());
         msgStream.init();
-        msgStream.input().onData(e -> onStreamMsgReceived(msgStream.getPeerAddress(), e.getData()));
-        msgStream.input().onClose( e -> onStreamClosed(msgStream.getPeerAddress()));
+        msgStream.input().onData(e -> onStreamMsgReceived(peerAddress, e.getData()));
+        msgStream.input().onClose( e -> onStreamClosed(peerAddress));
+        msgStream.input().onError(e -> onStreamError(peerAddress, e));
         peersInfo.put(event.getStream().getPeerAddress(), new MessagePeerInfo(msgStream));
         // We publish the message to the Bus:
         eventBus.publish(new PeerMsgReadyEvent(msgStream));
@@ -107,6 +110,13 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
     // Event Handler:
     private void onStreamClosed(PeerAddress peerAddress) {
         peersInfo.remove(peerAddress);
+    }
+
+    // Event Handler:
+    private void onStreamError(PeerAddress peerAddress, StreamErrorEvent event) {
+        // We request a Disconnection from this Peer...
+        logger.trace(peerAddress, "Error detected in Stream, requesting disconnection... ");
+        super.eventBus.publish(new DisconnectPeerRequest(peerAddress));
     }
 
     @Override

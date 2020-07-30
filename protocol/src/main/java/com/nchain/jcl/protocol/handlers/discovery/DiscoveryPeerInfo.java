@@ -43,7 +43,7 @@ public class DiscoveryPeerInfo implements CSVSerializable {
     }
 
     public void reset() {
-        this.timestamp = null;
+        //this.timestamp = null;
         this.versionMsg = null;
     }
 

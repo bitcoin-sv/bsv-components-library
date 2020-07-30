@@ -27,7 +27,7 @@ public class RuntimeConfigDefault extends RuntimeConfigImpl {
     @Getter
     private int msgSizeInBytesForRealTimeProcessing = 10_000_000;
     @Getter
-    private Duration maxWaitingTimeForBytesInRealTime = Duration.ofMillis(2000);
+    private Duration maxWaitingTimeForBytesInRealTime = Duration.ofMillis(15000);
     @Getter
     private FileUtils fileUtils;
 

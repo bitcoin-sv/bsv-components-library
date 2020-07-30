@@ -3,7 +3,10 @@ package com.nchain.jcl.protocol.streams;
 import com.nchain.jcl.network.PeerAddress;
 import com.nchain.jcl.network.streams.PeerInputStream;
 import com.nchain.jcl.network.streams.PeerStreamInfo;
+import com.nchain.jcl.network.streams.nio.NIOInputStreamSource;
 import com.nchain.jcl.protocol.config.ProtocolBasicConfig;
+import com.nchain.jcl.protocol.messages.PartialBlockHeaderMsg;
+import com.nchain.jcl.protocol.messages.PartialBlockTXsMsg;
 import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.protocol.messages.HeaderMsg;
 import com.nchain.jcl.protocol.messages.VersionMsg;
@@ -146,7 +149,6 @@ public class DeserializerStream extends InputStreamImpl<ByteArrayReader, Bitcoin
                 .build();
     }
 
-
     /**
      * The MAIN Function of the Deserializer.
      * It is called every time new bytes are received by this Stream (see InputStreamImpl.receiveAndTransform()).
@@ -162,7 +164,10 @@ public class DeserializerStream extends InputStreamImpl<ByteArrayReader, Bitcoin
             buffer.add(dataEvent.getData().getFullContent());
 
             // We update the State with the new incoming bytes...
-            state = state.toBuilder().workToDoInBuffer(true).build();
+            state = state.toBuilder()
+                    .currentMsgBytesReceived(state.getCurrentMsgBytesReceived() + dataEvent.getData().size())
+                    .workToDoInBuffer(true)
+                    .build();
 
             // Now we process the Bytes. If there is ONLY one Thread running (the SHARED Thread), we process them. But if
             // there is already a DEDICATED Thread processing the bytes, then we do nothing (since the DEDICATED Thread is
@@ -239,7 +244,12 @@ public class DeserializerStream extends InputStreamImpl<ByteArrayReader, Bitcoin
                 });
                 largeMsgDeserializer.onDeserialized(e -> {
                     // We are notified about a Partial Msg being deserialized. We create the BitcoinMsg and  we notify it
-                    BitcoinMsg<?> bitcoinMsg = new BitcoinMsg(headerMsg, (Message) e.getData());
+                    HeaderMsg partialMsgHeader = null;
+                    if (e.getData() instanceof PartialBlockHeaderMsg)
+                        partialMsgHeader = headerMsg.toBuilder().command(PartialBlockHeaderMsg.MESSAGE_TYPE).build();
+                    else
+                        partialMsgHeader = headerMsg.toBuilder().command(PartialBlockTXsMsg.MESSAGE_TYPE).build();
+                    BitcoinMsg<?> bitcoinMsg = new BitcoinMsg(partialMsgHeader, (Message) e.getData());
                     DeserializerStreamState stateResult = this.processOK(isThisADedicatedThread, bitcoinMsg, state);
                     stateAfterOK.set(stateResult);
                 });
@@ -271,6 +281,9 @@ public class DeserializerStream extends InputStreamImpl<ByteArrayReader, Bitcoin
                 resultBuilder.processState(DeserializerStreamState.ProcessingBytesState.SEEKING_HEAD);
                 resultBuilder.workToDoInBuffer(byteReader.size() > 0);
             }
+
+            // The Deserialization is done, so the counter of bytes belonging to the next MSg is reset...
+            resultBuilder.currentMsgBytesReceived(0);
 
             // We return the updated State:
             return resultBuilder.build();
@@ -311,7 +324,7 @@ public class DeserializerStream extends InputStreamImpl<ByteArrayReader, Bitcoin
             //log(isThisADedicatedThread, "Reading Header : " + HEX.encode(byteReader.getFullContent()));
             HeaderMsg headerMsg = HeaderMsgSerializer.getInstance().deserialize(desContext, byteReader);
 
-            // Now we need to figure out if this incoming Message is one we need to Deserialize, or just Ignore, and that
+               // Now we need to figure out if this incoming Message is one we need to Deserialize, or just Ignore, and that
             // depends on whether we have a Serializer Implementation for it...
             boolean doWeNeedRealTimeProcessing = headerMsg.getLength() >= runtimeConfig.getMsgSizeInBytesForRealTimeProcessing();
             boolean ignoreMsg = (doWeNeedRealTimeProcessing)
@@ -400,10 +413,10 @@ public class DeserializerStream extends InputStreamImpl<ByteArrayReader, Bitcoin
             } else {
                 log(isThisADedicatedThread, "Seeking Body :: Launching a DEDICATED Thread...");
                 DeserializerStreamState threadState = state.toBuilder()
-                        .treadState(DeserializerStreamState.ThreadState.SHARED_AND_DEDICATED_THREAD)
+                        .treadState(DeserializerStreamState.ThreadState.DEDICATED_THREAD)
                         .build();
                 realTimeExecutor.submit(() -> this.processBytes(true, threadState));
-                result.treadState(DeserializerStreamState.ThreadState.SHARED_AND_DEDICATED_THREAD);
+                result.treadState(DeserializerStreamState.ThreadState.DEDICATED_THREAD);
                 result.workToDoInBuffer(false);
             }
         }
@@ -431,7 +444,10 @@ public class DeserializerStream extends InputStreamImpl<ByteArrayReader, Bitcoin
             log(isThisADedicatedThread, "Ignoring Body :: Discarding " + bytesToRemove + " bytes, " + remainingBytesToIgnore + " bytes still to discard...");
         }
         result.reminingBytestoIgnore(remainingBytesToIgnore);
-        if (remainingBytesToIgnore == 0) result.processState(DeserializerStreamState.ProcessingBytesState.SEEKING_HEAD);
+        if (remainingBytesToIgnore == 0) {
+            result.processState(DeserializerStreamState.ProcessingBytesState.SEEKING_HEAD);
+            result.currentMsgBytesReceived(0);
+        }
         result.workToDoInBuffer(buffer.size() > 0);
         return result.build();
     }
@@ -484,6 +500,17 @@ public class DeserializerStream extends InputStreamImpl<ByteArrayReader, Bitcoin
             th.printStackTrace();
             this.state = processError(isThisADedicatedThread, th, state);
         }
+    }
+
+
+    public void upgradeBufferSize() {
+        this.realTimeProcessingEnabled = true;
+        ((NIOInputStreamSource) super.source).upgradeBufferSize();
+    }
+
+    public void resetBufferSize() {
+        this.realTimeProcessingEnabled = false;
+        ((NIOInputStreamSource) super.source).resetBufferSize();
     }
 
     // for convenience...

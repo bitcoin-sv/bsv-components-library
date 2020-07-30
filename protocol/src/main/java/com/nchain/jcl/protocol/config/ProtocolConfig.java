@@ -1,6 +1,7 @@
 package com.nchain.jcl.protocol.config;
 
 import com.nchain.jcl.protocol.handlers.blacklist.BlacklistHandlerConfig;
+import com.nchain.jcl.protocol.handlers.block.BlockDownloaderHandlerConfig;
 import com.nchain.jcl.protocol.handlers.discovery.DiscoveryHandlerConfig;
 import com.nchain.jcl.protocol.handlers.handshake.HandshakeHandlerConfig;
 import com.nchain.jcl.protocol.handlers.message.MessageHandlerConfig;
@@ -61,4 +62,6 @@ public interface ProtocolConfig{
     PingPongHandlerConfig   getPingPongConfig();
     DiscoveryHandlerConfig  getDiscoveryConfig();
     BlacklistHandlerConfig  getBlacklistConfig();
+
+    BlockDownloaderHandlerConfig getBlockDownloaderConfig();
 }

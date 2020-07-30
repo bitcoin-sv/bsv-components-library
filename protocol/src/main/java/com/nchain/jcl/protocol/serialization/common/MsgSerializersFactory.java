@@ -75,12 +75,11 @@ public class MsgSerializersFactory {
      */
     public static LargeMessageDeserializer getLargeMsgDeserializer(String command) {
         LargeMessageDeserializer result = null;
-        switch(command) {
-            case BlockMsg.MESSAGE_TYPE: {
-                result = new BigBlockDeserializer();
-                break;
-            }
-        } // switch:
+
+        // One comparation per each Large Deserializer:
+
+        if (command.equalsIgnoreCase(BlockMsg.MESSAGE_TYPE)) result = new BigBlockDeserializer();
+
         return result;
     }
 

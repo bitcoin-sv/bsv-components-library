@@ -31,6 +31,7 @@ import lombok.Value;
  */
 @Value
 @EqualsAndHashCode
+@Builder(toBuilder = true)
 public final class HeaderMsg extends Message {
 
     public static final String MESSAGE_TYPE = "header";

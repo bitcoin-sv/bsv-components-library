@@ -32,6 +32,10 @@ public class BigBlockDeserializer extends LargeMessageDeserializerImpl {
     // The TX are Deserialized and notified in batches:
     private static final int TX_BATCH = 1000;
 
+    // Once the Block Header is deserialzed, we keep a reference here, since we include it as well when we
+    // deserialze each set of TXs:
+    private BlockHeaderMsg blockHeader;
+
     /** Constructor */
     public BigBlockDeserializer(ExecutorService executor) { super(executor); }
 
@@ -41,9 +45,9 @@ public class BigBlockDeserializer extends LargeMessageDeserializerImpl {
     @Override
     public void deserialize(DeserializerContext context, ByteArrayReader byteReader) {
         try {
-            // We first deserialize the Blcok Header:
+            // We first deserialize the Block Header:
             log.trace("Deserializing the Block Header...");
-            BlockHeaderMsg blockHeader = BlockHeaderMsgSerializer.getInstance().deserialize(context, byteReader);
+            blockHeader = BlockHeaderMsgSerializer.getInstance().deserialize(context, byteReader);
             PartialBlockHeaderMsg partialBlockHeader = PartialBlockHeaderMsg.builder().blockHeader(blockHeader).build();
             notifyDeserialization(partialBlockHeader);
 
@@ -57,13 +61,20 @@ public class BigBlockDeserializer extends LargeMessageDeserializerImpl {
                 if (i > 0 && i % TX_BATCH == 0) {
                     // We notify about a new Batch of TX Deserialized...
                     log.trace("Batch of " + TX_BATCH + " Txs deserialized.");
-                    PartialBlockTXsMsg partialBlockTXs = PartialBlockTXsMsg.builder().txs(txList).build();
+                    PartialBlockTXsMsg partialBlockTXs = PartialBlockTXsMsg.builder()
+                            .blockHeader(blockHeader)
+                            .txs(txList)
+                            .build();
                     txList = new ArrayList<>();
                     notifyDeserialization(partialBlockTXs);
                 }
             } // for...
             // In case we still have some TXs without being notified, we do it now...
-            if (txList.size() > 0) notifyDeserialization(PartialBlockTXsMsg.builder().txs(txList).build());
+            if (txList.size() > 0)
+                notifyDeserialization(PartialBlockTXsMsg.builder()
+                        .blockHeader(blockHeader)
+                        .txs(txList)
+                        .build());
 
         } catch (Exception e) {
             notifyError(e);

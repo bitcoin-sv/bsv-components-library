@@ -75,7 +75,7 @@ in your project in your *pom.xml*
 asda
 ````
 
-*JCLY* uses *logbnack* as loging system. In order to log the outut of the library, you need to add a *logback.xml* file 
+*JCLY* uses *logback* as loging system. In order to log the outut of the library, you need to add a *logback.xml* file 
 into your classpath:
 
 ````
@@ -94,11 +94,11 @@ into your classpath:
 </configuration>
 ````
 
-## Examples:
+# Streaming:
 
-### Simple connection:
+##Simple connection:
 
-The following example is just ane xample of how the connection is performed. We get a reference to the "P2P"
+The following example is just an example of how the connection is performed. We get a reference to the "P2P"
 service from the *P2PBuilder* (specifying an identifier that is mostly used for logging), and then we start it. 
 The service wil run in a different Thread, so all the Streaming services will be working in the background while 
 our app performs other actions. In the example below though, the service will automaticallu stop after starting.
@@ -139,7 +139,7 @@ In this case, the Service will accept connections in the local IP address, using
 Configuration (in this specific example, the port number for BSV [main Net] is 8333)
 
 
-### Connection and basic streaming
+## Connection and basic streaming
 
 In the following example, we are streaming some events: The *P2P* Services contains a *EVENTS* reference, which itself 
 contains different references to different types of Events (Events related to Peers, to Messages, etc). 
@@ -190,7 +190,7 @@ Event[Peer Disconnected]: 167.99.92.186/167.99.92.186:8333: DISCONNECTED_BY_LOCA
 Event[Peer Disconnected]: 159.65.152.200/159.65.152.200:8333: DISCONNECTED_BY_LOCAL
 ````
 
-### Basic Customization and fine-tuning
+## Basic Customization and fine-tuning
 
 The Configuration we use in the *P2P* Service can be changed in several ways, in this chapter we'll explain how to do a
 very basic configuration changes, modifying some values:
@@ -228,7 +228,7 @@ ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder()
 
 ````
 
-### Events Handling
+## Events Handling
 
 Each Event is streamed through a callback that we define in the *forEach* method. In previous examples we only printed 
 its content to the console, but we can implement any kind of logic. In the following example, we print an specific message 
@@ -245,7 +245,9 @@ void onPeerHandshaked(PeerHandshakedEvent event) {
 ...
 ````
 
-### Status Streaming
+> See the *Reference* for a Complete List of all the Events you stream and listen to.
+
+## Status Streaming
 
 Just by listening to the right events, the application can keep track of the number of Peers connected, messages 
 exchanges, etc. Most of the time, this is useful information that can be used to trigger other functions or flows 
@@ -253,7 +255,7 @@ in our system.
 
 Other times, we just need to monitor the system, for example to print out the information about the number of Msgs 
 exchanged per second, or the number of new Connections vs number of connections lost per hour, etc. Even though these 
-"status" information can also be obtained by listening to the right Events and putting all the info together, *JCYL* 
+"status" information can also be obtained by listening to the right Events and putting all the info together, *JCL* 
 provides specific mechanisms to notify about the system *State*. These *State* Notifications are like any other 
 Event, with the difference that they include some aggregate information that might help make a whole picture on the 
 system. These *State* Events are triggered on a frequency basis, which must be specified before starting the service.
@@ -282,15 +284,53 @@ Event[State]: PingPong-Handler State: 0 Pings in progress
 Event[State]: Discovery State:  Pool size: 0 [ 0 handshaked, 1000 added, 0 removed, 1045 rejected ] : 12 GET_ADDR sent, 4 ADDR received
 Event[State]: Blacklist Status: [ 0 Addresses blacklisted ] count: {}
 ````
-
-Since *JCL* is internally made of a composition of different *handlers*, each one taking care of an specific part of the 
-*Bitcoin Protocol*, we have then different status, each one related to one specific Handler.
+In the previous output we can see how different kinds of *State* Events have been triggered. That's because *JCYL* is 
+internally composed of multiple *Handlers*, each one of them  taking care of an specific part of the 
+*Bitcoin Protocol*, so we have then different status, each one related to one specific Handler.
 
 Like with a regular Event, we can define the "forEach" callback in a separate method, and inspect the different State
-Event Objects to get all the information we nee dfrom them.
+Event Objects to get all the information we need from them.
 
 > All the *State* Events, along with the rest of Events, are described in the **Reference** Section 
 
+# Requests
+
+In *JCYL* you can stream and listen to *Events*, but all the internals about the communication with other Peers are managed behind
+the scenes, without external intervention. But in some scenarios, an Application might need to perform specific actions,
+like:
+
+ * Connect to an specific Peer
+ * Disconnect form a Peer
+ * Send an specific *msg* to a Peer
+ * Broadcast a *Msg* to all the Peers
+ * etc 
+
+These operations and more are performend by *submiting* *Requests* to the *P2P* Service.
+
+Example:
+
+````
+P2P p2p = new P2PBuilder("testing")
+              .build();
+p2p.start();
+....
+// We connect to an specific Peer
+p2p.REQUESTS.PEERS.connect("54.34.32.11:8333").submit();
+....
+// We disconnect from and specific Peer
+p2p.REQUESTS.PEERS.disconnect("64.122.211.89:8333").submit();
+...
+p2p.stop();
+
+````
+
+In a similar way as wth the *Events* the *Requests* are also broken down into different categories depending on their 
+use case, and all of them require a call to the *submit()* method in order to run.
+
+It's important to notice that submitting a Request does *Not* guarantee that the Action will be performed, since 
+the *P2P* Service will perform its own verifications before that. In any case, in order to check whether the action 
+has been performed or not, you can listen to those Events that might confirm/deny that (if you request to connect to
+a Peer, you can also listen to the *PeerHandshakedEvent* to verify that the Request has gone through).
 
 
 
@@ -301,8 +341,8 @@ one of them implementing a different functionality. Some of these *Handlers* are
 handlers* and are mandatory, since critical parts of the *Bitcoin protocol* would be missing 
 without them.
 
-Others are optional, and provide other extra-functionalities. And more *Handlers* can be developed and 
-*added* the the main *JCL* Service in runtime.
+Others are optional, and provide other extra-functionalities. These are the "custom" handlers in the diagram below. 
+More *Handlers* can be developed and *added* the the main *JCL* Service in runtime.
 
 
 ![detail level architecture](jclDetail.png)
@@ -326,17 +366,95 @@ The Default Handlers are the following:
  
  * *Discovery Handler*: This handler is responsible for keeping an "alive" pool of Peer Addresses, so we can use it to connect 
  to more Peers if we need more connections. The way new Addresses are discovered is described as the "Node Discovery Algorithm", and 
- involves a rquest/response mechanism between different Peers, asking for new addresses and replying to those requests.
+ involves a request/response mechanism between different Peers, asking for new addresses and replying to those requests.
  
  * *Blacklist Handler*: This handler detects any situation when a Peer might be blacklisted, and it does so. It0's also responsible
  for whitelisting those Peer which have been blacklisted but which "fault" has expired already.
 
+The *Custom* Handlers built-in in *JCL* are the following:
 
-# Advance Configuration:
+ * *Block Downloader*: This handler can get a list of Block hashes and download them from the Network. Depending 
+ on configuration, multiple blocks can be download in parallel, and the same Block can be re-try if something goes wroing, 
+ up to a limit of re-attempts. This Handler also provides support for *BigBlocks*. that means that it can download *ANY* 
+ Block, regardless of its size (from MB to GB blocks). Different Events are also streamed so the App can be notified 
+ about the downloading and deserialization process.
+ 
+ > An specific chapter about *Block Downloading* with more details is provided in this documentation.
+
+# Advance Configuration (fine-tunning):
 
 > PENDING...
 
 
+# Block Downloading
+
+Downloading a Block can be done by the *BlockDownloader* Handler. This handler is already provided by *JCL*, so no additional
+work is needed. The process to download a Block (or Blocks) is as follows:
+
+ * We connect to the network using the *P2P* service as usual
+ * We subscribe to the Block-related Events
+ * We submit a "Request" to download a Block or a list of blocks
+ * We listen to the Events and react ot them.
+ 
+ When it comes to being notified about blocks being downloaded, we have several options:
+ 
+ * *EVENTS.BLOCKS.BLOCK_DOWNLOADED*: This is triggered when a Block is downloaded, *regardless of its size*. 
+ This Event provides information about the Peer that has sent the Block, the time it took to download it, and some 
+ detailes about the Block (the Header), but the full content of the block is NOT provided.
+ 
+ * *EVENTS.BLOCKS.LITE_BLOCK_DOWNLOADED*: This is triggered when the Block is downloaded and the Block 
+ is not Considered a "Big Block" (A *Big Block* is a Block bigger than 10MB; although this is also configurable). This 
+ event does have a reference to the whole block, including its transactions.
+ 
+
+Since the Blocks can potentially be of *any* size, the full content of the Block is ONLY provided when the block
+is small enough (a *Lite* Block). As a general Rule, if you want to get the Contents of the Block, you have to use the 
+following Events:
+ 
+  * *EVENTS.BLOCKS.BLOCK_HEADER_DOWNLOADED*: This is triggered when the Block Header of a BigBlock is downloaded
+  * *EVENTS.BLOCKS.BLOCK_TXS_DOWNLOADED*: This is triggered when a Set of TXs from a Block has been 
+      downloaded. Depending on the block size, we'll get several notifications of this Event.
+        
+
+ Using *BLOCK_HEADER_DOWNLOADED* and *BLOCK_TXS_DOWNLOADED*, you can get access to the Block content, without keeping it
+ all in memory.
+ 
+ 
+A lot of different things might go wrong during the download of a Block: The Peer we are connected to might drop the 
+connection, or the speed of the bytes transfer drops and it becomes unusable, etc. This means that for some reason, a 
+block might not be possible to download. If that situation occurs, the *Block Downloader* Handler will automatically 
+try to download it again using a different Peer. But if the situations happens again and a maximum numbers of attempts is
+reached, the Block might be discarded, which is something that can also be streamed through the 
+*EVENTS.BLOCKS.BLOCK_DISCARDED* Event.
+ 
+Example:
+
+````
+P2P p2p = new P2PBuilder("testing").build();
+
+// We want to get notified when the block is downloaded or discarded for any reason:
+p2p.EVENTS.BLOCKS.BLOCK_DOWNLOADED.forEach(System.out::println)
+p2p.EVENTS.BLOCKS.BLOCK_DISCARDED.forEach(System.out.::println)
+
+// We start the Connection and request to download a single Block:
+p2p.start();
+p2p.REQUESTS.BLOCKS.download("00000000000000000007f095af6667da606d2d060f3a02a9c6a1e6a2ef9fc4e9").submit();
+
+// Do something...
+p2p.stop();
+````
+
+If we want to get access to the *Content* of the block, we just need to listen to more Events:
+
+````
+...
+p2p.EVENTS.BLOCKS.BLOCK_HEADER_DOWNLOADED.forEach(System.out::println)
+p2p.EVENTS.BLOCKS.BLOCK_TXS_DOWNLOADED.forEach(System.out.::println)
+...
+
+````
+ 
+ 
 # Reference
 
 # Events
@@ -410,7 +528,7 @@ connected to 10 or more Peers, and the number of connections drops below 10.
 An Event triggered when a Peer has failed to perform the Ping/Pong Protocol, which means that a PING message has been sent
  to this Peer but it has not reply with a PONG message within the time frame specified in the Configuration.
  
-> Note: This event only notified the fact. If you want to check if some action has been taken on this Peer due to this, you 
+> Note: This event only notifies the fact. If you want to check if some action has been taken on this Peer due to this, you 
 should listen to the *PeerDisconnectedEvent* or "PeerBlacklistedEvent" Events. 
 
 
@@ -616,3 +734,56 @@ public void onState(HandlerStateEvent event) {
    }
    ...
    ````
+   
+## Events related to Block Downloading
+
+### BlockDownloadedEvent
+
+``com.nchain.jcl.protocol.events.BlockDownloadedEvent``
+
+(*EVENTS.BLOCKS.BLOCK_DOWNLOADED*)
+
+An Event triggered when a Block has been fully downloaded, including its TXs. Since a Block could potentially
+use more memory than the HW available, this Event only notifies the FACT that the block has been downloaded, and
+also provides some info about it (like the Block Header, or the Peer it's been downloaded from).
+
+### LiteBlockDownloadedEvent
+
+``com.nchain.jcl.protocol.events.LiteBlockDownloadedEvent``
+
+(*EVENTS.BLOCKS.LITE_BLOCK_DOWNLOADED*)
+
+An Event triggered when a "Lite" Block has been downloaded. A Lite block is a block which size is small enough
+to be put into memory without risking running out of it.
+
+NOTE:
+When listening for Events regarding Blocks downloaded, the best approach is to listen to "BlockDownloadedEvent"
+instead, which is always triggered regardless of the block size. This event here thought is only triggered when
+the Block is NOT Big
+
+### BlockHeaderDownloadedEvent
+
+``com.nchain.jcl.protocol.events.BlockHeaderDownloadedEvent``
+
+(*EVENTS.BLOCKS.BLOCK_HEADER_DOWNLOADED*)
+
+An Event triggered when a Block Header has been downloaded.
+
+### BlockTXsDownloadedEvent
+
+``com.nchain.jcl.protocol.events.BlockTXsDownloadedEvent``
+
+(*EVENTS.BLOCKS.BLOCK_TXS_DOWNLOADED*)
+
+An Event triggered when a Set of TXs from a Block has been downloaded. If you want to get notified when all the
+TXs have been downloaded and the block has been fully download, use the BlockDownloadedEvent.
+
+### BlockDiscardedEvent
+
+``com.nchain.jcl.protocol.events.BlockDiscardedEvent``
+
+(*EVENTS.BLOCKS.BLOCK_DISCARDED*)
+
+An Event triggered when a Block, which has been requested to download, is discarded for any reason. This event 
+provides info about the Block (Hash) and the reason why the Block has been discarded
+A Block discarded might be attempted again after some time, depending on configuration.

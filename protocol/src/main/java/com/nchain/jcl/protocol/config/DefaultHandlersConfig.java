@@ -4,6 +4,8 @@ import com.nchain.jcl.network.config.NetworkConfig;
 import com.nchain.jcl.network.config.NetworkConfigDefault;
 import com.nchain.jcl.protocol.handlers.blacklist.BlacklistHandler;
 import com.nchain.jcl.protocol.handlers.blacklist.BlacklistHandlerConfig;
+import com.nchain.jcl.protocol.handlers.block.BlockDownloaderHandler;
+import com.nchain.jcl.protocol.handlers.block.BlockDownloaderHandlerConfig;
 import com.nchain.jcl.protocol.handlers.discovery.DiscoveryHandler;
 import com.nchain.jcl.protocol.handlers.discovery.DiscoveryHandlerConfig;
 import com.nchain.jcl.protocol.handlers.handshake.HandshakeHandler;
@@ -67,6 +69,10 @@ public abstract class DefaultHandlersConfig implements ProtocolConfig {
     protected BlacklistHandlerConfig.BlacklistHandlerConfigBuilder blacklistConfigBuilder
             = BlacklistHandlerConfig.builder();
 
+    // Block downloader Handler:
+    protected BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder blockConfigBuilder
+            = BlockDownloaderHandlerConfig.builder();
+
     @Getter
     protected ProtocolBasicConfig basicConfig;
 
@@ -81,6 +87,7 @@ public abstract class DefaultHandlersConfig implements ProtocolConfig {
         handlersConfig.put(PingPongHandler.HANDLER_ID, pingPongConfigBuilder.basicConfig(basicConfig).build());
         handlersConfig.put(DiscoveryHandler.HANDLER_ID, discoveryConfigBuilder.basicConfig(basicConfig).build());
         handlersConfig.put(BlacklistHandler.HANDLER_ID, blacklistConfigBuilder.basicConfig(basicConfig).build());
+        handlersConfig.put(BlockDownloaderHandler.HANDLER_ID, blockConfigBuilder.basicConfig(basicConfig).build());
     }
 
     @Override
@@ -103,7 +110,10 @@ public abstract class DefaultHandlersConfig implements ProtocolConfig {
     public BlacklistHandlerConfig  getBlacklistConfig() {
         return (BlacklistHandlerConfig) handlersConfig.get(BlacklistHandler.HANDLER_ID);
     }
-
+    @Override
+    public BlockDownloaderHandlerConfig getBlockDownloaderConfig() {
+        return (BlockDownloaderHandlerConfig) handlersConfig.get(BlockDownloaderHandler.HANDLER_ID);
+    }
     @Override
     public String toString() {
         return getId();

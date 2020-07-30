@@ -4,11 +4,13 @@ import com.nchain.jcl.network.events.*;
 import com.nchain.jcl.network.handlers.NetworkHandlerState;
 import com.nchain.jcl.protocol.events.*;
 import com.nchain.jcl.protocol.handlers.blacklist.BlacklistHandlerState;
+import com.nchain.jcl.protocol.handlers.block.BlockDownloaderHandlerState;
 import com.nchain.jcl.protocol.handlers.discovery.DiscoveryHandlerState;
 import com.nchain.jcl.protocol.handlers.handshake.HandshakeHandlerState;
 import com.nchain.jcl.protocol.handlers.message.MessageHandlerState;
 import com.nchain.jcl.protocol.handlers.pingPong.PingPongHandlerState;
 import com.nchain.jcl.protocol.messages.*;
+import com.nchain.jcl.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.tools.events.Event;
 import com.nchain.jcl.tools.events.EventBus;
 import lombok.AllArgsConstructor;
@@ -63,6 +65,14 @@ public class P2PEventStreamer {
         }
     }
 
+
+    /**
+     * A convenience class that provides Event Stramers for "general" Events, not related to Peers or Msgs..
+     */
+    public class GeneralEventStreamer {
+        public final EventStreamer<NetStartEvent>   START   = new EventStreamer<>(NetStartEvent.class, null);
+        public final EventStreamer<NetStopEvent>    STOP    = new EventStreamer<>(NetStopEvent.class, null);
+    }
     /**
      * A Convenience class that provides EventStreamers for Events related to Peers.
      * Some Streamer are already defined as final instances, so they can be used already to subscribe to specific
@@ -162,10 +172,24 @@ public class P2PEventStreamer {
         public final EventStreamer<HandlerStateEvent> PINGPONG   = new EventStreamer<>(HandlerStateEvent.class, getFilterForHandler(PingPongHandlerState.class));
         public final EventStreamer<HandlerStateEvent> DISCOVERY  = new EventStreamer<>(HandlerStateEvent.class, getFilterForHandler(DiscoveryHandlerState.class));
         public final EventStreamer<HandlerStateEvent> BLACKLIST  = new EventStreamer<>(HandlerStateEvent.class, getFilterForHandler(BlacklistHandlerState.class));
+        public final EventStreamer<HandlerStateEvent> BLOCKS     = new EventStreamer<>(HandlerStateEvent.class, getFilterForHandler(BlockDownloaderHandlerState.class));
+    }
+
+    /**
+     * A convenience class that provides Event Streamer specific for Event triggered by the Block downloader Handler
+     */
+    public class BlockEventStreamer {
+        public final EventStreamer<LiteBlockDownloadedEvent>    LITE_BLOCK_DOWNLOADED   = new EventStreamer<>(LiteBlockDownloadedEvent.class, null);
+        public final EventStreamer<BlockDownloadedEvent>        BLOCK_DOWNLOADED        = new EventStreamer<>(BlockDownloadedEvent.class, null);
+        public final EventStreamer<BlockDiscardedEvent>         BLOCK_DISCARDED         = new EventStreamer<>(BlockDiscardedEvent.class, null);
+        public final EventStreamer<BlockHeaderDownloadedEvent>  BLOCK_HEADER_DOWNLOADED = new EventStreamer<>(BlockHeaderDownloadedEvent.class, null);
+        public final EventStreamer<BlockTXsDownloadedEvent>     BLOCK_TXS_DOWNLOADED    = new EventStreamer<>(BlockTXsDownloadedEvent.class, null);
     }
 
     // Definition of the different built-in EventStreamer classes:
-    public final PeersEventStreamer PEERS   = new PeersEventStreamer();
-    public final MsgsEventStreamer  MSGS    = new MsgsEventStreamer();
-    public final StateEventStreamer STATE   = new StateEventStreamer();
+    public final GeneralEventStreamer   GENERAL = new GeneralEventStreamer();
+    public final PeersEventStreamer     PEERS   = new PeersEventStreamer();
+    public final MsgsEventStreamer      MSGS    = new MsgsEventStreamer();
+    public final StateEventStreamer     STATE   = new StateEventStreamer();
+    public final BlockEventStreamer     BLOCKS  = new BlockEventStreamer();
 }

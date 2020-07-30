@@ -60,6 +60,10 @@ public class ProtocolBTCMainConfig extends DefaultHandlersConfig implements Prot
                 .userAgentBlacklistPatterns(userAgentBlacklist)
                 .userAgentWhitelistPatterns(userAgentWhitelist);
         discoveryConfigBuilder.dnsSeeds(dns);
+        // in BTC, a lot of times we cannot download a block for any reason, so we increase the max Attemps. It's ok,
+        // since the blocks are small (<= 1MB), so the performance is not affected.
+        blockConfigBuilder.maxDownloadAttempts(10);
+
         super.build();
     }
 

@@ -1,16 +1,21 @@
-package com.nchain.jcl.protocol.DELETE_ME;
+package com.nchain.jcl.protocol.wiki;
 
 import com.nchain.jcl.protocol.config.ProtocolConfig;
 import com.nchain.jcl.protocol.config.ProtocolServices;
 import com.nchain.jcl.protocol.config.ProtocolVersion;
 import com.nchain.jcl.protocol.config.provided.ProtocolBSVMainConfig;
 import com.nchain.jcl.protocol.events.PeerHandshakedEvent;
+import com.nchain.jcl.protocol.handlers.handshake.HandshakeHandlerConfig;
+import com.nchain.jcl.protocol.messages.InvMessage;
+import com.nchain.jcl.protocol.messages.InventoryVectorMsg;
+import com.nchain.jcl.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.protocol.wrapper.P2P;
 import com.nchain.jcl.protocol.wrapper.P2PBuilder;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import java.time.Duration;
+import java.util.List;
 
 /**
  * @author i.fernandez@nchain.com
@@ -104,8 +109,14 @@ public class WikiExamples {
     public void testPerformance() {
         try {
 
+            ProtocolConfig config = new ProtocolBSVMainConfig();
+            HandshakeHandlerConfig handshakeConfig = config.getHandshakeConfig().toBuilder()
+                    .relayTxs(false)
+                    .build();
             P2P p2p = new P2PBuilder("testing")
                     .publishStates(Duration.ofSeconds(1))
+                    .config(config)
+                    .config(handshakeConfig)
                     .minPeers(40)
                     .maxPeers(45)
                     .build();
@@ -113,6 +124,15 @@ public class WikiExamples {
             //p2p.EVENTS.PEERS.DISCONNECTED.forEach(System.out::println);
             //p2p.EVENTS.PEERS.HANDSHAKED.forEach(System.out::println);
             p2p.EVENTS.MSGS.ADDR.forEach(System.out::println);
+            p2p.EVENTS.MSGS.INV.forEach(e -> {
+                BitcoinMsg<InvMessage> msg = (BitcoinMsg<InvMessage>) e.getBtcMsg();
+                List<InventoryVectorMsg> invVector = msg.getBody().getInvVectorList();
+                long numTxs =
+                        invVector.stream().filter( i -> i.getType().equals(InventoryVectorMsg.VectorType.MSG_TX)).count();
+                long numBlocks =
+                        invVector.stream().filter( i -> i.getType().equals(InventoryVectorMsg.VectorType.MSG_BLOCK)).count();
+                System.out.println(" >> INV: " + numBlocks + " blocks, " + numTxs + " Txs");
+            });
             p2p.EVENTS.STATE.HANDSHAKE.forEach(System.out::println);
             p2p.EVENTS.STATE.NETWORK.forEach(e -> {
                 System.out.println(e);

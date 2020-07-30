@@ -54,7 +54,7 @@ public class BlockMsgSerializer implements MessageSerializer<BlockMsg> {
             if ((accumulateNumTxs++) > numTxsForEachLog) {
                 accumulateNumTxs = 0;
                 int progress = (i * 100) / numTxs;
-                log.debug("Deserializing Block " + blockHash + " " + progress + "% Done...");
+                log.trace("Deserializing Block " + blockHash + " " + progress + "% Done...");
             }
             transactionMsgList.add(TransactionMsgSerializer.getInstance().deserialize(context, byteReader));
         }

@@ -3,10 +3,7 @@ package com.nchain.jcl.protocol.wrapper;
 import com.nchain.jcl.network.PeerAddress;
 import com.nchain.jcl.network.events.ConnectPeerRequest;
 import com.nchain.jcl.network.events.DisconnectPeerRequest;
-import com.nchain.jcl.protocol.events.BroadcastMsgRequest;
-import com.nchain.jcl.protocol.events.DisablePingPongRequest;
-import com.nchain.jcl.protocol.events.EnablePingPongRequest;
-import com.nchain.jcl.protocol.events.SendMsgRequest;
+import com.nchain.jcl.protocol.events.*;
 import com.nchain.jcl.protocol.messages.VersionMsg;
 import com.nchain.jcl.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.tools.events.Event;
@@ -14,6 +11,10 @@ import com.nchain.jcl.tools.events.EventBus;
 import lombok.AllArgsConstructor;
 
 import com.nchain.jcl.network.events.PeerDisconnectedEvent.DisconnectedReason;
+
+import java.net.UnknownHostException;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author i.fernandez@nchain.com
@@ -80,12 +81,22 @@ public class P2PRequestHandler {
     /**
      * A convenience Class for Requests related to Peer operations
      */
-    class PeersRequestBuilder  {
+    public class PeersRequestBuilder  {
+        public ConnectPeerRequestBuilder connect(String peerAddressStr) {
+            try {
+                return new ConnectPeerRequestBuilder(PeerAddress.fromIp(peerAddressStr));
+            } catch (UnknownHostException e) { throw new RuntimeException(e); }
+        }
         public ConnectPeerRequestBuilder connect(PeerAddress peerAddress) {
             return new ConnectPeerRequestBuilder(peerAddress);
         }
         public DisconnectPeerRequestBuilder disconnect(PeerAddress peerAddress) {
             return new DisconnectPeerRequestBuilder(peerAddress, null);
+        }
+        public DisconnectPeerRequestBuilder disconnect(String peerAddressStr) {
+            try {
+                return new DisconnectPeerRequestBuilder(PeerAddress.fromIp(peerAddressStr), null);
+            } catch (UnknownHostException e) { throw new RuntimeException(e); }
         }
         public DisconnectPeerRequestBuilder disconnect(PeerAddress peerAddress, DisconnectedReason reason) {
             return new DisconnectPeerRequestBuilder(peerAddress, reason);
@@ -124,8 +135,29 @@ public class P2PRequestHandler {
         }
     }
 
+
+    @AllArgsConstructor
+    class BlockDownloadRequestBuilder extends Request {
+        private List<String> blockHash;
+        public BlocksDownloadRequest buildRequest() { return new BlocksDownloadRequest(blockHash); }
+    }
+
+
+    /**
+     * A convenience Class for Request related to the Block Downloader Handler
+     */
+    class BlockDownloaderRequestBuilder {
+        public BlockDownloadRequestBuilder download(String blockHash) {
+            return new BlockDownloadRequestBuilder(Arrays.asList(blockHash));
+        }
+        public BlockDownloadRequestBuilder download(List<String> blockHashes) {
+            return new BlockDownloadRequestBuilder(blockHashes);
+        }
+    }
+
     // Definition of the built-in Request Handlers:
-    public final PeersRequestBuilder PEERS = new PeersRequestBuilder();
-    public final MsgsRequestBuilder MSGS = new MsgsRequestBuilder();
+    public final PeersRequestBuilder            PEERS   = new PeersRequestBuilder();
+    public final MsgsRequestBuilder             MSGS    = new MsgsRequestBuilder();
+    public final BlockDownloaderRequestBuilder  BLOCKS  = new BlockDownloaderRequestBuilder();
 
 }

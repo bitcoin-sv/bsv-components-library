@@ -18,10 +18,12 @@ import java.util.List;
 public class PartialBlockTXsMsg extends Message {
 
     public static final String MESSAGE_TYPE = "PartialBlockTxs";
+    private BlockHeaderMsg blockHeader;
     private List<TransactionMsg> txs;
 
     @Builder
-    public PartialBlockTXsMsg(List<TransactionMsg> txs) {
+    public PartialBlockTXsMsg(BlockHeaderMsg blockHeader, List<TransactionMsg> txs) {
+        this.blockHeader = blockHeader;
         this.txs = txs;
         init();
     }

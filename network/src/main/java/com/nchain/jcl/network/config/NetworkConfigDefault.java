@@ -23,7 +23,7 @@ public class NetworkConfigDefault extends NetworkConfigImpl {
     private static final OptionalInt timeoutSocketIdle = OptionalInt.empty();
     private static final int nioBufferSizeLowerBound = 4096;
     private static final int nioBufferSizeUpperBound = 65536;
-    private static final int nioBufferSizeUpgrade = 5_000_000;
+    private static final int nioBufferSizeUpgrade = 10_000_000;
     private static final int maxMessageSizeAvgInBytes = 1000; // TODO :CAREFUL
     private static final boolean blockingOnListeners = false;
 

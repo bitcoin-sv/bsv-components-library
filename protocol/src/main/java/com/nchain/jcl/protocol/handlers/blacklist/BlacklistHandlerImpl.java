@@ -146,7 +146,7 @@ public class BlacklistHandlerImpl extends HandlerImpl implements BlacklistHandle
 
     /** It blacklists the Host given for the reason specified. */
     private void blacklist(BlacklistHostInfo hostInfo, PeersBlacklistedEvent.BlacklistReason reason) {
-        logger.debug("Blacklisting " + hostInfo.getIp() + " : ...");
+        logger.trace("Blacklisting " + hostInfo.getIp(), reason);
         hostInfo.blacklist(reason);
         updateState(reason);
         // We publish the event to the Bus:
@@ -157,7 +157,7 @@ public class BlacklistHandlerImpl extends HandlerImpl implements BlacklistHandle
 
     /** It whitelists the Host given, making it eligible again for connection */
     private void whitelist(BlacklistHostInfo hostInfo) {
-        logger.debug("Whitelisting " + hostInfo.getIp() + "...");
+        logger.trace("Whitelisting " + hostInfo.getIp() + "...");
         hostInfo.whitelist();
         // We publish the event to the Bus:
         super.eventBus.publish(new PeersWhitelistedEvent(Arrays.asList(hostInfo.getIp())));

@@ -90,7 +90,7 @@ public class FileUtilsBuilder {
             if (rootFolder == null)
                 throw new RuntimeException("Root Folder is Null. If you have specify to use the Classpath, make sure there is a \\" + ROOT_FOLDER + "\\ folder in it");
 
-            // If we have specified to copy resources from the classpath, we do it as lopng as the folder exists in the
+            // If we have specified to copy resources from the classpath, we do it as lonng as the folder exists in the
             // classpath:
             if (copyFromClasspath) {
                 URL classpathFolder = loader.getResource(ROOT_FOLDER + "/");

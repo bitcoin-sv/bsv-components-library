@@ -10,6 +10,9 @@ import com.nchain.jcl.protocol.config.provided.ProtocolBSVMainConfig;
 import com.nchain.jcl.protocol.handlers.blacklist.BlacklistHandler;
 import com.nchain.jcl.protocol.handlers.blacklist.BlacklistHandlerConfig;
 import com.nchain.jcl.protocol.handlers.blacklist.BlacklistHandlerImpl;
+import com.nchain.jcl.protocol.handlers.block.BlockDownloaderHandler;
+import com.nchain.jcl.protocol.handlers.block.BlockDownloaderHandlerConfig;
+import com.nchain.jcl.protocol.handlers.block.BlockDownloaderHandlerImpl;
 import com.nchain.jcl.protocol.handlers.discovery.DiscoveryHandler;
 import com.nchain.jcl.protocol.handlers.discovery.DiscoveryHandlerConfig;
 import com.nchain.jcl.protocol.handlers.discovery.DiscoveryHandlerImpl;
@@ -126,6 +129,8 @@ public class P2PBuilder {
         return config(BlacklistHandler.HANDLER_ID, config);
     }
 
+    public P2PBuilder config(BlockDownloaderHandlerConfig config) { return config(BlockDownloaderHandler.HANDLER_ID, config);}
+
     /** It sets up a specific configuration for a specific protocol Handler, overwritting the default one (if any) */
     public P2PBuilder config(String handlerId, HandlerConfig handlerConfig) {
         checkState(protocolConfig != null, "Before setting up the Configuration ofr an individual Handler, "
@@ -169,7 +174,7 @@ public class P2PBuilder {
         return this;
     }
 
-    private Map<String, Handler> createDefaultHandlers(RuntimeConfig runtimeConfig, NetworkConfig networkConfig, Map<String, HandlerConfig> handlerConfigs) {
+    private Map<String, Handler> createBuiltInHandlers(RuntimeConfig runtimeConfig, NetworkConfig networkConfig, Map<String, HandlerConfig> handlerConfigs) {
         Map<String, Handler> result = new HashMap<>();
         try {
 
@@ -214,6 +219,11 @@ public class P2PBuilder {
             Handler blacklistHandler = new BlacklistHandlerImpl(id, runtimeConfig, blacklistConfig);
             result.put(blacklistHandler.getId(), blacklistHandler);
 
+            // Block Downloader Handler...
+            BlockDownloaderHandlerConfig blockConfig = (BlockDownloaderHandlerConfig) handlerConfigs.get(BlockDownloaderHandler.HANDLER_ID);
+            Handler blockHandler = new BlockDownloaderHandlerImpl(id, runtimeConfig, blockConfig);
+            result.put(blockHandler.getId(), blockHandler);
+
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -245,7 +255,7 @@ public class P2PBuilder {
             if (this.protocolConfig == null) config(new ProtocolBSVMainConfig());
 
             // We set up the default built-in Handlers:
-            Map<String, Handler> defaultHandlers = createDefaultHandlers(runtimeConfig, networkConfig, this.handlerConfigs);
+            Map<String, Handler> defaultHandlers = createBuiltInHandlers(runtimeConfig, networkConfig, this.handlerConfigs);
 
             // We set up the P2P (without handlers, for now)
             result = new P2P(id, runtimeConfig, networkConfig, protocolConfig);
@@ -260,7 +270,7 @@ public class P2PBuilder {
             for (String handlerId : handlersToExclude)
                 finalHandlersToAdd.remove(handlerId);
 
-            // Now, we just add them, along with their "status Refresh Frequency", if has been configured:
+            // Now, we just add them, along with their "status Refresh Frequency", if it has been configured:
             for (Handler handler : finalHandlersToAdd.values()) {
                 String handlerId = handler.getId();
                 Duration handlerStateFrequency = stateRefreshFrequencies.containsKey(handlerId)

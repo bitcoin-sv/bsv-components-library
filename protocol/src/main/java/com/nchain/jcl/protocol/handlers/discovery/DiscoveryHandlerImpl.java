@@ -220,7 +220,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
                 Optional<PeerAddress> peerAddressToReplace = peersInfo.values().stream()
                         .filter(p ->  !peersHandshaked.contains(p)).findFirst().map(p -> p.getPeerAddress());
                 if (peerAddressToReplace.isPresent()) {
-                    logger.debug( peerAddressToReplace.get().toString(),
+                    logger.trace( peerAddressToReplace.get().toString(),
                             "Removing this Peer from the main pool, to make room for  " + peerAddress.toString() + "...");
                     peersInfo.remove(peerAddressToReplace.get());
                     peersInfo.put(peerAddress, peerInfo);

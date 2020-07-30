@@ -29,7 +29,7 @@ public class DeserializerStreamState extends StreamState {
      * State of the Deserialization process. The bytes form a Message might not come at the same time, so every time
      * we receive new bytes, we need to keep track of the state we are and what to expect next.
      */
-    enum ProcessingBytesState {
+    public enum ProcessingBytesState {
         SEEKING_HEAD,               // we are downloading bytes to get a Message Header
         SEEIKING_BODY,              // we are downloading bytes to the a Message Body (payload)
         DESERIALIZING_BODY,         // we are deserializing the Body in Real-Time
@@ -58,15 +58,15 @@ public class DeserializerStreamState extends StreamState {
      *
      *    This class is IMMUTABLE and SAFE for MULTI-THREAD
      */
-    enum ThreadState {
+    public enum ThreadState {
         // There is only 1 thread running (the Shared Thread). This Thread takes care of everythign: receiving the new
         // incoming Bytes, and processing them:
         SHARED_THREAD,
         // There are 2 Threads running: The SHARED Thread will only take care of Receiving the new Bytes, The
         // DEDICATED Thread will process them.
-        SHARED_AND_DEDICATED_THREAD;
+        DEDICATED_THREAD;
 
-        boolean dedicatedThreadRunning()    { return this == SHARED_AND_DEDICATED_THREAD;}
+        public boolean dedicatedThreadRunning()    { return this == DEDICATED_THREAD;}
     }
 
     @Builder.Default
@@ -74,10 +74,12 @@ public class DeserializerStreamState extends StreamState {
     @Builder.Default
     private ThreadState treadState = ThreadState.SHARED_THREAD;
 
-    // Last Deserialized Messages:
-    private HeaderMsg       currentHeaderMsg;
-    private Message         currentBodyMsg;
-    private BitcoinMsg<?>   currentBitcoinMsg;
+    // Info about the current Message being deserialized:
+    @Getter private HeaderMsg       currentHeaderMsg;
+    @Getter private Message         currentBodyMsg;
+    @Getter private BitcoinMsg<?>   currentBitcoinMsg;
+
+    @Getter private long currentMsgBytesReceived;
 
     // This variable indicates whether there are still Bytes in the Buffer, and those bytes can be processed Now.
     // sometimes we DO have bytes remaining in the buffer, but we can't process just yet because we are waiting for
