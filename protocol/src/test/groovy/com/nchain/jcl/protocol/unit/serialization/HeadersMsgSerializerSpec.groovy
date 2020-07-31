@@ -24,10 +24,7 @@ import spock.lang.Specification
  * Distributed under the Open BSV software license, see the accompanying file LICENSE.
  * @date 20/08/2019
  *
- * Testing class for the HeadersMsg Serialization.
- * The test is taken the assumption that we have already a correct serialization version of this Message, obtained
- * from another source that we trust (in this case the Java BitcoinJ library). So we serialize/deserialize some
- * messages with out code and compare the results with that reference.
+ * Testing class for the HeadersMsg Serialization and Deserialization
  */
 class HeadersMsgSerializerSpec extends Specification {
 
