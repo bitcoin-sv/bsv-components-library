@@ -40,13 +40,13 @@ class BlockDownloadTest extends Specification {
     /**
      * We test that the Blocks can be either downloaded for different Chains (BSV, BTC, etc).
      * The test is parametrized. For each Chain, we provide the specific configuration for it, and the list
-     * of Block hashes to download from it. The test wil finish when all the blocks are processed, because
+     * of Block hashes to download from it. The test will finish when all the blocks are processed, because
      * they have been either downloaded or discarded, OR the tests takes longer than a THRESHOLD specified
-     * (in the last case, the test ill fail).
+     * (in the last case, the test will fail).
      *
      */
     // We disable this test, since it's very time-consuming
-    @Ignore
+    //@Ignore
     def "Testing Block Downloading"() {
         given:
             // The longest Timeout we'll wait for to run the test:
@@ -84,10 +84,13 @@ class BlockDownloadTest extends Specification {
                 String hash = e.blockHeaderMsg.hash.toString()
                 Long currentTxs = blockTxs.containsKey(hash)? (blockTxs.get(hash) + e.txsMsg.size()) : e.txsMsg.size()
                 blockTxs.put(hash, currentTxs)
+                /*
                 if (blockHeaders.containsKey(hash)) {
                     Long totalTxs = blockHeaders.get(hash).transactionCount.value
                     println(" > Block " + hash + ": " + currentTxs + " Txs (of " + totalTxs + ") downloaded...")
                 } else println(" > Block " + hash + ": " + currentTxs + " Txs downloaded...")
+
+                 */
             })
 
 
