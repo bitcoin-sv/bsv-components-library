@@ -47,6 +47,8 @@ public class ProtocolBSVStnConfig extends ProtocolConfigBase implements Protocol
                 userAgentBlacklist,
                 userAgentWhitelist,
                 dns,
+                null,    // minPeers not specified
+                null,   // maxPeers not specified
                 new ProtocolBasicConfig().toBuilder()
                         .id(id)
                         .magicPackage(magicPackage)

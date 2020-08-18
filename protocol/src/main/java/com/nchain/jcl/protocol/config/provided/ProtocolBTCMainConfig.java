@@ -51,6 +51,8 @@ public class ProtocolBTCMainConfig extends ProtocolConfigBase implements Protoco
                 userAgentBlacklist,
                 userAgentWhitelist,
                 dns,
+                null,    // minPeers not specified
+                null,   // maxPeers not specified
                 new ProtocolBasicConfig().toBuilder()
                         .id(id)
                         .magicPackage(magicPackage)

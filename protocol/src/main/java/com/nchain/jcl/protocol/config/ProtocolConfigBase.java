@@ -20,6 +20,8 @@ import lombok.Getter;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.OptionalInt;
+
 import static com.google.common.base.Preconditions.checkArgument;
 
 /**
@@ -43,6 +45,8 @@ public class ProtocolConfigBase implements ProtocolConfig {
     private String[] userAgentBlacklist;
     private String[] userAgentWhitelist;
     private String[] dns;
+    private Integer minPeers;
+    private Integer maxPeers;
 
     // Network Configuration: default
     @Getter
@@ -95,6 +99,8 @@ public class ProtocolConfigBase implements ProtocolConfig {
                               String[] userAgentBlacklist,
                               String[] userAgentWhitelist,
                               String[] dns,
+                              Integer minPeers,
+                              Integer maxPeers,
 
                               // Handler Configurations:
                               ProtocolBasicConfig basicConfig,
@@ -135,6 +141,10 @@ public class ProtocolConfigBase implements ProtocolConfig {
             this.handshakeConfig = this.handshakeConfig.toBuilder().userAgentBlacklistPatterns(userAgentBlacklist).build();
         if (userAgentWhitelist != null && userAgentWhitelist.length > 0)
             this.handshakeConfig = this.handshakeConfig.toBuilder().userAgentWhitelistPatterns(userAgentWhitelist).build();
+        if (minPeers != null)
+            this.handshakeConfig = this.handshakeConfig.toBuilder().minPeers(OptionalInt.of(minPeers)).build();
+        if (maxPeers != null)
+            this.handshakeConfig = this.handshakeConfig.toBuilder().maxPeers(OptionalInt.of(maxPeers)).build();
 
         this.pingPongConfig = (pingPongConfig == null)
                 ? new PingPongHandlerConfig().toBuilder().basicConfig(this.basicConfig).build()
