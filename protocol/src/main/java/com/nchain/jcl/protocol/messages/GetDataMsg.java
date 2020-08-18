@@ -29,7 +29,7 @@ import java.util.List;
  */
 @Value
 @EqualsAndHashCode
-public class GetdataMsg extends Message {
+public class GetDataMsg extends Message {
     private static final long MAX_ADDRESSES = 50000;
     public static final String MESSAGE_TYPE = "getdata";
 
@@ -48,7 +48,7 @@ public class GetdataMsg extends Message {
      * @param invVectorList
      */
     @Builder
-    protected GetdataMsg(List<InventoryVectorMsg> invVectorList) {
+    protected GetDataMsg(List<InventoryVectorMsg> invVectorList) {
         this.invVectorList = ImmutableList.copyOf(invVectorList);
         //count value is calculated from the inv vector list
         long count =  this.invVectorList.size();

@@ -10,7 +10,6 @@ import com.nchain.jcl.protocol.handlers.handshake.HandshakeHandlerState;
 import com.nchain.jcl.protocol.handlers.message.MessageHandlerState;
 import com.nchain.jcl.protocol.handlers.pingPong.PingPongHandlerState;
 import com.nchain.jcl.protocol.messages.*;
-import com.nchain.jcl.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.tools.events.Event;
 import com.nchain.jcl.tools.events.EventBus;
 import lombok.AllArgsConstructor;
@@ -129,7 +128,7 @@ public class P2PEventStreamer {
         public final EventStreamer<MsgReceivedEvent> BLOCK      = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(BlockMsg.MESSAGE_TYPE));
         public final EventStreamer<MsgReceivedEvent> FEE        = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(FeeFilterMsg.MESSAGE_TYPE));
         public final EventStreamer<MsgReceivedEvent> GETADDR    = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(GetAddrMsg.MESSAGE_TYPE));
-        public final EventStreamer<MsgReceivedEvent> GETDATA    = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(GetdataMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgReceivedEvent> GETDATA    = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(GetDataMsg.MESSAGE_TYPE));
         public final EventStreamer<MsgReceivedEvent> INV        = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(InvMessage.MESSAGE_TYPE));
         public final EventStreamer<MsgReceivedEvent> NOTFOUND   = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(NotFoundMsg.MESSAGE_TYPE));
         public final EventStreamer<MsgReceivedEvent> PING       = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(PingMsg.MESSAGE_TYPE));
@@ -144,7 +143,7 @@ public class P2PEventStreamer {
         public final EventStreamer<MsgSentEvent> BLOCK_SENT      = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(BlockMsg.MESSAGE_TYPE));
         public final EventStreamer<MsgSentEvent> FEE_SENT        = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(FeeFilterMsg.MESSAGE_TYPE));
         public final EventStreamer<MsgSentEvent> GETADDR_SENT    = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(GetAddrMsg.MESSAGE_TYPE));
-        public final EventStreamer<MsgSentEvent> GETDATA_SENT    = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(GetdataMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgSentEvent> GETDATA_SENT    = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(GetDataMsg.MESSAGE_TYPE));
         public final EventStreamer<MsgSentEvent> INV_SENT        = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(InvMessage.MESSAGE_TYPE));
         public final EventStreamer<MsgSentEvent> NOTFOUND_SENT   = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(NotFoundMsg.MESSAGE_TYPE));
         public final EventStreamer<MsgSentEvent> PING_SENT       = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(PingMsg.MESSAGE_TYPE));
