@@ -34,9 +34,7 @@ class ProtocolPingPongOKTest extends Specification {
             Duration waitingTime = Duration.ofMillis(inactivityTimeout.toMillis() * 5) // 3 times as much
 
             // Server Definition:
-            ProtocolConfig serverConfig = new ProtocolBSVMainConfig().toBuilder()
-                .port(0)
-                .build()
+            ProtocolConfig serverConfig = new ProtocolBSVMainConfig().toBuilder().port(0).build()
 
             PingPongHandlerConfig serverPingConfig = serverConfig.getPingPongConfig()
                     .toBuilder()
@@ -52,9 +50,7 @@ class ProtocolPingPongOKTest extends Specification {
                     .build()
 
             // Client Definition:
-            ProtocolConfig clientConfig = new ProtocolBSVMainConfig().toBuilder()
-                    .port(0)
-                    .build()
+            ProtocolConfig clientConfig = new ProtocolBSVMainConfig().toBuilder().port(0).build()
 
             PingPongHandlerConfig clientPingConfig = clientConfig.getPingPongConfig()
                     .toBuilder()

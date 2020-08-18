@@ -133,7 +133,7 @@ public class P2PBuilder {
 
     /** It sets up a specific configuration for a specific protocol Handler, overwritting the default one (if any) */
     public P2PBuilder config(String handlerId, HandlerConfig handlerConfig) {
-        checkState(protocolConfig != null, "Before setting up the Configuration ofr an individual Handler, "
+        checkState(protocolConfig != null, "Before setting up the Configuration of an individual Handler, "
                 + "you must set the Global Default Configuration");
         handlerConfigs.put(handlerId, handlerConfig);
         return this;
@@ -189,15 +189,19 @@ public class P2PBuilder {
 
             // P2P Handlers:
             // All the configuration for these default protocol handlers are supposed to have been already set up by
-            // calling the "config(ProtocolConfig)" method:
+            // calling the "config(ProtocolConfig)" method
+            // Now we go through them, and make sure that they are all using the same "basic Configuration" inside...
+
 
             // Message Handler...
             MessageHandlerConfig messageConfig =  (MessageHandlerConfig) handlerConfigs.get(MessageHandler.HANDLER_ID);
+            messageConfig = messageConfig.toBuilder().basicConfig(this.protocolConfig.getBasicConfig()).build();
             Handler messageHandler = new MessageHandlerImpl(id, runtimeConfig, messageConfig);
             result.put(messageHandler.getId(), messageHandler);
 
             // Handshake Handler...
             HandshakeHandlerConfig handshakeConfig = (HandshakeHandlerConfig) handlerConfigs.get(HandshakeHandler.HANDLER_ID);
+            handshakeConfig = handshakeConfig.toBuilder().basicConfig(this.protocolConfig.getBasicConfig()).build();
             // If custom "minPeers" or "maxPeers" have been set, we use them now:
             if (minPeers != null) handshakeConfig = handshakeConfig.toBuilder().minPeers(OptionalInt.of(minPeers)).build();
             if (maxPeers != null) handshakeConfig = handshakeConfig.toBuilder().maxPeers(OptionalInt.of(maxPeers)).build();
@@ -206,21 +210,25 @@ public class P2PBuilder {
 
             // PingPong Handler...
             PingPongHandlerConfig pingPongConfig = (PingPongHandlerConfig) handlerConfigs.get(PingPongHandler.HANDLER_ID);
+            pingPongConfig = pingPongConfig.toBuilder().basicConfig(this.protocolConfig.getBasicConfig()).build();
             Handler pingPongHandler = new PingPongHandlerImpl(id, runtimeConfig, pingPongConfig);
             result.put(pingPongHandler.getId(), pingPongHandler);
 
             // Discovery Handler...
             DiscoveryHandlerConfig discoveryConfig = (DiscoveryHandlerConfig) handlerConfigs.get(DiscoveryHandler.HANDLER_ID);
+            discoveryConfig = discoveryConfig.toBuilder().basicConfig(this.protocolConfig.getBasicConfig()).build();
             Handler discoveryHandler = new DiscoveryHandlerImpl(id, runtimeConfig, discoveryConfig);
             result.put(discoveryHandler.getId(), discoveryHandler);
 
             // Blacklist Handler...
             BlacklistHandlerConfig blacklistConfig = (BlacklistHandlerConfig) handlerConfigs.get(BlacklistHandler.HANDLER_ID);
+            blacklistConfig = blacklistConfig.toBuilder().basicConfig(this.protocolConfig.getBasicConfig()).build();
             Handler blacklistHandler = new BlacklistHandlerImpl(id, runtimeConfig, blacklistConfig);
             result.put(blacklistHandler.getId(), blacklistHandler);
 
             // Block Downloader Handler...
             BlockDownloaderHandlerConfig blockConfig = (BlockDownloaderHandlerConfig) handlerConfigs.get(BlockDownloaderHandler.HANDLER_ID);
+            blockConfig = blockConfig.toBuilder().basicConfig(this.protocolConfig.getBasicConfig()).build();
             Handler blockHandler = new BlockDownloaderHandlerImpl(id, runtimeConfig, blockConfig);
             result.put(blockHandler.getId(), blockHandler);
 
@@ -247,7 +255,7 @@ public class P2PBuilder {
 
 
             // We set up the Base Configurations:
-            // If he Configurations have been set up, we use them, otherwise we use the default implementations:
+            // If the Configurations have been set up, we use them, otherwise we use the default implementations:
             RuntimeConfig runtimeConfig = (this.runtimeConfig != null)? this.runtimeConfig : new RuntimeConfigDefault();
             NetworkConfig networkConfig = (this.networkConfig != null)? this.networkConfig : new NetworkConfigDefault();
 

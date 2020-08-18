@@ -25,6 +25,7 @@ class ProtocolHandshakeFailedTest extends Specification {
      */
     def "Failed Handshaked-Wrong Version"() {
         given:
+
             // Server Definition:
             // We disable all the Handlers we don't need for this Test:
             P2P server = new P2PBuilder("server")
@@ -35,7 +36,9 @@ class ProtocolHandshakeFailedTest extends Specification {
                     .build()
             // Client Definition:
             // We change the "version" number, to force it to use an incorrect one:
-            ProtocolConfig clientConfig = new ProtocolBSVMainConfig().toBuilder().port(0).protocolVersion(0).build()
+            ProtocolConfig clientConfig = new ProtocolBSVMainConfig().toBuilder()
+                .port(0).protocolVersion(0).build()
+
             // We disable all the Handlers we don't need for this Test:
             P2P client = new P2PBuilder("client")
                     .config(clientConfig)
@@ -75,6 +78,7 @@ class ProtocolHandshakeFailedTest extends Specification {
      */
     def "Failed Handshaked-Wrong UserAgent"() {
         given:
+
             // Server Definition:
             // We disable all the Handlers we don't need for this Test:
             P2P server = new P2PBuilder("server")
@@ -87,6 +91,7 @@ class ProtocolHandshakeFailedTest extends Specification {
             // We change the "User Agent" used by the Client, to use an incorrect one (in the protocolBSVMainConfig
             // class, any user_agent containing "ABC" and some other patterns are blacklisted)
             ProtocolConfig clientConfig = new ProtocolBSVMainConfig().toBuilder().port(0).build()
+
             HandshakeHandlerConfig handshakeConfig = clientConfig.getHandshakeConfig().toBuilder()
                 .userAgent("ABC")
                 .build()

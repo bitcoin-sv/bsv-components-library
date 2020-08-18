@@ -50,9 +50,14 @@ class MessageHandlerTest extends Specification {
             List<BitcoinMsg<?>> msgs = new ArrayList<>()
 
             // Basic Configurations:
+            // For the Protocol, Configuration, we start with a BSV-Main Configuration but we change the port number,
+            // so the number is picked up randomly...
             RuntimeConfig runtimeConfig = new RuntimeConfigDefault()
+
+
             ProtocolConfig serverProtocolConfig = new ProtocolBSVMainConfig().toBuilder().port(0).build()
-            ProtocolConfig clientProtocolConfig = new ProtocolBSVMainConfig().toBuilder().port(0).build()
+            ProtocolConfig clientProtocolConfig = new ProtocolBSVMainConfig().toBuilder().port(0).build();
+
             NetworkConfig networkConfig = new NetworkConfigDefault()
 
             // Server Configuration:

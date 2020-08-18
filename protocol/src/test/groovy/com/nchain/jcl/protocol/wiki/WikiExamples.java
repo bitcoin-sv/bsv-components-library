@@ -44,7 +44,9 @@ public class WikiExamples {
         }
     }
 
+    /*
     @Ignore
+
     public void exampleConfig() {
         try {
             // BSV Main: ProtocolConfig config = new ProtocolBSVMainConfig();
@@ -64,7 +66,7 @@ public class WikiExamples {
             e.printStackTrace();
         }
     }
-
+    */
     @Ignore
     public void exampleEventHandling() {
         try {
