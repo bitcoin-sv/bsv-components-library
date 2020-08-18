@@ -51,14 +51,14 @@ public class P2PRequestHandler {
 
     /** A Builder for ConnectPeerRequest */
     @AllArgsConstructor
-    class ConnectPeerRequestBuilder extends Request {
+    public class ConnectPeerRequestBuilder extends Request {
         private PeerAddress peerAddress;
         public ConnectPeerRequest buildRequest() { return new ConnectPeerRequest(peerAddress); }
     }
 
     /** A Builder for DisconnectPeerRequest */
    @AllArgsConstructor
-    class DisconnectPeerRequestBuilder extends Request {
+   public  class DisconnectPeerRequestBuilder extends Request {
         private PeerAddress peerAddress;
         private DisconnectedReason reason;
         public DisconnectPeerRequest buildRequest() { return new DisconnectPeerRequest(peerAddress, reason, null); }
@@ -66,14 +66,14 @@ public class P2PRequestHandler {
 
     /** A Builder for EnablePingPongRequest */
     @AllArgsConstructor
-    class EnablePingPongRequestBuilder extends Request {
+    public class EnablePingPongRequestBuilder extends Request {
         private PeerAddress peerAddress;
         public EnablePingPongRequest buildRequest() { return new EnablePingPongRequest(peerAddress);}
     }
 
     /** A Builder for DisablePingPongRequest */
     @AllArgsConstructor
-    class DisablePingPongRequestBuilder extends Request {
+    public class DisablePingPongRequestBuilder extends Request {
         private PeerAddress peerAddress;
         public DisablePingPongRequest buildRequest() { return new DisablePingPongRequest(peerAddress);}
     }
@@ -111,14 +111,14 @@ public class P2PRequestHandler {
 
     /** A Builder for SendMsgRequest */
     @AllArgsConstructor
-    class SendMsgRequestBuilder extends Request {
+    public class SendMsgRequestBuilder extends Request {
         private PeerAddress peerAddress;
         private BitcoinMsg<?> btcMsg;
         public SendMsgRequest buildRequest() { return new SendMsgRequest(peerAddress, btcMsg); }
     }
     /** A Builder for BroadcastMsgRequest */
     @AllArgsConstructor
-    class BroadcastMsgRequestBuilder extends Request {
+    public class BroadcastMsgRequestBuilder extends Request {
         private BitcoinMsg<?> btcMsg;
         public BroadcastMsgRequest buildRequest() { return new BroadcastMsgRequest(btcMsg); }
     }
@@ -126,7 +126,7 @@ public class P2PRequestHandler {
     /**
      * A convenience Class for Request related to Message Operations
      */
-    class MsgsRequestBuilder {
+    public class MsgsRequestBuilder {
         public SendMsgRequestBuilder send(PeerAddress peerAddress, BitcoinMsg<?> btcMsg) {
             return new SendMsgRequestBuilder(peerAddress, btcMsg);
         }
@@ -137,7 +137,7 @@ public class P2PRequestHandler {
 
 
     @AllArgsConstructor
-    class BlockDownloadRequestBuilder extends Request {
+    public class BlockDownloadRequestBuilder extends Request {
         private List<String> blockHash;
         public BlocksDownloadRequest buildRequest() { return new BlocksDownloadRequest(blockHash); }
     }
@@ -146,7 +146,7 @@ public class P2PRequestHandler {
     /**
      * A convenience Class for Request related to the Block Downloader Handler
      */
-    class BlockDownloaderRequestBuilder {
+    public class BlockDownloaderRequestBuilder {
         public BlockDownloadRequestBuilder download(String blockHash) {
             return new BlockDownloadRequestBuilder(Arrays.asList(blockHash));
         }
