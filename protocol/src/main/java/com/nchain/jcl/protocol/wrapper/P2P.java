@@ -105,6 +105,10 @@ public class P2P {
         this.handlers.put(handler.getId(), handler);
     }
 
+    public Handler getHandler(String handlerId) {
+        return this.handlers.get(handlerId);
+    }
+
     protected void refreshHandlerState(String handlerId, Duration frequency) {
         this.stateRefreshFrequencies.put(handlerId, frequency);
     }
