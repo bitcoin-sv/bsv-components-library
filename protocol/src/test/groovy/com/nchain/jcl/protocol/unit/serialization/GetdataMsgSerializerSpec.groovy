@@ -2,7 +2,7 @@ package com.nchain.jcl.protocol.unit.serialization
 
 import com.nchain.jcl.protocol.config.ProtocolConfig
 import com.nchain.jcl.protocol.config.provided.ProtocolBSVMainConfig
-import com.nchain.jcl.protocol.messages.GetdataMsg
+import com.nchain.jcl.protocol.messages.GetDataMsg
 import com.nchain.jcl.protocol.messages.HashMsg
 import com.nchain.jcl.protocol.messages.InventoryVectorMsg
 import com.nchain.jcl.protocol.messages.common.BitcoinMsg
@@ -42,12 +42,12 @@ class GetdataMsgSerializerSpec extends Specification {
                 .protocolBasicConfig(config.getBasicConfig())
                 .maxBytesToRead((long) (REF_GETDATA_MSG_BODY.length()/2))
                 .build()
-            GetdataMsg inventoryMsg
+            GetDataMsg inventoryMsg
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_GETDATA_MSG_BODY), byteInterval, delayMs);
         when:
             inventoryMsg = GetdataMsgSerializer.getInstance().deserialize(context, byteReader)
         then:
-            inventoryMsg.getMessageType().equals(GetdataMsg.MESSAGE_TYPE)
+            inventoryMsg.getMessageType().equals(GetDataMsg.MESSAGE_TYPE)
             inventoryMsg.getCount().value.toString().equals("1")
         where:
             byteInterval | delayMs
@@ -67,7 +67,7 @@ class GetdataMsgSerializerSpec extends Specification {
 
             List<InventoryVectorMsg> msgList = new ArrayList<>();
             msgList.add(inventoryVectorMsg)
-            GetdataMsg getdataMsg = GetdataMsg.builder().invVectorList(msgList).build();
+            GetDataMsg getdataMsg = GetDataMsg.builder().invVectorList(msgList).build();
             ByteArrayWriter byteWriter = new ByteArrayWriter()
             String messageSerialized
         when:
@@ -88,10 +88,10 @@ class GetdataMsgSerializerSpec extends Specification {
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_GETDATA_MSG_FULL), byteInterval, delayMs);
             BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
         when:
-            BitcoinMsg<GetdataMsg> getDataMsg = bitcoinSerializer.deserialize(context, byteReader, GetdataMsg.MESSAGE_TYPE)
+            BitcoinMsg<GetDataMsg> getDataMsg = bitcoinSerializer.deserialize(context, byteReader, GetDataMsg.MESSAGE_TYPE)
         then:
             getDataMsg.getHeader().getMagic().equals(config.getBasicConfig().getMagicPackage())
-            getDataMsg.getHeader().getCommand().equals(GetdataMsg.MESSAGE_TYPE)
+            getDataMsg.getHeader().getCommand().equals(GetDataMsg.MESSAGE_TYPE)
             List<InventoryVectorMsg> inventoryList = getDataMsg.getBody().getInvVectorList()
             InventoryVectorMsg inventoryVectorMsg = inventoryList.get(0)
             inventoryList.size() == 1
@@ -113,12 +113,12 @@ class GetdataMsgSerializerSpec extends Specification {
                     .build()
             List<InventoryVectorMsg> msgList = new ArrayList<>();
             msgList.add(inventoryVectorMsg);
-            GetdataMsg getdataMsg = GetdataMsg.builder().invVectorList(msgList).build();
+            GetDataMsg getdataMsg = GetDataMsg.builder().invVectorList(msgList).build();
 
-            BitcoinMsg<GetdataMsg> getdataMsgBitcoinMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), getdataMsg).build()
+            BitcoinMsg<GetDataMsg> getdataMsgBitcoinMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), getdataMsg).build()
             BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
-            byte[] bytes = serializer.serialize(context, getdataMsgBitcoinMsg, GetdataMsg.MESSAGE_TYPE).getFullContent()
+            byte[] bytes = serializer.serialize(context, getdataMsgBitcoinMsg, GetDataMsg.MESSAGE_TYPE).getFullContent()
             String serialized = HEX.encode(bytes)
         then:
              serialized.equals(REF_GETDATA_MSG_FULL)
