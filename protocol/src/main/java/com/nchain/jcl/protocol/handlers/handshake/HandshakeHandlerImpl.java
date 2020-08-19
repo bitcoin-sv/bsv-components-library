@@ -356,7 +356,7 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
                 .services(config.getBasicConfig().getServicesSupported())
                 .addr_from(addr_from)
                 .addr_recv(addr_recv)
-                .start_height(0)
+                .start_height(config.getBlock_height())
                 .nonce(NonceUtils.newOnce())
                 .timestamp(System.currentTimeMillis())
                 .build();

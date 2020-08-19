@@ -40,4 +40,6 @@ public class HandshakeHandlerConfig extends HandlerConfig {
     private String[] userAgentBlacklistPatterns;
     private String[] userAgentWhitelistPatterns;
 
+    private long block_height;
+
 }
