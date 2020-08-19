@@ -45,6 +45,9 @@ import java.util.*;
  */
 public class P2PBuilder {
 
+    // Default Values for the Min and Max Peers:
+    private static final int MIN_PEERS_DEFAULT = 10;
+    private static final int MAX_PEERS_DEFAULT = 15;
     // For logging:
     private String id;
 
@@ -56,9 +59,9 @@ public class P2PBuilder {
     private Integer customPort;
 
     // Range of Peers to handshake with (we store this config here for convenience instead of using the same
-    // variables within the HandshakeHandlerconfig, since these are values that are used very frequently
-    private Integer minPeers = 10;  // default
-    private Integer maxPeers = 15;  // default
+    // variables within the HandshakeHandlerConfig, since these are values that are used very frequently
+    private Integer minPeers;  // default
+    private Integer maxPeers;  // default
 
     // A wrapper over the built-in handlers configurations
     ProtocolConfig protocolConfig;
@@ -191,7 +194,6 @@ public class P2PBuilder {
             // All the configuration for these default protocol handlers are supposed to have been already set up by
             // calling the "config(ProtocolConfig)" method
             // Now we go through them, and make sure that they are all using the same "basic Configuration" inside...
-
 
             // Message Handler...
             MessageHandlerConfig messageConfig =  (MessageHandlerConfig) handlerConfigs.get(MessageHandler.HANDLER_ID);
