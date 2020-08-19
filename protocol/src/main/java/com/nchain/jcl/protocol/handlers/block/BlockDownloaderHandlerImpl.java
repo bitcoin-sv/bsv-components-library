@@ -294,8 +294,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                     .hashMsg(hashMsg)
                     .build();
 
-            GetDataMsg msg = GetDataMsg.builder().invVectorList(Arrays.asList(invMsg)).build();
-            BitcoinMsg<GetDataMsg> btcMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), msg).build();
+            GetdataMsg msg = GetdataMsg.builder().invVectorList(Arrays.asList(invMsg)).build();
+            BitcoinMsg<GetdataMsg> btcMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), msg).build();
             // We send the message
             super.eventBus.publish(new SendMsgRequest(peerInfo.getPeerAddress(), btcMsg));
         }
