@@ -83,12 +83,17 @@ public class FileUtilsBuilder {
 
         try {
             ClassLoader loader = Thread.currentThread().getContextClassLoader();
+
+            // If we have specified CLASSPATH Folder, we make sure it exists...
+            if (loader.getResource(ROOT_FOLDER + "/") == null)
+                throw new Exception("If you specify CLASSPATH in FileUtils, a '/" + ROOT_FOLDER + "' fodler must exist wihtin the classpath");
+
             Path rootFolder = (folderLocationType == RootFolderLocation.TEMPORARY_FOLDER)
                     ? Path.of(System.getProperty("java.io.tmpdir"), ROOT_FOLDER)
                     : Path.of(loader.getResource(ROOT_FOLDER + "/").getPath());
 
-            if (rootFolder == null)
-                throw new RuntimeException("Root Folder is Null. If you have specify to use the Classpath, make sure there is a \\" + ROOT_FOLDER + "\\ folder in it");
+            // If we have specified Temporary folder, we make sure that folder exists
+            if (folderLocationType == RootFolderLocation.TEMPORARY_FOLDER) Files.createDirectories(rootFolder);
 
             // If we have specified to copy resources from the classpath, we do it as lonng as the folder exists in the
             // classpath:
@@ -101,6 +106,7 @@ public class FileUtilsBuilder {
             }
             return new FileUtilsImpl(rootFolder);
         } catch (Exception e) {
+            e.printStackTrace();
             throw new RuntimeException(e);
         }
     }
