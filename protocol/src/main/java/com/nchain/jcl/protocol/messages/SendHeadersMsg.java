@@ -22,7 +22,7 @@ public class SendHeadersMsg extends Message {
 
     @Builder
     public SendHeadersMsg(){
-
+        init();
     }
 
     @Override

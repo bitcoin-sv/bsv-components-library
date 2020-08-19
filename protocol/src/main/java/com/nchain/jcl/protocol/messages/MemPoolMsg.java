@@ -22,7 +22,7 @@ public class MemPoolMsg extends Message {
 
     @Builder
     public MemPoolMsg(){
-
+        init();
     }
 
     @Override
