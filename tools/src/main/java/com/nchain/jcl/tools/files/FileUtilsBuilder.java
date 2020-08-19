@@ -20,8 +20,11 @@ import static com.google.common.base.Preconditions.checkState;
 @Slf4j
 public class FileUtilsBuilder {
 
-    // Default name for the Root Folder. The base Path beore that will be calculated based on other variables
+    // Default name for the Root Folder.
     private final static String ROOT_FOLDER = "jcl";
+
+    // The root folder assigned to the FileUtils instance.
+    private String rootFolder = ROOT_FOLDER;
 
     // Define the Type of Location used for the Root folder
     enum RootFolderLocation {
@@ -58,10 +61,22 @@ public class FileUtilsBuilder {
         return this;
     }
 
+    /** It will use a OS Temporary folder, pointing a the folder given */
+    public FileUtilsBuilder useTempFolder(String rootFolder) {
+        this.rootFolder = rootFolder;
+        return useTempFolder();
+    }
+
     /** It will use a folder located in the App classpath */
     public FileUtilsBuilder useClassPath() {
         this.folderLocationType = RootFolderLocation.CLASSPATH_FOLDER;
         return this;
+    }
+
+    /** It will use a folder localted in the Classpath, pointing at the folder given */
+    public FileUtilsBuilder useClassPath(String rootFolder) {
+        this.rootFolder = rootFolder;
+        return useClassPath();
     }
 
     /**
@@ -85,12 +100,12 @@ public class FileUtilsBuilder {
             ClassLoader loader = Thread.currentThread().getContextClassLoader();
 
             // If we have specified CLASSPATH Folder, we make sure it exists...
-            if (loader.getResource(ROOT_FOLDER + "/") == null)
-                throw new Exception("If you specify CLASSPATH in FileUtils, a '/" + ROOT_FOLDER + "' fodler must exist wihtin the classpath");
+            if (loader.getResource(this.rootFolder + "/") == null)
+                throw new Exception("If you specify CLASSPATH in FileUtils, a '/" + rootFolder + "' folder must exist within the classpath");
 
             Path rootFolder = (folderLocationType == RootFolderLocation.TEMPORARY_FOLDER)
-                    ? Path.of(System.getProperty("java.io.tmpdir"), ROOT_FOLDER)
-                    : Path.of(loader.getResource(ROOT_FOLDER + "/").getPath());
+                    ? Path.of(System.getProperty("java.io.tmpdir"), this.rootFolder)
+                    : Path.of(loader.getResource(this.rootFolder + "/").getPath());
 
             // If we have specified Temporary folder, we make sure that folder exists
             if (folderLocationType == RootFolderLocation.TEMPORARY_FOLDER) Files.createDirectories(rootFolder);
@@ -98,7 +113,7 @@ public class FileUtilsBuilder {
             // If we have specified to copy resources from the classpath, we do it as lonng as the folder exists in the
             // classpath:
             if (copyFromClasspath) {
-                URL classpathFolder = loader.getResource(ROOT_FOLDER + "/");
+                URL classpathFolder = loader.getResource(rootFolder + "/");
                 if (classpathFolder != null) {
                     Path fromPath = Path.of(classpathFolder.toURI());
                     if (fromPath != null) copy(fromPath, rootFolder);
