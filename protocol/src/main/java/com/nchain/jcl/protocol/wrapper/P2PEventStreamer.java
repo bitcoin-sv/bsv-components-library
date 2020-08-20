@@ -123,36 +123,41 @@ public class P2PEventStreamer {
         private Predicate<MsgSentEvent> getFilterForMsgSent(String msgType) {
             return e -> e.getBtcMsg().getHeader().getCommand().equalsIgnoreCase(msgType);
         }
-        public final EventStreamer<MsgReceivedEvent> ALL        = new EventStreamer<>(MsgReceivedEvent.class, null);
-        public final EventStreamer<MsgReceivedEvent> ADDR       = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(AddrMsg.MESSAGE_TYPE));
-        public final EventStreamer<MsgReceivedEvent> BLOCK      = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(BlockMsg.MESSAGE_TYPE));
-        public final EventStreamer<MsgReceivedEvent> FEE        = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(FeeFilterMsg.MESSAGE_TYPE));
-        public final EventStreamer<MsgReceivedEvent> GETADDR    = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(GetAddrMsg.MESSAGE_TYPE));
-        public final EventStreamer<MsgReceivedEvent> GETDATA    = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(GetdataMsg.MESSAGE_TYPE));
-        public final EventStreamer<MsgReceivedEvent> INV        = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(InvMessage.MESSAGE_TYPE));
-        public final EventStreamer<MsgReceivedEvent> NOTFOUND   = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(NotFoundMsg.MESSAGE_TYPE));
-        public final EventStreamer<MsgReceivedEvent> PING       = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(PingMsg.MESSAGE_TYPE));
-        public final EventStreamer<MsgReceivedEvent> PONG       = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(PongMsg.MESSAGE_TYPE));
-        public final EventStreamer<MsgReceivedEvent> REJECT     = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(RejectMsg.MESSAGE_TYPE));
-        public final EventStreamer<MsgReceivedEvent> TX         = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(TransactionMsg.MESSAGE_TYPE));
-        public final EventStreamer<MsgReceivedEvent> VERSION    = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(VersionMsg.MESSAGE_TYPE));
-        public final EventStreamer<MsgReceivedEvent> VERSIONACK = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(VersionAckMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgReceivedEvent> ALL            = new EventStreamer<>(MsgReceivedEvent.class, null);
+        public final EventStreamer<MsgReceivedEvent> ADDR           = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(AddrMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgReceivedEvent> BLOCK          = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(BlockMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgReceivedEvent> FEE            = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(FeeFilterMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgReceivedEvent> GETADDR        = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(GetAddrMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgReceivedEvent> GETDATA        = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(GetdataMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgReceivedEvent> INV            = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(InvMessage.MESSAGE_TYPE));
+        public final EventStreamer<MsgReceivedEvent> NOTFOUND       = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(NotFoundMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgReceivedEvent> PING           = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(PingMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgReceivedEvent> PONG           = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(PongMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgReceivedEvent> REJECT         = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(RejectMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgReceivedEvent> TX             = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(TransactionMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgReceivedEvent> VERSION        = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(VersionMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgReceivedEvent> VERSIONACK     = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(VersionAckMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgReceivedEvent> GETHEADERS     = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(GetHeadersMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgReceivedEvent> SENDHEADERS    = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(SendHeadersMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgReceivedEvent> MEMPOOL        = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(MemPoolMsg.MESSAGE_TYPE));
 
-        public final EventStreamer<MsgSentEvent> ALL_SENT        = new EventStreamer<>(MsgSentEvent.class, null);
-        public final EventStreamer<MsgSentEvent> ADDR_SENT       = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(AddrMsg.MESSAGE_TYPE));
-        public final EventStreamer<MsgSentEvent> BLOCK_SENT      = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(BlockMsg.MESSAGE_TYPE));
-        public final EventStreamer<MsgSentEvent> FEE_SENT        = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(FeeFilterMsg.MESSAGE_TYPE));
-        public final EventStreamer<MsgSentEvent> GETADDR_SENT    = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(GetAddrMsg.MESSAGE_TYPE));
-        public final EventStreamer<MsgSentEvent> GETDATA_SENT    = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(GetdataMsg.MESSAGE_TYPE));
-        public final EventStreamer<MsgSentEvent> INV_SENT        = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(InvMessage.MESSAGE_TYPE));
-        public final EventStreamer<MsgSentEvent> NOTFOUND_SENT   = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(NotFoundMsg.MESSAGE_TYPE));
-        public final EventStreamer<MsgSentEvent> PING_SENT       = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(PingMsg.MESSAGE_TYPE));
-        public final EventStreamer<MsgSentEvent> PONG_SENT       = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(PongMsg.MESSAGE_TYPE));
-        public final EventStreamer<MsgSentEvent> REJECT_SENT     = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(RejectMsg.MESSAGE_TYPE));
-        public final EventStreamer<MsgSentEvent> TX_SENT         = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(TransactionMsg.MESSAGE_TYPE));
-        public final EventStreamer<MsgSentEvent> VERSION_SENT    = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(VersionMsg.MESSAGE_TYPE));
-        public final EventStreamer<MsgSentEvent> VERSIONACK_SENT = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(VersionAckMsg.MESSAGE_TYPE));
-
+        public final EventStreamer<MsgSentEvent> ALL_SENT           = new EventStreamer<>(MsgSentEvent.class, null);
+        public final EventStreamer<MsgSentEvent> ADDR_SENT          = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(AddrMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgSentEvent> BLOCK_SENT         = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(BlockMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgSentEvent> FEE_SENT           = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(FeeFilterMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgSentEvent> GETADDR_SENT       = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(GetAddrMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgSentEvent> GETDATA_SENT       = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(GetdataMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgSentEvent> INV_SENT           = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(InvMessage.MESSAGE_TYPE));
+        public final EventStreamer<MsgSentEvent> NOTFOUND_SENT      = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(NotFoundMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgSentEvent> PING_SENT          = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(PingMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgSentEvent> PONG_SENT          = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(PongMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgSentEvent> REJECT_SENT        = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(RejectMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgSentEvent> TX_SENT            = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(TransactionMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgSentEvent> VERSION_SENT       = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(VersionMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgSentEvent> VERSIONACK_SENT    = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(VersionAckMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgSentEvent> GETHEADERS_SENT    = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(GetHeadersMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgSentEvent> SENDHEADERS_SENT   = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(SendHeadersMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgSentEvent> MEMPOOL_SENT       = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(MemPoolMsg.MESSAGE_TYPE));
     }
 
     /**
