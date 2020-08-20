@@ -33,4 +33,5 @@ public class BlockDownloadedEvent extends Event {
     private PeerAddress peerAddress;
     private BlockHeaderMsg blockHeader;
     private Duration downloadingTime;
+    private Long blockSize;
 }

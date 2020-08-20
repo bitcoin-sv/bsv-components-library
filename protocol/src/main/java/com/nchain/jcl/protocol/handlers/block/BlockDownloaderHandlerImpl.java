@@ -231,6 +231,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
             super.eventBus.publish(BlockDownloadedEvent.builder()
                     .peerAddress(peerInfo.getPeerAddress())
                     .blockHeader(blockHeader)
+                    .blockSize(peerInfo.getCurrentBlockInfo().bytesTotal)
                     .downloadingTime(Duration.between(peerInfo.getCurrentBlockInfo().getStartTimestamp(), Instant.now()))
                     .build());
 
