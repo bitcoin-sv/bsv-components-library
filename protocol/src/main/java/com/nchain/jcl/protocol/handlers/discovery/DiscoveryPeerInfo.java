@@ -6,6 +6,7 @@ import com.nchain.jcl.tools.files.CSVSerializable;
 import com.nchain.jcl.tools.util.DateTimeUtils;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 import java.util.StringTokenizer;
@@ -18,6 +19,7 @@ import java.util.StringTokenizer;
  *
  * Information about each Peer/Address needed by the Discovery ProtocolHandler
  */
+@Slf4j
 @Getter
 @NoArgsConstructor
 public class DiscoveryPeerInfo implements CSVSerializable {
@@ -77,6 +79,7 @@ public class DiscoveryPeerInfo implements CSVSerializable {
             this.peerAddress = PeerAddress.fromIp(tokens.nextToken());
             this.timestamp = Long.parseLong(tokens.nextToken());
         } catch (Exception e) {
+            log.error("Error Parsing line for CSV: " + line);
             throw new RuntimeException(e);
         }
     }

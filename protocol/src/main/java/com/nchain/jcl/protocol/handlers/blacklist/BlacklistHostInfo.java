@@ -6,6 +6,7 @@ import com.nchain.jcl.tools.util.DateTimeUtils;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetAddress;
 import java.time.Duration;
@@ -23,6 +24,7 @@ import java.util.StringTokenizer;
  * (Not Peer, but a HOST. Only the IP address). If a Host is blacklisted, ALL the Peers using that IP (but with
  * different port) will be disconnected.
  */
+@Slf4j
 @NoArgsConstructor
 @Getter
 @Setter
@@ -117,6 +119,7 @@ public class BlacklistHostInfo implements CSVSerializable  {
             this.blacklistTimestamp = LocalDateTime.parse(tokens.nextToken(), DateTimeFormatter.ISO_DATE_TIME);
             this.blacklistReason = PeersBlacklistedEvent.BlacklistReason.valueOf(tokens.nextToken());
         } catch (Exception e) {
+            log.error("Error Parsing line for CSV: " + line);
             throw new RuntimeException(e);
         }
     }
