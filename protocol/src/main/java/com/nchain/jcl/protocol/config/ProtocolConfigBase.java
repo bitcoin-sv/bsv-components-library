@@ -172,4 +172,7 @@ public class ProtocolConfigBase implements ProtocolConfig {
         handlersConfig.put(BlacklistHandler.HANDLER_ID, this.blacklistConfig);
         handlersConfig.put(BlockDownloaderHandler.HANDLER_ID, this.blockDownloaderConfig);
     }
+
+    @Override
+    public String toString() { return getId();}
 }

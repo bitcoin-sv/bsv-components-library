@@ -110,10 +110,10 @@ public class FileUtilsBuilder {
             // If we have specified Temporary folder, we make sure that folder exists
             if (folderLocationType == RootFolderLocation.TEMPORARY_FOLDER) Files.createDirectories(rootFolder);
 
-            // If we have specified to copy resources from the classpath, we do it as lonng as the folder exists in the
+            // If we have specified to copy resources from the classpath, we do it as long as the folder exists in the
             // classpath:
             if (copyFromClasspath) {
-                URL classpathFolder = loader.getResource(rootFolder + "/");
+                URL classpathFolder = loader.getResource(this.rootFolder + "/");
                 if (classpathFolder != null) {
                     Path fromPath = Path.of(classpathFolder.toURI());
                     if (fromPath != null) copy(fromPath, rootFolder);

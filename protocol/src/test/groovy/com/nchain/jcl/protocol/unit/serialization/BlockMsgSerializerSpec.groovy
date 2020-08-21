@@ -59,8 +59,8 @@ class BlockMsgSerializerSpec extends Specification {
             blockMsg = serializer.deserialize(context, byteReader)
         then:
             blockMsg.blockHeader.version.longValue() == Long.valueOf(1).longValue()
-            blockMsg.blockHeader.prevBlockHash.getHashBytes() == Sha256Wrapper.wrapReversed(PREV_BLOCK_HASH).bytes
-            blockMsg.blockHeader.merkleRoot.getHashBytes() == Sha256Wrapper.wrapReversed(MERKLE_ROOT).bytes
+            blockMsg.blockHeader.prevBlockHash.getHashBytes() == Sha256Wrapper.wrap(PREV_BLOCK_HASH).bytes
+            blockMsg.blockHeader.merkleRoot.getHashBytes() == Sha256Wrapper.wrap(MERKLE_ROOT).bytes
             blockMsg.blockHeader.creationTimestamp == Long.valueOf(1288886764).longValue()
             blockMsg.blockHeader.difficultyTarget == Long.valueOf(486622232).longValue()
             blockMsg.blockHeader.nonce == Long.valueOf(90297088).longValue()
@@ -93,8 +93,8 @@ class BlockMsgSerializerSpec extends Specification {
             blockMsgBody.getHeader().getMagic() == config.getBasicConfig().getMagicPackage()
             blockMsgBody.getHeader().getCommand().toUpperCase() == BlockMsg.MESSAGE_TYPE.toUpperCase()
             blockMsgBody.getBody().blockHeader.version.longValue() == Long.valueOf(1).longValue()
-            blockMsgBody.getBody().blockHeader.prevBlockHash.getHashBytes() == Sha256Wrapper.wrapReversed(PREV_BLOCK_HASH).bytes
-            blockMsgBody.getBody().blockHeader.merkleRoot.getHashBytes() == Sha256Wrapper.wrapReversed(MERKLE_ROOT).bytes
+            blockMsgBody.getBody().blockHeader.prevBlockHash.getHashBytes() == Sha256Wrapper.wrap(PREV_BLOCK_HASH).bytes
+            blockMsgBody.getBody().blockHeader.merkleRoot.getHashBytes() == Sha256Wrapper.wrap(MERKLE_ROOT).bytes
             blockMsgBody.getBody().blockHeader.creationTimestamp == Long.valueOf(1288886764).longValue()
             blockMsgBody.getBody().blockHeader.difficultyTarget == Long.valueOf(486622232).longValue()
             blockMsgBody.getBody().blockHeader.nonce == Long.valueOf(90297088).longValue()
