@@ -58,8 +58,8 @@ public class BlockHeaderMsgSerializer implements MessageSerializer<BlockHeaderMs
         // These values are taken from the Block Header...
 
         long version = headerReader.readUint32();
-        HashMsg prevBlockHash = HashMsgSerializer.getInstance().deserialize(context, headerReader);
-        HashMsg merkleRoot = HashMsgSerializer.getInstance().deserialize(context, headerReader);
+        HashMsg prevBlockHash = HashMsg.builder().hash(getBytesHash(HashMsgSerializer.getInstance().deserialize(context, headerReader))).build();
+        HashMsg merkleRoot = HashMsg.builder().hash(getBytesHash(HashMsgSerializer.getInstance().deserialize(context, headerReader))).build();
         long creationTime = headerReader.readUint32();
         long difficultyTarget = headerReader.readUint32();
         long nonce = headerReader.readUint32();
