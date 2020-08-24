@@ -40,12 +40,16 @@ public class FileUtilsImpl implements FileUtils {
         try {
             List<String> fileContent = new ArrayList<>();
             if (Files.exists(pathFile)) fileContent = Files.lines(pathFile).collect(Collectors.toList());
+            int countLines = 0;
             for (String line : fileContent)
                 try {
+                    countLines++;
                     T instance = instanceFactory.get();
                     instance.fromCSVLine(line);
                     result.add(instance);
-                } catch (Exception e) {e.printStackTrace();}
+                } catch (Exception e) {
+                    log.error("Error Parsing a SV Line. " + countLines + " lines parsed before this error", e.getMessage());
+                }
         } catch (IOException e) {
             throw new RuntimeException(e);
         } catch (Exception e) {

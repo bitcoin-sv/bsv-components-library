@@ -290,7 +290,6 @@ public class P2PBuilder {
                     result.refreshHandlerState(handlerId, handlerStateFrequency);
             }
 
-
             // We return the result:
         } catch (Exception e) {
             e.printStackTrace();

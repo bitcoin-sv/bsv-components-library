@@ -4,6 +4,7 @@ import com.nchain.jcl.network.PeerAddress;
 import com.nchain.jcl.network.events.*;
 import com.nchain.jcl.protocol.events.*;
 import com.nchain.jcl.protocol.messages.common.BitcoinMsg;
+import com.nchain.jcl.protocol.streams.DeserializerStream;
 import com.nchain.jcl.protocol.streams.MessageStream;
 import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.handlers.HandlerImpl;
@@ -81,9 +82,15 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
         PeerAddress peerAddress = event.getStream().getPeerAddress();
         MessageStream msgStream = new MessageStream(ThreadUtils.PEER_STREAM_EXECUTOR, super.runtimeConfig, config.getBasicConfig(), event.getStream());
         msgStream.init();
+        // We listen to the Deserializer Events
         msgStream.input().onData(e -> onStreamMsgReceived(peerAddress, e.getData()));
         msgStream.input().onClose( e -> onStreamClosed(peerAddress));
         msgStream.input().onError(e -> onStreamError(peerAddress, e));
+        // if a Pre-Serializer has been set, we inject it into this Stream:
+        if (config.getPreSerializer() != null)
+            ((DeserializerStream) msgStream.input()).setPreSerializer(config.getPreSerializer());
+
+        // We use this Stream to build a MessagePeerInfo and add it to our pool...
         peersInfo.put(event.getStream().getPeerAddress(), new MessagePeerInfo(msgStream));
         // We publish the message to the Bus:
         eventBus.publish(new PeerMsgReadyEvent(msgStream));

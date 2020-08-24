@@ -5,8 +5,10 @@ import com.nchain.jcl.network.streams.PeerInputStream;
 import com.nchain.jcl.network.streams.PeerStreamInfo;
 import com.nchain.jcl.network.streams.nio.NIOInputStreamSource;
 import com.nchain.jcl.protocol.config.ProtocolBasicConfig;
+import com.nchain.jcl.protocol.handlers.message.MessagePreSerializer;
 import com.nchain.jcl.protocol.messages.PartialBlockHeaderMsg;
 import com.nchain.jcl.protocol.messages.PartialBlockTXsMsg;
+import com.nchain.jcl.tools.bytes.ByteArrayWriter;
 import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.protocol.messages.HeaderMsg;
 import com.nchain.jcl.protocol.messages.VersionMsg;
@@ -98,6 +100,9 @@ public class DeserializerStream extends InputStreamImpl<ByteArrayReader, Bitcoin
     @Setter
     private boolean realTimeProcessingEnabled = false;
 
+    // If set, this object will be triggered BEFORE the Deserialization process...
+    @Setter
+    private MessagePreSerializer preSerializer;
 
     /** Constructor */
     public DeserializerStream(ExecutorService executor, InputStream<ByteArrayReader> source,
@@ -255,6 +260,21 @@ public class DeserializerStream extends InputStreamImpl<ByteArrayReader, Bitcoin
                 });
                 largeMsgDeserializer.deserialize(desContext, byteReader);
             } else {
+                // This a normal (not-realTime) Deserialization. Art this moment, we also triggered a BytesReceivedEvent,
+                // if enabled...
+                if (preSerializer != null) {
+                    // We get the bytes from the header:
+                    ByteArrayWriter writer = new ByteArrayWriter();
+                    HeaderMsgSerializer.getInstance().serialize(null, headerMsg, writer);
+                    byte[] headerBytes = writer.reader().getFullContentAndClose();
+                    // We get the body Bytes:
+                    byte[] bodyBytes = byteReader.get((int)headerMsg.getLength());
+                    // we put them together and we launch the Pre-Serializer...
+                    byte[] completeMsg = new byte[headerBytes.length + bodyBytes.length];
+                    System.arraycopy(headerBytes, 0, completeMsg, 0, headerBytes.length);
+                    System.arraycopy(bodyBytes, 0, completeMsg, headerBytes.length, bodyBytes.length);
+                    preSerializer.processBeforeDeserialize(getPeerAddress(), headerMsg, completeMsg);
+                }
                 // The whole message is deserialized. We notify it..
                 MessageSerializer deserializer = MsgSerializersFactory.getSerializer(headerMsg.getCommand());
                 Message bodyMsg = deserializer.deserialize(desContext, byteReader);
