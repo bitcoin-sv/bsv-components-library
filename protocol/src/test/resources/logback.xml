@@ -23,12 +23,12 @@
 
 
     <logger name="com.nchain.jcl.protocol.handlers.block" additivity="false">
-        <level value="ERROR" />
+        <level value="TRACE" />
         <appender-ref ref="STDOUT" />
     </logger>
 
-    <logger name="com.nchain.jcl.protocol.streams" additivity="false">
-        <level value="ERROR" />
+    <logger name="com.nchain.jcl.protocol.serialization" additivity="false">
+        <level value="TRACE" />
         <appender-ref ref="STDOUT" />
     </logger>
 

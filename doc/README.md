@@ -2,10 +2,72 @@
 
 # Introduction
 
-*JCL* is a light Java Library that provides "Connection" and "Streaming" functionalities to the Blockchain. 
-An application can use *JCL* to make a Connection to the blockchain and receive notifications (streaming) of any 
-Event that occurs in the network and it might be interesting. All the *Bitcoin Protocol* details are hidden and dealt 
-with by *JCL* transparentely
+*JCL* is a Java Library or Suite of libraries that provides different functionalities needed by Blockchain projects.
+
+*JCL* is currently composed of the following modules:
+
+ * *JCL-Base*: Base functionality. Provides definition for domain classes (*Transaction*, *Block*, etc).
+
+ > NOTE: *JCL-Base* still under Construction.
+ 
+ * *JCL-Net*: Provides Connections and Streaming capabilities, allowing an App to connect to the blockchain and "listen" to Events coming from it, and also too "send/broadcast" messages, and other operations.
+
+## High-level view
+
+All the libraries within *JCL* make up a hierarhcy dependency tree, as shown below:
+
+![high level architecture](jcl-highLevel.png) 
+
+> NOTE: **Chart Pending to be extended with more JCL Modules**
+
+
+In the following chapter, instruction will be provided about how to import/use these libraries in other Java/Kotlin projects.
+
+# JCL-Base
+
+*JCL-Base* is the basic Module in *JCL*. It provides very basic functionality, and it's meant to be a *base* module that can be further extended by importing another modules, like *JCL-Net*
+
+**Use *JCL-Base* if you need to:**
+
+ * Use/manipulate information about *Transactions*, *Blocks* etc.
+ * Serialize information about Transactions or blocks, so it can be firther stored.
+
+## How to import *JCL-Base**
+
+*JCL-Base* is stored as a *JAR* file in *Nexus*, which is a *Maven* artifact repository installed in a on-premises *nChain* server.
+
+Bfore moving forward you must request credentials for that Server.
+
+> Reach out for *Peter foster* to request credentials for the Nexus Server.
+
+### in a *Gradle* project
+
+Edit your *build.grtadle* file and include the definition of the Repository where *JCL-Base* is defined:
+
+```
+repositories {
+    ...
+    maven {
+        url "http://161.35.175.46:8081/repository/maven-releases/"
+        credentials {
+            username = "<NexusUser>"
+            password = "<NexusPassword>"
+        }
+    }
+}
+```
+
+then, add *JCL-Base* as a dependency:
+
+```
+
+```
+
+### in a *Maven* project
+
+## Hot to use *JCL-Base**
+
+# JCL-Net
 
 
 # High-Level View

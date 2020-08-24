@@ -349,7 +349,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                             }
 
                             case PROCESSING:{
-                                logger.trace("> State: ", peerInfo.getPeerAddress(), peerInfo.toString());
+                                //logger.trace("> State: ", peerInfo.getPeerAddress(), peerInfo.toString());
                                 String msgFailure = null;
                                 if (peerInfo.isIdleTimeoutBroken(config.getMaxIdleTimeout())) {
                                     msgFailure = "Idle Time expired";

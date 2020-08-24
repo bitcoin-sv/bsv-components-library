@@ -11,6 +11,8 @@ import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.tools.bytes.HEX;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -30,7 +32,7 @@ import java.util.concurrent.ExecutorService;
 public class BigBlockDeserializer extends LargeMessageDeserializerImpl {
 
     // The TX are Deserialized and notified in batches:
-    private static final int TX_BATCH = 1000;
+    private static final int TX_BATCH = 10000;
 
     // Once the Block Header is deserialzed, we keep a reference here, since we include it as well when we
     // deserialze each set of TXs:
@@ -56,17 +58,29 @@ public class BigBlockDeserializer extends LargeMessageDeserializerImpl {
             long numTxs = blockHeader.getTransactionCount().getValue();
             List<TransactionMsg> txList = new ArrayList<>();
 
+            // We keep track of some statistics:
+            int totalTxsSize = 0;
+            Instant deserializingTime = Instant.now();
+
             for (int i = 0; i < numTxs; i++) {
-                txList.add(TransactionMsgSerializer.getInstance().deserialize(context, byteReader));
+                TransactionMsg txMsg = TransactionMsgSerializer.getInstance().deserialize(context, byteReader);
+                txList.add(txMsg);
+                totalTxsSize += txMsg.getLengthInBytes();
                 if (i > 0 && i % TX_BATCH == 0) {
                     // We notify about a new Batch of TX Deserialized...
-                    log.trace("Batch of " + TX_BATCH + " Txs deserialized.");
+                    log.trace("Batch of " + TX_BATCH + " Txs deserialized :: "
+                            + totalTxsSize + " bytes, "
+                            + Duration.between(deserializingTime, Instant.now()).toMillis() + " milissecs...");
                     PartialBlockTXsMsg partialBlockTXs = PartialBlockTXsMsg.builder()
                             .blockHeader(blockHeader)
                             .txs(txList)
                             .build();
                     txList = new ArrayList<>();
                     notifyDeserialization(partialBlockTXs);
+
+                    // We reset the counters for logging...
+                    totalTxsSize = 0;
+                    deserializingTime = Instant.now();
                 }
             } // for...
             // In case we still have some TXs without being notified, we do it now...
