@@ -8,7 +8,7 @@ import com.nchain.jcl.protocol.config.ProtocolBasicConfig;
 import com.nchain.jcl.protocol.handlers.message.MessagePreSerializer;
 import com.nchain.jcl.protocol.messages.PartialBlockHeaderMsg;
 import com.nchain.jcl.protocol.messages.PartialBlockTXsMsg;
-import com.nchain.jcl.tools.bytes.ByteArrayWriter;
+import com.nchain.jcl.tools.bytes.*;
 import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.protocol.messages.HeaderMsg;
 import com.nchain.jcl.protocol.messages.VersionMsg;
@@ -19,9 +19,6 @@ import com.nchain.jcl.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.protocol.serialization.common.MessageSerializer;
 import com.nchain.jcl.protocol.serialization.common.MsgSerializersFactory;
 import com.nchain.jcl.protocol.serialization.largeMsgs.LargeMessageDeserializer;
-import com.nchain.jcl.tools.bytes.ByteArrayBuilder;
-import com.nchain.jcl.tools.bytes.ByteArrayReader;
-import com.nchain.jcl.tools.bytes.ByteArrayReaderOptimized;
 import com.nchain.jcl.tools.log.LoggerUtil;
 import com.nchain.jcl.tools.streams.InputStream;
 import com.nchain.jcl.tools.streams.InputStreamImpl;
@@ -344,16 +341,20 @@ public class DeserializerStream extends InputStreamImpl<ByteArrayReader, Bitcoin
             //log(isThisADedicatedThread, "Reading Header : " + HEX.encode(byteReader.getFullContent()));
             HeaderMsg headerMsg = HeaderMsgSerializer.getInstance().deserialize(desContext, byteReader);
 
-               // Now we need to figure out if this incoming Message is one we need to Deserialize, or just Ignore, and that
+            // Now we need to figure out if this incoming Message is one we need to Deserialize, or just Ignore, and that
             // depends on whether we have a Serializer Implementation for it...
             boolean doWeNeedRealTimeProcessing = headerMsg.getLength() >= runtimeConfig.getMsgSizeInBytesForRealTimeProcessing();
             boolean ignoreMsg = (doWeNeedRealTimeProcessing)
                     ? MsgSerializersFactory.getLargeMsgDeserializer(headerMsg.getCommand()) == null
                     : MsgSerializersFactory.getSerializer(headerMsg.getCommand()) == null;
 
-            // The Header has been processed. After the HEAD a BODY must ALWAYS come, so there is still work to
-            // do...
+            // The Header has been processed. After the HEAD a BODY must ALWAYS come, so there is still work todo...
             boolean stillWorkToDoInBuffer = true;
+
+            // Depending on the Size of the incoming BODY, we upgrade the Buffer or not...
+            if (doWeNeedRealTimeProcessing)
+                    buffer.updateMemoryConfig(ByteArrayMemoryConfiguration.builder().byteArraySize(ByteArrayMemoryConfiguration.ARRAY_SIZE_FOR_DOWNLOADING).build());
+            else    buffer.updateMemoryConfig(ByteArrayMemoryConfiguration.builder().byteArraySize(ByteArrayMemoryConfiguration.ARRAY_SIZE_NORMAL).build());
 
             // We update the State:
             result.currentHeaderMsg(headerMsg)

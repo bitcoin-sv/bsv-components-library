@@ -23,7 +23,7 @@ public class ByteArrayMemoryConfiguration {
     // The size of individual Bytes Array plays an important role in performance, and it depends on the type of
     // Operation (downloading bytes or deserializing them)
     public static final int ARRAY_SIZE_NORMAL = 10_000; // 10KB
-    public static final int ARRAY_SIZE_FOR_DOWNLOADING = 100_000; // 100KB
+    public static final int ARRAY_SIZE_FOR_DOWNLOADING = 10_000_000; // 100KB
     public static final int ARRAY_SIZE_FOR_SERIALIZING = 10_000; // 10KB
 
     // Capacity of each individual ByteArray created. Only applies to implementation that store the info in
