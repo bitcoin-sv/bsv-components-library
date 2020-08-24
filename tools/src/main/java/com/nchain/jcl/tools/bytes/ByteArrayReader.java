@@ -25,6 +25,8 @@ public class ByteArrayReader {
     protected ByteArrayBuilder builder;
     protected long bytesReadCount = 0; // Number of bytes read....
     protected boolean realTimeProcessingEnabled;
+    // Total time this Byte read has been waiting for bytes to arrive...
+    protected Duration waitingTime = Duration.ZERO;
     protected Duration thresholdWaiting = THRESHOLD_WAITING;
 
 
@@ -114,6 +116,7 @@ public class ByteArrayReader {
             try {
                 //log.trace("waiting for " + (millisecsToWait) + " millisecs to get " + length + " bytes, builder Size: " + builder.size());
                 Thread.sleep(WAITING_INTERVAL.toMillis());
+                waitingTime = waitingTime.plus(WAITING_INTERVAL);
             } catch (InterruptedException ex) {}
         }
         //log.trace("WAit finish, bufferSize: " + builder.size());
