@@ -28,9 +28,9 @@ class BlockDownloadTest extends Specification {
             "000000000000000002f5268d72f9c79f29bef494e350e58f624bcf28700a1846"  // 369MB
     )
     private static final List<String> BLOCKS_BSV_STN = Arrays.asList(
-           // "00000000041a389a73cfdc312f06eb1ea187b86a227b5cca5002d30ccb55e6e9", // 450MB
-           // "000000000c3c309a1597f0626abaa4fa32ca0085851eceeaf56c3288be800752", // 380MB
-           // "000000001ef6a2b165313202ad6938fc90ae942ad09575b6929bdf7558db78ea", // 325MB
+            "00000000041a389a73cfdc312f06eb1ea187b86a227b5cca5002d30ccb55e6e9", // 450MB
+            "000000000c3c309a1597f0626abaa4fa32ca0085851eceeaf56c3288be800752", // 380MB
+            "000000001ef6a2b165313202ad6938fc90ae942ad09575b6929bdf7558db78ea", // 325MB
             "0000000010366d336e351d020a838c4992878ba8f0bad3c62d1810319ff6da24"  // 192MB
     )
     private static final List<String> BLOCKS_BTC_MAIN = Arrays.asList(
@@ -47,7 +47,7 @@ class BlockDownloadTest extends Specification {
      *
      */
     // We disable this test, since it's very time-consuming
-
+    @Ignore
     def "Testing Block Downloading"() {
         given:
             // The longest Timeout we'll wait for to run the test:
@@ -126,7 +126,7 @@ class BlockDownloadTest extends Specification {
                 timeoutBroken = Duration.between(startTime, Instant.now()).compareTo(TIMEOUT) > 0
             }
             p2p.stop()
-            if (timeoutBroken) println("Timeout BROKEN!")
+            if (timeoutBroken) println("Test Timeout BROKEN!")
         then:
             allBlocksDone
 

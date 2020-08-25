@@ -1,7 +1,9 @@
 package com.nchain.jcl.protocol.handlers.block;
 
 import com.nchain.jcl.network.PeerAddress;
+import com.nchain.jcl.protocol.messages.BlockHeaderMsg;
 import com.nchain.jcl.protocol.messages.BlockMsg;
+import com.nchain.jcl.protocol.messages.HeaderMsg;
 import com.nchain.jcl.protocol.streams.DeserializerStream;
 import com.nchain.jcl.protocol.streams.DeserializerStreamState;
 import lombok.Getter;
@@ -150,9 +152,13 @@ public class BlockPeerInfo {
         // We only update the state if this Peer has actually started the downloading process...
         if (currentBlockInfo != null) {
             DeserializerStreamState streamState = stream.getState();
+            HeaderMsg currentHeaderMsg = streamState.getCurrentHeaderMsg();
             // We only do the update if the current Msg being downloaded by this Peer is a BLOCK
-            if (streamState.getCurrentHeaderMsg() != null
-                    && streamState.getCurrentHeaderMsg().getCommand().equalsIgnoreCase(BlockMsg.MESSAGE_TYPE)) {
+            if (currentHeaderMsg != null && currentHeaderMsg.getCommand().equalsIgnoreCase(BlockMsg.MESSAGE_TYPE)) {
+
+                // We set the Total Bytes, if its not been set yet:
+                if (currentBlockInfo.bytesTotal == null)
+                    currentBlockInfo.bytesTotal = currentHeaderMsg.getLength();
 
                 // If the Deserializer stream is in CORRUPTED State (after throwing some error), we do nothing...
                 if (!currentBlockInfo.isCorrupted()) {
@@ -162,13 +168,12 @@ public class BlockPeerInfo {
                         return;
                     }
 
+                    // We update the bytes that have been downloaded, adn the total Bytes:
                     Long bytesDownloaded = streamState.getCurrentMsgBytesReceived();
-                    Long bytesTotal = streamState.getCurrentHeaderMsg() != null ? streamState.getCurrentHeaderMsg().getLength() : null;
 
                     // If these numbers are different from the previous already stored, then that means that this Peer is actually
                     // active, so we update the "lastBytesReceivedTimestamp" field..
-                    if ((bytesDownloaded != this.currentBlockInfo.getBytesDownloaded()
-                            || bytesTotal != this.currentBlockInfo.getBytesTotal())) {
+                    if (bytesDownloaded != this.currentBlockInfo.getBytesDownloaded()) {
                         this.currentBlockInfo.lastBytesReceivedTimestamp = Instant.now();
                     }
 
@@ -177,10 +182,8 @@ public class BlockPeerInfo {
                     if (totalSecs != 0)
                         this.downloadSpeed = (int) (bytesDownloaded / totalSecs);
 
-                    this.currentBlockInfo.bytesTotal = bytesTotal;
                     this.currentBlockInfo.bytesDownloaded = bytesDownloaded;
                     this.currentBlockInfo.realTimeProcessing = streamState.getTreadState().dedicatedThreadRunning();
-
                 }
             }
         }
