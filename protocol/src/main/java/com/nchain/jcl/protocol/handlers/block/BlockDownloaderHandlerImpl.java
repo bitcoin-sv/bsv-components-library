@@ -196,7 +196,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
 
             // Now we check if we've reached the total of TXs yet...
             if (numCurrentTxs.equals(blockHeader.getTransactionCount().getValue()))
-                processDownloadSuccess(peerInfo, blockHeader);
+                processDownloadSuccess(peerInfo, blockHeader, peerInfo.getCurrentBlockInfo().bytesTotal);
         }
     }
 
@@ -215,10 +215,10 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         // We notify the tXs has been downloaded:
         super.eventBus.publish(new BlockTXsDownloadedEvent(peerInfo.getPeerAddress(), blockMesage.getBody().getBlockHeader(), blockMesage.getBody().getTransactionMsg()));
 
-        processDownloadSuccess(peerInfo, blockMesage.getBody().getBlockHeader());
+        processDownloadSuccess(peerInfo, blockMesage.getBody().getBlockHeader(), blockMesage.getLengthInbytes());
     }
 
-    private void processDownloadSuccess(BlockPeerInfo peerInfo, BlockHeaderMsg blockHeader) {
+    private void processDownloadSuccess(BlockPeerInfo peerInfo, BlockHeaderMsg blockHeader, long blockSize) {
         String blockHash = peerInfo.getCurrentBlockInfo().getHash();
 
         synchronized (peerInfo) {
@@ -231,7 +231,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
             super.eventBus.publish(BlockDownloadedEvent.builder()
                     .peerAddress(peerInfo.getPeerAddress())
                     .blockHeader(blockHeader)
-                    .blockSize(peerInfo.getCurrentBlockInfo().bytesTotal)
+                    .blockSize(blockSize)
                     .downloadingTime(Duration.between(peerInfo.getCurrentBlockInfo().getStartTimestamp(), Instant.now()))
                     .build());
 

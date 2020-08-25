@@ -49,6 +49,7 @@ public class BlockPeerInfo {
     @Getter
     public class BlockProgressInfo {
         protected String hash;
+        protected BlockHeaderMsg blockHeaderMsg;
         protected PeerAddress peerAddress; // a bit redundant, but it's ok
         protected boolean corrupted;
         protected Long bytesTotal;

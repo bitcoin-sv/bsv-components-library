@@ -28,10 +28,14 @@ class BlockDownloadTest extends Specification {
             "000000000000000002f5268d72f9c79f29bef494e350e58f624bcf28700a1846"  // 369MB
     )
     private static final List<String> BLOCKS_BSV_STN = Arrays.asList(
-            "00000000041a389a73cfdc312f06eb1ea187b86a227b5cca5002d30ccb55e6e9", // 450MB
-            "000000000c3c309a1597f0626abaa4fa32ca0085851eceeaf56c3288be800752", // 380MB
-            "000000001ef6a2b165313202ad6938fc90ae942ad09575b6929bdf7558db78ea", // 325MB
-            "0000000010366d336e351d020a838c4992878ba8f0bad3c62d1810319ff6da24"  // 192MB
+            //"00000000041a389a73cfdc312f06eb1ea187b86a227b5cca5002d30ccb55e6e9", // 450MB
+            //"000000000c3c309a1597f0626abaa4fa32ca0085851eceeaf56c3288be800752", // 380MB
+            //"000000001ef6a2b165313202ad6938fc90ae942ad09575b6929bdf7558db78ea", // 325MB
+            //"0000000010366d336e351d020a838c4992878ba8f0bad3c62d1810319ff6da24"  // 192MB
+            "000000000f07389d9ed5e0d31e1f93dce1dd4777ae5f204272ce4beb20c838f7", // 5MB
+            "00000000164f38c92e48c04cb7ce0bc9a26faf7651f95cb2cc349a4a4e100dae", // 224 bytes
+            "000000001bc7963fd54d4968a68a3b467564a4e05f357a9ff5e53fd422362d6e"  // 224 bytes
+
     )
     private static final List<String> BLOCKS_BTC_MAIN = Arrays.asList(
             "000000000000000000067e14c07b50025455a26cd745ed32247a64ab917e677e", //1MB
@@ -47,7 +51,7 @@ class BlockDownloadTest extends Specification {
      *
      */
     // We disable this test, since it's very time-consuming
-    @Ignore
+
     def "Testing Block Downloading"() {
         given:
             // The longest Timeout we'll wait for to run the test:
@@ -99,7 +103,7 @@ class BlockDownloadTest extends Specification {
             // Blocks fully downloaded and discarded
             p2p.EVENTS.BLOCKS.BLOCK_DOWNLOADED.forEach({ e ->
                 blocksDownloaded.add(e.blockHeader.hash.toString())
-                println(" > Block " + e.blockHeader.hash.toString() + " Downloaded.")
+                println(" > Block " + e.blockHeader.hash.toString() + "(" + e.getBlockSize() + " bytes) Downloaded.")
             })
             p2p.EVENTS.BLOCKS.BLOCK_DISCARDED.forEach({ e ->
                 blocksDiscarded.add(e.hash)
