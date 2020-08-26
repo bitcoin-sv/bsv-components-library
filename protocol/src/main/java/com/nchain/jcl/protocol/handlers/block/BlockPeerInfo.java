@@ -149,7 +149,7 @@ public class BlockPeerInfo {
      * It triggers and update of the BytesDownloaded and the BytesTotal values of this class, taking that
      * information from the underlying NIOInputStream that the DeserializerStream is connected to
      */
-    public void updateBytesProgress() {
+    public synchronized void updateBytesProgress() {
         // We only update the state if this Peer has actually started the downloading process...
         if (currentBlockInfo != null) {
             DeserializerStreamState streamState = stream.getState();
