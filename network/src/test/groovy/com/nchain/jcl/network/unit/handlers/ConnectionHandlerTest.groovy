@@ -35,7 +35,7 @@ class ConnectionHandlerTest extends Specification {
             // Basic Configuration is the same for both of them...
             RuntimeConfig runtimeConfig = new RuntimeConfigDefault()
             runtimeConfig = runtimeConfig.toBuilder()
-                    .fileUtils(new FileUtilsBuilder().useClassPath().build())
+                    .fileUtils(new FileUtilsBuilder().build())
                     .build()
             NetworkConfig networkConfig = new NetworkConfigDefault()
 
