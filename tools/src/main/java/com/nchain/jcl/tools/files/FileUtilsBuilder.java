@@ -2,7 +2,10 @@ package com.nchain.jcl.tools.files;
 
 
 import lombok.extern.slf4j.Slf4j;
+
+import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.*;
 
@@ -115,7 +118,7 @@ public class FileUtilsBuilder {
 
             // We build the work folder we are using:
             String rootFolderLocation = (folderLocationType == RootFolderLocation.TEMPORARY_FOLDER)
-                    ? System.getProperty("java.io.tmpdir") + "/" + this.rootFolder
+                    ? System.getProperty("java.io.tmpdir") + this.rootFolder
                     : classLoader.getResource(this.rootFolder + "/").getPath();
             log.debug("work dir: " + rootFolderLocation);
             Path rootFolder = Path.of(rootFolderLocation);
@@ -128,7 +131,8 @@ public class FileUtilsBuilder {
                 if (classpathFolder != null) {
                     log.debug("Copying resources from classpath folder into work folder...");
                     log.debug("classpath folder: " + classpathFolder.toURI().toString());
-                    Path fromPath = Path.of(classpathFolder.toURI());
+                    //Path fromPath = Path.of(classpathFolder.toURI());
+                    Path fromPath = new File(new URI(classpathFolder.toExternalForm())).toPath();
                     if (fromPath != null) copy(fromPath, rootFolder);
                     log.debug("Resources copied.");
                 }
