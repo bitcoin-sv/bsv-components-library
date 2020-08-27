@@ -107,7 +107,7 @@ public class FileUtilsBuilder {
 
             Path rootFolder = (folderLocationType == RootFolderLocation.TEMPORARY_FOLDER)
                     ? Path.of(System.getProperty("java.io.tmpdir"), this.rootFolder)
-                    : Path.of(classLoader.getResource(this.rootFolder + "/").getPath());
+                    : Path.of(classLoader.getResource(this.rootFolder + "/").toURI());
 
             log.debug("work folder: " + rootFolder);
             // If we have specified Temporary folder, we make sure that folder exists
