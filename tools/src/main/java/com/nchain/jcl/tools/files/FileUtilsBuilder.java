@@ -113,15 +113,15 @@ public class FileUtilsBuilder {
             if (folderLocationType == RootFolderLocation.CLASSPATH_FOLDER && classLoader.getResource(this.rootFolder + "/") == null)
                 throw new Exception("CLASSPATH Folder is specified, but no '/" + rootFolder + "' folder exists in the Classpath.");
 
-            Path rootFolder = (folderLocationType == RootFolderLocation.TEMPORARY_FOLDER)
-                    ? Path.of(System.getProperty("java.io.tmpdir"), this.rootFolder)
-                    : Path.of(classLoader.getResource(this.rootFolder + "/").toURI());
+            // We build the work folder we are using:
+            String rootFolderLocation = (folderLocationType == RootFolderLocation.TEMPORARY_FOLDER)
+                    ? System.getProperty("java.io.tmpdir") + "/" + this.rootFolder
+                    : classLoader.getResource(this.rootFolder + "/").getPath();
+            log.debug("work dir: " + rootFolderLocation);
+            Path rootFolder = Path.of(rootFolderLocation);
 
-            log.debug("work folder: " + rootFolder);
             // If we have specified Temporary folder, we make sure that folder exists
             if (folderLocationType == RootFolderLocation.TEMPORARY_FOLDER) Files.createDirectories(rootFolder);
-
-
 
             if (copyFromClasspath) {
                 URL classpathFolder = classLoader.getResource(this.rootFolder + "/");
