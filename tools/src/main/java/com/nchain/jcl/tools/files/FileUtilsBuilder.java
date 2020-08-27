@@ -110,7 +110,7 @@ public class FileUtilsBuilder {
 
             // If we have specified a Classpath Folder, then the class  fodler must be specified:
             if (folderLocationType == RootFolderLocation.CLASSPATH_FOLDER && classLoader == null)
-                    throw new Exception("If you specify a CLASSPATH Folder, then yu must use a no-null classLoader");
+                    throw new Exception("If you specify a CLASSPATH Folder, then yu must use a not-null classLoader");
 
             // If you have specified a ClassPath Folder, then the Folder must exist:
             if (folderLocationType == RootFolderLocation.CLASSPATH_FOLDER && classLoader.getResource(this.rootFolder + "/") == null)
@@ -119,7 +119,7 @@ public class FileUtilsBuilder {
             // We build the work folder we are using:
             String rootFolderLocation = (folderLocationType == RootFolderLocation.TEMPORARY_FOLDER)
                     ? System.getProperty("java.io.tmpdir") + this.rootFolder
-                    : classLoader.getResource(this.rootFolder + "/").getPath();
+                    : classLoader.getResource(this.rootFolder + "/").toExternalForm();
             log.debug("work dir: " + rootFolderLocation);
             Path rootFolder = Path.of(rootFolderLocation);
 
