@@ -4,8 +4,6 @@ import com.nchain.jcl.tools.config.RuntimeConfigImpl;
 import com.nchain.jcl.tools.bytes.ByteArrayMemoryConfiguration;
 import com.nchain.jcl.tools.files.FileUtils;
 import com.nchain.jcl.tools.files.FileUtilsBuilder;
-import lombok.Builder;
-import lombok.Getter;
 import lombok.Value;
 
 import java.time.Duration;
@@ -20,26 +18,37 @@ import java.time.Duration;
  */
 @Value
 public class RuntimeConfigDefault extends RuntimeConfigImpl {
-    @Getter
-    private ByteArrayMemoryConfiguration byteArrayMemoryConfig = ByteArrayMemoryConfiguration.builder()
+
+    private static final ByteArrayMemoryConfiguration BYTE_ARRAY_MEMORY_CONFIGURATION = ByteArrayMemoryConfiguration.builder()
             .byteArraySize(ByteArrayMemoryConfiguration.ARRAY_SIZE_NORMAL)
             .build();
-    @Getter
-    private int msgSizeInBytesForRealTimeProcessing = 10_000_000;
-    @Getter
-    private Duration maxWaitingTimeForBytesInRealTime = Duration.ofMillis(15000);
-    @Getter
-    private FileUtils fileUtils;
+
+    private static final int MSG_SIZE_IN_BYTES_FOR_REAL_TIME_PROCESSING = 10_000_000;
+
+    private static final Duration MAX_WAITING_TIME_FOR_BYTES_IN_REAL_TIME = Duration.ofMillis(15000);
 
     /** Constructor */
     public RuntimeConfigDefault() {
         super();
-        super.byteArrayMemoryConfig = byteArrayMemoryConfig;
-        super.msgSizeInBytesForRealTimeProcessing = msgSizeInBytesForRealTimeProcessing;
-        super.maxWaitingTimeForBytesInRealTime = maxWaitingTimeForBytesInRealTime;
+        init(null);
+    }
+
+    /** Constructor */
+    public RuntimeConfigDefault(ClassLoader classLoader) {
+        super();
+        init(classLoader);
+    }
+
+    private void init(ClassLoader classLoader) {
+        super.byteArrayMemoryConfig = BYTE_ARRAY_MEMORY_CONFIGURATION;
+        super.msgSizeInBytesForRealTimeProcessing = MSG_SIZE_IN_BYTES_FOR_REAL_TIME_PROCESSING;
+        super.maxWaitingTimeForBytesInRealTime = MAX_WAITING_TIME_FOR_BYTES_IN_REAL_TIME;
         try {
-            fileUtils = new FileUtilsBuilder().useTempFolder().copyFromClasspath().build();
-            super.fileUtils = fileUtils;
+            FileUtilsBuilder fileUtilsBuilder = new FileUtilsBuilder().useTempFolder();
+            if (classLoader != null) {
+                fileUtilsBuilder.copyFromClasspath();
+                fileUtils = fileUtilsBuilder.build(classLoader);
+            } else fileUtils = fileUtilsBuilder.build();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

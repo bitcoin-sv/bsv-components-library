@@ -94,27 +94,29 @@ public class FileUtilsBuilder {
     /**
      * It creates a new instance of FileUtils.
      */
-    public FileUtils build() throws IOException {
+    public FileUtils build(ClassLoader classLoader) throws IOException {
 
         try {
-            ClassLoader loader = Thread.currentThread().getContextClassLoader();
+            // If we have specified to copy resources from the classpath, the classLoader must exist:
+            if (copyFromClasspath && classLoader == null)
+                throw new Exception("If you specify copyFromClasspathm you must use a ClassLoader that is NOT null");
 
             // If we have specified CLASSPATH Folder, we make sure it exists...
-            if (loader.getResource(this.rootFolder + "/") == null)
+            if (copyFromClasspath && classLoader.getResource(this.rootFolder + "/") == null)
                 throw new Exception("If you specify CLASSPATH in FileUtils, a '/" + rootFolder + "' folder must exist within the classpath");
 
             Path rootFolder = (folderLocationType == RootFolderLocation.TEMPORARY_FOLDER)
                     ? Path.of(System.getProperty("java.io.tmpdir"), this.rootFolder)
-                    : Path.of(loader.getResource(this.rootFolder + "/").getPath());
+                    : Path.of(classLoader.getResource(this.rootFolder + "/").getPath());
 
             log.debug("work folder: " + rootFolder);
             // If we have specified Temporary folder, we make sure that folder exists
             if (folderLocationType == RootFolderLocation.TEMPORARY_FOLDER) Files.createDirectories(rootFolder);
 
-            // If we have specified to copy resources from the classpath, we do it as long as the folder exists in the
-            // classpath:
+
+
             if (copyFromClasspath) {
-                URL classpathFolder = loader.getResource(this.rootFolder + "/");
+                URL classpathFolder = classLoader.getResource(this.rootFolder + "/");
                 if (classpathFolder != null) {
                     log.debug("Copying resources from classpath folder into work folder...");
                     log.debug("classpath folder: " + classpathFolder.toURI().toString());
@@ -128,5 +130,12 @@ public class FileUtilsBuilder {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * It creates a new instance of FileUtils.
+     */
+    public FileUtils build() throws IOException {
+        return build(null);
     }
 }

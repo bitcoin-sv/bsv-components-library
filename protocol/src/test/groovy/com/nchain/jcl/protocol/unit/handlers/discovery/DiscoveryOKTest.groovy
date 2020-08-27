@@ -7,6 +7,8 @@ import com.nchain.jcl.protocol.handlers.blacklist.BlacklistHandler
 import com.nchain.jcl.protocol.handlers.discovery.DiscoveryHandlerConfig
 import com.nchain.jcl.protocol.wrapper.P2P
 import com.nchain.jcl.protocol.wrapper.P2PBuilder
+import com.nchain.jcl.tools.config.RuntimeConfig
+import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicReference
@@ -27,12 +29,17 @@ class DiscoveryOKTest extends Specification {
             // We set up the Configuration to use the Peers hardcoded in a CSV file:
             ProtocolConfig config = new ProtocolBSVMainConfig()
 
+            // Since the initial peers are in a CSV in our classpath, we need to use a "RuntimeConfig" specifying a
+            // classpath, so we instead of using the Default, we use an specific one
+            RuntimeConfig runtimeConfig = new RuntimeConfigDefault(this.getClass().getClassLoader());
+
             DiscoveryHandlerConfig discoveryConfig = config.getDiscoveryConfig()
                     .toBuilder()
                     .discoveryMethod(DiscoveryHandlerConfig.DiscoveryMethod.PEERS)
                     .build()
 
-        P2P server = new P2PBuilder("testing")
+            P2P server = new P2PBuilder("testing")
+                    .config(runtimeConfig)
                     .config(config)
                     .config(discoveryConfig)
                     .excludeHandler(BlacklistHandler.HANDLER_ID)

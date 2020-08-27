@@ -51,7 +51,7 @@ class BlockDownloadTest extends Specification {
      *
      */
     // We disable this test, since it's very time-consuming
-
+    @Ignore
     def "Testing Block Downloading"() {
         given:
             // The longest Timeout we'll wait for to run the test:
