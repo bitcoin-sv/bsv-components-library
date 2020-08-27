@@ -107,6 +107,7 @@ public class FileUtilsBuilder {
                     ? Path.of(System.getProperty("java.io.tmpdir"), this.rootFolder)
                     : Path.of(loader.getResource(this.rootFolder + "/").getPath());
 
+            log.debug("work folder: " + rootFolder);
             // If we have specified Temporary folder, we make sure that folder exists
             if (folderLocationType == RootFolderLocation.TEMPORARY_FOLDER) Files.createDirectories(rootFolder);
 
@@ -115,8 +116,11 @@ public class FileUtilsBuilder {
             if (copyFromClasspath) {
                 URL classpathFolder = loader.getResource(this.rootFolder + "/");
                 if (classpathFolder != null) {
+                    log.debug("Copying resources from classpath folder into work folder...");
+                    log.debug("classpath folder: " + classpathFolder.toURI().toString());
                     Path fromPath = Path.of(classpathFolder.toURI());
                     if (fromPath != null) copy(fromPath, rootFolder);
+                    log.debug("Resources copied.");
                 }
             }
             return new FileUtilsImpl(rootFolder);
