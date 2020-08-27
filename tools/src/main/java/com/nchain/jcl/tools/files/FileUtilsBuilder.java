@@ -47,7 +47,7 @@ public class FileUtilsBuilder {
             try {
                 Path path2 = Path.of(toFolder.toString(), p.getFileName().toString());
                 if (Files.isRegularFile(p))
-                        Files.copy(p, path2, StandardCopyOption.REPLACE_EXISTING);
+                    Files.copy(p, path2, StandardCopyOption.REPLACE_EXISTING);
                 else    copy(p, path2);
             } catch (Exception e) {
                 e.printStackTrace();
