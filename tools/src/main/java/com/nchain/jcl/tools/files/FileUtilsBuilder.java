@@ -99,11 +99,19 @@ public class FileUtilsBuilder {
         try {
             // If we have specified to copy resources from the classpath, the classLoader must exist:
             if (copyFromClasspath && classLoader == null)
-                throw new Exception("If you specify copyFromClasspathm you must use a ClassLoader that is NOT null");
+                throw new Exception("If you specify 'copyFromClasspath' you must use a ClassLoader that is NOT null");
 
             // If we have specified CLASSPATH Folder, we make sure it exists...
             if (copyFromClasspath && classLoader.getResource(this.rootFolder + "/") == null)
                 throw new Exception("If you specify CLASSPATH in FileUtils, a '/" + rootFolder + "' folder must exist within the classpath");
+
+            // If we have specified a Classpath Folder, then the class  fodler must be specified:
+            if (folderLocationType == RootFolderLocation.CLASSPATH_FOLDER && classLoader == null)
+                    throw new Exception("If you specify a CLASSPATH Folder, then yu must use a no-null classLoader");
+
+            // If you have specified a ClassPath Folder, then the Folder must exist:
+            if (folderLocationType == RootFolderLocation.CLASSPATH_FOLDER && classLoader.getResource(this.rootFolder + "/") == null)
+                throw new Exception("CLASSPATH Folder is specified, but no '/" + rootFolder + "' folder exists in the Classpath.");
 
             Path rootFolder = (folderLocationType == RootFolderLocation.TEMPORARY_FOLDER)
                     ? Path.of(System.getProperty("java.io.tmpdir"), this.rootFolder)
