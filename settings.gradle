@@ -1,8 +1,5 @@
 rootProject.name = 'jcl'
 
-
-// Modules dependencies
-include 'tools'
-include 'network'
-include 'protocol'
+include 'base'
+include 'net'
 
