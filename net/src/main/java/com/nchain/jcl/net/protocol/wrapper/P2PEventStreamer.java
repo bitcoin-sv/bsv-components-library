@@ -94,7 +94,7 @@ public class P2PEventStreamer {
                         || (e instanceof InitialPeersLoadedEvent)
                 );
 
-        public final EventStreamer<Event>                       ALL             = new EventStreamer<Event>(Event.class, ALL_FILTER);
+        public final EventStreamer<Event>                       ALL             = new EventStreamer<>(Event.class, ALL_FILTER);
         public final EventStreamer<PeerConnectedEvent>          CONNECTED       = new EventStreamer<>(PeerConnectedEvent.class, null);
         public final EventStreamer<PeerDisconnectedEvent>       DISCONNECTED    = new EventStreamer<>(PeerDisconnectedEvent.class, null);
         public final EventStreamer<PingPongFailedEvent>         PINGPONG_FAILED = new EventStreamer<>(PingPongFailedEvent.class, null);
@@ -139,6 +139,7 @@ public class P2PEventStreamer {
         public final EventStreamer<MsgReceivedEvent> VERSIONACK     = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(VersionAckMsg.MESSAGE_TYPE));
         public final EventStreamer<MsgReceivedEvent> GETHEADERS     = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(GetHeadersMsg.MESSAGE_TYPE));
         public final EventStreamer<MsgReceivedEvent> SENDHEADERS    = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(SendHeadersMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgReceivedEvent> HEADERS        = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(HeadersMsg.MESSAGE_TYPE));
         public final EventStreamer<MsgReceivedEvent> MEMPOOL        = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(MemPoolMsg.MESSAGE_TYPE));
 
         public final EventStreamer<MsgSentEvent> ALL_SENT           = new EventStreamer<>(MsgSentEvent.class, null);
@@ -157,6 +158,7 @@ public class P2PEventStreamer {
         public final EventStreamer<MsgSentEvent> VERSIONACK_SENT    = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(VersionAckMsg.MESSAGE_TYPE));
         public final EventStreamer<MsgSentEvent> GETHEADERS_SENT    = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(GetHeadersMsg.MESSAGE_TYPE));
         public final EventStreamer<MsgSentEvent> SENDHEADERS_SENT   = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(SendHeadersMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgSentEvent> HEADERS_SENT       = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(HeadersMsg.MESSAGE_TYPE));
         public final EventStreamer<MsgSentEvent> MEMPOOL_SENT       = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(MemPoolMsg.MESSAGE_TYPE));
     }
 
