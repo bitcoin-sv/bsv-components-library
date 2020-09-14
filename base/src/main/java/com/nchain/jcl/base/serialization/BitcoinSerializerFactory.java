@@ -2,7 +2,10 @@ package com.nchain.jcl.base.serialization;
 
 import com.nchain.jcl.base.domain.api.BitcoinObject;
 import com.nchain.jcl.base.domain.api.base.*;
+import com.nchain.jcl.base.domain.api.extended.TxIdBlock;
 import com.nchain.jcl.base.domain.bean.base.*;
+import com.nchain.jcl.base.domain.bean.extended.TxIdBlockBean;
+import com.nchain.jcl.base.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.base.tools.bytes.HEX;
 
 import java.util.HashMap;
@@ -35,6 +38,9 @@ public class BitcoinSerializerFactory {
 
         serializers.put(Tx.class, TxSerializer.getInstance());
         serializers.put(TxBean.class, TxSerializer.getInstance());
+
+        serializers.put(TxIdBlock.class, TxIdBlockSerializer.getInstance());
+        serializers.put(TxIdBlockBean.class, TxIdBlockSerializer.getInstance());
     }
 
     /** Locate the Serializer for this Class */
@@ -54,14 +60,19 @@ public class BitcoinSerializerFactory {
     }
 
     /** Deserializes the ByteArray provided into a Bitcoin Object */
-    public static BitcoinObject deserialize(Class objectClass, byte[] bytes) {
+    public static BitcoinObject deserialize(Class objectClass, ByteArrayReader byteReader) {
         BitcoinSerializer serialier = getSerializer(objectClass);
         if (serialier == null) throw new RuntimeException("No Serializer for " + objectClass.getSimpleName());
-        return serialier.deserialize(bytes);
+        return serialier.deserialize(byteReader);
     }
+
+    /** Deserializes the ByteArray provided into a Bitcoin Object */
+    public static BitcoinObject deserialize(Class objectClass, byte[] bytes) {
+       return deserialize(objectClass, new ByteArrayReader(bytes));
+    }
+
     /** Deserializes the ByteArray (in Hexadecimal format) into a Bitcoin Object */
     public static BitcoinObject deserialize (Class objectClass, String hex) {
         return deserialize(objectClass, HEX.decode(hex));
     }
-
 }

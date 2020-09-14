@@ -12,5 +12,5 @@ import lombok.Getter;
  */
 
 public abstract class AbstractBlockBean implements AbstractBlock {
-    @Getter private BlockHeader header;
+    @Getter protected BlockHeader header;
 }

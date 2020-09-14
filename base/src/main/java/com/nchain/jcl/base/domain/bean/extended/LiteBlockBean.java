@@ -1,5 +1,6 @@
 package com.nchain.jcl.base.domain.bean.extended;
 
+import com.nchain.jcl.base.domain.api.base.BlockHeader;
 import com.nchain.jcl.base.domain.api.extended.BlockMeta;
 import com.nchain.jcl.base.domain.api.extended.ChainInfo;
 import com.nchain.jcl.base.domain.api.extended.LiteBlock;
@@ -15,9 +16,15 @@ import lombok.Value;
  * Implementation of a LiteBlock
  * This class is IMMUTABLE. Instances can be created by using a Lombok generated Builder.
  */
-@Builder(toBuilder = true)
 @Value
 public class LiteBlockBean extends AbstractBlockBean implements LiteBlock {
     private BlockMeta blockMeta;
     private ChainInfo chainInfo;
+
+    @Builder(toBuilder = true)
+    public LiteBlockBean(BlockHeader blockHeader, BlockMeta blockMeta, ChainInfo chainInfo) {
+            this.header = blockHeader;
+            this.blockMeta = blockMeta;
+            this.chainInfo = chainInfo;
+    }
 }

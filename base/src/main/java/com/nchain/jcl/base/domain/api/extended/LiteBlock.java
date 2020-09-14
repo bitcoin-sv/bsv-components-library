@@ -1,6 +1,7 @@
 package com.nchain.jcl.base.domain.api.extended;
 
 import com.nchain.jcl.base.domain.api.base.AbstractBlock;
+import com.nchain.jcl.base.domain.bean.extended.LiteBlockBean;
 
 /**
  * @author Steve Shadders
@@ -16,4 +17,7 @@ import com.nchain.jcl.base.domain.api.base.AbstractBlock;
 public interface LiteBlock extends AbstractBlock {
     BlockMeta getBlockMeta();
     ChainInfo getChainInfo();
+
+    // Convenience methods to get a reference to the Builder
+    static LiteBlockBean.LiteBlockBeanBuilder builder() { return LiteBlockBean.builder();}
 }
