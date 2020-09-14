@@ -8,7 +8,7 @@ import com.nchain.jcl.base.tools.log.LoggerUtil;
 import com.nchain.jcl.base.tools.thread.ThreadUtils;
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.config.NetworkConfig;
-import com.nchain.jcl.net.network.config.NetworkConfigDefault;
+import com.nchain.jcl.net.network.config.provided.NetworkDefaultConfig;
 import com.nchain.jcl.net.network.events.HandlerStateEvent;
 import com.nchain.jcl.net.network.handlers.NetworkHandler;
 import com.nchain.jcl.net.network.handlers.NetworkHandlerImpl;
@@ -94,7 +94,7 @@ public class P2P {
     }
     /** Constructor with Default values */
     public P2P() {
-        this("protocolHandler", new RuntimeConfigDefault(), new NetworkConfigDefault(), new ProtocolBSVMainConfig());
+        this("protocolHandler", new RuntimeConfigDefault(), new NetworkDefaultConfig(), new ProtocolBSVMainConfig());
     }
 
     protected void addHandler(Handler handler) {
@@ -183,6 +183,11 @@ public class P2P {
             HandlerStateEvent event = new HandlerStateEvent(handler.getState());
             eventBus.publish(event);
             //System.out.println("Tasks in progress: " + eventBus.getTraceNumTasks());
+    }
+
+    // Convenience method to get a reference to a P2PBuilder
+    public static P2PBuilder builder(String id) {
+        return new P2PBuilder(id);
     }
 
 }

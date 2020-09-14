@@ -14,7 +14,7 @@ import lombok.Getter;
  * Stores the Configuration needed to run the Default P2P Handlers in the BTC Main Network.
  */
 @Getter
-public class ProtocolBTCMainConfig extends ProtocolConfigBase implements ProtocolConfig {
+public class ProtocolBTCMainConfig extends ProtocolConfigImpl implements ProtocolConfig {
 
     // Specific values for BTC main Net:
 

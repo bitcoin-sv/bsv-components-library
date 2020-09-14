@@ -5,10 +5,10 @@ import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg
 import com.nchain.jcl.net.protocol.messages.BlockMsg
 import com.nchain.jcl.net.protocol.messages.HashMsg
-import com.nchain.jcl.net.protocol.messages.TransactionMsg
-import com.nchain.jcl.net.protocol.messages.TxInputMessage
+import com.nchain.jcl.net.protocol.messages.TxMsg
+import com.nchain.jcl.net.protocol.messages.TxInputMsg
 import com.nchain.jcl.net.protocol.messages.TxOutPointMsg
-import com.nchain.jcl.net.protocol.messages.TxOutputMessage
+import com.nchain.jcl.net.protocol.messages.TxOutputMsg
 import com.nchain.jcl.net.protocol.messages.VersionMsg
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder
@@ -128,9 +128,9 @@ class BlockMsgSerializerSpec extends Specification {
                 .protocolBasicConfig(config.getBasicConfig())
                 .build()
             BlockMsgSerializer serializer = BlockMsgSerializer.getInstance()
-            List<TransactionMsg> transactionMsgList = new ArrayList<>()
-            TransactionMsg transactionMsg1 = makeCoinbaseTransaction()
-            TransactionMsg transactionMsg2 = makeTransaction()
+            List<TxMsg> transactionMsgList = new ArrayList<>()
+            TxMsg transactionMsg1 = makeCoinbaseTransaction()
+            TxMsg transactionMsg2 = makeTransaction()
 
             transactionMsgList.add(transactionMsg1)
             transactionMsgList.add(transactionMsg2)
@@ -167,9 +167,9 @@ class BlockMsgSerializerSpec extends Specification {
                 .protocolconfig(config)
                 .build()
 
-        List<TransactionMsg> transactionMsgList = new ArrayList<>()
-        TransactionMsg transactionMsg1 = makeCoinbaseTransaction()
-        TransactionMsg transactionMsg2 = makeTransaction()
+        List<TxMsg> transactionMsgList = new ArrayList<>()
+        TxMsg transactionMsg1 = makeCoinbaseTransaction()
+        TxMsg transactionMsg2 = makeTransaction()
 
         transactionMsgList.add(transactionMsg1)
         transactionMsgList.add(transactionMsg2)
@@ -194,45 +194,45 @@ class BlockMsgSerializerSpec extends Specification {
         msgDeserializeVal.equals(REF_MSG_FULL)
     }
 
-    TransactionMsg makeTransaction() {
+    TxMsg makeTransaction() {
 
-        TxOutputMessage txOutputMessageOne = TxOutputMessage.builder().txValue(458900000000).pk_script(TR2_PK_SCRIPT_ONE).build();
-        TxOutputMessage txOutputMessageTwo = TxOutputMessage.builder().txValue(50000000000).pk_script(TR2_PK_SCRIPT_TWO).build();
-        List<TxOutputMessage> txOutputMsgList = new ArrayList<>()
+        TxOutputMsg txOutputMessageOne = TxOutputMsg.builder().txValue(458900000000).pk_script(TR2_PK_SCRIPT_ONE).build();
+        TxOutputMsg txOutputMessageTwo = TxOutputMsg.builder().txValue(50000000000).pk_script(TR2_PK_SCRIPT_TWO).build();
+        List<TxOutputMsg> txOutputMsgList = new ArrayList<>()
         txOutputMsgList.add(txOutputMessageOne)
         txOutputMsgList.add(txOutputMessageTwo)
 
         HashMsg hash = HashMsg.builder().hash(HEX.decode("90c0deee7f4b5190176a5bb2879805728fa72a0b57bc40745d3ef7c352a918aa")).build();
         TxOutPointMsg txOutPointMsg = TxOutPointMsg.builder().index(0).hash(hash).build()
-        TxInputMessage txInputMessage= TxInputMessage.builder().pre_outpoint(txOutPointMsg)
+        TxInputMsg txInputMessage= TxInputMsg.builder().pre_outpoint(txOutPointMsg)
                 .sequence(4294967295)
                 .signature_script(
                 HEX.decode("04ac44bdf511477465cb70fef1d06b9241e74d26047ccbdfa641ec9a0115ad35594cbb58a61a6fd56893a405bcffbf6555995ddedc7e6cd4e5ceb83a37e1cf8f98")).build()
 
 
-        List<TxInputMessage> txInputs = new ArrayList<>();
+        List<TxInputMsg> txInputs = new ArrayList<>();
         txInputs.add(txInputMessage)
 
-        return TransactionMsg.builder().version(1).tx_in(txInputs).tx_out(txOutputMsgList).build()
+        return TxMsg.builder().version(1).tx_in(txInputs).tx_out(txOutputMsgList).build()
 
     }
 
-    TransactionMsg makeCoinbaseTransaction() {
+    TxMsg makeCoinbaseTransaction() {
 
-        TxOutputMessage txOutputMessageOne = TxOutputMessage.builder().txValue(5000000000).pk_script(TR1_PK_SCRIPT_ONE).build();
-        List<TxOutputMessage> txOutputMsgList = new ArrayList<>()
+        TxOutputMsg txOutputMessageOne = TxOutputMsg.builder().txValue(5000000000).pk_script(TR1_PK_SCRIPT_ONE).build();
+        List<TxOutputMsg> txOutputMsgList = new ArrayList<>()
         txOutputMsgList.add(txOutputMessageOne)
 
         HashMsg hash = HashMsg.builder().hash(HEX.decode("0000000000000000000000000000000000000000000000000000000000000000")).build();
         TxOutPointMsg txOutPointMsg =TxOutPointMsg.builder().index(26).hash(hash).build()
 
-        TxInputMessage txInputMessage =TxInputMessage.builder().pre_outpoint(txOutPointMsg)
+        TxInputMsg txInputMessage =TxInputMsg.builder().pre_outpoint(txOutPointMsg)
                 .sequence(4294967295)
                 .signature_script(HEX.decode("041844011d0142")).build()
-        List<TxInputMessage> txInputs = new ArrayList<>()
+        List<TxInputMsg> txInputs = new ArrayList<>()
         txInputs.add(txInputMessage)
 
-        return TransactionMsg.builder().version(1).tx_in(txInputs).tx_out(txOutputMsgList).build()
+        return TxMsg.builder().version(1).tx_in(txInputs).tx_out(txOutputMsgList).build()
 
     }
 

@@ -3,9 +3,9 @@ package com.nchain.jcl.net.unit.protocol.serialization
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.messages.HashMsg
-import com.nchain.jcl.net.protocol.messages.TxInputMessage
+import com.nchain.jcl.net.protocol.messages.TxInputMsg
 import com.nchain.jcl.net.protocol.messages.TxOutPointMsg
-import com.nchain.jcl.net.protocol.serialization.TxInputMessageSerializer
+import com.nchain.jcl.net.protocol.serialization.TxInputMsgSerializer
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
 import com.nchain.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
@@ -27,7 +27,7 @@ import spock.lang.Specification
  * from another source that we trust (in this case the Java BitcoinJ library). So we serialize/deserialize some
  * messages with out code and compare the results with that reference.
  */
-class TxInputMessageSerializerSpec extends Specification {
+class TxInputMsgSerializerSpec extends Specification {
 
     public static final String REF_MSG = "a69d45e7abc3b8fc363d13b88aaa2f2ec62bf77b6881e8bd7bd1012fd81d802b00000000010000000100"
 
@@ -40,14 +40,14 @@ class TxInputMessageSerializerSpec extends Specification {
             DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
-            TxInputMessageSerializer serializer = TxInputMessageSerializer.getInstance()
-            TxInputMessage message
+            TxInputMsgSerializer serializer = TxInputMsgSerializer.getInstance()
+            TxInputMsg message
         when:
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_MSG), byteInterval, delayMs)
            message = serializer.deserialize(context, new ByteArrayReaderOptimized(byteReader))
         then:
            message.getSequence()  == SEQUENCE
-           message.getMessageType() == TxInputMessage.MESSAGE_TYPE
+           message.getMessageType() == TxInputMsg.MESSAGE_TYPE
         where:
             byteInterval | delayMs
                 10       |    25
@@ -60,11 +60,11 @@ class TxInputMessageSerializerSpec extends Specification {
             SerializerContext context = SerializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
-            TxInputMessageSerializer serializer = TxInputMessageSerializer.getInstance()
+            TxInputMsgSerializer serializer = TxInputMsgSerializer.getInstance()
             HashMsg hash = HashMsg.builder().hash(REF_BITES).build();
 
             TxOutPointMsg txOutPointMessage =  TxOutPointMsg.builder().hash(hash).index(0).build()
-            TxInputMessage txInputMessage = TxInputMessage.builder().pre_outpoint(txOutPointMessage)
+            TxInputMsg txInputMessage = TxInputMsg.builder().pre_outpoint(txOutPointMessage)
                         .sequence(SEQUENCE)
                         .signature_script(new byte[1]).build()
             String messageSerializedBytes

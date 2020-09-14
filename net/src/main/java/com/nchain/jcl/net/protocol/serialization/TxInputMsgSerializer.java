@@ -6,7 +6,7 @@ import com.nchain.jcl.base.tools.bytes.ByteArrayWriter;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.net.protocol.serialization.common.MessageSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext;
-import com.nchain.jcl.net.protocol.messages.TxInputMessage;
+import com.nchain.jcl.net.protocol.messages.TxInputMsg;
 import com.nchain.jcl.net.protocol.messages.TxOutPointMsg;
 
 /**
@@ -17,19 +17,19 @@ import com.nchain.jcl.net.protocol.messages.TxOutPointMsg;
  * @date 26/09/2019
  * A Serializer for instance of {@Link TxInputMessage} messages
  */
-public class TxInputMessageSerializer implements MessageSerializer<TxInputMessage> {
-    private static TxInputMessageSerializer instance;
+public class TxInputMsgSerializer implements MessageSerializer<TxInputMsg> {
+    private static TxInputMsgSerializer instance;
 
     // Reference to singleton instances used during serialization/Deserialization. Defined here for performance
     private static TxOutPointMsgSerializer  txOutPointMsgSerializer = TxOutPointMsgSerializer.getInstance();
     private static VarIntMsgSerializer      varIntMsgSerializer     = VarIntMsgSerializer.getInstance();
 
-    private TxInputMessageSerializer() { }
+    private TxInputMsgSerializer() { }
 
-    public static TxInputMessageSerializer getInstance(){
+    public static TxInputMsgSerializer getInstance(){
         if(instance == null) {
-            synchronized (TxInputMessageSerializer.class) {
-                instance = new TxInputMessageSerializer();
+            synchronized (TxInputMsgSerializer.class) {
+                instance = new TxInputMsgSerializer();
             }
         }
 
@@ -37,7 +37,7 @@ public class TxInputMessageSerializer implements MessageSerializer<TxInputMessag
     }
 
     @Override
-    public TxInputMessage deserialize(DeserializerContext context, ByteArrayReader byteReader) {
+    public TxInputMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
         TxOutPointMsg txOutPointMsg = txOutPointMsgSerializer.deserialize(context, byteReader);
 
         int scriptLen = (int) varIntMsgSerializer.deserialize(context, byteReader).getValue();
@@ -46,11 +46,11 @@ public class TxInputMessageSerializer implements MessageSerializer<TxInputMessag
         byte[] sig_script = byteReader.read(scriptLen);
         long sequence = byteReader.readUint32();
 
-        return TxInputMessage.builder().pre_outpoint(txOutPointMsg).signature_script(sig_script).sequence(sequence).build();
+        return TxInputMsg.builder().pre_outpoint(txOutPointMsg).signature_script(sig_script).sequence(sequence).build();
     }
 
     @Override
-    public void serialize(SerializerContext context, TxInputMessage message, ByteArrayWriter byteWriter) {
+    public void serialize(SerializerContext context, TxInputMsg message, ByteArrayWriter byteWriter) {
         txOutPointMsgSerializer.serialize(context, message.getPre_outpoint(),byteWriter);
         varIntMsgSerializer.serialize(context, message.getScript_length(), byteWriter);
         byteWriter.write(message.getSignature_script());

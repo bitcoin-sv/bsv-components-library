@@ -3,7 +3,7 @@ package com.nchain.jcl.net.protocol.events;
 import com.nchain.jcl.base.tools.events.Event;
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
-import com.nchain.jcl.net.protocol.messages.TransactionMsg;
+import com.nchain.jcl.net.protocol.messages.TxMsg;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
@@ -28,5 +28,5 @@ import java.util.List;
 public class BlockTXsDownloadedEvent extends Event {
     private PeerAddress peerAddress;
     private BlockHeaderMsg blockHeaderMsg;
-    private List<TransactionMsg> txsMsg;
+    private List<TxMsg> txsMsg;
 }

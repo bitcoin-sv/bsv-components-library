@@ -5,7 +5,7 @@ import com.nchain.jcl.base.tools.bytes.ByteArrayWriter;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.net.protocol.serialization.common.MessageSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext;
-import com.nchain.jcl.net.protocol.messages.TxOutputMessage;
+import com.nchain.jcl.net.protocol.messages.TxOutputMsg;
 
 /**
  * @author m.jose@nchain.com
@@ -16,19 +16,19 @@ import com.nchain.jcl.net.protocol.messages.TxOutputMessage;
  *
  * A Serializer for instance of {@Link TxOutputMessage} messages
  */
-public class TxOutputMessageSerializer implements MessageSerializer<TxOutputMessage> {
+public class TxOutputMsgSerializer implements MessageSerializer<TxOutputMsg> {
 
-    private static TxOutputMessageSerializer instance;
+    private static TxOutputMsgSerializer instance;
 
     // Reference to singleton instances used during serialization/Deserialization. Defined here for performance
     private static VarIntMsgSerializer      varIntMsgSerializer     = VarIntMsgSerializer.getInstance();
 
-    private TxOutputMessageSerializer() { }
+    private TxOutputMsgSerializer() { }
 
-    public static TxOutputMessageSerializer getInstance(){
+    public static TxOutputMsgSerializer getInstance(){
         if(instance == null) {
-            synchronized (TxOutputMessageSerializer.class) {
-                instance = new TxOutputMessageSerializer();
+            synchronized (TxOutputMsgSerializer.class) {
+                instance = new TxOutputMsgSerializer();
             }
         }
 
@@ -36,7 +36,7 @@ public class TxOutputMessageSerializer implements MessageSerializer<TxOutputMess
     }
 
     @Override
-    public TxOutputMessage deserialize(DeserializerContext context, ByteArrayReader byteReader) {
+    public TxOutputMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
 
         byteReader.waitForBytes(8);
         long txValue = byteReader.readInt64LE();
@@ -45,11 +45,11 @@ public class TxOutputMessageSerializer implements MessageSerializer<TxOutputMess
         byteReader.waitForBytes(scriptLen);
         byte[] pk_script = byteReader.read(scriptLen);
 
-        return TxOutputMessage.builder().txValue(txValue).pk_script(pk_script).build();
+        return TxOutputMsg.builder().txValue(txValue).pk_script(pk_script).build();
     }
 
     @Override
-    public void serialize(SerializerContext context, TxOutputMessage message, ByteArrayWriter byteWriter) {
+    public void serialize(SerializerContext context, TxOutputMsg message, ByteArrayWriter byteWriter) {
         byteWriter.writeUint64LE(message.getTxValue());
         varIntMsgSerializer.serialize(context, message.getPk_script_length(), byteWriter);
         byteWriter.write(message.getPk_script());

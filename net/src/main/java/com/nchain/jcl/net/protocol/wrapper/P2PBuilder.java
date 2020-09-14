@@ -6,7 +6,7 @@ import com.nchain.jcl.base.tools.handlers.Handler;
 import com.nchain.jcl.base.tools.handlers.HandlerConfig;
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.config.NetworkConfig;
-import com.nchain.jcl.net.network.config.NetworkConfigDefault;
+import com.nchain.jcl.net.network.config.provided.NetworkDefaultConfig;
 import com.nchain.jcl.net.network.handlers.NetworkHandlerImpl;
 import com.nchain.jcl.net.protocol.config.ProtocolConfig;
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig;
@@ -258,7 +258,7 @@ public class P2PBuilder {
             // We set up the Base Configurations:
             // If the Configurations have been set up, we use them, otherwise we use the default implementations:
             RuntimeConfig runtimeConfig = (this.runtimeConfig != null)? this.runtimeConfig : new RuntimeConfigDefault();
-            NetworkConfig networkConfig = (this.networkConfig != null)? this.networkConfig : new NetworkConfigDefault();
+            NetworkConfig networkConfig = (this.networkConfig != null)? this.networkConfig : new NetworkDefaultConfig();
 
             // We set up the Global Default P2P Configuration:
             if (this.protocolConfig == null) config(new ProtocolBSVMainConfig());

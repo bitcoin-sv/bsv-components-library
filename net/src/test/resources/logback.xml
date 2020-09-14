@@ -20,20 +20,20 @@
 
 
     <logger name="com.nchain.jcl.net.protocol" additivity="false">
-        <level value="TRACE" />
+        <level value="DEBUG" />
         <appender-ref ref="STDOUT" />
     </logger>
 
 
 
     <logger name="com.nchain.jcl.net.network" additivity="false">
-        <level value="TRACE" />
+        <level value="DEBUG" />
         <appender-ref ref="STDOUT" />
     </logger>
 
 
     <logger name="com.nchain.jcl.base.tools" additivity="false">
-        <level value="TRACE" />
+        <level value="DEBUG" />
         <appender-ref ref="STDOUT" />
     </logger>
 

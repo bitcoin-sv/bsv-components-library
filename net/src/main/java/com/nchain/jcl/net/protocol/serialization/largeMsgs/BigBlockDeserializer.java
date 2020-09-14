@@ -4,9 +4,9 @@ import com.nchain.jcl.base.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.PartialBlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.PartialBlockTXsMsg;
-import com.nchain.jcl.net.protocol.messages.TransactionMsg;
+import com.nchain.jcl.net.protocol.messages.TxMsg;
 import com.nchain.jcl.net.protocol.serialization.BlockHeaderMsgSerializer;
-import com.nchain.jcl.net.protocol.serialization.TransactionMsgSerializer;
+import com.nchain.jcl.net.protocol.serialization.TxMsgSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import lombok.extern.slf4j.Slf4j;
 
@@ -55,14 +55,14 @@ public class BigBlockDeserializer extends LargeMessageDeserializerImpl {
             // Now we Deserialize the Txs, in batches..
             log.trace("Deserializing TXs...");
             long numTxs = blockHeader.getTransactionCount().getValue();
-            List<TransactionMsg> txList = new ArrayList<>();
+            List<TxMsg> txList = new ArrayList<>();
 
             // We keep track of some statistics:
             int totalTxsSize = 0;
             Instant deserializingTime = Instant.now();
 
             for (int i = 0; i < numTxs; i++) {
-                TransactionMsg txMsg = TransactionMsgSerializer.getInstance().deserialize(context, byteReader);
+                TxMsg txMsg = TxMsgSerializer.getInstance().deserialize(context, byteReader);
                 txList.add(txMsg);
                 totalTxsSize += txMsg.getLengthInBytes();
                 if (i > 0 && i % TX_BATCH == 0) {

@@ -1,6 +1,8 @@
 package com.nchain.jcl.net.protocol.messages;
 
 import com.google.common.base.Preconditions;
+import com.nchain.jcl.base.domain.api.base.TxInput;
+import com.nchain.jcl.base.domain.bean.base.TxInputBean;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -29,7 +31,7 @@ import lombok.Value;
  */
 @Value
 @EqualsAndHashCode
-public class TxInputMessage extends Message {
+public class TxInputMsg extends Message {
     private static final int sequence_len = 4;
     public static final String MESSAGE_TYPE = "TxIn";
 
@@ -44,7 +46,7 @@ public class TxInputMessage extends Message {
     }
 
     @Builder
-    protected TxInputMessage(TxOutPointMsg pre_outpoint, byte[] signature_script, long sequence) {
+    protected TxInputMsg(TxOutPointMsg pre_outpoint, byte[] signature_script, long sequence) {
         this.pre_outpoint = pre_outpoint;
         this.signature_script = signature_script;
         this.script_length = VarIntMsg.builder().value(signature_script.length).build();
@@ -73,5 +75,10 @@ public class TxInputMessage extends Message {
         result.append(" - scriptLength: " + script_length + "\n");
         result.append(" - sequence: " + sequence + "\n");
         return result.toString();
+    }
+
+    /** Returns a BitcoinObject containing the same information */
+    public TxInput toBean() {
+        return new TxInputBean(sequence, pre_outpoint.toBean(), signature_script, null); // TODO: Value??
     }
 }

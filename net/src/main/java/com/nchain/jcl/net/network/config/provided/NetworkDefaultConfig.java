@@ -1,5 +1,6 @@
-package com.nchain.jcl.net.network.config;
+package com.nchain.jcl.net.network.config.provided;
 
+import com.nchain.jcl.net.network.config.NetworkConfigImpl;
 import lombok.Getter;
 
 import java.util.OptionalInt;
@@ -14,7 +15,7 @@ import java.util.OptionalInt;
  * Environment, like a regular laptop with at least 8GB of RAM.
  */
 @Getter
-public class NetworkConfigDefault extends NetworkConfigImpl {
+public class NetworkDefaultConfig extends NetworkConfigImpl {
 
     private static final int port = 8333;
     private static final OptionalInt maxSocketConnections = OptionalInt.of(1000);
@@ -28,7 +29,7 @@ public class NetworkConfigDefault extends NetworkConfigImpl {
     private static final boolean blockingOnListeners = false;
 
     /** Constructor */
-    public NetworkConfigDefault() {
+    public NetworkDefaultConfig() {
         super(
                 port,
                 maxSocketConnections,

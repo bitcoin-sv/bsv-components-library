@@ -1,27 +1,24 @@
-# JCL: Java Component Library for Bitcoin
+# JCL: Java Component Library for Bitcoin:: Quickstart tutorial
 
 # Introduction
 
-*JCL* is a Java Library or Suite of libraries that provides different functionalities needed by Blockchain projects.
+*JCL* is a Java Library or Suite of libraries that provides different functionalities needed by Blockchain projects. Some Modules will be commonly used by any project, whereas other might only be included if needed.
 
 *JCL* is currently composed of the following modules:
 
  * *JCL-Base*: Base functionality. Provides definition for domain classes (*Transaction*, *Block*, etc).
-
- > NOTE: *JCL-Base* still under Construction.
  
  * *JCL-Net*: Provides Connections and Streaming capabilities, allowing an App to connect to the blockchain and "listen" to Events coming from it, and also too "send/broadcast" messages, and other operations.
 
 ## High-level view
 
-All the libraries within *JCL* make up a hierarhcy dependency tree, as shown below:
+All the libraries within *JCL* make up a hierarchy dependency tree, as shown in the diagram below:
 
 ![high level architecture](jcl-highLevel.png) 
 
-> NOTE: **Chart Pending to be extended with more JCL Modules**
 
+> These different modules are stored as *JAR* Files in *Nexus*, which is the private *nChain* repository Server. In order to be able to download them you'll need a User and Password. In this tutorial we'll be using the *jenkins* user, which is a read-only profile that can be also used, although a specific user/passwd is preferred. Reach out to **Peter foster [p.foster@nchain.com]** for credentails.
 
-In the following chapter, instruction will be provided about how to import/use these libraries in other Java/Kotlin projects.
 
 # JCL-Base
 
@@ -30,15 +27,10 @@ In the following chapter, instruction will be provided about how to import/use t
 **Use *JCL-Base* if you need to:**
 
  * Use/manipulate information about *Transactions*, *Blocks* etc.
- * Serialize information about Transactions or blocks, so it can be firther stored.
+ * Serialize information about Transactions, Inputs/Outputs or Blocks, so it can be further stored.
 
-## How to import *JCL-Base**
 
-*JCL-Base* is stored as a *JAR* file in *Nexus*, which is a *Maven* artifact repository installed in a on-premises *nChain* server.
-
-Bfore moving forward you must request credentials for that Server.
-
-> Reach out for *Peter foster* to request credentials for the Nexus Server.
+## How to import *JCL-Base*
 
 ### in a *Gradle* project
 
@@ -56,29 +48,141 @@ repositories {
     }
 }
 ```
+> you can use *jenkins/jenkins* as credentials until you get the definitive ones. Bear in mind that the credentials are shown here in the *build.gradle* fle only for academic purposes. In a real project those should be stored in a a separate file (*gradle.properties*) and **not** shared.
 
 then, add *JCL-Base* as a dependency:
 
 ```
+dependencies {
+...
+implementation 'com.nchain.jcl:jcl-base:0.0.1'
+...
+}
 
 ```
 
 ### in a *Maven* project
+> COMMING SOON...
 
-## Hot to use *JCL-Base**
+## How to use *JCL-Base*
+
+
+### Creating and manipulating *Bitcoin Objects*
+
+ * The Objects containing information about *Transactions*, *Inputs*, *Outputs*, etc, are called "Bitcoin Objects*
+ * A *Bitcoin Object* is created by using a *Builder* (a helper class)
+ * A "Bitcoin Object" is **Immutable**. Once created, it cannot be modified
+ * If you need to modify a *Bitcoin Object*, then you murt crate a copy, change whatever information you want and *build* a new *bitcoin Object* from it.
+ * A *Bitcoin Object* can be crated directly from a *raw surce* (a Byte Array or an Hexadecimal representation of it)
+
+This is an example of how to create a *Transaction* from a *Byte Array* in *Hexadecimal* format:
+
+```
+String TX_HEX = "10000000193e3073ecc1d27f17e3d287cce..." // TX in HEX format
+Tx tx = Tx.builder(TX_HEX).build();
+
+```
+
+You can also do the same with the *raw data (byte format)*:
+
+```
+byte[] TX_BYTES = ...
+Tx tx = Tx.builder(TX_BYTES).build();
+```
+
+you can also make any changes you like before calling the *build()* method. And if you want to make change to an existing *Tx* object, you need to create a new one doing just that:
+
+```
+Tx originalTx = ...
+Tx changedTx = originalTx.toBuilder()
+                .lockTime(2) // a new locktime for the new Transaction...
+                .build();
+
+```
+
+A *Bitcoin Object* can also be built **from scratch**, filling in all the values in the right fields. 
+
+
+This is an example of how to build a *Transaction Input* from scratch, containing *10 Satoshis* and a dummy *unlocking script (an empty byte array of length 10)*
+
+```
+TxOutput txOutput = TxOutput.builder()
+                       .value(Coin.valueOf(10))   // 10 Satoshis...
+                       .scriptBytes(new byte[10]) // dummy script
+                       .build();
+
+```
+
+This is an example of how to build a *Transaction Input* from scratch. In this case, an *Input* contains an inner structure called *OutputPoint*, which is created by using its respective *Builder*:
+
+```
+TxInput txInput = TxInput.builder()
+                            .scriptBytes(new byte[10])
+                            .sequenceNumber(1)      
+                            .value(Coin.valueOf(5)). // 5 Satoshis...
+                            .outpoint(TxOutPoint.builder()
+                                    .hash(Sha256Wrapper.wrap(new byte[32])). // dummy Hash...
+                                    .index(1)
+                                    .build())
+                            .build();
+```
+
+And this is an example of how to build a *Transaction* from scratch. A Transaction is a set of inputs, outputs and other related fields, in this case one single *Input* and one single *Output*:
+
+```
+TxInput input1 = ...
+TxOutput output1 = ...
+Tx tx = Tx.builder()
+            .version(1)
+            .lockTime(100)
+            .inputs(Arrays.asList(input1))
+            .outputs(Arrays.asList(output1))
+            .build();
+
+```
+
+### Serializing *Bitcoin Objects*
+
+Any *Bitcoin Objet* can be Serialzed or Deserialized. The way to do it is quite straightforward, and it goes by using the *BitcoinSerialzierFactory* class.
+
+for example, this is an example of Serialzing a *Transaction Input*, a *Transaction output* and a whole *Transaction*:
+
+```
+TxInput txInput = ...
+byte[] txInputSerialed = BitcoinSerializerFactory.serialize(txInput);
+        
+TxOutput txOutput = ...
+byte[] txOutputSerialized = BitcoinSerializerFactory.serialize(txOutput);
+        
+Tx tx = ...
+byte[] txSerialzied = BitcoinSerializerFactory.serialize(tx);
+
+```
+
+The same way, we can *Deserialize*  *raw data* into *Bitcoin Objects*. In this case a *cast* is necessary:
+
+```
+String TX_INPUT_HEX = ...
+String TX_OUTPUT_HEX = ...
+String TX_HEX = ...
+
+TxInput txInput = (TxInput) BitcoinSerializerFactory.deserialize(TxInput.class, TX_INPUT_HEX);
+TxOutput txOutput = (TxOutput) BitcoinSerializerFactory.deserialize(TxOutput.class, TX_INPUT_HEX);
+Tx tx = (Tx) BitcoinSerializerFactory.deserialize(Tx.class, TX_INPUT_HEX);
+
+```
+
+In most ocassions, you won't need to deserilize small part like *inuts* or *oututs*. but whole *transactions* instad. In those cases, it's much easier to use the "load()" method, as it was shown at the beggining of this chapter:
+
+```
+String TX_HEX = ...
+Tx tx = Tx.load(TX_HEX).build();
+```
+
 
 # JCL-Net
 
-
-# High-Level View
-
-## Architecture:
-
-*JCL* runs as a separate Service in a different Thread than your main application. You start it (after setting some 
-basic configuration, but default configuration is also provided), and it will connect automatically to the Blockchain
-P2P Network. The number of Peers *JCL* connects to is configurable within a range, and the service will make sure that 
-the connection remains stable, looking for new Peers if some connections are broken), or just standing by if we 
-already have enough.
+The *JCL-Net* Module provides capabilities to Connect to a Blockchain network (you can choose from a set of different possible networks), and also *listen* to whatever hapens in those Networks and *react* to it.
 
 
 The 3 main features provided by *JCL* are:
@@ -97,45 +201,42 @@ The 3 main features provided by *JCL* are:
   
 ![high level architecture](jclBasic.png)
 
-Other non-functional aspects of the Library:
-
-* Consumption of resources limited: *JCL* has been tested to connect to hundreds or thosands of Peers using modest Hardware.
-
-* Extensible: The *JCYL* Service is just an *aggregation* of different *Components/Handlers*, each one of them takes care of a 
-  different aspect of the Protocol. These architecture is flexible, so new Handlers can be developed and added at runtime.
-  For example, *JCYL* provides a set of Default Handlers, which implements the *Bitcoin protocol*. but also provides other
-  higher-level Handlers that implement other functionalities, like download of full blocks on-demand. New 
-  Handlers that implements other capabilities can be added without modifying the core,
 
 
+## How to import *JCL-Net* into your project
+### in a *Gradle* project
 
-# How to import *JCL* into your project
+Edit your *build.grtadle* file and include the definition of the Repository where *JCL-Base* is defined:
 
-If you are using *gradle*, you need to configure the access to the *nChain* maven repository, and add the dependency 
-in your project in your *build.gradle*
-
-````
-...
+```
 repositories {
-  // nchan repository:
-  maven { url "https://repo.spring.io/snapshot" }
-  ...  
+    ...
+    maven {
+        url "http://161.35.175.46:8081/repository/maven-releases/"
+        credentials {
+            username = "<NexusUser>"
+            password = "<NexusPassword>"
+        }
+    }
 }
-...
+```
+> you can use *jenkins/jenkins* as credentials until you get the definitive ones. Bear in mind that the credentials are shown here in the *build.gradle* fle only for academic purposes. In a real project those should be stored in a a separate file (*gradle.properties*) and **not** shared.
 
+then, add *JCL-Base* as a dependency:
+
+```
 dependencies {
 ...
-    implementation 'com.nchain.jcl:0.0.1'
+implementation 'com.nchain.jcl:jcl-base:0.0.1'
+implementation 'com.nchain.jcl:jcl-net:0.0.1'
 ...
 }
-````
 
-If you are using *maven*, you need to configure the access to the *nChain* maven repository, and add the dependency 
-in your project in your *pom.xml*
+```
 
-````
-asda
-````
+### in a *Maven* project
+> COMMING SOON...
+
 
 *JCLY* uses *logback* as loging system. In order to log the outut of the library, you need to add a *logback.xml* file 
 into your classpath:
@@ -156,9 +257,9 @@ into your classpath:
 </configuration>
 ````
 
-# Streaming:
+## Streaming:
 
-##Simple connection:
+### Simple connection:
 
 The following example is just an example of how the connection is performed. We get a reference to the "P2P"
 service from the *P2PBuilder* (specifying an identifier that is mostly used for logging), and then we start it. 
@@ -166,11 +267,12 @@ The service wil run in a different Thread, so all the Streaming services will be
 our app performs other actions. In the example below though, the service will automaticallu stop after starting.
 
 ````
-P2P p2p = new P2PBuilder("testing").build();
+P2P p2p = P2P.builder("testing").build();
 p2p.start(); // asynchronous...
 // Do something useful here...
 p2p.stop();
 ````
+
 
 The output of the previous example:
 
@@ -203,10 +305,10 @@ Configuration (in this specific example, the port number for BSV [main Net] is 8
 
 ## Connection and basic streaming
 
-In the following example, we are streaming some events: The *P2P* Services contains a *EVENTS* reference, which itself 
+In the following example, we are streaming some events: The *P2P* object contains a *EVENTS* reference, which itself 
 contains different references to different types of Events (Events related to Peers, to Messages, etc). 
 We select the type of Event we are interested in, and then we add a callback by using the method *forEach* (in a similar 
-way as the Java Streams work).
+way as the Java *Streams* work).
 
 ````
 P2P p2p = new P2PBuilder("testing").build();
@@ -222,7 +324,7 @@ Thread.sleep(5_000);
 p2p.stop();
 ````
 
-The parameter to the "forEach" methods is just an Event Object, which contains different information depending on the 
+The parameter to the "forEach" methods is just an *Event* Object, which contains different information depending on the 
 event itself. In this example we are just printing its content to the console, so the output for the previous code is 
 as follows:
 
@@ -252,7 +354,7 @@ Event[Peer Disconnected]: 167.99.92.186/167.99.92.186:8333: DISCONNECTED_BY_LOCA
 Event[Peer Disconnected]: 159.65.152.200/159.65.152.200:8333: DISCONNECTED_BY_LOCAL
 ````
 
-## Basic Customization and fine-tuning
+### Basic Customization and fine-tuning
 
 The Configuration we use in the *P2P* Service can be changed in several ways, in this chapter we'll explain how to do a
 very basic configuration changes, modifying some values:
@@ -263,7 +365,7 @@ very basic configuration changes, modifying some values:
 * other network parameters...
 
 
-In the next example, we are connecting to a different network and changing the range of peers [10,20].
+Here we are connecting to a different network and changing the range of peers to [10,20].
 
 ````
 ProtocolConfig config = new ProtocolBSVStnConfig(); // Different Network!!!
@@ -274,9 +376,9 @@ P2P p2p = new P2PBuilder("testing")
               .build();
 ...
 ````
-In the previous exampe, we'v e used a diffrent Class (*ProtocolBSVStnConfig*), which is a built-in class that already 
-contains the configuration values to connect to the *Stress Net* in BSV. But you don´´ have to use a new class, you can 
-still use the original class for *BSV [main Net]* and change the parameters on the fly:
+In the previous exampe, we've used a different Class (*ProtocolBSVStnConfig*), which is a built-in class that already 
+contains the configuration values to connect to the *Stress Net* in BSV. For test purposes, you can 
+also use the original class for *BSV [main Net]* and change the parameters on the fly:
 
 ````
 ...
@@ -286,11 +388,13 @@ ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder()
                     .protocolVersion(ProtocolVersion.CURRENT.getBitcoinProtocolVersion())
                     .services(ProtocolServices.NODE_BLOOM.getProtocolServices())
                     .build();
-...
+P2P p2p = new P2PBuilder("testing")
+              .config(config)
+              ...                    
 
 ````
 
-## Events Handling
+### Events Handling
 
 Each Event is streamed through a callback that we define in the *forEach* method. In previous examples we only printed 
 its content to the console, but we can implement any kind of logic. In the following example, we print an specific message 
@@ -307,9 +411,11 @@ void onPeerHandshaked(PeerHandshakedEvent event) {
 ...
 ````
 
+> You can check that the parameter of the method is an instance of the *PeerHandshakedEvent* class. Each callback has a different *event* parameter, which varies according to the Event.
+> 
 > See the *Reference* for a Complete List of all the Events you stream and listen to.
 
-## Status Streaming
+### Status Streaming
 
 Just by listening to the right events, the application can keep track of the number of Peers connected, messages 
 exchanges, etc. Most of the time, this is useful information that can be used to trigger other functions or flows 
@@ -325,7 +431,7 @@ system. These *State* Events are triggered on a frequency basis, which must be s
 Here is an example:
 
 ````
-P2P p2p = new P2PBuilder("testing")
+P2P p2p = P2P.builder("testing")
               .publishStates(Duration.ofSeconds(5)) // We get notified every 5 seconds
               .build();
 p2p.EVENTS.STATE.ALL.forEach(System.out::println);  // we print the State
@@ -355,10 +461,10 @@ Event Objects to get all the information we need from them.
 
 > All the *State* Events, along with the rest of Events, are described in the **Reference** Section 
 
-# Requests
+## Requests
 
 In *JCYL* you can stream and listen to *Events*, but all the internals about the communication with other Peers are managed behind
-the scenes, without external intervention. But in some scenarios, an Application might need to perform specific actions,
+the scenes, without external intervention. But in some scenarios, an Application might need to *React* and perform specific actions,
 like:
 
  * Connect to an specific Peer
@@ -372,8 +478,7 @@ These operations and more are performend by *submiting* *Requests* to the *P2P* 
 Example:
 
 ````
-P2P p2p = new P2PBuilder("testing")
-              .build();
+P2P p2p = P2P.builder("testing").build();
 p2p.start();
 ....
 // We connect to an specific Peer
@@ -386,19 +491,19 @@ p2p.stop();
 
 ````
 
-In a similar way as wth the *Events* the *Requests* are also broken down into different categories depending on their 
+In a similar way as with the *Events*, the *Requests* are also broken down into different categories depending on their 
 use case, and all of them require a call to the *submit()* method in order to run.
 
-It's important to notice that submitting a Request does *Not* guarantee that the Action will be performed, since 
+It's important to notice that submitting a Request does **Not** guarantee that the Action will be performed, since 
 the *P2P* Service will perform its own verifications before that. In any case, in order to check whether the action 
 has been performed or not, you can listen to those Events that might confirm/deny that (if you request to connect to
-a Peer, you can also listen to the *PeerHandshakedEvent* to verify that the Request has gone through).
+a Peer, you can also listen to the *.EVENTS.PEERS.CONNECTED* to verify that the Request has gone through).
 
 
 
-# Detailed View and advance-configuration:
+## Detailed View and advance-configuration:
 
-*JCL* follows a modular architecture, composed of multiple components called *Handlers*, each 
+*JCL-Net* follows a modular architecture, composed of multiple components called *Handlers*, each 
 one of them implementing a different functionality. Some of these *Handlers* are designed as *Default 
 handlers* and are mandatory, since critical parts of the *Bitcoin protocol* would be missing 
 without them.
@@ -443,12 +548,12 @@ The *Custom* Handlers built-in in *JCL* are the following:
  
  > An specific chapter about *Block Downloading* with more details is provided in this documentation.
 
-# Advance Configuration (fine-tunning):
+## Advance Configuration (fine-tunning):
 
 > PENDING...
 
 
-# Block Downloading
+## Block Downloading
 
 Downloading a Block can be done by the *BlockDownloader* Handler. This handler is already provided by *JCL*, so no additional
 work is needed. The process to download a Block (or Blocks) is as follows:

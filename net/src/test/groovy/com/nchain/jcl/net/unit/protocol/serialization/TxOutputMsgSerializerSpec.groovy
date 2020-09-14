@@ -2,8 +2,8 @@ package com.nchain.jcl.net.unit.protocol.serialization
 
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
-import com.nchain.jcl.net.protocol.messages.TxOutputMessage
-import com.nchain.jcl.net.protocol.serialization.TxOutputMessageSerializer
+import com.nchain.jcl.net.protocol.messages.TxOutputMsg
+import com.nchain.jcl.net.protocol.serialization.TxOutputMsgSerializer
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
 import com.nchain.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
@@ -24,7 +24,7 @@ import spock.lang.Specification
  * from another source that we trust (in this case the Java BitcoinJ library). So we serialize/deserialize some
  * messages with out code and compare the results with that reference.
  */
-class TxOutputMessageSerializerSpec extends Specification {
+class TxOutputMsgSerializerSpec extends Specification {
 
     public static final String REF_MSG = "00f2052a01000000202b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6"
 
@@ -38,14 +38,14 @@ class TxOutputMessageSerializerSpec extends Specification {
             DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
-            TxOutputMessageSerializer serializer = TxOutputMessageSerializer.getInstance()
-            TxOutputMessage  message
+            TxOutputMsgSerializer serializer = TxOutputMsgSerializer.getInstance()
+            TxOutputMsg message
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_MSG), byteInterval, delayMs)
         when:
             message = serializer.deserialize(context, byteReader)
         then:
 
-            message.getMessageType() == TxOutputMessage.MESSAGE_TYPE
+            message.getMessageType() == TxOutputMsg.MESSAGE_TYPE
             message.txValue == COIN_VALUE
             message.pk_script == REF_BITES
         where:
@@ -61,8 +61,8 @@ class TxOutputMessageSerializerSpec extends Specification {
             SerializerContext context = SerializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
-            TxOutputMessageSerializer serializer = TxOutputMessageSerializer.getInstance()
-            TxOutputMessage txOutputMessage = TxOutputMessage.builder().txValue(COIN_VALUE).pk_script(REF_BITES).build();
+            TxOutputMsgSerializer serializer = TxOutputMsgSerializer.getInstance()
+            TxOutputMsg txOutputMessage = TxOutputMsg.builder().txValue(COIN_VALUE).pk_script(REF_BITES).build();
 
             String messageSerializedBytes
         when:

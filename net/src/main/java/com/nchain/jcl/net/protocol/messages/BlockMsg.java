@@ -18,7 +18,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 /**
  * <p>A block is a group of transactions, and is one of the fundamental data structures of the Bitcoin system.
- * * It records a set of {@link TransactionMsg}s together with some data that links it into a place in the global block
+ * * It records a set of {@link TxMsg}s together with some data that links it into a place in the global block
  * * chain, and proves that a difficult calculation was done over its contents. <p/>
  * *
  */
@@ -29,11 +29,11 @@ public class BlockMsg extends Message {
     public static final String MESSAGE_TYPE = "Block";
 
     private final BlockHeaderMsg blockHeader;
-    private final List<TransactionMsg>  transactionMsg;
+    private final List<TxMsg>  transactionMsg;
 
     // Constructor (specifying the Block Header and All Txs
     @Builder
-    protected BlockMsg(BlockHeaderMsg blockHeader, List<TransactionMsg> transactionMsgs) {
+    protected BlockMsg(BlockHeaderMsg blockHeader, List<TxMsg> transactionMsgs) {
         this.blockHeader = blockHeader;
         this.transactionMsg = transactionMsgs;
         init();
@@ -43,7 +43,7 @@ public class BlockMsg extends Message {
     @Override
     protected long calculateLength() {
         long length = blockHeader.calculateLength();
-        for (TransactionMsg transaction : transactionMsg)
+        for (TxMsg transaction : transactionMsg)
             length += transaction.getLengthInBytes();
         return length;
     }

@@ -19,10 +19,10 @@ public class PartialBlockTXsMsg extends Message {
 
     public static final String MESSAGE_TYPE = "PartialBlockTxs";
     private BlockHeaderMsg blockHeader;
-    private List<TransactionMsg> txs;
+    private List<TxMsg> txs;
 
     @Builder
-    public PartialBlockTXsMsg(BlockHeaderMsg blockHeader, List<TransactionMsg> txs) {
+    public PartialBlockTXsMsg(BlockHeaderMsg blockHeader, List<TxMsg> txs) {
         this.blockHeader = blockHeader;
         this.txs = txs;
         init();

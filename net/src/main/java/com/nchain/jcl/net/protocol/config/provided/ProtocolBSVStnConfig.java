@@ -15,7 +15,7 @@ import lombok.Getter;
  * Stores the Configuration needed to run the Default P2P Handlers in the BSV STN Network.
  */
 @Getter
-public class ProtocolBSVStnConfig extends ProtocolConfigBase implements ProtocolConfig {
+public class ProtocolBSVStnConfig extends ProtocolConfigImpl implements ProtocolConfig {
 
     // Specific values for BSV STN Net:
 

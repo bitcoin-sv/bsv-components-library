@@ -10,6 +10,7 @@ package com.nchain.jcl.base.tools.crypto;
 
 import org.spongycastle.crypto.digests.RIPEMD160Digest;
 
+import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 

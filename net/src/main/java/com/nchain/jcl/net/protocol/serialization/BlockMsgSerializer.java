@@ -5,7 +5,7 @@ import com.nchain.jcl.base.tools.bytes.ByteArrayWriter;
 import com.nchain.jcl.base.tools.bytes.HEX;
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.BlockMsg;
-import com.nchain.jcl.net.protocol.messages.TransactionMsg;
+import com.nchain.jcl.net.protocol.messages.TxMsg;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.net.protocol.serialization.common.MessageSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext;
@@ -53,14 +53,14 @@ public class BlockMsgSerializer implements MessageSerializer<BlockMsg> {
         int numTxsForEachLog = (percentageLog * numTxs) / 100;
         int accumulateNumTxs = 0;
 
-        List<TransactionMsg> transactionMsgList = new ArrayList<>();
+        List<TxMsg> transactionMsgList = new ArrayList<>();
         for (int i = 0; i < numTxs; i++) {
             if ((accumulateNumTxs++) > numTxsForEachLog) {
                 accumulateNumTxs = 0;
                 int progress = (i * 100) / numTxs;
                 log.trace("Deserializing Block " + blockHash + " " + progress + "% Done...");
             }
-            transactionMsgList.add(TransactionMsgSerializer.getInstance().deserialize(context, byteReader));
+            transactionMsgList.add(TxMsgSerializer.getInstance().deserialize(context, byteReader));
         }
         return BlockMsg.builder().blockHeader(blockHeader).transactionMsgs(transactionMsgList).build();
     }
@@ -68,8 +68,8 @@ public class BlockMsgSerializer implements MessageSerializer<BlockMsg> {
     @Override
     public void serialize(SerializerContext context, BlockMsg blockMsg, ByteArrayWriter byteWriter) {
         BlockHeaderMsgSerializer.getInstance().serialize(context, blockMsg.getBlockHeader(), byteWriter);
-        for (TransactionMsg transactionMsg : blockMsg.getTransactionMsg()) {
-            TransactionMsgSerializer.getInstance().serialize(context, transactionMsg, byteWriter);
+        for (TxMsg transactionMsg : blockMsg.getTransactionMsg()) {
+            TxMsgSerializer.getInstance().serialize(context, transactionMsg, byteWriter);
         }
     }
 }

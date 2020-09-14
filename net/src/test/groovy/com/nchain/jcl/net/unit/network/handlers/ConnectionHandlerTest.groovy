@@ -10,7 +10,7 @@ import com.nchain.jcl.base.tools.events.EventBus
 import com.nchain.jcl.base.tools.files.FileUtilsBuilder
 import com.nchain.jcl.base.tools.thread.ThreadUtils
 import com.nchain.jcl.net.network.config.NetworkConfig
-import com.nchain.jcl.net.network.config.NetworkConfigDefault
+import com.nchain.jcl.net.network.config.provided.NetworkDefaultConfig
 import com.nchain.jcl.net.network.handlers.NetworkHandler
 import com.nchain.jcl.net.network.handlers.NetworkHandlerImpl
 import groovy.util.logging.Slf4j
@@ -37,7 +37,7 @@ class ConnectionHandlerTest extends Specification {
             runtimeConfig = runtimeConfig.toBuilder()
                     .fileUtils(new FileUtilsBuilder().build())
                     .build()
-        NetworkConfig networkConfig = new NetworkConfigDefault()
+        NetworkConfig networkConfig = new NetworkDefaultConfig()
 
             // Each one has its own Event-Bus, for events and callbacks handling...
             EventBus serverEventBus = EventBus.builder().executor(serverExecutor).build()
@@ -103,7 +103,7 @@ class ConnectionHandlerTest extends Specification {
 
             // Basic Configuration...
             RuntimeConfig runtimeConfig = new RuntimeConfigDefault()
-            NetworkConfig networkConfig = new NetworkConfigDefault()
+            NetworkConfig networkConfig = new NetworkDefaultConfig()
 
             // Event-Bus, for events and callbacks handling...
             EventBus clientEventBus = EventBus.builder().executor(clientExecutor).build()

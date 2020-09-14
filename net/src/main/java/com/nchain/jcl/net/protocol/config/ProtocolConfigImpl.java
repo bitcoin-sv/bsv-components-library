@@ -2,7 +2,7 @@ package com.nchain.jcl.net.protocol.config;
 
 import com.nchain.jcl.base.tools.handlers.HandlerConfig;
 import com.nchain.jcl.net.network.config.NetworkConfig;
-import com.nchain.jcl.net.network.config.NetworkConfigDefault;
+import com.nchain.jcl.net.network.config.provided.NetworkDefaultConfig;
 import com.nchain.jcl.net.protocol.handlers.blacklist.BlacklistHandler;
 import com.nchain.jcl.net.protocol.handlers.blacklist.BlacklistHandlerConfig;
 import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandler;
@@ -30,7 +30,7 @@ import static com.google.common.base.Preconditions.checkArgument;
  * @date 2020-08-18
  */
 
-public class ProtocolConfigBase implements ProtocolConfig {
+public class ProtocolConfigImpl implements ProtocolConfig {
 
     @Getter
     protected String id;
@@ -51,7 +51,7 @@ public class ProtocolConfigBase implements ProtocolConfig {
     // Network Configuration: default
     @Getter
     @Builder.Default
-    protected NetworkConfig networkConfig = new NetworkConfigDefault();
+    protected NetworkConfig networkConfig = new NetworkDefaultConfig();
 
     // We store some references to each Handler Configuration Builders. They contain already
     // default values for its variables, and others can be overwritten by child-classes
@@ -89,7 +89,7 @@ public class ProtocolConfigBase implements ProtocolConfig {
     protected Map<String, HandlerConfig> handlersConfig = new HashMap<>();
 
     @Builder(toBuilder = true)
-    public ProtocolConfigBase(
+    public ProtocolConfigImpl(
                               // Convenience Properties:
                               String id,
                               Long magicPackage,

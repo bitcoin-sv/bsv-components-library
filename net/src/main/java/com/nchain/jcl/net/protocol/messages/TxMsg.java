@@ -1,6 +1,9 @@
 package com.nchain.jcl.net.protocol.messages;
 
 import com.google.common.collect.ImmutableList;
+import com.nchain.jcl.base.domain.api.base.Tx;
+import com.nchain.jcl.base.domain.bean.base.TxBean;
+import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 import lombok.Builder;
 import lombok.Data;
@@ -8,6 +11,7 @@ import lombok.EqualsAndHashCode;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author m.jose@nchain.com
@@ -37,7 +41,7 @@ import java.util.Optional;
  */
 @Data
 @EqualsAndHashCode
-public class TransactionMsg extends Message {
+public class TxMsg extends Message {
 
     public static final String MESSAGE_TYPE = "tx";
 
@@ -53,13 +57,13 @@ public class TransactionMsg extends Message {
 
     private long version;
     private VarIntMsg tx_in_count;
-    private List<TxInputMessage> tx_in;
+    private List<TxInputMsg> tx_in;
     private VarIntMsg tx_out_count;
-    private List<TxOutputMessage> tx_out;
+    private List<TxOutputMsg> tx_out;
     private long lockTime;
 
     @Builder
-    protected TransactionMsg(Optional<HashMsg> hash, long version,  List<TxInputMessage> tx_in,  List<TxOutputMessage> tx_out, long lockTime) {
+    protected TxMsg(Optional<HashMsg> hash, long version, List<TxInputMsg> tx_in, List<TxOutputMsg> tx_out, long lockTime) {
         this.hash = hash;
         this.version = version;
         this.tx_in = ImmutableList.copyOf(tx_in);
@@ -74,10 +78,10 @@ public class TransactionMsg extends Message {
     @Override
     protected long calculateLength() {
         long length = 4 + this.tx_in_count.getLengthInBytes() +  this.tx_out_count.getLengthInBytes()+ 4 ;
-        for(TxInputMessage txIn : this.tx_in)
+        for(TxInputMsg txIn : this.tx_in)
             length += txIn.getLengthInBytes();
 
-        for(TxOutputMessage tx_out_count : this.tx_out)
+        for(TxOutputMsg tx_out_count : this.tx_out)
             length += tx_out_count.getLengthInBytes();
         return length;
     }
@@ -108,5 +112,17 @@ public class TransactionMsg extends Message {
             result.append(tx_out.get(i) + "\n");
         }
         return result.toString();
+    }
+
+    /** Returns a BitcoinObject containing the same information */
+    public Tx toBean() {
+        TxBean.TxBeanBuilder txBuilder = Tx.builder()
+                .lockTime(lockTime)
+                .version(version)
+                .inputs(tx_in.stream().map(i -> i.toBean()).collect(Collectors.toList()))
+                .outputs(tx_out.stream().map(o -> o.toBean()).collect(Collectors.toList()));
+        if (hash.isPresent())
+            txBuilder.hash(Sha256Wrapper.wrap(hash.get().getHashBytes()));
+        return txBuilder.build();
     }
 }

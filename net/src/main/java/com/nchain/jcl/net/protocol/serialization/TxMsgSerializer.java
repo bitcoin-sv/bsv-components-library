@@ -22,20 +22,20 @@ import java.util.Optional;
  *
  * A Serializer for instance of {@Link TransactionMsg} messages
  */
-public class TransactionMsgSerializer implements MessageSerializer<TransactionMsg> {
-    private static TransactionMsgSerializer instance;
+public class TxMsgSerializer implements MessageSerializer<TxMsg> {
+    private static TxMsgSerializer instance;
 
     // Reference to singleton instances used during serialization/Deserialization. Defined here for performance
     private static VarIntMsgSerializer          varIntMsgSerializer         = VarIntMsgSerializer.getInstance();
-    private static TxInputMessageSerializer     txInputMessageSerializer    = TxInputMessageSerializer.getInstance();
-    private static TxOutputMessageSerializer    txOutputMessageSerializer   = TxOutputMessageSerializer.getInstance();
+    private static TxInputMsgSerializer txInputMessageSerializer    = TxInputMsgSerializer.getInstance();
+    private static TxOutputMsgSerializer txOutputMessageSerializer   = TxOutputMsgSerializer.getInstance();
 
-    private TransactionMsgSerializer() {}
+    private TxMsgSerializer() {}
 
-    public static TransactionMsgSerializer getInstance(){
+    public static TxMsgSerializer getInstance(){
         if(instance == null) {
-            synchronized (TransactionMsgSerializer.class) {
-                instance = new TransactionMsgSerializer();
+            synchronized (TxMsgSerializer.class) {
+                instance = new TxMsgSerializer();
             }
         }
 
@@ -44,7 +44,7 @@ public class TransactionMsgSerializer implements MessageSerializer<TransactionMs
 
     // TODO: CHECK PERFORMANCE WHEN CALCULATING THE HASH!!!!!!!!
     @Override
-    public TransactionMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
+    public TxMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
 
 
         // We deserialize the Tx the usual way...
@@ -52,7 +52,7 @@ public class TransactionMsgSerializer implements MessageSerializer<TransactionMs
         long version = byteReader.readUint32();
         VarIntMsg txInCount = varIntMsgSerializer.deserialize(context, byteReader);
         int txInCountValue = (int) txInCount.getValue();
-        List<TxInputMessage> txInputMessage = new ArrayList<>();
+        List<TxInputMsg> txInputMessage = new ArrayList<>();
 
         for(int i =0 ; i< txInCountValue; i++) {
             txInputMessage.add(txInputMessageSerializer.deserialize(context,byteReader));
@@ -60,7 +60,7 @@ public class TransactionMsgSerializer implements MessageSerializer<TransactionMs
 
         VarIntMsg txOutCount = varIntMsgSerializer.deserialize(context, byteReader);
         int txOutCountValue = (int) txOutCount.getValue();
-        List<TxOutputMessage> txOutputMessage = new ArrayList<>();
+        List<TxOutputMsg> txOutputMessage = new ArrayList<>();
 
         for(int i =0 ; i< txOutCountValue; i++) {
             txOutputMessage.add(txOutputMessageSerializer.deserialize(context, byteReader));
@@ -68,7 +68,7 @@ public class TransactionMsgSerializer implements MessageSerializer<TransactionMs
         byteReader.waitForBytes(4);
         long locktime = byteReader.readUint32();
 
-        TransactionMsg.TransactionMsgBuilder txBuilder =  TransactionMsg.builder()
+        TxMsg.TxMsgBuilder txBuilder =  TxMsg.builder()
                 .version(version)
                 .tx_in(txInputMessage)
                 .tx_out(txOutputMessage)
@@ -84,7 +84,7 @@ public class TransactionMsgSerializer implements MessageSerializer<TransactionMs
                     .build();
             ByteArrayWriter writer = new ByteArrayWriter();
 
-            TransactionMsg tx = txBuilder.build();
+            TxMsg tx = txBuilder.build();
             serialize(serializerContext, tx, writer);
 
             byte[] txBytes = writer.reader().getFullContentAndClose();
@@ -95,19 +95,19 @@ public class TransactionMsgSerializer implements MessageSerializer<TransactionMs
             txBuilder.hash(Optional.of(txHash));
         } else txBuilder.hash(Optional.empty());
 
-        TransactionMsg result = txBuilder.build();
+        TxMsg result = txBuilder.build();
         return result;
     }
 
     @Override
-    public void serialize(SerializerContext context, TransactionMsg message, ByteArrayWriter byteWriter) {
+    public void serialize(SerializerContext context, TxMsg message, ByteArrayWriter byteWriter) {
         byteWriter.writeUint32LE(message.getVersion());
         varIntMsgSerializer.serialize(context, message.getTx_in_count(), byteWriter);
-        for(TxInputMessage txInputMessage: message.getTx_in()) {
+        for(TxInputMsg txInputMessage: message.getTx_in()) {
             txInputMessageSerializer.serialize(context, txInputMessage, byteWriter);
         }
         VarIntMsgSerializer.getInstance().serialize(context, message.getTx_out_count(), byteWriter);
-        for(TxOutputMessage txOutputMessage: message.getTx_out()){
+        for(TxOutputMsg txOutputMessage: message.getTx_out()){
             txOutputMessageSerializer.serialize(context,txOutputMessage, byteWriter);
         }
         byteWriter.writeUint32LE(message.getLockTime());

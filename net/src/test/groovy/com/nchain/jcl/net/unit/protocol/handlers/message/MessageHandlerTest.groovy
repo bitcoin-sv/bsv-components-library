@@ -2,7 +2,7 @@ package com.nchain.jcl.net.unit.protocol.handlers.message
 
 import com.nchain.jcl.net.network.PeerAddress
 import com.nchain.jcl.net.network.config.NetworkConfig
-import com.nchain.jcl.net.network.config.NetworkConfigDefault
+import com.nchain.jcl.net.network.config.provided.NetworkDefaultConfig
 import com.nchain.jcl.net.network.handlers.NetworkHandler
 import com.nchain.jcl.net.network.handlers.NetworkHandlerImpl
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
@@ -57,7 +57,7 @@ class MessageHandlerTest extends Specification {
             ProtocolConfig serverProtocolConfig = new ProtocolBSVMainConfig().toBuilder().port(0).build()
             ProtocolConfig clientProtocolConfig = new ProtocolBSVMainConfig().toBuilder().port(0).build();
 
-            NetworkConfig networkConfig = new NetworkConfigDefault()
+            NetworkConfig networkConfig = new NetworkDefaultConfig()
 
             // Server Configuration:
             String serverID = "server"
