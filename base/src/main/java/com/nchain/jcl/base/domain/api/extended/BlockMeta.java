@@ -1,5 +1,7 @@
 package com.nchain.jcl.base.domain.api.extended;
 
+import com.nchain.jcl.base.domain.bean.extended.BlockMetaBean;
+
 /**
  * @author Steve Shadders
  * @author i.fernandez@nchain.com
@@ -13,4 +15,8 @@ package com.nchain.jcl.base.domain.api.extended;
 public interface BlockMeta {
     int getTxCount();
     long getBlockSize();
+
+    // Convenience methods to get a reference to the Builder
+    static BlockMetaBean.BlockMetaBeanBuilder builder() { return BlockMetaBean.builder(); }
+    default BlockMetaBean.BlockMetaBeanBuilder toBuilder() { return ((BlockMetaBean) this).toBuilder();}
 }

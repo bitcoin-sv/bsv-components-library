@@ -1,6 +1,7 @@
 package com.nchain.jcl.base.domain.api.extended;
 
 import com.nchain.jcl.base.domain.api.base.BlockHeader;
+import com.nchain.jcl.base.domain.bean.extended.ChainInfoBean;
 
 import java.math.BigInteger;
 
@@ -56,4 +57,8 @@ public interface ChainInfo {
      * @return the total size of the chain in bytes. If unknown, returns -1.
      */
     default long getTotalChainSize() { return -1; }
+
+    // Convenience methods to get a reference to the Builder:
+    static ChainInfoBean.ChainInfoBeanBuilder builder() { return ChainInfoBean.builder();}
+    default ChainInfoBean.ChainInfoBeanBuilder toBuilder() { return ((ChainInfoBean) this).toBuilder();}
 }

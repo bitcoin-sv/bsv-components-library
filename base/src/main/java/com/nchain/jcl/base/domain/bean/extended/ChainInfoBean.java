@@ -1,6 +1,7 @@
 package com.nchain.jcl.base.domain.bean.extended;
 
 import com.nchain.jcl.base.domain.api.base.BlockHeader;
+import com.nchain.jcl.base.domain.api.extended.ChainInfo;
 import lombok.Builder;
 import lombok.Value;
 
@@ -16,7 +17,7 @@ import java.math.BigInteger;
  */
 @Builder(toBuilder = true)
 @Value
-public class ChainInfoBean {
+public class ChainInfoBean implements ChainInfo {
     private BlockHeader header;
     private BigInteger chainWork;
     private int height;
