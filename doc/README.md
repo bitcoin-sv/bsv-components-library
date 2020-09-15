@@ -32,9 +32,14 @@ All the libraries within *JCL* make up a hierarchy dependency tree, as shown in 
 
 ## How to import *JCL-Base*
 
+> IMPORTANT: BEfore importing **JCL**into your project, check out the last version numbers in the Nexus Server, so you use the most recent one:
+> 
+> http://161.35.175.46:8081/#browse/browse:maven-releases
+
+
 ### in a *Gradle* project
 
-Edit your *build.grtadle* file and include the definition of the Repository where *JCL-Base* is defined:
+Edit your *build.gradle* file and include the definition of the Repository:
 
 ```
 repositories {
@@ -50,7 +55,7 @@ repositories {
 ```
 > you can use *jenkins/jenkins* as credentials until you get the definitive ones. Bear in mind that the credentials are shown here in the *build.gradle* fle only for academic purposes. In a real project those should be stored in a a separate file (*gradle.properties*) and **not** shared.
 
-then, add *JCL-Base* as a dependency:
+then, add the dependency:
 
 ```
 dependencies {
@@ -62,8 +67,59 @@ implementation 'com.nchain.jcl:jcl-base:0.0.1'
 ```
 
 ### in a *Maven* project
-> COMMING SOON...
 
+You need to define a new Repository in your *pom.xml* file:
+```
+<repositories>
+	...
+	<repository>
+            <!--
+            The username and password are retrieved by looking for the Repository
+            Id in the $HOME/.m2/settings.xml file.
+            -->
+            <!-- id Must Match the Unique Identifier in settings.xml -->
+            <id>nChain-Nexus-Repository</id>
+            <url>http://161.35.175.46:8081/repository/maven-releases/</url>
+            <releases/>
+        </repository>
+	...
+</repositories>
+```
+
+then, add the dependency:
+
+```
+<dependencies>
+	...
+	<dependency>
+      <groupId>com.nchain.jcl</groupId>
+      <artifactId>jcl-base</artifactId>
+      <version>0.0.1</version>
+   </dependency>
+	...
+</dependencies>
+
+```
+
+And you must store the credentials in the *settings.xml* file:
+
+```
+<settings>
+  <servers>
+    ...
+    <server>
+      <id>nChain-Nexus-Repository</id>
+      <username>jenkins</username>
+      <password>jenkins</password>
+    </server>
+    ...
+  </servers>
+</settings>
+```
+
+> NOTE That the value of the **id** field must match the value of the **id** field in the *pom.xml* file.
+
+ 
 ## How to use *JCL-Base*
 
 
@@ -72,8 +128,8 @@ implementation 'com.nchain.jcl:jcl-base:0.0.1'
  * The Objects containing information about *Transactions*, *Inputs*, *Outputs*, etc, are called "Bitcoin Objects*
  * A *Bitcoin Object* is created by using a *Builder* (a helper class)
  * A "Bitcoin Object" is **Immutable**. Once created, it cannot be modified
- * If you need to modify a *Bitcoin Object*, then you murt crate a copy, change whatever information you want and *build* a new *bitcoin Object* from it.
- * A *Bitcoin Object* can be crated directly from a *raw surce* (a Byte Array or an Hexadecimal representation of it)
+ * If you need to modify a *Bitcoin Object*, then you must crate a copy, change whatever information you want and *build* a new *bitcoin Object* from it.
+ * A *Bitcoin Object* can be created directly from a *raw source* (a Byte Array or an Hexadecimal representation of it)
 
 This is an example of how to create a *Transaction* from a *Byte Array* in *Hexadecimal* format:
 
@@ -90,7 +146,7 @@ byte[] TX_BYTES = ...
 Tx tx = Tx.builder(TX_BYTES).build();
 ```
 
-you can also make any changes you like before calling the *build()* method. And if you want to make change to an existing *Tx* object, you need to create a new one doing just that:
+you can also make any changes you like before calling the *build()* method. And if you want to make change to an existing *Tx* object, you need to create a new one before that:
 
 ```
 Tx originalTx = ...
@@ -143,9 +199,9 @@ Tx tx = Tx.builder()
 
 ### Serializing *Bitcoin Objects*
 
-Any *Bitcoin Objet* can be Serialzed or Deserialized. The way to do it is quite straightforward, and it goes by using the *BitcoinSerialzierFactory* class.
+Any *Bitcoin Objet* can be Serialzed or Deserialized. The way to do it is quite straightforward, and it works by using the *BitcoinSerialzierFactory* class.
 
-for example, this is an example of Serialzing a *Transaction Input*, a *Transaction output* and a whole *Transaction*:
+For example, this is an example of Serialzing a *Transaction Input*, a *Transaction output* and a whole *Tranaction*:
 
 ```
 TxInput txInput = ...
@@ -159,7 +215,7 @@ byte[] txSerialzied = BitcoinSerializerFactory.serialize(tx);
 
 ```
 
-The same way, we can *Deserialize*  *raw data* into *Bitcoin Objects*. In this case a *cast* is necessary:
+The same way, we can *Deserialize*  *raw data* into *Bitcoin Objects*. In this case we laso need to specify what class of object we are going to deserialzie and a *cast* is necessary at the end:
 
 ```
 String TX_INPUT_HEX = ...
@@ -172,17 +228,17 @@ Tx tx = (Tx) BitcoinSerializerFactory.deserialize(Tx.class, TX_INPUT_HEX);
 
 ```
 
-In most ocassions, you won't need to deserilize small part like *inuts* or *oututs*. but whole *transactions* instad. In those cases, it's much easier to use the "load()" method, as it was shown at the beggining of this chapter:
+In most ocassions, you won't need to deserilize small parts like *inputs* or *oututs*. but whole *transactions* instead. In those cases, it's much easier to use the *buider*, as it was shown at the beggining of this chapter:
 
 ```
 String TX_HEX = ...
-Tx tx = Tx.load(TX_HEX).build();
+Tx tx = Tx.builder(TX_HEX).build();
 ```
 
 
 # JCL-Net
 
-The *JCL-Net* Module provides capabilities to Connect to a Blockchain network (you can choose from a set of different possible networks), and also *listen* to whatever hapens in those Networks and *react* to it.
+The *JCL-Net* Module provides capabilities to Connect to a Blockchain network (you can choose from a set of different possible networks), and also **listen** to whatever hapens in those Networks and **react** to it.
 
 
 The 3 main features provided by *JCL* are:

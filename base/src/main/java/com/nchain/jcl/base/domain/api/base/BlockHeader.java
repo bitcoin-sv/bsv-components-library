@@ -28,9 +28,9 @@ public interface BlockHeader extends BitcoinObject, HashableObject {
     long getNonce();
 
     // Convenience methods to get a reference to a Builder, so we can build instances of BlockHeader.
-    static BlockHeaderBean.BlockHeaderBeanBuilder toBuilder() { return BlockHeaderBean.builder();}
-    static BlockHeaderBean.BlockHeaderBeanBuilder toBuilder(byte[] bytes) { return BlockHeaderBean.toBuilder(bytes);}
-    static BlockHeaderBean.BlockHeaderBeanBuilder toBuilder(String hex) { return BlockHeaderBean.toBuilder(hex);}
+    static BlockHeaderBean.BlockHeaderBeanBuilder builder() { return BlockHeaderBean.builder();}
+    static BlockHeaderBean.BlockHeaderBeanBuilder builder(byte[] bytes) { return BlockHeaderBean.toBuilder(bytes);}
+    static BlockHeaderBean.BlockHeaderBeanBuilder builder(String hex) { return BlockHeaderBean.toBuilder(hex);}
 
     /**
      * Returns the difficulty target as a 256 bit value that can be compared to a SHA-256 hash. Inside a block the

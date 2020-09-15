@@ -19,9 +19,11 @@ public class TxIdBlockSerializer implements BitcoinSerializer<TxIdBlock> {
 
     private static TxIdBlockSerializer instance;
 
+    private TxIdBlockSerializer() {}
+
     public static TxIdBlockSerializer getInstance() {
         if (instance == null) {
-            synchronized (instance) {
+            synchronized (TxIdBlockSerializer.class) {
                 instance = new TxIdBlockSerializer();
             }
         }
@@ -45,7 +47,8 @@ public class TxIdBlockSerializer implements BitcoinSerializer<TxIdBlock> {
 
     @Override
     public void serialize(TxIdBlock object, ByteArrayWriter byteWriter) {
-        BitcoinSerializerFactory.serialize( object.getHeader());
+        BitcoinSerializer headerSerializer = BitcoinSerializerFactory.getSerializer(BlockHeader.class);
+        headerSerializer.serialize(object.getHeader(), byteWriter);
         BitcoinSerializerUtils.serializeVarInt(object.getTxids().size(), byteWriter);
         for (int i = 0; i < object.getTxids().size(); i++)
             BitcoinSerializerUtils.serializeHash(object.getTxids().get(i), byteWriter);

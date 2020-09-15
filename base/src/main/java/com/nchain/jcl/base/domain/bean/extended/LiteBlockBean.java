@@ -22,8 +22,8 @@ public class LiteBlockBean extends AbstractBlockBean implements LiteBlock {
     private ChainInfo chainInfo;
 
     @Builder(toBuilder = true)
-    public LiteBlockBean(BlockHeader blockHeader, BlockMeta blockMeta, ChainInfo chainInfo) {
-            this.header = blockHeader;
+    public LiteBlockBean(BlockHeader header, BlockMeta blockMeta, ChainInfo chainInfo) {
+            this.header = header;
             this.blockMeta = blockMeta;
             this.chainInfo = chainInfo;
     }

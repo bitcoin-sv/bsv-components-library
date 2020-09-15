@@ -25,7 +25,7 @@ public class FullBlockBean extends AbstractBlockBean implements FullBlock {
     @Override
     public LiteBlock asLiteBlock() {
         LiteBlock result = LiteBlock.builder()
-                .blockHeader(this.header)
+                .header(this.header)
                 .blockMeta(metaData)
                 .build();
         return result;
