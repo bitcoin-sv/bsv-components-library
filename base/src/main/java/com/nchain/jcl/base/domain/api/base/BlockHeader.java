@@ -31,6 +31,7 @@ public interface BlockHeader extends BitcoinObject, HashableObject {
     static BlockHeaderBean.BlockHeaderBeanBuilder builder() { return BlockHeaderBean.builder();}
     static BlockHeaderBean.BlockHeaderBeanBuilder builder(byte[] bytes) { return BlockHeaderBean.toBuilder(bytes);}
     static BlockHeaderBean.BlockHeaderBeanBuilder builder(String hex) { return BlockHeaderBean.toBuilder(hex);}
+    default BlockHeaderBean.BlockHeaderBeanBuilder toBuilder() { return ((BlockHeaderBean) this).toBuilder();}
 
     /**
      * Returns the difficulty target as a 256 bit value that can be compared to a SHA-256 hash. Inside a block the
