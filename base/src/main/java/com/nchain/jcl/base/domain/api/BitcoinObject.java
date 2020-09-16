@@ -8,6 +8,9 @@ package com.nchain.jcl.base.domain.api;
  * A Base marker interface for a Bitcoin Object.
  */
 public interface BitcoinObject {
+
+    long UNKNOWN_SIZE = Integer.MIN_VALUE;
+
     /**
      * Returns the Size of this Object in Bytes.
      * It represents the number of bytes this objects takes when it's serialized and sent over the wire.
