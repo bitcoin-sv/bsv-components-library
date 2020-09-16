@@ -1,6 +1,7 @@
 package com.nchain.jcl.base.domain.bean.extended;
 
 import com.nchain.jcl.base.domain.api.extended.BlockMeta;
+import com.nchain.jcl.base.domain.bean.BitcoinObjectImpl;
 import lombok.Builder;
 import lombok.Value;
 
@@ -14,7 +15,7 @@ import lombok.Value;
  */
 @Builder(toBuilder = true)
 @Value
-public class BlockMetaBean implements BlockMeta {
+public class BlockMetaBean extends BitcoinObjectImpl implements BlockMeta {
     private int txCount;
     private long blockSize;
 }

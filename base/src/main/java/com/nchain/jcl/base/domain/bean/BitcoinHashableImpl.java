@@ -34,7 +34,7 @@ public class BitcoinHashableImpl extends BitcoinObjectImpl implements HashableOb
     }
 
     /** It returns the value of the "hash" field. If the value is not calculated yet, the calculation is triggered. */
-    public Sha256Wrapper getHash() {
+    public synchronized Sha256Wrapper getHash() {
         if (hash == null) {
             hash = Sha256Wrapper.wrapReversed(Sha256Wrapper.twiceOf(serialize()).getBytes());
         }

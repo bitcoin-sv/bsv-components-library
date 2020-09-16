@@ -22,7 +22,7 @@ public class BitcoinObjectImpl<B> implements BitcoinObject {
 
     // If the Size is not present, then we serialize the object, and update the size.
     @Override
-    public Long getSizeInBytes() {
+    public synchronized Long getSizeInBytes() {
         if (sizeInBytes == null) {
             byte[] serialized = BitcoinSerializerFactory.getSerializer(this.getClass()).serialize(this);
             sizeInBytes = (long) serialized.length;
