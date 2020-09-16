@@ -7,6 +7,7 @@ import com.nchain.jcl.base.domain.bean.BitcoinObjectImpl;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author Steve Shadders
@@ -16,12 +17,20 @@ import lombok.Value;
  * An implementation of a Tx.
  * This class is IMMUTABLE. Instances can be created by using a Lombok generated Builder.
  */
-@Builder(toBuilder = true)
-@AllArgsConstructor
+
 @Value
 public class TxInputBean extends BitcoinObjectImpl implements TxInput {
     private long sequenceNumber;
     private TxOutPoint outpoint;
     private byte[] scriptBytes;
     private Coin value;
+
+    @Builder(toBuilder = true)
+    public TxInputBean(Long sizeInBytes, long sequenceNumber, TxOutPoint outpoint, byte[] scriptBytes, Coin value) {
+        super(sizeInBytes);
+        this.sequenceNumber = sequenceNumber;
+        this.outpoint = outpoint;
+        this.scriptBytes = scriptBytes;
+        this.value = value;
+    }
 }

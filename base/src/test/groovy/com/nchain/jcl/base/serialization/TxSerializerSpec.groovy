@@ -98,7 +98,7 @@ class TxSerializerSpec extends Specification {
 
     def "deserializing TX from Builder"() {
         when:
-            Tx tx = Tx.toBuilder(REF_TX).build()
+            Tx tx = Tx.builder(REF_TX).build()
         then:
             tx.getInputs().size() == TX_NUM_INPUTS
             tx.getOutputs().size() == TX_NUM_OUTPUTS

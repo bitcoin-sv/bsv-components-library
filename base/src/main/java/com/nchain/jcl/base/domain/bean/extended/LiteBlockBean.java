@@ -5,6 +5,7 @@ import com.nchain.jcl.base.domain.api.extended.BlockMeta;
 import com.nchain.jcl.base.domain.api.extended.ChainInfo;
 import com.nchain.jcl.base.domain.api.extended.LiteBlock;
 import com.nchain.jcl.base.domain.bean.base.AbstractBlockBean;
+import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
 import lombok.Builder;
 import lombok.Value;
 
@@ -22,9 +23,9 @@ public class LiteBlockBean extends AbstractBlockBean implements LiteBlock {
     private ChainInfo chainInfo;
 
     @Builder(toBuilder = true)
-    public LiteBlockBean(BlockHeader header, BlockMeta blockMeta, ChainInfo chainInfo) {
-            this.header = header;
-            this.blockMeta = blockMeta;
-            this.chainInfo = chainInfo;
+    public LiteBlockBean(Long sizeInBytes, Sha256Wrapper hash, BlockHeader header, BlockMeta blockMeta, ChainInfo chainInfo) {
+        super(sizeInBytes, hash, header);
+        this.blockMeta = blockMeta;
+        this.chainInfo = chainInfo;
     }
 }

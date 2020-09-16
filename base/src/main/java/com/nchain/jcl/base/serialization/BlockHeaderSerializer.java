@@ -27,6 +27,7 @@ public class BlockHeaderSerializer implements BitcoinSerializer<BlockHeader> {
 
     @Override
     public BlockHeader deserialize(ByteArrayReader byteReader) {
+        long currentReaderPosition = byteReader.getBytesReadCount();
 
         long version = byteReader.readUint32();
         Sha256Wrapper prevBlockHash = BitcoinSerializerUtils.deserializeHash(byteReader);
@@ -35,8 +36,13 @@ public class BlockHeaderSerializer implements BitcoinSerializer<BlockHeader> {
         long difficultyTarget = byteReader.readUint32();
         long nonce = byteReader.readUint32();
 
+        // We calculate the size in bytes of this object...
+        long finalReaderPosition = byteReader.getBytesReadCount();
+        long sizeInBytes = finalReaderPosition - currentReaderPosition;
+
          // We return the Header
         BlockHeader result = BlockHeaderBean.builder()
+                .sizeInBytes(sizeInBytes)
                 .version(version)
                 .prevBlockHash(prevBlockHash)
                 .merkleRoot(merkleRoot)

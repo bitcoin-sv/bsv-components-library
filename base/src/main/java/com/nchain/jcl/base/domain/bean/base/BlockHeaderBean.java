@@ -8,6 +8,7 @@ import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
+import lombok.experimental.SuperBuilder;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -19,7 +20,7 @@ import static com.google.common.base.Preconditions.checkState;
  * Implementation of blockHeader.
  * This class is IMMUTABLE. Instances can be created by using a Lombok generated Builder.
  */
-@Builder(toBuilder = true)
+
 @Value
 @AllArgsConstructor
 public class BlockHeaderBean extends BitcoinHashableImpl implements BlockHeader {
@@ -31,6 +32,19 @@ public class BlockHeaderBean extends BitcoinHashableImpl implements BlockHeader 
     private long time;
     private long difficultyTarget; // "nBits"
     private long nonce;
+
+    @Builder(toBuilder = true)
+    public BlockHeaderBean(Long sizeInBytes, Sha256Wrapper hash,
+                           long version, Sha256Wrapper prevBlockHash, Sha256Wrapper merkleRoot,
+                           long time, long difficultyTarget, long nonce) {
+        super(sizeInBytes, hash);
+        this.version = version;
+        this.prevBlockHash = prevBlockHash;
+        this.merkleRoot = merkleRoot;
+        this.time = time;
+        this.difficultyTarget = difficultyTarget;
+        this.nonce = nonce;
+    }
 
     /** Adding a method to create a Builder after Deserialize an object from a source of bytes */
     public static BlockHeaderBean.BlockHeaderBeanBuilder toBuilder(byte[] bytes) {

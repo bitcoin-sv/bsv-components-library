@@ -10,6 +10,7 @@ import com.nchain.jcl.base.tools.bytes.HEX;
 import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
 import lombok.Builder;
 import lombok.Value;
+import lombok.experimental.SuperBuilder;
 
 import java.util.List;
 import static com.google.common.base.Preconditions.checkState;
@@ -29,20 +30,19 @@ public class TxBean extends BitcoinHashableImpl implements Tx {
     private List<TxOutput> outputs;
     private long lockTime;
 
+    @Builder(toBuilder = true)
+    public TxBean(Long sizeInBytes, Sha256Wrapper hash, long version, List<TxInput> inputs, List<TxOutput> outputs,
+                  long lockTime) {
+            super(sizeInBytes, hash);
+            this.version = version;
+            this.inputs = inputs;
+            this.outputs = outputs;
+            this.lockTime = lockTime;
+    }
+
     @Override
     public boolean isCoinbase() {
         return (inputs.size() == 1) && ((inputs.get(0).getOutpoint().getHash() == null) || (inputs.get(0).getOutpoint().getHash().equals(Sha256Wrapper.ZERO_HASH)));
-    }
-
-
-    /** A Constructor including the HASH from the parent (useful when using the lombok Builder) */
-    @Builder(toBuilder = true)
-    protected TxBean(Sha256Wrapper hash, long version, List<TxInput> inputs, List<TxOutput> outputs, long lockTime) {
-        this.hash = hash;
-        this.version = version;
-        this.inputs = inputs;
-        this.outputs = outputs;
-        this.lockTime = lockTime;
     }
 
     /** Adding a method to create a Builder after Deserializing an object from a source of bytes */

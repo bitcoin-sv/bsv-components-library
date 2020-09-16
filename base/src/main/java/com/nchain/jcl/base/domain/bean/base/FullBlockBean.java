@@ -5,6 +5,7 @@ import com.nchain.jcl.base.domain.api.base.FullBlock;
 import com.nchain.jcl.base.domain.api.base.Tx;
 import com.nchain.jcl.base.domain.api.extended.BlockMeta;
 import com.nchain.jcl.base.domain.api.extended.LiteBlock;
+import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
 import lombok.Builder;
 import lombok.Value;
 
@@ -22,8 +23,8 @@ public class FullBlockBean extends AbstractBlockBean implements FullBlock {
     private List<Tx> transactions;
 
     @Builder(toBuilder = true)
-    public FullBlockBean(BlockHeader header, BlockMeta metaData, List<Tx> transactions) {
-        this.header = header;
+    public FullBlockBean(Long sizeInBytes, Sha256Wrapper hash, BlockHeader header, BlockMeta metaData, List<Tx> transactions) {
+        super(sizeInBytes, hash, header);
         this.metaData = metaData;
         this.transactions = transactions;
     }

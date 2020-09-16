@@ -30,6 +30,7 @@ public class TxSerializer implements BitcoinSerializer<Tx> {
     }
     @Override
     public Tx deserialize(ByteArrayReader byteReader) {
+        long currentReaderPosition = byteReader.getBytesReadCount();
         long version = byteReader.readUint32();
         int txInCountValue = (int) BitcoinSerializerUtils.deserializeVarInt(byteReader);
         List<TxInput> inputs = new ArrayList<>();
@@ -42,7 +43,13 @@ public class TxSerializer implements BitcoinSerializer<Tx> {
             outputs.add(TxOutputSerializer.getInstance().deserialize(byteReader));
         }
         long locktime = byteReader.readUint32();
+
+        // We calculate the size in bytes of this object...
+        long finalReaderPosition = byteReader.getBytesReadCount();
+        long sizeInBytes = finalReaderPosition - currentReaderPosition;
+
         Tx result = TxBean.builder()
+                .sizeInBytes(sizeInBytes)
                 .inputs(inputs)
                 .outputs(outputs)
                 .version(version)

@@ -59,7 +59,10 @@ public class ByteArrayReader {
         return result;
     }
 
-    public byte[] extract(int length)       { return builder.extractBytes(length); }
+    public byte[] extract(int length)       {
+        bytesReadCount += length;
+        return builder.extractBytes(length);
+    }
     public byte[] get(int length)           { return builder.get(length);}
     public long readUint32()                { return ByteTools.readUint32(read(4)); }
     public byte read()                      { return read(1)[0]; }
@@ -74,6 +77,7 @@ public class ByteArrayReader {
     public byte[] getFullContentAndClose() {
         byte[] result = builder.getFullContent();
         close();
+        bytesReadCount += result.length;
         return result;
     }
 

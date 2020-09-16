@@ -3,6 +3,8 @@ package com.nchain.jcl.base.domain.bean;
 import com.nchain.jcl.base.domain.api.base.HashableObject;
 import com.nchain.jcl.base.serialization.BitcoinSerializerFactory;
 import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -14,10 +16,16 @@ import static com.google.common.base.Preconditions.checkState;
  * Imlementation of the Hashable Interface. Any Object extendind this class will provide a "hash" field which
  * value will be calculated based on the object content itself.
  */
-
+@NoArgsConstructor
+@AllArgsConstructor
 public class BitcoinHashableImpl extends BitcoinObjectImpl implements HashableObject {
 
     protected Sha256Wrapper hash;
+
+    public BitcoinHashableImpl(Long sizeInBytes, Sha256Wrapper hash) {
+        super(sizeInBytes);
+        this.hash = hash;
+    }
 
     // It serializes the object content into a Byte Array. This aray wil be used as a base for the Gash calculation
     private byte[] serialize() {
