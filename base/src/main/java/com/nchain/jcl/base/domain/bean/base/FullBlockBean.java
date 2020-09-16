@@ -15,6 +15,7 @@ import java.util.List;
  * Copyright (c) 2018-2020 nChain Ltd
  * @date 2020-09-14
  */
+@Deprecated
 @Value
 public class FullBlockBean extends AbstractBlockBean implements FullBlock {
     private BlockMeta metaData;

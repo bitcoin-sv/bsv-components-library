@@ -35,9 +35,7 @@ public class BlockHeaderSerializer implements BitcoinSerializer<BlockHeader> {
         long difficultyTarget = byteReader.readUint32();
         long nonce = byteReader.readUint32();
 
-        // TODO: What about the TX Count??
-
-        // We return the Header
+         // We return the Header
         BlockHeader result = BlockHeaderBean.builder()
                 .version(version)
                 .prevBlockHash(prevBlockHash)
@@ -58,6 +56,5 @@ public class BlockHeaderSerializer implements BitcoinSerializer<BlockHeader> {
         byteWriter.writeUint32LE(object.getTime());
         byteWriter.writeUint32LE(object.getDifficultyTarget());
         byteWriter.writeUint32LE(object.getNonce());
-        // TODO: What about the TX Count??
     }
 }

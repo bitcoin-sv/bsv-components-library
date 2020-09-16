@@ -14,7 +14,7 @@ import com.nchain.jcl.base.domain.bean.extended.BlockMetaBean;
  */
 public interface BlockMeta {
     int getTxCount();
-    long getBlockSize();
+    long getBlockSize(); // NOT used.
 
     // Convenience methods to get a reference to the Builder
     static BlockMetaBean.BlockMetaBeanBuilder builder() { return BlockMetaBean.builder(); }

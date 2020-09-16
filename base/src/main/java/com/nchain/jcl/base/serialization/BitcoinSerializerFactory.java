@@ -41,6 +41,9 @@ public class BitcoinSerializerFactory {
 
         serializers.put(TxIdBlock.class, TxIdBlockSerializer.getInstance());
         serializers.put(TxIdBlockBean.class, TxIdBlockSerializer.getInstance());
+
+        serializers.put(FullBlock.class, FullBlockSerializer.getInstance());
+        serializers.put(FullBlockBean.class, FullBlockSerializer.getInstance());
     }
 
     /** Locate the Serializer for this Class */
