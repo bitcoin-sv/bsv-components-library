@@ -14,6 +14,10 @@ import com.nchain.jcl.base.domain.bean.extended.BlockMetaBean;
  * A BlockMata is a data structure that returns the number of TXs and the Block size of a block.
  */
 public interface BlockMeta extends BitcoinObject {
+
+    // All the object of this Type has a fixed size once serialized
+    int FIXED_SIZE = 4 + 8;
+
     int getTxCount();
     long getBlockSize(); // NOT used.
 

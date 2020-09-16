@@ -2,8 +2,14 @@ package com.nchain.jcl.base.serialization;
 
 import com.nchain.jcl.base.domain.api.BitcoinObject;
 import com.nchain.jcl.base.domain.api.base.*;
+import com.nchain.jcl.base.domain.api.extended.BlockMeta;
+import com.nchain.jcl.base.domain.api.extended.ChainInfo;
+import com.nchain.jcl.base.domain.api.extended.LiteBlock;
 import com.nchain.jcl.base.domain.api.extended.TxIdBlock;
 import com.nchain.jcl.base.domain.bean.base.*;
+import com.nchain.jcl.base.domain.bean.extended.BlockMetaBean;
+import com.nchain.jcl.base.domain.bean.extended.ChainInfoBean;
+import com.nchain.jcl.base.domain.bean.extended.LiteBlockBean;
 import com.nchain.jcl.base.domain.bean.extended.TxIdBlockBean;
 import com.nchain.jcl.base.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.base.tools.bytes.HEX;
@@ -44,6 +50,15 @@ public class BitcoinSerializerFactory {
 
         serializers.put(FullBlock.class, FullBlockSerializer.getInstance());
         serializers.put(FullBlockBean.class, FullBlockSerializer.getInstance());
+
+        serializers.put(ChainInfo.class, ChainInfoSerializer.getInstance());
+        serializers.put(ChainInfoBean.class, ChainInfoSerializer.getInstance());
+
+        serializers.put(BlockMeta.class, BlockMetaSerializer.getInstance());
+        serializers.put(BlockMetaBean.class, BlockMetaSerializer.getInstance());
+
+        serializers.put(LiteBlock.class, LiteBlockSerializer.getInstance());
+        serializers.put(LiteBlockBean.class, LiteBlockSerializer.getInstance());
     }
 
     /** Locate the Serializer for this Class */
