@@ -12,6 +12,8 @@ import com.nchain.jcl.base.tools.bytes.HEX;
 
 import java.io.Serializable;
 import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
 /**
@@ -86,6 +88,52 @@ public class Sha256Wrapper implements Serializable, Comparable<Sha256Wrapper> {
     public static Sha256Wrapper twiceOf(byte[] contents) {
         return wrap(Sha256.hashTwice(contents));
     }
+
+    /**
+     * Calculates the SHA-256 hash of the given byte range,
+     * and then hashes the resulting hash again.
+     *
+     * @param input the array containing the bytes to hash
+     * @param offset the offset within the array of the bytes to hash
+     * @param length the number of bytes to hash
+     * @return the double-hash (in big-endian order)
+     */
+    public static Sha256Wrapper twiceOf(byte[] input, int offset, int length) {
+        MessageDigest digest = newDigest();
+        digest.update(input, offset, length);
+        return new Sha256Wrapper(digest.digest(digest.digest()));
+    }
+
+    /**
+     * Calculates the hash of hash on the given byte ranges. This is equivalent to
+     * concatenating the two ranges and then passing the result to {@link #twiceOf(byte[])}.
+     */
+    public static Sha256Wrapper twiceOf(byte[] input1, int offset1, int length1,
+                                   byte[] input2, int offset2, int length2) {
+        MessageDigest digest = newDigest();
+        digest.update(input1, offset1, length1);
+        digest.update(input2, offset2, length2);
+        return  new Sha256Wrapper(digest.digest(digest.digest()));
+    }
+
+    /**
+     * Returns a new SHA-256 MessageDigest instance.
+     *
+     * This is a convenience method which wraps the checked
+     * exception that can never occur with a RuntimeException.
+     *
+     * @return a new SHA-256 MessageDigest instance
+     */
+    public static MessageDigest newDigest() {
+        try {
+            return MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);  // Can't happen.
+        }
+    }
+
+
+
 
     @Override
     public boolean equals(Object o) {
