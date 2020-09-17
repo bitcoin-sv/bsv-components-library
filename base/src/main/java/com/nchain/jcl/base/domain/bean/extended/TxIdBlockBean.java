@@ -19,8 +19,8 @@ public class TxIdBlockBean extends AbstractBlockBean implements TxIdBlock {
     private List<Sha256Wrapper> txids;
 
     @Builder(toBuilder = true)
-    public TxIdBlockBean(Long sizeInBytes, Sha256Wrapper hash, BlockHeader header, List<Sha256Wrapper> txids) {
-        super(sizeInBytes, hash, header);
+    public TxIdBlockBean(Long sizeInBytes, BlockHeader header, List<Sha256Wrapper> txids) {
+        super(sizeInBytes, header);
         this.txids = txids;
     }
 }

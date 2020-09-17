@@ -4,6 +4,7 @@ import com.nchain.jcl.base.domain.api.base.AbstractBlock;
 import com.nchain.jcl.base.domain.api.base.BlockHeader;
 
 import com.nchain.jcl.base.domain.bean.BitcoinHashableImpl;
+import com.nchain.jcl.base.domain.bean.BitcoinObjectImpl;
 import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,11 +16,11 @@ import lombok.experimental.SuperBuilder;
  * Copyright (c) 2018-2020 nChain Ltd
  */
 
-public abstract class AbstractBlockBean extends BitcoinHashableImpl implements AbstractBlock {
+public abstract class AbstractBlockBean extends BitcoinObjectImpl implements AbstractBlock {
     @Getter protected BlockHeader header;
 
-    public AbstractBlockBean(Long sizeInBytes, Sha256Wrapper hash, BlockHeader header) {
-        super(sizeInBytes, hash);
+    public AbstractBlockBean(Long sizeInBytes, BlockHeader header) {
+        super(sizeInBytes);
         this.header = header;
     }
 }

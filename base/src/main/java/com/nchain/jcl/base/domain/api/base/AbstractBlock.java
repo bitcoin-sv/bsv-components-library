@@ -10,6 +10,6 @@ import com.nchain.jcl.base.domain.api.BitcoinObject;
  * A common interface for a Block. Any Class that represents a block will implements this interface (at least).
  * this interface only provides info about the Block header, future subclasses might add more info to it.
  */
-public interface AbstractBlock extends BitcoinObject, HashableObject {
+public interface AbstractBlock extends BitcoinObject {
     BlockHeader getHeader();
 }
