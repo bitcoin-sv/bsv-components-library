@@ -25,7 +25,13 @@ public class FullBlockBean extends AbstractBlockBean implements FullBlock {
     @Builder(toBuilder = true)
     public FullBlockBean(Long sizeInBytes, Sha256Wrapper hash, BlockHeader header, BlockMeta metaData, List<Tx> transactions) {
         super(sizeInBytes, hash, header);
-        this.metaData = metaData;
+        if (metaData == null) {
+            BlockMeta meta = BlockMeta.builder()
+                    .txCount(transactions.size())
+                    .blockSize(sizeInBytes)
+                    .build();
+            this.metaData = meta;
+        } else this.metaData = metaData;
         this.transactions = transactions;
     }
 
