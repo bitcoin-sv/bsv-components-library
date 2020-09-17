@@ -17,10 +17,11 @@ import lombok.experimental.SuperBuilder;
  */
 
 public abstract class AbstractBlockBean extends BitcoinObjectImpl implements AbstractBlock {
+    @Getter protected Long sizeInBytes;
     @Getter protected BlockHeader header;
 
     public AbstractBlockBean(Long sizeInBytes, BlockHeader header) {
-        super(sizeInBytes);
+        this.sizeInBytes = sizeInBytes;
         this.header = header;
     }
 }

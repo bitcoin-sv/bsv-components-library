@@ -2,6 +2,7 @@ package com.nchain.jcl.base.domain.api.base;
 
 import com.nchain.jcl.base.core.JCLBase;
 import com.nchain.jcl.base.domain.api.BitcoinObject;
+import com.nchain.jcl.base.domain.api.BitcoinHashableObject;
 import com.nchain.jcl.base.domain.bean.base.BlockHeaderBean;
 import com.nchain.jcl.base.exception.VerificationException;
 
@@ -17,7 +18,7 @@ import java.math.BigInteger;
  *
  * Operations provided by a Block Header, retuning different types of info.
  */
-public interface BlockHeader extends BitcoinObject, HashableObject {
+public interface BlockHeader extends BitcoinHashableObject {
 
     // Block Header fields:
     long getVersion();

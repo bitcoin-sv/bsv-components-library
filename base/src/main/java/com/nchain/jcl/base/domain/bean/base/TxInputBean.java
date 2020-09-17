@@ -26,8 +26,7 @@ public class TxInputBean extends BitcoinObjectImpl implements TxInput {
     private Coin value;
 
     @Builder(toBuilder = true)
-    public TxInputBean(Long sizeInBytes, long sequenceNumber, TxOutPoint outpoint, byte[] scriptBytes, Coin value) {
-        super(sizeInBytes);
+    public TxInputBean(long sequenceNumber, TxOutPoint outpoint, byte[] scriptBytes, Coin value) {
         this.sequenceNumber = sequenceNumber;
         this.outpoint = outpoint;
         this.scriptBytes = scriptBytes;

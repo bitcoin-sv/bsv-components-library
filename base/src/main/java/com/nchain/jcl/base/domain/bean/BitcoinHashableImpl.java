@@ -1,6 +1,6 @@
 package com.nchain.jcl.base.domain.bean;
 
-import com.nchain.jcl.base.domain.api.base.HashableObject;
+import com.nchain.jcl.base.domain.api.BitcoinHashableObject;
 import com.nchain.jcl.base.serialization.BitcoinSerializerFactory;
 import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
 import lombok.AllArgsConstructor;
@@ -18,7 +18,7 @@ import static com.google.common.base.Preconditions.checkState;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-public class BitcoinHashableImpl extends BitcoinObjectImpl implements HashableObject {
+public class BitcoinHashableImpl extends BitcoinSerializableObjectImpl implements BitcoinHashableObject {
 
     protected Sha256Wrapper hash;
 

@@ -1,6 +1,7 @@
 package com.nchain.jcl.base.domain.api.base;
 
 import com.nchain.jcl.base.domain.api.BitcoinObject;
+import com.nchain.jcl.base.domain.api.BitcoinHashableObject;
 import com.nchain.jcl.base.domain.bean.base.TxBean;
 
 import java.util.List;
@@ -13,7 +14,7 @@ import java.util.List;
  * A Transaction (Tx) represents an exchange of coins between 2 or more parties. It specifies the inputs and outputs
  * of the transactions and other related data to the TX, according to the Bitcoin specification.
  */
-public interface Tx extends BitcoinObject, HashableObject {
+public interface Tx extends BitcoinHashableObject {
 
     // TX Data:
     long getVersion();

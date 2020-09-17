@@ -12,6 +12,7 @@ import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
  * this interface only provides info about the Block header, future subclasses might add more info to it.
  */
 public interface AbstractBlock extends BitcoinObject {
+    Long getSizeInBytes();
     BlockHeader getHeader();
     default Sha256Wrapper getHash() { return getHeader().getHash();}
 }

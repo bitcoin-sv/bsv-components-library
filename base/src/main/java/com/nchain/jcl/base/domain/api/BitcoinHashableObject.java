@@ -1,4 +1,4 @@
-package com.nchain.jcl.base.domain.api.base;
+package com.nchain.jcl.base.domain.api;
 
 import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
 
@@ -11,7 +11,7 @@ import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
  * a HASH (256Hash), which value is calcualted based on the content of the boject itself. So the value of this "hash"
  * field is NOT "setteable", instead is calculated based on the values of the rest of fields of this object.
  */
-public interface HashableObject {
+public interface BitcoinHashableObject extends BitcoinSerializableObject {
     /**
      * returns the Value of the Hash of this Object.
      * NOTE: In most implementations, the value of the Hash is NULL at first, but it will be calculated the first time

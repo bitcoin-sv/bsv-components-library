@@ -2,8 +2,6 @@ package com.nchain.jcl.base.domain.api.base;
 
 import com.nchain.jcl.base.core.Coin;
 import com.nchain.jcl.base.domain.api.BitcoinObject;
-import com.nchain.jcl.base.domain.bean.base.TxBean;
-import com.nchain.jcl.base.domain.bean.base.TxOutPointBean;
 import com.nchain.jcl.base.domain.bean.base.TxOutputBean;
 
 /**

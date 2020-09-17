@@ -23,8 +23,7 @@ public class TxOutputBean extends BitcoinObjectImpl implements TxOutput {
     private byte[] scriptBytes;
 
     @Builder(toBuilder = true)
-    public TxOutputBean(Long sizeInBytes, Coin value, byte[] scriptBytes) {
-        super(sizeInBytes);
+    public TxOutputBean(Coin value, byte[] scriptBytes) {
         this.value = value;
         this.scriptBytes = scriptBytes;
     }

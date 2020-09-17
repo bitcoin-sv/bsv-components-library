@@ -1,11 +1,7 @@
 package com.nchain.jcl.base.domain.bean;
 
 import com.nchain.jcl.base.domain.api.BitcoinObject;
-import com.nchain.jcl.base.serialization.BitcoinSerializerFactory;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
 /**
  * @author Steve Shadders
@@ -14,19 +10,6 @@ import lombok.experimental.SuperBuilder;
  *
  * A Base Class for a Bitcoin Object
  */
-@AllArgsConstructor
 @NoArgsConstructor
-public class BitcoinObjectImpl<B> implements BitcoinObject {
-
-    protected Long sizeInBytes;
-
-    // If the Size is not present, then we serialize the object, and update the size.
-    @Override
-    public synchronized Long getSizeInBytes() {
-        if (sizeInBytes == null) {
-            byte[] serialized = BitcoinSerializerFactory.getSerializer(this.getClass()).serialize(this);
-            sizeInBytes = (long) serialized.length;
-        }
-        return sizeInBytes;
-    }
+public class BitcoinObjectImpl implements BitcoinObject {
 }

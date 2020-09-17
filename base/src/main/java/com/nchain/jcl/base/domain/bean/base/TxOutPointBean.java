@@ -25,8 +25,7 @@ public class TxOutPointBean extends BitcoinObjectImpl implements TxOutPoint {
     private long index;
 
     @Builder(toBuilder = true)
-    public TxOutPointBean(Long sizeInBytes, Sha256Wrapper hash, long index) {
-        super(sizeInBytes);
+    public TxOutPointBean(Sha256Wrapper hash, long index) {
         this.hash = hash;
         this.index = index;
     }
