@@ -1,6 +1,7 @@
 package com.nchain.jcl.base.domain.api.base;
 
 import com.nchain.jcl.base.domain.api.BitcoinObject;
+import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
 
 /**
  * @author Steve Shadders
@@ -12,4 +13,5 @@ import com.nchain.jcl.base.domain.api.BitcoinObject;
  */
 public interface AbstractBlock extends BitcoinObject {
     BlockHeader getHeader();
+    default Sha256Wrapper getHash() { return getHeader().getHash();}
 }
