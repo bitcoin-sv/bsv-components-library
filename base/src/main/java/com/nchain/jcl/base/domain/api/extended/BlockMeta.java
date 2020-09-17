@@ -19,7 +19,7 @@ public interface BlockMeta extends BitcoinObject {
     int FIXED_SIZE = 4 + 8;
 
     int getTxCount();
-    long getBlockSize(); // NOT used.
+    long getBlockSize();
 
     // Convenience methods to get a reference to the Builder
     static BlockMetaBean.BlockMetaBeanBuilder builder() { return BlockMetaBean.builder(); }
