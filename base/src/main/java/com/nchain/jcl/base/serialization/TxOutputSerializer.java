@@ -38,6 +38,7 @@ public class TxOutputSerializer implements BitcoinSerializer<TxOutput> {
     public void serialize(TxOutput object, ByteArrayWriter byteWriter) {
         byteWriter.writeUint64LE(object.getValue().getValue());
         BitcoinSerializerUtils.serializeVarInt(object.getScriptBytes().length, byteWriter);
-        byteWriter.write(object.getScriptBytes());
+        byte[] script = (object.getScriptBytes() != null)? object.getScriptBytes() : new byte[]{};
+        byteWriter.write(script);
     }
 }
