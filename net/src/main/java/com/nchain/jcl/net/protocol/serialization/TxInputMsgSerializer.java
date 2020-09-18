@@ -53,7 +53,8 @@ public class TxInputMsgSerializer implements MessageSerializer<TxInputMsg> {
     public void serialize(SerializerContext context, TxInputMsg message, ByteArrayWriter byteWriter) {
         txOutPointMsgSerializer.serialize(context, message.getPre_outpoint(),byteWriter);
         varIntMsgSerializer.serialize(context, message.getScript_length(), byteWriter);
-        byteWriter.write(message.getSignature_script());
+        byte[] script = (message.getScript_length().getValue() > 0) ? message.getSignature_script() : new byte[]{};
+        byteWriter.write(script);
         byteWriter.writeUint32LE(message.getSequence());
     }
 }

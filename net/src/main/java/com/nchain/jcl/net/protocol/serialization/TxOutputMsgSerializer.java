@@ -52,6 +52,7 @@ public class TxOutputMsgSerializer implements MessageSerializer<TxOutputMsg> {
     public void serialize(SerializerContext context, TxOutputMsg message, ByteArrayWriter byteWriter) {
         byteWriter.writeUint64LE(message.getTxValue());
         varIntMsgSerializer.serialize(context, message.getPk_script_length(), byteWriter);
-        byteWriter.write(message.getPk_script());
+        byte[] script = (message.getPk_script_length().getValue() > 0) ? message.getPk_script() : new byte[]{};
+        byteWriter.write(script);
     }
 }
