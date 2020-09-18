@@ -37,8 +37,8 @@ public class TxInputSerializer implements BitcoinSerializer<TxInput> {
     @Override
     public void serialize(TxInput object, ByteArrayWriter byteWriter) {
         TxOutPointSerializer.getInstance().serialize(object.getOutpoint(), byteWriter);
-        BitcoinSerializerUtils.serializeVarInt(object.getScriptBytes().length, byteWriter);
         byte[] script = (object.getScriptBytes() != null) ? object.getScriptBytes() : new byte[]{};
+        BitcoinSerializerUtils.serializeVarInt(script.length, byteWriter);
         byteWriter.write(script);
         byteWriter.writeUint32LE(object.getSequenceNumber());
         // TODO: What about the VALUE??
