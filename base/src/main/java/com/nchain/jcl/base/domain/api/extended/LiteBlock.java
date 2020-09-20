@@ -20,5 +20,9 @@ public interface LiteBlock extends AbstractBlock {
 
     // Convenience methods to get a reference to the Builder
     static LiteBlockBean.LiteBlockBeanBuilder builder() { return LiteBlockBean.builder();}
+    static LiteBlockBean.LiteBlockBeanBuilder builder(byte[] bytes) { return LiteBlockBean.build(bytes);}
+    static LiteBlockBean.LiteBlockBeanBuilder builder(String hex) { return LiteBlockBean.build(hex);}
     default LiteBlockBean.LiteBlockBeanBuilder toBuilder() { return ((LiteBlockBean) this).toBuilder();}
+
+
 }

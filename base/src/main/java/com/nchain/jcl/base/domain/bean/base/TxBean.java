@@ -52,6 +52,6 @@ public class TxBean extends BitcoinHashableImpl implements Tx {
     }
     /** Adding a method to create a Builder after Deserialzing an object from a HEX */
     public static TxBean.TxBeanBuilder toBuilder(String hex) {
-        return ((TxBean) BitcoinSerializerFactory.getSerializer(Tx.class).deserialize(HEX.decode(hex))).toBuilder();
+        return toBuilder(HEX.decode(hex));
     }
 }

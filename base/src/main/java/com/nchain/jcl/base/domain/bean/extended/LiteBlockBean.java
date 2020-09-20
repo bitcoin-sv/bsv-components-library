@@ -5,9 +5,12 @@ import com.nchain.jcl.base.domain.api.extended.BlockMeta;
 import com.nchain.jcl.base.domain.api.extended.ChainInfo;
 import com.nchain.jcl.base.domain.api.extended.LiteBlock;
 import com.nchain.jcl.base.domain.bean.base.AbstractBlockBean;
+import com.nchain.jcl.base.serialization.BitcoinSerializerFactory;
+import com.nchain.jcl.base.tools.bytes.HEX;
 import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
 import lombok.Builder;
 import lombok.Value;
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * @author Steve Shadders
@@ -27,5 +30,15 @@ public class LiteBlockBean extends AbstractBlockBean implements LiteBlock {
         super(sizeInBytes, header);
         this.blockMeta = blockMeta;
         this.chainInfo = chainInfo;
+    }
+
+    /** Adding a method to create a Builder after Deserializing an object from a source of bytes */
+    public static LiteBlockBeanBuilder build(byte[] bytes) {
+        checkState(BitcoinSerializerFactory.hasFor(LiteBlock.class), "No Serializer found for " + LiteBlock.class.getSimpleName());
+        return ((LiteBlock) BitcoinSerializerFactory.getSerializer(LiteBlock.class).deserialize(bytes)).toBuilder();
+    }
+    /** Adding a method to create a Builder after Deserialzing an object from a HEX */
+    public static LiteBlockBeanBuilder build(String hex) {
+        return build(HEX.decode(hex));
     }
 }
