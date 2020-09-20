@@ -17,5 +17,6 @@ import lombok.Value;
 @Value
 public class BlockMetaBean extends BitcoinObjectImpl implements BlockMeta {
     private int txCount;
-    private long blockSize;
+    @Builder.Default
+    private long blockSize = -1;
 }
