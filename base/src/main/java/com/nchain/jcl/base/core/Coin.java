@@ -18,7 +18,6 @@ package com.nchain.jcl.base.core;
 
 import com.google.common.math.LongMath;
 import com.google.common.primitives.Longs;
-import com.nchain.jcl.base.tools.bitcoin.MonetaryFormat;
 
 import java.io.Serializable;
 import java.math.BigDecimal;

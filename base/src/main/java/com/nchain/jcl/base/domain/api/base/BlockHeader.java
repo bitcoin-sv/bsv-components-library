@@ -1,7 +1,6 @@
 package com.nchain.jcl.base.domain.api.base;
 
-import com.nchain.jcl.base.core.JCLBase;
-import com.nchain.jcl.base.domain.api.BitcoinObject;
+import com.nchain.jcl.base.JCLBaseConstants;
 import com.nchain.jcl.base.domain.api.BitcoinHashableObject;
 import com.nchain.jcl.base.domain.bean.base.BlockHeaderBean;
 import com.nchain.jcl.base.exception.VerificationException;
@@ -54,7 +53,7 @@ public interface BlockHeader extends BitcoinHashableObject {
      */
     default BigInteger getWork() throws VerificationException {
         BigInteger target = getDifficultyTargetAsInteger();
-        return JCLBase.LARGEST_HASH.divide(target.add(BigInteger.ONE));
+        return JCLBaseConstants.LARGEST_HASH.divide(target.add(BigInteger.ONE));
     }
 
 }

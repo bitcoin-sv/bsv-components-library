@@ -1,4 +1,4 @@
-package com.nchain.jcl.base.tools.bitcoin;
+package com.nchain.jcl.base.core;
 
 /*
  * Copyright 2014 Andreas Schildbach
@@ -15,9 +15,6 @@ package com.nchain.jcl.base.tools.bitcoin;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import com.nchain.jcl.base.core.Coin;
-import com.nchain.jcl.base.core.Monetary;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;

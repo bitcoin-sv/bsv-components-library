@@ -1,4 +1,4 @@
-package com.nchain.jcl.base.tools.bitcoin;
+package com.nchain.jcl.base.core;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -8,7 +8,6 @@ import java.math.BigDecimal;
 import com.google.common.base.Objects;
 import com.google.common.math.LongMath;
 import com.google.common.primitives.Longs;
-import com.nchain.jcl.base.core.Monetary;
 
 /**
  * Represents a monetary fiat value. It was decided to not fold this into {@link com.nchain.jcl.base.core.Coin} because of type
