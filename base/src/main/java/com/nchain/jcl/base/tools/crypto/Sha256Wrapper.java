@@ -123,7 +123,7 @@ public class Sha256Wrapper implements Serializable, Comparable<Sha256Wrapper> {
      * @return the double-hash (in big-endian order)
      */
     public static Sha256Wrapper twiceOf(byte[] input, int offset, int length) {
-        MessageDigest digest = newDigest();
+        MessageDigest digest = Sha256.newDigest();
         digest.update(input, offset, length);
         return new Sha256Wrapper(digest.digest(digest.digest()));
     }
@@ -134,30 +134,11 @@ public class Sha256Wrapper implements Serializable, Comparable<Sha256Wrapper> {
      */
     public static Sha256Wrapper twiceOf(byte[] input1, int offset1, int length1,
                                    byte[] input2, int offset2, int length2) {
-        MessageDigest digest = newDigest();
+        MessageDigest digest = Sha256.newDigest();
         digest.update(input1, offset1, length1);
         digest.update(input2, offset2, length2);
         return  new Sha256Wrapper(digest.digest(digest.digest()));
     }
-
-    /**
-     * Returns a new SHA-256 MessageDigest instance.
-     *
-     * This is a convenience method which wraps the checked
-     * exception that can never occur with a RuntimeException.
-     *
-     * @return a new SHA-256 MessageDigest instance
-     */
-    public static MessageDigest newDigest() {
-        try {
-            return MessageDigest.getInstance("SHA-256");
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);  // Can't happen.
-        }
-    }
-
-
-
 
     @Override
     public boolean equals(Object o) {
