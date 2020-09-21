@@ -6,9 +6,9 @@
 
 *JCL* is currently composed of the following modules:
 
- * *JCL-Base*: Base functionality. Provides definition for domain classes (*Transaction*, *Block*, etc).
+ * *JCL-Base*: Base functionality. Provides definition for domain classes (*Transaction*, *Block*, etc) and Serialization.
  
- * *JCL-Net*: Provides Connections and Streaming capabilities, allowing an App to connect to the blockchain and "listen" to Events coming from it, and also too "send/broadcast" messages, and other operations.
+ * *JCL-Net*: Provides Connections and Streaming capabilities, allowing an App to connect to the blockchain and "listen" to Events coming from it, and also "send/broadcast" messages, and other operations.
 
 ## High-level view
 
@@ -32,7 +32,7 @@ All the libraries within *JCL* make up a hierarchy dependency tree, as shown in 
 
 ## How to import *JCL-Base*
 
-> IMPORTANT: BEfore importing **JCL**into your project, check out the last version numbers in the Nexus Server, so you use the most recent one:
+> IMPORTANT: Before importing **JCL**into your project, check out the last version numbers in the Nexus Server, so you use the most recent one:
 > 
 > http://161.35.175.46:8081/#browse/browse:maven-releases
 
@@ -69,6 +69,7 @@ implementation 'com.nchain.jcl:jcl-base:0.0.1'
 ### in a *Maven* project
 
 You need to define a new Repository in your *pom.xml* file:
+
 ```
 <repositories>
 	...
@@ -122,14 +123,45 @@ And you must store the credentials in the *settings.xml* file:
  
 ## How to use *JCL-Base*
 
+### *Bitcoin Objects*
 
-### Creating and manipulating *Bitcoin Objects*
+The main purpose of *JCL-Base* is to define and provide operations over the so-called *bitcoin domain classes*, which is a name that groups a set of Classes defined in *JCL-Bsse* and used extensible accross other JCL* modules. 
 
- * The Objects containing information about *Transactions*, *Inputs*, *Outputs*, etc, are called "Bitcoin Objects*
- * A *Bitcoin Object* is created by using a *Builder* (a helper class)
- * A "Bitcoin Object" is **Immutable**. Once created, it cannot be modified
- * If you need to modify a *Bitcoin Object*, then you must crate a copy, change whatever information you want and *build* a new *bitcoin Object* from it.
- * A *Bitcoin Object* can be created directly from a *raw source* (a Byte Array or an Hexadecimal representation of it)
+The basic "domain" class is a **Bitcoin Object**. A *Bitcoin Object* is an object that:
+
+* Stores relevant information. 
+* It does NOT contain business logic: It's just a Placeholder for information.
+* It's content cannot be changed (*Immutable*).
+* Its Thread-Safe
+* It's created by using a *helper* class called *builder* (*Builder* Design Pattern)
+
+Any *Bitcoin Object* will share the properties above.
+
+Apart from all the above, a *Bitcoin Object* class might also be *Serializable*, that is, it might be possibel to Serialize or Deserialize to/frmo a raw format (byte array). In this case, it's called a **Bitcoin Serializable Object**.
+
+
+A *Bitcoin Serializable Object* is like a regular "Bitcoin Object*, plus:
+
+ * It provides a *sizeInbytes* field, which stores the size of this object once serialized. The size of some objects plays a roles in some business decisiones, like when calcualtion *fees*.
+
+
+A *Bitcoin Serializabel Object* might also be a **Bitcoin Hashable Object**. 
+
+A *BitcoinHashable Object* is like any other *Bitcoin Serialziable Object*, that is, it might be Serialize, but it also contains a special field called **hash**. This field contains a value, which is the calcualted *hash* (Sha-256) of this object's content, once Serialized. All the *Bitcoin Hashable Objects* include this fields which is automatically calculated.
+
+**Most *Domain Classes* in *JCL* are *Bitcoin Serialziable Objects*, and some of them are also *Bitcoin Hashable Objects*.**
+
+
+> NOTE:
+> 
+> The *Bitcoin Serializable Objects* contains a *sizeInBytes* field which is automatically populated by *JCL* when the object is deserialized. in the case an object is instead created from scratch, just by adding fields one by one, the *sizeInbytes* field will be *empty* until it's called for the first time: in that moment, its value is calculated and assigned, and never changed after that. This field breaks the definition of "immutability", although the classes are Thread-Safe.
+> 
+> The *Bitcoin Hashable Objects* contains a *hash* field which is automatically populated by *JCL*. In the case an object is instead created from scratch, just by adding fields one by one, the *sizeInbytes* field will be *empty* until it's called for the first time: in that moment, its value is calculated and assigned, and never changed after that. This field breaks the definition of "immutability", although the classes are Thread-Safe.
+
+### Creting and modifying *Domain Classes*
+
+The *Tx* Transaction Object is one of the most important ones. This is an example of a *Bitcoin Serializable Object* that measn taht we can create and instance from a *raw data*, like a byte Aray or an hexadecimal representation of bytes.
+
 
 This is an example of how to create a *Transaction* from a *Byte Array* in *Hexadecimal* format:
 
@@ -139,22 +171,13 @@ Tx tx = Tx.builder(TX_HEX).build();
 
 ```
 
-You can also do the same with the *raw data (byte format)*:
+The same example, using a raw byte array:
 
 ```
 byte[] TX_BYTES = ...
 Tx tx = Tx.builder(TX_BYTES).build();
 ```
 
-you can also make any changes you like before calling the *build()* method. And if you want to make change to an existing *Tx* object, you need to create a new one before that:
-
-```
-Tx originalTx = ...
-Tx changedTx = originalTx.toBuilder()
-                .lockTime(2) // a new locktime for the new Transaction...
-                .build();
-
-```
 
 A *Bitcoin Object* can also be built **from scratch**, filling in all the values in the right fields. 
 
@@ -197,9 +220,23 @@ Tx tx = Tx.builder()
 
 ```
 
+
+you can also make any changes you like before calling the *build()* method. And if you want to make change to an existing *Tx* object, you need to create a new one before that:
+
+```
+Tx originalTx = ...
+Tx changedTx = originalTx.toBuilder()
+                .lockTime(2) // a new locktime for the new Transaction...
+                .build();
+
+```
+
+
+
+
 ### Serializing *Bitcoin Objects*
 
-Any *Bitcoin Objet* can be Serialzed or Deserialized. The way to do it is quite straightforward, and it works by using the *BitcoinSerialzierFactory* class.
+Any *Bitcoin Serialized Object* can be Serialzed or Deserialized. The way to do it is quite straightforward, and it works by using the *BitcoinSerializerFactory* class.
 
 For example, this is an example of Serialzing a *Transaction Input*, a *Transaction output* and a whole *Tranaction*:
 
@@ -244,7 +281,7 @@ The *JCL-Net* Module provides capabilities to Connect to a Blockchain network (y
 The 3 main features provided by *JCL* are:
 
 * Connection to the Blockchain Network: This includes not only the connection, but also all the *Bitcoin Protocol* 
-  internals that are needed to main those connections alive (*Handshake* protocol, *timeout* (Ping/Pong), *Node-Discovery* 
+  internals that are needed to keep those connections alive (*Handshake* protocol, *timeout* (Ping/Pong), *Node-Discovery* 
   algorithm, Blacklist, etc)
   
 * Streaming: *JCYL* can notify about any Event that might happen during your connection, so your application can 
@@ -252,7 +289,7 @@ The 3 main features provided by *JCL* are:
   as they occur. 
 
 * Requests: *JCYL* also provides a way for your application to make *Requests* to the Blockchain Network. Since
-  *JCTYL* is a low-level library, these Requests are always related to different aspects of the protocol, like sendign a message, 
+  *JCYL* is a low-level library, these Requests are always related to different aspects of the protocol, like sendign a message, 
   connecting/disconnecting from a Peer, rquesting a TX or a Block, etc.
   
 ![high level architecture](jclBasic.png)
@@ -291,7 +328,64 @@ implementation 'com.nchain.jcl:jcl-net:0.0.1'
 ```
 
 ### in a *Maven* project
-> COMMING SOON...
+
+You need to define a new Repository in your *pom.xml* file:
+
+```
+<repositories>
+	...
+	<repository>
+            <!--
+            The username and password are retrieved by looking for the Repository
+            Id in the $HOME/.m2/settings.xml file.
+            -->
+            <!-- id Must Match the Unique Identifier in settings.xml -->
+            <id>nChain-Nexus-Repository</id>
+            <url>http://161.35.175.46:8081/repository/maven-releases/</url>
+            <releases/>
+        </repository>
+	...
+</repositories>
+```
+
+then, add the dependency:
+
+```
+<dependencies>
+	...
+	<dependency>
+      <groupId>com.nchain.jcl</groupId>
+      <artifactId>jcl-base</artifactId>
+      <version>0.0.1</version>
+   </dependency>
+	<dependency>
+      <groupId>com.nchain.jcl</groupId>
+      <artifactId>jcl-net</artifactId>
+      <version>0.0.1</version>
+   </dependency>
+	...
+</dependencies>
+
+```
+
+And you must store the credentials in the *settings.xml* file:
+
+```
+<settings>
+  <servers>
+    ...
+    <server>
+      <id>nChain-Nexus-Repository</id>
+      <username>jenkins</username>
+      <password>jenkins</password>
+    </server>
+    ...
+  </servers>
+</settings>
+```
+
+> NOTE That the value of the **id** field must match the value of the **id** field in the *pom.xml* file.
+
 
 
 *JCLY* uses *logback* as loging system. In order to log the outut of the library, you need to add a *logback.xml* file 
@@ -313,14 +407,17 @@ into your classpath:
 </configuration>
 ````
 
+## How to use *JCL-Base*
+
 ## Streaming:
+*Sreaming* the most basic operation you can do, its mainly consists of *connecting* to the P2P network, and *streaming* events from it, event syou can *subscribe* to and *react*.
 
 ### Simple connection:
 
-The following example is just an example of how the connection is performed. We get a reference to the "P2P"
+The following example is just an example of how the connection is performed. We get a reference to the *P2P*
 service from the *P2PBuilder* (specifying an identifier that is mostly used for logging), and then we start it. 
 The service wil run in a different Thread, so all the Streaming services will be working in the background while 
-our app performs other actions. In the example below though, the service will automaticallu stop after starting.
+our app performs other actions. In the example below though, the service will automatically stop after starting.
 
 ````
 P2P p2p = P2P.builder("testing").build();
@@ -342,7 +439,7 @@ The output of the previous example:
 
 ````
 
-We can see the Configuration used: *ProtocolBSVMain* by default, so the service will connect to the BSV Man network if
+We can see int the outut the Configuration used: *ProtocolBSVMain* by default, so the service will connect to the BSV Man network if
 nothing else is specified. We also see the *working directory*, which is a temporary folder automatically picked up by the 
 service to store some internal information. The Service has started in *Client Mode*, so it can connect to other Peers but it 
 does Not allow incoming connections. The number of Peers connected will always remain in the range [10 -15].
@@ -359,9 +456,9 @@ In this case, the Service will accept connections in the local IP address, using
 Configuration (in this specific example, the port number for BSV [main Net] is 8333)
 
 
-## Connection and basic streaming
+### Basic Event streaming
 
-In the following example, we are streaming some events: The *P2P* object contains a *EVENTS* reference, which itself 
+In the following example, we are streaming some events. The *P2P* object contains a *EVENTS* reference, which itself 
 contains different references to different types of Events (Events related to Peers, to Messages, etc). 
 We select the type of Event we are interested in, and then we add a callback by using the method *forEach* (in a similar 
 way as the Java *Streams* work).
@@ -380,7 +477,7 @@ Thread.sleep(5_000);
 p2p.stop();
 ````
 
-The parameter to the "forEach" methods is just an *Event* Object, which contains different information depending on the 
+The parameter to the *forEach* method is just an *Event* Object, which contains different information depending on the 
 event itself. In this example we are just printing its content to the console, so the output for the previous code is 
 as follows:
 
@@ -424,7 +521,7 @@ very basic configuration changes, modifying some values:
 Here we are connecting to a different network and changing the range of peers to [10,20].
 
 ````
-ProtocolConfig config = new ProtocolBSVStnConfig(); // Different Network!!!
+ProtocolConfig config = new ProtocolBSVStnConfig(); // Now it's the BSV Stress Net!!!
 P2P p2p = new P2PBuilder("testing")
               .config(config)
               .minPeers(10)
@@ -517,7 +614,7 @@ Event Objects to get all the information we need from them.
 
 > All the *State* Events, along with the rest of Events, are described in the **Reference** Section 
 
-## Requests
+### Requests
 
 In *JCYL* you can stream and listen to *Events*, but all the internals about the communication with other Peers are managed behind
 the scenes, without external intervention. But in some scenarios, an Application might need to *React* and perform specific actions,
@@ -557,7 +654,7 @@ a Peer, you can also listen to the *.EVENTS.PEERS.CONNECTED* to verify that the 
 
 
 
-## Detailed View and advance-configuration:
+### Detailed View and advance-configuration:
 
 *JCL-Net* follows a modular architecture, composed of multiple components called *Handlers*, each 
 one of them implementing a different functionality. Some of these *Handlers* are designed as *Default 
@@ -604,12 +701,12 @@ The *Custom* Handlers built-in in *JCL* are the following:
  
  > An specific chapter about *Block Downloading* with more details is provided in this documentation.
 
-## Advance Configuration (fine-tunning):
+### Advance Configuration (fine-tunning):
 
 > PENDING...
 
 
-## Block Downloading
+### Block Downloading
 
 Downloading a Block can be done by the *BlockDownloader* Handler. This handler is already provided by *JCL*, so no additional
 work is needed. The process to download a Block (or Blocks) is as follows:
@@ -631,19 +728,26 @@ work is needed. The process to download a Block (or Blocks) is as follows:
  
 
 Since the Blocks can potentially be of *any* size, the full content of the Block is ONLY provided when the block
-is small enough (a *Lite* Block). As a general Rule, if you want to get the Contents of the Block, you have to use the 
+is small enough (a *Lite* Block). As a general Rule, the *EVENTS.BLOCKS.BLOCK_DOWNLOADED* is the right way to be notified whenever a Block 
+is downloaded. If you need to access the Contents of the Block, you will have to use the 
 following Events:
  
   * *EVENTS.BLOCKS.BLOCK_HEADER_DOWNLOADED*: This is triggered when the Block Header of a BigBlock is downloaded
   * *EVENTS.BLOCKS.BLOCK_TXS_DOWNLOADED*: This is triggered when a Set of TXs from a Block has been 
       downloaded. Depending on the block size, we'll get several notifications of this Event.
         
-
- Using *BLOCK_HEADER_DOWNLOADED* and *BLOCK_TXS_DOWNLOADED*, you can get access to the Block content, without keeping it
+Using *BLOCK_HEADER_DOWNLOADED* and *BLOCK_TXS_DOWNLOADED*, you can get access to the Block content, without keeping it
  all in memory.
  
+> NOTE: The previous 2 events is the general way to acces a Block's content. But remember that if the Block downloaded is NOT a 
+> Big Block, then the *LITE_BLOCK_DOWNLOADED* event wil be triggered and you can use it to get its content. The problem is that 
+> most of the time you do *NOT* know in advance how long the block is going to be, so relying on the 2 Events above is still the best and 
+> safest approach.
+
  
-A lot of different things might go wrong during the download of a Block: The Peer we are connected to might drop the 
+ 
+ 
+A lot of different things might go wrong during downloading a Block: The Peer we are connected to might drop the 
 connection, or the speed of the bytes transfer drops and it becomes unusable, etc. This means that for some reason, a 
 block might not be possible to download. If that situation occurs, the *Block Downloader* Handler will automatically 
 try to download it again using a different Peer. But if the situations happens again and a maximum numbers of attempts is
@@ -680,7 +784,7 @@ p2p.EVENTS.BLOCKS.BLOCK_TXS_DOWNLOADED.forEach(System.out.::println)
  
 # Reference
 
-# Events
+# JCL-Net Events
 The following is a list of the most relevant Events that *JCYL* can stream. Each *Event* is represented by a JAva 
 Object and it contains different types of information, depending on the event itself.
 
