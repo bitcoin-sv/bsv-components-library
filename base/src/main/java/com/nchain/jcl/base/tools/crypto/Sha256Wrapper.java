@@ -7,9 +7,13 @@
 
 package com.nchain.jcl.base.tools.crypto;
 
+import com.google.common.io.ByteStreams;
 import com.nchain.jcl.base.tools.bytes.ByteTools;
 import com.nchain.jcl.base.tools.bytes.HEX;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -78,6 +82,26 @@ public class Sha256Wrapper implements Serializable, Comparable<Sha256Wrapper> {
     public static Sha256Wrapper of(byte[] contents) {
         return wrap(Sha256.hash(contents));
     }
+
+
+    /**
+     * Creates a new instance containing the calculated (one-time) hash of the given file's contents.
+     *
+     * The file contents are read fully into memory, so this method should only be used with small files.
+     *
+     * @param file the file on which the hash value is calculated
+     * @return a new instance containing the calculated (one-time) hash
+     * @throws IOException if an error occurs while reading the file
+     */
+    public static Sha256Wrapper of(File file) throws IOException {
+        FileInputStream in = new FileInputStream(file);
+        try {
+            return of(ByteStreams.toByteArray(in));
+        } finally {
+            in.close();
+        }
+    }
+
 
     /**
      * Creates a new instance containing the hash of the calculated hash of the given bytes.
