@@ -32,8 +32,8 @@ public class ChainInfoBean extends BitcoinSerializableObjectImpl implements Chai
         super(sizeInBytes);
         this.header = header;
         this.chainWork = chainWork;
-        this.height = height;
-        this.totalChainTxs = totalChainTxs;
+        this.height = (height != null)? height : 0;
+        this.totalChainTxs = (totalChainTxs != null) ? totalChainTxs : 0;
         this.totalChainSize = (totalChainSize != null)? totalChainSize : -1;
     }
 }
