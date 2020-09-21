@@ -26,11 +26,17 @@ public class TxInputSerializer implements BitcoinSerializer<TxInput> {
 
     @Override
     public TxInput deserialize(ByteArrayReader byteReader) {
+        long currentReaderPosition = byteReader.getBytesReadCount();
+
         TxOutPoint outPoint = TxOutPointSerializer.getInstance().deserialize(byteReader);
         int scriptLen = (int) BitcoinSerializerUtils.deserializeVarInt(byteReader);
         byte[] sig_script = byteReader.read(scriptLen);
         long sequence = byteReader.readUint32();
-        TxInput result = TxInputBean.builder().outpoint(outPoint).scriptBytes(sig_script).sequenceNumber(sequence).build();
+
+        long finalReaderPosition = byteReader.getBytesReadCount();
+        long objectSize = finalReaderPosition - currentReaderPosition;
+
+        TxInput result = TxInputBean.builder().sizeInBytes(objectSize).outpoint(outPoint).scriptBytes(sig_script).sequenceNumber(sequence).build();
         return result;
     }
 

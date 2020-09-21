@@ -25,9 +25,12 @@ public class BlockMetaSerializer implements BitcoinSerializer<BlockMeta> {
 
     @Override
     public BlockMeta deserialize(ByteArrayReader byteReader) {
+        long currentReaderPosition = byteReader.getBytesReadCount();
         int txCount = (int) byteReader.readUint32();
         long blockSize = byteReader.readInt64LE();
-        return BlockMeta.builder().txCount(txCount).blockSize(blockSize).build();
+        long finalReaderPosition = byteReader.getBytesReadCount();
+        long objectSize = finalReaderPosition - currentReaderPosition;
+        return BlockMeta.builder().sizeInBytes(objectSize).txCount(txCount).blockSize(blockSize).build();
     }
 
     @Override

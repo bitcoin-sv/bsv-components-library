@@ -1,6 +1,7 @@
 package com.nchain.jcl.base.domain.api.extended;
 
 import com.nchain.jcl.base.domain.api.BitcoinObject;
+import com.nchain.jcl.base.domain.api.BitcoinSerializableObject;
 import com.nchain.jcl.base.domain.bean.extended.BlockMetaBean;
 
 /**
@@ -13,7 +14,7 @@ import com.nchain.jcl.base.domain.bean.extended.BlockMetaBean;
  * without storing the whole structure.
  * A BlockMata is a data structure that returns the number of TXs and the Block size of a block.
  */
-public interface BlockMeta extends BitcoinObject {
+public interface BlockMeta extends BitcoinSerializableObject {
 
     // All the object of this Type has a fixed size once serialized
     int FIXED_SIZE = 4 + 8;

@@ -3,6 +3,7 @@ package com.nchain.jcl.base.domain.bean.base;
 import com.nchain.jcl.base.domain.api.base.TxOutPoint;
 import com.nchain.jcl.base.domain.bean.BitcoinHashableImpl;
 import com.nchain.jcl.base.domain.bean.BitcoinObjectImpl;
+import com.nchain.jcl.base.domain.bean.BitcoinSerializableObjectImpl;
 import com.nchain.jcl.base.tools.crypto.Sha256;
 import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
 import lombok.AllArgsConstructor;
@@ -20,12 +21,13 @@ import lombok.experimental.SuperBuilder;
  */
 
 @Value
-public class TxOutPointBean extends BitcoinObjectImpl implements TxOutPoint {
+public class TxOutPointBean extends BitcoinSerializableObjectImpl implements TxOutPoint {
     private Sha256Wrapper hash;
     private long index;
 
     @Builder(toBuilder = true)
-    public TxOutPointBean(Sha256Wrapper hash, long index) {
+    public TxOutPointBean(Long sizeInBytes, Sha256Wrapper hash, long index) {
+        super(sizeInBytes);
         this.hash = hash;
         this.index = index;
     }

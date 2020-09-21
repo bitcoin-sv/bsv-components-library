@@ -117,6 +117,7 @@ public class TxMsg extends Message {
     /** Returns a BitcoinObject containing the same information */
     public Tx toBean() {
         TxBean.TxBeanBuilder txBuilder = Tx.builder()
+                .sizeInBytes(lengthInBytes)
                 .lockTime(lockTime)
                 .version(version)
                 .inputs(tx_in.stream().map(i -> i.toBean()).collect(Collectors.toList()))

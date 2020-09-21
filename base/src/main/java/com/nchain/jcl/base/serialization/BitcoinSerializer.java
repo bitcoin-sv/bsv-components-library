@@ -1,6 +1,7 @@
 package com.nchain.jcl.base.serialization;
 
 import com.nchain.jcl.base.domain.api.BitcoinObject;
+import com.nchain.jcl.base.domain.api.BitcoinSerializableObject;
 import com.nchain.jcl.base.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.base.tools.bytes.ByteArrayWriter;
 
@@ -17,7 +18,7 @@ import com.nchain.jcl.base.tools.bytes.ByteArrayWriter;
  * @see ByteArrayReader
  * @see ByteArrayWriter
  */
-public interface BitcoinSerializer<T extends BitcoinObject> {
+public interface BitcoinSerializer<T extends BitcoinSerializableObject> {
 
     // Methods to convert a ByteArray into a Java Object
     T deserialize(ByteArrayReader byteReader);

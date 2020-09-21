@@ -25,13 +25,18 @@ public class TxOutputSerializer implements BitcoinSerializer<TxOutput> {
     }
     @Override
     public TxOutput deserialize(ByteArrayReader byteReader) {
+        long currentReaderPosition = byteReader.getBytesReadCount();
+
         Coin value = Coin.valueOf(byteReader.readInt64LE());
 
         // The script length is stored oin the byte array, following the same rules as in the TxOPutputMsg.
         int scriptLen = (int) BitcoinSerializerUtils.deserializeVarInt(byteReader);
         byte[] pk_script = byteReader.read(scriptLen);
 
-        TxOutput result = TxOutputBean.builder().value(value).scriptBytes(pk_script).build();
+        long finalReaderPosition = byteReader.getBytesReadCount();
+        long objectSize = finalReaderPosition- currentReaderPosition;
+
+        TxOutput result = TxOutputBean.builder().sizeInBytes(objectSize).value(value).scriptBytes(pk_script).build();
         return result;
     }
     @Override

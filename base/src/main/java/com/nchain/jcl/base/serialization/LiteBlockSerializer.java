@@ -29,10 +29,17 @@ public class LiteBlockSerializer implements BitcoinSerializer<LiteBlock> {
 
     @Override
     public LiteBlock deserialize(ByteArrayReader byteReader) {
+        long currentReaderPosition = byteReader.getBytesReadCount();
+
         BlockHeader blockMeader = BlockHeaderSerializer.getInstance().deserialize(byteReader);
         BlockMeta blockMeta = BlockMetaSerializer.getInstance().deserialize(byteReader);
         ChainInfo chainInfo = ChainInfoSerializer.getInstance().deserialize(byteReader);
+
+        long finalReaderPosition = byteReader.getBytesReadCount();
+        long objectSize = finalReaderPosition - currentReaderPosition;
+
         return LiteBlock.builder()
+                .sizeInBytes(objectSize)
                 .header(blockMeader)
                 .blockMeta(blockMeta)
                 .chainInfo(chainInfo)

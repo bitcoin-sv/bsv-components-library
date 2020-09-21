@@ -1,6 +1,7 @@
 package com.nchain.jcl.base.serialization;
 
 import com.nchain.jcl.base.domain.api.BitcoinObject;
+import com.nchain.jcl.base.domain.api.BitcoinSerializableObject;
 import com.nchain.jcl.base.domain.api.base.*;
 import com.nchain.jcl.base.domain.api.extended.BlockMeta;
 import com.nchain.jcl.base.domain.api.extended.ChainInfo;
@@ -22,7 +23,7 @@ import java.util.Map;
  * Copyright (c) 2018-2020 nChain Ltd
  *
  * This class stores references to al the Serialziers implemented for all the Bitcoin Objects. Instead of locating and
- * using an specific serilziaer, this class can be used to serilize any Object.
+ * using an specific serilziaer, this class can be used to serialize any Object.
  */
 public class BitcoinSerializerFactory {
     // References to all Serializers. Each Serialier is referenes by the class of the Object it serializes, so
@@ -71,7 +72,7 @@ public class BitcoinSerializerFactory {
     }
 
     /** Serialzes the object provided. */
-    public static byte[] serialize(BitcoinObject object) {
+    public static byte[] serialize(BitcoinSerializableObject object) {
         BitcoinSerializer serialier = getSerializer(object.getClass());
         if (serialier == null) throw new RuntimeException("No Serializer for " + object.getClass().getSimpleName());
         return serialier.serialize(object);

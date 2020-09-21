@@ -32,13 +32,19 @@ public class TxIdBlockSerializer implements BitcoinSerializer<TxIdBlock> {
 
     @Override
     public TxIdBlock deserialize(ByteArrayReader byteReader) {
+        long curentReaderPosition = byteReader.getBytesReadCount();
+
         BlockHeader header = (BlockHeader) BitcoinSerializerFactory.deserialize(BlockHeader.class, byteReader);
         long numTxs = BitcoinSerializerUtils.deserializeVarInt(byteReader);
         List<Sha256Wrapper> txs = new ArrayList<>();
         for (int i = 0; i < numTxs; i++)
             txs.add(BitcoinSerializerUtils.deserializeHash(byteReader));
 
+        long finalReaderPosition = byteReader.getBytesReadCount();
+        long objectSize = finalReaderPosition - curentReaderPosition;
+
          TxIdBlock result = TxIdBlock.builder()
+                    .sizeInBytes(objectSize)
                     .header(header)
                     .txids(txs)
                     .build();

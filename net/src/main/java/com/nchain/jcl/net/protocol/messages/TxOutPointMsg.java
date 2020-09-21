@@ -61,6 +61,6 @@ public class TxOutPointMsg extends Message {
 
     /** Returns a BitcoinObject containing the same information */
     public TxOutPoint toBean() {
-        return new TxOutPointBean(Sha256Wrapper.wrap(hash.getHashBytes()), index);
+        return new TxOutPointBean(lengthInBytes, Sha256Wrapper.wrap(hash.getHashBytes()), index);
     }
 }

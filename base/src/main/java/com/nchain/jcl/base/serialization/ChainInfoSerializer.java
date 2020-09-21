@@ -28,6 +28,8 @@ public class ChainInfoSerializer implements BitcoinSerializer<ChainInfo> {
 
     @Override
     public ChainInfo deserialize(ByteArrayReader byteReader) {
+        long currentReaderPosition = byteReader.getBytesReadCount();
+
         BigInteger chainWork;
         long chainWorkLength = BitcoinSerializerUtils.deserializeVarInt(byteReader);
         if (chainWorkLength > 0) {
@@ -38,7 +40,11 @@ public class ChainInfoSerializer implements BitcoinSerializer<ChainInfo> {
         int height = (int)byteReader.readUint32();
         long totalChainTxs = byteReader.readInt64LE();
 
+        long finalReaderPosition = byteReader.getBytesReadCount();
+        long objectSize = finalReaderPosition - currentReaderPosition;
+
         ChainInfo result = ChainInfo.builder()
+                .sizeInBytes(objectSize)
                 .height(height)
                 .chainWork(chainWork)
                 .totalChainTxs(totalChainTxs)

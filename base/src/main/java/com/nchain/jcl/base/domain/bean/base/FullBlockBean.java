@@ -6,7 +6,6 @@ import com.nchain.jcl.base.domain.api.base.Tx;
 import com.nchain.jcl.base.domain.api.extended.BlockMeta;
 import com.nchain.jcl.base.domain.api.extended.LiteBlock;
 import com.nchain.jcl.base.domain.bean.extended.BlockMetaBean;
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
 import lombok.Builder;
 import lombok.Value;
 

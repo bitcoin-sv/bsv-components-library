@@ -1,5 +1,7 @@
 package com.nchain.jcl.net.protocol.messages;
 
+import com.nchain.jcl.base.domain.api.base.BlockHeader;
+import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -70,4 +72,17 @@ public class BlockHeaderMsg extends Message {
 
     @Override
     protected void validateMessage() {}
+
+    /** Returns a BitcoinObject containing the same information */
+    public BlockHeader toBean() {
+        return BlockHeader.builder()
+                .sizeInBytes(lengthInBytes)
+                .version(version)
+                .prevBlockHash(Sha256Wrapper.wrap(prevBlockHash.getHashBytes()))
+                .merkleRoot(Sha256Wrapper.wrap(merkleRoot.getHashBytes()))
+                .time(creationTimestamp)
+                .difficultyTarget(difficultyTarget)
+                .nonce(nonce)
+                .build();
+    }
 }

@@ -79,6 +79,6 @@ public class TxInputMsg extends Message {
 
     /** Returns a BitcoinObject containing the same information */
     public TxInput toBean() {
-        return new TxInputBean(sequence, pre_outpoint.toBean(), signature_script, null); // TODO: Value??
+        return new TxInputBean(lengthInBytes, sequence, pre_outpoint.toBean(), signature_script, null); // TODO: Value??
     }
 }

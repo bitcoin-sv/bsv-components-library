@@ -1,6 +1,6 @@
 package com.nchain.jcl.base.domain.api.extended;
 
-import com.nchain.jcl.base.domain.api.BitcoinObject;
+import com.nchain.jcl.base.domain.api.BitcoinSerializableObject;
 import com.nchain.jcl.base.domain.api.base.BlockHeader;
 import com.nchain.jcl.base.domain.bean.extended.ChainInfoBean;
 
@@ -13,7 +13,7 @@ import java.math.BigInteger;
  *
  * This interface provides additional information about a block header's position within a blockchain.
  */
-public interface ChainInfo extends BitcoinObject {
+public interface ChainInfo extends BitcoinSerializableObject {
     /** Get the {@link BlockHeader}.
      *
      * @return The Header for which this object provides more information.

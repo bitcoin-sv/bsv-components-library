@@ -2,6 +2,7 @@ package com.nchain.jcl.base.domain.api.base;
 
 import com.nchain.jcl.base.core.Coin;
 import com.nchain.jcl.base.domain.api.BitcoinObject;
+import com.nchain.jcl.base.domain.api.BitcoinSerializableObject;
 import com.nchain.jcl.base.domain.bean.base.TxInputBean;
 
 import javax.annotation.Nullable;
@@ -13,7 +14,7 @@ import javax.annotation.Nullable;
  *
  * An Input of a Bitcoin Transaction
  */
-public interface TxInput extends BitcoinObject {
+public interface TxInput extends BitcoinSerializableObject {
     static long NO_SEQUENCE = 0xFFFFFFFFL;
 
     // Tx Input Data:

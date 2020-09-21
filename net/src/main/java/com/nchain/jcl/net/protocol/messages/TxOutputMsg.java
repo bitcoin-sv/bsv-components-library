@@ -68,6 +68,6 @@ public class TxOutputMsg extends Message {
 
     /** Returns a BitcoinObject containing the same information */
     public TxOutput toBean() {
-        return new TxOutputBean(Coin.valueOf(txValue), pk_script);
+        return new TxOutputBean(lengthInBytes, Coin.valueOf(txValue), pk_script);
     }
 }

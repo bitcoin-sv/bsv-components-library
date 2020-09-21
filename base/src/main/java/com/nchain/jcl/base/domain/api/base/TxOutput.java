@@ -2,6 +2,7 @@ package com.nchain.jcl.base.domain.api.base;
 
 import com.nchain.jcl.base.core.Coin;
 import com.nchain.jcl.base.domain.api.BitcoinObject;
+import com.nchain.jcl.base.domain.api.BitcoinSerializableObject;
 import com.nchain.jcl.base.domain.bean.base.TxOutputBean;
 
 /**
@@ -11,7 +12,7 @@ import com.nchain.jcl.base.domain.bean.base.TxOutputBean;
  *
  * An outut of a Bitcoin Transaction
  */
-public interface TxOutput extends BitcoinObject {
+public interface TxOutput extends BitcoinSerializableObject {
     Coin getValue();
     byte[] getScriptBytes();
 

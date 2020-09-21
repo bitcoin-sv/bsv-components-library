@@ -26,9 +26,15 @@ public class TxOutPointSerializer implements BitcoinSerializer<TxOutPoint> {
     }
     @Override
     public TxOutPoint deserialize(ByteArrayReader byteReader) {
+        long currentReaderPosition = byteReader.getBytesReadCount();
+
         Sha256Wrapper hash = BitcoinSerializerUtils.deserializeHash(byteReader);
         long index = byteReader.readUint32();
-        TxOutPoint result = TxOutPointBean.builder().hash(hash).index(index).build();
+
+        long finalReaderPosition = byteReader.getBytesReadCount();
+        long objectSize = finalReaderPosition - currentReaderPosition;
+
+        TxOutPoint result = TxOutPointBean.builder().sizeInBytes(objectSize).hash(hash).index(index).build();
         return result;
     }
 

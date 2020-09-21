@@ -3,6 +3,7 @@ package com.nchain.jcl.base.domain.bean;
 import com.nchain.jcl.base.domain.api.BitcoinSerializableObject;
 import com.nchain.jcl.base.serialization.BitcoinSerializerFactory;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.NoArgsConstructor;
 
 /**
