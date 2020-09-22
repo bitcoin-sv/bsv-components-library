@@ -1,3 +1,4 @@
+
 # JCL: Java Component Library for Bitcoin:: Quickstart tutorial
 
 # Introduction
@@ -142,25 +143,25 @@ Apart from all the above, a *Bitcoin Object* class might also be *Serializable*,
 
 A *Bitcoin Serializable Object* is like a regular "Bitcoin Object*, plus:
 
- * It provides a *sizeInbytes* field, which stores the size of this object once serialized. The size of some objects plays a roles in some business decisiones, like when calcualtion *fees*.
+ * It provides a *sizeInbytes* field, which stores the size of this object once serialized. The size of some objects plays a roles in some business decisiones, like when calculating *fees*.
 
 
-A *Bitcoin Serializabel Object* might also be a **Bitcoin Hashable Object**. 
+A *Bitcoin Serializabel Object* might also be a **Bitcoin Hashable Object**: 
 
-A *BitcoinHashable Object* is like any other *Bitcoin Serialziable Object*, that is, it might be Serialize, but it also contains a special field called **hash**. This field contains a value, which is the calcualted *hash* (Sha-256) of this object's content, once Serialized. All the *Bitcoin Hashable Objects* include this fields which is automatically calculated.
+ * A *BitcoinHashable Object* is like any other *Bitcoin Serialziable Object*, that is, it can be Serialized, and it also contains a special field called **hash**. This field contains a value, which is the calculated *hash* (Sha-256) of this object's content, once Serialized. All the *Bitcoin Hashable Objects* include this fields which is automatically calculated.
 
-**Most *Domain Classes* in *JCL* are *Bitcoin Serialziable Objects*, and some of them are also *Bitcoin Hashable Objects*.**
+**Most *Domain Classes* in *JCL* are *Bitcoin Serializable Objects*, and some of them are also *Bitcoin Hashable Objects*.**
 
 
 > NOTE:
 > 
-> The *Bitcoin Serializable Objects* contains a *sizeInBytes* field which is automatically populated by *JCL* when the object is deserialized. in the case an object is instead created from scratch, just by adding fields one by one, the *sizeInbytes* field will be *empty* until it's called for the first time: in that moment, its value is calculated and assigned, and never changed after that. This field breaks the definition of "immutability", although the classes are Thread-Safe.
+> The *Bitcoin Serializable Objects* contains a *sizeInBytes* field which is automatically populated by *JCL* when the object is deserialized. In the case an object is instead created from scratch, just by adding fields one by one, the *sizeInbytes* field will be *empty* until it's called for the first time: in that moment, its value is calculated and assigned, and never changed after that. This field breaks the definition of "immutability", although the classes are Thread-Safe.
 > 
 > The *Bitcoin Hashable Objects* contains a *hash* field which is automatically populated by *JCL*. In the case an object is instead created from scratch, just by adding fields one by one, the *sizeInbytes* field will be *empty* until it's called for the first time: in that moment, its value is calculated and assigned, and never changed after that. This field breaks the definition of "immutability", although the classes are Thread-Safe.
 
 ### Creting and modifying *Domain Classes*
 
-The *Tx* Transaction Object is one of the most important ones. This is an example of a *Bitcoin Serializable Object* that measn taht we can create and instance from a *raw data*, like a byte Aray or an hexadecimal representation of bytes.
+The *Tx* Transaction Object is one of the most important ones. This is an example of a *Bitcoin Serializable Object*, that means that we can create and instance from a *raw data*, like a byte Aray or an hexadecimal representation of bytes.
 
 
 This is an example of how to create a *Transaction* from a *Byte Array* in *Hexadecimal* format:
@@ -182,7 +183,7 @@ Tx tx = Tx.builder(TX_BYTES).build();
 A *Bitcoin Object* can also be built **from scratch**, filling in all the values in the right fields. 
 
 
-This is an example of how to build a *Transaction Input* from scratch, containing *10 Satoshis* and a dummy *unlocking script (an empty byte array of length 10)*
+This is an example of how to build a *Transaction Output* from scratch, containing *10 Satoshis* and a dummy *unlocking script (an empty byte array of length 10)*
 
 ```
 TxOutput txOutput = TxOutput.builder()
@@ -221,7 +222,7 @@ Tx tx = Tx.builder()
 ```
 
 
-you can also make any changes you like before calling the *build()* method. And if you want to make change to an existing *Tx* object, you need to create a new one before that:
+you can also make any changes you like before calling the *build()* method. And if you want to make change to an existing *Tx* object, you only need to create a *builder* out of it and work from there:
 
 ```
 Tx originalTx = ...
@@ -252,7 +253,7 @@ byte[] txSerialzied = BitcoinSerializerFactory.serialize(tx);
 
 ```
 
-The same way, we can *Deserialize*  *raw data* into *Bitcoin Objects*. In this case we laso need to specify what class of object we are going to deserialzie and a *cast* is necessary at the end:
+The same way, we can *Deserialize*  *raw data* into *Bitcoin Objects*. In this case we also need to specify what class of object we are going to deserialzie and a *cast* is necessary at the end:
 
 ```
 String TX_INPUT_HEX = ...
@@ -407,10 +408,10 @@ into your classpath:
 </configuration>
 ````
 
-## How to use *JCL-Base*
+## How to use *JCL-Net*
 
 ## Streaming:
-*Sreaming* the most basic operation you can do, its mainly consists of *connecting* to the P2P network, and *streaming* events from it, event syou can *subscribe* to and *react*.
+*Sreaming* is the most basic operation you can do, it mainly consists of *connecting* to the P2P network, and *streaming* events from it, events you can *subscribe* and *react* to.
 
 ### Simple connection:
 
@@ -472,8 +473,7 @@ p2p.EVENTS.PEERS.HANDSHAKED.forEach(System.out::println);
 p2p.EVENTS.MSGS.ALL.forEach(System.out::println);
 
 p2p.start();
-// We will be notified for 5 seconds...
-Thread.sleep(5_000);
+Thread.sleep(5_000); // We will be notified for 5 seconds...
 p2p.stop();
 ````
 
@@ -605,14 +605,16 @@ Event[State]: PingPong-Handler State: 0 Pings in progress
 Event[State]: Discovery State:  Pool size: 0 [ 0 handshaked, 1000 added, 0 removed, 1045 rejected ] : 12 GET_ADDR sent, 4 ADDR received
 Event[State]: Blacklist Status: [ 0 Addresses blacklisted ] count: {}
 ````
-In the previous output we can see how different kinds of *State* Events have been triggered. That's because *JCYL* is 
+In the previous output we can see how different kinds of *State* Events have been triggered (*Network Handler State*, *Handshake State*, etc). That's because *JCYL* is 
 internally composed of multiple *Handlers*, each one of them  taking care of an specific part of the 
 *Bitcoin Protocol*, so we have then different status, each one related to one specific Handler.
+
+> In the **JCL-Net Advance** chapter we'll dive into more complex confguration and how to fineñtune each Handler separately.
 
 Like with a regular Event, we can define the "forEach" callback in a separate method, and inspect the different State
 Event Objects to get all the information we need from them.
 
-> All the *State* Events, along with the rest of Events, are described in the **Reference** Section 
+All the *State* Events, along with the rest of Events, are described in the **Reference** Section 
 
 ### Requests
 
@@ -653,8 +655,9 @@ has been performed or not, you can listen to those Events that might confirm/den
 a Peer, you can also listen to the *.EVENTS.PEERS.CONNECTED* to verify that the Request has gone through).
 
 
+### JCL-NEt Advanced
 
-### Detailed View and advance-configuration:
+#### Detailed Architecture View:
 
 *JCL-Net* follows a modular architecture, composed of multiple components called *Handlers*, each 
 one of them implementing a different functionality. Some of these *Handlers* are designed as *Default 
@@ -701,12 +704,12 @@ The *Custom* Handlers built-in in *JCL* are the following:
  
  > An specific chapter about *Block Downloading* with more details is provided in this documentation.
 
-### Advance Configuration (fine-tunning):
+#### Advance Configuration (fine-tunning):
 
 > PENDING...
 
 
-### Block Downloading
+#### Block Downloading
 
 Downloading a Block can be done by the *BlockDownloader* Handler. This handler is already provided by *JCL*, so no additional
 work is needed. The process to download a Block (or Blocks) is as follows:
@@ -784,106 +787,141 @@ p2p.EVENTS.BLOCKS.BLOCK_TXS_DOWNLOADED.forEach(System.out.::println)
  
 # Reference
 
-# JCL-Net Events
+## JCL-Net Events
 The following is a list of the most relevant Events that *JCYL* can stream. Each *Event* is represented by a JAva 
 Object and it contains different types of information, depending on the event itself.
 
-## Events related to Peers
+### Events related to Peers
 
-### PeerConnectedEvent
-``com.nchain.jcl.network.events.PeerConnectedEvent``
-
-(*EVENTS.PEERS.CONNECTED*)
+#### PeerConnectedEvent
 
 An Event triggered when a Peer is Connected. This is a physical connection (Socket Connection),
 so the real communication with this Peer has not even started yet. Most probably you will be interested in the
 *PeerHandshakedEvent*, which is triggered when a Peer is connected and the handshake is done, so real
 communication can be performed.
 
-### PeerDisconnectedEvent
-``com.nchain.jcl.network.events.PeerDisconnectedEvent``
+This Event is accesible by:``[P2Pservice].EVENTS.PEERS.CONNECTED``
 
-(*EVENTS.PEERS.DISCONNECTED*)
+The Event class passed as paremeter to the *forEach* method is an instance of
+``com.nchain.jcl.net.network.events.PeerConnectedEvent``
+
+> **The fact that a Peer is connected only means that the physhical connection has been stablished, but the *handhsake* has NOT been performed yet. So if you want to trigger some business logic to communicate with a Peer, you should listen to the *Handshaked* Event instead**
+
+### PeerDisconnectedEvent
 
 An Event triggered when a Peer is disconnected.
 
-### PeerHandshakedEvent
-``com.nchain.jcl.protocol.events.PeerHandshakedEvent``
+This Event is accesible by: ``[P2Pservice].EVENTS.PEERS.DISCONNECTED``
 
-(*EVENTS.PEERS.HANDSHAKED*)
+The Event class passed as paremeter to the *forEach* method is an instance of
+``com.nchain.jcl.net.network.events.PeerDisconnectedEvent``
+
+
+### PeerHandshakedEvent
 
 An Event triggered when A Peer has been handshaked and it's ready to communicate with.
 
+This Event is accesible by: ``[P2Pservice].EVENTS.PEERS.HANDSHAKED``
+
+The Event class passed as paremeter to the *forEach* method is an instance of
+``com.nchain.jcl.net.protocol.events.PeerHandshakedEvent``
+
+
 ### PeerHandshakeRejectedEvent
-``com.nchain.jcl.protocol.events.PeerHandshakeRejectedEvent``
 
-(*EVENTS.PEERS.HANDSHAKED_REJECTED*)
+An Event triggered when the Handshake with a Remote Peer has been rejected. After receivinf this Event, the Peer is not accesibe any more (unless the *P2P* Services manages to re-connect to it again, which might trigger another *PeerConnectedEvent* and *PeerHandshakedEvent*.
 
-An Event triggered when the Handshake with a Remote Peer has been rejected.
+This Event is accesible by: ``[P2Pservice].EVENTS.PEERS.HANDSHAKED_REJECTED``
+
+The Event class passed as paremeter to the *forEach* method is an instance of
+``com.nchain.jcl.net.protocol.events.PeerHandshakeRejectedEvent``
+
 
 ### PeerHandshakedDisconnectedEvent
-``com.nchain.jcl.protocol.events.PeerHandshakedDisconnectedEvent``
-
-(*EVENTS.PEERS.HANDSHAKED_DISCONNECTED*)
 
 An Event triggered when a Peer that was currently handshaked, disconnects. This is a *convenience* event, since the
 same information can be achieved by listening to the events *PeerHandshakedEvent* and *PeerDisconnectedEvent*
 
-### MinHandshakedPeersReachedEvent
-``com.nchain.jcl.protocol.events.MinHandshakedPeersReachedEvent``
+This Event is accesible by: ``[P2Pservice].EVENTS.PEERS.HANDSHAKED_DISCONNECTED``
 
-(*EVENTS.PEERS.HANDSHAKED_MIN_REACHED*)
+The Event class passed as paremeter to the *forEach* method is an instance of
+``com.nchain.jcl.net.protocol.events.PeerHandshakedDisconnectedEvent``
+
+
+### MinHandshakedPeersReachedEvent
 
 An Event triggered when the minimun number of Peers Handshaked has been reached, as specified in the P2P Configuration.
 For example, if the peers range is specified to [10 - 12], this event will be notified when the service manages to connect 
 to 10 Peers. This Event wil NOT be notified again UNTIL the number of Peers falls below the lower range (10) nad later on we manage to connect to 12 Peers again 
 
-### MinHandshakedPeersLostEvent
-``com.nchain.jcl.protocol.events.MinHandshakedPeersLostEvent``
+This Event is accesible by: ``[P2Pservice].EVENTS.PEERS.HANDSHAKED_MIN_REACHED``
 
-(*EVENTS.PEERS.HANDSHAKED_MIN_Lost*)
+The Event class passed as paremeter to the *forEach* method is an instance of
+``com.nchain.jcl.net.protocol.events.MinHandshakedPeersReachedEvent``
+
+
+### MinHandshakedPeersLostEvent
 
 An Event triggered when the Number of Peers Handshakes has dropped below the threshold specified in the P2P Configuration
 For example, if the peers range is specified to [10 - 12], this event will be notified when the service is already 
 connected to 10 or more Peers, and the number of connections drops below 10. 
 
-### PingPongFailedEvent
-``com.nchain.jcl.protocol.events.PingPongFailedEvent``
+This Event is accesible by: ``[P2Pservice].EVENTS.PEERS.HANDSHAKED_MIN_LOST``
 
-(*EVENTS.PEERS.PINGPONG_FAILED*)
+The Event class passed as paremeter to the *forEach* method is an instance of
+``com.nchain.jcl.net.protocol.events.MinHandshakedPeersLostEvent``
+
+
+### PingPongFailedEvent
 
 An Event triggered when a Peer has failed to perform the Ping/Pong Protocol, which means that a PING message has been sent
  to this Peer but it has not reply with a PONG message within the time frame specified in the Configuration.
  
+ This Event is accesible by: ``[P2Pservice].EVENTS.PEERS.PINGPONG_FAILED``
+ 
+ The Event class passed as paremeter to the *forEach* method is an instance of
+``com.nchain.jcl.net.protocol.events.PingPongFailedEvent``
+ 
 > Note: This event only notifies the fact. If you want to check if some action has been taken on this Peer due to this, you 
-should listen to the *PeerDisconnectedEvent* or "PeerBlacklistedEvent" Events. 
+should listen to the *PeerDisconnectedEvent* or *PeerBlacklistedEvent* Events. 
 
 
 ### PeersBlacklistedEvent
-``com.nchain.jcl.protocol.events.PeersBlacklistedEvent``
-
-(*EVENTS.PEERS.BLACKLISTED*)
 
 An Event triggered when a set of Nodes is blacklisted. (Ahole IP address is blacklisted, no mater the port number)
 It also provides information about the REASON why it's been blacklisted, which also contains the expirationTime (the date after which this Peer is whitelisted and can be used again).
 
-### PeersWhitelistedEvent
-``com.nchain.jcl.protocol.events.PeersWhitelistedEvent``
+ This Event is accesible by: ``[P2Pservice].EVENTS.PEERS.BLACKLISTED``
+ 
+ The Event class passed as paremeter to the *forEach* method is an instance of
+``com.nchain.jcl.net.protocol.events.PeersBlacklistedEvent``
 
-(*EVENTS.PEERS.WHITELISTED*)
+
+### PeersWhitelistedEvent
 
 An event triggered when a set of IP Addresses has been whitelisted (back to business again)
+
+This Event is accesible by: ``[P2Pservice].EVENTS.PEERS.WHITELISTED``
+ 
+The Event class passed as paremeter to the *forEach* method is an instance of
+``com.nchain.jcl.net.protocol.events.PeersWhitelistedEvent``
+
 
 ## Events related to Bitcoin Messages
 
 ### MsgReceivedEvent
-``com.nchain.jcl.protocol.events.MsgReceivedEvent``
 
-(*EVENTS.MSGS.ALL*)
+An Event triggered when a Message is received from a Remote Peer. 
 
-An Event triggered when a Message is received from a Remote Peer. If you are interested only in a subset of all possible 
+This Event is accesible by: ``[P2Pservice].EVENTS.MSGS.ALL``
+
+The Event class passed as paremeter to the *forEach* method is an instance of
+``com.nchain.jcl.net.protocol.events.MsgReceivedEvent``
+
+If you are interested only in a subset of all possible 
 messages, you can either implement your own logic into the callback to filter them out, or you can also use the different 
 and more specific Events provided:
+
 
  * (*EVENTS.MSGS.ADDR*)
  * (*EVENTS.MSGS.BLOCK*)
@@ -897,15 +935,27 @@ and more specific Events provided:
  * (*EVENTS.MSGS.TX*)
  * (*EVENTS.MSGS.VERSION*)
  * (*EVENTS.MSGS.VERSION_ACK*)
+ * (*EVENTS.MSGS.GET_HEADERS*)
+ * (*EVENTS.MSGS.SEND_HEADERS*)
+ * (*EVENTS.MSGS.HEADERS*)
+ * (*EVENTS.MSGS.MEMPOOL*)
 
 > MORE MESSAGES COMING UP...
 
 ### MsgSentEvent
-``com.nchain.jcl.protocol.events.MsgSentEvent``
+``com.nchain.jcl.net.protocol.events.MsgSentEvent``
 
 (*EVENTS.MSGS.ALL_SENT*)
 
-An Event triggered when a Message is sent to a Remote Peer. If you are interested only in a subset of all possible 
+An Event triggered when a Message is sent to a Remote Peer. 
+
+This Event is accesible by: ``[P2Pservice].EVENTS.MSGS.ALL``
+
+The Event class passed as paremeter to the *forEach* method is an instance of
+``com.nchain.jcl.net.protocol.events.MsgReceivedEvent``
+
+
+If you are interested only in a subset of all possible 
 messages, you can either implement your own logic into the callback to filter them out, or you can also use the different 
 and more specific Events provided:
 
@@ -921,23 +971,28 @@ and more specific Events provided:
  * (*EVENTS.MSGS.TX_SENT*)
  * (*EVENTS.MSGS.VERSION_SENT*)
  * (*EVENTS.MSGS.VERSION_ACK_SENT*)
+ * (*EVENTS.MSGS.GET_HEADERS_SENT*)
+ * (*EVENTS.MSGS.SEND_HEADERS_SENT*)
+ * (*EVENTS.MSGS.HEADERS_SENT*)
+ * (*EVENTS.MSGS.MEMPOOL*)
  
  > MORE MESSAGES COMING UP...
  
 ## Events related to *States*:
 These Events, unlike the rest of Events in *JCL*, are triggered always on a frequency basis, which has to be specified *before* 
-running the service.
+running the service:
 
 ### NetworkHandlerState
-``com.nchain.jcl.network.events.HandlerStateEvent``
 
-(*EVENTS.STATE.NETWORK*)
-
-This Event stores the current State of the Connection/Network Handler. The Network Handler implements the
-physical and low-level connection to a remote Peers, and handles all the incoming/outcoming data between
+This Event stores the current State of the Connection/Network Handler. The Network Handler implements the physical and low-level connection to a remote Peers, and handles all the incoming/outcoming data between
 the 2 parties.
 
-You must cast the Handler State:
+This Event is accesible by: ``[P2Pservice].EVENTS.STATE.NETWORK``
+
+The Event class passed as paremeter to the *forEach* method is an instance of
+``com.nchain.jcl.net.network.events.HandlerStateEvent``
+
+You must *cast* the Handler State:
 
 ````
 ...
@@ -949,9 +1004,6 @@ public void onState(HandlerStateEvent event) {
 ````
  
 ### MessageHandlerState
-``com.nchain.jcl.network.events.HandlerStateEvent``
-
-(*EVENTS.STATE.MESSAGES*)
 
 This event stores the state of the Handshake Handler at a point in time.
 The Message Handler takes care of the Serialization/Deserialization of the information coming
@@ -960,7 +1012,13 @@ other way around.
 
 This events keeps track of the number of bitcoin messages sent to and received from the network.
 
-You must cast the Handler State:
+This Event is accesible by: ``[P2Pservice].EVENTS.STATE.MESSAGES``
+
+The Event class passed as paremeter to the *forEach* method is an instance of
+``com.nchain.jcl.net.network.events.HandlerStateEvent``
+
+
+You must *cast* the Handler State:
 
 ````
 ...
@@ -972,9 +1030,6 @@ public void onState(HandlerStateEvent event) {
 ````
 
 ### HandshakeHandlerState
-``com.nchain.jcl.network.events.HandlerStateEvent``
-
-(*EVENTS.STATE.HANDSHAKE*)
 
 This event stores the state of the Handshake Handler at a point in time.
 the Handshake Handler takes care of implementing the Handshake Protocol, which takes place
@@ -985,6 +1040,12 @@ This event stores the number of Peers currently handshaked or failed, and also s
 that indicate if the Service has been requested to look for more Peers or to stop new connections
 instead (these request to resume/stop connections are always triggered when the nuymber of
 Peer handshakes go above or below some thresholds).
+
+This Event is accesible by: ``[P2Pservice].EVENTS.STATE.HANDSHAKE``
+
+The Event class passed as paremeter to the *forEach* method is an instance of
+``com.nchain.jcl.net.network.events.HandlerStateEvent``
+
 
 You must cast the Handler State:
 
@@ -999,16 +1060,18 @@ public void onState(HandlerStateEvent event) {
 
 
 ### PingPongHandlerState
-``com.nchain.jcl.network.events.HandlerStateEvent``
 
-(*EVENTS.STATE.PINGPONG*)
+This event stores the state of the PingPong Handler at a point in time.
+The PingPong Handler takes care of checking that the Remote Peers we are connected to are still
+"alive". On a frequency basis, it sends a PING message to them, expecting a PONG message back. If
+the response does not come or comes out of time, the Peer has then broken the timeout and will most
+probably be blacklisted.
 
- This event stores the state of the PingPong Handler at a point in time.
- The PingPong Handler takes care of checking that the Remote Peers we are connected to are still
- "alive". On a frequency basis, it sends a PING message to them, expecting a PONG message back. If
- the response does not come or comes out of time, the Peer has then broken the timeout and will most
- probably be blacklisted.
- 
+This Event is accesible by: ``[P2Pservice].EVENTS.STATE.PINGPONG``
+
+
+``com.nchain.jcl.net.network.events.HandlerStateEvent``
+
  You must cast the Handler State:
  
  ````
@@ -1022,13 +1085,15 @@ public void onState(HandlerStateEvent event) {
  
 
 ### DiscoveryHandlerState
-``com.nchain.jcl.network.events.HandlerStateEvent``
-
-(*EVENTS.STATE.DISCOVERY*)
 
  This event stores the state of the Discovery Handler at a point in time.
  The Discovery Handler takes care of feeding the Service with enough addresses of Remote Peers, so
  we have a "pool" of addresses we can use when we need to connect to more Peers.
+ 
+
+ The Event class passed as paremeter to the *forEach* method is an instance of
+``com.nchain.jcl.net.network.events.HandlerStateEvent``
+
  
  You must cast the Handler State:
  
@@ -1043,13 +1108,16 @@ public void onState(HandlerStateEvent event) {
   
  
 ### BlacklistHandlerState
-``com.nchain.jcl.network.events.HandlerStateEvent``
-
-(*EVENTS.STATE.BLACKLIST*)
 
  This event stores the state of the Blacklist Handler at a point in time.
  The Blacklist Handler takes care of Blacklisting (and whitelisting) Peers when some conditions are
  met: they failed during the handshake, or broken the timeout specified by the PingPong Handler, etc.
+ 
+ This Event is accesible by: ``[P2Pservice].EVENTS.STATE.BLACKLIST``
+ 
+ The Event class passed as paremeter to the *forEach* method is an instance of
+``com.nchain.jcl.net.network.events.HandlerStateEvent``
+
  
  You must cast the Handler State:
  
@@ -1066,51 +1134,64 @@ public void onState(HandlerStateEvent event) {
 
 ### BlockDownloadedEvent
 
-``com.nchain.jcl.protocol.events.BlockDownloadedEvent``
-
-(*EVENTS.BLOCKS.BLOCK_DOWNLOADED*)
-
 An Event triggered when a Block has been fully downloaded, including its TXs. Since a Block could potentially
 use more memory than the HW available, this Event only notifies the FACT that the block has been downloaded, and
 also provides some info about it (like the Block Header, or the Peer it's been downloaded from).
 
+ This Event is accesible by: ``[P2Pservice].EVENTS.BLOCKS.BOCK_DOWNLOADED``
+ 
+ The Event class passed as paremeter to the *forEach* method is an instance of
+``com.nchain.jcl.net.protocol.events.BlockDownloadedEvent``
+
+
 ### LiteBlockDownloadedEvent
-
-``com.nchain.jcl.protocol.events.LiteBlockDownloadedEvent``
-
-(*EVENTS.BLOCKS.LITE_BLOCK_DOWNLOADED*)
 
 An Event triggered when a "Lite" Block has been downloaded. A Lite block is a block which size is small enough
 to be put into memory without risking running out of it.
 
-NOTE:
-When listening for Events regarding Blocks downloaded, the best approach is to listen to "BlockDownloadedEvent"
-instead, which is always triggered regardless of the block size. This event here thought is only triggered when
-the Block is NOT Big
+ This Event is accesible by: ``[P2Pservice].EVENTS.BLOCKS.LITE_BOCK_DOWNLOADED``
+ 
+ The Event class passed as paremeter to the *forEach* method is an instance of
+``com.nchain.jcl.net.protocol.events.LiteBlockDownloadedEvent``
+
+
+> NOTE:
+> When listening for Events regarding Blocks downloaded, the best approach is to listen to "BlockDownloadedEvent"
+> instead, which is always triggered regardless of the block size. This event here thought is only triggered when
+> the Block is NOT Big
+
 
 ### BlockHeaderDownloadedEvent
 
-``com.nchain.jcl.protocol.events.BlockHeaderDownloadedEvent``
+An Event triggered when a Block Header has been downloaded, whcihi happends while downloading a block but *Before* the Block Transactions are downloaded.
 
-(*EVENTS.BLOCKS.BLOCK_HEADER_DOWNLOADED*)
+ This Event is accesible by: ``[P2Pservice].EVENTS.BLOCKS.BLOCK_HEADER_DOWNLOADED``
+ 
+ The Event class passed as paremeter to the *forEach* method is an instance of
+``com.nchain.jcl.net.protocol.events.BlockHeaderDownloadedEvent``
 
-An Event triggered when a Block Header has been downloaded.
 
 ### BlockTXsDownloadedEvent
 
-``com.nchain.jcl.protocol.events.BlockTXsDownloadedEvent``
+An Event triggered when a Set of TXs from a Block has been downloaded. If aBlock is big and contains many Trnsactions, this event might be triggered several times, each time containing a different set of downloaded ransactions, until all of them are downloaded. If you want to get notified when all the TXs have been downloaded and the block has been fully download, use the *BlockDownloadedEvent*.
 
-(*EVENTS.BLOCKS.BLOCK_TXS_DOWNLOADED*)
+ This Event is accesible by: ``[P2Pservice].EVENTS.BLOCKS.BLOCK_TXS_DOWNLOADED``
+ 
+ The Event class passed as paremeter to the *forEach* method is an instance of
+``com.nchain.jcl.net.protocol.events.BlockTXsDownloadedEvent``
 
-An Event triggered when a Set of TXs from a Block has been downloaded. If you want to get notified when all the
-TXs have been downloaded and the block has been fully download, use the BlockDownloadedEvent.
+
 
 ### BlockDiscardedEvent
 
-``com.nchain.jcl.protocol.events.BlockDiscardedEvent``
-
-(*EVENTS.BLOCKS.BLOCK_DISCARDED*)
-
 An Event triggered when a Block, which has been requested to download, is discarded for any reason. This event 
 provides info about the Block (Hash) and the reason why the Block has been discarded
-A Block discarded might be attempted again after some time, depending on configuration.
+
+
+ This Event is accesible by: ``[P2Pservice].EVENTS.BLOCKS.BLOCK_DISCARDED``
+
+ The Event class passed as paremeter to the *forEach* method is an instance of
+``com.nchain.jcl.net.protocol.events.BlockDiscardedEvent``
+
+
+> A Block discarded might be attempted again after some time, depending on configuration.
