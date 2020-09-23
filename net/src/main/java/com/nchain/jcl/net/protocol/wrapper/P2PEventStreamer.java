@@ -74,7 +74,10 @@ public class P2PEventStreamer {
             if (filters.size() > 0) {
                 eventHandlerToSubscribe = e -> {
                     boolean runConsumer = true;
-                    for (Predicate p : filters) { runConsumer = runConsumer && p.test(e); }
+                    for (Predicate p : filters) {
+                        runConsumer = runConsumer && p.test(e);
+                        if (!runConsumer) break;
+                    }
                     if (runConsumer) eventHandler.accept(e);
                 };
             }
