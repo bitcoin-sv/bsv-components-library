@@ -14,6 +14,8 @@ import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerState;
 import com.nchain.jcl.net.protocol.handlers.pingPong.PingPongHandlerState;
 import lombok.AllArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -45,21 +47,39 @@ public class P2PEventStreamer {
      * already used by some "Streamer" classes below, to automatically filter out some Event Types.
      * @param <E>
      */
-    @AllArgsConstructor
     public class EventStreamer<E extends Event> {
         private Class<E> eventClass;
-        private Predicate<E> filter;
-        public void filter(Predicate<E> filter) {
-            this.filter = filter;
+        private List<Predicate<E>> filters = new ArrayList<>();
+
+        public EventStreamer(Class<E> eventClass) {
+            this.eventClass = eventClass;
         }
+        public EventStreamer(Class<E> eventClass, Predicate<E> initialFilter) {
+                this(eventClass);
+                this.filters.add(initialFilter);
+        }
+        public EventStreamer<E> filter(Predicate<E> filter) {
+            this.filters.add(filter);
+            return this;
+        }
+
         public void forEach(Consumer<E> eventHandler) {
+            // We are defining the Consumer/Handler that will be triggered for any Event. We start
+            // the initial version is the same as the one provided as parameter:
             Consumer<E> eventHandlerToSubscribe = eventHandler;
-            if (filter != null) {
+
+            // But if some filters have been specified, then we build another version where all those filters
+            // are applied before running the consumer/Handler:
+
+            if (filters.size() > 0) {
                 eventHandlerToSubscribe = e -> {
-                  if (filter.test(e))
-                      eventHandler.accept(e);
+                    boolean runConsumer = true;
+                    for (Predicate p : filters) { runConsumer = runConsumer && p.test(e); }
+                    if (runConsumer) eventHandler.accept(e);
                 };
             }
+
+            // And we finally subscribe the Consumer/Handler to the EventBus:
             eventBus.subscribe(eventClass, eventHandlerToSubscribe);
         }
     }
@@ -69,8 +89,8 @@ public class P2PEventStreamer {
      * A convenience class that provides Event Stramers for "general" Events, not related to Peers or Msgs..
      */
     public class GeneralEventStreamer {
-        public final EventStreamer<NetStartEvent>   START   = new EventStreamer<>(NetStartEvent.class, null);
-        public final EventStreamer<NetStopEvent>    STOP    = new EventStreamer<>(NetStopEvent.class, null);
+        public final EventStreamer<NetStartEvent>   START   = new EventStreamer<>(NetStartEvent.class);
+        public final EventStreamer<NetStopEvent>    STOP    = new EventStreamer<>(NetStopEvent.class);
     }
     /**
      * A Convenience class that provides EventStreamers for Events related to Peers.
@@ -95,17 +115,17 @@ public class P2PEventStreamer {
                 );
 
         public final EventStreamer<Event>                       ALL             = new EventStreamer<>(Event.class, ALL_FILTER);
-        public final EventStreamer<PeerConnectedEvent>          CONNECTED       = new EventStreamer<>(PeerConnectedEvent.class, null);
-        public final EventStreamer<PeerDisconnectedEvent>       DISCONNECTED    = new EventStreamer<>(PeerDisconnectedEvent.class, null);
-        public final EventStreamer<PingPongFailedEvent>         PINGPONG_FAILED = new EventStreamer<>(PingPongFailedEvent.class, null);
-        public final EventStreamer<PeersBlacklistedEvent>       BLACKLISTED     = new EventStreamer<>(PeersBlacklistedEvent.class, null);
-        public final EventStreamer<PeersWhitelistedEvent>       WHITELISTED     = new EventStreamer<>(PeersWhitelistedEvent.class, null);
-        public final EventStreamer<PeerHandshakedEvent>         HANDSHAKED      = new EventStreamer<>(PeerHandshakedEvent.class, null);
-        public final EventStreamer<PeerHandshakedDisconnectedEvent> HANDSHAKED_DISCONNECTED     = new EventStreamer<>(PeerHandshakedDisconnectedEvent.class, null);
-        public final EventStreamer<PeerHandshakeRejectedEvent>      HANDSHAKED_REJECTED         = new EventStreamer<>(PeerHandshakeRejectedEvent.class, null);
-        public final EventStreamer<MinHandshakedPeersReachedEvent>  HANDSHAKED_MIN_REACHED      = new EventStreamer<>(MinHandshakedPeersReachedEvent.class, null);
-        public final EventStreamer<MinHandshakedPeersLostEvent>     HANDSHAKED_MIN_LOST         = new EventStreamer<>(MinHandshakedPeersLostEvent.class, null);
-        public final EventStreamer<InitialPeersLoadedEvent>         INITIAL_PEERS_LOADED        = new EventStreamer<>(InitialPeersLoadedEvent.class, null);
+        public final EventStreamer<PeerConnectedEvent>          CONNECTED       = new EventStreamer<>(PeerConnectedEvent.class);
+        public final EventStreamer<PeerDisconnectedEvent>       DISCONNECTED    = new EventStreamer<>(PeerDisconnectedEvent.class);
+        public final EventStreamer<PingPongFailedEvent>         PINGPONG_FAILED = new EventStreamer<>(PingPongFailedEvent.class);
+        public final EventStreamer<PeersBlacklistedEvent>       BLACKLISTED     = new EventStreamer<>(PeersBlacklistedEvent.class);
+        public final EventStreamer<PeersWhitelistedEvent>       WHITELISTED     = new EventStreamer<>(PeersWhitelistedEvent.class);
+        public final EventStreamer<PeerHandshakedEvent>         HANDSHAKED      = new EventStreamer<>(PeerHandshakedEvent.class);
+        public final EventStreamer<PeerHandshakedDisconnectedEvent> HANDSHAKED_DISCONNECTED     = new EventStreamer<>(PeerHandshakedDisconnectedEvent.class);
+        public final EventStreamer<PeerHandshakeRejectedEvent>      HANDSHAKED_REJECTED         = new EventStreamer<>(PeerHandshakeRejectedEvent.class);
+        public final EventStreamer<MinHandshakedPeersReachedEvent>  HANDSHAKED_MIN_REACHED      = new EventStreamer<>(MinHandshakedPeersReachedEvent.class);
+        public final EventStreamer<MinHandshakedPeersLostEvent>     HANDSHAKED_MIN_LOST         = new EventStreamer<>(MinHandshakedPeersLostEvent.class);
+        public final EventStreamer<InitialPeersLoadedEvent>         INITIAL_PEERS_LOADED        = new EventStreamer<>(InitialPeersLoadedEvent.class);
 
 
 
@@ -123,7 +143,7 @@ public class P2PEventStreamer {
         private Predicate<MsgSentEvent> getFilterForMsgSent(String msgType) {
             return e -> e.getBtcMsg().getHeader().getCommand().equalsIgnoreCase(msgType);
         }
-        public final EventStreamer<MsgReceivedEvent> ALL            = new EventStreamer<>(MsgReceivedEvent.class, null);
+        public final EventStreamer<MsgReceivedEvent> ALL            = new EventStreamer<>(MsgReceivedEvent.class);
         public final EventStreamer<MsgReceivedEvent> ADDR           = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(AddrMsg.MESSAGE_TYPE));
         public final EventStreamer<MsgReceivedEvent> BLOCK          = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(BlockMsg.MESSAGE_TYPE));
         public final EventStreamer<MsgReceivedEvent> FEE            = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(FeeFilterMsg.MESSAGE_TYPE));
@@ -142,7 +162,7 @@ public class P2PEventStreamer {
         public final EventStreamer<MsgReceivedEvent> HEADERS        = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(HeadersMsg.MESSAGE_TYPE));
         public final EventStreamer<MsgReceivedEvent> MEMPOOL        = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(MemPoolMsg.MESSAGE_TYPE));
 
-        public final EventStreamer<MsgSentEvent> ALL_SENT           = new EventStreamer<>(MsgSentEvent.class, null);
+        public final EventStreamer<MsgSentEvent> ALL_SENT           = new EventStreamer<>(MsgSentEvent.class);
         public final EventStreamer<MsgSentEvent> ADDR_SENT          = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(AddrMsg.MESSAGE_TYPE));
         public final EventStreamer<MsgSentEvent> BLOCK_SENT         = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(BlockMsg.MESSAGE_TYPE));
         public final EventStreamer<MsgSentEvent> FEE_SENT           = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(FeeFilterMsg.MESSAGE_TYPE));
@@ -171,7 +191,7 @@ public class P2PEventStreamer {
             return e -> handlerStateClass.isInstance(e.getState());
         }
 
-        public final EventStreamer<HandlerStateEvent> ALL        = new EventStreamer<>(HandlerStateEvent.class, null);
+        public final EventStreamer<HandlerStateEvent> ALL        = new EventStreamer<>(HandlerStateEvent.class);
         public final EventStreamer<HandlerStateEvent> NETWORK    = new EventStreamer<>(HandlerStateEvent.class, getFilterForHandler(NetworkHandlerState.class));
         public final EventStreamer<HandlerStateEvent> MESSAGES   = new EventStreamer<>(HandlerStateEvent.class, getFilterForHandler(MessageHandlerState.class));
         public final EventStreamer<HandlerStateEvent> HANDSHAKE  = new EventStreamer<>(HandlerStateEvent.class, getFilterForHandler(HandshakeHandlerState.class));
@@ -185,11 +205,11 @@ public class P2PEventStreamer {
      * A convenience class that provides Event Streamer specific for Event triggered by the Block downloader Handler
      */
     public class BlockEventStreamer {
-        public final EventStreamer<LiteBlockDownloadedEvent>    LITE_BLOCK_DOWNLOADED   = new EventStreamer<>(LiteBlockDownloadedEvent.class, null);
-        public final EventStreamer<BlockDownloadedEvent>        BLOCK_DOWNLOADED        = new EventStreamer<>(BlockDownloadedEvent.class, null);
-        public final EventStreamer<BlockDiscardedEvent>         BLOCK_DISCARDED         = new EventStreamer<>(BlockDiscardedEvent.class, null);
-        public final EventStreamer<BlockHeaderDownloadedEvent>  BLOCK_HEADER_DOWNLOADED = new EventStreamer<>(BlockHeaderDownloadedEvent.class, null);
-        public final EventStreamer<BlockTXsDownloadedEvent>     BLOCK_TXS_DOWNLOADED    = new EventStreamer<>(BlockTXsDownloadedEvent.class, null);
+        public final EventStreamer<LiteBlockDownloadedEvent>    LITE_BLOCK_DOWNLOADED   = new EventStreamer<>(LiteBlockDownloadedEvent.class);
+        public final EventStreamer<BlockDownloadedEvent>        BLOCK_DOWNLOADED        = new EventStreamer<>(BlockDownloadedEvent.class);
+        public final EventStreamer<BlockDiscardedEvent>         BLOCK_DISCARDED         = new EventStreamer<>(BlockDiscardedEvent.class);
+        public final EventStreamer<BlockHeaderDownloadedEvent>  BLOCK_HEADER_DOWNLOADED = new EventStreamer<>(BlockHeaderDownloadedEvent.class);
+        public final EventStreamer<BlockTXsDownloadedEvent>     BLOCK_TXS_DOWNLOADED    = new EventStreamer<>(BlockTXsDownloadedEvent.class);
     }
 
     // Definition of the different built-in EventStreamer classes:
