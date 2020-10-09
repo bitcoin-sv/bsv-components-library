@@ -7,9 +7,7 @@ import java.time.Duration;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-11 10:06
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * An interface to provide values adjusted for a specific Hardware Configuration (Memory, Network Speed, etc)
  */

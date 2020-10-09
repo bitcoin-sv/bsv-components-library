@@ -10,9 +10,7 @@ import lombok.ToString;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2019 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2019-07-23 10:07
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * The reject message is sent when messages are rejected.
  * This message has been defined in BIP 61:

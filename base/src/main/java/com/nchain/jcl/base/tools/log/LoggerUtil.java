@@ -7,9 +7,7 @@ import org.slf4j.event.Level;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-23 12:18
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * An utility class for logging. In most classes, all logs are using the same preffix (like the name of
  * the handler, or the class, or any kind of Id, etc). So in this class you can define that preffix once

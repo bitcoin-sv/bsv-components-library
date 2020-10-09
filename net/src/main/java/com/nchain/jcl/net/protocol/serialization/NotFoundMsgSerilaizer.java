@@ -14,11 +14,9 @@ import java.util.List;
 
 /**
  * @author m.jose@nchain.com
- * Copyright (c) 2018-2019 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 04/09/2019
+ * Copyright (c) 2018-2020 nChain Ltd
  *
- *  * A Serializer for  {@link NotFoundMsg} messages
+ * A Serializer for  {@link NotFoundMsg} messages
  */
 public class NotFoundMsgSerilaizer implements MessageSerializer<NotFoundMsg> {
 

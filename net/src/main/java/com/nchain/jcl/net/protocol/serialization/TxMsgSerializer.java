@@ -14,11 +14,7 @@ import java.util.Optional;
 
 /**
  * @author m.jose@nchain.com
- * @author m.jose@nchain.com
- * Copyright (c) 2018-2019 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- *
- * @date 03/10/2019
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * A Serializer for instance of {@Link TransactionMsg} messages
  */

@@ -4,9 +4,7 @@ import java.time.*;
 
 /**
  * @author a.vilches@nchain.com
- * Copyright (c) 2018-2019 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 15/10/2019 11:17
+ * Copyright (c) 2018-2020 nChain Ltd
  */
 public class DateTimeUtils {
 

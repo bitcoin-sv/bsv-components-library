@@ -6,9 +6,7 @@ import java.util.concurrent.ExecutorService;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-04 17:24
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * This is an implementation of an OutputStreamDestination.
  * It also implements the OutputStream. This means that this class can be used as an "outputStream", and can be linked

@@ -17,9 +17,7 @@ import java.util.List;
 
 /**
  * @author i.fernandez @nchain.com
- * Copyright (c) 2018-2019 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 01/10/2019 15:37
+ * Copyright (c) 2018-2020 nChain Ltd
  * <p>
  * * A Serializer for {@link BlockMsg} messages
  */

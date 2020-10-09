@@ -3,19 +3,19 @@ package com.nchain.jcl.base.tools.config.provided;
 import com.nchain.jcl.base.tools.bytes.ByteArrayMemoryConfiguration;
 import com.nchain.jcl.base.tools.config.RuntimeConfigImpl;
 import com.nchain.jcl.base.tools.files.FileUtilsBuilder;
+import lombok.EqualsAndHashCode;
 import lombok.Value;
 
 import java.time.Duration;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-11 11:52
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * Default RuntimeConfiguration.
  */
 @Value
+@EqualsAndHashCode(callSuper = true)
 public class RuntimeConfigDefault extends RuntimeConfigImpl {
 
     private static final ByteArrayMemoryConfiguration BYTE_ARRAY_MEMORY_CONFIGURATION = ByteArrayMemoryConfiguration.builder()

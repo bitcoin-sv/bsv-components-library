@@ -5,9 +5,7 @@ import com.nchain.jcl.net.network.PeerAddress;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-07-06 12:57
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * Operations provided by the Handshake Handler
  */

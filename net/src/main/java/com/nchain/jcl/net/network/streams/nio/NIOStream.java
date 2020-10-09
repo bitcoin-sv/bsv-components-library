@@ -16,9 +16,7 @@ import java.util.concurrent.ExecutorService;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-22 14:22
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * This class implements a Complete Stream (input/output) that also represents a StreamEndPoint, that is,
  * the final step in the Stream chain. This Stream is physically connected to the Source/Destination, which

@@ -8,9 +8,7 @@ import java.math.BigInteger;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-07-06 13:00
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * This event stores the state of the Handshake Handler at a point in time.
  * the Handshake Handler takes care of implementing the Handshake Protocol, which takes place

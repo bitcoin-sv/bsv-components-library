@@ -5,9 +5,7 @@ import lombok.Value;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-25 15:55
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * An Event that represents a Request to Resume connecting to other Peers in the Network.
  * This Event is usually triggered when the number of connections has dropped below some

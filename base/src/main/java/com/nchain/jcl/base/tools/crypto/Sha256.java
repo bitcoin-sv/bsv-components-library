@@ -99,8 +99,9 @@ public class Sha256 {
      * @returns hash of RIPEMD-160.
      */
     public static byte[] sha256hash160(byte[] dataToHash) {
+        byte[] sha256 = Sha256.hash(dataToHash);
         RIPEMD160Digest digest = new RIPEMD160Digest();
-        digest.update(dataToHash, 0, dataToHash.length);
+        digest.update(sha256, 0, sha256.length);
         byte[] out = new byte[20];
         digest.doFinal(out, 0);
         return out;

@@ -36,9 +36,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-30 13:04
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * A Builder for the P2P Class.
  */

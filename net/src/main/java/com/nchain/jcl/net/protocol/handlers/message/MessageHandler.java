@@ -6,9 +6,7 @@ import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-25 15:47
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * A Message Handler is responsible for the Deserialization and publishing of the incoming Messages from
  * remote Peers, and also for the Serialization and Sending of Messages to them.

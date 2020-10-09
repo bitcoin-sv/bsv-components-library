@@ -5,9 +5,7 @@ import java.util.concurrent.ExecutorService;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-03 14:57
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * This is an implementation of an InputStreamSource.
  * It also implements the InputStream. This means that this class can be used as an "inputStream", and can be linked

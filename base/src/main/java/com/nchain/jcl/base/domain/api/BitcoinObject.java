@@ -9,5 +9,5 @@ package com.nchain.jcl.base.domain.api;
  */
 public interface BitcoinObject {
 
-    long UNKNOWN_SIZE = Integer.MIN_VALUE;
+
 }

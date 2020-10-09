@@ -9,9 +9,7 @@ import java.math.BigInteger;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-22 13:23
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * This class stores the state of the NIOOutputStreamState.
  */

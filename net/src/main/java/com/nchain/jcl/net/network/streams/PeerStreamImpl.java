@@ -9,9 +9,7 @@ import java.util.concurrent.ExecutorService;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-25 16:35
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * A base implementation of a PeerStream. A PeerStream is very similar to a regular Stream, but with
  * these differences:

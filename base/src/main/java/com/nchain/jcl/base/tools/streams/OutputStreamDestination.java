@@ -2,9 +2,7 @@ package com.nchain.jcl.base.tools.streams;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-04 16:16
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * An OutputStreamDestination is an abstraction that represents the final Destination of the data/events
  * sent by an OutputStream.

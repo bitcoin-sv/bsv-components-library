@@ -5,9 +5,7 @@ import com.nchain.jcl.base.tools.streams.Stream;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-25 16:29
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * A PeerStream is similar to a "regular" Stream, but including the methods from "PeerStreamInfo":
  * - getPeerAdress()

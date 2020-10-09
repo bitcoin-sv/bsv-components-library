@@ -9,9 +9,7 @@ import lombok.EqualsAndHashCode;
 
 /**
  * @author m.jose@nchain.com
- * Copyright (c) 2018-2019 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 18/09/2019
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * A HashMsg is not a fully Bitcoin Message itself, but it's a structure that is reused by different other
  * messages in the Bitcoin P2P. It represents a char array that store as many bytes

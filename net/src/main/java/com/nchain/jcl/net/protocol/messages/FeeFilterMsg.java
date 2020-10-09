@@ -9,9 +9,7 @@ import lombok.ToString;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-04-09 12:34
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * The feeFilter message is sent when a Peer wants to announce that is only interested in those Transactions
  * which Fee is equals or higher than the one especified in this message

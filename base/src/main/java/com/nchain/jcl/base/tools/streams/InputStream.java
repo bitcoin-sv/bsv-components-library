@@ -3,9 +3,7 @@ import java.util.function.Consumer;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-03 10:37
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * An InputStream is an abstraction that works as a source of Data, data being sent by another party of which
  * we do not have control. Since we cannot control when the data is sent, we can only assign callbacks/EventHandlers

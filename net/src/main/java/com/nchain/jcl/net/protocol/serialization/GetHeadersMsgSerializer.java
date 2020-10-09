@@ -11,10 +11,7 @@ import com.nchain.jcl.net.protocol.messages.GetHeadersMsg;
 
 /**
  * @author m.jose@nchain.com
- * Copyright (c) 2009-2010 Satoshi Nakamoto
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- *
- * @date 12/09/2019
+ * Copyright (c) 2018-2020 nChain Ltd
  */
 public class GetHeadersMsgSerializer implements MessageSerializer<GetHeadersMsg> {
 

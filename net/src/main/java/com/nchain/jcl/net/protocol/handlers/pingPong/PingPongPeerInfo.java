@@ -6,9 +6,7 @@ import lombok.Getter;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2019 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2019-08-27 16:51
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * This class stores information for each Peer that is needed in order to implement the
  * Ping-Pong P2P

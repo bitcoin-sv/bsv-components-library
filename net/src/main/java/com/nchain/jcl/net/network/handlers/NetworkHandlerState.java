@@ -6,9 +6,7 @@ import lombok.Value;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-22 15:47
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * This Event stores the current State of the Connection/Network Handler. The Network Handler implements the
  * physical and low-level connection to a remote Peers, and handles all the incoming/outcoming data between

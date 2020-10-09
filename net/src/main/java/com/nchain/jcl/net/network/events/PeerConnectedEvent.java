@@ -8,9 +8,7 @@ import lombok.Value;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-23 10:12
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * An Event triggered when a Peer is Connected. This is a physical connection (Socket Connection),
  * so the real communication with this Peer has not even started yet. Most probably you will be interested in the

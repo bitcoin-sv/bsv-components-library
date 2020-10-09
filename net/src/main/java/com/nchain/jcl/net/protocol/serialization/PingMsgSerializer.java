@@ -10,11 +10,9 @@ import com.nchain.jcl.net.protocol.messages.PingMsg;
 
 /**
  * @author m.jose@nchain.com
- * Copyright (c) 2018-2019 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 19/07/2019 12:12
+ * Copyright (c) 2018-2020 nChain Ltd
  *
- * * A Serializer for {@link PingMsg} messages
+ * A Serializer for {@link PingMsg} messages
  */
 public class PingMsgSerializer implements MessageSerializer<PingMsg> {
 

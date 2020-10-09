@@ -7,9 +7,7 @@ import java.util.concurrent.*;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2019 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2019-07-10 11:37
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * An utility class that can run a Task that might potentially take a long time to finish, but interrupt it
  * if it takes longer than a threshold specified.

@@ -12,9 +12,7 @@ import java.util.stream.Collectors;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2019 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2019-09-10 17:18
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * This class returns an initial list of Peers to connect to after looking into a hardcoded list of
  * DNS, which is provided by the P2P Configuration

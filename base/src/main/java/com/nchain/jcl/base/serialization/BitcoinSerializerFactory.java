@@ -26,7 +26,7 @@ import java.util.Map;
  * using an specific serilziaer, this class can be used to serialize any Object.
  */
 public class BitcoinSerializerFactory {
-    // References to all Serializers. Each Serialier is referenes by the class of the Object it serializes, so
+    // References to all Serializers. Each Serializer is referenced by the class of the Object it serializes, so
     // we stores them in a Map. For each one we store 2 keys: the Interface class and the implementation class
 
     private static Map<Class, BitcoinSerializer> serializers = new HashMap<>();
@@ -66,7 +66,8 @@ public class BitcoinSerializerFactory {
     public static BitcoinSerializer getSerializer(Class objectClass) {
         return serializers.get(objectClass);
     }
-    /** Inidcates if there is a Serialzer registered fr this Class */
+
+    /** Indicates if there is a Serializer registered fr this Class */
     public static boolean hasFor(Class objectClass) {
         return serializers.containsKey(objectClass);
     }

@@ -11,9 +11,7 @@ import java.util.Map;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2019 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2019-07-15
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * A registry of all the MessageBuilder and MessageSerializers developed. If you want to use the
  * {@link BitcoinMsgSerializer} to serialize/deserialize a new type of Message, make sure that the

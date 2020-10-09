@@ -4,9 +4,7 @@ package com.nchain.jcl.base.tools.streams;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-08 11:33
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * A Stream is an abstraction that allows us to send data/Events to a Destination, and receive
  * data/events from a Source

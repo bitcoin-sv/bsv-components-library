@@ -5,7 +5,10 @@ import com.nchain.jcl.base.domain.api.base.TxOutput;
 import com.nchain.jcl.base.domain.bean.BitcoinSerializableObjectImpl;
 
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Value;
+
+import java.util.Arrays;
 
 
 /**
@@ -13,19 +16,25 @@ import lombok.Value;
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  *
- * Implementation of a TxOutput
- * This class is IMMUTABLE. Instances can be created by using a Lombok generated Builder.
+ * This class is THREAD-SAFE.
  */
 
 @Value
+@EqualsAndHashCode(callSuper = true)
 public class TxOutputBean extends BitcoinSerializableObjectImpl implements TxOutput {
     private Coin value;
     private byte[] scriptBytes;
 
+    /** Use "TxOutput.builder()" instead */
     @Builder(toBuilder = true)
     public TxOutputBean(Long sizeInBytes, Coin value, byte[] scriptBytes) {
         super(sizeInBytes);
         this.value = value;
-        this.scriptBytes = scriptBytes;
+        this.scriptBytes = (scriptBytes == null) ? null : Arrays.copyOf(scriptBytes, scriptBytes.length);
+    }
+
+    // Overwriting the default getter, to enforce immutability
+    public byte[] getScriptBytes() {
+        return (scriptBytes == null) ? null : Arrays.copyOf(scriptBytes, scriptBytes.length);
     }
 }

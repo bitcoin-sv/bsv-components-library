@@ -15,11 +15,7 @@ import java.util.List;
 
 /**
  * @author m.jose@nchain.com
- * Copyright (c) 2009-2010 Satoshi Nakamoto
- * Copyright (c) 2009-2016 The Bitcoin Core developers
- * Copyright (c) 2018-2019 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 01/08/2019 13:22
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * A Serializer for  {@link AddrMsg} messages
  */

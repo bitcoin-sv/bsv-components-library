@@ -5,6 +5,7 @@ import com.nchain.jcl.base.domain.api.extended.ChainInfo;
 import com.nchain.jcl.base.domain.bean.BitcoinObjectImpl;
 import com.nchain.jcl.base.domain.bean.BitcoinSerializableObjectImpl;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Value;
 
 import java.math.BigInteger;
@@ -14,11 +15,11 @@ import java.math.BigInteger;
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  *
- * An implementation of a ChainInfo
- * This class is IMMUTABLE. Instances can be created by using a Lombok generated Builder.
+ * This class is THREAD-SAFE.
  */
 
 @Value
+@EqualsAndHashCode(callSuper = true)
 public class ChainInfoBean extends BitcoinSerializableObjectImpl implements ChainInfo {
     private BlockHeader header;
     private BigInteger chainWork;

@@ -11,10 +11,7 @@ import java.util.stream.Collectors;
 
 /**
  * @author m.jose@nchain.com
- *
- * Copyright (c) 2018-2019 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 02/09/2019
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * notfound is a response to a getdata, sent if any requested data items could not be relayed.
  */

@@ -4,6 +4,10 @@ import com.nchain.jcl.base.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.base.tools.bytes.ByteArrayWriter;
 import com.nchain.jcl.base.tools.bytes.ByteTools;
 import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
+import com.nchain.jcl.base.tools.streams.OutputStream;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 /**
  * @author i.fernandez@nchain.com
@@ -46,8 +50,7 @@ public abstract class BitcoinSerializerUtils {
         return result;
     }
 
-    /** Serialize a value into a ByteArayWriter given */
-    public static void serializeVarInt(long value, ByteArrayWriter writer) {
+    private static byte[] getVarIntBytestoWrite(long value) {
         byte[] bytesToWrite;
         int sizeInBytes = getVarIntSizeInBytes(value);
         switch (sizeInBytes) {
@@ -72,8 +75,18 @@ public abstract class BitcoinSerializerUtils {
                 break;
             }
         } // switch
-
+        return bytesToWrite;
+    }
+    /** Serialize a value into a ByteArayWriter given */
+    public static void serializeVarInt(long value, ByteArrayWriter writer) {
+        byte[] bytesToWrite = getVarIntBytestoWrite(value);
         writer.write(bytesToWrite);
+    }
+
+    /** Serialize a value into a ByteArayWriter given */
+    public static void serializeVarInt(long value, ByteArrayOutputStream bos) {
+        byte[] bytesToWrite = getVarIntBytestoWrite(value);
+        try { bos.write(bytesToWrite);} catch (IOException ioe) {throw new RuntimeException(ioe);};
     }
 
     /** Deserialize a Hash from a ByteArray */

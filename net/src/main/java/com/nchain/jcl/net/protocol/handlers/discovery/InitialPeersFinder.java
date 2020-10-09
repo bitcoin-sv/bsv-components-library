@@ -6,9 +6,7 @@ import java.util.List;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2019 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2019-09-10 17:15
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * When the Network activity Start, the Discovery ProtocolHandler needs an initial list of Peers to
  * connect to. After the connection is established with some Peers, we can rely on the Node-Discovery

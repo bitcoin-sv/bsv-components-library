@@ -7,9 +7,7 @@ import lombok.Value;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-07-06 14:01
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * An Event triggered when the minimun number of Peers Handshaked has been reached, as specified in the P2P
  * Configuration.

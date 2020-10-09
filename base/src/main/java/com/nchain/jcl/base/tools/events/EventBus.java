@@ -12,9 +12,7 @@ import java.util.function.Consumer;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-02 12:11
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * A simple in-Memory Publish/Subscribe EventBus Implementation:
  * You subscribe for an specific Event Type, providing a piece of Code (Consumer/Event Handler) that will be executed

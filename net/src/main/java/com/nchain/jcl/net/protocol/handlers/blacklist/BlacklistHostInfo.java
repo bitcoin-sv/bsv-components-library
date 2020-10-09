@@ -16,9 +16,7 @@ import java.util.StringTokenizer;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-07-15 14:55
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * This class stores all the info that the Blacklist Handler needs to do its work. It sotres info for each HOST
  * (Not Peer, but a HOST. Only the IP address). If a Host is blacklisted, ALL the Peers using that IP (but with

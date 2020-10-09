@@ -11,9 +11,7 @@ import java.util.concurrent.ExecutorService;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-25 16:07
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * An implementation of a PeerStream that allows to:
  * - Send Bitcoin Messages, convert them into ByteArrayReaders and send them to the next Stream in line

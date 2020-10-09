@@ -22,6 +22,6 @@ public interface FullBlock extends AbstractBlock {
     LiteBlock asLiteBlock();
 
     // Convenience methods to get a reference to the Builder
-    static FullBlockBean.FullBlockBeanBuilder builder() { return FullBlockBean.builder(); }
-    default FullBlockBean.FullBlockBeanBuilder toBuilder() { return ((FullBlock) this).toBuilder();}
+    static FullBlockBean.FullBlockBeanBuilder builder()     { return FullBlockBean.builder(); }
+    default FullBlockBean.FullBlockBeanBuilder toBuilder()  { return ((FullBlock) this).toBuilder();}
 }

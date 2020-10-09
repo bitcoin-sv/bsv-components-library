@@ -10,9 +10,7 @@ import java.util.List;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-07-13 10:16
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * An Event that represents a Request to Disconnect from a list of Peers. This Request allows for 2 types of
  * Disconnections:

@@ -9,6 +9,7 @@ import com.nchain.jcl.base.serialization.BitcoinSerializerFactory;
 import com.nchain.jcl.base.tools.bytes.HEX;
 import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Value;
 import static com.google.common.base.Preconditions.checkState;
 
@@ -21,12 +22,14 @@ import static com.google.common.base.Preconditions.checkState;
  * This class is IMMUTABLE. Instances can be created by using a Lombok generated Builder.
  */
 @Value
+@EqualsAndHashCode(callSuper = true)
 public class LiteBlockBean extends AbstractBlockBean implements LiteBlock {
     private BlockMeta blockMeta;
     private ChainInfo chainInfo;
 
+    /** Use "LiteBlock.builder()" instead */
     @Builder(toBuilder = true)
-    public LiteBlockBean(Long sizeInBytes, BlockHeader header, BlockMeta blockMeta, ChainInfo chainInfo) {
+    protected LiteBlockBean(Long sizeInBytes, BlockHeader header, BlockMeta blockMeta, ChainInfo chainInfo) {
         super(sizeInBytes, header);
         this.blockMeta = blockMeta;
         this.chainInfo = chainInfo;

@@ -8,9 +8,7 @@ import java.util.function.Consumer;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-18 15:09
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * Base implementation of a Large Message Deserializer. Imlements basic initilization stuff
  * and convenience methods.

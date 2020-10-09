@@ -8,9 +8,7 @@ import lombok.Value;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-07-09 13:17
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * An Event triggered when a Peer has failed to perform the Ping/Pong P2P
  */

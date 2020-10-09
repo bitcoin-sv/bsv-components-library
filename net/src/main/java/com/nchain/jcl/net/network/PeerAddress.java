@@ -1,7 +1,7 @@
 package com.nchain.jcl.net.network;
 
-import com.google.common.base.Objects;
 import com.nchain.jcl.base.tools.files.CSVSerializable;
+import lombok.EqualsAndHashCode;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -11,13 +11,12 @@ import java.util.StringTokenizer;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2019 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * 01/07/2019
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * A class that wraps the info to locate a Peer in the Blockchain Network.
  * This class is immutable and safe for MultiThreading
  */
+@EqualsAndHashCode
 public final class PeerAddress implements CSVSerializable {
 
     private String address;
@@ -145,17 +144,7 @@ public final class PeerAddress implements CSVSerializable {
         return addressStr.startsWith("/") ? addressStr.substring(1) + addressStr : addressStr;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(this.ip, this.port);
-    }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (!(obj instanceof PeerAddress)) return false;
-        PeerAddress other = (PeerAddress) obj;
-        return Objects.equal(this.port, other.port) && Objects.equal(this.ip, other.ip);
-    }
     @Override
     public String toCSVLine() {
         return this.ip.toString() + CSVSerializable.SEPARATOR + this.port;

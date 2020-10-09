@@ -24,8 +24,8 @@ public interface Tx extends BitcoinHashableObject {
     boolean isCoinbase();
 
     // Convenience methods to get a reference to a Builder, so we can build instances of Tx.
-    static TxBean.TxBeanBuilder builder() { return TxBean.builder();}
-    static TxBean.TxBeanBuilder builder(byte[] bytes) { return TxBean.toBuilder(bytes); }
-    static TxBean.TxBeanBuilder builder(String hex) { return TxBean.toBuilder(hex);}
-    default TxBean.TxBeanBuilder toBuilder() { return ((TxBean) this).toBuilder();}
+    static TxBean.TxBeanBuilder builder()               { return TxBean.builder();}
+    static TxBean.TxBeanBuilder builder(byte[] bytes)   { return TxBean.toBuilder(bytes); }
+    static TxBean.TxBeanBuilder builder(String hex)     { return TxBean.toBuilder(hex);}
+    default TxBean.TxBeanBuilder toBuilder()            { return ((TxBean) this).toBuilder();}
 }

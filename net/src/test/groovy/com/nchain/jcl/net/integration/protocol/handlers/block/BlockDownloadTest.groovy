@@ -1,12 +1,14 @@
 package com.nchain.jcl.net.integration.protocol.handlers.block
 
-
+import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVStnConfig
+import com.nchain.jcl.net.protocol.config.provided.ProtocolBTCMainConfig
 import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandler
 import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandlerConfig
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
+import org.junit.Test
 import spock.lang.Ignore
 import spock.lang.Specification
 
@@ -134,10 +136,10 @@ class BlockDownloadTest extends Specification {
             allBlocksDone
 
         where:
-            config                          |   block_hashes
-           // new ProtocolBSVMainConfig()     |   BLOCKS_BSV_MAIN
-            new ProtocolBSVStnConfig()      |   BLOCKS_BSV_STN
-           // new ProtocolBTCMainConfig()     |   BLOCKS_BTC_MAIN
+            config                     |   block_hashes
+           new ProtocolBSVMainConfig() |   BLOCKS_BSV_MAIN
+           // new ProtocolBSVStnConfig()      |   BLOCKS_BSV_STN
+           new ProtocolBTCMainConfig() |   BLOCKS_BTC_MAIN
     }
 
 }

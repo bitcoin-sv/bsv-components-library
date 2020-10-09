@@ -2,9 +2,7 @@ package com.nchain.jcl.base.tools.handlers;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-07-17 10:29
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * A base class for a Handler Configuration Class.
  */

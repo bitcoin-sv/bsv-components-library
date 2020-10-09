@@ -9,9 +9,12 @@ import com.nchain.jcl.base.serialization.BitcoinSerializerFactory;
 import com.nchain.jcl.base.tools.bytes.HEX;
 import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Value;
 import lombok.experimental.SuperBuilder;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import static com.google.common.base.Preconditions.checkState;
 
@@ -24,6 +27,7 @@ import static com.google.common.base.Preconditions.checkState;
  * This class is IMMUTABLE. Instances can be created by using a Lombok generated Builder.
  */
 @Value
+@EqualsAndHashCode(callSuper = true)
 public class TxBean extends BitcoinHashableImpl implements Tx {
     private long version;
     private List<TxInput> inputs;
@@ -35,8 +39,9 @@ public class TxBean extends BitcoinHashableImpl implements Tx {
                   long lockTime) {
             super(sizeInBytes, hash);
             this.version = version;
-            this.inputs = inputs;
-            this.outputs = outputs;
+            // Defensive copy, to enforce immutability:
+            this.inputs = (inputs == null)? null :  Collections.unmodifiableList(new ArrayList<>(inputs));
+            this.outputs = (outputs == null)? null : Collections.unmodifiableList(new ArrayList<>(outputs));
             this.lockTime = lockTime;
     }
 

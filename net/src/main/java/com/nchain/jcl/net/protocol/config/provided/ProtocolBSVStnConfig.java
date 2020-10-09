@@ -8,9 +8,7 @@ import lombok.Getter;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-07-17 12:04
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * Stores the Configuration needed to run the Default P2P Handlers in the BSV STN Network.
  */

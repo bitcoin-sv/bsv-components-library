@@ -11,9 +11,7 @@ import java.util.List;
 
 /**
  * @author m.jose@nchain.com
- * Copyright (c) 2018-2019 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 23/08/2019
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * getdata is used in response to inv, to retrieve the content of a specific object, and is usually sent after receiving
  * an inv packet, after filtering known elements. It can be used to retrieve transactions, but only if they are

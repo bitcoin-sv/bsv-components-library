@@ -10,7 +10,6 @@ import java.math.BigInteger;
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
- * @date 2020-09-16
  */
 public class ChainInfoSerializer implements BitcoinSerializer<ChainInfo> {
     private static ChainInfoSerializer instance;

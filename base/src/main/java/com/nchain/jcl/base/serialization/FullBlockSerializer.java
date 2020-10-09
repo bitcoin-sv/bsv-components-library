@@ -14,7 +14,6 @@ import java.util.List;
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
- * @date 2020-09-16
  */
 @Deprecated
 public class FullBlockSerializer implements BitcoinSerializer<FullBlock> {

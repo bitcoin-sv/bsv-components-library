@@ -36,9 +36,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-11 09:58
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * An InputStream that takes a ByteArrayReader as input and returns a full Bitcoin Object,
  * performing a De-serialization over the ByteArray before returning..

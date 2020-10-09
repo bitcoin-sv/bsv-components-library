@@ -11,10 +11,8 @@ import com.nchain.jcl.net.protocol.messages.TxOutPointMsg;
 
 /**
  * @author m.jose@nchain.com
- * Copyright (c) 2018-2019 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
+ * Copyright (c) 2018-2020 nChain Ltd
  *
- * @date 26/09/2019
  * A Serializer for instance of {@Link TxInputMessage} messages
  */
 public class TxInputMsgSerializer implements MessageSerializer<TxInputMsg> {

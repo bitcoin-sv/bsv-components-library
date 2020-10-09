@@ -8,9 +8,7 @@ import lombok.Value;
 
 /**
  * @author m.jose@nchain.com
- * Copyright (c) 2018-2019 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 19/07/2019 10:53
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  *
  * The ping message is sent primarily to confirm that the TCP/IP connection is still valid. An error in transmission is

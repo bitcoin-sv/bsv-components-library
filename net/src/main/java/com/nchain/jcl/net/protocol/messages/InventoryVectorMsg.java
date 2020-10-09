@@ -8,13 +8,10 @@ import lombok.Value;
 
 /**
  * @author m.jose@nchain.com
- * Copyright (c) 2018-2019 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * Inventory vectors are used for notifying other nodes about objects they have or data which is being requested.
  *
- *
- * @date 09/08/2019
  */
 
 @Value

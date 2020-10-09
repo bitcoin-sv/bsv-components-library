@@ -7,7 +7,6 @@ import com.nchain.jcl.base.tools.bytes.ByteArrayWriter;
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
- * @date 2020-09-16
  */
 public class BlockMetaSerializer implements BitcoinSerializer<BlockMeta> {
     private static BlockMetaSerializer instance;

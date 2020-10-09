@@ -7,6 +7,7 @@ import com.nchain.jcl.base.domain.api.extended.BlockMeta;
 import com.nchain.jcl.base.domain.api.extended.LiteBlock;
 import com.nchain.jcl.base.domain.bean.extended.BlockMetaBean;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Value;
 
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.List;
  */
 @Deprecated
 @Value
+@EqualsAndHashCode(callSuper = true)
 public class FullBlockBean extends AbstractBlockBean implements FullBlock {
     private BlockMeta metaData;
     private List<Tx> transactions;

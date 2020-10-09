@@ -8,9 +8,7 @@ import lombok.Value;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2019 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2019-07-16
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * A VarStrMSg is not a fully Bitcoin Message itself, but it's a structure that is reused by different other
  *  messages in the Bitcoin P2P. It represents a Variable Length String, so we only store as many bytes

@@ -13,9 +13,7 @@ import java.util.Optional;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-23 10:23
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * Event triggered when a set of Nodes is blacklisted. (Ahole IP address is blacklisted,
  * no mater the port number).

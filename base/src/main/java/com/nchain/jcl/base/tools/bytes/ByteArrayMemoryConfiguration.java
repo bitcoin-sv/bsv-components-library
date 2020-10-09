@@ -5,9 +5,7 @@ import lombok.Getter;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-04-06 13:27
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * This class stores the parameters that determine how much memory is used when ByteArrays are created, this is
  * heavily used during Serialization/Deserialization.

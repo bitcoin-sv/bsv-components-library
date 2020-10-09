@@ -5,9 +5,7 @@ import com.nchain.jcl.base.tools.events.EventBus;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-25 15:49
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * A base implementation of a Handler that must be extended by any Handler
  * (NOTE: An exception to this is the NetworkHandler which already extends another guavba class, for it's not

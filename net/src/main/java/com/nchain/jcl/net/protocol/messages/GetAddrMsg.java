@@ -8,11 +8,7 @@ import lombok.Value;
 
 /**
  * @author m.jose@nchain.com
- * Copyright (c) 2009-2010 Satoshi Nakamoto
- * Copyright (c) 2009-2016 The Bitcoin Core developers
- * Copyright (c) 2018-2019 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 07/08/2019 10:14
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * The getaddr message sends a request to a node asking for information about known active peers to help with
  * finding potential nodes in the network. This message consists of only a message  header with the command  "getaddr".

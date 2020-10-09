@@ -8,9 +8,7 @@ import lombok.Value;
 
 /**
  * @author m.jose@nchain.com
- * Copyright (c) 2018-2019 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 06/09/2019
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * GetBlocks message return an inv packet containing the list of blocks starting right after the last known hash
  * in the block locator object, up to hash_stop or 500 blocks, whichever comes first.

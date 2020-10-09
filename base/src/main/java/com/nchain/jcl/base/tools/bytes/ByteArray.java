@@ -2,9 +2,7 @@ package com.nchain.jcl.base.tools.bytes;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-03-03 15:51
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * An abstraction over a regular Byte Array but with limited functionality. It allows to "add" data at
  * the end (right), extractReader data from the beginning (left) and random access.

@@ -8,11 +8,7 @@ import lombok.Value;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2009-2010 Satoshi Nakamoto
- * Copyright (c) 2009-2016 The Bitcoin Core developers
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-23 10:15
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * An Event Triggered when a connection to a Peer has been Rejected. So the connectin never took place in
  * the first place.

@@ -1,0 +1,3 @@
+[
+  ["1 2", "2 EQUALVERIFY 1 EQUAL", "P2SH,STRICTENC", "Similarly whitespace around and between symbols"]
+]

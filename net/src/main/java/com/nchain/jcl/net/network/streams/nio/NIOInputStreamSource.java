@@ -20,9 +20,7 @@ import java.util.concurrent.ExecutorService;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-22 13:12
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * This class implements a PeerInputStream that receives ByteArrayReader objects and also works as a Source, so
  * it represents the final step in the Stream chain. It's physically connected to the REmote Peer we are receiving

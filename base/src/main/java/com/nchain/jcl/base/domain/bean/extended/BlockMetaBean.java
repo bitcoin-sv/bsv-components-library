@@ -4,6 +4,7 @@ import com.nchain.jcl.base.domain.api.extended.BlockMeta;
 import com.nchain.jcl.base.domain.bean.BitcoinObjectImpl;
 import com.nchain.jcl.base.domain.bean.BitcoinSerializableObjectImpl;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Value;
 import lombok.experimental.SuperBuilder;
 
@@ -12,14 +13,15 @@ import lombok.experimental.SuperBuilder;
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  *
- * An implementation of a BlockMeta
- * This class is IMMUTABLE. Instances can be created by using a Lombok generated Builder.
+ * This class is THREAD-SAFE.
  */
 @Value
+@EqualsAndHashCode(callSuper = true)
 public class BlockMetaBean extends BitcoinSerializableObjectImpl implements BlockMeta {
     private int txCount;
     private long blockSize;
 
+    /** USe "BlockMEta.builder()" instead */
     @Builder(toBuilder = true)
     public BlockMetaBean(Long sizeInBytes, Integer txCount, Long blockSize) {
         super(sizeInBytes);

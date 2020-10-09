@@ -11,9 +11,7 @@ import java.util.List;
 
 /**
  * @author m.jose@nchain.com
- * Copyright (c) 2018-2019 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 30/07/2019 15:20
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * Addr Message provide information on known nodes of the network.
  * The size of message  depend whether its being used within a VERSION Message or not.Starting version 31402, addresses are

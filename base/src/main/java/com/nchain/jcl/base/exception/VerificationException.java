@@ -1,9 +1,8 @@
 package com.nchain.jcl.base.exception;
 
 /**
- * @author i.fernandez@nchain.com
+ * @author Steve Shadders
  * Copyright (c) 2018-2020 nChain Ltd
- * @date 2020-09-07
  */
 @SuppressWarnings("serial")
 public class VerificationException extends RuntimeException {

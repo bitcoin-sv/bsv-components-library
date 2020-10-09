@@ -10,10 +10,9 @@ import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
  * Copyright (c) 2018-2020 nChain Ltd
  *
  * A common interface for a Block. Any Class that represents a block will implements this interface (at least).
- * this interface only provides info about the Block header, future subclasses might add more info to it.
+ * this interface only provides info about the Block header and the block Hash, future subclasses might add more info to it.
  */
 public interface AbstractBlock extends BitcoinSerializableObject {
-    Long getSizeInBytes();
     BlockHeader getHeader();
     default Sha256Wrapper getHash() { return getHeader().getHash();}
 }

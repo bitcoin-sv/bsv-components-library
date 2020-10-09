@@ -2,9 +2,7 @@ package com.nchain.jcl.net.protocol.config;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2019 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2019-07-15
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * A Repository for the possible values of the "services" field in the Bitcoin P2P.
  */

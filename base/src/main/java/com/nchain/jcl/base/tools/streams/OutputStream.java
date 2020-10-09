@@ -2,9 +2,7 @@ package com.nchain.jcl.base.tools.streams;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-04 16:15
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * An OutputStream is an abstraction that allows us to write data to a destination. It only allows us to either
  * SEND data, or CLOSE the channel. Both scenarios are represented by specific events. Instead of just sending

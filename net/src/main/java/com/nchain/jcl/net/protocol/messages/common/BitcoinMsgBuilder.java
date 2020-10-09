@@ -6,9 +6,7 @@ import com.nchain.jcl.net.protocol.messages.HeaderMsg;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2019 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2019-07-14
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * A builder to create instances of {@link BitcoinMsg}
  *

@@ -11,8 +11,7 @@ import lombok.Value;
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  *
- * An implementation of CoinbaseInfo
- * This class is IMMUTABLE. Instances can be created by using a Lombok generated Builder.
+ * This class is THREAD-SAFE.
  */
 @Builder(toBuilder = true)
 @Value

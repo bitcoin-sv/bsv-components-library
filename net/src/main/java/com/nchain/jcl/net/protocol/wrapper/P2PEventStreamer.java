@@ -21,9 +21,7 @@ import java.util.function.Predicate;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-30 12:32
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * This class provides utilities for the User to get a Stream of different Events coming from The P2P,
  * and subscribe to them.

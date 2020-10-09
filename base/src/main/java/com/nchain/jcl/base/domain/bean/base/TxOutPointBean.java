@@ -8,6 +8,7 @@ import com.nchain.jcl.base.tools.crypto.Sha256;
 import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Value;
 import lombok.experimental.SuperBuilder;
 
@@ -16,15 +17,16 @@ import lombok.experimental.SuperBuilder;
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  *
- * Implementation of a TxOutputPoint
- * This class is IMMUTABLE. Instances can be created by using a Lombok generated Builder.
+ * This class is THREAD-SAFE.
  */
 
 @Value
+@EqualsAndHashCode(callSuper = true)
 public class TxOutPointBean extends BitcoinSerializableObjectImpl implements TxOutPoint {
     private Sha256Wrapper hash;
     private long index;
 
+    /** Use "TxOutPoint.builder()" instead */
     @Builder(toBuilder = true)
     public TxOutPointBean(Long sizeInBytes, Sha256Wrapper hash, long index) {
         super(sizeInBytes);

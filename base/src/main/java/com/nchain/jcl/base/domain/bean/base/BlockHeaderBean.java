@@ -7,6 +7,7 @@ import com.nchain.jcl.base.tools.bytes.HEX;
 import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Value;
 import lombok.experimental.SuperBuilder;
 
@@ -23,6 +24,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 @Value
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 public class BlockHeaderBean extends BitcoinHashableImpl implements BlockHeader {
 
     // Fields defined as part of the protocol format.

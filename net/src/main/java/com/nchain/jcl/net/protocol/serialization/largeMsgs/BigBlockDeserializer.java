@@ -18,9 +18,7 @@ import java.util.concurrent.ExecutorService;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-18 15:25
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * An implementation of Big Blocks Deserializer. Its based on the LargeMessageDeserializerImpl, do the general
  * behaviour consists of deserializing "small" parts of the Block and notify them using the convenience methods

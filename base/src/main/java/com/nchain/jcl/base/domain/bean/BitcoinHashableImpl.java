@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkState;
 @AllArgsConstructor
 public class BitcoinHashableImpl extends BitcoinSerializableObjectImpl implements BitcoinHashableObject {
 
+    // This value will be calculated on demand when the getter is called.
     protected Sha256Wrapper hash;
 
     public BitcoinHashableImpl(Long sizeInBytes, Sha256Wrapper hash) {
@@ -33,7 +34,11 @@ public class BitcoinHashableImpl extends BitcoinSerializableObjectImpl implement
         return BitcoinSerializerFactory.getSerializer(getClass()).serialize(this);
     }
 
-    /** It returns the value of the "hash" field. If the value is not calculated yet, the calculation is triggered. */
+    /**
+     * It returns the "hash" of this object. This value is only calculated once.
+     * The fact that this field is populated on demand (the first time this method is called)  means that this class
+     * is not "true" immutable, but it is immutable in all practical sense.
+     */
     public synchronized Sha256Wrapper getHash() {
         if (hash == null) {
             hash = Sha256Wrapper.wrapReversed(Sha256Wrapper.twiceOf(serialize()).getBytes());

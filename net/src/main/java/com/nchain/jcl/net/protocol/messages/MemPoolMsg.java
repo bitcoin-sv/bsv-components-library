@@ -7,9 +7,7 @@ import lombok.Value;
 
 /**
  * @author m.fletcher@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 30/07/2020
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * This message consists of only a message header with the command string "mempool".
  */

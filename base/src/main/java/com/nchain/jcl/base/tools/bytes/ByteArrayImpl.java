@@ -12,9 +12,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-03-07 22:19
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * This class is the implementation for a NIO ByteArray. The memory is allocated from the Native (off-heap memory).
  *

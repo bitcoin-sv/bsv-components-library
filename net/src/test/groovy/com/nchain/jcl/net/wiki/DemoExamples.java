@@ -10,6 +10,7 @@ import com.nchain.jcl.net.protocol.wrapper.P2PBuilder;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.time.Duration;
 import java.util.Arrays;
 
 /**
@@ -105,21 +106,24 @@ public class DemoExamples {
         P2P p2p = P2P.builder("demo")
                 .minPeers(10)
                 .maxPeers(15)
+                .publishStates(Duration.ofSeconds(1))
                 .build();
         p2p.EVENTS.BLOCKS.BLOCK_DOWNLOADED
                 .forEach(e -> System.out.println("Block downloaded: " + e.getBlockHeader().getHash().toString()));
-        p2p.EVENTS.BLOCKS.BLOCK_TXS_DOWNLOADED
-                .forEach(e -> System.out.println( " > " + e.getTxsMsg().size() + " Txs downloaded from " + e.getBlockHeaderMsg().getHash()));
+        //p2p.EVENTS.BLOCKS.BLOCK_TXS_DOWNLOADED
+        //        .forEach(e -> System.out.println( " > " + e.getTxsMsg().size() + " Txs downloaded from " + e.getBlockHeaderMsg().getHash()));
         p2p.EVENTS.BLOCKS.BLOCK_DOWNLOADED
                 .filter(e -> e.getBlockHeader().getHash().toString().endsWith("4814d7"))
                 .forEach(e -> System.out.println("Small Block downloaded!!!"));
+        p2p.EVENTS.STATE.BLOCKS.forEach(System.out::println);
         p2p.start();
         p2p.REQUESTS.BLOCKS
                 .download(Arrays.asList(
                         "000000000000000001995c8df10190b45820135605957ac639fb85535d248dca",
-                        "000000000000000000a6b934bdb833e4dec73cc2c1386b3b9b538dfc604814d7"))
+                        "000000000000000000a6b934bdb833e4dec73cc2c1386b3b9b538dfc604814d7",
+                        "000000000000000002f5268d72f9c79f29bef494e350e58f624bcf28700a1846"))
                 .submit();
-        Thread.sleep(30_000);
+        Thread.sleep(60_000);
         p2p.stop();
 
     }

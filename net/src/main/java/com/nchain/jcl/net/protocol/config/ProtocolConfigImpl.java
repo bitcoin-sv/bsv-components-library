@@ -27,7 +27,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
- * @date 2020-08-18
  */
 
 public class ProtocolConfigImpl implements ProtocolConfig {

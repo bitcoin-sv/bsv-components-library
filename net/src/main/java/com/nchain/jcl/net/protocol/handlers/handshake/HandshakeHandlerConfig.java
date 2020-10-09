@@ -11,9 +11,7 @@ import java.util.OptionalInt;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-07-17 11:42
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * It stores the configuration variables needed by the Handshake Handler
  */

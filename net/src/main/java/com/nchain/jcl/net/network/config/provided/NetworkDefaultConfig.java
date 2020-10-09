@@ -7,9 +7,7 @@ import java.util.OptionalInt;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2019 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2019-09-05 16:22
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * A Simple NetWork configuration that is supposed to work fine in a local Development
  * Environment, like a regular laptop with at least 8GB of RAM.

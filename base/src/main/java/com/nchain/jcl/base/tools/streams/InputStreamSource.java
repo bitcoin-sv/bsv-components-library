@@ -2,9 +2,7 @@ package com.nchain.jcl.base.tools.streams;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-03 16:50
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * An InputStreamSource is an abstraction that represents the SOURCE of data of an InputStream, that is
  * this is the GENERATOR of the data/events that will eventually reach an InputStream.

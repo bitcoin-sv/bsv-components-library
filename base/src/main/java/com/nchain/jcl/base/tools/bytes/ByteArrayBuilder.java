@@ -9,9 +9,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-03-08 21:06
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * This class allows for creating a Byte Array content with unlimited size. It manages an internal structure (a buffer),
  * where each item is a ByteArray Implementation. This items will be a NIO(memory)-based implementation.

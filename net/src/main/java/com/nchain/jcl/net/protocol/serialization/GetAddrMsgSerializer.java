@@ -10,9 +10,7 @@ import com.nchain.jcl.net.protocol.messages.GetAddrMsg;
 
 /**
  * @author m.jose@nchain.com
- * Copyright (c) 2018-2019 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 07/08/2019
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * A serializer for {@link GetAddrMsg} messages
  */

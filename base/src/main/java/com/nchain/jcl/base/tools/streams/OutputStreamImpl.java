@@ -8,9 +8,7 @@ import java.util.function.Consumer;
 
 /**
  * @author i.fernandezs@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-03 10:37
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * An implementation of an OutputStream, that can be linked to other OutputStreams, forming a chain
  * of OutputStreams where each one of them implements a "transformation" function over the data, so we

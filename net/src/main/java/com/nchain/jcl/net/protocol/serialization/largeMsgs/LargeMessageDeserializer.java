@@ -7,9 +7,7 @@ import java.util.function.Consumer;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-18 14:57
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * Operatisn implemented by a Deserializer (Only Deserializer) of Large Messages. A Large message is a
  * message that, due to its length, cannot be contained fully in memory. So the Deserialization in this

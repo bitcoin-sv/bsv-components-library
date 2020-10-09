@@ -7,9 +7,7 @@ import java.util.concurrent.ThreadFactory;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-23 10:07
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * An utility Class for MultiThread purposes.
  */

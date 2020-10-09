@@ -2,9 +2,7 @@ package com.nchain.jcl.base.tools.files;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-25 10:40
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * This interfaces provides 2 methods useful for moving information from an object instance to a String line following
  * the CSV format. An object impleting this interface wil be able to save its info into a CSV fle and load it from it.

@@ -20,9 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-25 15:53
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * Implementation of the MessageHandler.
  * This handler basically makes sure that all the connection to other Peers are registered and wrapped up by

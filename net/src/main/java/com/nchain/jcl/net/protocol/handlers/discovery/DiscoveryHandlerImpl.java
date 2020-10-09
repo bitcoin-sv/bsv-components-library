@@ -32,9 +32,7 @@ import java.util.stream.Collectors;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-07-13 12:08
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * Implementation of the Discovery Handler, which implements the Node-Discovery protocol.
  * The Node Discovery P2P works like this:

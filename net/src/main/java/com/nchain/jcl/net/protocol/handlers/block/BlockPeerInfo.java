@@ -15,9 +15,7 @@ import java.util.Comparator;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-07-27 10:23
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * This class stores all the info the blockDownloader Handler needs to keep track of for each Peer, in order
  * to manage the download of blocks.

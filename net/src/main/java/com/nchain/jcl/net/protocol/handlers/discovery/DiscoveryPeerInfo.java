@@ -13,9 +13,7 @@ import java.util.StringTokenizer;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2019 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2019-09-16 11:44
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * Information about each Peer/Address needed by the Discovery ProtocolHandler
  */

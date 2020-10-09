@@ -5,9 +5,7 @@ import com.nchain.jcl.base.tools.streams.StreamState;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-11 09:55
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * This interface is an extension to be added to a general Stream (InputStream, OutputStream,
  * InputStreamSource, OutputStreamDestination, Stream or StreamEndpoint).

@@ -4,9 +4,7 @@ import java.io.UnsupportedEncodingException;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-03-09 13:45
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * This class allows for adding data into a ByteArray, and also converts the data from useful representations, like
  * unsigned integers, etc.

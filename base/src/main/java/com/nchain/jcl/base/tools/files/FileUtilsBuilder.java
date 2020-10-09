@@ -14,11 +14,9 @@ import static com.google.common.base.Preconditions.checkState;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2019 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2019-10-29 13:36
+ * Copyright (c) 2018-2020 nChain Ltd
  *
- * A Builder for Fileutils instances.
+ * A Builder for FileUtils instances.
  *
  */
 @Slf4j

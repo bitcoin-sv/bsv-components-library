@@ -15,7 +15,7 @@ import javax.annotation.Nullable;
  * An Input of a Bitcoin Transaction
  */
 public interface TxInput extends BitcoinSerializableObject {
-    static long NO_SEQUENCE = 0xFFFFFFFFL;
+    long NO_SEQUENCE = 0xFFFFFFFFL;
 
     // Tx Input Data:
     long getSequenceNumber();
@@ -29,6 +29,6 @@ public interface TxInput extends BitcoinSerializableObject {
     Coin getValue();
 
     // Convenience methods to get a reference to a Builder, so we can build instances of TxInput.
-    static TxInputBean.TxInputBeanBuilder builder() { return TxInputBean.builder(); }
-    default TxInputBean.TxInputBeanBuilder toBuilder() { return ((TxInputBean) this).toBuilder();}
+    static TxInputBean.TxInputBeanBuilder builder()     { return TxInputBean.builder(); }
+    default TxInputBean.TxInputBeanBuilder toBuilder()  { return ((TxInputBean) this).toBuilder();}
 }

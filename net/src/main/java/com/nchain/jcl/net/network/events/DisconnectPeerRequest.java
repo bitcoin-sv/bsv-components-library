@@ -8,9 +8,7 @@ import lombok.Value;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-22 16:16
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * An Event that represents a Request to Disconnect from one Peer. It also might include a Reason for that.
  */

@@ -1,8 +1,6 @@
 /**
  * @author a.vilches@nchain.com
- * Copyright (c) 2018-2019 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2019-06-25 00:24
+ * Copyright (c) 2018-2020 nChain Ltd
  */
 
 package com.nchain.jcl.base.tools.crypto;
@@ -182,11 +180,12 @@ public class Sha256Wrapper implements Serializable, Comparable<Sha256Wrapper> {
         return new BigInteger(1, bytes);
     }
 
-    /**
-     * Returns the internal byte array, without defensively copying. Therefore do NOT modify the returned array.
-     */
+    /** Returns the internal byte array, without defensively copying. Therefore do NOT modify the returned array. */
+    // public byte[] getBytes() { return bytes; }
+
+    /** Returns the internal byte array, with a defensive copy, to enforce immutability */
     public byte[] getBytes() {
-        return bytes;
+        return (bytes == null)? null : Arrays.copyOf(bytes, bytes.length);
     }
 
     /**

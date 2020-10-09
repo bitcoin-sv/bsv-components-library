@@ -16,6 +16,6 @@ public interface TxOutPoint extends BitcoinSerializableObject {
     long getIndex();
 
     // Convenience methods to get a reference to a Builder, so we can build instances of TxInput.
-    static TxOutPointBean.TxOutPointBeanBuilder builder() { return TxOutPointBean.builder(); }
-    default TxOutPointBean.TxOutPointBeanBuilder toBuilder() { return ((TxOutPointBean) this).toBuilder();}
+    static TxOutPointBean.TxOutPointBeanBuilder builder()       { return TxOutPointBean.builder(); }
+    default TxOutPointBean.TxOutPointBeanBuilder toBuilder()    { return ((TxOutPointBean) this).toBuilder();}
 }

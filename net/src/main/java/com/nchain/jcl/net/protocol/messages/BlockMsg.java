@@ -11,12 +11,8 @@ import static com.google.common.base.Preconditions.checkState;
 
 /**
  * @author n.srivastava@nchain.com
- * Copyright (c) 2018-2019 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 26/09/2019 14:53
- */
-
-/**
+ * Copyright (c) 2018-2020 nChain Ltd
+ *
  * <p>A block is a group of transactions, and is one of the fundamental data structures of the Bitcoin system.
  * * It records a set of {@link TxMsg}s together with some data that links it into a place in the global block
  * * chain, and proves that a difficult calculation was done over its contents. <p/>

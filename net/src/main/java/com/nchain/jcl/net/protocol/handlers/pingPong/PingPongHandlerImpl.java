@@ -23,9 +23,7 @@ import java.util.concurrent.ExecutorService;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-07-09 12:50
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * Implementation of the Ping/Pong P2P Handler.
  * This handler keeps track of tal the Handshaked Peers, and starts the Handshake for them if they've been inactive

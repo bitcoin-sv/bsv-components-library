@@ -15,7 +15,8 @@ import java.math.BigInteger;
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  *
- * Operations provided by a Block Header, retuning different types of info.
+ * Stores information of a Block Header. It also contains information about its "Hash", which is automatically
+ * calculated based on its contents.
  */
 public interface BlockHeader extends BitcoinHashableObject {
 
@@ -28,10 +29,10 @@ public interface BlockHeader extends BitcoinHashableObject {
     long getNonce();
 
     // Convenience methods to get a reference to a Builder, so we can build instances of BlockHeader.
-    static BlockHeaderBean.BlockHeaderBeanBuilder builder() { return BlockHeaderBean.builder();}
+    static BlockHeaderBean.BlockHeaderBeanBuilder builder()             { return BlockHeaderBean.builder();}
     static BlockHeaderBean.BlockHeaderBeanBuilder builder(byte[] bytes) { return BlockHeaderBean.toBuilder(bytes);}
-    static BlockHeaderBean.BlockHeaderBeanBuilder builder(String hex) { return BlockHeaderBean.toBuilder(hex);}
-    default BlockHeaderBean.BlockHeaderBeanBuilder toBuilder() { return ((BlockHeaderBean) this).toBuilder();}
+    static BlockHeaderBean.BlockHeaderBeanBuilder builder(String hex)   { return BlockHeaderBean.toBuilder(hex);}
+    default BlockHeaderBean.BlockHeaderBeanBuilder toBuilder()          { return ((BlockHeaderBean) this).toBuilder();}
 
     /**
      * Returns the difficulty target as a 256 bit value that can be compared to a SHA-256 hash. Inside a block the

@@ -26,9 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-30 12:19
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * This class is a wrapper over all the P2P and Network Handlers needed to connect to the P2P Network and
  * run the Bitcoin P2P. It provides convenience classes for subscribing to a Stream of Events, and for

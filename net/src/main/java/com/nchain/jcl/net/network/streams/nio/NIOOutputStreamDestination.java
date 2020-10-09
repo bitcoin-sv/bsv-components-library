@@ -24,9 +24,7 @@ import java.util.concurrent.ExecutorService;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-06-22 14:09
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * Implementation of a Destination for an NIOOutputStream.
  * This class represents the Destination, so this is the last point in the Stream chain where the

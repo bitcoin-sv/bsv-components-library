@@ -16,9 +16,7 @@ import java.util.List;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
- * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-07-01 11:34
+ * Copyright (c) 2018-2020 nChain Ltd
  *
  * A "Request" in this context is an Order that we want to execute. It could be to connect to a Peer, to
  * whitelist a Peer, or to send a message. Creating REQUESt is not a common operation, since all the
