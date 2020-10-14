@@ -162,6 +162,7 @@ public class P2PEventStreamer {
         public final EventStreamer<MsgReceivedEvent> SENDHEADERS    = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(SendHeadersMsg.MESSAGE_TYPE));
         public final EventStreamer<MsgReceivedEvent> HEADERS        = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(HeadersMsg.MESSAGE_TYPE));
         public final EventStreamer<MsgReceivedEvent> MEMPOOL        = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(MemPoolMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgReceivedEvent> GETHEADERSEN   = new EventStreamer<>(MsgReceivedEvent.class, getFilterForMsgReceived(GetHeadersEnMsg.MESSAGE_TYPE));
 
         public final EventStreamer<MsgSentEvent> ALL_SENT           = new EventStreamer<>(MsgSentEvent.class);
         public final EventStreamer<MsgSentEvent> ADDR_SENT          = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(AddrMsg.MESSAGE_TYPE));
@@ -181,6 +182,7 @@ public class P2PEventStreamer {
         public final EventStreamer<MsgSentEvent> SENDHEADERS_SENT   = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(SendHeadersMsg.MESSAGE_TYPE));
         public final EventStreamer<MsgSentEvent> HEADERS_SENT       = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(HeadersMsg.MESSAGE_TYPE));
         public final EventStreamer<MsgSentEvent> MEMPOOL_SENT       = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(MemPoolMsg.MESSAGE_TYPE));
+        public final EventStreamer<MsgSentEvent> GETHEADERSEN_SENT  = new EventStreamer<>(MsgSentEvent.class, getFilterForMsgSent(GetHeadersEnMsg.MESSAGE_TYPE));
     }
 
     /**
