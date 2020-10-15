@@ -4,6 +4,9 @@ import com.nchain.jcl.net.protocol.messages.common.Message;
 import lombok.Builder;
 import lombok.Value;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * @author m.jose@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
@@ -31,14 +34,15 @@ public class BlockHeaderEnrichedMsg extends Message {
     private final long transactionCount;
     private final boolean noMoreHeaders;
     private final boolean hasCoinbaseData;
+    private final List<HashMsg> coinbaseMerkleProof;
 
     //TODO
-    //Need to add coinbaseMerkleProof and coinbaseTx
+    //Need to add coinbaseTx
 
     @Builder
     public BlockHeaderEnrichedMsg(long version, HashMsg prevBlockHash, HashMsg merkleRoot, long creationTimestamp,
                                   long nBits, long nonce, long transactionCount, boolean noMoreHeaders,
-                                  boolean hasCoinbaseData) {
+                                  boolean hasCoinbaseData,List<HashMsg> coinbaseMerkleProof) {
         this.version = version;
         this.prevBlockHash = prevBlockHash;
         this.merkleRoot = merkleRoot;
@@ -48,7 +52,8 @@ public class BlockHeaderEnrichedMsg extends Message {
         this.transactionCount = transactionCount;
         this.noMoreHeaders = noMoreHeaders;
         this.hasCoinbaseData = hasCoinbaseData;
-        //added add coinbaseMerkleProof and coinbaseTx
+        this.coinbaseMerkleProof = coinbaseMerkleProof.stream().collect(Collectors.toUnmodifiableList());
+        //TODO:: add  coinbaseTx
         init();
     }
 
@@ -59,10 +64,16 @@ public class BlockHeaderEnrichedMsg extends Message {
 
     @Override
     protected long calculateLength() {
-        long length = 4 + prevBlockHash.getLengthInBytes() + merkleRoot.getLengthInBytes()
-                + TIMESTAMP_LENGTH + NBITS_LENGTH + NONCE_LENGTH + TX_CNT
-                + NOMOREHEAD_LENGTH + HASCOINBASEDATA_LENGTH;
-        //add coinbaseMerkleProof and coinbaseTx
+            long length = 4 + prevBlockHash.getLengthInBytes() + merkleRoot.getLengthInBytes()
+                    + TIMESTAMP_LENGTH + NBITS_LENGTH + NONCE_LENGTH + TX_CNT
+                    + NOMOREHEAD_LENGTH + HASCOINBASEDATA_LENGTH;
+
+            if(hasCoinbaseData) {
+                int size = coinbaseMerkleProof.size();
+                length = length + size *  HashMsg.HASH_LENGTH;
+                //TODO :: add coinbaseTx
+             }
+
         return length;
     }
 

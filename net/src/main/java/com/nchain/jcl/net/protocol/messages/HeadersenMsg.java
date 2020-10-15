@@ -48,7 +48,11 @@ public class HeadersenMsg extends Message {
 
     @Override
     protected long calculateLength() {
-        long length = count.getLengthInBytes() + count.getValue() * (this.blockHeaderEnMsgList.get(0).calculateLength());
+        long length = count.getLengthInBytes() ;
+
+        for (BlockHeaderEnrichedMsg blockHeaderEnrichedMsg:blockHeaderEnMsgList) {
+            length += blockHeaderEnrichedMsg.calculateLength();
+        }
         return length;
     }
 
