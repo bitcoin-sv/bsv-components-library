@@ -30,6 +30,17 @@ public class VarStrMsgSerializer implements MessageSerializer<VarStrMsg> {
         return instance;
     }
 
+    public  VarStrMsg  deserialize(byte[] bytes) {
+        return deserialize(new ByteArrayReader(bytes), bytes.length);
+    }
+
+    public  VarStrMsg deserialize(ByteArrayReader byteReader, int length) {
+        byteReader.waitForBytes(length);
+        String str = (length == 0) ? "" : byteReader.readString(length, "UTF-8");
+
+        return VarStrMsg.builder().str(str).build();
+    }
+
     @Override
     public  VarStrMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
 
