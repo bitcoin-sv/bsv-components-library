@@ -58,6 +58,7 @@ public class MsgSerializersFactory {
         serializers.put(SendHeadersMsg.MESSAGE_TYPE.toUpperCase(), SendHeadersMsgSerializer.getInstance());
         serializers.put(GetHeadersEnMsg.MESSAGE_TYPE.toUpperCase(), GetHeadersEnMsgSerializer.getInstance());
         serializers.put(BlockHeaderEnrichedMsg.MESSAGE_TYPE.toUpperCase(), BlockHeaderEnMsgSerializer.getInstance());
+        serializers.put(HeadersenMsg.MESSAGE_TYPE.toUpperCase(), HeadersenMsgSerializer.getInstance());
     }
 
     public static MessageSerializer getSerializer(String command) {

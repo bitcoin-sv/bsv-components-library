@@ -2,6 +2,8 @@ package com.nchain.jcl.net.protocol.messages;
 
 import com.google.common.base.Preconditions;
 import com.nchain.jcl.net.protocol.messages.common.Message;
+import lombok.Builder;
+import lombok.Value;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,6 +24,7 @@ import java.util.stream.Collectors;
  * - field: "block_header_ enriched" (90+ * MAX_ADDRESS bytes) block_header[]
  *   Array of headeren messages.
  */
+@Value
 public class HeadersenMsg extends Message {
     private static final long MAX_ADDRESSES = 2000;
     public static final String MESSAGE_TYPE = "headersen";
@@ -35,6 +38,7 @@ public class HeadersenMsg extends Message {
      *
      * @param blockHeaderEnMsgList
      */
+    @Builder
     public HeadersenMsg(List<BlockHeaderEnrichedMsg> blockHeaderEnMsgList) {
         this.blockHeaderEnMsgList = blockHeaderEnMsgList.stream().collect(Collectors.toUnmodifiableList());
         this.count = VarIntMsg.builder().value(blockHeaderEnMsgList.size()).build();
