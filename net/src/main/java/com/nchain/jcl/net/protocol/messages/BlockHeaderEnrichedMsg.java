@@ -1,6 +1,5 @@
 package com.nchain.jcl.net.protocol.messages;
 
-import com.nchain.jcl.base.domain.api.base.Tx;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 import lombok.Builder;
 import lombok.Value;
@@ -39,14 +38,14 @@ public class BlockHeaderEnrichedMsg extends Message {
     private final VarStrMsg coinbase;
 
     //coinbaseTX is not part of the BlockHeaderEnrichedMsg itself
-    private final Tx coinbaseTX;
+    private final TxMsg coinbaseTX;
 
 
 
     @Builder
     public BlockHeaderEnrichedMsg(long version, HashMsg prevBlockHash, HashMsg merkleRoot, long creationTimestamp,
                                   long nBits, long nonce, long transactionCount, boolean noMoreHeaders,
-                                  boolean hasCoinbaseData,List<HashMsg> coinbaseMerkleProof, VarStrMsg coinbase,Tx coinbaseTX) {
+                                  boolean hasCoinbaseData,List<HashMsg> coinbaseMerkleProof, VarStrMsg coinbase,TxMsg coinbaseTX) {
         this.version = version;
         this.prevBlockHash = prevBlockHash;
         this.merkleRoot = merkleRoot;
@@ -75,8 +74,17 @@ public class BlockHeaderEnrichedMsg extends Message {
 
             if(hasCoinbaseData) {
                 int size = coinbaseMerkleProof.size();
-                length = length + size *  HashMsg.HASH_LENGTH + coinbase.getLengthInBytes();
+                length = length + size *  HashMsg.HASH_LENGTH;
+
+                //for unit test purpose
+                if(coinbase == null) {
+                    length += coinbaseTX != null ? coinbaseTX.getLengthInBytes():0;
+                } else {
+                    length += coinbase.getLengthInBytes();
+                }
              }
+
+
 
         return length;
     }

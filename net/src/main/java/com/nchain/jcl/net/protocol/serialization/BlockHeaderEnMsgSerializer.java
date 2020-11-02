@@ -1,14 +1,9 @@
 package com.nchain.jcl.net.protocol.serialization;
 
-import com.nchain.jcl.base.domain.api.base.Tx;
-import com.nchain.jcl.base.serialization.TxSerializer;
 import com.nchain.jcl.base.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.base.tools.bytes.ByteArrayWriter;
 import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
-import com.nchain.jcl.net.protocol.messages.BlockHeaderEnrichedMsg;
-import com.nchain.jcl.net.protocol.messages.HashMsg;
-import com.nchain.jcl.net.protocol.messages.VarIntMsg;
-import com.nchain.jcl.net.protocol.messages.VarStrMsg;
+import com.nchain.jcl.net.protocol.messages.*;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.net.protocol.serialization.common.MessageSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext;
@@ -72,12 +67,12 @@ public class BlockHeaderEnMsgSerializer implements MessageSerializer<BlockHeader
             byte[]  coinbaseTxBytes=  byteReader.get(coinBaseTxLength);
 
             //creating a coinbaseTX which is not part of the message ,
-            Tx tx =  TxSerializer.getInstance().deserialize(coinbaseTxBytes);
+            TxMsg tx =  TxMsgSerializer.getInstance().deserialize(context, new ByteArrayReader(coinbaseTxBytes));
 
             VarStrMsg coinbase = VarStrMsgSerializer.getinstance().deserialize(new ByteArrayReader(coinbaseTxBytes),
                     coinbaseTxBytes.length);
 
-             blockHeaderEnrichedMsg = BlockHeaderEnrichedMsg.builder()
+            blockHeaderEnrichedMsg = BlockHeaderEnrichedMsg.builder()
                     .version(version)
                     .prevBlockHash(prevBlockHash).merkleRoot(merkleRoot).creationTimestamp(creationTime)
                     .nBits(difficultyTarget).nonce(nonce).transactionCount(txCount).hasCoinbaseData(hasCoinbaseData)
