@@ -4,6 +4,7 @@ import com.nchain.jcl.base.domain.api.BitcoinSerializableObject;
 import com.nchain.jcl.base.serialization.BitcoinSerializerFactory;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
@@ -15,8 +16,10 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 public class BitcoinSerializableObjectImpl extends BitcoinObjectImpl implements BitcoinSerializableObject {
 
+    @EqualsAndHashCode.Exclude
     protected Long sizeInBytes;
 
     /**

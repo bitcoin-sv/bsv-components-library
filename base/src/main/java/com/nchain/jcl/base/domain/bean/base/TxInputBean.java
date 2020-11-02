@@ -20,25 +20,27 @@ import java.util.Arrays;
  *
  * This class is THREAD-SAFE.
  */
-
+// IMPORTANT:
+// The annotation @EqualsAndHashCode(callSuper = false) is important. The value of "callSuper" must be SET to FALSE,
+// so only the fields included in THIS class are included during the "equals" comparison. If we set this property
+// to "true", then the "equals" method will use the values inherited from parent classes, which are NOT relevant in
+// this case (these fields in the parent classes already have the @EqualsAndHashCode.Exclude annotation, but it does
+// not seem to work as expected).
 @Value
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 public class TxInputBean extends BitcoinSerializableObjectImpl implements TxInput {
     private long sequenceNumber;
     private TxOutPoint outpoint;
     private byte[] scriptBytes;
-    private Coin value;
 
     /** Use "TxInput.builder()" instead */
     @Builder(toBuilder = true)
-    public TxInputBean(Long sizeInBytes, long sequenceNumber, TxOutPoint outpoint, byte[] scriptBytes, Coin value) {
+    public TxInputBean(Long sizeInBytes, long sequenceNumber, TxOutPoint outpoint, byte[] scriptBytes) {
         super(sizeInBytes);
         this.sequenceNumber = sequenceNumber;
         this.outpoint = outpoint;
-        // Defensize copy, to enforce immutability...
+        // Defensive copy, to enforce immutability...
         this.scriptBytes = (scriptBytes == null)? null : Arrays.copyOf(scriptBytes, scriptBytes.length);
-
-        this.value = value;
     }
 
     // Overwritting the default getter, to enforce immutability

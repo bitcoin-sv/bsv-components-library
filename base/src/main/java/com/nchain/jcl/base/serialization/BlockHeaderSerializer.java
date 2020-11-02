@@ -35,6 +35,7 @@ public class BlockHeaderSerializer implements BitcoinSerializer<BlockHeader> {
         long creationTime = byteReader.readUint32();
         long difficultyTarget = byteReader.readUint32();
         long nonce = byteReader.readUint32();
+        long numTxs = byteReader.readUint32();
 
         // We calculate the size in bytes of this object...
         long finalReaderPosition = byteReader.getBytesReadCount();
@@ -49,6 +50,7 @@ public class BlockHeaderSerializer implements BitcoinSerializer<BlockHeader> {
                 .time(creationTime)
                 .difficultyTarget(difficultyTarget)
                 .nonce(nonce)
+                .numTxs(numTxs)
                 .build();
 
         return result;
@@ -62,5 +64,6 @@ public class BlockHeaderSerializer implements BitcoinSerializer<BlockHeader> {
         byteWriter.writeUint32LE(object.getTime());
         byteWriter.writeUint32LE(object.getDifficultyTarget());
         byteWriter.writeUint32LE(object.getNonce());
+        byteWriter.writeUint32LE(object.getNumTxs());
     }
 }

@@ -16,6 +16,7 @@ import com.nchain.jcl.net.protocol.config.ProtocolConfig;
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig;
 import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandler;
 import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandlerConfig;
+import lombok.Getter;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -39,9 +40,9 @@ public class P2P {
     private LoggerUtil logger;
 
     // Configurations:
-    private RuntimeConfig runtimeConfig;
-    private NetworkConfig networkConfig;
-    private ProtocolConfig protocolConfig;
+    @Getter private RuntimeConfig runtimeConfig;
+    @Getter private NetworkConfig networkConfig;
+    @Getter private ProtocolConfig protocolConfig;
 
     // Event Bus that will be used to "link" all the Handlers together
     private EventBus eventBus;

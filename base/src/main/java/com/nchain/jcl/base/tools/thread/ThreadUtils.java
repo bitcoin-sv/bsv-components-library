@@ -71,6 +71,10 @@ public class ThreadUtils {
     public static ExecutorService getSingleThreadExecutorService(String threadName) {
         return Executors.newCachedThreadPool(getThreadFactory(threadName, Thread.MAX_PRIORITY, true));
     }
+    // Convenience method to create a Scheduled Executor Service
+    public static ScheduledExecutorService getScheduledExecutorService(String threadName) {
+        return Executors.newScheduledThreadPool(1, (getThreadFactory(threadName, Thread.MAX_PRIORITY, true)));
+    }
     public static ExecutorService getSingleThreadExecutorService(String threadName, int maxThreads) {
         return Executors.newFixedThreadPool(maxThreads, getThreadFactory(threadName, Thread.MAX_PRIORITY, true));
     }

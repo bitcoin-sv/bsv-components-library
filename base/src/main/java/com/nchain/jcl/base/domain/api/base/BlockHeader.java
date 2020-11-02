@@ -27,6 +27,7 @@ public interface BlockHeader extends BitcoinHashableObject {
     long getTime();
     long getDifficultyTarget();
     long getNonce();
+    long getNumTxs();
 
     // Convenience methods to get a reference to a Builder, so we can build instances of BlockHeader.
     static BlockHeaderBean.BlockHeaderBeanBuilder builder()             { return BlockHeaderBean.builder();}

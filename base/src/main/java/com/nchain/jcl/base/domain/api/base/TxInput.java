@@ -25,9 +25,6 @@ public interface TxInput extends BitcoinSerializableObject {
         return getSequenceNumber() != NO_SEQUENCE;
     }
 
-    @Nullable
-    Coin getValue();
-
     // Convenience methods to get a reference to a Builder, so we can build instances of TxInput.
     static TxInputBean.TxInputBeanBuilder builder()     { return TxInputBean.builder(); }
     default TxInputBean.TxInputBeanBuilder toBuilder()  { return ((TxInputBean) this).toBuilder();}

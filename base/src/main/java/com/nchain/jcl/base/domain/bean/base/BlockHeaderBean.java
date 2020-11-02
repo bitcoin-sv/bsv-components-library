@@ -22,9 +22,15 @@ import static com.google.common.base.Preconditions.checkState;
  * This class is IMMUTABLE. Instances can be created by using a Lombok generated Builder.
  */
 
+// IMPORTANT:
+// The annotation @EqualsAndHashCode(callSuper = false) is important. The value of "callSuper" must be SET to FALSE,
+// so only the fields included in THIS class are included during the "equals" comparison. If we set this property
+// to "true", then the "equals" method will use the values inherited from parent classes, which are NOT relevant in
+// this case (these fields in the parent classes already have the @EqualsAndHashCode.Exclude annotation, but it does
+// not seem to work as expected).
 @Value
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 public class BlockHeaderBean extends BitcoinHashableImpl implements BlockHeader {
 
     // Fields defined as part of the protocol format.
@@ -34,11 +40,12 @@ public class BlockHeaderBean extends BitcoinHashableImpl implements BlockHeader 
     private long time;
     private long difficultyTarget; // "nBits"
     private long nonce;
+    private long numTxs;
 
     @Builder(toBuilder = true)
     public BlockHeaderBean(Long sizeInBytes, Sha256Wrapper hash,
                            long version, Sha256Wrapper prevBlockHash, Sha256Wrapper merkleRoot,
-                           long time, long difficultyTarget, long nonce) {
+                           long time, long difficultyTarget, long nonce, long numTxs) {
         super(sizeInBytes, hash);
         this.version = version;
         this.prevBlockHash = prevBlockHash;
@@ -46,7 +53,9 @@ public class BlockHeaderBean extends BitcoinHashableImpl implements BlockHeader 
         this.time = time;
         this.difficultyTarget = difficultyTarget;
         this.nonce = nonce;
+        this.numTxs = numTxs;
     }
+
 
     /** Adding a method to create a Builder after Deserialize an object from a source of bytes */
     public static BlockHeaderBean.BlockHeaderBeanBuilder toBuilder(byte[] bytes) {

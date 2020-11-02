@@ -4,6 +4,7 @@ import com.nchain.jcl.base.domain.api.BitcoinHashableObject;
 import com.nchain.jcl.base.serialization.BitcoinSerializerFactory;
 import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import static com.google.common.base.Preconditions.checkState;
@@ -18,9 +19,11 @@ import static com.google.common.base.Preconditions.checkState;
  */
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 public class BitcoinHashableImpl extends BitcoinSerializableObjectImpl implements BitcoinHashableObject {
 
     // This value will be calculated on demand when the getter is called.
+    @EqualsAndHashCode.Exclude
     protected Sha256Wrapper hash;
 
     public BitcoinHashableImpl(Long sizeInBytes, Sha256Wrapper hash) {

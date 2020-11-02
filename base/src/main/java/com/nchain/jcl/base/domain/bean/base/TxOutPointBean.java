@@ -19,9 +19,14 @@ import lombok.experimental.SuperBuilder;
  *
  * This class is THREAD-SAFE.
  */
-
+// IMPORTANT:
+// The annotation @EqualsAndHashCode(callSuper = false) is important. The value of "callSuper" must be SET to FALSE,
+// so only the fields included in THIS class are included during the "equals" comparison. If we set this property
+// to "true", then the "equals" method will use the values inherited from parent classes, which are NOT relevant in
+// this case (these fields in the parent classes already have the @EqualsAndHashCode.Exclude annotation, but it does
+// not seem to work as expected).
 @Value
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 public class TxOutPointBean extends BitcoinSerializableObjectImpl implements TxOutPoint {
     private Sha256Wrapper hash;
     private long index;

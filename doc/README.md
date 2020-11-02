@@ -10,11 +10,11 @@
 
 > **Click on the Links below to access each module specific documentation:**
 
- * [JCL-Base](JCL-BASE.md): Base functionality. Provides definition for domain classes (*Transaction*, *Block*, etc) and Serialization.
+ * [JCL-Base](../base/doc/README.md): Base functionality. Provides definition for domain classes (*Transaction*, *Block*, etc) and Serialization.
  
- * [JCL-Net](JCL-NET.md): Provides Connections and Streaming capabilities, allowing an App to connect to the blockchain and "listen" to Events coming from it, and also "send/broadcast" messages, and other operations.
+ * [JCL-Net](../net/doc/README.md): Provides Connections and Streaming capabilities, allowing an App to connect to the blockchain and "listen" to Events coming from it, and also "send/broadcast" messages, and other operations.
 
- * [JCL-Script](JCL-Script.md): Provides capabilities to Run *Bitcoin Scripts*
+ * [JCL-Script](../script/doc/README.md): Provides capabilities to Run *Bitcoin Scripts*
 
 All the libraries within *JCL* make up a hierarchy dependency tree, as shown in the diagram below:
 

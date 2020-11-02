@@ -33,7 +33,6 @@ public class Wiki {
         TxInput txInput = TxInput.builder()
                             .scriptBytes(new byte[10])
                             .sequenceNumber(1)
-                            .value(Coin.valueOf(5))
                             .outpoint(TxOutPoint.builder()
                                     .hash(Sha256Wrapper.wrap(new byte[32]))
                                     .index(1)
