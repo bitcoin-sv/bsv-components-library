@@ -1,6 +1,8 @@
 package com.nchain.jcl.net.unit.protocol.handlers.message
 
 import com.nchain.jcl.net.network.handlers.NetworkHandler
+import com.nchain.jcl.net.protocol.config.ProtocolConfig
+import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.handlers.blacklist.BlacklistHandler
 import com.nchain.jcl.net.protocol.handlers.discovery.DiscoveryHandler
 import com.nchain.jcl.net.protocol.handlers.message.MessageHandler
@@ -26,8 +28,11 @@ class ProtocolStateTest extends Specification {
     def "Testing Client/Server Msgs exchange"() {
         given:
             // We disable the Handlers we dont need for this Test:
+            ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder()
+                    .build()
             P2P server = new P2PBuilder("server")
-                    .randomPort()
+                    .config(config)
+                    .serverPort(0) // Random Port
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
@@ -36,7 +41,7 @@ class ProtocolStateTest extends Specification {
                     .build()
             // We disable the Handlers we dont need for this Test:
             P2P client = new P2PBuilder("client")
-                    .randomPort()
+                    .config(config)
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
                     .excludeHandler(BlacklistHandler.HANDLER_ID)

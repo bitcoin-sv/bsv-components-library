@@ -21,9 +21,13 @@ public class JCLDemo {
         try {
             // JCL Demo...
 
-            P2P p2p = P2P.builder("Demo")
+            ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder()
                     .minPeers(10)
                     .maxPeers(15)
+                    .build();
+
+            P2P p2p = P2P.builder("Demo")
+                    .config(config)
                     .publishStates(Duration.ofSeconds(1))
                     .build();
 

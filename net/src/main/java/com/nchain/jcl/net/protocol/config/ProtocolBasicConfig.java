@@ -1,10 +1,13 @@
 package com.nchain.jcl.net.protocol.config;
 
+import com.nchain.jcl.base.domain.api.base.BlockHeader;
 import com.nchain.jcl.base.tools.handlers.HandlerConfig;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.OptionalInt;
 
 /**
  * @author i.fernandez@nchain.com
@@ -22,6 +25,16 @@ public class ProtocolBasicConfig extends HandlerConfig {
     private long magicPackage;
     private int  servicesSupported;
     private int  port;
+
     @Builder.Default
     private int protocolVersion = ProtocolVersion.CURRENT.getBitcoinProtocolVersion();
+
+    private String[] userAgentBlacklist;
+    private String[] userAgentWhitelist;
+    private String[] dns;
+
+    @Builder.Default
+    private OptionalInt maxPeers = OptionalInt.empty();
+    @Builder.Default
+    private OptionalInt minPeers = OptionalInt.empty();
 }

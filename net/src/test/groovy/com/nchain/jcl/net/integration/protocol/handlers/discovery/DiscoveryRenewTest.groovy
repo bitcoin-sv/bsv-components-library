@@ -41,7 +41,10 @@ class DiscoveryRenewTest extends Specification {
             final int MAX_PEERS = 6
 
             // We set up the configuration
-            ProtocolConfig config = new ProtocolBSVMainConfig()
+            ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder()
+                    .minPeers(MIN_PEERS)
+                    .maxPeers(MAX_PEERS)
+                    .build()
 
             // We set up the frequency for the "pool" renewing Job and  disable the "handshake" renewing job:
             DiscoveryHandlerConfig discoveryConfig = config.getDiscoveryConfig().toBuilder()
@@ -51,10 +54,8 @@ class DiscoveryRenewTest extends Specification {
             P2P server = new P2PBuilder("testing")
                     .config(config)
                     .config(discoveryConfig)
+                    .serverPort(0) // Random Port
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
-                    .randomPort()
-                    .minPeers(MIN_PEERS)
-                    .maxPeers(MAX_PEERS)
                     .build()
 
             // We keep track of the GET_ADDR and ADDR messages exchanged:

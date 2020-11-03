@@ -33,7 +33,6 @@ public class DiscoveryHandlerConfig extends HandlerConfig {
 
     private ProtocolBasicConfig basicConfig;
 
-    private String[] dnsSeeds; // Dependent on the network
     @Builder.Default
     private DiscoveryMethod discoveryMethod = DiscoveryMethod.DNS;
     @Builder.Default

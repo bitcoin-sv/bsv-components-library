@@ -475,8 +475,11 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
                 if (children.size() > 1) keepGoing = false;
             }
 
+            // If enabled, we remove its TXs...
+            if (removeTxs) removeBlockTxs(hashBlockToRemove);
             // We remove this Block
             _removeBlock(hashBlockToRemove.toString());
+
             numBlocksRemoved++;
 
             // In the next loop, we try to remove the Parent

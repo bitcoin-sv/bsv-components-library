@@ -171,17 +171,17 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
         }
 
         // We check the USER_AGENT:
-        if (config.getUserAgentBlacklistPatterns() != null) {
-            for (String pattern : config.getUserAgentBlacklistPatterns())
+        if (config.getBasicConfig().getUserAgentBlacklist() != null) {
+            for (String pattern : config.getBasicConfig().getUserAgentBlacklist())
                 if (message.getBody().getUser_agent().getStr().toUpperCase().indexOf(pattern.toUpperCase()) != -1) {
                     rejectHandshake(peerInfo, PeerHandshakeRejectedEvent.HandshakedRejectedReason.WRONG_USER_AGENT, message.getBody().getUser_agent().getStr());
                     return;
                 }
         }
 
-        if (config.getUserAgentWhitelistPatterns() != null) {
+        if (config.getBasicConfig().getUserAgentWhitelist() != null) {
             boolean hasOneValidPattern = false;
-            for (String pattern : config.getUserAgentWhitelistPatterns())
+            for (String pattern : config.getBasicConfig().getUserAgentWhitelist())
                 if (message.getBody().getUser_agent().getStr().toUpperCase().indexOf(pattern.toUpperCase()) != -1) {
                     hasOneValidPattern = true;
                 }
@@ -265,7 +265,7 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
      */
     private boolean doWeHaveEnoughHandshakes() {
         int numHandshakes = state.getNumCurrentHandshakes();
-        OptionalInt max = config.getMaxPeers();
+        OptionalInt max = config.getBasicConfig().getMaxPeers();
         boolean result = max.isPresent()
                 ? numHandshakes >= max.getAsInt()
                 : false;
@@ -312,18 +312,18 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
      */
     private synchronized void checkIfTriggerMinPeersEvent(boolean checkForMinPeersLost) {
 
-        if (checkForMinPeersLost && config.getMinPeers().isPresent()
-                && state.getNumCurrentHandshakes() < config.getMinPeers().getAsInt()
+        if (checkForMinPeersLost && config.getBasicConfig().getMinPeers().isPresent()
+                && state.getNumCurrentHandshakes() < config.getBasicConfig().getMinPeers().getAsInt()
                 && !minPeersLostEventSent) {
-            super.eventBus.publish(new MinHandshakedPeersLostEvent(config.getMinPeers().getAsInt()));
+            super.eventBus.publish(new MinHandshakedPeersLostEvent(config.getBasicConfig().getMinPeers().getAsInt()));
             minPeersLostEventSent = true;
             minPeersReachedEventSent = false;
         }
 
-        if (!checkForMinPeersLost && config.getMaxPeers().isPresent()
-                && state.getNumCurrentHandshakes() >= config.getMaxPeers().getAsInt()
+        if (!checkForMinPeersLost && config.getBasicConfig().getMaxPeers().isPresent()
+                && state.getNumCurrentHandshakes() >= config.getBasicConfig().getMaxPeers().getAsInt()
                 && !minPeersReachedEventSent) {
-            super.eventBus.publish(new MinHandshakedPeersReachedEvent( config.getMaxPeers().getAsInt()));
+            super.eventBus.publish(new MinHandshakedPeersReachedEvent( config.getBasicConfig().getMaxPeers().getAsInt()));
             minPeersReachedEventSent = true;
             minPeersLostEventSent = false;
         }
@@ -367,7 +367,7 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
 
 
         // Check that we have not broken the MAX limit. If we do, we request a disconnection from this Peer
-        if (config.getMaxPeers().isPresent() && state.getNumCurrentHandshakes() >= config.getMaxPeers().getAsInt()) {
+        if (config.getBasicConfig().getMaxPeers().isPresent() && state.getNumCurrentHandshakes() >= config.getBasicConfig().getMaxPeers().getAsInt()) {
             logger.trace(peerInfo.getPeerAddress(), "Handshake Accepted but not used (already have enough). ");
             super.eventBus.publish(new PeerDisconnectedEvent(peerInfo.getPeerAddress(), PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL));
             return;

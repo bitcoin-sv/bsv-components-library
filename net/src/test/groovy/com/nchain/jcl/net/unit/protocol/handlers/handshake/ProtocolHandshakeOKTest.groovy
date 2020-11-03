@@ -26,16 +26,19 @@ class ProtocolHandshakeOKTest extends Specification {
     def "testing Handshake OK"() {
         given:
             // Server and Client Definition:
+            ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder()
+                    .build()
             // We disable all the Handlers we don't need for this Test:
             P2P server = new P2PBuilder("server")
-                    .randomPort()
+                    .config(config)
+                    .serverPort(0) // Random Port
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
                     .build()
             // We disable all the Handlers we don't need for this Test:
             P2P client = new P2PBuilder("client")
-                    .randomPort()
+                    .config(config)
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
@@ -67,7 +70,7 @@ class ProtocolHandshakeOKTest extends Specification {
 
     /**
      * We connect a set of Clients and a Server, and we test that when we reach the minimum number of Peers, an
-     * Event is triggeredna and another is also triggered when that number drops.
+     * Event is triggered and another is also triggered when that number drops.
      */
     def "testing Min and Max Handshakes Threshold"() {
         given:
@@ -76,7 +79,10 @@ class ProtocolHandshakeOKTest extends Specification {
             int NUM_CLIENTS = 4
             // Server Definition:
             // We change the Default P2P Configuration, to stablish the parameters for this Test:
-            ProtocolConfig protocolConfig = new ProtocolBSVMainConfig()
+            ProtocolConfig protocolConfig = new ProtocolBSVMainConfig().toBuilder()
+                    .minPeers(MIN_PEERS)
+                    .maxPeers(MAX_PEERS)
+                    .build()
 
             // We disable all the Handlers we don't need for this Test:
             P2P server = new P2PBuilder("server")
@@ -84,8 +90,6 @@ class ProtocolHandshakeOKTest extends Specification {
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
-                    .minPeers(MIN_PEERS)
-                    .maxPeers(MAX_PEERS)
                     .build()
 
             // Clients Definitions: We store them in a List
@@ -93,7 +97,6 @@ class ProtocolHandshakeOKTest extends Specification {
             for (int i = 0; i < NUM_CLIENTS; i++) {
                 // We disable all the Handlers we don't need for this Test:
                 P2P client = new P2PBuilder("client-" + i)
-                        .randomPort()
                         .excludeHandler(PingPongHandler.HANDLER_ID)
                         .excludeHandler(DiscoveryHandler.HANDLER_ID)
                         .excludeHandler(BlacklistHandler.HANDLER_ID)

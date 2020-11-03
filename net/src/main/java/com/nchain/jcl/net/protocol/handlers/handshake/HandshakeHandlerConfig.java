@@ -29,13 +29,6 @@ public class HandshakeHandlerConfig extends HandlerConfig {
     private String userAgent = DEFAULT_USER_AGENT;
     @Builder.Default
     private boolean  relayTxs = false;
-    @Builder.Default
-    private OptionalInt maxPeers = OptionalInt.empty();
-    @Builder.Default
-    private OptionalInt minPeers = OptionalInt.empty();
-
-    private String[] userAgentBlacklistPatterns;
-    private String[] userAgentWhitelistPatterns;
 
     private long block_height;
 

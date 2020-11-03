@@ -49,7 +49,9 @@ public interface BlockChainStore extends BlockStore {
     List<Sha256Wrapper> getTipsChains();
 
     /**
-     * Return the ChainInfo of the Longest (highest) Chain at the moment the method is called
+     * Return the ChainInfo of the Longest (highest) Chain at the moment the method is called.
+     * IMPORTANT_ In case there is a FORK, and there are more than one Chian with the SAME height, this method will
+     * return one of them.
      */
     Optional<ChainInfo> getLongestChain();
 

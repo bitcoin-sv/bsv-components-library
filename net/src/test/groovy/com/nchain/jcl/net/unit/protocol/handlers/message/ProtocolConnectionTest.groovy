@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.unit.protocol.handlers.message
 
-
+import com.nchain.jcl.net.protocol.config.ProtocolConfig
+import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.handlers.blacklist.BlacklistHandler
 import com.nchain.jcl.net.protocol.handlers.discovery.DiscoveryHandler
 import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandler
@@ -22,9 +23,12 @@ class ProtocolConnectionTest extends Specification {
     def "Testing Client/Server communication"() {
         given:
             // Server Definition:
+            ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder()
+                    .build()
             // We disable all the Handlers we don't need for this Test:
             P2P server = new P2PBuilder("server")
-                    .randomPort()
+                    .config(config)
+                    .serverPort(0) // Random Port
                     .excludeHandler(HandshakeHandler.HANDLER_ID)
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
@@ -33,7 +37,7 @@ class ProtocolConnectionTest extends Specification {
             // Client definition:
             // We disable all the Handlers we don't need for this Test:
             P2P client = new P2PBuilder("client")
-                    .randomPort()
+                    .config(config)
                     .excludeHandler(HandshakeHandler.HANDLER_ID)
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)

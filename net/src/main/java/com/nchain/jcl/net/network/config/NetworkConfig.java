@@ -45,4 +45,5 @@ public interface NetworkConfig {
      * performance of the Network Component shouldn't be affected.
      * */
     boolean isBlockingOnListeners();
+
 }

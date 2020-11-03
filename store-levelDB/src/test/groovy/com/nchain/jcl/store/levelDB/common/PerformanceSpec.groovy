@@ -9,6 +9,7 @@ import com.nchain.jcl.store.levelDB.blockChainStore.BlockChainStoreLevelDB
 import com.nchain.jcl.store.levelDB.blockChainStore.BlockChainStoreLevelDBConfig
 import com.nchain.jcl.store.levelDB.blockStore.BlockStoreLevelDB
 import com.nchain.jcl.store.levelDB.blockStore.BlockStoreLevelDBConfig
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.nio.file.Path
@@ -56,7 +57,7 @@ class PerformanceSpec extends Specification {
     /**
      * Testing performance (only for local env, to disable on prod servers)
      */
-
+    @Ignore
     def "testing BlockStore Performance"() {
         given:
             // Configuration and DB start up:
@@ -78,7 +79,7 @@ class PerformanceSpec extends Specification {
     /**
      * Testing performance (only for local env, to disable on prod servers)
      */
-
+    @Ignore
     def "testing BlockChainStore Performance"() {
         given:
             // Configuration and DB start up:

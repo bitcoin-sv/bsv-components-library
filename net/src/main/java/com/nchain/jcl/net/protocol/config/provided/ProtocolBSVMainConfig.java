@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.protocol.config.provided;
 
 
+import com.nchain.jcl.base.domain.api.base.BlockHeader;
 import com.nchain.jcl.net.protocol.config.*;
 import com.nchain.jcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig;
 import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandlerConfig;
@@ -30,38 +31,38 @@ public class ProtocolBSVMainConfig extends ProtocolConfigImpl implements Protoco
             "seed.satoshivision.network"
     };
 
+    // Genesis Block for BSV-Main:
+    private static BlockHeader genesisBlock = BlockHeader.builder()
+            .difficultyTarget(0x1d00ffffL)
+            .nonce(2083236893)
+            .time(1231006505L)
+            .build();
+    // Basic Configuration:
+    private static ProtocolBasicConfig basicConfig = ProtocolBasicConfig.builder()
+            .id(id)
+            .magicPackage(magicPackage)
+            .servicesSupported(services)
+            .port(port)
+            .protocolVersion(protocolVersion)
+            .dns(dns)
+            .userAgentBlacklist(userAgentBlacklist)
+            .userAgentWhitelist(userAgentWhitelist)
+            .build();
+
     /** Constructor */
     public ProtocolBSVMainConfig() {
-        super(
-                id,
-                magicPackage,
-                services,
-                port,
-                protocolVersion,
-                userAgentBlacklist,
-                userAgentWhitelist,
-                dns,
-                null,    // minPeers not specified
-                null,   // maxPeers not specified
-                new ProtocolBasicConfig().toBuilder()
-                    .id(id)
-                    .magicPackage(magicPackage)
-                    .servicesSupported(services)
-                    .port(port)
-                    .protocolVersion(protocolVersion)
-                    .build(),
-                null,               // Default Network Config
-                null,              // Default Message Config
-                new HandshakeHandlerConfig().toBuilder()
-                        .userAgentBlacklistPatterns(userAgentBlacklist)
-                        .userAgentWhitelistPatterns(userAgentWhitelist)
-                        .build(),
-                null,             // Default PingPong Config
-                new DiscoveryHandlerConfig().toBuilder()
-                    .dnsSeeds(dns)
-                    .build(),
-                null,              // Default Blacklist Config
-                null);      // Default Block Downloader Config
+        super( null,
+                null,
+                null,
+                genesisBlock,
+                basicConfig,
+                null,            // Default Network Config
+                null,           // Default Message Config
+                null,          // Default Gandshake Config
+                null,           // Default PingPong Config
+                null,           // Default Discovery Config
+                null,            // Default Blacklist Config
+                null);    // Default Block Downloader Config
 
     }
 

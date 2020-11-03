@@ -39,15 +39,16 @@ class HandshakeOKTest extends Specification {
             final int MAX_PEERS = 6
 
             // We set the Default Config:
-            ProtocolConfig config = new ProtocolBSVMainConfig()
+            ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder()
+                .minPeers(MIN_PEERS)
+                .maxPeers(MAX_PEERS)
+                .build();
 
             // We disable the Handlers we do NOT need for this test
             P2P server = new P2PBuilder("testing")
                     .config(config)
-                    .randomPort()
+                    .serverPort(0) // Random Port
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
-                    .minPeers(MIN_PEERS)
-                    .maxPeers(MAX_PEERS)
                     .build()
 
             // We keep track of different things:
@@ -84,7 +85,7 @@ class HandshakeOKTest extends Specification {
 
         when:
             server.startServer()
-            Thread.sleep(2000)
+            Thread.sleep(10000)
             // The Service will start connecting to the Peers and handshaking with them.
             // The connection will stop at the moment we have MAX_PEER handshaked. At that moment, the service will
             // disconnect from any other additional Pees that he might have handshaked after that, so the number of

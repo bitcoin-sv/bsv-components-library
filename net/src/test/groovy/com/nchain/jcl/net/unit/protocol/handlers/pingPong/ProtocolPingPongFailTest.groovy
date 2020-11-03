@@ -58,8 +58,11 @@ class ProtocolPingPongFailTest extends Specification {
             // NOTE: We are going to REMOVE the Ping/Pong Handler from the Client, so this client will NOT reply to
             // PING Messages and therefore won't implement the Ping/Pong P2P
             // We disable the Handlers we dont need for this Test:
+            ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder()
+                    .build()
             P2P client = new P2PBuilder("client")
-                    .randomPort()
+                    .config(config)
+                    .serverPort(0) // Random Port
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
                     .excludeHandler(BlacklistHandler.HANDLER_ID)

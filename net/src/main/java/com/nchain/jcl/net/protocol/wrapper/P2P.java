@@ -134,9 +134,8 @@ public class P2P {
             logger.info(" - working dir: " + runtimeConfig.getFileUtils().getRootPath());
             // We log the Peers range, if the Handshake Handler is enabled:
             if (handlers.containsKey(HandshakeHandler.HANDLER_ID)) {
-                HandshakeHandlerConfig handshakeConfig = (HandshakeHandlerConfig) handlers.get(HandshakeHandler.HANDLER_ID).getConfig();
-                String minPeersStr = handshakeConfig.getMinPeers().isEmpty() ? "(?" : "[" + handshakeConfig.getMinPeers().getAsInt();
-                String maxPeersStr = handshakeConfig.getMaxPeers().isEmpty() ? "?)" :  handshakeConfig.getMaxPeers().getAsInt() + "]";
+                String minPeersStr = protocolConfig.getBasicConfig().getMinPeers().isEmpty() ? "(?" : "[" + protocolConfig.getBasicConfig().getMinPeers().getAsInt();
+                String maxPeersStr = protocolConfig.getBasicConfig().getMaxPeers().isEmpty() ? "?)" :  protocolConfig.getBasicConfig().getMaxPeers().getAsInt() + "]";
                 logger.info(" - peers range: " + minPeersStr + " - " + maxPeersStr);
             }
         } catch (Exception e) {

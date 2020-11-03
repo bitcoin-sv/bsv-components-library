@@ -89,11 +89,12 @@ public class DemoExamples {
 
     @Test
     public void configurationBasicChanges() throws Exception {
-        ProtocolConfig p2pConfig = new ProtocolBSVMainConfig();
-        P2P p2p = P2P.builder("demo")
-                .config(p2pConfig)
+        ProtocolConfig p2pConfig = new ProtocolBSVMainConfig().toBuilder()
                 .minPeers(10)
                 .maxPeers(20)
+                .build();
+        P2P p2p = P2P.builder("demo")
+                .config(p2pConfig)
                 .build();
         p2p.EVENTS.PEERS.HANDSHAKED.forEach(System.out::println);
         p2p.start();
@@ -103,9 +104,12 @@ public class DemoExamples {
 
     @Test
     public void downloadBlocks() throws Exception {
-        P2P p2p = P2P.builder("demo")
+        ProtocolConfig p2pConfig = new ProtocolBSVMainConfig().toBuilder()
                 .minPeers(10)
                 .maxPeers(15)
+                .build();
+        P2P p2p = P2P.builder("demo")
+                .config(p2pConfig)
                 .publishStates(Duration.ofSeconds(1))
                 .build();
         p2p.EVENTS.BLOCKS.BLOCK_DOWNLOADED

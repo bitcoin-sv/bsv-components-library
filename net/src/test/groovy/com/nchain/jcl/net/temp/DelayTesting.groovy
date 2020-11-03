@@ -56,13 +56,15 @@ class DelayTesting extends Specification {
             }
         }
         String BLOCK_HASH_REF = "000000000000000001d956714215d96ffc00e0afda4cd0a96c96f8d802b1662b"
-            ProtocolConfig config = new ProtocolBSVMainConfig()
+            ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder()
+                    .minPeers(9)
+                    .maxPeers(10)
+                    .build()
             MessageHandlerConfig messageConfig = config.messageConfig.toBuilder().preSerializer(preSerializer).build()
             P2P p2p = new P2PBuilder("testing")
                     .config(config)
                     .config(messageConfig)
-                    .minPeers(9)
-                    .maxPeers(10).build()
+                    .build()
             p2p.EVENTS.PEERS.HANDSHAKED_MIN_REACHED.forEach({ e ->
                 println("Minimum number of Peers reached...")
                 Thread.sleep(10000)

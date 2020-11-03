@@ -51,14 +51,7 @@ public class P2PBuilder {
     // Configurations:
     private RuntimeConfig runtimeConfig;
     private NetworkConfig networkConfig;
-
-    // port number (if ZERO, the system will pick up a random port)
-    private Integer customPort;
-
-    // Range of Peers to handshake with (we store this config here for convenience instead of using the same
-    // variables within the HandshakeHandlerConfig, since these are values that are used very frequently
-    private Integer minPeers;  // default
-    private Integer maxPeers;  // default
+    private Integer serverPort; // when running in Server Mode and it might be different for the rest of the network ports
 
     // A wrapper over the built-in handlers configurations
     ProtocolConfig protocolConfig;
@@ -90,6 +83,11 @@ public class P2PBuilder {
     /** Sets up the NetworkConfig, just one */
     public P2PBuilder config(NetworkConfig networkConfig) {
         this.networkConfig = networkConfig;
+        return this;
+    }
+
+    public P2PBuilder serverPort(Integer serverPort) {
+        this.serverPort = serverPort;
         return this;
     }
 
@@ -138,31 +136,7 @@ public class P2PBuilder {
         handlerConfigs.put(handlerId, handlerConfig);
         return this;
     }
-    /** It sets up the port number the service will be listening to when starting in SERVER_MODE */
-    public P2PBuilder port(Integer port) {
-        this.customPort = port;
-        return this;
-    }
 
-    /**
-     * It sets up a port number ZERO, which will make the real port number to be picked by by the system randomly.
-     * Useful when testing and running diufferent tests in parallel, so we dont have multiple instances of the
-     * P2P Service at the same time running on the same port.
-     */
-    public P2PBuilder randomPort() {
-        this.customPort = 0;
-        return this;
-    }
-
-    public P2PBuilder minPeers(int minPeers) {
-        this.minPeers = minPeers;
-        return this;
-    }
-
-    public P2PBuilder maxPeers(int maxPees) {
-        this.maxPeers = maxPees;
-        return this;
-    }
 
     public P2PBuilder publishState(String handlerId, Duration stateRefreshFrequency) {
         this.stateRefreshFrequencies.put(handlerId, stateRefreshFrequency);
@@ -181,10 +155,9 @@ public class P2PBuilder {
             // We add different built-in handlers:
 
             // Network Handler...
-            // The port number might have been specified, if that's the case we take that value, otherwise we use the
-            // default value
-            int port = (customPort != null)? customPort : protocolConfig.getBasicConfig().getPort();
-            Handler networkHandler = new NetworkHandlerImpl(id, runtimeConfig, networkConfig, PeerAddress.localhost(port));
+
+            if (this.serverPort == null) this.serverPort = networkConfig.getPort();
+            Handler networkHandler = new NetworkHandlerImpl(id, runtimeConfig, networkConfig, PeerAddress.localhost(this.serverPort));
             result.put(networkHandler.getId(), networkHandler);
 
             // P2P Handlers:
@@ -201,9 +174,7 @@ public class P2PBuilder {
             // Handshake Handler...
             HandshakeHandlerConfig handshakeConfig = (HandshakeHandlerConfig) handlerConfigs.get(HandshakeHandler.HANDLER_ID);
             handshakeConfig = handshakeConfig.toBuilder().basicConfig(this.protocolConfig.getBasicConfig()).build();
-            // If custom "minPeers" or "maxPeers" have been set, we use them now:
-            if (minPeers != null) handshakeConfig = handshakeConfig.toBuilder().minPeers(OptionalInt.of(minPeers)).build();
-            if (maxPeers != null) handshakeConfig = handshakeConfig.toBuilder().maxPeers(OptionalInt.of(maxPeers)).build();
+
             Handler handshakeHandler = new HandshakeHandlerImpl(id, runtimeConfig, handshakeConfig);
             result.put(handshakeHandler.getId(), handshakeHandler);
 
@@ -251,7 +222,6 @@ public class P2PBuilder {
     public P2P build() {
         P2P result = null;
         try {
-
 
             // We set up the Base Configurations:
             // If the Configurations have been set up, we use them, otherwise we use the default implementations:

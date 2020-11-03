@@ -22,7 +22,51 @@ The 3 main features provided by *JCL* are:
 
 ## How to use *JCL-Net*
 
+### Basic Setup:
+
+The use of *JCL-Net* and any other *JCL* Module always follows the same approach: we define a *Configuration* for the Module we are using, and then we create an *instance* of that module applying that Configuration.
+
+And is some cases there is no just one *Configuration*. there might be several *Configurations* that apply to different contexts. The most basic Configuration that can be set in *JCL* is a ``Runtime Configuration``:
+
+```
+RuntimeConfig runtimeConfig = new RuntimeConfigDefault();
+```
+
+The ``RuntimeConfig`` contains values about the *SW* and *HW* environment where the Application is going to be running. At the time of writting this documentation, the implementation provided by the ``RuntimeConfigDefault``class is enough for all cases, so in most of the examples below in this document, this configuration can be ommitted and will be automatically picked up by the system.
+
+
+### P2P Setup:
+
+In the following snippet we set up the Configuration and we get an instance of the *P2P* Service, which is the main Service in this module:
+
+```
+ProtocolConfiguration protocolConfig = new ProtocolBSVMainConfig();
+P2P p2p = P2P.builder("testing").
+	.config(protocolConfig)
+	.build();
+```
+
+The previous Configuration will make the *P2P* Service to connect to the *BSV Main* Network, but other Configurations are possible out of the box:
+
+ * ``ProtocolBSVStnConfig``
+ * ``ProtocolBTCMAinConfig``
+
+
+The *P2P* Service just created contains a ``ProtocolConfig``, but it also contains a ``RuntimeConfig``, automatically created by default. The previous code is equivalente to this one:
+
+```
+RuntimeConfig runtimeConfig = new RuntimeConfigDefault();
+ProtocolConfiguration protocolConfig = new ProtocolBSVMainConfig();
+P2P p2p = P2P.builder("testing").
+	.config(runtimeConfig)
+	.config(protocolConfig)
+	.build();
+```
+
+> The **ProtocolBSVMainConfig** is the DEFAULT, if not specified in the *P2P Builder*
+
 ### Streaming:
+
 *Sreaming* is the most basic operation you can do, it mainly consists of *connecting* to the P2P network, and *streaming* events from it, events you can *subscribe* and *react* to.
 
 #### Simple connection:
@@ -52,22 +96,21 @@ The output of the previous example:
 
 ```
 
-We can see int the outut the Configuration used: *ProtocolBSVMain* by default, so the service will connect to the BSV Man network if
+We can see int the output the Configuration used: *ProtocolBSVMain* by default, so the service will connect to the BSV Man network if
 nothing else is specified. We also see the *working directory*, which is a temporary folder automatically picked up by the 
 service to store some internal information. The Service has started in *Client Mode*, so it can connect to other Peers but it 
 does Not allow incoming connections. The number of Peers connected will always remain in the range [10 -15].
 
-If you want to allow incoming connections from Remote Peer, you just need to start in server mode:
+If you want to allow incoming connections from Remote Peer, you just need to set up the port number and start in server mode
 
 ```
+P2P p2p = P2P.builder("testing")
+	.serverPort(0) // Random Port
+	.build();
 ...
 p2p.startServer();
 ...
 ```
-
-In this case, the Service will accept connections in the local IP address, using the port specified in the 
-Configuration (in this specific example, the port number for BSV [main Net] is 8333)
-
 
 #### Basic Event streaming
 
@@ -133,31 +176,18 @@ very basic configuration changes, modifying some values:
 Here we are connecting to a different network and changing the range of peers to [10,20].
 
 ```
-ProtocolConfig config = new ProtocolBSVStnConfig(); // Now it's the BSV Stress Net!!!
+// Now it's the BSV Stress Net!!!
+ProtocolConfig config = new ProtocolBSVStnConfig().toBuilder()
+				.minPeers(10)
+				.maxPeers(15)
+				.build(); 
 P2P p2p = new P2PBuilder("testing")
-              .config(config)
-              .minPeers(10)
-              .maxPeers(15)
-              .build();
+				.config(config)
+				.build();
 ...
 ```
 In the previous exampe, we've used a different Class (*ProtocolBSVStnConfig*), which is a built-in class that already 
-contains the configuration values to connect to the *Stress Net* in BSV. For test purposes, you can 
-also use the original class for *BSV [main Net]* and change the parameters on the fly:
-
-```
-...
-ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder()
-                    .magicPackage(0xe8f3e1e3L)
-                    .port(8333)
-                    .protocolVersion(ProtocolVersion.CURRENT.getBitcoinProtocolVersion())
-                    .services(ProtocolServices.NODE_BLOOM.getProtocolServices())
-                    .build();
-P2P p2p = new P2PBuilder("testing")
-              .config(config)
-              ...                    
-
-```
+contains the configuration values to connect to the *Stress Net* in BSV.
 
 ### Streaming & Events Handling
 
@@ -255,7 +285,7 @@ In the previous output we can see how different kinds of *State* Events have bee
 internally composed of multiple *Handlers*, each one of them  taking care of an specific part of the 
 *Bitcoin Protocol*, so we have then different status, each one related to one specific Handler.
 
-> In the **JCL-Net Advance** chapter we'll dive into more complex confguration and how to fineñtune each Handler separately.
+> In the **JCL-Net Advance** chapter we'll dive into more complex configuration and how to fineñtune each Handler separately.
 
 Like with a regular Event, we can define the "forEach" callback in a separate method, and inspect the different State
 Event Objects to get all the information we need from them.
@@ -284,11 +314,11 @@ In the example above, the function is triggered any time an *INV* Message is com
 
 #### Useful transformation functions
 
-This chapter only applies when you are streaming messages (accesible through *EBVENTS.MSGS*). 
+This chapter only applies when you are streaming messages (accesible through *EVENTS.MSGS*). 
 
 In a common scenario, the content of these messages wil be used to run some business logic in your application. Most of the *Messages* streamed only make sense in the context of the *Net* layer: for example, the *Ping* Message is used to check if a remote Peer is alive, but besides that it does no have any business value. The same goes for the most majority of the *Messages* you can stream. *BUT* some of those Messages *DO* have a business relevance, like the *Transaction Message*. A *Transaction* is an important concept in any Blockchain application, that¡s why we have a *Domain class* (see *JCL-Base*) to stroe its info. And the information contained in a *Transaction Message* is almost the same as the one contained in a *Transaction Domain Object*.
 
-All this means that you could use your *Transaction Message* object, to populate a *Transaction Domain Object^, and then you pass it over to other layers on your application.
+All this means that you could use your *Transaction Message* object, to populate a *Transaction Domain Object*, and then you pass it over to other layers on your application.
 
 This scenario is very common, so *JCL-Net* already provides methods to conver some of the *Messages* into *Domain classes*, like in the case of a *Transaction*.
 
@@ -392,7 +422,7 @@ The Default Handlers are the following:
 The *Custom* Handlers built-in in *JCL* are the following:
 
  * *Block Downloader*: This handler can get a list of Block hashes and download them from the Network. Depending 
- on configuration, multiple blocks can be download in parallel, and the same Block can be re-try if something goes wroing, 
+ on configuration, multiple blocks can be download in parallel, and the same Block can be re-tried if something goes wroing, 
  up to a limit of re-attempts. This Handler also provides support for *BigBlocks*. that means that it can download *ANY* 
  Block, regardless of its size (from MB to GB blocks). Different Events are also streamed so the App can be notified 
  about the downloading and deserialization process.
@@ -401,7 +431,113 @@ The *Custom* Handlers built-in in *JCL* are the following:
 
 #### Advance Configuration (fine-tunning):
 
-> PENDING...
+The Configuration applied to the *P2P* Service in the prevoopus Chapter is quite straightforward: Basically, you select the right *instance* based on the Network you want to connect to (BSV-Main, BSV-Stn, etc) and then you change a few properties in case you need to refine some configurations, like the number of Peers or the Port your service will be listening at.
+
+But a more advanced Configuration is possible. First we need to understand what kind of Infomration is stored on each ``ProtocolConfiguration``instance, which is described in this picture:
+
+
+![Advance Configuration](jcl-Net-config.png)
+
+The ''ProtocolConfig'' instance, like for example the ''ProtocolBSVMainConfig'' used in previous examples, contains several inner instances inside, each containing more detailed configurations:
+
+ * *ProtocolBasicConfig*: Basic parameters. These parameters are important for business standpoint and they are particular for each Network. 
+ * One *Configurtion* for each Handler. These Configurations will handle different aspects of the protocol, depending on the Handler.
+ 
+##### Changing basic configuration
+ 
+Some of the parameters in the *Basic Configuration* (*port*, *minPeers*, *maxPeers*) are commonly changed during develoipment and execution and can be easily changed directly:
+
+```
+ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder()
+                .minPeers(MIN_PEERS)
+                .maxPeers(MAX_PEERS)
+                .port(345)
+                .build();
+```
+
+To change the rest of the *Basic Parameters*, we need to extract them, change them and inject them back in:
+
+```
+// First initialization:
+ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder().build()
+
+// We change the Basic config and change it:
+ProtocolBasicConfig newBasicConfig = config.getBasicConfig().toBuilder()
+                .protocolVersion(11)
+                .magicPackage(100L)
+                .build()
+                
+// We inject the Basic Config after the change                
+config = config.toBuilder()
+					.basicConfig(newBasicConfig)
+					.build();
+```
+
+In the rest of Chapters we'll show how to change Configuration that affects different aspects of the Protocol
+
+
+##### Changing the Handshake Process
+
+Here you can change:
+
+ * The *userAgent* String that is sent during the *Handshake* to another Peer.
+ * Specify whether you want the remote Peer to broadcast *Tx* to you or just *Blocks*
+
+```
+// First initialization:
+ProtocolConfig config = new ProtocolBSVMainConfig();
+
+// We change the Handshake config and change it:
+HandshakeHandlerConfig handshakeConfig = config.getHandshakeConfig().toBuilder()
+ 			.userAgent("my User Agent")
+ 			.relayTxs(false)
+ 			.build();
+ 			
+// We inject the Handhake Config after the change
+config = config.toBuilder().handshakeConfig(handshakeConfig).build();
+``` 
+
+##### Changing the Discovery Process
+
+Here you can change:
+
+ * The way to load the *Initial* Set of Peers, which can be:
+   * **DNS**: The Peers are loaded from a hard-coded list of *DNS*. This list is stored in the *dns* `roperty in the *BasicConfiguration
+   * **PEERS**: The Peers are *loaded* from a hard-coded list of Peers that is saved in a CSV file
+  * Other properties (pending...)
+
+The *DNS* *Discovery MEthod* is the defauilt. In order to fchange it to *PEERS*, we first need to make sure that there is a *CSV* file with the list of Initial Peers, and this file is in the right location.
+
+> The file must be named as "[NetName]-discovery-handler-seed.csv", for example:
+> 
+>  * *BSV [main Net]-discovery-handler-seed.csv*
+>  * *BSV [stn Net]-discovery-handler-seed.csv*
+> 
+> (the "NetName" is the value returned by ``ProtocolConfig.getId()``
+> 
+> This file must be placed in the "working dir" folder, which is logged in the Console wjhen the *p2P* Service starts up.
+
+
+Then, you need to change the Configuration:
+
+```
+// First initialization:
+ProtocolConfig config = new ProtocolBSVMainConfig();
+
+// We change the Discovery config and change it:
+DiscoveryHandlerConfig discoveryConfig = config.getDiscoveryConfig().toBuilder()
+		.discoveryMethod(DiscoveryHandlerConfig.DiscoveryMethod.PEERS)
+		.build()
+ 			
+// We inject the Discovery Config after the change
+config = config.toBuilder().discoveryConfig(discoveryConfig).build();
+``` 
+
+
+##### Changing the Block Downloading Process
+
+
+> The BlockDownloader Handler and its configuratio0n is explained in a separate chapter.
 
 
 #### Block Downloading

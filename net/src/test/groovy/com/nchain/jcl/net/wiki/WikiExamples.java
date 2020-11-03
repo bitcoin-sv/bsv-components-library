@@ -108,7 +108,10 @@ public class WikiExamples {
     public void testPerformance() {
         try {
 
-            ProtocolConfig config = new ProtocolBSVMainConfig();
+            ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder()
+                    .minPeers(40)
+                    .maxPeers(45)
+                    .build();
             HandshakeHandlerConfig handshakeConfig = config.getHandshakeConfig().toBuilder()
                     .relayTxs(false)
                     .build();
@@ -116,8 +119,6 @@ public class WikiExamples {
                     .publishStates(Duration.ofSeconds(1))
                     .config(config)
                     .config(handshakeConfig)
-                    .minPeers(40)
-                    .maxPeers(45)
                     .build();
             //p2p.EVENTS.PEERS.CONNECTED.forEach(System.out::println);
             //p2p.EVENTS.PEERS.DISCONNECTED.forEach(System.out::println);

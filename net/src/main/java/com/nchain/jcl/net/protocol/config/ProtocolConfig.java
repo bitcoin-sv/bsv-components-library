@@ -1,5 +1,6 @@
 package com.nchain.jcl.net.protocol.config;
 
+import com.nchain.jcl.base.domain.api.base.BlockHeader;
 import com.nchain.jcl.base.tools.handlers.HandlerConfig;
 import com.nchain.jcl.net.protocol.handlers.blacklist.BlacklistHandlerConfig;
 import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandlerConfig;
@@ -55,11 +56,14 @@ public interface ProtocolConfig{
     Map<String, HandlerConfig> getHandlersConfig();
 
     // Convenience methods: They return the Configuration for the Default built-in Handlers
-    MessageHandlerConfig    getMessageConfig();
-    HandshakeHandlerConfig  getHandshakeConfig();
-    PingPongHandlerConfig   getPingPongConfig();
-    DiscoveryHandlerConfig  getDiscoveryConfig();
-    BlacklistHandlerConfig  getBlacklistConfig();
+    MessageHandlerConfig            getMessageConfig();
+    HandshakeHandlerConfig          getHandshakeConfig();
+    PingPongHandlerConfig           getPingPongConfig();
+    DiscoveryHandlerConfig          getDiscoveryConfig();
+    BlacklistHandlerConfig          getBlacklistConfig();
+    BlockDownloaderHandlerConfig    getBlockDownloaderConfig();
 
-    BlockDownloaderHandlerConfig getBlockDownloaderConfig();
+    /** Header of the Genesis Block of this Network */
+    BlockHeader getGenesisBlock();
+
 }
