@@ -15,9 +15,9 @@ import java.util.List;
  * @author m.jose@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  *
- *  A Serializer for {@link BlockHeaderEnrichedMsg} messages
+ *  A Serializer for {@link BlockHeaderEnMsg} messages
  */
-public class BlockHeaderEnMsgSerializer implements MessageSerializer<BlockHeaderEnrichedMsg> {
+public class BlockHeaderEnMsgSerializer implements MessageSerializer<BlockHeaderEnMsg> {
 
     private static BlockHeaderEnMsgSerializer instance;
 
@@ -33,7 +33,7 @@ public class BlockHeaderEnMsgSerializer implements MessageSerializer<BlockHeader
     }
 
     @Override
-    public BlockHeaderEnrichedMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
+    public BlockHeaderEnMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
         byteReader.waitForBytes(4);
         long version = byteReader.readUint32();
 
@@ -41,7 +41,7 @@ public class BlockHeaderEnMsgSerializer implements MessageSerializer<BlockHeader
         HashMsg prevBlockHash = baseGetDataAndHeaderMsgSerializer.readHashMsg(context, byteReader);
         HashMsg merkleRoot = baseGetDataAndHeaderMsgSerializer.readHashMsg(context, byteReader);
 
-        byteReader.waitForBytes(BlockHeaderEnrichedMsg.TIMESTAMP_LENGTH+BlockHeaderEnrichedMsg.NONCE_LENGTH+BlockHeaderEnrichedMsg.NBITS_LENGTH+BlockHeaderEnrichedMsg.TX_CNT);
+        byteReader.waitForBytes(BlockHeaderEnMsg.TIMESTAMP_LENGTH+ BlockHeaderEnMsg.NONCE_LENGTH+ BlockHeaderEnMsg.NBITS_LENGTH+ BlockHeaderEnMsg.TX_CNT);
         long creationTime = byteReader.readUint32();
         long difficultyTarget = byteReader.readUint32();
         long nonce = byteReader.readUint32();
@@ -53,7 +53,7 @@ public class BlockHeaderEnMsgSerializer implements MessageSerializer<BlockHeader
         byteReader.waitForBytes(1);
         boolean hasCoinbaseData = byteReader.readBoolean();
 
-        BlockHeaderEnrichedMsg blockHeaderEnrichedMsg  ;
+        BlockHeaderEnMsg blockHeaderEnMsg;
         if(hasCoinbaseData) {
             List hashes = new ArrayList<byte[]>();
             for(int i=0; i < txCount ; i++ ){
@@ -72,25 +72,25 @@ public class BlockHeaderEnMsgSerializer implements MessageSerializer<BlockHeader
             VarStrMsg coinbase = VarStrMsgSerializer.getinstance().deserialize(new ByteArrayReader(coinbaseTxBytes),
                     coinbaseTxBytes.length);
 
-            blockHeaderEnrichedMsg = BlockHeaderEnrichedMsg.builder()
+            blockHeaderEnMsg = BlockHeaderEnMsg.builder()
                     .version(version)
                     .prevBlockHash(prevBlockHash).merkleRoot(merkleRoot).creationTimestamp(creationTime)
                     .nBits(difficultyTarget).nonce(nonce).transactionCount(txCount).hasCoinbaseData(hasCoinbaseData)
                     .noMoreHeaders(noMoreHeaders).coinbaseTX(tx).coinbase(coinbase).coinbaseMerkleProof(hashes).build();
         }  else {
-            blockHeaderEnrichedMsg = BlockHeaderEnrichedMsg.builder()
+            blockHeaderEnMsg = BlockHeaderEnMsg.builder()
                     .version(version)
                     .prevBlockHash(prevBlockHash).merkleRoot(merkleRoot).creationTimestamp(creationTime)
                     .nBits(difficultyTarget).nonce(nonce).transactionCount(txCount).hasCoinbaseData(hasCoinbaseData)
                     .noMoreHeaders(noMoreHeaders).build();
         }
 
-        return blockHeaderEnrichedMsg;
+        return blockHeaderEnMsg;
     }
 
 
     @Override
-    public void serialize(SerializerContext context, BlockHeaderEnrichedMsg message, ByteArrayWriter byteWriter) {
+    public void serialize(SerializerContext context, BlockHeaderEnMsg message, ByteArrayWriter byteWriter) {
         byteWriter.writeUint32LE(message.getVersion());
         byteWriter.write(getBytesHash(message.getPrevBlockHash()));
         byteWriter.write(getBytesHash(message.getMerkleRoot()));

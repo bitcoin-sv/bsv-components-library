@@ -15,7 +15,7 @@ import spock.lang.Specification
  * Copyright (c) 2018-2019 Bitcoin Association
  * Distributed under the Open BSV software license, see the accompanying file LICENSE.
  */
-class BlockHeaderEnrichedMsgSpec extends Specification {
+class BlockHeaderEnMsgSpec extends Specification {
     private static final String BLOCK_BYTES = "0100000040f11b68435988807d64dff20261f7d9827825fbb37542601fb94d450" +
             "00000005d0a2717cccfb28565e04baf2708f32068fb80f98765210ce6247b8939ab2012ecd9d24c1844011d00d361050201" +
             "0000000100000000000000000000000000000000000000000000000000000000000000001a00000007041844011d0142fffffff" +
@@ -49,7 +49,7 @@ class BlockHeaderEnrichedMsgSpec extends Specification {
         transactionMsgList.add(transactionMsg1.get())
         transactionMsgList.add(transactionMsg2.get())
 
-        BlockHeaderEnrichedMsg blockHeaderEn = BlockHeaderEnrichedMsg.builder()
+        BlockHeaderEnMsg blockHeaderEn = BlockHeaderEnMsg.builder()
                 .version(1)
                 .prevBlockHash(HashMsg.builder().hash(PREV_BLOCK_HASH).build())
                 .merkleRoot(HashMsg.builder().hash(MERKLE_ROOT).build())

@@ -25,21 +25,21 @@ import java.util.stream.Collectors;
  *   Array of headeren messages.
  */
 @Value
-public class HeadersenMsg extends Message {
+public class HeadersEnMsg extends Message {
     private static final long MAX_ADDRESSES = 2000;
     public static final String MESSAGE_TYPE = "headersen";
 
     private VarIntMsg count;
 
-    private List<BlockHeaderEnrichedMsg> blockHeaderEnMsgList;
+    private List<BlockHeaderEnMsg> blockHeaderEnMsgList;
 
     /**
-     * Creates the HeadersenMsg Object. Use the corresponding builder to create the instance.
+     * Creates the HeadersEnMsg Object. Use the corresponding builder to create the instance.
      *
      * @param blockHeaderEnMsgList
      */
     @Builder
-    public HeadersenMsg(List<BlockHeaderEnrichedMsg> blockHeaderEnMsgList) {
+    public HeadersEnMsg(List<BlockHeaderEnMsg> blockHeaderEnMsgList) {
         this.blockHeaderEnMsgList = blockHeaderEnMsgList.stream().collect(Collectors.toUnmodifiableList());
         this.count = VarIntMsg.builder().value(blockHeaderEnMsgList.size()).build();
         init();
@@ -54,8 +54,8 @@ public class HeadersenMsg extends Message {
     protected long calculateLength() {
         long length = count.getLengthInBytes() ;
 
-        for (BlockHeaderEnrichedMsg blockHeaderEnrichedMsg:blockHeaderEnMsgList) {
-            length += blockHeaderEnrichedMsg.calculateLength();
+        for (BlockHeaderEnMsg blockHeaderEnMsg :blockHeaderEnMsgList) {
+            length += blockHeaderEnMsg.calculateLength();
         }
         return length;
     }

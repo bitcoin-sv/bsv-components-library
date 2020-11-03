@@ -14,50 +14,50 @@ import java.util.List;
  * @author m.jose@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  *
- * A serializer for {@link HeadersenMsg} messages
+ * A serializer for {@link HeadersEnMsg} messages
  */
-public class HeadersenMsgSerializer  implements MessageSerializer<HeadersenMsg> {
-    private static HeadersenMsgSerializer instance;
+public class HeadersEnMsgSerializer implements MessageSerializer<HeadersEnMsg> {
+    private static HeadersEnMsgSerializer instance;
 
-    private HeadersenMsgSerializer() { }
+    private HeadersEnMsgSerializer() { }
 
     /** Returns an instance of this Serializer (Singleton) */
-    public static HeadersenMsgSerializer getInstance() {
+    public static HeadersEnMsgSerializer getInstance() {
         if (instance == null) {
-            synchronized (HeadersenMsgSerializer.class) {
-                instance = new HeadersenMsgSerializer();
+            synchronized (HeadersEnMsgSerializer.class) {
+                instance = new HeadersEnMsgSerializer();
             }
         }
         return instance;
     }
 
     @Override
-    public HeadersenMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
+    public HeadersEnMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
 
-        List<BlockHeaderEnrichedMsg> blockHeaderEnrichedMsgs = deserializeBlockHeaderenMsgs(context, byteReader);
-        HeadersenMsg headersenMsg = HeadersenMsg.builder().blockHeaderEnMsgList(blockHeaderEnrichedMsgs).build();
+        List<BlockHeaderEnMsg> blockHeaderEnMsgs = deserializeBlockHeaderenMsgs(context, byteReader);
+        HeadersEnMsg headersenMsg = HeadersEnMsg.builder().blockHeaderEnMsgList(blockHeaderEnMsgs).build();
         return headersenMsg;
     }
 
     @Override
-    public void serialize(SerializerContext context, HeadersenMsg message, ByteArrayWriter byteWriter) {
+    public void serialize(SerializerContext context, HeadersEnMsg message, ByteArrayWriter byteWriter) {
         VarIntMsgSerializer.getInstance().serialize(context, message.getCount(), byteWriter);
-        List<BlockHeaderEnrichedMsg> blockHeaderenMsgs = message.getBlockHeaderEnMsgList();
+        List<BlockHeaderEnMsg> blockHeaderenMsgs = message.getBlockHeaderEnMsgList();
         serializeList(context, blockHeaderenMsgs , byteWriter);
     }
 
 
     /**
-     * Deserialize BlockHeaderEnrichedMsg list
+     * Deserialize BlockHeaderEnMsg list
      *
      * @param context
      * @param byteReader
      * @return
      */
-    protected List<BlockHeaderEnrichedMsg> deserializeBlockHeaderenMsgs(DeserializerContext context, ByteArrayReader byteReader) {
+    protected List<BlockHeaderEnMsg> deserializeBlockHeaderenMsgs(DeserializerContext context, ByteArrayReader byteReader) {
         VarIntMsg count = VarIntMsgSerializer.getInstance().deserialize(context, byteReader);
-        BlockHeaderEnrichedMsg blockHeaderenMsg;
-        List<BlockHeaderEnrichedMsg> blockHeaderenMsgs = new ArrayList<>();
+        BlockHeaderEnMsg blockHeaderenMsg;
+        List<BlockHeaderEnMsg> blockHeaderenMsgs = new ArrayList<>();
 
         BlockHeaderEnMsgSerializer blockHeaderEnMsgSerializer = BlockHeaderEnMsgSerializer.getInstance();
         for(int i =0 ; i < count.getValue(); i++) {
@@ -69,13 +69,13 @@ public class HeadersenMsgSerializer  implements MessageSerializer<HeadersenMsg> 
     }
 
     /**
-     * Serialize BlockHeaderEnrichedMsg List
+     * Serialize BlockHeaderEnMsg List
      * @param context
-     * @param blockHeaderEnrichedMsg
+     * @param blockHeaderEnMsg
      * @param byteWriter
      */
-    protected void serializeList(SerializerContext context, List<BlockHeaderEnrichedMsg> blockHeaderEnrichedMsg, ByteArrayWriter byteWriter) {
-        for (BlockHeaderEnrichedMsg blockHeaderenMsg:blockHeaderEnrichedMsg) {
+    protected void serializeList(SerializerContext context, List<BlockHeaderEnMsg> blockHeaderEnMsg, ByteArrayWriter byteWriter) {
+        for (BlockHeaderEnMsg blockHeaderenMsg: blockHeaderEnMsg) {
             BlockHeaderEnMsgSerializer.getInstance().serialize(context, blockHeaderenMsg, byteWriter);
         }
     }

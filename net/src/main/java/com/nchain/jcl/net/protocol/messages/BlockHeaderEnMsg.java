@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
  * for coinbase transaction along with the whole coinbase transaction.
  */
 @Value
-public class BlockHeaderEnrichedMsg extends Message {
+public class BlockHeaderEnMsg extends Message {
     public static final String MESSAGE_TYPE = "blockHeaderEnriched";
     public static final int TIMESTAMP_LENGTH = 4;
     public static final int NBITS_LENGTH = 4;
@@ -43,9 +43,9 @@ public class BlockHeaderEnrichedMsg extends Message {
 
 
     @Builder
-    public BlockHeaderEnrichedMsg(long version, HashMsg prevBlockHash, HashMsg merkleRoot, long creationTimestamp,
-                                  long nBits, long nonce, long transactionCount, boolean noMoreHeaders,
-                                  boolean hasCoinbaseData,List<HashMsg> coinbaseMerkleProof, VarStrMsg coinbase,TxMsg coinbaseTX) {
+    public BlockHeaderEnMsg(long version, HashMsg prevBlockHash, HashMsg merkleRoot, long creationTimestamp,
+                            long nBits, long nonce, long transactionCount, boolean noMoreHeaders,
+                            boolean hasCoinbaseData, List<HashMsg> coinbaseMerkleProof, VarStrMsg coinbase, TxMsg coinbaseTX) {
         this.version = version;
         this.prevBlockHash = prevBlockHash;
         this.merkleRoot = merkleRoot;
