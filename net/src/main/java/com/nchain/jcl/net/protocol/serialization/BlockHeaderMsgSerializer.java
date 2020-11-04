@@ -91,8 +91,8 @@ public class BlockHeaderMsgSerializer implements MessageSerializer<BlockHeaderMs
         VarIntMsgSerializer.getInstance().serialize(context, message.getTransactionCount(), byteWriter);
     }
 
-    private byte[] getBytesHash(HashMsg prevBlockHash) {
-        return Sha256Wrapper.wrapReversed(prevBlockHash.getHashBytes()).getBytes();
+    private byte[] getBytesHash(HashMsg hash) {
+        return Sha256Wrapper.wrapReversed(hash.getHashBytes()).getBytes();
     }
 
 }
