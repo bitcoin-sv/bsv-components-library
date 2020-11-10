@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  */
 @Value
 public class BlockHeaderEnMsg extends Message {
-    public static final String MESSAGE_TYPE = "blockHeaderEnriched";
+    public static final String MESSAGE_TYPE = "blockHeaderEn";
     public static final int TIMESTAMP_LENGTH = 4;
     public static final int NBITS_LENGTH = 4;
     public static final int NONCE_LENGTH = 4;
@@ -40,12 +40,20 @@ public class BlockHeaderEnMsg extends Message {
     //coinbaseTX is not part of the BlockHeaderEnrichedMsg itself
     private final TxMsg coinbaseTX;
 
+    // IMPORTANT: This field (hash) is NOT SERIALIZED.
+    // The hash of the block is NOT part of the BLOCK Message itself: its external to it.
+    // In order to calculate a Block Hash we need to serialize the Block first, so instead of doing
+    // that avery time we need a Hash, we store the Hash here, at the moment when we deserialize the
+    // Block for the first time, so its available for further use.
+    private final HashMsg hash;
+
 
 
     @Builder
-    public BlockHeaderEnMsg(long version, HashMsg prevBlockHash, HashMsg merkleRoot, long creationTimestamp,
+    public BlockHeaderEnMsg(HashMsg hash, long version, HashMsg prevBlockHash, HashMsg merkleRoot, long creationTimestamp,
                             long nBits, long nonce, long transactionCount, boolean noMoreHeaders,
                             boolean hasCoinbaseData, List<HashMsg> coinbaseMerkleProof, VarStrMsg coinbase, TxMsg coinbaseTX) {
+        this.hash = hash;
         this.version = version;
         this.prevBlockHash = prevBlockHash;
         this.merkleRoot = merkleRoot;
