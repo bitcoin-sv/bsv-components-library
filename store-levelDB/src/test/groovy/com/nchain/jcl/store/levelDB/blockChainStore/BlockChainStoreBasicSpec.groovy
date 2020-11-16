@@ -196,13 +196,14 @@ class BlockChainStoreBasicSpec extends Specification {
             db.start()
 
             // We wait a bit and we check the state, it should show just one Block (genesis)
-            Thread.sleep(150)
-
+            Thread.sleep(200)
+            db.printKeys()
             int numEventsTriggered_1 = numStateEvents.get()
             boolean okAferGenesis = (numEventsTriggered_1 >= 1) &&
                     (lastState.get().state.numBlocks == 1) &&
                     (lastState.get().state.tipsChains.size() == 1) &&
                     (lastState.get().state.tipsChains.stream().map({ c-> c.header.getHash()}).anyMatch({h -> h.equals(block_genesis.getHash())}))
+
 
 
             // We insert a chain of 2 more blocks: [genesis] -> 1 -> 2

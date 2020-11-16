@@ -10,7 +10,7 @@
 
 
 
-*JCL-Store-LevelDB* provides implementation for the interfaces ``BlockStore``and ``BlockChainStore``. The use of those interfaces is not discussed here, since there is already a separate documentation for that. Instead, here we'll discuss how to create an **instance** of those interfaces and the pecualirites that apply to this implementation.
+The *JCL-Store-LevelDB* modue provides implementation for the interfaces ``BlockStore``and ``BlockChainStore``. The use of those interfaces is not discussed here, since there is already a separate documentation for that. Instead, here we'll discuss how to create an **instance** of those interfaces and the pecualirites that apply to this implementation.
 
 ## Basic Setup:
 
@@ -26,7 +26,7 @@ The ``RuntimeConfig`` contains values about the *SW* and *HW* environment where 
 
 ## BlockStore Setup:
 
-The process is very straightforward: we create a ``BlockStoreLevelDBConfig``and we use it to get an instance:
+The process is very straightforward: we create a ``BlockStoreLevelDBConfig``and we use it to get an instance. This Configuration makes use of the *RuntimeConfiguration* defined previously.
 
 ```
 RuntimeConfig runtimeConfig = new RuntimeConfigDefault();
@@ -41,7 +41,7 @@ BlockStore db = BlockStoreLevelDB.builder()
 After the instance is created, you can already start using the ``BlockStore`` module:
 > * [JCL-Store: Using the BlockStore component](../../store/doc/README.md#BlockStore-interface)
 
-The *Block* and *Transaction* Events are *DISABLED* by Default, to enabled them:
+The *Block* and *Transaction* Events are *DISABLED* by Default. To enabled them:
 
 ```
 RuntimeConfig runtimeConfig = new RuntimeConfigDefault();
@@ -60,18 +60,31 @@ BlockStore db = BlockStoreLevelDB.builder()
 > Enabling the Events might affect the performance. Enabling the *Block* Events is not a problem, but enabling *Tx* Events might be. So it's a good practice to enable the *Tx* Events *ONLY* during tests and development, but 
 > *DISABLE* them in production mode.
 > 
-> The way the Events are triggered is also a bit different depending on the method called. As a general rule, one methjod will trigger one Event. So if you store one block using the ''saveBlock'' method, one ¡¡BlocksSAvedEvent'' will be triggered, containig the *Hash* of that Block. If you are saving several Blocks, the ``saveBlocks``(plural) will trigger *ONE* single Event containing all the Hashes. the same applies for *Transactions*.
+> The way the Events are triggered is also a bit different depending on the method called. As a general rule, one method will trigger one Event. So if you store one block using the ``saveBlock()`` method, one ``BlocksSavedEvent`` will be triggered, containig the *Hash* of that Block. If you are saving several Blocks, the ``saveBlocks()``(plural) will trigger *ONE* single Event containing all the Hashes. The same applies for *Transactions*.
 > 
 > **As a general Rule, ALWAYS use the Plural version of the ``saveXX``methods, so one Event per method invocation is triggered, instead of one Event per each object being saved.**
+
+The following example shows the difference in relation to the Events Triggered:
+
+```
+BlockStore db = ...(from previous examples)
+
+// We assume we have a List of 1000 Transactions:
+List<Tx> txs = ...(a list of 1000 Txs)
+
+// The following code will trigger 1000 'TxsSavedEvent' Events:
+txs.forEach(tx -> db.save(tx)); // WARNING: IMPACT ON PERFORMANCE
+
+// The following code will trigger just ONE 'TxsSavedEvent' Event:
+db.saveTxs(txs);				// PERFORMANCE OK
+```
 
 
 ## BlockChainStore Setup:
 
-The process is very straightforward: we create a ``BlockChainStoreLevelDBConfig``and we use it to get an instance. BUt in this case, since the ``BlockChainStore``keeps information about the *Chain*, it's important to configure the component properly so we add the right *Blocks* in it, and NOT *Blocks* form other *Chains*. 
+The process is very straightforward: we create a ``BlockChainStoreLevelDBConfig``and we use it to get an instance. But in this case, since the ``BlockChainStore`` keeps information about the *Chain*, it's important to configure the component properly so we add the right *Blocks* in it, and NOT *Blocks* form other *Chains*. 
 
-For this reason, one of the parameters needed for the *Copnfiguration* is the **genesis block** of the *Chain* we are going to work with. This *genesis* block will ONLY be used when the *DB* is *empty*, which will only happen during the first execution.
-
-> The *BlockChainStore* component is Chain-aware, so we need to specifiy *what* Chain we are going to store (*BSV-Main*, *BSV-Stn*, *BTC-Main*, etc). The way to specify the *Chain* is by providing the **genesis** Block of that Chain. 
+For this reason, one of the parameters needed for the Configuration is the **genesis block** of the *Chain* we are going to work with. This *genesis* block will ONLY be used during the *DB* initialization, when the *DB* is *empty*, which will only happen during the first execution.
 
 The *genesis* Block of each *Chain* can be obtained from the *Protocol Configuration* of that *Chain*, which is accesible from the *JCL-Net* Module:
 
@@ -83,20 +96,20 @@ BlockStoreLevelDBConfig dbConfig = BlockChainStoreLevelDBConfig()
                     .build()
 BlockStore db = BlockStoreLevelDB.builder()
                     .config(dbConfig)
-                    .genesisBlock(new ProtocolBSVMainConfig().getGenesisBlock())
+                    .genesisBlock(new ProtocolBSVMainConfig().getGenesisBlock()) // from JCL-Net
                     .build()
 ```
 
 After the instance is created, you can already start using the ``BlockStore``  module:
 > * [JCL-Store: Using the BlockChainStore component](../../store/doc/README.md#BlockChainStore-interface)
 
-In the ``BlockChainStore``component, the *Streaming* of the *Fork* and *PRUNE* Events is *ALWAYS* enabled.
+In the ``BlockChainStore``component, the *Streaming* of the *Fork* and *PRUNE* Events are *ALWAYS* enabled.
 
 ### Automatic Prunning:
 
-The `BlockChainStore``component can be configured to perform an *Automatic Prunning*. If enabled, a *Chain* will be pruned if the difference in *height* with the longest ^Chain* ios bigger than a *Threshold* defined during the Set up:
+The ``BlockChainStore`` component can be configured to perform an *Automatic Prunning*. If enabled, a *Chain* will be pruned if the difference in *height* with the longest *Chain* is bigger than a *Threshold* defined during the Set up:
 
-The following configuration enables the *Automatic Prunning* and sets up the Frequency of that Prunning and the difference in *Heighht* needed for a *Chain* top be pruned.
+The following configuration enables the *Automatic Prunning* and sets up the Frequency of that Prunning and the difference in *Heighht* needed for a *Chain* to be pruned.
 
 
 ```
@@ -113,8 +126,28 @@ BlockStore db = BlockStoreLevelDB.builder()
                     .build()
 ```
 
-Using the Configuration above, the *BlockChainStore* component will perform the verification every 60 seconds, and only those *Chains* that are 2 *Blocks* *shorter* that the longrst *Chain* will be pruned.
+Using the Configuration above, the *BlockChainStore* component will perform the verification every 60 seconds, and only those *Chains* that are 2 *Blocks* *shorter* that the longest *Chain* will be pruned.
+
+> If not specified, tips are pruned when their *height* is 2 Blocks shorter than the longest chain.
 
 > **Performance Tips**
 > 
-> It's ok to use a short frequency for testing purposes (like in the e4xample above), but in a real scenario, a frequency of several hours is just fine.
+> It's ok to use a short frequency for testing purposes (like in the example above), but in a real scenario a frequency of several hours is more suitable.
+> 
+
+### State Streaming
+
+The ``BlockChainStore``component can stream an additional set of events, on top of the ones that can be already streamed by the ``BlockStore``component. These new Events are ``ChainPruneEvent``, ``ChainForkEvent`` and ``State`` event. The first two are always eabled by default, but the ``State`` Event is triggered on a frequency basis, and that frequency must be specified by the Configuration. In the following snippet, the ``State`` Event is triggered every 5 minutes:
+
+```
+RuntimeConfig runtimeConfig = new RuntimeConfigDefault();
+BlockStoreLevelDBConfig dbConfig = BlockChainStoreLevelDBConfig()
+                    .config(runtimeConfig)
+                    .build()
+BlockStore db = BlockStoreLevelDB.builder()
+                    .config(dbConfig)
+                    .genesisBlock(new ProtocolBSVMainConfig().getGenesisBlock())
+                    .stateFrequency(Duration.ofMinutes(5))
+                    .build()
+
+```

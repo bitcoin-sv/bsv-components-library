@@ -2,7 +2,9 @@ package com.nchain.jcl.store.blockStore.events;
 
 import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
 import lombok.Builder;
+import lombok.Value;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -11,7 +13,12 @@ import java.util.List;
  *
  * An Event triggered when several Blocks are removed form the Storage.
  */
-@Builder
+@Value
 public class BlocksRemovedEvent extends BlockStoreEvent {
     private List<Sha256Wrapper> blockHashes;
+
+    @Builder
+    public BlocksRemovedEvent(List<Sha256Wrapper> blockHashes) {
+        this.blockHashes = new ArrayList<>(blockHashes);
+    }
 }

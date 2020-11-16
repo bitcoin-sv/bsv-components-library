@@ -51,10 +51,13 @@ public class TestingUtils {
         return buildBlock(buildRandomHash());
     }
 
-    // Convenience method to generate a Dummy Tx
-    public static Tx buildTx() {
+    // Convenience method to generate a Dummy Tx, specifying a parent Tx
+    public static Tx buildTx(String parentTxHash) {
         Random rand = new Random();
         // Dummy Tx with one input and one Output:
+        // If "parentTxHash" is not null, we use it as the Hash of the TX which output we are spending
+        String parentOutputHash = (parentTxHash != null) ? parentTxHash : buildRandomHash();
+
         return Tx.builder()
                 .version(1)
                 .lockTime(2)
@@ -65,7 +68,7 @@ public class TestingUtils {
                                 .outpoint(
                                         TxOutPoint.builder()
                                                 .index(rand.nextInt(10))
-                                                .hash(Sha256Wrapper.wrap(buildRandomHash()))
+                                                .hash(Sha256Wrapper.wrap(parentOutputHash))
                                                 .build())
                                 .build()))
                 .outputs(Arrays.asList(
@@ -77,4 +80,8 @@ public class TestingUtils {
                 .build();
     }
 
+    // Convenience method to generate a Dummy Tx:
+    public static Tx buildTx() {
+        return buildTx(null);
+    }
 }

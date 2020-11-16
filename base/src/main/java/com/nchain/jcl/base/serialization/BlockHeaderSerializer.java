@@ -30,12 +30,21 @@ public class BlockHeaderSerializer implements BitcoinSerializer<BlockHeader> {
         long currentReaderPosition = byteReader.getBytesReadCount();
 
         long version = byteReader.readUint32();
+
+        // IMPORTANT NOTE: This code does NOT work for a GENESIS Block. A Genesisi Block does NOT have a PARENT, so
+        // there is NO "PrevBlockHash" info to read. The problem is that there is nothing in the BLOCK HEADER MSG that
+        // can tell us whether this a Genesis Block or not.
+
+        // This is usually OK because the Genesis Block is usually hardcoded in the Code, so there is no need to
+        // Deserialize it.
+
+        // NOTE: The "Number of TXs" field is NOT part of the Deserialization
+
         Sha256Wrapper prevBlockHash = BitcoinSerializerUtils.deserializeHash(byteReader);
         Sha256Wrapper merkleRoot = BitcoinSerializerUtils.deserializeHash(byteReader);
         long creationTime = byteReader.readUint32();
         long difficultyTarget = byteReader.readUint32();
         long nonce = byteReader.readUint32();
-        long numTxs = byteReader.readUint32();
 
         // We calculate the size in bytes of this object...
         long finalReaderPosition = byteReader.getBytesReadCount();
@@ -50,7 +59,6 @@ public class BlockHeaderSerializer implements BitcoinSerializer<BlockHeader> {
                 .time(creationTime)
                 .difficultyTarget(difficultyTarget)
                 .nonce(nonce)
-                .numTxs(numTxs)
                 .build();
 
         return result;
@@ -58,12 +66,19 @@ public class BlockHeaderSerializer implements BitcoinSerializer<BlockHeader> {
 
     @Override
     public void serialize(BlockHeader object, ByteArrayWriter byteWriter) {
+
+        // NOTE: The "Number of TXs" field is NOT part of the Deserialization
+
         byteWriter.writeUint32LE(object.getVersion());
-        byteWriter.write(object.getPrevBlockHash().getReversedBytes());
-        byteWriter.write(object.getMerkleRoot().getReversedBytes());
+
+        // In case of a Genesis Block, there is no parent block:
+        if (object.getPrevBlockHash() != null)
+                BitcoinSerializerUtils.serializeHash(object.getPrevBlockHash(), byteWriter);
+        else    BitcoinSerializerUtils.serializeHash(Sha256Wrapper.ZERO_HASH, byteWriter);
+
+        BitcoinSerializerUtils.serializeHash(object.getMerkleRoot(), byteWriter);
         byteWriter.writeUint32LE(object.getTime());
         byteWriter.writeUint32LE(object.getDifficultyTarget());
         byteWriter.writeUint32LE(object.getNonce());
-        byteWriter.writeUint32LE(object.getNumTxs());
     }
 }

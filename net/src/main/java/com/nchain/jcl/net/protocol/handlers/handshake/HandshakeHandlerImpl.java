@@ -171,17 +171,17 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
         }
 
         // We check the USER_AGENT:
-        if (config.getBasicConfig().getUserAgentBlacklist() != null) {
-            for (String pattern : config.getBasicConfig().getUserAgentBlacklist())
+        if (config.getUserAgentBlacklist() != null) {
+            for (String pattern : config.getUserAgentBlacklist())
                 if (message.getBody().getUser_agent().getStr().toUpperCase().indexOf(pattern.toUpperCase()) != -1) {
                     rejectHandshake(peerInfo, PeerHandshakeRejectedEvent.HandshakedRejectedReason.WRONG_USER_AGENT, message.getBody().getUser_agent().getStr());
                     return;
                 }
         }
 
-        if (config.getBasicConfig().getUserAgentWhitelist() != null) {
+        if (config.getUserAgentWhitelist() != null) {
             boolean hasOneValidPattern = false;
-            for (String pattern : config.getBasicConfig().getUserAgentWhitelist())
+            for (String pattern : config.getUserAgentWhitelist())
                 if (message.getBody().getUser_agent().getStr().toUpperCase().indexOf(pattern.toUpperCase()) != -1) {
                     hasOneValidPattern = true;
                 }
@@ -348,7 +348,7 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
                 .user_agent(userAgentMsg)
                 .version(config.getBasicConfig().getProtocolVersion())
                 .relay(config.isRelayTxs())
-                .services(config.getBasicConfig().getServicesSupported())
+                .services(config.getServicesSupported())
                 .addr_from(addr_from)
                 .addr_recv(addr_recv)
                 .start_height(config.getBlock_height())

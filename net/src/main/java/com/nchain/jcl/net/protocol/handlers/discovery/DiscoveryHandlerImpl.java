@@ -475,6 +475,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
                 peersToAsk.forEach( p -> this.startDiscovery(p));
             } else logger.debug("Impossible to Renew Addresses, Main pool is empty");
         } catch (Exception e) {
+            logger.error(e.getMessage(), e);
             e.printStackTrace();
         }
     }
@@ -499,7 +500,11 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
             logger.debug( "Recovering handshake with " + handshakesToRecover.size()
                     +  " peers, " + (peersHandshaked.size() - handshakesToRecover.size())  + " still lost...");
         } catch (Exception e) {
+            logger.error(e.getMessage(), e);
             e.printStackTrace();
+        } catch (Throwable th) {
+            logger.error(th.getMessage(), th);
+            th.printStackTrace();
         }
     }
 

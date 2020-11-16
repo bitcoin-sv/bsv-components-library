@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.protocol.config.provided;
 
 import com.nchain.jcl.base.domain.api.base.BlockHeader;
+import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
 import com.nchain.jcl.net.protocol.config.*;
 import com.nchain.jcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig;
 import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandlerConfig;
@@ -39,21 +40,20 @@ public class ProtocolBTCMainConfig extends ProtocolConfigImpl implements Protoco
 
     // Genesis Block for BTC-Main:
     private static BlockHeader genesisBlock = BlockHeader.builder()
+            .version(1)
+            .merkleRoot(Sha256Wrapper.wrap("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"))
             .difficultyTarget(0x1d00ffffL)
             .nonce(2083236893)
             .time(1231006505L)
+            .numTxs(1)
             .build();
 
     // Basic Configuration:
     private static ProtocolBasicConfig basicConfig = ProtocolBasicConfig.builder()
             .id(id)
             .magicPackage(magicPackage)
-            .servicesSupported(services)
             .port(port)
             .protocolVersion(protocolVersion)
-            .dns(dns)
-            .userAgentBlacklist(userAgentBlacklist)
-            .userAgentWhitelist(userAgentWhitelist)
             .build();
 
     /** Constructor */
@@ -65,9 +65,15 @@ public class ProtocolBTCMainConfig extends ProtocolConfigImpl implements Protoco
                 basicConfig,
                 null,            // Default Network Config
                 null,           // Default Message Config
-                null,          // Default Gandshake Config
+                HandshakeHandlerConfig.builder()
+                        .userAgentBlacklist(userAgentBlacklist)
+                        .userAgentWhitelist(userAgentWhitelist)
+                        .servicesSupported(services)
+                        .build(),
                 null,           // Default PingPong Config
-                null,           // Default Discovery Config
+                DiscoveryHandlerConfig.builder()
+                        .dns(dns)
+                        .build(),
                 null,            // Default Blacklist Config
                 null);    // Default Block Downloader Config
     }

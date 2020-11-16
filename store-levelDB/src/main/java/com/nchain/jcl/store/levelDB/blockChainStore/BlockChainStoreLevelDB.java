@@ -11,6 +11,8 @@ import com.nchain.jcl.store.blockChainStore.events.ChainForkEvent;
 import com.nchain.jcl.store.blockChainStore.events.ChainPruneEvent;
 import com.nchain.jcl.store.blockChainStore.events.ChainStateEvent;
 import com.nchain.jcl.store.levelDB.blockStore.BlockStoreLevelDB;
+import com.nchain.jcl.store.levelDB.common.HashesList;
+import static com.nchain.jcl.store.levelDB.blockChainStore.BlockChainKeyValueUtils.*;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,12 +20,10 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.*;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -35,36 +35,11 @@ import java.util.stream.Collectors;
  * LevelDB is a No-SQL that provides Key-Value storage. This implementation extends the BlockStore one, so it
  * already provides all the basic operation to manipulate Blocks and Transactions.
  * This implementation provides additional operations to manage information about the different Chains we might have
- * int he db, and the relationships betwwen those Blocks and those Chains.
+ * in the db, and the relationships betwwen those Blocks and those Chains.
  *
- * This implemention adds some Keys to the LevelDB:
- *
- *  - key: b_next:[block_hash] (example: "b_next:00a12918c6674caf3c96ce977372eb0bf41cbca687683251f199cdc1d988c7b6")
- *  - value: An instance of {@link BlockHashesList}, that contains a List of Block Hashes in String (HEX) format.
- *           These are the Blocks that have been built on top of the one specified by the Key.
- *           Different scenarios:
- *           - No value: The block specified in the Kay has not Blocks built on top of it
- *           - A 1-item list: The Block specified in the key has ONE BLock built on top of it. This is the normal
- *             scenario.
- *           - A n-item list: The Block specified in the Kay has more than one Block built on top of it. This is a
- *             FORK scenario.
- *
- *  - key: b_chain:[block_hash] (example: "b_chain:00a12918c6674caf3c96ce977372eb0bf41cbca687683251f199cdc1d988c7b6")
- *  - value: A blockChainInfo instance, containing the info of the Chain this Blocks belongs to
- *
- *
- *  - key: chain_tips: (we only have ONE Key for the whole DB)
- *  - value: An instance of {@link BlockHashesList}, that contains a List of Block Hashes in String (HEX) format. This
- *           the list of the different TIPS of the multiple Chains we might have. In a normal scenario we'll only have
- *           one Tip, but in case of a FORK, we might have more than one.
  */
 @Slf4j
 public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockChainStore {
-
-    // Prefixes used to generate the Keys:
-    private static final String PREFFIX_KEY_BLOCK_NEXT  = "b_next:";
-    private static final String PREFFIX_KEY_BLOCK_CHAIN = "b_chain:";
-    private static final String PREFFIX_KEY_CHAINS_TIPS = "chain_tips:";
 
     // Configuration:
     private final BlockChainStoreLevelDBConfig config;
@@ -89,7 +64,7 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
     // will change this structure, so it's more efficient to keep a copy here. The list is saved in the Db when the
     // service is stopped, but just in case, and in order not to loose data if the service stops unexpectedly, we keep
     // track of the times the structure is updated, and when a threshold is reached, we save it.
-    private static BlockHashesList tipsChains;
+    private static HashesList tipsChains;
 
     /** Constructor */
     @Builder(builderMethodName = "chainBuilder")
@@ -118,37 +93,6 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
         }
     }
 
-    // Functions to generate Keys in String format:
-
-    private String getKeyForBlockNext(String blockHash)  { return PREFFIX_KEY_BLOCK_NEXT + blockHash; }
-    private String getKeyForBlockChain(String blockHash) { return PREFFIX_KEY_BLOCK_CHAIN + blockHash; }
-
-    // Functions to convert keys/values to byte arrays:
-    // Here we are gonna use the standard Java Serialization:
-
-    private byte[] serialize(Object obj) {
-        try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
-             ObjectOutputStream oStream = new ObjectOutputStream(bos)) {
-             oStream.writeObject(obj);
-             return bos.toByteArray();
-        } catch (IOException ioe) { throw new RuntimeException(ioe);}
-    }
-
-    private byte[] bytes(BlockHashesList chainTips)     { return serialize(chainTips);}
-    private byte[] bytes(BlockChainInfo blockChainInfo) { return serialize(blockChainInfo);}
-
-    // Functions to convert byte[] to values:
-
-    private Object deserialize(byte[] value) {
-        if (value == null || value.length == 0) return null;
-        try (ByteArrayInputStream bis = new ByteArrayInputStream(value);
-             ObjectInputStream ois = new ObjectInputStream(bis)){
-             return ois.readObject();
-        } catch (IOException | ClassNotFoundException e) { throw new RuntimeException(e);}
-    }
-
-    private BlockHashesList bytesToBlocksList(byte[] bytes) { return (BlockHashesList) deserialize(bytes);}
-    private BlockChainInfo bytesToChainInfo(byte[] bytes) { return (BlockChainInfo) deserialize(bytes);}
 
     // Basic Operations:
     // Internal/private functions.
@@ -188,32 +132,32 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
 
     // Returns the list of Blocks built on top of the given one:
     // If the Block has NO Childrenm it returtns an EMPTY List
-    private BlockHashesList _getNextBlocks(String blockHashHex) {
-        return bytesToBlocksList(levelDBStore.get(bytes(getKeyForBlockNext(blockHashHex))));
+    private HashesList _getNextBlocks(String blockHashHex) {
+        return bytesToHashesList(levelDBStore.get(bytes(getKeyForBlockNext(blockHashHex))));
     }
 
     // Adds one Block as a CHILD of this one (one built on top of this one)
     private void _addChildToBlock(String parentBlockHash, String childBlockHash) {
-        BlockHashesList childs = _getNextBlocks(parentBlockHash);
-        if (childs == null) childs = BlockHashesList.builder().build();
-        if (!(childs.getBlockHashes().contains(childBlockHash)))
-            childs.getBlockHashes().add(childBlockHash);
+        HashesList childs = _getNextBlocks(parentBlockHash);
+        if (childs == null) childs = HashesList.builder().build();
+        if (!(childs.getHashes().contains(childBlockHash)))
+            childs.getHashes().add(childBlockHash);
         levelDBStore.put(bytes(getKeyForBlockNext(parentBlockHash)), bytes(childs));
     }
 
     // Removes a Block from the lis tof CHILDREN of this one
     private void _removeChildFromBlock(String parentBlockHash, String childBlockHash) {
-        BlockHashesList childs = _getNextBlocks(parentBlockHash);
+        HashesList childs = _getNextBlocks(parentBlockHash);
         if (childs != null) {
-            childs.getBlockHashes().remove(childBlockHash);
+            childs.getHashes().remove(childBlockHash);
             levelDBStore.put(bytes(getKeyForBlockNext(parentBlockHash)), bytes(childs));
         }
     }
 
     // Updates the List of Chain Tips, adding one and/or removing one from the List
     private void _updateTipsChain(String blockHashToAdd, String blockHashToRemove) {
-        if (blockHashToAdd != null)     tipsChains.getBlockHashes().add(blockHashToAdd);
-        if (blockHashToRemove != null)  tipsChains.getBlockHashes().remove(blockHashToRemove);
+        if (blockHashToAdd != null)     tipsChains.getHashes().add(blockHashToAdd);
+        if (blockHashToRemove != null)  tipsChains.getHashes().remove(blockHashToRemove);
         _saveChainsTips(tipsChains);
     }
 
@@ -227,15 +171,15 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
         BlockChainInfo blockChainInfo = _saveBlockChainInfo(blockHeader, parentBlockChainInfo);
 
         // If the Parent is part of the TIPS of the Chains, then it must be removed from it:
-        if (parentBlockChainInfo != null && tipsChains.getBlockHashes().contains(parentBlockChainInfo.getBlockHash())) {
+        if (parentBlockChainInfo != null && tipsChains.getHashes().contains(parentBlockChainInfo.getBlockHash())) {
             _updateTipsChain(null, parentBlockChainInfo.getBlockHash()); // we don't add, just remove
         }
 
         // Now we look into the CHILDREN (Blocks built on top of this Block), and we connect them as well...
         // If the Block has NOT Children, then this is the Last Block that can be connected, so we add it to the Tips
-        BlockHashesList children = _getNextBlocks(blockHeader.getHash().toString());
-        if (children != null && children.getBlockHashes().size() > 0) {
-            for (String childHashHex : children.getBlockHashes()) {
+        HashesList children = _getNextBlocks(blockHeader.getHash().toString());
+        if (children != null && children.getHashes().size() > 0) {
+            for (String childHashHex : children.getHashes()) {
                 Optional<BlockHeader> childBlock = getBlock(Sha256Wrapper.wrap(childHashHex));
                 if (childBlock.isPresent()) _connectBlock(childBlock.get(), blockChainInfo);
             }
@@ -256,14 +200,14 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
             _updateTipsChain(null, blockHashHex);
 
             // We remove all the Chain Info from its Children...
-            BlockHashesList children = _getNextBlocks(blockHashHex);
+            HashesList children = _getNextBlocks(blockHashHex);
             if (children != null)
-                children.getBlockHashes().forEach( h -> _disconnectBlock(h));
+                children.getHashes().forEach(h -> _disconnectBlock(h));
         }
     }
 
     // We sve the ChainTips in the DB
-    private void _saveChainsTips(BlockHashesList chainstips) {
+    private void _saveChainsTips(HashesList chainstips) {
         levelDBStore.put(bytes(PREFFIX_KEY_CHAINS_TIPS), bytes(chainstips));
     }
 
@@ -288,7 +232,7 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
 
     private synchronized void _automaticPrune() {
         // We only prune if there is more than one chain:
-        if (tipsChains.getBlockHashes().size() > 1) {
+        if (tipsChains.getHashes().size() > 1) {
             ChainInfo longestChain = getLongestChain().get();
             List<Sha256Wrapper> tipsToPrune = getState().getTipsChains().stream()
                     .filter(c -> (!c.equals(longestChain))
@@ -303,8 +247,8 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
     public void start() {
 
         // We load the current tips of the Chains from the DB...
-        tipsChains = bytesToBlocksList(levelDBStore.get(bytes(PREFFIX_KEY_CHAINS_TIPS)));
-        if (tipsChains == null) tipsChains = BlockHashesList.builder().build();
+        tipsChains = bytesToHashesList(levelDBStore.get(bytes(PREFFIX_KEY_CHAINS_TIPS)));
+        if (tipsChains == null) tipsChains = HashesList.builder().build();
 
         // If the DB is empty, we initialize it with the Genesis block:
         if (getNumBlocks() == 0) {
@@ -409,9 +353,9 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
 
     @Override
     public List<Sha256Wrapper> getNextBlocks(Sha256Wrapper blockHash) {
-        BlockHashesList children = _getNextBlocks(blockHash.toString());
+        HashesList children = _getNextBlocks(blockHash.toString());
         List<Sha256Wrapper> result = (children != null)
-                ? children.getBlockHashes().stream().map( h -> Sha256Wrapper.wrap(h)).collect(Collectors.toList())
+                ? children.getHashes().stream().map(h -> Sha256Wrapper.wrap(h)).collect(Collectors.toList())
                 : new ArrayList<>();
         return result;
     }
@@ -435,7 +379,7 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
 
     @Override
     public List<Sha256Wrapper> getTipsChains() {
-        List<Sha256Wrapper> result = tipsChains.getBlockHashes().stream().map(h -> Sha256Wrapper.wrap(h)).collect(Collectors.toList());
+        List<Sha256Wrapper> result = tipsChains.getHashes().stream().map(h -> Sha256Wrapper.wrap(h)).collect(Collectors.toList());
         return result;
     }
 
@@ -455,7 +399,7 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
     public synchronized void prune(Sha256Wrapper tipChainHash, boolean removeTxs) {
 
         // First we check if this Hash really is a TIP of a chain:
-        if (!tipsChains.getBlockHashes().contains(tipChainHash.toString()))
+        if (!tipsChains.getHashes().contains(tipChainHash.toString()))
             throw new RuntimeException("The Hash specified for Prunning is NOT the Tip of any Chain.");
 
         log.debug("Prunning chain tip #" + tipChainHash + " ...");

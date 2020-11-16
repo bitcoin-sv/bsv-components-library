@@ -1,4 +1,4 @@
-package com.nchain.jcl.store.levelDB.blockChainStore;
+package com.nchain.jcl.store.levelDB.common;
 
 import lombok.Builder;
 import lombok.Value;
@@ -15,7 +15,7 @@ import java.util.List;
  */
 @Builder(toBuilder = true)
 @Value
-public class BlockHashesList implements Serializable {
+public class HashesList implements Serializable {
     @Builder.Default
-    private List<String> blockHashes = new ArrayList<>();
+    private List<String> hashes = new ArrayList<>();
 }

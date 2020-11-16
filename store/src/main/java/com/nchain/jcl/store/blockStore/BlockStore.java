@@ -4,8 +4,6 @@ import com.nchain.jcl.base.domain.api.base.BlockHeader;
 import com.nchain.jcl.base.domain.api.base.Tx;
 import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
 import com.nchain.jcl.store.blockStore.events.BlockStoreStreamer;
-import com.nchain.jcl.store.common.PaginatedRequest;
-import com.nchain.jcl.store.common.PaginatedResult;
 
 import java.util.List;
 import java.util.Optional;
@@ -137,6 +135,13 @@ public interface BlockStore {
      */
     void removeTxs(List<Sha256Wrapper> txHashes);
 
+
+    /**
+     * Returns the list of Txs that the Tx given (parameter) depends on, because it's using some of their outputs
+     * as inputs.
+     */
+    List<Sha256Wrapper> getTxsNeeded(Sha256Wrapper txHash);
+
     /**
      * Returns the total number of Txs stored in the DB
      */
@@ -169,11 +174,28 @@ public interface BlockStore {
      */
     void unlinkBlock(Sha256Wrapper blockHash);
 
-    /** Retrieves the Block Hash of the Block the TX given belongs to, if any */
-    Optional<Sha256Wrapper> getBlockHashLinkedToTx(Sha256Wrapper txHash);
+    /**
+     * Indicates if the Tx given belongs to the Block given.
+     */
+    boolean isTxLinkToblock(Sha256Wrapper txHash, Sha256Wrapper blockHash);
 
-    /** Returns the Hashes of the TXS belonging the the block with the HASH (in HEX format) given */
-    PaginatedResult<Sha256Wrapper> getBlockTxs(Sha256Wrapper blockHash, PaginatedRequest pagReq);
+    /**
+     * Retrieves the Block Hash of the Block the TX given belongs to. The result is usually a List that is either:
+     * - An empty List:
+     *   the Transaction doesn't belong to any Block yet, maybe because it's just been saved and not link to any
+     *   Block yet, or because its a Transaction received over the Network and its not been included in a mined Block
+     * - A List with one Block Hash: The usual scenario: The TX belongs to a Block.
+     * - A List with more than 1 Block Hashes: This is a Fork scenario: The TX has been contained in more than 1 Block,
+     *   so this Tx belongs to 2 different Chains, until the fork is resolved and one of the Chains is pruned.
+     */
+    List<Sha256Wrapper> getBlockHashLinkedToTx(Sha256Wrapper txHash);
+
+
+    /**  Returns an Iterable with the Tx Hashes belonging to the block given */
+    Iterable<Sha256Wrapper> getBlockTxs(Sha256Wrapper blockHash);
+
+    /** Returns the number of TXs belonging to this block */
+    long getBlockNumTxs(Sha256Wrapper blockHash);
 
     /**
      * Saves the Transactiosn given and links them to the block
@@ -196,6 +218,13 @@ public interface BlockStore {
      */
     void removeBlockTxs(Sha256Wrapper blockHash);
 
+    /**
+     * It compares the content of both Blocks, and return the result highlighting what Tx they both have in common, the
+     * ones missing in one of them and the other, etc.
+     * If any of the Blocks does not exists, it returns an Empty optional.
+     */
+    Optional<BlocksCompareResult> compareBlocks(Sha256Wrapper blockHashA, Sha256Wrapper blockHashB);
+
     // Events Streaming:
 
     /**
@@ -206,5 +235,6 @@ public interface BlockStore {
 
     // ONLY FOR TESTING
     long getNumKeys(String keyPrefix);
+    void printKeys();
 
 }
