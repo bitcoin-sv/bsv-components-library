@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
  */
 public class InitialPeersFinderCSV implements InitialPeersFinder {
     private static final String CSV_SEPARATOR = ",";
+    private static final String NET_FOLDER = "net";
     private static final String FILE_INITIAL_SUFFIX = "-discovery-handler-seed.csv";
 
     private FileUtils fileUtils;
@@ -38,7 +39,7 @@ public class InitialPeersFinderCSV implements InitialPeersFinder {
         try {
             String fileName = StringUtils.fileNamingFriendly(config.getBasicConfig().getId()) + FILE_INITIAL_SUFFIX;
             Path dataPath = fileUtils.getRootPath();
-            Path filePath = Paths.get(dataPath.toString(), fileName);
+            Path filePath = Paths.get(dataPath.toString(), NET_FOLDER, fileName);
             if (!Files.exists(filePath))
                 return result;
 

@@ -246,6 +246,7 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
     @Override
     public void start() {
 
+        super.start();
         // We load the current tips of the Chains from the DB...
         tipsChains = bytesToHashesList(levelDBStore.get(bytes(PREFFIX_KEY_CHAINS_TIPS)));
         if (tipsChains == null) tipsChains = HashesList.builder().build();
@@ -273,6 +274,7 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
 
     @Override
     public void stop() {
+        super.stop();
         //_saveChainsTips(tipsChains);
         // If enabled, we stop the job to publish the state
         if (statePublishFrequency != null || enableAutomaticPrunning) this.scheduledExecutorService.shutdownNow();

@@ -43,7 +43,7 @@ public class BlockStoreLevelDB implements BlockStore {
     private static final int TX_PAG_SIZE_DEFAULT = 10_000;
 
     // Working Folder where te LevelDB files will be stored:
-    private static final String LEVELDB_FOLDER = "levelDB-blockStore";
+    private static final String LEVELDB_FOLDER = "store/levelDB";
 
     // Configuration:
     private final BlockStoreLevelDBConfig config;
@@ -329,7 +329,9 @@ public class BlockStoreLevelDB implements BlockStore {
 
     @Override
     public void start() {
-        log.debug("Level DB Starting..");
+        log.info("JCL-Store Configuration:");
+        log.info(" - LevelDB Implementation");
+        log.info(" - working dir: " + config.getWorkingFolder().toAbsolutePath());
     }
 
     @Override
