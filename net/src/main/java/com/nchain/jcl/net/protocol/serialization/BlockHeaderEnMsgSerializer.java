@@ -34,18 +34,29 @@ public class BlockHeaderEnMsgSerializer implements MessageSerializer<BlockHeader
 
     @Override
     public BlockHeaderEnMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
-        byteReader.waitForBytes(4);
-        long version = byteReader.readUint32();
+        int byteToRead = 4 +HashMsg.HASH_LENGTH+ HashMsg.HASH_LENGTH+ BlockHeaderEnMsg.TIMESTAMP_LENGTH+ BlockHeaderEnMsg.NONCE_LENGTH+ BlockHeaderEnMsg.NBITS_LENGTH+ BlockHeaderEnMsg.TX_CNT;
 
-        BaseGetDataAndHeaderMsgSerializer baseGetDataAndHeaderMsgSerializer =  BaseGetDataAndHeaderMsgSerializer.getInstance();
-        HashMsg prevBlockHash = baseGetDataAndHeaderMsgSerializer.readHashMsg(context, byteReader);
-        HashMsg merkleRoot = baseGetDataAndHeaderMsgSerializer.readHashMsg(context, byteReader);
+        byteReader.waitForBytes(byteToRead);
+        byte[] blockHeaderBytes = byteReader.read(byteToRead);
 
-        byteReader.waitForBytes(BlockHeaderEnMsg.TIMESTAMP_LENGTH+ BlockHeaderEnMsg.NONCE_LENGTH+ BlockHeaderEnMsg.NBITS_LENGTH+ BlockHeaderEnMsg.TX_CNT);
-        long creationTime = byteReader.readUint32();
-        long difficultyTarget = byteReader.readUint32();
-        long nonce = byteReader.readUint32();
-        long txCount = byteReader.readInt64LE();
+        HashMsg hash =  HashMsg.builder().hash(
+                Sha256Wrapper.wrapReversed(
+                        Sha256Wrapper.twiceOf(blockHeaderBytes).getBytes()).getBytes())
+                .build();
+
+
+        // We create a Reader on the Header Bytes, since we need those values again now to serialize the
+        // whole Header...
+        ByteArrayReader headerReader = new ByteArrayReader(blockHeaderBytes);
+
+        long version = headerReader.readUint32();
+        HashMsg prevBlockHash = HashMsg.builder().hash(getBytesHash(HashMsgSerializer.getInstance().deserialize(context, headerReader))).build();
+        HashMsg merkleRoot = HashMsg.builder().hash(getBytesHash(HashMsgSerializer.getInstance().deserialize(context, headerReader))).build();
+
+        long creationTime = headerReader.readUint32();
+        long difficultyTarget = headerReader.readUint32();
+        long nonce = headerReader.readUint32();
+        long txCount = headerReader.readInt64LE();
 
         byteReader.waitForBytes(1);
         boolean noMoreHeaders = byteReader.readBoolean();
@@ -54,6 +65,7 @@ public class BlockHeaderEnMsgSerializer implements MessageSerializer<BlockHeader
         boolean hasCoinbaseData = byteReader.readBoolean();
 
         BlockHeaderEnMsg blockHeaderEnMsg;
+        BaseGetDataAndHeaderMsgSerializer baseGetDataAndHeaderMsgSerializer =  BaseGetDataAndHeaderMsgSerializer.getInstance();
         if(hasCoinbaseData) {
             List hashes = new ArrayList<byte[]>();
             for(int i=0; i < txCount ; i++ ){
@@ -73,12 +85,14 @@ public class BlockHeaderEnMsgSerializer implements MessageSerializer<BlockHeader
                     coinbaseTxBytes.length);
 
             blockHeaderEnMsg = BlockHeaderEnMsg.builder()
+                    .hash(hash)
                     .version(version)
                     .prevBlockHash(prevBlockHash).merkleRoot(merkleRoot).creationTimestamp(creationTime)
                     .nBits(difficultyTarget).nonce(nonce).transactionCount(txCount).hasCoinbaseData(hasCoinbaseData)
                     .noMoreHeaders(noMoreHeaders).coinbaseTX(tx).coinbase(coinbase).coinbaseMerkleProof(hashes).build();
         }  else {
             blockHeaderEnMsg = BlockHeaderEnMsg.builder()
+                    .hash(hash)
                     .version(version)
                     .prevBlockHash(prevBlockHash).merkleRoot(merkleRoot).creationTimestamp(creationTime)
                     .nBits(difficultyTarget).nonce(nonce).transactionCount(txCount).hasCoinbaseData(hasCoinbaseData)
