@@ -15,7 +15,9 @@
  * [JCL-Net](../net/doc/README.md): Provides Connections and Streaming capabilities, allowing an App to connect to the blockchain and "listen" to Events coming from it, and also "send/broadcast" messages, and other operations.
 
  * [JCL-Script](../script/doc/README.md): Provides capabilities to Run *Bitcoin Scripts*
-
+ * [JCL-Store](../store/doc/README.md): Operations to *save* or *retrieve* information from a Repository. The information to store might be different depending on the different *Store-subModule* we use, and the *Repository* might be different deopending on the *implementation* provided (there are multiple implementations for this Module)
+ 
+ 
 All the libraries within *JCL* make up a hierarchy dependency tree, as shown in the diagram below:
 
 ![high level architecture](jcl-highLevel.png) 

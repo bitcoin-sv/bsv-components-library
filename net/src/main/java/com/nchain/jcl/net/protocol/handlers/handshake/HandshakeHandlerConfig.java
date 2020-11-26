@@ -25,11 +25,16 @@ public class HandshakeHandlerConfig extends HandlerConfig {
 
     private ProtocolBasicConfig basicConfig;
 
+    private int servicesSupported;
+    private String[] userAgentBlacklist;
+    private String[] userAgentWhitelist;
+    private long block_height;
+
     @Builder.Default
     private String userAgent = DEFAULT_USER_AGENT;
     @Builder.Default
     private boolean  relayTxs = false;
 
-    private long block_height;
+
 
 }

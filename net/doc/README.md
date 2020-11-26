@@ -390,7 +390,7 @@ handlers* and are mandatory, since critical parts of the *Bitcoin protocol* woul
 without them.
 
 Others are optional, and provide other extra-functionalities. These are the "custom" handlers in the diagram below. 
-More *Handlers* can be developed and *added* the the main *JCL* Service in runtime.
+More *Handlers* can be developed and *added* the the main *P2P* Service in runtime.
 
 
 ![detail level architecture](jcl-Net-detail.png)
@@ -431,21 +431,70 @@ The *Custom* Handlers built-in in *JCL* are the following:
 
 #### Advance Configuration (fine-tunning):
 
-The Configuration applied to the *P2P* Service in the prevoopus Chapter is quite straightforward: Basically, you select the right *instance* based on the Network you want to connect to (BSV-Main, BSV-Stn, etc) and then you change a few properties in case you need to refine some configurations, like the number of Peers or the Port your service will be listening at.
+The Configuration applied to the *P2P* Service in the prevoopus Chapter is quite straightforward: Basically, you select the right *instance* based on the Network you want to connect to (BSV-Main, BSV-Stn, etc) and then you change a few properties in case you need to refine some configurations, like the number of Peers or the Port your service will be listening at. For example, in the following snippet:
 
-But a more advanced Configuration is possible. First we need to understand what kind of Infomration is stored on each ``ProtocolConfiguration``instance, which is described in this picture:
+```
+ProtocolConfig config = new ProtocolBSVStnConfig().toBuilder()
+				.minPeers(10)
+				.maxPeers(15)
+				.build(); 
+```
+
+But a more advanced Configuration is possible. First we need to understand what kind of Information is stored on each ``ProtocolConfig`` instance. 
+
+A ``ProtocolConfig`` contains a high number of properties that can be changed according to the project needs. These properties are organized in different *groups*, as depicted in the following picture:
+
 
 
 ![Advance Configuration](jcl-Net-config.png)
 
-The ''ProtocolConfig'' instance, like for example the ''ProtocolBSVMainConfig'' used in previous examples, contains several inner instances inside, each containing more detailed configurations:
+The ``ProtocolConfig`` instance used in previous examples, contains several inner *groups* inside, each containing more detailed configurations:
 
- * *ProtocolBasicConfig*: Basic parameters. These parameters are important for business standpoint and they are particular for each Network. 
- * One *Configurtion* for each Handler. These Configurations will handle different aspects of the protocol, depending on the Handler.
+In the first place, we have a ``ProtocolBasicConfig``, which contains *basic* parameters, the ones that are most likely to be changed depending on the environment.
+
+Then, all the rest of the properties are roganized in differente *groups*, and each *group* represents a different aspect of the protocol:
+
+   * *DiscoveryHandlerConfig* for controlloing the way new *Peer* addresses are discovered and used
+   * *HandshakeHandlerConfig* for controlling how the *Handshake* between our *p2P* service and remote Peers are performed
+   * *etc*
+
+The last *groups* refer to the Configurations used by the different internal *Handlers* within the *P2P* service. Changing the properties of these groups, you can control the way thos *Handlers* behave.
+
+#### General way to change and apply Configuration changes
  
-##### Changing basic configuration
+The first step is always to select and create an instance of the ``ProtocolConfig``we want to use. In the following example, we are using the Configuration for the *BSV-Main* Network:
+
+```
+ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder().build();
+```
+the line above cfreates an instance of ``ProtocolConfig``already configured for the netwrok we need. Now, we can change anhy parameter in it. Since all these parameters are contained inside a different *group*, we need to *extract* first the *group*, change it, and then *inject* it back.
+
+In the following example we are changin a few properties of the ``ProtocolBasicConf``*group*:
+
+```
+// First initialization:
+ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder().build()
+
+// We extract the Basic config and change it:
+ProtocolBasicConfig newBasicConfig = config.getBasicConfig().toBuilder()
+                .protocolVersion(11)
+                .magicPackage(100L)
+                .build()
+                
+// We inject back the Basic Config after the change                
+config = config.toBuilder()
+				.basicConfig(newBasicConfig)
+				.build();
+                
+```
+
+> Rememeber that the *Configuration* classes in *JCL-Net* are *immutable*, that's the reason why we need to invoke the ``toBuilder()`` method. Using that method we can create a *Copy* of a *Configuration*, apply whatever changes we need, and create a new one.
  
-Some of the parameters in the *Basic Configuration* (*port*, *minPeers*, *maxPeers*) are commonly changed during develoipment and execution and can be easily changed directly:
+ 
+#### Changing basic configuration and shortcut for common properties
+ 
+In the previous chapter there is already one example of how to change the ``ProtocolBasicConf``*group*. If you look at the picture showing the content of the ``ProtocolConfig`` instance, you'll see that some of the *properties* within the ``ProtocolBasicConf`` are written in **bold** letters. Those are the properties that are most commonly changed, and for that reason the ``ProtocolConfig``offers a shortcut: you can change those properties **directly** from the ``ProtocolConfig`` instance:
+ 
 
 ```
 ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder()
@@ -455,33 +504,31 @@ ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder()
                 .build();
 ```
 
-To change the rest of the *Basic Parameters*, we need to extract them, change them and inject them back in:
+To change the rest of the *Basic Parameters*, we need to extract them, change them and inject them back in, as it's been explained already.
 
-```
-// First initialization:
-ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder().build()
+#### List of Basic properties
+All this properties are part of the ``ProtocolBasicConf`` *group*, and can be changed at runtime.
 
-// We change the Basic config and change it:
-ProtocolBasicConfig newBasicConfig = config.getBasicConfig().toBuilder()
-                .protocolVersion(11)
-                .magicPackage(100L)
-                .build()
-                
-// We inject the Basic Config after the change                
-config = config.toBuilder()
-					.basicConfig(newBasicConfig)
-					.build();
-```
+* **magicPackage**: Network identifier
+* **port**: Port number used to connect to remote *Peers*.
+* **protocolVersion**: Version of the Bitcoin Protocol used.
+* **maxPeers**: Maximun number of remote *Peers* to connect to. When this number is reached, the *P2P* service will stop looking for new *Peers*-
+* **minPeers**: Minimum number of remote *Peers* to connect to. As long as the number of current connections is lower than this, the *P2P* serice will kepp looking for new Connections.
+
 
 In the rest of Chapters we'll show how to change Configuration that affects different aspects of the Protocol
 
 
-##### Changing the Handshake Process
+#### Changing the Handshake Process
 
-Here you can change:
+The *HandshakeHandlerConfig* group controls how the *P2P* Service connects to remote *Peers*.
+The properties you can change here are:
 
- * The *userAgent* String that is sent during the *Handshake* to another Peer.
- * Specify whether you want the remote Peer to broadcast *Tx* to you or just *Blocks*
+ * **userAgent**: The *userAgent* String that is sent during the *Handshake* to another Peer.
+ * **userAgentBlacklist**: A list of Strings that make a remote *Peer* to be blacklisted. If a remote *Peer* performs a *Handshake* where it uses a *userAgent* string containing any of the Strings declared here, that *Peer* is blacklisted and the connectin is rejected.
+ * **userAgentWhiteList**: A list of Strings that allow a remote *Peer* to connect to our *P2P* service. If a remote *Peer* performs a *Handshake*, it will only be allow to connect if its *userAgent* string contains any of the Strings declared here 
+ * **servicesSupported**: A number that identifies the Services supported by the *Peer* that is connecting to a remote *Peer* (the *P2P* service in this case)
+ * **relayTxs**: Specify whether you want the remote Peer to broadcast *Tx* to you or just *Blocks*
 
 ```
 // First initialization:
@@ -489,24 +536,29 @@ ProtocolConfig config = new ProtocolBSVMainConfig();
 
 // We change the Handshake config and change it:
 HandshakeHandlerConfig handshakeConfig = config.getHandshakeConfig().toBuilder()
- 			.userAgent("my User Agent")
- 			.relayTxs(false)
- 			.build();
+	.userAgent("my User Agent")
+	.userAgentBlacklist(...)
+	.userAgentWhitelist(...)
+	.servicesSupported(ProtocolVersion.CURRENT)
+	.relayTxs(false)
+	.build();
  			
-// We inject the Handhake Config after the change
+// We inject back the Handhake Config after the change
 config = config.toBuilder().handshakeConfig(handshakeConfig).build();
 ``` 
 
-##### Changing the Discovery Process
+#### Changing the Discovery Process
 
-Here you can change:
+The **DiscoveryHandlerConfig* group controls how the *P2P* Service finds new remote Addresses of remote *Peers* to connect to.
+The properties you can change here are:
 
- * The way to load the *Initial* Set of Peers, which can be:
-   * **DNS**: The Peers are loaded from a hard-coded list of *DNS*. This list is stored in the *dns* `roperty in the *BasicConfiguration
-   * **PEERS**: The Peers are *loaded* from a hard-coded list of Peers that is saved in a CSV file
+ * **dns**: The list of *DNS* servers used to load the Initial set of Peers that the *P2P* service will connect to upon start up. It's only used when the *discoveryMethod* property (below) has the *DNS* value.
+ * **discoveryMethod**: the way to load the *Initial* Set of Peers, which can be:
+     * **DNS**: The Peers are loaded from a hard-coded list of *DNS*. This list is stored in the *dns* property
+     * **PEERS**: The Peers are *loaded* from a hard-coded list of Peers that is saved in a CSV file
   * Other properties (pending...)
 
-The *DNS* *Discovery MEthod* is the defauilt. In order to fchange it to *PEERS*, we first need to make sure that there is a *CSV* file with the list of Initial Peers, and this file is in the right location.
+The *DNS* *Discovery Method* is the defauilt. In order to change it to *PEERS*, we first need to make sure that there is a *CSV* file with the list of Initial Peers, and this file is in the right location.
 
 > The file must be named as "[NetName]-discovery-handler-seed.csv", for example:
 > 
@@ -515,7 +567,7 @@ The *DNS* *Discovery MEthod* is the defauilt. In order to fchange it to *PEERS*,
 > 
 > (the "NetName" is the value returned by ``ProtocolConfig.getId()``
 > 
-> This file must be placed in the "working dir" folder, which is logged in the Console wjhen the *p2P* Service starts up.
+> This file must be placed in the "working dir" folder, which is logged in the Console when the *p2P* Service starts up.
 
 
 Then, you need to change the Configuration:
@@ -529,7 +581,7 @@ DiscoveryHandlerConfig discoveryConfig = config.getDiscoveryConfig().toBuilder()
 		.discoveryMethod(DiscoveryHandlerConfig.DiscoveryMethod.PEERS)
 		.build()
  			
-// We inject the Discovery Config after the change
+// We inject back the Discovery Config after the change
 config = config.toBuilder().discoveryConfig(discoveryConfig).build();
 ``` 
 

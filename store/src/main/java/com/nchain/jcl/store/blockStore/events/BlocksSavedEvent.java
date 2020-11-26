@@ -2,7 +2,9 @@ package com.nchain.jcl.store.blockStore.events;
 
 import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
 import lombok.Builder;
+import lombok.Value;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -12,7 +14,12 @@ import java.util.List;
  *
  * An Event triggered when several Blocks are sucessfully stored.
  */
-@Builder
+@Value
 public class BlocksSavedEvent extends BlockStoreEvent {
     private List<Sha256Wrapper> blockHashes;
+
+    @Builder
+    public BlocksSavedEvent(List<Sha256Wrapper> blockHashes) {
+        this.blockHashes = new ArrayList<>(blockHashes);
+    }
 }

@@ -39,11 +39,11 @@ The Interfaces defined in this module are the following:
 > must be obtained, but that process is implementation-specific. So for instructions fo how to crete instances of 
 the interfaces above, go check out the documentation of all the implementations provided:
 >
-> [JCL-Store-LevelDB](../store-levelDB/doc/README.md): *JCL-Store* implementation with LevelDB 
+> [JCL-Store-LevelDB](../../store-levelDB/doc/README.md): *JCL-Store* implementation with LevelDB 
   
 
 
-Examples of use of these 2 interfaces are detailed in other chapters below
+Examples of use of these 2 interfaces are detailed in the chapters below
 
 ## BlockStore interface
 
@@ -101,19 +101,6 @@ db.saveBlockTxs(blockHeader, txs);
 
 ```
 
-We can also retrieve the Txs belonging to a Block. In this case, since the number of Txs might potentially be 
-huge, the result is returned in a a*paginated* way:
-
-```
-int numPage = 0
-PaginatedResult<Sha256Wrapper> result = null;
-do {
-    PaginatedRequest pagReq = PaginatedRequest.builder().numPage(numPage++).build()
-    result = db.getBlockTxs(blockHeader.getHash(), pagReq)
-} while (result.getResults().size() != 0) 
-```
-
-
 It's also possible to store the Block and Transaction separately and set that relation later on:
 
 ```
@@ -129,19 +116,46 @@ txs.forEach(tx -> db.linkTxToBlock(tx, blockHeader));
 The *linkTxToBlock* method above stores the relationship between the Block and the Txs, but the interface also provides 
 other methods that allows for modifying this relationship, like:
 
- * *linkTxToBlock*(...): Links a Tx to one Block.
- * *unlinkTxFromBlock(...)*: Unlinks a Tx from a Block.
- * *unlinkTx(..)*: Unlinks a Transaction from any whatever Block this Txs its linked to
- * *unlinkBlock(...)*: Unlinks a Block form any Tx it might be linked to
+ * ``linkTxToBlock*(...)``: Links a Tx to one Block.
+ * ``unlinkTxFromBlock(...)``: Unlinks a Tx from a Block.
+ * ``unlinkTx(..)``: Unlinks a Transaction from any whatever Block this Txs its linked to
+ * ``unlinkBlock(...)``: Unlinks a Block form any Tx it might be linked to
 
-> **NOTE:**
+
+> Using the methods above create a relation between a Transaction and a Block. This relation might be in one of the following scenarios:
 > 
-> Using the methods above create a relation between a Transaction and a Block. This relations needs to be consistent, so we need to make sure the data is stored properly. For exaple, a Transactin can *ONLY* belong to one Block.
-> The verification of that rule can be always performed by the Application itself *before* using the methods in *BlockStore*, but the *JCL-Sotre* methods themselves might be able to perform those verifrications and trigger and Exception if there is an attempt to brreak the Block-Tx relationship rules.
-> **BUT those builtin verifications are NOT guaranteeed by the JCL-Store specification. They are implementation-specific, so go and check out the implementation documentation to make sure about it.
+>  * A Block might be *empty*. or contain several Transactions, with no upper limit in that number of *Transactions*.
+>  * A Transaction might NOT belong to any block at all. This is the situation when the Transaction is not being mined and not included in a block just yet.
+>  * A Transaction might belong to ONLY one Block. This is the "normal" scenario where a Transaction is contained in a Block that has been mined and its part of the BlockChain.
+>  * A Transaction might belong to MORE than 1 Block. This is the scenario of a FORK, where 2 or more different Blocks are competing to be the longest Chain, and they all contain the same Transaction.
 >
-> [JCL-Store-LevelDB](../store-levelDB/doc/README.md): *JCL-Store* implementation with LevelDB 
+>
+>All the scenarios above are valid and can be modelled. The method ``getBlockHashLinkedToTx`` returns a *List* of those Blocks the Tx given belongs to. The returned List might an Empty list or a list with 1 or more elements, acording with the scenarios described previosly.
+> 
 
+
+We can retrieve the Txs belonging to a Block. The result comes as an *Iterable* of the Transactions *Hashes* contained in that block:
+
+```
+Iterable<Sha256Wrapper> getBlockTxs(Sha256Wrapper blockHash);
+```
+
+An example of looping over the results of the prvious method:
+
+
+```
+// We get a Block from somwhere:
+BlockHeader block = ...
+
+// We print first the Total number of Txs:
+System.out.println("Number of Txs:" + db.getBlockNumTxs(block.getHash()));
+
+// No we print every Txs contained in this block:
+Iterator<Sha256Wrapper> txsIt = db.getBlockTxs(block.getHash()).iterator();
+while (txsIt.hasNext()) {
+System.out.println("Tx Hash: " + txsIt.next());
+}
+```
 
 ### Streaming of Events
 
@@ -180,10 +194,10 @@ public void processBlocksSaved(BlocksSavedEvent event) {
 public void processBlocksRemoved(BlocksRemovedEvent event) {
     System.out.println(event);
 }
-public void processTxsSaved(BlocksTxsEvent event) {
+public void processTxsSaved(TxsSavedEvent event) {
     System.out.println(event);
 }
-public void processTxsRemoved(BlocksTxsRemovedEvent event) {
+public void processTxsRemoved(TxsRemovedEvent event) {
     System.out.println(event);
 }
 
@@ -193,12 +207,12 @@ public void processTxsRemoved(BlocksTxsRemovedEvent event) {
 
 > **NOTE:**
 > 
-> Triggering Events might affect the performance. The *BlockStore* interface tells you *how* to 
+> Triggering Events might affect the performance. The *BlockStore* interface describes *how* to 
 access them, but it can NOT guarantee whether they are enable or not. Enabling or disabling the Events 
 is implementation-specific, so **go check the implementation documentation** for the guidelines about how
 to enable/configure the trigering of Events.
 >
-> [JCL-Store-LevelDB](../store-levelDB/doc/README.md): *JCL-Store* implementation with LevelDB 
+> [JCL-Store-LevelDB](../../store-levelDB/doc/README.md): *JCL-Store* implementation with LevelDB 
 
 
 
@@ -217,6 +231,32 @@ db.EVENTS().BLOCKS_SAVED
 ```
 
 The previous example prints out a Message only when a specific Block has been Saved
+
+
+### Comparing Blocks
+
+In some scenarios, it's useful to compare 2 Block, to check what Transactions they have in common, or what Transaction on of them has but not the other one. For this scenario you can use the following method:
+
+```
+Optional<BlocksCompareResult> compareBlocks(Sha256Wrapper blockHashA, Sha256Wrapper blockHashB);
+```
+
+That Methods return the result *inmediately*. That result is composed of several *iterables*, each one of them showing different information: one will iterate over the Transactions both blocks have in common, another will do the same but over those Transactions that only the first Block has but not the second, etc. The complexity here is not coming from getting the result (which is inmediate), but from iterating those results (whch might take more or less time depending on the number of Txs, but the complexity to loop over the whole set of Transaction is *O(n)*.
+
+### Getting Transactions Dependent
+
+A Transaction *A* depends on a Transactions *B* and *C* if *A* is using some of the *outputs* from *B* and *C*. So the Transaction *A* will ony be validated after the Transactions *B* and *C* have been validated as well.
+
+There is a specific method to retrieve the *Transactions* that one Transaction relies on:
+
+```
+List<Sha256Wrapper> getTxsNeeded(Sha256Wrapper txHash);
+```
+
+In the example above, this method will return a list containing the *Hashes* of the Transactions *B* and *C*.
+
+> Note that in this example, the Transaction *B* and *C* might NOT be stored yet in the DB, since the Transactions might come in different order when you receive them from the network.
+
 
 ### Reference
 
@@ -343,8 +383,8 @@ enough to "know" when a *FORK* has happened, we also need to *wait* until we are
 one and it can be removed. For all these reasons, the *BlockChainSore* also includes, as part of its specification, an 
 "automatic" prunning system:
 
-> By enabling the *Automatic Prunning*, the *BlockChainStore* Component will take care of keeping trck of all the *Chains*, and
-it will also detect when the right time is for removing/prunning one of them. A *Chain* can safely be removed when the 
+> By enabling the *Automatic Prunning*, the *BlockChainStore* Component will take care of keeping track of all the *Chains*, and
+it will also detect when the right time for removing/prunning one of them is. A *Chain* can safely be removed when the 
 difference in height with the longest *Chain* is bigger than a *Threshold* specified. The *Automatic Prunning* Configuration
 is implementation-specific, so **go check the documentation**:
 >
@@ -374,9 +414,9 @@ about the state of the DB (Number of Blocks, Txs, etc)
 db.EVENTS().STATE.forEach(System.out::println)
 ```
 
-> Enablin the Streaming of *STATE" Events is implementation-specific, so **go check out** the documentation:
+> Enabling the Streaming of *STATE* Events is implementation-specific, so **go check out** the documentation:
 >
-> [JCL-Store-LevelDB](../store-levelDB/doc/README.md): *JCL-Store* implementation with LevelDB 
+> [JCL-Store-LevelDB](../../store-levelDB/doc/README.md): *JCL-Store* implementation with LevelDB 
 
 ### Reference
 

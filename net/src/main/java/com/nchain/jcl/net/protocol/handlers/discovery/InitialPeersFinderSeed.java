@@ -30,7 +30,7 @@ public class InitialPeersFinderSeed implements InitialPeersFinder {
     @Override
     public List<PeerAddress> findPeers() {
         Set<PeerAddress> result = new HashSet<>();
-        for (String dns : this.config.getBasicConfig().getDns()) {
+        for (String dns : this.config.getDns()) {
             try {
                 InetAddress[] inetAddresses = InetAddress.getAllByName(dns);
                 for (InetAddress inetAddress : inetAddresses) {

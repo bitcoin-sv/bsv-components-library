@@ -1,16 +1,17 @@
 package com.nchain.jcl.store.levelDB.blockStore;
 
+import com.google.common.primitives.Longs;
 import com.nchain.jcl.base.domain.api.base.BlockHeader;
 import com.nchain.jcl.base.domain.api.base.Tx;
-import com.nchain.jcl.base.serialization.BlockHeaderSerializer;
-import com.nchain.jcl.base.serialization.TxSerializer;
 import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
 import com.nchain.jcl.base.tools.events.EventBus;
 import com.nchain.jcl.base.tools.thread.ThreadUtils;
 import com.nchain.jcl.store.blockStore.BlockStore;
+import com.nchain.jcl.store.blockStore.BlocksCompareResult;
 import com.nchain.jcl.store.blockStore.events.*;
-import com.nchain.jcl.store.common.PaginatedRequest;
-import com.nchain.jcl.store.common.PaginatedResult;
+import com.nchain.jcl.store.levelDB.common.HashesList;
+import static com.nchain.jcl.store.levelDB.blockStore.BlockStoreKeyValueUtils.*;
+
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.iq80.leveldb.DB;
@@ -18,19 +19,14 @@ import org.iq80.leveldb.DBIterator;
 import org.iq80.leveldb.Options;
 import static org.iq80.leveldb.impl.Iq80DBFactory.factory;
 
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -38,40 +34,16 @@ import java.util.stream.Collectors;
  * Copyright (c) 2018-2020 nChain Ltd
  *
  * Implementation of the BlockStore component using LevelDB as the Tech Stack.
- *
- * LevelDB is a No-SQL that provides Key-Value storage. This implementation stores the information using the
- * following keys:
- *
- *
- *  - key: b:[block_hash] (example: "b:00a12918c6674caf3c96ce977372eb0bf41cbca687683251f199cdc1d988c7b6")
- *  - value: a BlockHeader.
- *
- *  - key: tx:[tx_hash] (example: "tx:187b49bcae37859e34e1c695d842473f1f65db9ef2b29854eabb168e1663e068")
- *  - value: a Transaction.
- *
- *  - key: btx:[block_hash]:[tx_hash] (example: "btx:00a12918c6674caf3c...:187b49bcae37859e34e1c695d842473...")
- *  - value_ Just a 1-bte array. The value is not important here, only the Key. If this key exists, then the Block
- *    identified by block_hash contains the Tx identified by tx_hash.
- *
- *  - key: txb:[tx_hash] (example: "txb:187b49bcae37859e34e1c695d842473f1f65db9ef2b29854eabb168e1663e068")
- *  - value: The Block Hash this Tx is lined to.
- *
  */
 
 @Slf4j
 public class BlockStoreLevelDB implements BlockStore {
 
-    // Prefixes used to generate the Keys:
-    private static final String PREFFIX_KEY_BLOCK       = "b:";
-    private static final String PREFFIX_KEY_TX          = "tx:";
-    private static final String PREFFIX_KEY_BLOCKTXS    = "btx:";
-    private static final String PREFFIX_KEY_TXBLOCK     = "txb:";
-
     // When triggering Events, some times a Pagination is needed:
     private static final int TX_PAG_SIZE_DEFAULT = 10_000;
 
     // Working Folder where te LevelDB files will be stored:
-    private static final String LEVELDB_FOLDER = "levelDB-blockStore";
+    private static final String LEVELDB_FOLDER = "store/levelDB";
 
     // Configuration:
     private final BlockStoreLevelDBConfig config;
@@ -86,9 +58,6 @@ public class BlockStoreLevelDB implements BlockStore {
     // LevelDB instance:
     protected final DB levelDBStore;
 
-    // We keep an internal reference here of the Serializers we'll need:
-    private static final BlockHeaderSerializer headerSer = BlockHeaderSerializer.getInstance();
-    private static final TxSerializer txSer = TxSerializer.getInstance();
 
     /** Constructor */
     @Builder
@@ -116,41 +85,6 @@ public class BlockStoreLevelDB implements BlockStore {
         }
     }
 
-    // Functions to generate Keys in String format:
-
-    protected String getKeyForBlock(String blockHash) { return PREFFIX_KEY_BLOCK + blockHash; }
-    protected String getKeyForTx(String txHash) { return PREFFIX_KEY_TX + txHash;}
-    protected String getKeyForBlockTx(String blockHash, String txHash) { return PREFFIX_KEY_BLOCKTXS + blockHash + ":" + txHash; }
-    protected String getKeyForTxBlock(String txHash) { return PREFFIX_KEY_TXBLOCK + txHash; }
-
-    // Functions to extract some Hashes from the Keys:
-
-    private String getBlockHashFromKey(String key) {
-        if (key.startsWith(PREFFIX_KEY_BLOCK)) return key.substring(key.indexOf(":") + 1);
-        if (key.startsWith(PREFFIX_KEY_BLOCKTXS)) return key.substring(key.indexOf(":") + 1, key.lastIndexOf(":"));
-        return null;
-    }
-
-    private String getTxHashFromKey(String key) {
-        if (key.startsWith(PREFFIX_KEY_TX)) return key.substring(key.indexOf(":") + 1);
-        if (key.startsWith(PREFFIX_KEY_BLOCKTXS)) return key.substring(key.lastIndexOf(":") + 1);
-        if (key.startsWith(PREFFIX_KEY_TXBLOCK)) return key.substring(key.indexOf(":") + 1);
-        return null;
-    }
-
-    // Functions to convert keys/values to byte arrays:
-    // for those Beans in JCL-Base, we are using the Serializers from that package instead of using a default
-    // Java-Serializer, since they are expected to be more efficient.
-
-    private byte[]   bytes(BlockHeader header) { return headerSer.serialize(header); }
-    private byte[]   bytes(Tx tx) { return txSer.serialize(tx);}
-    protected byte[] bytes(String value) { return value.getBytes(); }
-
-    // Functions to convert byte[] to values:
-
-    protected boolean   isBytesOk(byte[] bytes) { return (bytes != null && bytes.length > 0);}
-    private BlockHeader bytesToBlockHeader(byte[] bytes) { return (isBytesOk(bytes)) ? headerSer.deserialize(bytes) : null;}
-    private Tx          bytesToTx(byte[] bytes) { return (isBytesOk(bytes)) ? txSer.deserialize(bytes) : null; }
 
     /**
      * A generic method to loop over Keys and to perform an operation with each one of them.
@@ -168,7 +102,8 @@ public class BlockStoreLevelDB implements BlockStore {
      *                          all those keys to this task. So only use this task when you are confident that the
      *                          number of keys won't break the memory.
      */
-    private void _loopOverKeysAndRun(String keyPrefix,
+    protected void _loopOverKeysAndRun(String keyPrefix,
+                                     String keySuffix,
                                      Long startingKeyIndex,
                                      Optional<Long> maxKeysToProcess,
                                      Consumer<String> taskForKey,
@@ -193,6 +128,7 @@ public class BlockStoreLevelDB implements BlockStore {
 
                 // Exit Conditions:
                 if (!key.startsWith(keyPrefix)) break;
+                if (keySuffix != null && !key.endsWith(keySuffix)) break;
                 if (maxKeysToProcess.isPresent() && (numKeysProcessed >= maxKeysToProcess.get())) break;
                 if (currentIndex < startingKeyIndex) continue;
 
@@ -214,9 +150,18 @@ public class BlockStoreLevelDB implements BlockStore {
         }
     }
 
-    // Convenience method without pagination
-    private void _loopOverKeysAndRun(String keyPrefix, Consumer<String> individualTask, Consumer<List<String>> globalTask) {
-        _loopOverKeysAndRun(keyPrefix, 0L, Optional.empty(), individualTask, globalTask);
+    // Convenience method with suffix and without pagination
+    protected void _loopOverKeysAndRun(String keyPrefix, String keySuffix, Consumer<String> individualTask, Consumer<List<String>> globalTask) {
+        _loopOverKeysAndRun(keyPrefix, keySuffix,  0L, Optional.empty(), individualTask, globalTask);
+    }
+    // Convenience method without suffix and without pagination
+    protected void _loopOverKeysAndRun(String keyPrefix, Consumer<String> individualTask, Consumer<List<String>> globalTask) {
+        _loopOverKeysAndRun(keyPrefix, null,  0L, Optional.empty(), individualTask, globalTask);
+    }
+    // Convenience method without suffix and with pagination
+    protected void _loopOverKeysAndRun(String keyPrefix, Long startingKeyIndex, Optional<Long> maxKeysToProcess,
+                                     Consumer<String> individualTask, Consumer<List<String>> globalTask) {
+        _loopOverKeysAndRun(keyPrefix, null,  startingKeyIndex, Optional.empty(), individualTask, globalTask);
     }
 
     // Basic operations:
@@ -226,56 +171,134 @@ public class BlockStoreLevelDB implements BlockStore {
     // a TX will also take care of removing the relationships between that Tx an the Block its linked to, if any.
 
     protected void _saveBlock(BlockHeader blockHeader) {
+        // We save the serialized form of the Block:
         String key = getKeyForBlock(blockHeader.getHash().toString());
         levelDBStore.put(bytes(key), bytes(blockHeader));
+
+        // We save the number of Txs (this field is NOT part of the BlockHeader Serialization)
+        String txsKey = getKeyForBlockNumTxs(blockHeader.getHash().toString());
+        levelDBStore.put(bytes(txsKey), bytes(blockHeader.getNumTxs()));
     }
 
     protected void _removeBlock(String blockHashHex) {
+        // We remove the Serialized form of the Block:
         String key = getKeyForBlock(blockHashHex);
         levelDBStore.delete(bytes(key));
+
+        // We remove the property with the number of Txs of this block:
+        String txsKey = getKeyForBlockNumTxs(blockHashHex);
+        levelDBStore.delete(bytes(txsKey));
+
+        // And we unlink the Block:
         _unlinkBlock(blockHashHex);
     }
 
     private void _saveTx(Tx tx) {
+        // We save the Whole TXs:
         String key = getKeyForTx(tx.getHash().toString());
         levelDBStore.put(bytes(key), bytes(tx));
+
+        // We save the list of TXs NEEDED for this TX: The Txs that contains oututs that are used in THIS Txs as
+        // inputs:
+        Set<String> txsNeeded = tx.getInputs().stream()
+                .map(i -> i.getOutpoint().getHash().toString())
+                .collect(Collectors.toSet());
+        HashesList txsHashesNeeded = HashesList.builder()
+                .hashes(new ArrayList<>(txsNeeded))
+                .build();
+        String txsNeddedKey = getKeyForTxNeededTxs(tx.getHash().toString());
+        levelDBStore.put(bytes(txsNeddedKey), bytes(txsHashesNeeded));
     }
 
     private void _removeTx(String txHash) {
+        // We remove the TX itself:
         String key = getKeyForTx(txHash);
         levelDBStore.delete(bytes(key));
+
+        // We remove the "TxsNeeded" property:
+        String keyToRemove = getKeyForTxNeededTxs(txHash);
+        levelDBStore.delete(bytes(keyToRemove));
+
+        // We unlink this Tx from any block/s it might belong to
         _unlinkTx(txHash);
+
     }
 
-    private Optional<String> _getBlockHashLinkedToTx(String txHashHex) {
-        String key = PREFFIX_KEY_TXBLOCK + txHashHex;
+    private List<String> _getBlockHashLinkedToTx(String txHashHex) {
+        List<String> result = new ArrayList<>();
+        String key = getKeyForTxBlock(txHashHex);
         byte[] value = levelDBStore.get(bytes(key));
-        Optional<String> result = (value != null) ? Optional.of(new String(value)) : Optional.empty();
+        if (value != null && value.length > 0) {
+            HashesList blockHashes = bytesToHashesList(value);
+            result = blockHashes.getHashes();
+        }
         return result;
     }
 
     private void _linkTxToBlock(String txHashHex, String blockHashHex) {
-        String bTxKey = getKeyForBlockTx(blockHashHex, txHashHex);
-        String txBKey = getKeyForTxBlock(txHashHex);
-        levelDBStore.put(bytes(bTxKey), new byte[]{1});
-        levelDBStore.put(bytes(txBKey), bytes(blockHashHex));
+
+        // First of all we check this TXs does NOT belong ALREADY to this Block...
+        if (!_isTxLinkToBlock(txHashHex, blockHashHex)) {
+
+            // first we save the key to store the relationship Block-Tx: We just save an integer here, since here
+            // the important thing is the KEY, not the value:
+            String bTxKey = getKeyForBlockTx(blockHashHex, txHashHex);
+            levelDBStore.put(bytes(bTxKey), new byte[]{1});
+
+            // There is also a Property where we save the number of Txs belonging to this Block. We update the Value:
+            String keyBlockNumTxs = getKeyForBlockNumTxs(blockHashHex);
+            byte[] numTxsValue = levelDBStore.get(bytes(keyBlockNumTxs));
+            Long numTxs = (numTxsValue == null)? 0L : (Longs.fromByteArray(numTxsValue) + 1);
+            levelDBStore.put(bytes(keyBlockNumTxs), bytes(numTxs));
+
+            // Now we store, for this TXs, the Block Hash it belongs to. For this Txs, we store a LIST of Block Hashes,
+            // a Tx might belong to more than 1 Block (on case of a FORK)
+            String txBKey = getKeyForTxBlock(txHashHex);
+            HashesList blockHashes = bytesToHashesList(levelDBStore.get(bytes(txBKey)));
+            if (blockHashes == null) blockHashes = HashesList.builder().build();
+            blockHashes.getHashes().add(blockHashHex);
+            levelDBStore.put(bytes(txBKey), bytes(blockHashes));
+        }
     }
 
     private void _unlinkTxFromBlock(String txHashHex, String blockHashHex) {
-        String bTxKey = getKeyForBlockTx(blockHashHex, txHashHex);
-        String txBKey = getKeyForTxBlock(txHashHex);
-        levelDBStore.delete(bytes(bTxKey));
-        levelDBStore.delete(bytes(txBKey));
+
+        // First we check that this TXS really Belongs to the Block given:
+        if (_isTxLinkToBlock(txHashHex, blockHashHex)) {
+            // first we remove the Block-Txs relationsship:
+            String bTxKey = getKeyForBlockTx(blockHashHex, txHashHex);
+            levelDBStore.delete(bytes(bTxKey));
+
+            // No we decrease the number of Txs assigned to this Block, which is stored in a separate property
+            String keyBlockNumTxs = getKeyForBlockNumTxs(blockHashHex);
+            byte[] numTxsValue = levelDBStore.get(bytes(keyBlockNumTxs));
+            Long numTxs = (numTxsValue == null)? 0L : (Longs.fromByteArray(numTxsValue) - 1);
+            levelDBStore.put(bytes(keyBlockNumTxs), bytes(numTxs));
+
+            // Now we remove this block from the list this Txs is linked to:
+            String txBKey = getKeyForTxBlock(txHashHex);
+            HashesList blockHashes = bytesToHashesList(levelDBStore.get(bytes(txBKey)));
+            blockHashes.getHashes().remove(blockHashHex);
+            if (blockHashes.getHashes().size() > 0)
+                levelDBStore.put(bytes(txBKey), bytes(blockHashes));
+            else    levelDBStore.delete(bytes(txBKey));
+        }
     }
 
     private void _unlinkTx(String txHashHex) {
-        _getBlockHashLinkedToTx(txHashHex).ifPresent(blockHashHex -> _unlinkTxFromBlock(txHashHex, blockHashHex));
+        _getBlockHashLinkedToTx(txHashHex).forEach(h -> _unlinkTxFromBlock(txHashHex, h));
     }
 
     private void _unlinkBlock(String blockHashHex) {
         // we loop over the "btx" keys, and for each one we remove it and also remove the "txb" entry:
         String keyPrefix = PREFFIX_KEY_BLOCKTXS + blockHashHex;
         _loopOverKeysAndRun(keyPrefix, k -> _unlinkTxFromBlock(getTxHashFromKey(k), blockHashHex), null);
+    }
+
+    private boolean _isTxLinkToBlock(String txHashHex, String blockHashHex) {
+        String bTxKey = getKeyForBlockTx(blockHashHex, txHashHex);
+        byte[] value = levelDBStore.get(bytes(bTxKey));
+        return (value != null && value.length > 0);
     }
 
     private void _triggerBlocksStoredEvent(List<BlockHeader> blockHeaders) {
@@ -306,7 +329,9 @@ public class BlockStoreLevelDB implements BlockStore {
 
     @Override
     public void start() {
-        log.debug("Level DB Starting..");
+        log.info("JCL-Store Configuration:");
+        log.info(" - LevelDB Implementation");
+        log.info(" - working dir: " + config.getWorkingFolder().toAbsolutePath());
     }
 
     @Override
@@ -340,8 +365,18 @@ public class BlockStoreLevelDB implements BlockStore {
 
     @Override
     public Optional<BlockHeader> getBlock(Sha256Wrapper blockHash) {
+        Optional<BlockHeader> result = Optional.empty();
+        // We get the Block itself:
         byte[] value = levelDBStore.get(bytes(getKeyForBlock(blockHash.toString())));
-        Optional<BlockHeader> result = Optional.ofNullable(bytesToBlockHeader(value));
+        BlockHeader blockHeader = bytesToBlockHeader(value);
+
+        // If the Block is found, we now get its "number of Txs" field:
+        if (blockHeader != null) {
+            String numTxsKey = getKeyForBlockNumTxs(blockHash.toString());
+            Long numTxs = Longs.fromByteArray(levelDBStore.get(bytes(numTxsKey)));
+            BlockHeader blockHeaderComplete = blockHeader.toBuilder().numTxs(numTxs).build();
+            result = Optional.of(blockHeaderComplete);
+        }
         return result;
     }
 
@@ -360,7 +395,7 @@ public class BlockStoreLevelDB implements BlockStore {
     @Override
     public long getNumBlocks() {
         AtomicLong result = new AtomicLong();
-        _loopOverKeysAndRun(PREFFIX_KEY_BLOCK, k -> result.incrementAndGet(), null);
+        _loopOverKeysAndRun(PREFFIX_KEY_BLOCK, k -> result.incrementAndGet(),null);
         return result.get();
     }
 
@@ -403,6 +438,16 @@ public class BlockStoreLevelDB implements BlockStore {
     }
 
     @Override
+    public List<Sha256Wrapper> getTxsNeeded(Sha256Wrapper txHash) {
+        String key = getKeyForTxNeededTxs(txHash.toString());
+        HashesList txNeeded = bytesToHashesList(levelDBStore.get(bytes(key)));
+        List<Sha256Wrapper> result = (txNeeded == null)
+                ? new ArrayList<Sha256Wrapper>()
+                : txNeeded.getHashes().stream().map(h -> Sha256Wrapper.wrap(h)).collect(Collectors.toList());
+        return result;
+    }
+
+    @Override
     public long getNumTxs() {
         AtomicLong result = new AtomicLong();
         _loopOverKeysAndRun(PREFFIX_KEY_TX, k -> result.incrementAndGet(), null);
@@ -421,9 +466,10 @@ public class BlockStoreLevelDB implements BlockStore {
         _unlinkTxFromBlock(txHash.toString(), blockHash.toString());
     }
 
+
     @Override
     public void unlinkTx(Sha256Wrapper txHash) {
-        getBlockHashLinkedToTx(txHash).ifPresent(blockHash -> unlinkTxFromBlock(txHash, blockHash));
+        getBlockHashLinkedToTx(txHash).forEach(blockHash -> unlinkTxFromBlock(txHash, blockHash));
     }
 
     @Override
@@ -432,29 +478,35 @@ public class BlockStoreLevelDB implements BlockStore {
     }
 
     @Override
-    public Optional<Sha256Wrapper> getBlockHashLinkedToTx(Sha256Wrapper txHash) {
-        Optional<String> blockHash = _getBlockHashLinkedToTx(txHash.toString());
-        Optional<Sha256Wrapper> result = (blockHash.isPresent())
-                ? Optional.of(Sha256Wrapper.wrap(blockHash.get()))
-                : Optional.empty();
-        return result;
+    public boolean isTxLinkToblock(Sha256Wrapper txHash, Sha256Wrapper blockHash) {
+        return _isTxLinkToBlock(txHash.toString(), blockHash.toString());
     }
 
     @Override
-    public PaginatedResult<Sha256Wrapper> getBlockTxs(Sha256Wrapper blockHash, PaginatedRequest pagReq) {
+    public List<Sha256Wrapper> getBlockHashLinkedToTx(Sha256Wrapper txHash) {
+        List<Sha256Wrapper> result = _getBlockHashLinkedToTx(txHash.toString()).stream()
+                .map(h -> Sha256Wrapper.wrap(h))
+                .collect(Collectors.toList());
+        return result;
+    }
 
-       List<Sha256Wrapper> txsResult = new ArrayList<>();
 
-       // Indexes in the DB we need to extract (we might not have to reach the end (endIndex), in case
-       // we run out of Txs before getting there...
+    @Override
+    public Iterable<Sha256Wrapper> getBlockTxs(Sha256Wrapper blockHash) {
+        String key = PREFFIX_KEY_BLOCKTXS + blockHash.toString();
+        return new Iterable<Sha256Wrapper>() {
+            @Override
+            public Iterator<Sha256Wrapper> iterator() {
+                return new BlockTxsIterator(levelDBStore, key);
+            }
+        };
+    }
 
-       long startIndex = pagReq.getNumPage() * pagReq.getPageSize();
-       String startingKey = PREFFIX_KEY_BLOCKTXS + blockHash + ":";
-       _loopOverKeysAndRun( startingKey,
-                            startIndex,
-                            Optional.of(pagReq.getPageSize()),
-                            key -> txsResult.add(Sha256Wrapper.wrap(getTxHashFromKey(key))), null);
-       return PaginatedResult.<Sha256Wrapper>builder().results(txsResult).build();
+    @Override
+    public long getBlockNumTxs(Sha256Wrapper blockHash) {
+        String key = getKeyForBlockNumTxs(blockHash.toString());
+        byte[] value = levelDBStore.get(bytes(key));
+        return (value != null && value.length > 0) ? Longs.fromByteArray(value) : 0L;
     }
 
     @Override
@@ -477,15 +529,55 @@ public class BlockStoreLevelDB implements BlockStore {
         if (!triggerTxEvents) {
             _loopOverKeysAndRun(PREFFIX_KEY_BLOCKTXS + blockHash, k -> _removeTx(getTxHashFromKey(k)),null);
         } else {
-            // We paginate the TX of this block and we remove them page by age, while triggering an Event for each page:
-            int numPage = 0;
-            PaginatedRequest pagReq = PaginatedRequest.builder().numPage(0).numPage(numPage).pageSize(TX_PAG_SIZE_DEFAULT).build();
-            PaginatedResult<Sha256Wrapper> blockTxs = getBlockTxs(blockHash, pagReq);
-            while (blockTxs != null & blockTxs.getResults().size() > 0) {
-                _triggerTxsRemovedEvent(blockTxs.getResults());
-                blockTxs = getBlockTxs(blockHash, pagReq.toBuilder().numPage(++numPage).build());
-            }
+            // We loop over all the Txs belonging to this block, and we only trigger and Event when we reach the THRESHOLD
+            // specified for that
+            Iterator<Sha256Wrapper> txsIt = getBlockTxs(blockHash).iterator();
+            List<Sha256Wrapper> txsInEvent = new ArrayList<>();
+            while (txsIt.hasNext()) {
+
+                Sha256Wrapper txHash = txsIt.next();
+                txsInEvent.add(txHash);
+                //System.out.println("Removing Tx " + txsInEvent.size() + " :: " + txsInEvent.get(txsInEvent.size() - 1));
+                _removeTx(txHash.toString());
+                if (txsInEvent.size() == TX_PAG_SIZE_DEFAULT) {
+                    _triggerTxsRemovedEvent(txsInEvent);
+                    txsInEvent.clear();
+                }
+            } // while...
+            if (txsInEvent.size() > 0) _triggerTxsRemovedEvent(txsInEvent);
         }
+    }
+
+    @Override
+    public Optional<BlocksCompareResult> compareBlocks(Sha256Wrapper blockHashA, Sha256Wrapper blockHashB) {
+        Optional<BlockHeader> blockHeaderA = getBlock(blockHashA);
+        Optional<BlockHeader> blockHeaderB = getBlock(blockHashB);
+
+        if (blockHeaderA.isEmpty() || blockHeaderB.isEmpty()) return Optional.empty();
+
+        BlocksCompareResult.BlocksCompareResultBuilder resultBuilder = BlocksCompareResult.builder()
+                .blockA(blockHeaderA.get())
+                .blockB(blockHeaderB.get());
+
+        // We create an Iterable for the TXs in common:
+        String commonKeyPreffix = PREFFIX_KEY_BLOCKTXS + blockHashA.toString();
+        Predicate<String> commonKeyValid = k ->  _isTxLinkToBlock(getTxHashFromKey(k), blockHashB.toString());
+        Iterable<Sha256Wrapper> commonIt = () -> new BlockTxsIterator(levelDBStore, commonKeyPreffix, commonKeyValid);
+        resultBuilder.txsInCommonIt(commonIt);
+
+        // We create an Iterable for the TXs that are ONLY in the block A:
+        String onlyAKeyPreffix = PREFFIX_KEY_BLOCKTXS + blockHashA.toString();
+        Predicate<String> onlyAKeyValid = k ->  !_isTxLinkToBlock(getTxHashFromKey(k), blockHashB.toString());
+        Iterable<Sha256Wrapper> onlyAIt = () -> new BlockTxsIterator(levelDBStore, onlyAKeyPreffix, onlyAKeyValid);
+        resultBuilder.txsOnlyInA(onlyAIt);
+
+        // We create an Iterable for the TXs that are ONLY in the block B:
+        String onlyBKeyPreffix = PREFFIX_KEY_BLOCKTXS + blockHashB.toString();
+        Predicate<String> onlyBKeyValid = k ->  !_isTxLinkToBlock(getTxHashFromKey(k), blockHashA.toString());
+        Iterable<Sha256Wrapper> onlyBIt = () -> new BlockTxsIterator(levelDBStore, onlyBKeyPreffix, onlyBKeyValid);
+        resultBuilder.txsOnlyInB(onlyBIt);
+
+        return Optional.of(resultBuilder.build());
     }
 
     @Override
@@ -498,5 +590,12 @@ public class BlockStoreLevelDB implements BlockStore {
         AtomicLong result = new AtomicLong();
         _loopOverKeysAndRun(keyPrefix, k -> result.incrementAndGet(), null);
         return result.get();
+    }
+
+    @Override
+    public void printKeys() {
+        DBIterator it = levelDBStore.iterator();
+        it.seekToFirst();
+        while (it.hasNext()) System.out.println(" > " + new String(it.next().getKey()) + " ...");
     }
 }

@@ -17,6 +17,7 @@ import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
+import org.junit.Test
 import spock.lang.Specification
 
 import java.time.Instant
@@ -89,5 +90,13 @@ class DelayTesting extends Specification {
             p2p.stop()
         then:
             true
+    }
+
+    @Test
+    def "testing genesisBlock"() {
+        given:
+            Sha256Wrapper blockHash = new ProtocolBSVMainConfig().genesisBlock.getHash()
+        expect:
+            blockHash.toString().equalsIgnoreCase("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f")
     }
 }

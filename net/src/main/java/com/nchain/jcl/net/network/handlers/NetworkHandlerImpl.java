@@ -53,6 +53,9 @@ import static com.google.common.base.Preconditions.checkState;
  */
 public class NetworkHandlerImpl extends AbstractExecutionThreadService implements NetworkHandler {
 
+    /** Subfolder to store local files in */
+    private static final String NET_FOLDER = "net";
+
     /**
      * Inner class that is attached to each Key in the selector. It represents a connection with
      * one particular Peer:
@@ -382,19 +385,19 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
 
         FileUtils fileUtils = runtimeConfig.getFileUtils();
         // Saving Active Connections
-        Path filePath = Paths.get(fileUtils.getRootPath().toString(), FILE_ACTIVE_CONN);
+        Path filePath = Paths.get(fileUtils.getRootPath().toString(), NET_FOLDER, FILE_ACTIVE_CONN);
         fileUtils.writeCSV(filePath, this.activeConns.keySet());
 
         // Saving In progress Connections:
-        filePath = Paths.get(fileUtils.getRootPath().toString(), FILE_IN_PROGRESS_CONN);
+        filePath = Paths.get(fileUtils.getRootPath().toString(), NET_FOLDER, FILE_IN_PROGRESS_CONN);
         fileUtils.writeCSV(filePath, this.inProgressConns);
 
         // Saving pending To open connections:
-        filePath = Paths.get(fileUtils.getRootPath().toString(), FILE_PENDING_OPEN_CONN);
+        filePath = Paths.get(fileUtils.getRootPath().toString(), NET_FOLDER, FILE_PENDING_OPEN_CONN);
         fileUtils.writeCSV(filePath, this.inProgressConns);
 
         // Saving rejected Connections:
-        filePath = Paths.get(fileUtils.getRootPath().toString(), FILE_FAILED_CONN);
+        filePath = Paths.get(fileUtils.getRootPath().toString(), NET_FOLDER, FILE_FAILED_CONN);
         fileUtils.writeCSV(filePath, this.failedConns);
     }
 

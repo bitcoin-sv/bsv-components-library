@@ -129,9 +129,9 @@ public class P2P {
 
             // We log some useful info...
 
-            logger.info("Configuration:");
+            logger.info("JCL-Net Configuration:");
             logger.info(" - " + protocolConfig.toString() + " configuration");
-            logger.info(" - working dir: " + runtimeConfig.getFileUtils().getRootPath());
+            logger.info(" - working dir: " + runtimeConfig.getFileUtils().getRootPath().toAbsolutePath());
             // We log the Peers range, if the Handshake Handler is enabled:
             if (handlers.containsKey(HandshakeHandler.HANDLER_ID)) {
                 String minPeersStr = protocolConfig.getBasicConfig().getMinPeers().isEmpty() ? "(?" : "[" + protocolConfig.getBasicConfig().getMinPeers().getAsInt();

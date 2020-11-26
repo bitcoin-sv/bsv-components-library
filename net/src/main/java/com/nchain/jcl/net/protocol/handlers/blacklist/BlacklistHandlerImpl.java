@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 public class BlacklistHandlerImpl extends HandlerImpl implements BlacklistHandler {
 
     // Suffix of the File that stores Peers from the Pool:
+    private static final String NET_FOLDER = "net";
     private static final String FILE_BLACKLIST_SUFFIX = "-blacklist-handler.csv";
 
     private LoggerUtil logger;
@@ -115,7 +116,7 @@ public class BlacklistHandlerImpl extends HandlerImpl implements BlacklistHandle
 
     private void loadBlacklistFromDisk() {
         String csvFileName = StringUtils.fileNamingFriendly(config.getBasicConfig().getId()) + FILE_BLACKLIST_SUFFIX;
-        Path csvPath = Paths.get(runtimeConfig.getFileUtils().getRootPath().toString(), csvFileName);
+        Path csvPath = Paths.get(runtimeConfig.getFileUtils().getRootPath().toString(), NET_FOLDER, csvFileName);
         if (Files.exists(csvPath)) {
             List<BlacklistHostInfo> hosts = runtimeConfig.getFileUtils().readCV(csvPath, () -> new BlacklistHostInfo());
             hosts.forEach(h -> hostsInfo.put(h.getIp(), h));
@@ -124,7 +125,7 @@ public class BlacklistHandlerImpl extends HandlerImpl implements BlacklistHandle
 
     private void saveBlacklistToDisk() {
         String csvFileName = StringUtils.fileNamingFriendly(config.getBasicConfig().getId()) + FILE_BLACKLIST_SUFFIX;
-        Path csvPath = Paths.get(runtimeConfig.getFileUtils().getRootPath().toString(), csvFileName);
+        Path csvPath = Paths.get(runtimeConfig.getFileUtils().getRootPath().toString(), NET_FOLDER, csvFileName);
         List<BlacklistHostInfo> hostsToSave = hostsInfo.values().stream().filter(h -> h.isBlacklisted()).collect(Collectors.toList());
         runtimeConfig.getFileUtils().writeCSV(csvPath, hostsToSave);
     }

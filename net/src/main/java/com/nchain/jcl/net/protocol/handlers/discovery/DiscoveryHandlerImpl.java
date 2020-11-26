@@ -51,6 +51,7 @@ import java.util.stream.Collectors;
 public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandler {
 
     // Suffix of the File that stores Peers from the Pool:
+    private static final String NET_FOLDER = "net";
     private static final String FILE_POOL_SUFFIX = "-discovery-handler-hqPeers.csv";
 
     // P2P ADDR Max Content
@@ -145,7 +146,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
             logger.debug("Loading High-Quality Peers from file...");
             List<DiscoveryPeerInfo> poolPeers = new ArrayList<>();
             String csvFileName = StringUtils.fileNamingFriendly(config.getBasicConfig().getId()) + FILE_POOL_SUFFIX;
-            Path csvPath = Paths.get(runtimeConfig.getFileUtils().getRootPath().toString(), csvFileName);
+            Path csvPath = Paths.get(runtimeConfig.getFileUtils().getRootPath().toString(), NET_FOLDER, csvFileName);
             logger.debug("looking for High Quality Peers file in: " + csvPath.toString());
             if (Files.exists(csvPath)) {
                 poolPeers = runtimeConfig.getFileUtils().readCV(csvPath, () -> new DiscoveryPeerInfo());
@@ -176,7 +177,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
                 .filter(p -> peersHandshaked.contains(p.getPeerAddress()))
                 .collect(Collectors.toList());
         String csvFileName = StringUtils.fileNamingFriendly(config.getBasicConfig().getId()) + FILE_POOL_SUFFIX;
-        Path csvPath = Paths.get(runtimeConfig.getFileUtils().getRootPath().toString(), csvFileName);
+        Path csvPath = Paths.get(runtimeConfig.getFileUtils().getRootPath().toString(), NET_FOLDER, csvFileName);
         super.runtimeConfig.getFileUtils().writeCSV(csvPath, hqPeers);
     }
 
@@ -475,6 +476,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
                 peersToAsk.forEach( p -> this.startDiscovery(p));
             } else logger.debug("Impossible to Renew Addresses, Main pool is empty");
         } catch (Exception e) {
+            logger.error(e.getMessage(), e);
             e.printStackTrace();
         }
     }
@@ -499,7 +501,11 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
             logger.debug( "Recovering handshake with " + handshakesToRecover.size()
                     +  " peers, " + (peersHandshaked.size() - handshakesToRecover.size())  + " still lost...");
         } catch (Exception e) {
+            logger.error(e.getMessage(), e);
             e.printStackTrace();
+        } catch (Throwable th) {
+            logger.error(th.getMessage(), th);
+            th.printStackTrace();
         }
     }
 
