@@ -35,6 +35,7 @@ public class ProtocolBSVStnConfig extends ProtocolConfigImpl implements Protocol
     // Genesis Block for BSV-STN:
     private static BlockHeader genesisBlock = BlockHeader.builder()
             .version(1)
+            .prevBlockHash(Sha256Wrapper.ZERO_HASH)
             .merkleRoot(Sha256Wrapper.wrap("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"))
             .difficultyTarget(0x1d00ffffL)
             .nonce(414098458)
