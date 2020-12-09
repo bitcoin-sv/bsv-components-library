@@ -331,7 +331,7 @@ public class BlockStoreLevelDB implements BlockStore {
     public void start() {
         log.info("JCL-Store Configuration:");
         log.info(" - LevelDB Implementation");
-        log.info(" - working dir: " + config.getWorkingFolder().toAbsolutePath());
+        log.info(" - working dir: " + Paths.get(config.getWorkingFolder().toString(), LEVELDB_FOLDER).toAbsolutePath());
     }
 
     @Override

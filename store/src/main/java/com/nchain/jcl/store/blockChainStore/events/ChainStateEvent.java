@@ -3,6 +3,7 @@ package com.nchain.jcl.store.blockChainStore.events;
 import com.nchain.jcl.store.blockChainStore.BlockChainStoreState;
 import com.nchain.jcl.store.blockStore.events.BlockStoreEvent;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Value;
 
 /**
@@ -12,6 +13,7 @@ import lombok.Value;
  */
 @Builder
 @Value
+@EqualsAndHashCode(callSuper = false)
 public class ChainStateEvent extends BlockStoreEvent {
     private BlockChainStoreState state;
 }

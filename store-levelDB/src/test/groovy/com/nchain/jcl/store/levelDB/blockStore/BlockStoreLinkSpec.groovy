@@ -28,7 +28,7 @@ class BlockStoreLinkSpec extends Specification {
     /**
      * We test that the TxsRemovedEvent are triggered in a paginated way when we remove all the TCs within a Block.
      */
-    def "testing RemoveBlockTxs and Events Triggered"() {
+    def "testing Save/RemoveBlockTxs and Events Triggered"() {
 
         final int NUM_TXS = 20_000
 

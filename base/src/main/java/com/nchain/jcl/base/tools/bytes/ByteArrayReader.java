@@ -79,10 +79,16 @@ public class ByteArrayReader {
         return result;
     }
 
+    // Performs a Default "trim" on the String, removing spaces from beginning and end.
     public String readString(int length, String charset) {
+       String result = readStringNoTrim(length, charset);
+       return result.trim();
+    }
+
+    public String readStringNoTrim(int length, String charset) {
         try {
             String result = new String(read(length), charset);
-            return result.trim();
+            return result;
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }

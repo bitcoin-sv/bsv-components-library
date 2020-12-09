@@ -2,6 +2,7 @@ package com.nchain.jcl.store.blockStore.events;
 
 import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Value;
 
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ import java.util.List;
  */
 
 @Value
+@EqualsAndHashCode(callSuper = false)
 public class TxsRemovedEvent extends BlockStoreEvent {
     private final List<Sha256Wrapper> txHashes;
 

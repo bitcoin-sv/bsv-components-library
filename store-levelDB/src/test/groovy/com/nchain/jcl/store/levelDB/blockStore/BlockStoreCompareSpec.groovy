@@ -25,7 +25,7 @@ class BlockStoreCompareSpec extends Specification {
      */
     def "Testing 2 custom Blocks"() {
         final int NUM_TXS = 500_000             // Txs in each Block
-        final int NUM_TXS_IN_COMMON = 5000       // Txs to copy from one Block to another
+        final int NUM_TXS_IN_COMMON = 5000      // Txs to copy from one Block to another
         final int NUM_TXS_BATCH = 10000         // Number of TXs saved in each Batch...
         given:
             // Configuration and DB start up:

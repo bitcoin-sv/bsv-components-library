@@ -8,6 +8,7 @@ import com.nchain.jcl.base.tools.streams.OutputStream;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.Writer;
 
 /**
  * @author i.fernandez@nchain.com
@@ -99,5 +100,22 @@ public abstract class BitcoinSerializerUtils {
     /** Serialzes a Hash into a ByteArray */
     public static void serializeHash(Sha256Wrapper hash, ByteArrayWriter byteWriter) {
         byteWriter.write(hash.getReversedBytes());
+    }
+
+    /** Serializes a String into a ByteArray */
+    public static void serializeVarStr(String value, ByteArrayWriter writer) {
+        // First we serialize the length of the String
+        BitcoinSerializerUtils.serializeVarInt(value.length(), writer);
+        // Then we serialize the String itself:
+        writer.writeStr(value, "UTF-8");
+    }
+
+    /** Deserializes a String from a Byte Array */
+    public static String deserializeVarStr(ByteArrayReader reader) {
+        // First we read the length of the String
+        long length = BitcoinSerializerUtils.deserializeVarInt(reader);
+        // we read the String itself
+        String result = (length == 0) ? "" : reader.readStringNoTrim((int)length, "UTF-8");
+        return result;
     }
 }
