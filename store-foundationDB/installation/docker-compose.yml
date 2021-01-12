@@ -26,3 +26,5 @@ services:
     image: foundationdb/foundationdb:latest
     ports:
       - 4500:4500/tcp
+    environment:
+      FDB_NETWORKING_MODE: host

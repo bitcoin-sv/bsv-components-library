@@ -1,246 +1,69 @@
 package com.nchain.jcl.store.foundationDB.common
 
-import com.nchain.jcl.base.domain.api.base.BlockHeader
-import com.nchain.jcl.base.domain.api.base.Tx
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper
 import com.nchain.jcl.store.blockStore.BlockStore
+import com.nchain.jcl.store.common.IteratorSpecBase
+import com.nchain.jcl.store.foundationDB.DockerTestUtils
 import com.nchain.jcl.store.foundationDB.blockStore.BlockStoreFDB
-import com.nchain.jcl.store.foundationDB.blockStore.BlockStoreFDBConfig
-import spock.lang.Specification
+import com.nchain.jcl.store.foundationDB.StoreFactory
+import org.junit.ClassRule
+import org.testcontainers.containers.DockerComposeContainer
+import org.testcontainers.spock.Testcontainers
+import spock.lang.Shared
 
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.function.Predicate
+import java.util.function.Function
 
 /**
  * Testing iterator for the FBDIterator, which is a very basic class and plays a big role in the FoundationDB
  * implementation of the JCL-Store
  */
-class FDBIteratorSpec extends Specification {
 
-    static final int NUM_TXS = 2
+class FDBIteratorSpec extends IteratorSpecBase {
 
-    /**
-     * Convenience method to insert several Tx in the DB and return the list of Tx Hashes inserted
-     */
-    private List<Sha256Wrapper> insertBlockAndTxs(BlockHeader block, BlockStore blockStore) {
-        blockStore.saveBlock(block)
-        List<Sha256Wrapper> result = new ArrayList<>()
-        for (int i = 0; i < NUM_TXS; i++) {
-            Tx tx = TestingUtils.buildTx()
-            result.add(tx.getHash())
-            blockStore.saveTx(tx)
-            blockStore.linkTxToBlock(tx.getHash(), block.getHash())
+    // Start & Stop FoundationDB in Docker Container (check DockerTestUtils for details)...
+    def setupSpec()     { DockerTestUtils.startDocker()}
+    def cleanupSpec()   { DockerTestUtils.stopDocker()}
+
+    @Override
+    BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents) {
+        return StoreFactory.getInstance(netId, triggerBlockEvents, triggerTxEvents)
+    }
+
+    @Override
+    Iterator<byte[]> createIteratorForTxs(BlockStore db, String preffix, String suffix) {
+
+        // We define a Function that returns the relative Key, that is the last Key to the right, after trimming all the
+        // "directories" from the left:
+
+        Function<Map.Entry<byte[], byte[]>, String> itemBuilder = { key ->
+
+
+            // Each Key returned by this Iterator his a TUPLE, which means that its made of the following components:
+            // [tuple beginning] [TXS DIR Key] [ tuple middle] [TX KEY] [tuple end]
+
+            // We need to return ONLY the [TX KEY part, so we remove the rest:
+            // [tuple beginning] : 1 byte
+            // [tuple middle] : 2 bytes
+            // [tuple end] : 1 byte
+
+            int numBytesToRemove = 1 + ((BlockStoreFDB) db).fullKeyForTxs().length + 2 + 1
+            int byteTxKeyPos = 1 + ((BlockStoreFDB) db).fullKeyForTxs().length + 2
+            int txKeyLength = key.key.length - numBytesToRemove;
+
+            byte[] result = new byte[key.key.length - numBytesToRemove]
+            System.arraycopy(key.key, byteTxKeyPos, result, 0, txKeyLength)
+            return result;
         }
-        return result;
+
+        BlockStoreFDB blockStoreFDB = (BlockStoreFDB) db;
+        byte[] keyPreffix = blockStoreFDB.keyStartingWith(blockStoreFDB.fullKey(blockStoreFDB.fullKeyForTxs(), preffix))
+        byte[] keySuffix = (suffix != null) ? blockStoreFDB.keyEndingWith(suffix.getBytes()) : null;
+
+        FDBSafeIterator.FDBSafeIteratorBuilder<String> itBuilder = FDBSafeIterator.<String>safeBuilder()
+            .database(blockStoreFDB.db)
+            .startingWithPreffix(keyPreffix)
+            .endingWithSuffix(keySuffix)
+            .buildItemBy(itemBuilder)
+        return itBuilder.build()
     }
-
-    /**
-     * Convenience method to check if the iterator traverse through the right keys
-     */
-    private boolean checkIterator(Iterator<String> it, Predicate<String> checkKey) {
-        AtomicBoolean result = new AtomicBoolean(true)
-        while (it.hasNext()) {
-            String key = it.next()
-            println(" - Reading Key " + KeyValueUtils.cleanKey(key).get())
-            boolean isKeyValid = checkKey.test(KeyValueUtils.cleanKey(key).get())
-            if (!isKeyValid) result.set(false)
-        }
-        return result.get()
-    }
-
-    /**
-     * We store some Txs in a Directory, and we test that the iterator traverse all of them.
-     * IMPORTANT: For each Tx, several Keys are Stored:
-     *  - "tx:[block_hash]
-     *  - "tx_p:[block_hash]:[property] -> 2 property (":txsNeeded", ":blocks")
-     *
-     */
-    def "testing traversing the whole content of Directory"() {
-        given:
-            println(" - Connecting to the DB...")
-            BlockStoreFDBConfig config = BlockStoreFDBConfig.builder()
-                    .networkId("BSV-Mainnet")
-                    .build()
-            BlockStoreFDB blockStore = BlockStoreFDB.builder()
-                    .config(config)
-                    .build()
-        when:
-            blockStore.start()
-            TestingUtils.clearDB(blockStore.db)
-
-            // We insert a Block and several Txs linked to it:
-            BlockHeader block = TestingUtils.buildBlock()
-            List<Sha256Wrapper> txHashes = insertBlockAndTxs(block, blockStore)
-            blockStore.printKeys()
-            AtomicBoolean OK = new AtomicBoolean(true)
-
-            // Now we create an Iterator and iterate over the Keys:
-            blockStore.db.run({ tr ->
-                Iterator<String> it = FDBIterator.<String>iteratorBuilder()
-                        .transaction(tr)
-                        .fromDir(blockStore.getTxsDir())
-                        .buildItemBy({kv -> new String(kv.key)})
-                        .build()
-
-                OK.set(checkIterator(it, {k -> k.startsWith("tx")}))
-                return null
-            })
-        then:
-            OK.get()
-        cleanup:
-            blockStore.removeBlock(block.getHash())
-            blockStore.removeTxs(txHashes)
-            blockStore.printKeys()
-            blockStore.stop()
-    }
-
-    /**
-     * We store some Keys in a Directory, and we test that the iterator only traverses those ones that start with a
-     * specific preffix ("b_p:").
-     * IMPORTANT: For each Block, several Keys are Stored:
-     *  - "tx:[block_hash]
-     *  - "tx_p:[block_hash]:[property] -> 2 property (":txsNeeded", ":blocks")
-     *
-     */
-    def "testing traversing a directory, only keys starting with a Preffix"() {
-        given:
-            println(" - Connecting to the DB...")
-            BlockStoreFDBConfig config = BlockStoreFDBConfig.builder()
-                    .networkId("BSV-Mainnet")
-                    .build()
-            BlockStoreFDB blockStore = BlockStoreFDB.builder()
-                    .config(config)
-                    .build()
-        when:
-            blockStore.start()
-            //TestingUtils.clearDB(blockStore.db)
-
-            // We insert a Block and several Txs linked to it:
-            BlockHeader block = TestingUtils.buildBlock()
-            List<Sha256Wrapper> txHashes = insertBlockAndTxs(block, blockStore)
-            blockStore.printKeys()
-            AtomicBoolean OK = new AtomicBoolean(true)
-
-            // Now we create an Iterator and iterate over the Keys:
-            blockStore.db.run({ tr ->
-                Iterator<String> it = FDBIterator.<String>iteratorBuilder()
-                        .transaction(tr)
-                        .fromDir(blockStore.getTxsDir())
-                        .startingWithPreffix(KeyValueUtils.bytes(KeyValueUtils.KEY_PREFFIX_TX_PROP))
-                        .buildItemBy({kv -> new String(kv.key)})
-                        .build()
-
-                OK.set(checkIterator(it, {k -> k.startsWith(KeyValueUtils.KEY_PREFFIX_TX_PROP)}))
-                return null
-            })
-        then:
-            OK.get()
-        cleanup:
-            blockStore.removeBlock(block.getHash())
-            blockStore.removeTxs(txHashes)
-            blockStore.printKeys()
-            blockStore.stop()
-    }
-
-    /**
-     * We store some Keys in a Directory, and we test that the iterator only traverse those ones that start with a
-     * specific preffix and also ends with a specific suffix.
-     * IMPORTANT: For each Block, several Keys are Stored:
-     *  - "tx:[block_hash]
-     *  - "tx_p:[block_hash]:[property] -> 2 property (":txsNeeded", ":blocks")
-     *
-     */
-    def "testing traversing a directory, only keys starting with a prefix and ending with a suffix"() {
-        given:
-            println(" - Connecting to the DB...")
-            BlockStoreFDBConfig config = BlockStoreFDBConfig.builder()
-                    .networkId("BSV-Mainnet")
-                    .build()
-            BlockStoreFDB blockStore = BlockStoreFDB.builder()
-                    .config(config)
-                    .build()
-        when:
-            blockStore.start()
-            //TestingUtils.clearDB(blockStore.db)
-
-            // We insert a Block and several Txs linked to it:
-            BlockHeader block = TestingUtils.buildBlock()
-            List<Sha256Wrapper> txHashes = insertBlockAndTxs(block, blockStore)
-            blockStore.printKeys()
-            AtomicBoolean OK = new AtomicBoolean(true)
-
-            // Now we create an Iterator and iterate over the Keys:
-            blockStore.db.run({ tr ->
-                Iterator<String> it = FDBIterator.<String>iteratorBuilder()
-                        .transaction(tr)
-                        .fromDir(blockStore.getTxsDir())
-                        .startingWithPreffix(KeyValueUtils.bytes(KeyValueUtils.KEY_PREFFIX_TX_PROP))
-                        .endingWithSuffix(KeyValueUtils.bytes(KeyValueUtils.KEY_SUFFIX_TX_BLOCKS))
-                        .buildItemBy({kv -> new String(kv.key)})
-                        .build()
-
-                OK.set(checkIterator(it, {k ->
-                    (k.startsWith(KeyValueUtils.KEY_PREFFIX_TX_PROP) &&
-                    k.endsWith(KeyValueUtils.KEY_SUFFIX_TX_BLOCKS))
-                }))
-                return null
-            })
-        then:
-            OK.get()
-        cleanup:
-            blockStore.removeBlock(block.getHash())
-            blockStore.removeTxs(txHashes)
-            blockStore.printKeys()
-            blockStore.stop()
-    }
-
-    /**
-     * We store some Keys in a Directory, and we test that the iterator only traverse those ones that ends with a
-     * specific suffix.
-     * IMPORTANT: For each Block, several Keys are Stored:
-     *  - "tx:[block_hash]
-     *  - "tx_p:[block_hash]:[property] -> 2 property (":txsNeeded", ":blocks")
-     *
-     */
-    def "testing traversing a directory, only keys ending with a suffix"() {
-        given:
-            println(" - Connecting to the DB...")
-            BlockStoreFDBConfig config = BlockStoreFDBConfig.builder()
-                    .networkId("BSV-Mainnet")
-                    .build()
-            BlockStoreFDB blockStore = BlockStoreFDB.builder()
-                    .config(config)
-                    .build()
-        when:
-            blockStore.start()
-            //TestingUtils.clearDB(blockStore.db)
-
-            // We insert a Block and several Txs linked to it:
-            BlockHeader block = TestingUtils.buildBlock()
-            List<Sha256Wrapper> txHashes = insertBlockAndTxs(block, blockStore)
-            blockStore.printKeys()
-            AtomicBoolean OK = new AtomicBoolean(true)
-
-            // Now we create an Iterator and iterate over the Keys:
-            blockStore.db.run({ tr ->
-                Iterator<String> it = FDBIterator.<String>iteratorBuilder()
-                        .transaction(tr)
-                        .fromDir(blockStore.getTxsDir())
-                        .endingWithSuffix(KeyValueUtils.bytes(KeyValueUtils.KEY_SUFFIX_TX_BLOCKS))
-                        .buildItemBy({kv -> new String(kv.key)})
-                        .build()
-
-                OK.set(checkIterator(it, {k -> k.endsWith(KeyValueUtils.KEY_SUFFIX_TX_BLOCKS)}))
-                return null
-            })
-        then:
-            OK.get()
-        cleanup:
-            blockStore.removeBlock(block.getHash())
-            blockStore.removeTxs(txHashes)
-            blockStore.printKeys()
-            blockStore.stop()
-    }
-
 
 }

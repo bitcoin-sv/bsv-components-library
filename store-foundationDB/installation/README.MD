@@ -5,30 +5,57 @@ First, install the Client & Server libraries from there:
 [FoundationDB Client & Server Packages](https://www.foundationdb.org/download/)    
 
 
-> During the installation process, you must select both *Client* and the *Server* options.
+During the installation process, you can select either only Client or both Client & Server options. 
 
-Then, you can run the *FoundationDB* Server by running the ``docker-compose``file:`
+ * If you select both, the you'll have a local FDB Database that will be started automatically, so the tests will work by just using
+the default configuration (where no cluster file is specified, since in that case the default cluster file will be picked up.)
+
+ * If you only select the *Client* Libraries, then you will be able to use the command-line *fdbcli* client, but in that 
+case you won't have a local *DB* running, so you will have to use another **cluster** file where you specify the DB you want to connect to.
+
+
+### Running a Local FoundationDB Server
+
+If you have selected the *Server* option during the initial installation, you must have already a *FoundationDB* running, 
+since it automatically starts by default. In this case, the *Cluster* file used is one generaated by default and stored 
+in a specific folder, which aries depending on the OS:
+
+ * Linux: /etc/foundationdb/fdb.cluster
+ * macOS: /usr/local/etc/foundationdb/fdb.cluster
+
+You can also start and Stop the Server with a Command-line:
+ 
+[https://apple.github.io/foundationdb/administration.html](Check FoundationDB Administration):
+
+
+
+### Running a FoundationDB instance in a Docker container
+
+The tests under the */test* directory already take care of starting and stopping the service. If you still want to 
+start it yourself in order to do some quick tests or main programs, you can do it by just running a compose file.
+
+
+In the **/installation** folder there are the files needed to run a **FoundationDB** DB in a **Docker** container, and 
+the **cluster** file needed to connect to it.
+
+The following command starts the Container:
 
 ``docker-compose -f docker-compose.yml -d up fdb``
 
-That will start the Server. To check the server is running, you can run the *FoundationDB Client Command Line*, which 
-has been installed during the first step (Installation of the client & Server libraries).
+That will start the DB within the container. To check that is running, you can run the *FoundationDB Client Command Line*, 
+which yu must have been installed previously. In this case, you'll have to specify the *cluster* file defined in the 
+*/installation* folder, which *points to* the Db running *inside* the Container:
 
 You open a Command line console and execute:
 
-`` fdbcli``
+`` fdbcli -C $CLUSTER_FILE --exec "configure new single memory" ``
 
-If everything goes right, the output will look like this one:
+That will connect to the Server and will create a Default DataBase, so we can connect to.
 
-```
-Using cluster file `/usr/local/etc/foundationdb/fdb.cluster'.
+If everything goes right, after that you will still be connected through the *fdbcli* client which provides a 
+*prompt* you can use to run some commands, for example the *status* command, which should return info about the 
+Server, like this:
 
-The database is available.
-
-Welcome to the fdbcli. For help, type `help'.
-```
-
-if you type ``status`` and press *ENTER* you should see a status summary similar to this:
 
 ```
 Using cluster file `/usr/local/etc/foundationdb/fdb.cluster'.

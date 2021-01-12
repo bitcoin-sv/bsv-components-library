@@ -157,9 +157,21 @@ public interface BlockStore {
     void linkTxToBlock(Sha256Wrapper txHash, Sha256Wrapper blockHash);
 
     /**
+     * It links the Txs given to this Block.
+     * This method does NOT check whether the Txs are already linked to another Block, so that verification must be
+     * performed outside of this method if the DB are to be in a consistent state.
+     */
+    void linkTxsToBlock(List<Sha256Wrapper> txsHashes, Sha256Wrapper blockHashes);
+
+    /**
      * It un-links the Tx from the Block given.
      */
     void unlinkTxFromBlock(Sha256Wrapper txHash, Sha256Wrapper blockHash);
+
+    /**
+     * It un-links the Txs from the Block given.
+     */
+    void unlinkTxsFromBlock(List<Sha256Wrapper> txsHashes, Sha256Wrapper blockHashes);
 
     /**
      * It unlinks the Tx from any Block it might belong to. It doe NOT remove the Tx itself, only the relation with
@@ -234,7 +246,10 @@ public interface BlockStore {
     BlockStoreStreamer EVENTS();
 
     // ONLY FOR TESTING
+    /** Returns the number of Keys starting with the preffix given */
     long getNumKeys(String keyPrefix);
+
+    /** Prints out the Content of the DB */
     void printKeys();
 
 }

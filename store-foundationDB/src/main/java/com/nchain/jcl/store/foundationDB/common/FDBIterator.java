@@ -1,174 +1,89 @@
 package com.nchain.jcl.store.foundationDB.common;
 
+
+import com.apple.foundationdb.Database;
 import com.apple.foundationdb.KeyValue;
 import com.apple.foundationdb.Transaction;
 import com.apple.foundationdb.directory.DirectorySubspace;
+import com.nchain.jcl.store.keyValue.common.KeyValueIteratorImpl;
 import lombok.Builder;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 
+
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 
-import static com.nchain.jcl.store.foundationDB.common.KeyValueUtils.*;
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkArgument;
+
 
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  *
- * An implementation of an Iterator that iterates over the Keys in a FoundationDB database.*
- * The iterator can be configured in different ways, to secifiy which keys we want to iterate over:
- * - We can specify a Directory, so ONLY those Keys belonging to that Directory will be processed
- * - We can specify a Suffix, so ONLY those Keys ENDING with that suffix will be processed
- * - We can specifiy a PREFFIX, so ONLY those keys STARTING wiht that preffix will be processed.
+ * This class is an implementation of an Iterator that fetches the data from a FundationDB DataBase.
+ * It extends the functionality of KeyValueIteratorIml, and provides specific implementations for those methods that
+ * need to be rewritten, since they depen on specific implemenation-details.
  *
- * IMPORTANT:
- * This iterator only works if its executed within an Open Transaction, otherwise, it will throw an
- * IllegalState Exception. If the number of items is too high, this iterator might break due to the Foundation
- * limitations, so make sure you only use it when you can be fairly sure that the number of Keys is limited.
+ * FoundationDB Supports Transactions, and an Iterator needs to be linked to one. In the most common scenario, the
+ * iterator will run in a piece of code where a DB Transaction is already open, so the Iterator will be created and
+ * linked to that Transaction. So this implementation NEEDS an already existing Transaction, which si fed into the
+ * Constructor. FoundationDB has some limits when it comes to Transactions:
+ *  - Transactions can NOt last longer than 5 seconds
+ *  - Data modified in a Transaction cannot be large than a specific amount fo bytes.
  *
- * For a "safer" Iterator that can work with any number of Items, see {@link FDBSafeIterator}
+ *  So that measn that if this Iterator is open and condifured to iteratoe over a set of Items and it breaks any of
+ *  the conditions above, it will throw an Exception.
+ *  So, as a regular basis, this Iterartor will ONLY be used when the data to loop over is not extremely big, and the
+ *  whole loop does not take longer than 5 seconds.
+ *
+ *  If you are not sure about the time it will take, or you already know that the Iterator might have to loop over a
+ *  huge number of items, use insted the "FDBSafeIterator".
+ *
+ * @see FDBSafeIterator
+ *
+ * more info about FoundationDB limitations: https://apple.github.io/foundationdb/known-limitations.html
  *
  */
-public class FDBIterator<T> implements Iterator<T> {
+@Slf4j
+public class FDBIterator<I> extends KeyValueIteratorImpl<I, Transaction, KeyValue> implements Iterator<I> {
 
-    // Connection to the DB:
-    protected Transaction tr;
+    // Internal iterator on a FoundationDb connection
+    protected Iterator<KeyValue> fdbIterator;
 
-    // Keys Range definition:
-    protected byte[] keyPreffix;
-    protected byte[] keyStart;
-    protected byte[] keySuffix;
-    protected DirectorySubspace dir;
-    protected BiPredicate<Transaction, byte[]> verificationKey;
+    // Current FoundationDB Transaction
+    @Getter
+    protected Transaction currentTransaction;
 
-    protected Iterator<KeyValue> iterator;
-
-    // Last item returned by "next()"
-    protected KeyValue lastItemProcessed = null;
-
-    // Function executed to return each Item in the "nextItem()" calls:
-    protected Function<KeyValue, T> itemFunction;
-
-
-    @Builder(builderMethodName = "iteratorBuilder")
-    public FDBIterator(Transaction transaction, DirectorySubspace fromDir,
+    /**
+     * Constructor
+     */
+    @Builder
+    public FDBIterator(Transaction currentTransaction,
                        byte[] startingWithPreffix,
-                       byte[] startingAtKey,
                        byte[] endingWithSuffix,
                        BiPredicate<Transaction, byte[]> keyIsValidWhen,
-                       Function<KeyValue, T> buildItemBy) {
+                       Function<KeyValue, I> buildItemBy) {
+
+        super(startingWithPreffix, endingWithSuffix, keyIsValidWhen, buildItemBy);
+
         // Argument check:
-        checkArgument(transaction != null, "a Transaction must be specified");
-        checkArgument(fromDir != null || startingWithPreffix != null || startingAtKey != null, "" +
-                "at least a Directory or a Preffix ot a Starting Key must be specified");
+        checkArgument(currentTransaction != null, "a Transaction must be specified");
+        checkArgument(startingWithPreffix != null, "a Preffix must be specified");
         checkArgument(buildItemBy != null, "A 'buildItemBy' function must be specified");
 
+        // We init the basic properties:
+        this.currentTransaction = currentTransaction;
 
-        // Initialization:
-
-        this.tr = transaction;
-        this.dir = fromDir;
-        this.keyPreffix = (fromDir == null)
-                ? startingWithPreffix
-                : (startingWithPreffix == null)
-                    ? keyComparisonPreffix(key(fromDir, new byte[0]))
-                    : keyComparisonPreffix(key(fromDir, startingWithPreffix));
-        this.keyStart = startingAtKey;
-
-        this.keySuffix = (fromDir == null)
-                ? endingWithSuffix
-                : (endingWithSuffix == null)
-                    ? null
-                    : keyComparisonSuffix(endingWithSuffix);
-
-        if (keyStart != null)   this.iterator = tr.getRange(keyStart, "\\xff".getBytes()).iterator();
-        else                    this.iterator = tr.getRange(keyPreffix, "\\xff".getBytes()).iterator();
-
-        this.verificationKey = keyIsValidWhen;
-        this.itemFunction = buildItemBy;
+        // We init the FDB Iterator:
+        this.fdbIterator = currentTransaction.getRange(keyPreffix, "\\xff".getBytes()).iterator();
     }
 
-    // Returns the next Key in the DB, or null if there is no one.
-    protected byte[] nextKey() {
-        this.lastItemProcessed =  (iterator.hasNext()) ? iterator.next() : null;
-        return (lastItemProcessed != null)? lastItemProcessed.getKey() : null;
-    }
-
-    // Indicates if the Key is Valid considering this Iterator Configuration
-    private boolean isKeyValid(byte[] key) {
-        boolean result = (key != null);
-        if (result) result &= (keyPreffix == null || KeyValueUtils.keyStartsWith(key, keyPreffix));
-        if (result) result &= (keySuffix == null || KeyValueUtils.keyEndsWith(key, keySuffix));
-        if (result) result &= (verificationKey == null || verificationKey.test(tr ,key));
-        return result;
-    }
-
-    // Indicates if the KEY belongs to the Directory given
-    private boolean isKeyBelongsToDir(DirectorySubspace dir, byte[] key) {
-        byte[] dirKey = keyComparisonPreffix(key(dir));
-        boolean result = keyStartsWith(key, dirKey);
-        return result;
-    }
-
-    // It pulls the iterator until it reaches the end, or we get the next VALID Key.
-    private byte[] nextValidKey() {
-        byte[] nextKey;
-        String nextKeyStr;
-
-        do {
-            nextKey = nextKey();
-            //nextKeyStr = new String((nextKey != null) ? nextKey : new byte[0]);
-            //System.out.println(" ---> nextKey pulled: " + nextKeyStr);
-            // If we reach the end of the iterator, we stop looking...
-            if (nextKey == null) break;
-            // If the Key is Valid, we Stop looking...
-            if (isKeyValid(nextKey)) break;
-            // If a Dir has been specified and the Key does NOT belong to it, we Stop looking...
-            if (dir != null && !isKeyBelongsToDir(dir, nextKey)) break;
-            // If a Verification Function has been specified
-            if (verificationKey == null && keySuffix == null) break;
-        } while (true);
-
-        return isKeyValid(nextKey)? nextKey : null;
-    }
-
-    @Override
-    public boolean hasNext() {
-
-        /*
-           It's not enough to indicate if there are more Keys in the DB. We need to indicate if there are more
-           VALID Keys. And its not enough either to chekc if the NEXT Keu is valid or not, because some times the
-           valid Keys are not in sequence. For example, in this sequence of Keys:
-
-            [1] "tx_p:122asd3221523sddsdaawe5112322220:blocks"
-            [2] "tx_p:122asd3221523sddsdaawe5112322220:txsNeeded"
-            [3] "tx_p:4332ssd22359231239asda9889092323:blocks"
-            [4] "tx_p:4332ssd22359231239asda9889092323:txsNeeded"
-            [5] "tx_p:998aasd2213886523321233ddssd0905:blocks"
-            [6] "tx_p:998aasd2213886523321233ddssd0905:txsNeeded"
-
-            - If the iterator is configured to look for the Keys starting with "tx_p:122asd3221523sddsdaawe5112322220",
-            then only the Keys [1] and [2] wil be processed.
-            - If the iterator is configured to look for the Keys ending with ":blocks" (and no preffix specified), then
-                the Keys [1], [3] and [5] will be processed. And these Keys are not in sequence, they are "invalid"
-                keys in between.
-         */
-
-
-        return (nextValidKey() != null);
-    }
-
-    @Override
-    public T next() {
-        if (lastItemProcessed == null) nextValidKey();
-        T result = itemFunction.apply(lastItemProcessed);
-        lastItemProcessed = null;
-        return result;
-    }
-
-    public Transaction getCurrentTransaction() {
-        return this.tr;
-    }
-
+    @Override protected boolean  hasNextItemFromDB()            { return fdbIterator.hasNext(); }
+    @Override protected KeyValue nextEntryFromDB()              { return fdbIterator.next(); }
+    @Override protected byte[] getKeyFromEntry(KeyValue item)   { return item.getKey(); }
+    @Override public Transaction getCurrentTransaction()        { return currentTransaction; }
 }

@@ -1,8 +1,11 @@
 package com.nchain.jcl.store.foundationDB.blockStore;
 
 import com.nchain.jcl.base.tools.config.RuntimeConfig;
+import com.nchain.jcl.base.tools.config.provided.RuntimeConfigDefault;
+import com.nchain.jcl.store.keyValue.blockStore.BlockStoreKeyValueConfig;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NonNull;
 
 /**
  * @author i.fernandez@nchain.com
@@ -10,9 +13,8 @@ import lombok.Getter;
  *
  * Configuration class for the FoundationDB Implementation of the BlockStore interface
  */
-@Builder(toBuilder = true)
 @Getter
-public class BlockStoreFDBConfig {
+public class BlockStoreFDBConfig implements BlockStoreKeyValueConfig {
 
     /**
      * Number of Items to process on each Transaction. An "item" might be a Block, a Tx, etc.
@@ -30,28 +32,40 @@ public class BlockStoreFDBConfig {
      */
     public static final int TRANSACTION_BATCH_SIZE = 5000;
 
+    /** Java API Version. This might change if the maven dependency is updated, so be careful */
+    private static final int API_VERSION = 510;
+
     /** Runtime Config */
-    private final RuntimeConfig config;
+    private final RuntimeConfig runtimeConfig;
 
     /** FoundationDb cluster file. If not specified, the default location is used */
     private String clusterFile;
 
-    /** Java API Version. This might change if the maven dependency is updated, so be careful */
-    @Builder.Default
-    private int apiVersion = 510;
+    /** JAva Api version to use */
+    private int apiVersion;
 
     /**
-     * The network Id to use as a Base Directoy. We use a String here to keep dependencies simple,
+     * The network Id to use as a Base Directory. We use a String here to keep dependencies simple,
      * but in real scenarios this value will be obtained from a ProtocolConfiguration form the JCL-Net
      * module
      */
     private String networkId;
 
     /**
-     * FoundationDb triggers an Exception if a Transaction takes longer than a threshold to finalize, and this
-     * Threshold might be too small for production-like scenarios where we process thousands of Txs. For now, the only
-     * workaround we have is to breakdown those Tx into smaller ones.
+     * Maximun Number of Items to process in a Transaction
      */
-    @Builder.Default
-    private int transactionBatchSize = TRANSACTION_BATCH_SIZE;
+    private int transactionBatchSize;
+
+    @Builder
+    public BlockStoreFDBConfig(RuntimeConfig runtimeConfig,
+                               String clusterFile,
+                               Integer apiVersion,
+                               @NonNull String networkId,
+                               Integer transactionBatchSize) {
+        this.runtimeConfig = (runtimeConfig != null) ? runtimeConfig: new RuntimeConfigDefault();
+        this.clusterFile = clusterFile;
+        this.apiVersion = (apiVersion != null) ? apiVersion : API_VERSION;
+        this.networkId = networkId;
+        this.transactionBatchSize = (transactionBatchSize != null) ? transactionBatchSize : TRANSACTION_BATCH_SIZE;
+    }
 }

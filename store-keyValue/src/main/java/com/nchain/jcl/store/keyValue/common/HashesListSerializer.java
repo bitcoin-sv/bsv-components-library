@@ -1,4 +1,4 @@
-package com.nchain.jcl.store.foundationDB.common;
+package com.nchain.jcl.store.keyValue.common;
 
 import com.nchain.jcl.base.serialization.BitcoinSerializerUtils;
 import com.nchain.jcl.base.tools.bytes.ByteArrayReader;

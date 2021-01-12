@@ -49,6 +49,13 @@ public interface BlockChainStore extends BlockStore {
     List<Sha256Wrapper> getTipsChains();
 
     /**
+     * Removes the info about the tips of the Chain. Once this information is removed, it won't be possible to get the
+     * longest chain. This operation is usually temporal: every time a new block is stored, the chain is revised, and
+     * the Tups of the Chain are updated accordingly
+     */
+    void removeTipsChains();
+
+    /**
      * Return the ChainInfo of the Longest (highest) Chain at the moment the method is called.
      * IMPORTANT_ In case there is a FORK, and there are more than one Chian with the SAME height, this method will
      * return one of them.
