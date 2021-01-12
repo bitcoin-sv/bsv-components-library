@@ -209,19 +209,22 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         // and its relation with its parent
         _addChildToBlock(tr, parentHashHex, blockHeader.getHash().toString());
 
-        // If the Parent exists and it's also Connected, we connect this one too:
-        BlockChainInfo parentChainInfo =  _getBlockChainInfo(tr, parentHashHex);
-        if (parentChainInfo != null) {
-            _connectBlock(tr, blockHeader, parentChainInfo);
+        // We search for the ChainInfo of this block, to check if its already connected to the Chain:
+        if (_getBlockChainInfo(tr, blockHeader.getHash().toString()) == null) {
+            // If the Parent exists and it's also Connected, we connect this one too:
+            BlockChainInfo parentChainInfo =  _getBlockChainInfo(tr, parentHashHex);
+            if (parentChainInfo != null) {
+                _connectBlock(tr, blockHeader, parentChainInfo);
 
-            // If this is a fork, we trigger a Fork Event:
-            HashesList parentChilds = _getNextBlocks(tr, blockHeader.getPrevBlockHash().toString());
-            if (parentChilds != null && parentChilds.getHashes().size() > 1) {
-                ChainForkEvent event = ChainForkEvent.builder()
-                        .blockForkHash(blockHeader.getHash())
-                        .parentForkHash(blockHeader.getPrevBlockHash())
-                        .build();
-                getEventBus().publish(event);
+                // If this is a fork, we trigger a Fork Event:
+                HashesList parentChilds = _getNextBlocks(tr, blockHeader.getPrevBlockHash().toString());
+                if (parentChilds != null && parentChilds.getHashes().size() > 1) {
+                    ChainForkEvent event = ChainForkEvent.builder()
+                            .blockForkHash(blockHeader.getHash())
+                            .parentForkHash(blockHeader.getPrevBlockHash())
+                            .build();
+                    getEventBus().publish(event);
+                }
             }
         }
     }

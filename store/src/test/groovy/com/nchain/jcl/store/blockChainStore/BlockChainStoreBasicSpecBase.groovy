@@ -294,4 +294,47 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
             db.stop()
             println(" - Test Done.")
     }
+
+    /**
+     * We tests that when inserting dulicated Blocks, the block is only sored once and it only appears once in the
+     * Tips of the Chain
+     */
+    def "testing Duplicates Blocks"() {
+        final int NUM_BLOCKS = 3
+        given:
+            // Configuration and DB start up:
+            println(" - Connecting to the DB...")
+            BlockHeader genesisBlock = TestingUtils.buildBlock(Sha256Wrapper.ZERO_HASH.toString())
+            println(" - Using block genesis: " + genesisBlock.getHash())
+            BlockChainStore db = getInstance("BSV-Main", false, false, genesisBlock, Duration.ofMillis(100), null, null)
+
+        when:
+            db.start()
+
+            // We check the DB Content in the console...
+            db.printKeys()
+
+            // We create a block, and we insert it several times...
+            BlockHeader block = TestingUtils.buildBlock(genesisBlock.getHash().toString())
+            for (int i = 0; i < NUM_BLOCKS; i++) db.saveBlock(block);
+
+            // Now we check
+            long numBlocksAfterInserts = db.getNumBlocks()
+            long numTipsChain = db.getTipsChains().size()
+
+            // We check the DB Content in the console...
+            db.printKeys()
+
+            then:
+                numBlocksAfterInserts == 2 // including the genesis Block...
+                numTipsChain == 1
+        cleanup:
+            println(" - Cleanup...")
+            db.removeBlock(block.getHash())
+            db.removeTipsChains()
+            // We check the DB Content in the console...
+            db.printKeys()
+            db.stop()
+            println(" - Test Done.")
+    }
 }
