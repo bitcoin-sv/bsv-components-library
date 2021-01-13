@@ -50,6 +50,9 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
     // A separator for full keys, made from composing smaller sub-keys:
     public static final String KEY_SEPARATOR = "\\";
 
+    // A lock (used by some methods, to ensure Thread-safety):
+    @Getter private Object lock = new Object();
+
     // LevelDB instance:
     protected final DB levelDBStore;
 

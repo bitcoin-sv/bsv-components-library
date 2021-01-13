@@ -49,6 +49,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     String KEY_PREFFIX_BLOCK_CHAIN   = "b_chain";     // Chan info for this block
     String KEY_CHAIN_TIPS            = "chain_tips";  // List of all the Tip Chains
 
+
     /* Functions to generate Simple Keys in String format: */
 
     default String keyForBlockNext(String blockHash)        { return KEY_PREFFIX_BLOCK_PROP + KEY_SEPARATOR + blockHash + KEY_SEPARATOR + KEY_SUFFIX_BLOCK_NEXT; }
@@ -277,10 +278,12 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
 
     @Override
     default void removeTipsChains() {
-        T tr = createTransaction();
-        executeInTransaction(tr, () -> {
-            _saveChainTips(tr, HashesList.builder().build());
-        });
+        synchronized (getLock()) {
+            T tr = createTransaction();
+            executeInTransaction(tr, () -> {
+                _saveChainTips(tr, HashesList.builder().build());
+            });
+        } // synchronized...
     }
 
     @Override
@@ -336,7 +339,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     @Override
     default void prune(Sha256Wrapper tipChainHash, boolean removeTxs) {
         getLogger().debug("Prunning chain tip #" + tipChainHash + " ...");
-        synchronized (this.getClass()) {
+        synchronized (getLock()) {
 
             List<Sha256Wrapper> tipsChains = getTipsChains();
 

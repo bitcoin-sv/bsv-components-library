@@ -106,6 +106,8 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     String KEY_PREFFIX_TX_BLOCK      = "tx_block_link" + KEY_SEPARATOR;               // Property suffix: The list of blocks this Tx is linked to
 
 
+    /** This method returns a Lock that can be used to make sure Thread-safety is in place */
+    Object getLock();
 
     /** Function that takes an Item from the DB and return the Key */
     byte[] keyFromItem(E item);
@@ -451,13 +453,12 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
         return result;
     }
 
-    default void addBlockNumTxs(T tr, String blockHash, long numTxsToAdd) {
+    default void _addBlockNumTxs(T tr, String blockHash, long numTxsToAdd) {
         byte[] keyBlockNumTxs = fullKeyForBlockNumTxs(tr, blockHash);
         byte[] numTxsValue = read(tr, keyBlockNumTxs);
         long numTxsLong = (numTxsValue != null) ? (toLong(numTxsValue) + numTxsToAdd) : numTxsToAdd;
         save(tr, keyBlockNumTxs, bytes(numTxsLong));
     }
-
 
     default void _linkTxToBlock(T tr, String txHash, String blockHash, byte[] blockDirFullKey) {
         // We add a Key in this Block subfolder for this Tx:
@@ -471,7 +472,7 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
         byte[] blockDirFullKey = fullKeyForBlockDir(tr, blockHash);
         _linkTxToBlock(tr, txHash, blockHash, blockDirFullKey);
         // There is also a Property where we save the number of Txs belonging to this Block. We update the Value:
-        addBlockNumTxs(tr, blockHash, 1);
+        _addBlockNumTxs(tr, blockHash, 1);
     }
 
     default void _unlinkTxFromBlock(T tr, String txHash, String blockHash, byte[] blockDirFullKey) {
@@ -486,7 +487,7 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
         byte[] blockDirFullKey = fullKeyForBlockDir(tr, blockHash);
         _unlinkTxFromBlock(tr, txHash, blockHash, blockDirFullKey);
         // There is also a Property where we save the number of Txs belonging to this Block. We update the Value:
-        addBlockNumTxs(tr, blockHash, -1);
+        _addBlockNumTxs(tr, blockHash, -1);
     }
 
     default void _unlinkTx(T tr, String txHash) {
@@ -535,26 +536,31 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
 
     @Override
     default void saveBlock(BlockHeader blockHeader) {
-        T tr = createTransaction();
-        executeInTransaction(tr, () -> {
-            _saveBlock(tr, blockHeader);
-            _triggerBlocksStoredEvent(Arrays.asList(blockHeader));
-        });
+        synchronized (getLock()) {
+            T tr = createTransaction();
+            executeInTransaction(tr, () -> {
+                _saveBlock(tr, blockHeader);
+                _triggerBlocksStoredEvent(Arrays.asList(blockHeader));
+            });
+        } // synchronized
     }
 
     @Override
     default void saveBlocks(List<BlockHeader> blockHeaders) {
-        /*
-            Any operation performed on a List of Items will need to be split into smaller lists, just to make sure
-            each Transaction is small (some KeyValue vendors have limitations)
-         */
+        synchronized (getLock()) {
 
-        List<List<BlockHeader>> subLists = Lists.partition(blockHeaders, getConfig().getTransactionBatchSize());
-        for (List<BlockHeader> subList : subLists) {
-             T tr = createTransaction();
-             executeInTransaction(tr, () -> _saveBlocks(tr, subList));
-         }
-        _triggerBlocksStoredEvent(blockHeaders);
+            /*
+                Any operation performed on a List of Items will need to be split into smaller lists, just to make sure
+                each Transaction is small (some KeyValue vendors have limitations)
+            */
+
+            List<List<BlockHeader>> subLists = Lists.partition(blockHeaders, getConfig().getTransactionBatchSize());
+            for (List<BlockHeader> subList : subLists) {
+                T tr = createTransaction();
+                executeInTransaction(tr, () -> _saveBlocks(tr, subList));
+            }
+            _triggerBlocksStoredEvent(blockHeaders);
+        } // synchronized
     }
 
     @Override
@@ -575,27 +581,31 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
 
     @Override
     default void removeBlock(Sha256Wrapper blockHash) {
-        T tr = createTransaction();
-        executeInTransaction(tr, () -> {
-            _removeBlock(tr, blockHash.toString());
-            _unlinkBlock(blockHash.toString());
-            _triggerBlocksRemovedEvent(Arrays.asList(blockHash));
-        });
+        synchronized (getLock()) {
+            T tr = createTransaction();
+            executeInTransaction(tr, () -> {
+                _removeBlock(tr, blockHash.toString());
+                _unlinkBlock(blockHash.toString());
+                _triggerBlocksRemovedEvent(Arrays.asList(blockHash));
+            });
+        } // synchronized
     }
 
     @Override
     default void removeBlocks(List<Sha256Wrapper> blockHashes) {
-        /*
-            Any operation performed on a List of Items will need to be split into smaller lists, just to make sure
-            each Transaction is small (some KeyValue vendors have limitations)
-         */
+        synchronized (getLock()) {
+            /*
+                Any operation performed on a List of Items will need to be split into smaller lists, just to make sure
+                each Transaction is small (some KeyValue vendors have limitations)
+             */
 
-        List<List<Sha256Wrapper>> subLists = Lists.partition(blockHashes, getConfig().getTransactionBatchSize());
-        for (List<Sha256Wrapper> subList : subLists) {
-            T tr = createTransaction();
-            executeInTransaction(tr, () -> _removeBlocks(tr, subList.stream().map(h -> h.toString()).collect(Collectors.toList())));
-        }
-        _triggerBlocksRemovedEvent(blockHashes);
+            List<List<Sha256Wrapper>> subLists = Lists.partition(blockHashes, getConfig().getTransactionBatchSize());
+            for (List<Sha256Wrapper> subList : subLists) {
+                T tr = createTransaction();
+                executeInTransaction(tr, () -> _removeBlocks(tr, subList.stream().map(h -> h.toString()).collect(Collectors.toList())));
+            }
+            _triggerBlocksRemovedEvent(blockHashes);
+        } // synchronized
     }
 
     @Override
@@ -606,25 +616,29 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
 
     @Override
     default void saveTx(Tx tx) {
-        T tr = createTransaction();
-        executeInTransaction(tr, () -> {
-            _saveTx(tr, tx);
-            _triggerTxsStoredEvent(Arrays.asList(tx));
-        });
+        synchronized (getLock()) {
+            T tr = createTransaction();
+            executeInTransaction(tr, () -> {
+                _saveTx(tr, tx);
+                _triggerTxsStoredEvent(Arrays.asList(tx));
+            });
+        } // synchronized
     }
 
     @Override
     default void saveTxs(List<Tx> txs) {
-        /*
-            Any operation performed on a List of Items will need to be split into smaller lists, just to make sure
-            each Transaction is small (some KeyValue vendors have limitations)
-         */
-        List<List<Tx>> subLists = Lists.partition(txs, getConfig().getTransactionBatchSize());
-        for (List<Tx> subList : subLists) {
-            T tr = createTransaction();
-            executeInTransaction(tr, () -> _saveTxs(tr, subList));
-        }
-        _triggerTxsStoredEvent(txs);
+        synchronized (getLock()) {
+            /*
+                Any operation performed on a List of Items will need to be split into smaller lists, just to make sure
+                each Transaction is small (some KeyValue vendors have limitations)
+             */
+            List<List<Tx>> subLists = Lists.partition(txs, getConfig().getTransactionBatchSize());
+            for (List<Tx> subList : subLists) {
+                T tr = createTransaction();
+                executeInTransaction(tr, () -> _saveTxs(tr, subList));
+            }
+            _triggerTxsStoredEvent(txs);
+        } // synchronized
     }
 
     @Override
@@ -645,27 +659,31 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
 
     @Override
     default void removeTx(Sha256Wrapper txHash) {
-        T tr = createTransaction();
-        executeInTransaction(tr, () -> {
-            _removeTx(tr, txHash.toString());
-            _triggerTxsRemovedEvent(Arrays.asList(txHash));
-        });
+        synchronized (getLock()) {
+            T tr = createTransaction();
+            executeInTransaction(tr, () -> {
+                _removeTx(tr, txHash.toString());
+                _triggerTxsRemovedEvent(Arrays.asList(txHash));
+            });
+        } // synchronized
     }
 
     @Override
     default void removeTxs(List<Sha256Wrapper> txHashes) {
-        /*
-            Any operation performed on a List of Items will need to be split into smaller lists, just to make sure
-            each Transaction is small (some KeyValue vendors have limitations)
-         */
-        List<List<Sha256Wrapper>> subLists = Lists.partition(txHashes, getConfig().getTransactionBatchSize());
-        for (List<Sha256Wrapper> subList : subLists) {
-            T tr = createTransaction();
-            executeInTransaction(tr, () ->
-                _removeTxs(tr, subList.stream().map(h -> h.toString()).collect(Collectors.toList()))
-            );
-        }
-        _triggerTxsRemovedEvent(txHashes);
+        synchronized (getLock()) {
+            /*
+                Any operation performed on a List of Items will need to be split into smaller lists, just to make sure
+                each Transaction is small (some KeyValue vendors have limitations)
+             */
+            List<List<Sha256Wrapper>> subLists = Lists.partition(txHashes, getConfig().getTransactionBatchSize());
+            for (List<Sha256Wrapper> subList : subLists) {
+                T tr = createTransaction();
+                executeInTransaction(tr, () ->
+                        _removeTxs(tr, subList.stream().map(h -> h.toString()).collect(Collectors.toList()))
+                );
+            }
+            _triggerTxsRemovedEvent(txHashes);
+        } // synchronized
     }
 
     @Override
@@ -691,60 +709,72 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
 
     @Override
     default void linkTxToBlock(Sha256Wrapper txHash, Sha256Wrapper blockHash) {
-        T tr = createTransaction();
-        executeInTransaction(tr, () -> _linkTxToBlock(tr, txHash.toString(), blockHash.toString()));
+        synchronized (getLock()) {
+            T tr = createTransaction();
+            executeInTransaction(tr, () -> _linkTxToBlock(tr, txHash.toString(), blockHash.toString()));
+        } // synchronized
     }
 
     @Override
     default void linkTxsToBlock(List<Sha256Wrapper> txsHashes, Sha256Wrapper blockHash) {
-        /*
-            Any operation performed on a List of Items will need to be split into smaller lists, just to make sure
-            each Transaction is small (some KeyValue vendors have limitations)
-         */
-        byte[] blockDirFullKey = fullKeyForBlockDir(blockHash.toString());
-        List<List<Sha256Wrapper>> subLists = Lists.partition(txsHashes, getConfig().getTransactionBatchSize());
-        for (List<Sha256Wrapper> subList : subLists) {
+        synchronized (getLock()) {
+            /*
+                Any operation performed on a List of Items will need to be split into smaller lists, just to make sure
+                each Transaction is small (some KeyValue vendors have limitations)
+             */
+            byte[] blockDirFullKey = fullKeyForBlockDir(blockHash.toString());
+            List<List<Sha256Wrapper>> subLists = Lists.partition(txsHashes, getConfig().getTransactionBatchSize());
+            for (List<Sha256Wrapper> subList : subLists) {
+                T tr = createTransaction();
+                executeInTransaction(tr, () ->
+                        subList.forEach(h -> _linkTxToBlock(tr, h.toString(), blockHash.toString(), blockDirFullKey))
+                );
+            }
             T tr = createTransaction();
-            executeInTransaction(tr, () ->
-                subList.forEach(h -> _linkTxToBlock(tr, h.toString(), blockHash.toString(), blockDirFullKey))
-            );
-        }
-        T tr = createTransaction();
-        executeInTransaction(tr, () -> addBlockNumTxs(tr, blockHash.toString(), txsHashes.size()));
+            executeInTransaction(tr, () -> _addBlockNumTxs(tr, blockHash.toString(), txsHashes.size()));
+        } // synchronized
     }
 
     @Override
     default void unlinkTxFromBlock(Sha256Wrapper txHash, Sha256Wrapper blockHash) {
-        T tr = createTransaction();
-        executeInTransaction(tr, () -> _unlinkTxFromBlock(tr, txHash.toString(), blockHash.toString()));
+        synchronized(getLock()) {
+            T tr = createTransaction();
+            executeInTransaction(tr, () -> _unlinkTxFromBlock(tr, txHash.toString(), blockHash.toString()));
+        } // synchronized
     }
 
     @Override
     default void unlinkTxsFromBlock(List<Sha256Wrapper> txsHashes, Sha256Wrapper blockHash) {
-        /*
-            Any operation performed on a List of Items will need to be split into smaller lists, just to make sure
-            each Transaction is small (some KeyValue vendors have limitations)
-         */
-        List<List<Sha256Wrapper>> subLists = Lists.partition(txsHashes, getConfig().getTransactionBatchSize());
-        for (List<Sha256Wrapper> subList : subLists) {
+        synchronized (getLock()) {
+            /*
+                Any operation performed on a List of Items will need to be split into smaller lists, just to make sure
+                each Transaction is small (some KeyValue vendors have limitations)
+             */
+            List<List<Sha256Wrapper>> subLists = Lists.partition(txsHashes, getConfig().getTransactionBatchSize());
+            for (List<Sha256Wrapper> subList : subLists) {
+                T tr = createTransaction();
+                executeInTransaction(tr, () ->
+                        subList.forEach(h -> _unlinkTxFromBlock(tr, h.toString(), blockHash.toString()))
+                );
+            }
             T tr = createTransaction();
-            executeInTransaction(tr, () ->
-                subList.forEach(h -> _unlinkTxFromBlock(tr, h.toString(), blockHash.toString()))
-            );
-        }
-        T tr = createTransaction();
-        executeInTransaction(tr, () -> addBlockNumTxs(tr, blockHash.toString(), -txsHashes.size()));
+            executeInTransaction(tr, () -> _addBlockNumTxs(tr, blockHash.toString(), -txsHashes.size()));
+        } // synchronized
     }
 
     @Override
     default void unlinkTx(Sha256Wrapper txHash) {
-        T tr = createTransaction();
-        executeInTransaction(tr, () -> _unlinkTx(tr, txHash.toString()));
+        synchronized (getLock()) {
+            T tr = createTransaction();
+            executeInTransaction(tr, () -> _unlinkTx(tr, txHash.toString()));
+        } // synchronized
     }
 
     @Override
     default void unlinkBlock(Sha256Wrapper blockHash) {
-        _unlinkBlock(blockHash.toString());
+        synchronized (getLock()) {
+            _unlinkBlock(blockHash.toString());
+        } // synchronized
     }
 
     @Override
@@ -792,45 +822,48 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
 
     @Override
     default void saveBlockTxs(Sha256Wrapper blockHash, List<Tx> txs) {
-        /*
-            Any operation performed on a List of Items will need to be split into smaller lists, just to make sure
-            each Transaction is small (some KeyValue vendors have limitations)
-         */
-        // In this case, since in each Transaction we are NOt only Linking the Txs but ALSO saving the TX THEMSELVES,
-        // we are using a TR Batch Size Twice as SMALL as usual...
-        List<List<Tx>> subLists = Lists.partition(txs, getConfig().getTransactionBatchSize() / 2);
-        byte[] blockDirFullKey = fullKeyForBlockDir(blockHash.toString());
-        for (List<Tx> subList : subLists) {
-            T tr = createTransaction();
-            executeInTransaction(tr, () -> {
-                _saveTxs(tr, subList);
-                subList.forEach(h -> _linkTxToBlock(tr, h.getHash().toString(), blockHash.toString(), blockDirFullKey));
-                addBlockNumTxs(tr, blockHash.toString(), subList.size());
-            });
-        } // for...
-        _triggerTxsStoredEvent(txs);
+        synchronized (getLock()) {
+            /*
+                Any operation performed on a List of Items will need to be split into smaller lists, just to make sure
+                each Transaction is small (some KeyValue vendors have limitations)
+             */
+            // In this case, since in each Transaction we are NOt only Linking the Txs but ALSO saving the TX THEMSELVES,
+            // we are using a TR Batch Size Twice as SMALL as usual...
+            List<List<Tx>> subLists = Lists.partition(txs, getConfig().getTransactionBatchSize() / 2);
+            byte[] blockDirFullKey = fullKeyForBlockDir(blockHash.toString());
+            for (List<Tx> subList : subLists) {
+                T tr = createTransaction();
+                executeInTransaction(tr, () -> {
+                    _saveTxs(tr, subList);
+                    subList.forEach(h -> _linkTxToBlock(tr, h.getHash().toString(), blockHash.toString(), blockDirFullKey));
+                    _addBlockNumTxs(tr, blockHash.toString(), subList.size());
+                });
+            } // for...
+            _triggerTxsStoredEvent(txs);
+        } // synchronized
     }
 
     @Override
     default void removeBlockTxs(Sha256Wrapper blockHash) {
+        synchronized (getLock()) {
+            // We remove all The Txs from this Block. the problem is that we need to trigger an TXS_REMOVED Event but the
+            // number of Txs must be huge, so we cannot just trigger a single event with a huge list inside. Instead, we
+            // are keeping track of the number of Txs we remove, and we only trigger an event when we reach the Threshold.
+            // We put all that logic inside a Lambda function that will be passed to the method that removes the Txs...
 
-        // We remove all The Txs from this Block. the problem is that we need to trigger an TXS_REMOVED Event but the
-        // number of Txs must be huge, so we cannot just trigger a single event with a huge list inside. Instead, we
-        // are keeping track of the number of Txs we remove, and we only trigger an event when we reach the Threshold.
-        // We put all that logic inside a Lambda function that will be passed to the method that removes the Txs...
+            List<Sha256Wrapper> batchTxsRemoved = new ArrayList<>();
+            Consumer<String> txHashConsumer = txHash -> {
+                batchTxsRemoved.add(Sha256Wrapper.wrap(txHash));
+                if (batchTxsRemoved.size() == MAX_EVENT_ITEMS) {
+                    _triggerTxsRemovedEvent(batchTxsRemoved);
+                    batchTxsRemoved.clear();
+                }
+            };
+            _removeBlockTxs(blockHash.toString(), txHashConsumer);
 
-        List<Sha256Wrapper> batchTxsRemoved = new ArrayList<>();
-        Consumer<String> txHashConsumer = txHash -> {
-            batchTxsRemoved.add(Sha256Wrapper.wrap(txHash));
-            if (batchTxsRemoved.size() == MAX_EVENT_ITEMS) {
-                 _triggerTxsRemovedEvent(batchTxsRemoved);
-                 batchTxsRemoved.clear();
-            }
-        };
-        _removeBlockTxs(blockHash.toString(), txHashConsumer);
-
-        // In case there are still Tx that have not been published in an Event...
-        if (batchTxsRemoved.size() > 0) _triggerTxsRemovedEvent(batchTxsRemoved);
+            // In case there are still Tx that have not been published in an Event...
+            if (batchTxsRemoved.size() > 0) _triggerTxsRemovedEvent(batchTxsRemoved);
+        } // synchronized
     }
 
     @Override

@@ -55,6 +55,9 @@ public class BlockStoreFDB implements BlockStoreKeyValue<KeyValue, Transaction>,
     @Getter private final boolean triggerBlockEvents;
     @Getter private final boolean triggerTxEvents;
 
+    // A lock (used by some methods, to ensure Thread-safety):
+    @Getter private Object lock = new Object();
+
     // DB Connection:
     @Getter protected FDB fdb;
     @Getter protected Database db;
