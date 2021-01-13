@@ -178,13 +178,15 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
 
     @Override
     public void stop() {
-        try {
-            this.levelDBStore.close();
-            this.executorService.shutdownNow();
-        } catch (IOException ioe) {
-            log.error(ioe.getMessage(), ioe);
-            throw new RuntimeException(ioe);
-        }
+        synchronized (getLock()) {
+            try {
+                this.levelDBStore.close();
+                this.executorService.shutdownNow();
+            } catch (IOException ioe) {
+                log.error(ioe.getMessage(), ioe);
+                throw new RuntimeException(ioe);
+            }
+        } // synchronized
     }
 
     @Override
