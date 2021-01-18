@@ -26,7 +26,7 @@ public class DeserializerConfig {
 
     /** Only messages Smaller than this Value will be cached: */
     @Builder.Default
-    private final Long maxMsgSizeInBytes = 100_000L; // 10KB
+    private final Long maxMsgSizeInBytes = 500_000L; // 10KB
 
     /** If TRUE; statistics of the Cache are generating in real-time */
     @Builder.Default
