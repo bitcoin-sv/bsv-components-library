@@ -53,7 +53,7 @@ public class HeadersMsg extends Message {
 
     @Override
     protected long calculateLength() {
-        long length = count.getLengthInBytes() + count.getValue() * (InventoryVectorMsg.VECTOR_TYPE_LENGTH + HashMsg.HASH_LENGTH);;
+        long length = count.getLengthInBytes() + blockHeaderMsgList.stream().mapToLong(h -> h.getLengthInBytes()).sum();
         return length;
     }
 

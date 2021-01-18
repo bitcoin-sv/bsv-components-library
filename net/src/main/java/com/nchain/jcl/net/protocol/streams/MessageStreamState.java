@@ -1,6 +1,8 @@
 package com.nchain.jcl.net.protocol.streams;
 
 import com.nchain.jcl.base.tools.streams.StreamState;
+import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStreamState;
+import com.nchain.jcl.net.protocol.streams.serializer.SerializerStreamState;
 import lombok.Builder;
 import lombok.Value;
 

@@ -13,7 +13,7 @@ import com.nchain.jcl.net.protocol.serialization.VersionMsgSerializer
 import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
-import com.nchain.jcl.net.protocol.streams.SerializerStream
+import com.nchain.jcl.net.protocol.streams.serializer.SerializerStream
 import com.nchain.jcl.base.tools.bytes.ByteArrayReader
 import com.nchain.jcl.base.tools.bytes.ByteArrayWriter
 import com.nchain.jcl.base.tools.bytes.ByteTools
@@ -64,8 +64,7 @@ class SerializerStreamSpec extends Specification {
             // generate a serialized version message
             NetAddressMsg body_addr = NetAddressMsg.builder()
                     .address(REF_BODY_ADDRESS)
-                    .timestamp(0)
-                    .build();
+                    .build()
             VersionMsg versionMsg = VersionMsg.builder()
                     .version(config.getBasicConfig().protocolVersion)
                     .timestamp(REF_BODY_TIMESTAMP)

@@ -4,7 +4,9 @@ import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.messages.VersionAckMsg
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg
-import com.nchain.jcl.net.protocol.streams.DeserializerStream
+import com.nchain.jcl.net.protocol.streams.deserializer.Deserializer
+import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerConfig
+import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStream
 import com.nchain.jcl.net.unit.protocol.tools.MsgTest
 import com.nchain.jcl.base.tools.bytes.ByteArrayReader
 import com.nchain.jcl.base.tools.bytes.HEX
@@ -25,7 +27,7 @@ class DeserializerStreamSpec extends Specification {
     /**
      * We test that an EMPTY Message (a Message with HEAD but NOT BODY) is deserialized properly.
      */
-    def "Testing Deserializer Empry Messages"() {
+    def "Testing Deserializer Empty Messages"() {
         given:
             RuntimeConfig   runtimeConfig = new RuntimeConfigDefault()
             ProtocolConfig protocolConfig = new ProtocolBSVMainConfig()
@@ -33,7 +35,8 @@ class DeserializerStreamSpec extends Specification {
 
             // We configure the Streams: The Source and the Deserializer:
             MsgTest.DummyPeerStreamSource source = MsgTest.getDummyStreamSource()
-            DeserializerStream stream = new DeserializerStream(executor, source, runtimeConfig, protocolConfig.getBasicConfig())
+            Deserializer deserializer = new Deserializer(runtimeConfig, DeserializerConfig.builder().build())
+            DeserializerStream stream = new DeserializerStream(executor, source, runtimeConfig, protocolConfig.getBasicConfig(), deserializer)
 
             // We store the Msg after being Deserialized:
             AtomicReference<BitcoinMsg> msgReceived = new AtomicReference<>()

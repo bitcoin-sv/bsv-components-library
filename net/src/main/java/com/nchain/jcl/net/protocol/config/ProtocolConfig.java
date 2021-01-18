@@ -15,7 +15,7 @@ import java.util.Map;
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  *
- * Operations to get Configuration information of the P2P that is running.
+ * Operations to deserialize Configuration information of the P2P that is running.
  *
  * The "P2P" is just a set of different P2P-Handlers, each one of them taking care of
  * one specific aspect (Handshake, node-Discovery, blacklist, etc). Each one of those Handlers

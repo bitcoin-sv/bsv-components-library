@@ -40,7 +40,7 @@ public class NetAddressMsgSerializer implements MessageSerializer<NetAddressMsg>
     @Override
     public NetAddressMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
         try {
-            long timestamp= 0;
+            Long timestamp = null;
 
             // if applied, we read the timestamp. 4 bytes
             if  ((!context.isInsideVersionMsg()) &&

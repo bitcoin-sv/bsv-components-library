@@ -28,6 +28,7 @@ public class BlockHeaderMsg extends Message {
     // In order to calculate a Block Hash we need to serialize the Block first, so instead of doing
     // that avery time we need a Hash, we store the Hash here, at the moment when we deserialize the
     // Block for the first time, so its available for further use.
+    @EqualsAndHashCode.Exclude
     private final HashMsg hash;
 
 

@@ -13,11 +13,7 @@ import com.nchain.jcl.net.protocol.handlers.discovery.DiscoveryHandlerState;
 import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandlerState;
 import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerState;
 import com.nchain.jcl.net.protocol.handlers.pingPong.PingPongHandlerState;
-import lombok.AllArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 /**

@@ -28,7 +28,7 @@ public class PartialBlockTXsMsg extends Message {
 
     @Override
     protected long calculateLength() {
-         return txs.stream().mapToLong(tx -> tx.getLengthInBytes()).sum();
+         return blockHeader.getLengthInBytes() + txs.stream().mapToLong(tx -> tx.getLengthInBytes()).sum();
     }
 
     @Override

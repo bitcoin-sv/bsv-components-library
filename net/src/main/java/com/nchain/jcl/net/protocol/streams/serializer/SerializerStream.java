@@ -1,4 +1,4 @@
-package com.nchain.jcl.net.protocol.streams;
+package com.nchain.jcl.net.protocol.streams.serializer;
 
 import com.nchain.jcl.base.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.base.tools.log.LoggerUtil;

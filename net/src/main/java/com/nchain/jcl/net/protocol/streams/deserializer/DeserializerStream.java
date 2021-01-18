@@ -1,4 +1,4 @@
-package com.nchain.jcl.net.protocol.streams;
+package com.nchain.jcl.net.protocol.streams.deserializer;
 
 import com.nchain.jcl.base.tools.bytes.*;
 import com.nchain.jcl.base.tools.config.RuntimeConfig;
@@ -21,9 +21,9 @@ import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 import com.nchain.jcl.net.protocol.serialization.HeaderMsgSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
-import com.nchain.jcl.net.protocol.serialization.common.MessageSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.MsgSerializersFactory;
-import com.nchain.jcl.net.protocol.serialization.largeMsgs.LargeMessageDeserializer;
+import com.nchain.jcl.net.protocol.serialization.largeMsgs.MsgPartDeserializationErrorEvent;
+import com.nchain.jcl.net.protocol.serialization.largeMsgs.MsgPartDeserializedEvent;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -33,6 +33,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 /**
  * @author i.fernandez@nchain.com
@@ -99,9 +100,20 @@ public class DeserializerStream extends InputStreamImpl<ByteArrayReader, Bitcoin
     @Setter
     private MessagePreSerializer preSerializer;
 
+    // This is the component responsible for deserializing the normal/small messages. It implements an internal CACHE
+    //, so if several EQUALS messages are coming down the wire, they wil be taking from the cache instead, which
+    // speeds things up a bit.
+    // Big Messages are Deserialized the regular way, this class is NOT used for that.
+
+    // This class is STATIC, so there is ONLY ONE CACHE FOR ALL Streams, so all the incoming data from all the
+    // remote Peers will be using the same Cachel
+
+    private static Deserializer deserializer;
+
     /** Constructor */
     public DeserializerStream(ExecutorService executor, InputStream<ByteArrayReader> source,
-                              RuntimeConfig runtimeConfig, ProtocolBasicConfig protocolBasicConfig) {
+                              RuntimeConfig runtimeConfig, ProtocolBasicConfig protocolBasicConfig,
+                              Deserializer deserializer) {
         super(executor, source);
         this.logger = new LoggerUtil(this.getPeerAddress().toString(), this.getClass());
         this.runtimeConfig = runtimeConfig;
@@ -111,6 +123,9 @@ public class DeserializerStream extends InputStreamImpl<ByteArrayReader, Bitcoin
 
         // We initialize the State:
         this.state = DeserializerStreamState.builder().build();
+
+        // We initialize the Deserializer
+        this.deserializer = deserializer;
     }
 
     @Override
@@ -130,6 +145,7 @@ public class DeserializerStream extends InputStreamImpl<ByteArrayReader, Bitcoin
         return state.toBuilder()
                 .processState(DeserializerStreamState.ProcessingBytesState.CORRUPTED)
                 .workToDoInBuffer(false)
+                .deserializerState(deserializer.getState())
                 .build();
     }
 
@@ -146,6 +162,7 @@ public class DeserializerStream extends InputStreamImpl<ByteArrayReader, Bitcoin
         return state.toBuilder()
                 .currentBitcoinMsg(message)
                 .numMsgs(state.getNumMsgs().add(BigInteger.ONE))
+                .deserializerState(deserializer.getState())
                 .build();
     }
 
@@ -167,6 +184,7 @@ public class DeserializerStream extends InputStreamImpl<ByteArrayReader, Bitcoin
             state = state.toBuilder()
                     .currentMsgBytesReceived(state.getCurrentMsgBytesReceived() + dataEvent.getData().size())
                     .workToDoInBuffer(true)
+                    .deserializerState(deserializer.getState())
                     .build();
 
             // Now we process the Bytes. If there is ONLY one Thread running (the SHARED Thread), we process them. But if
@@ -211,12 +229,6 @@ public class DeserializerStream extends InputStreamImpl<ByteArrayReader, Bitcoin
                     .build();
             ByteArrayReader byteReader = new ByteArrayReader(buffer);
 
-            // If "Real-time" is enabled, we assume the message is gonna be "Big", so we adjust the Reader:
-            if (realTime) {
-                byteReader = new ByteArrayReaderOptimized(byteReader);
-                byteReader.enableRealTime(runtimeConfig.getMaxWaitingTimeForBytesInRealTime());
-            }
-
             // Here comes the Deserialization: This process is blocking, the only difference between "REAl-TIME" or
             // not is that, in REAL-TIME, the Deserialization can "wait" until the bytes arrive, and the bytes are consumed
             // as they come. In "normal" mode, all the bytes are already there, so the deserialization is performed
@@ -225,44 +237,48 @@ public class DeserializerStream extends InputStreamImpl<ByteArrayReader, Bitcoin
             // A HACK Here: We update the Global State, to reflect we are in DESERIALIZING State:
             this.state = state.toBuilder().processState(DeserializerStreamState.ProcessingBytesState.DESERIALIZING_BODY).build();
 
-
             // If some error has been triggered during Deserialization in RT, this will be true:
             AtomicBoolean errorRTDeserialization = new AtomicBoolean();
 
             // If the Deserialization goes well, this will store the State after that.
             AtomicReference<DeserializerStreamState> stateAfterOK = new AtomicReference<>();
 
-            // We locate a Deserializer for this Message:
-            // If "realTime" is TRUE, then we assume the Message is be large, so we need a LargeMsgDeserializer,
-            // otherwise a MessageSerializer is enough...
+            // We use the Deserializer. Depending on "realTime", we use a different method:
+            // if "realTime = TRUE", then we assume it's a LARGE message, so we need to define the callbacks that will be
+            // populated by the deserializer while doing its work
+            // if "realTime = FALSE", then its a small message.
 
             if (realTime) {
-                LargeMessageDeserializer largeMsgDeserializer =  MsgSerializersFactory.getLargeMsgDeserializer(headerMsg.getCommand());
-                largeMsgDeserializer.onError(e -> {
+                // We define the Callbacks:
+                Consumer<MsgPartDeserializationErrorEvent> onErrorHandler = e -> {
                     this.processError(isThisADedicatedThread, e.getException(), state);
                     errorRTDeserialization.set(true);
-                });
-                largeMsgDeserializer.onDeserialized(e -> {
-                    // We are notified about a Partial Msg being deserialized. We create the BitcoinMsg and  we notify it
-                    HeaderMsg partialMsgHeader = null;
-                    if (e.getData() instanceof PartialBlockHeaderMsg)
-                        partialMsgHeader = headerMsg.toBuilder().command(PartialBlockHeaderMsg.MESSAGE_TYPE).build();
-                    else
-                        partialMsgHeader = headerMsg.toBuilder().command(PartialBlockTXsMsg.MESSAGE_TYPE).build();
+                };
+
+                Consumer<MsgPartDeserializedEvent> onPartDeserializedHandler = e -> {
+                    // We are notified about a Partial Msg being deserialized. We create the BitcoinMsg and we notify it:
+                    Message partialMessage = (Message) e.getData();
+                    HeaderMsg partialMsgHeader = headerMsg.toBuilder()
+                            .command(partialMessage.getMessageType())
+                            .length(partialMessage.getLengthInBytes())
+                            .build();
                     BitcoinMsg<?> bitcoinMsg = new BitcoinMsg(partialMsgHeader, (Message) e.getData());
                     DeserializerStreamState stateResult = this.processOK(isThisADedicatedThread, bitcoinMsg, state);
                     stateAfterOK.set(stateResult);
-                });
-                largeMsgDeserializer.deserialize(desContext, byteReader);
+                };
+                // And then we call the Deserializer...
+                deserializer.deserializeLarge(headerMsg, desContext, byteReader, onErrorHandler, onPartDeserializedHandler);
+
             } else {
                 // This a normal (not-realTime) Deserialization. Art this moment, we also triggered a BytesReceivedEvent,
                 // if enabled...
+                // If the Pre-Serializer is set, we trigger it now...
                 if (preSerializer != null) {
-                    // We get the bytes from the header:
+                    // We deserialize the bytes from the header:
                     ByteArrayWriter writer = new ByteArrayWriter();
                     HeaderMsgSerializer.getInstance().serialize(null, headerMsg, writer);
                     byte[] headerBytes = writer.reader().getFullContentAndClose();
-                    // We get the body Bytes:
+                    // We deserialize the body Bytes:
                     byte[] bodyBytes = byteReader.get((int)headerMsg.getLength());
                     // we put them together and we launch the Pre-Serializer...
                     byte[] completeMsg = new byte[headerBytes.length + bodyBytes.length];
@@ -270,18 +286,14 @@ public class DeserializerStream extends InputStreamImpl<ByteArrayReader, Bitcoin
                     System.arraycopy(bodyBytes, 0, completeMsg, headerBytes.length, bodyBytes.length);
                     preSerializer.processBeforeDeserialize(getPeerAddress(), headerMsg, completeMsg);
                 }
-                // The whole message is deserialized. We notify it..
-                MessageSerializer deserializer = MsgSerializersFactory.getSerializer(headerMsg.getCommand());
-                Message bodyMsg = deserializer.deserialize(desContext, byteReader);
+                // The whole message is deserialized
+                Message bodyMsg = deserializer.deserialize(headerMsg, desContext, byteReader);
                 BitcoinMsg<?> bitcoinMsg = new BitcoinMsg<>(headerMsg, bodyMsg);
+                // We notify it...
                 DeserializerStreamState stateResult = this.processOK(isThisADedicatedThread, bitcoinMsg, state);
                 stateAfterOK.set(stateResult);
             }
 
-
-            // if we are using an OPTIMIZED  byteArrayReader, we reset it now...
-            if (byteReader instanceof ByteArrayReaderOptimized)
-                ((ByteArrayReaderOptimized) byteReader).refreshBuffer();
 
             // If an Error has been triggered, then we do not process any more. Otherwise, we only keep processing bytes
             //( if there area actually some left in the buffer..

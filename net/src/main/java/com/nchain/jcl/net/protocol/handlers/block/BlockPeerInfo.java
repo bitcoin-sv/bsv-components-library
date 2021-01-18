@@ -4,8 +4,8 @@ import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.BlockMsg;
 import com.nchain.jcl.net.protocol.messages.HeaderMsg;
-import com.nchain.jcl.net.protocol.streams.DeserializerStream;
-import com.nchain.jcl.net.protocol.streams.DeserializerStreamState;
+import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStream;
+import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStreamState;
 import lombok.Getter;
 
 import java.text.DecimalFormat;

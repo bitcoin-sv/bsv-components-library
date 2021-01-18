@@ -103,7 +103,7 @@ public class ProtocolConfigImpl implements ProtocolConfig {
         if (networkConfig != null) this.networkConfig = networkConfig;
 
         this.messageConfig = (messageConfig == null)
-                ? new MessageHandlerConfig(this.basicConfig).toBuilder().build()
+                ? MessageHandlerConfig.builder().basicConfig(this.basicConfig).build()
                 : messageConfig.toBuilder().basicConfig(this.basicConfig).build();
 
         this.handshakeConfig = (handshakeConfig == null)

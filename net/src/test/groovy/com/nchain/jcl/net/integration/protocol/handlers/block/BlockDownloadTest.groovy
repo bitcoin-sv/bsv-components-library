@@ -52,7 +52,7 @@ class BlockDownloadTest extends Specification {
      *
      */
     // We disable this test, since it's very time-consuming
-    @Ignore
+    //@Ignore
     def "Testing Block Downloading"() {
         given:
             // The longest Timeout we'll wait for to run the test:
@@ -65,8 +65,6 @@ class BlockDownloadTest extends Specification {
                 .build()
             // We configure the P2P Service:
             P2P p2p = new P2PBuilder("testing")
-                .minPeers(40)
-                .maxPeers(42)
                 .config(config)
                 .config(blockConfig)
                 .publishState(BlockDownloaderHandler.HANDLER_ID, Duration.ofMillis(500))
@@ -93,7 +91,7 @@ class BlockDownloadTest extends Specification {
                 //println(Thread.activeCount() + " threads, " + currentTxs + " Txs downloaded...")
                 /*
                 if (blockHeaders.containsKey(hash)) {
-                    Long totalTxs = blockHeaders.get(hash).transactionCount.value
+                    Long totalTxs = blockHeaders.deserialize(hash).transactionCount.value
                     println(" > Block " + hash + ": " + currentTxs + " Txs (of " + totalTxs + ") downloaded...")
                 } else println(" > Block " + hash + ": " + currentTxs + " Txs downloaded...")
 
@@ -139,7 +137,7 @@ class BlockDownloadTest extends Specification {
             config                     |   block_hashes
            new ProtocolBSVMainConfig() |   BLOCKS_BSV_MAIN
            // new ProtocolBSVStnConfig()      |   BLOCKS_BSV_STN
-           new ProtocolBTCMainConfig() |   BLOCKS_BTC_MAIN
+           //new ProtocolBTCMainConfig() |   BLOCKS_BTC_MAIN
     }
 
 }

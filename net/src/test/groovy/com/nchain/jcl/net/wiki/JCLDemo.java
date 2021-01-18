@@ -3,7 +3,8 @@ package com.nchain.jcl.net.wiki;
 import com.nchain.jcl.net.protocol.config.ProtocolConfig;
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig;
 import com.nchain.jcl.net.protocol.events.BlockTXsDownloadedEvent;
-import com.nchain.jcl.net.protocol.events.PeerHandshakedEvent;
+import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerConfig;
+import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerConfig;
 import com.nchain.jcl.net.protocol.wrapper.P2P;
 import org.junit.Test;
 
@@ -26,8 +27,17 @@ public class JCLDemo {
                     .maxPeers(15)
                     .build();
 
+            // WE enable the Deserializer Cache Stats...
+            MessageHandlerConfig messageHandlerConfig = config.getMessageConfig();
+            DeserializerConfig deserializerCacheConfig = messageHandlerConfig.getDeserializerConfig()
+                    .toBuilder()
+                    .generateStats(true)
+                    .build();
+            messageHandlerConfig = messageHandlerConfig.toBuilder().deserializerConfig(deserializerCacheConfig).build();
+
             P2P p2p = P2P.builder("Demo")
                     .config(config)
+                    .config(messageHandlerConfig)
                     .publishStates(Duration.ofSeconds(1))
                     .build();
 

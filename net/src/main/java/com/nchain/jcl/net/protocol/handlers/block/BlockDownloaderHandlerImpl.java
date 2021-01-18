@@ -13,7 +13,7 @@ import com.nchain.jcl.net.network.events.NetStopEvent;
 import com.nchain.jcl.net.network.events.PeerDisconnectedEvent;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
-import com.nchain.jcl.net.protocol.streams.DeserializerStream;
+import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStream;
 import lombok.Getter;
 
 import java.time.Duration;
@@ -102,6 +102,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                 .discardedBlocks(this.blocksDiscarded.keySet().stream().collect(Collectors.toList()))
                 .blocksProgress(this.peersInfo.values().stream()
                         .filter( p -> p.getCurrentBlockInfo() != null)
+                        .filter( p -> p.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING))
+                        .filter(p -> p.getConnectionState().equals(BlockPeerInfo.PeerConnectionState.HANDSHAKED))
                         .map(p -> p.getCurrentBlockInfo())
                         .collect(Collectors.toList()))
                 .build();
@@ -151,11 +153,11 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
     public void onPeerDisconnected(PeerDisconnectedEvent event) {
         BlockPeerInfo peerInfo = peersInfo.get(event.getPeerAddress());
         if (peerInfo != null) {
-            peerInfo.disconnect();
             logger.trace(peerInfo.getPeerAddress(),  "Peer Disconnected", peerInfo.toString());
             // If this Peer was in the middle of downloading a block, we process the failiure...
             if (peerInfo.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING))
                 processDownloadFailiure(peerInfo);
+            peerInfo.disconnect();
         }
     }
 
@@ -219,7 +221,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
     private void processDownloadSuccess(BlockPeerInfo peerInfo, BlockHeaderMsg blockHeader, long blockSize) {
         String blockHash = peerInfo.getCurrentBlockInfo().getHash();
 
-        synchronized (peerInfo) {
+        synchronized (this) {
             logger.debug(peerInfo.getPeerAddress(), "Block successfully downloaded", blockHash);
 
             // We activated back the ping/Pong Verifications for this Peer
@@ -250,7 +252,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
 
     private void processDownloadFailiure(BlockPeerInfo peerInfo) {
         if (peerInfo == null) return;
-        synchronized (peerInfo) {
+        synchronized (this) {
             if (peerInfo.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING)) {
                 String blockHash = peerInfo.getCurrentBlockInfo().getHash();
                 int numAttempts = blocksNumDownloadAttempts.get(blockHash);
@@ -277,7 +279,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         // - We disable the Ping/Pong monitor process on it, since it might be busy during the block downloading
         // - We update other structures (num Attempts on this block, and blocks pendings, etc):
 
-        synchronized (peerInfo) {
+        synchronized (this) {
             peerInfo.startDownloading(blockHash);
             peerInfo.getStream().upgradeBufferSize();
 
@@ -340,6 +342,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                                             .count();
                                     if (numPeersWorking < config.getMaxBlocksInParallel()) {
                                         String hash = blocksPending.stream().findFirst().get();
+                                        logger.trace("Putting peer " + peerInfo.getPeerAddress() + " to download " + hash + "...");
                                         startDownloading(peerInfo, hash);
                                     }
                                 }

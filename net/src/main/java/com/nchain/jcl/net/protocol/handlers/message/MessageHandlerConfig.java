@@ -2,6 +2,7 @@ package com.nchain.jcl.net.protocol.handlers.message;
 
 import com.nchain.jcl.base.tools.handlers.HandlerConfig;
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig;
+import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerConfig;
 import lombok.Builder;
 import lombok.Value;
 
@@ -14,16 +15,15 @@ import lombok.Value;
 @Value
 @Builder(toBuilder = true)
 public class MessageHandlerConfig extends HandlerConfig {
+
     private ProtocolBasicConfig basicConfig;
-    // If set, this object will be invoked BEFORE the DESERIALIZATION takes place
+
+    /** If set, this object will be invoked BEFORE the DESERIALIZATION takes place */
     private MessagePreSerializer preSerializer;
 
-    public MessageHandlerConfig(ProtocolBasicConfig basicConfig) {
-        this(basicConfig, null);
-    }
 
-    public MessageHandlerConfig(ProtocolBasicConfig basicConfig, MessagePreSerializer preSerializer) {
-        this.basicConfig = basicConfig;
-        this.preSerializer = preSerializer;
-    }
+    /** Deserializer Cache Config: if TRue, run-time statistics about the Cache are generated (only for testing)*/
+    @Builder.Default
+    private DeserializerConfig deserializerConfig = DeserializerConfig.builder().build();
+
 }

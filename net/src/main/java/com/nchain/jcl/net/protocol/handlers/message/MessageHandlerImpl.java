@@ -10,7 +10,8 @@ import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.events.*;
 import com.nchain.jcl.net.protocol.events.*;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
-import com.nchain.jcl.net.protocol.streams.DeserializerStream;
+import com.nchain.jcl.net.protocol.streams.deserializer.Deserializer;
+import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStream;
 import com.nchain.jcl.net.protocol.streams.MessageStream;
 import lombok.Getter;
 
@@ -29,7 +30,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
 
-
     // For logging:
     private LoggerUtil logger;
 
@@ -42,11 +42,15 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
     // State of this Handler:
     @Getter private MessageHandlerState state = MessageHandlerState.builder().build();
 
+    // An instance of a Deserializer. There is ONLY ONE Deserializer for all the Streams in the System.
+    private Deserializer deserializer;
+    
     /** Constructor */
     public MessageHandlerImpl(String id, RuntimeConfig runtimeConfig, MessageHandlerConfig config) {
         super(id, runtimeConfig);
         this.config = config;
         this.logger = new LoggerUtil(id, HANDLER_ID, this.getClass());
+        this.deserializer = Deserializer.getInstance(runtimeConfig, config.getDeserializerConfig());
     }
 
     // We register this Handler to LISTEN to these Events:
@@ -78,7 +82,11 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
     // Event Handler:
     private void onPeerStreamConnected(PeerNIOStreamConnectedEvent event) {
         PeerAddress peerAddress = event.getStream().getPeerAddress();
-        MessageStream msgStream = new MessageStream(ThreadUtils.PEER_STREAM_EXECUTOR, super.runtimeConfig, config.getBasicConfig(), event.getStream());
+        MessageStream msgStream = new MessageStream(ThreadUtils.PEER_STREAM_EXECUTOR,
+                super.runtimeConfig,
+                config.getBasicConfig(),
+                this.deserializer,
+                event.getStream());
         msgStream.init();
         // We listen to the Deserializer Events
         msgStream.input().onData(e -> onStreamMsgReceived(peerAddress, e.getData()));
@@ -151,6 +159,7 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
         this.state = this.state.toBuilder()
                 .numMsgsIn(state.getNumMsgsIn().add(BigInteger.valueOf(addingMsgsIn)))
                 .numMsgsOut(state.getNumMsgsOut().add(BigInteger.valueOf(addingMsgsOut)))
+                .deserializerState(deserializer.getState())
                 .build();
     }
 

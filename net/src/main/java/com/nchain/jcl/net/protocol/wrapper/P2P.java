@@ -112,7 +112,7 @@ public class P2P {
 
     private void init() {
         try {
-            // If specified, we trigger a new Thread that will get the status of the Handlers and publish them into the
+            // If specified, we trigger a new Thread that will deserialize the status of the Handlers and publish them into the
             // Bus. The Map contains a duration for each Handler Class, so we can set up a different frequency for each
             // State notification...
 
@@ -183,7 +183,7 @@ public class P2P {
             //System.out.println("Tasks in progress: " + eventBus.getTraceNumTasks());
     }
 
-    // Convenience method to get a reference to a P2PBuilder
+    // Convenience method to deserialize a reference to a P2PBuilder
     public static P2PBuilder builder(String id) {
         return new P2PBuilder(id);
     }

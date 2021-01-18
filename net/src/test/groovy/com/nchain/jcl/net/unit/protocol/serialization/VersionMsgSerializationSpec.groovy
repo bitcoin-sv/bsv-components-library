@@ -59,7 +59,7 @@ class VersionMsgSerializationSpec extends Specification {
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
-                    .maxBytesToRead(HEX.decode(REF_ADDRESS_MSG).length)
+                    .maxBytesToRead(HEX.decode(REF_BODY_ADDRESS_MSG).length)
                     .insideVersionMsg(true)
                     .build()
             VersionMsg message = null
@@ -73,7 +73,7 @@ class VersionMsgSerializationSpec extends Specification {
             message.getTimestamp() == REF_BODY_TIMESTAMP
             message.getAddr_from().getAddress().getIp().getCanonicalHostName().equals(REF_BODY_ADDRESS.getIp().getCanonicalHostName())
             message.getAddr_recv().getAddress().getIp().getCanonicalHostName().equals(REF_BODY_ADDRESS.getIp().getCanonicalHostName())
-            message.isRelay() == REF_BODY_RELAY
+            message.getRelay() == REF_BODY_RELAY
         where:
             byteInterval | delayMs
                 10       |    15
@@ -131,7 +131,7 @@ class VersionMsgSerializationSpec extends Specification {
             message.getBody().getTimestamp() == REF_TIMESTAMP
             message.getBody().getAddr_from().getAddress().getIp().getCanonicalHostName().equals(REF_BODY_ADDRESS.getIp().getCanonicalHostName())
             message.getBody().getAddr_recv().getAddress().getIp().getCanonicalHostName().equals(REF_BODY_ADDRESS.getIp().getCanonicalHostName())
-            message.getBody().isRelay() == REF_BODY_RELAY
+            message.getBody().getRelay() == REF_BODY_RELAY
         where:
             byteInterval | delayMs
                 10       |    25

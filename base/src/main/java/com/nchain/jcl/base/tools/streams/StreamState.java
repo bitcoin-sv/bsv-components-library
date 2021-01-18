@@ -9,5 +9,4 @@ package com.nchain.jcl.base.tools.streams;
  * any other kind of useful information. This information represents the "state" of the Stream. Every class
  * storing a Stream State should extend this class.
  */
-public class StreamState {
-}
+public class StreamState {}

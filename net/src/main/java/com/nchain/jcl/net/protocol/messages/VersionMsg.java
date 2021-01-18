@@ -55,7 +55,7 @@ import lombok.Value;
 public class VersionMsg extends Message {
     // The only field which a variable length in the Version Message is the "getHandshakeUserAgent" field.
     // The rest of the Message has a fixed length of 85 bytes.
-    private static int FIXED_MESSAGE_LENGTH = 85; // need to add the "getHandshakeUserAgent" length to this.
+    private static int FIXED_MESSAGE_LENGTH = 84; // need to add the "getHandshakeUserAgent"  and RELAY length to this.
     public static final String MESSAGE_TYPE = "version";
 
     private long version;
@@ -66,12 +66,12 @@ public class VersionMsg extends Message {
     private long nonce;
     private VarStrMsg user_agent;
     private long start_height;
-    private boolean relay;
+    private Boolean relay;
 
     @Builder
     protected VersionMsg(long version, long services, long timestamp,
                          NetAddressMsg addr_recv, NetAddressMsg addr_from,
-                         long nonce, VarStrMsg user_agent, long start_height, boolean relay ) {
+                         long nonce, VarStrMsg user_agent, long start_height, Boolean relay ) {
         this.version = version;
         this.services = services;
         this.timestamp = timestamp;
@@ -90,7 +90,9 @@ public class VersionMsg extends Message {
 
     @Override
     protected long calculateLength() {
-        long length = FIXED_MESSAGE_LENGTH + (user_agent != null ? user_agent.getLengthInBytes(): 0 );
+        long length = FIXED_MESSAGE_LENGTH;
+        length += (user_agent != null) ? user_agent.getLengthInBytes(): 0;
+        length += (relay != null) ? 1 : 0;
         return length;
     }
 

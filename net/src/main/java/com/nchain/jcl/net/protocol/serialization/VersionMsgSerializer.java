@@ -49,11 +49,16 @@ public class VersionMsgSerializer implements MessageSerializer<VersionMsg> {
         VarStrMsg user_agent = VarStrMsgSerializer.getinstance().deserialize(context, byteReader);
         byteReader.waitForBytes(4);
         long start_height = byteReader.readUint32();
-        boolean relay = true;
+        Boolean relay = null;
 
 
-        // The "RELAY" Field is optional. For version >= 70001, this field might be included or not.
-        if (byteReader.getBytesReadCount() == (context.getMaxBytesToRead() - 1)) {
+        // The "RELAY" Field is optional. So we need to check if the field is there or not. Its NOT enough to just check
+        // if there is mre data in the reader, since that data might belong to tnext message in line, not this one. So
+        // we need to compare the bytes we've read so far for this message, to the MAXIMUM number of Bytes that this
+        // message takes in te reader...
+        int bytesReadedForThisMessage = 20 + (int) addr_from.getLengthInBytes() + (int) addr_recv.getLengthInBytes() + 8 + 4 + (int) user_agent.getLengthInBytes();
+
+        if (bytesReadedForThisMessage == (context.getMaxBytesToRead() - 1)) {
             byteReader.waitForBytes(1);
             relay = byteReader.readBoolean();
         }
@@ -84,6 +89,6 @@ public class VersionMsgSerializer implements MessageSerializer<VersionMsg> {
         byteWriter.writeUint64LE(message.getNonce());
         VarStrMsgSerializer.getinstance().serialize(context, message.getUser_agent(), byteWriter);
         byteWriter.writeUint32LE(message.getStart_height());
-        byteWriter.writeBoolean(message.isRelay());
+        if (message.getRelay() != null) byteWriter.writeBoolean(message.getRelay());
     }
 }

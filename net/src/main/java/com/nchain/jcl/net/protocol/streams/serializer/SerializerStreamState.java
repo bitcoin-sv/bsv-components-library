@@ -1,4 +1,4 @@
-package com.nchain.jcl.net.protocol.streams;
+package com.nchain.jcl.net.protocol.streams.serializer;
 
 import com.nchain.jcl.base.tools.streams.StreamState;
 import lombok.AllArgsConstructor;

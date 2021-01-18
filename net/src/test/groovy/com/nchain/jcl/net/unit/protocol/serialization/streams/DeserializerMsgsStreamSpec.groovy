@@ -3,8 +3,9 @@ package com.nchain.jcl.net.unit.protocol.serialization.streams
 import com.nchain.jcl.net.network.streams.PeerInputStream
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
-import com.nchain.jcl.net.protocol.streams.DeserializerStream
-import com.nchain.jcl.net.unit.protocol.tools.MsgTest
+import com.nchain.jcl.net.protocol.streams.deserializer.Deserializer
+import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerConfig
+import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStream
 import com.nchain.jcl.base.tools.bytes.ByteArrayReader
 import com.nchain.jcl.base.tools.bytes.HEX
 import com.nchain.jcl.base.tools.config.RuntimeConfig
@@ -53,7 +54,8 @@ class DeserializerMsgsStreamSpec extends Specification {
             // Our Deserialized Stream: We check the number of Messages Deserialized, to check everything is fine
             AtomicInteger numMessages = new AtomicInteger()
             AtomicInteger numErrors = new AtomicInteger()
-            DeserializerStream stream = new DeserializerStream(executor, delaySource, runtimeConfig, protocolConfig.getBasicConfig())
+            Deserializer deserialer = Deserializer.getInstance(runtimeConfig, DeserializerConfig.builder().build())
+            DeserializerStream stream = new DeserializerStream(executor, delaySource, runtimeConfig, protocolConfig.getBasicConfig(), deserialer)
             stream.onData({e ->
                 println( e.getData().getBody().getClass().simpleName + " received")
                 numMessages.incrementAndGet()
@@ -72,7 +74,8 @@ class DeserializerMsgsStreamSpec extends Specification {
                 delaySource.send(new StreamDataEvent<ByteArrayReader>(new ByteArrayReader(HEX.decode(messages.get(i)))))
             }
 
-            Thread.sleep(5_000)
+            // We wait long enough so the callbacks are triggered
+            Thread.sleep(20_000)
             println("\nnumMesages: " + numMessages.get() + ", numErrors: " + numErrors.get() + "(" + numErrorsThrown + " expected)")
 
         then:
@@ -102,7 +105,7 @@ class DeserializerMsgsStreamSpec extends Specification {
             "Test 2c"      |   [BIG_BLOCK]                                           |   100                |   false                     |     500             |   0       |   1
 
             // A valid "Big" message, but the speed is too low (timeout will be triggered)
-            "Test 2d"      |   [BIG_BLOCK]                                           |   100                |   true                      |     10              |   0       |   1
+            "Test 2d"      |   [BIG_BLOCK]                                           |   100                |   true                      |     5               |   0       |   1
 
             // An "unknown" "short" Message
             "Test 3"      |   [IGNORE_MSG]                                           |   1000               |   false                     |     500             |   0       |   0
@@ -115,8 +118,6 @@ class DeserializerMsgsStreamSpec extends Specification {
 
             // A series of Unknonw, Big, Normal, Big
             "Test 4"      |   [IGNORE_MSG, BIG_BLOCK, INV_MSG, BIG_BLOCK]            |   100                | true                        |     500             |   5       |   0
-
-
 
     }
 }

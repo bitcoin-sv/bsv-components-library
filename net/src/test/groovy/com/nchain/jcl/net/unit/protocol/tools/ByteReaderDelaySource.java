@@ -27,8 +27,8 @@ public class ByteReaderDelaySource extends InputStreamSourceImpl<ByteArrayReader
 
     // Speed
     final int bytesPerSec;
-    // bytesBatchSize: This is the minimum number of bytes that can be feed ina single go. The dealy must be applied
-    // between different batches. If the sze of the buffe ris less than this, no dealy is applied.
+    // bytesBatchSize: This is the minimum number of bytes that can be feed in a single go. The delay must be applied
+    // between different batches. If the size of the buffer is less than this, no delay is applied.
     final int bytesBatchsize = 10;
 
     private ByteArrayBuilder byteArrayBuilder;

@@ -1,4 +1,4 @@
-package com.nchain.jcl.net.protocol.streams;
+package com.nchain.jcl.net.protocol.streams.deserializer;
 
 import com.nchain.jcl.base.tools.streams.StreamState;
 import com.nchain.jcl.net.protocol.messages.HeaderMsg;
@@ -93,4 +93,8 @@ public class DeserializerStreamState extends StreamState {
     // Some variables to count the number of messages processed:
     @Builder.Default
     private BigInteger numMsgs = BigInteger.ZERO;
+
+    // State of the Deserializer, including Cache info...
+    @Builder.Default
+    private DeserializerState deserializerState = DeserializerState.builder().build();
 }

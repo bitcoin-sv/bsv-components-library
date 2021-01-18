@@ -65,23 +65,34 @@ class HandshakeOKTest extends Specification {
             AtomicReference<MinHandshakedPeersLostEvent> minHandshakedLostEvent = new AtomicReference<>()
 
             server.EVENTS.PEERS.HANDSHAKED.forEach({ e ->
+                println(" - Peer handshaked: " + e.peerAddress)
                 numPeersCurrentlyHandshaked.incrementAndGet()
                 numPeersHandshakes.incrementAndGet()
             })
             server.EVENTS.PEERS.HANDSHAKED_DISCONNECTED.forEach({ e ->
+                println(" - Peer handshaked disconnected: " + e.peerAddress)
                 numPeersCurrentlyHandshaked.decrementAndGet()
             })
 
             server.EVENTS.PEERS.CONNECTED.forEach({e ->
+                println(" - Peer connected: " + e.peerAddress)
                 numPeersCurrentlyConnected.incrementAndGet()
                 numPeersConnections.incrementAndGet()
             })
             server.EVENTS.PEERS.DISCONNECTED.forEach({e ->
+                println(" - Peer disconnected: " + e.peerAddress)
                 numPeersCurrentlyConnected.decrementAndGet()
             })
 
-            server.EVENTS.PEERS.HANDSHAKED_MIN_REACHED.forEach({e -> minHandshakedReachedEvent.set(e)})
-            server.EVENTS.PEERS.HANDSHAKED_MIN_LOST.forEach({e -> minHandshakedLostEvent.set(e)})
+            server.EVENTS.PEERS.HANDSHAKED_MIN_REACHED.forEach({e ->
+                println(" - Minimum number of Peers Reached: " + e.numPeers)
+                minHandshakedReachedEvent.set(e)
+            })
+
+            server.EVENTS.PEERS.HANDSHAKED_MIN_LOST.forEach({e ->
+                println(" - Maximum number of Peers Reached: " + e.numPeers)
+                minHandshakedLostEvent.set(e)
+            })
 
         when:
             server.startServer()
