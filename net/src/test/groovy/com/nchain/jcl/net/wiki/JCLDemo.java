@@ -42,7 +42,7 @@ public class JCLDemo {
                     .build();
 
             p2p.EVENTS.STATE.MESSAGES.forEach(System.out::println);
-
+            p2p.EVENTS.MSGS.ALL.forEach(e -> System.out.println(e.getBtcMsg()));
             p2p.startServer();
 
             Thread.sleep(5_000);

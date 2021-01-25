@@ -105,24 +105,24 @@ After the instance is created, you can already start using the ``BlockStore``  m
 
 In the ``BlockChainStore``component, the *Streaming* of the *Fork* and *PRUNE* Events are *ALWAYS* enabled.
 
-### Automatic Prunning:
+### Automatic Fork Prunning:
 
-The ``BlockChainStore`` component can be configured to perform an *Automatic Prunning*. If enabled, a *Chain* will be pruned if the difference in *height* with the longest *Chain* is bigger than a *Threshold* defined during the Set up:
+The ``BlockChainStore`` component can be configured to perform an *Automatic Fork Prunning*. If enabled, a *Chain* will be pruned if the difference in *height* with the longest *Chain* is bigger than a *Threshold* defined during the Set up:
 
-The following configuration enables the *Automatic Prunning* and sets up the Frequency of that Prunning and the difference in *Heighht* needed for a *Chain* to be pruned.
+The following configuration enables the *Automatic Prunning* and sets up the Frequency of that Prunning and the difference in *Height* needed for a *Chain* to be pruned.
 
 
 ```
 RuntimeConfig runtimeConfig = new RuntimeConfigDefault();
 BlockStoreLevelDBConfig dbConfig = BlockChainStoreLevelDBConfig()
                     .config(runtimeConfig)
+                    .genesisBlock(new ProtocolBSVMainConfig().getGenesisBlock())
+                    .forkPrunningHeightDifference(2)
                     .build()
 BlockStore db = BlockStoreLevelDB.builder()
                     .config(dbConfig)
-                    .genesisBlock(new ProtocolBSVMainConfig().getGenesisBlock())
-                    .enableAutomaticPrunning(true)
-                    .prunningFrequency(Duration.ofSeconds(60)) 
-                    .prunningHeightDifference(2)
+                    .enableAutomaticForkPrunning(true)
+                    .forkPrunningFrequency(Duration.ofSeconds(60)) 
                     .build()
 ```
 
@@ -134,6 +134,32 @@ Using the Configuration above, the *BlockChainStore* component will perform the 
 > 
 > It's ok to use a short frequency for testing purposes (like in the example above), but in a real scenario a frequency of several hours is more suitable.
 > 
+
+### Automatic Orphan Prunning:
+
+The ``BlockChainStore`` component can be configured to perform an *Automatic Orphan Prunning*. If enabled, all the **Orphan** Blocks will be removed if they are also **older** than a specifi threashold that can be set during Configuration. 
+
+The following configuration enables the *Automatic Orphan Prunning* and sets up the Frequency of that Prunning and the minimim *Age* that a Block must have in order to be removed.
+
+
+```
+RuntimeConfig runtimeConfig = new RuntimeConfigDefault();
+BlockStoreLevelDBConfig dbConfig = BlockChainStoreLevelDBConfig()
+                    .config(runtimeConfig)
+                    .genesisBlock(new ProtocolBSVMainConfig().getGenesisBlock())
+                    .orphanPrunningBlockAge(Duration.ofMinutes(30)
+                    .build()
+BlockStore db = BlockStoreLevelDB.builder()
+                    .config(dbConfig)
+                    .enableAutomaticOrphanPrunning(true)
+                    .orphanPrunningFrequency(Duration.ofSeconds(40)) 
+                    .build()
+```
+
+Using the Configuration above, the *BlockChainStore* component will perform the verification every 40 seconds, and only those **Orphan** Blocks **older** than 30 minutes fromt he current time will be removed.
+
+> If not specified, **Orphan** Blocks are removed when they are **older** than 30 minutes ago.
+
 
 ### State Streaming
 

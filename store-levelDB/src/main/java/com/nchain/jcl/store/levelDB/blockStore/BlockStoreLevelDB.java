@@ -22,6 +22,8 @@ import java.util.Iterator;
 
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 
@@ -51,7 +53,7 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
     public static final String KEY_SEPARATOR = "\\";
 
     // A lock (used by some methods, to ensure Thread-safety):
-    @Getter private Object lock = new Object();
+    @Getter private ReadWriteLock lock = new ReentrantReadWriteLock();
 
     // LevelDB instance:
     protected final DB levelDBStore;

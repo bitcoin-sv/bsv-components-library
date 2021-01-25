@@ -21,6 +21,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReadWriteLock;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
@@ -107,7 +108,7 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
 
 
     /** This method returns a Lock that can be used to make sure Thread-safety is in place */
-    Object getLock();
+    ReadWriteLock getLock();
 
     /** Function that takes an Item from the DB and return the Key */
     byte[] keyFromItem(E item);
@@ -221,6 +222,7 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     default byte[] bytes(BlockHeader header)          { return BlockHeaderSerializer.getInstance().serialize(header);  }
     default byte[] bytes(Tx tx)                       { return TxSerializer.getInstance().serialize(tx); }
     default byte[] bytes(Long value)                  { return ByteTools.uint64ToByteArrayLE(value); }
+    default byte[] bytes(Integer value)               { return ByteTools.uint32ToByteArrayLE(value); }
 
 
     /* Functions to deserialize Objects: */
@@ -230,6 +232,7 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     default Tx          toTx(byte[] bytes)            { return (isBytesOk(bytes)) ? TxSerializer.getInstance().deserialize(bytes) : null;}
     default HashesList  toHashes(byte[] bytes)        { return (isBytesOk(bytes)) ? HashesListSerializer.getInstance().deserialize(bytes) : null;}
     default long        toLong(byte[] bytes)          { return (isBytesOk(bytes)) ? ByteTools.readInt64LE(bytes) : null;}
+    default int         toInt(byte[] bytes)           { return (isBytesOk(bytes)) ? (int) ByteTools.readUint32(bytes) : null;}
 
 
     /* Given a Key, it extracts the Tx Hash from it as long as the fullKey contains a Tx_hash, otherwise it returns null */
@@ -536,64 +539,82 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
 
     @Override
     default void saveBlock(BlockHeader blockHeader) {
-        synchronized (getLock()) {
+        try {
+            getLock().writeLock().lock();
             T tr = createTransaction();
             executeInTransaction(tr, () -> {
                 _saveBlock(tr, blockHeader);
                 _triggerBlocksStoredEvent(Arrays.asList(blockHeader));
             });
-        } // synchronized
+        } finally {
+            getLock().writeLock().unlock();
+        }
     }
 
     @Override
     default void saveBlocks(List<BlockHeader> blockHeaders) {
-        synchronized (getLock()) {
-
+        try {
+            getLock().writeLock().lock();
             /*
                 Any operation performed on a List of Items will need to be split into smaller lists, just to make sure
                 each Transaction is small (some KeyValue vendors have limitations)
             */
-
             List<List<BlockHeader>> subLists = Lists.partition(blockHeaders, getConfig().getTransactionBatchSize());
             for (List<BlockHeader> subList : subLists) {
                 T tr = createTransaction();
                 executeInTransaction(tr, () -> _saveBlocks(tr, subList));
             }
             _triggerBlocksStoredEvent(blockHeaders);
-        } // synchronized
+        } finally {
+            getLock().writeLock().unlock();
+        }
     }
 
     @Override
     default boolean containsBlock(Sha256Wrapper blockHash) {
-        AtomicBoolean result = new AtomicBoolean();
-        T tr = createTransaction();
-        executeInTransaction(tr, () -> result.set(_getBlockBytes(tr, blockHash.toString()) != null));
-        return result.get();
+        try {
+            getLock().readLock().lock();
+            AtomicBoolean result = new AtomicBoolean();
+            T tr = createTransaction();
+            executeInTransaction(tr, () -> result.set(_getBlockBytes(tr, blockHash.toString()) != null));
+            return result.get();
+        } finally {
+            getLock().readLock().unlock();
+        }
     }
 
     @Override
     default Optional<BlockHeader> getBlock(Sha256Wrapper blockHash) {
-        AtomicReference<BlockHeader> result = new AtomicReference<>();
-        T tr = createTransaction();
-        executeInTransaction(tr, () -> result.set(_getBlock(tr, blockHash.toString())));
-        return Optional.ofNullable(result.get());
+        try {
+            getLock().readLock().lock();
+            AtomicReference<BlockHeader> result = new AtomicReference<>();
+            T tr = createTransaction();
+            executeInTransaction(tr, () -> result.set(_getBlock(tr, blockHash.toString())));
+            return Optional.ofNullable(result.get());
+        } finally {
+            getLock().readLock().unlock();
+        }
     }
 
     @Override
     default void removeBlock(Sha256Wrapper blockHash) {
-        synchronized (getLock()) {
+        try {
+            getLock().writeLock().lock();
             T tr = createTransaction();
             executeInTransaction(tr, () -> {
                 _removeBlock(tr, blockHash.toString());
                 _unlinkBlock(blockHash.toString());
                 _triggerBlocksRemovedEvent(Arrays.asList(blockHash));
             });
-        } // synchronized
+        } finally {
+            getLock().writeLock().unlock();
+        }
     }
 
     @Override
     default void removeBlocks(List<Sha256Wrapper> blockHashes) {
-        synchronized (getLock()) {
+        try {
+            getLock().writeLock().lock();
             /*
                 Any operation performed on a List of Items will need to be split into smaller lists, just to make sure
                 each Transaction is small (some KeyValue vendors have limitations)
@@ -605,29 +626,40 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
                 executeInTransaction(tr, () -> _removeBlocks(tr, subList.stream().map(h -> h.toString()).collect(Collectors.toList())));
             }
             _triggerBlocksRemovedEvent(blockHashes);
-        } // synchronized
+        } finally {
+            getLock().writeLock().unlock();
+        }
     }
 
     @Override
     default long getNumBlocks() {
-        byte[] startingWith = keyStartingWith(fullKey(fullKeyForBlocks(), KEY_PREFFIX_BLOCK));
-        return numKeys(startingWith);
+        try {
+            getLock().readLock().lock();
+            byte[] startingWith = keyStartingWith(fullKey(fullKeyForBlocks(), KEY_PREFFIX_BLOCK));
+            return numKeys(startingWith);
+        } finally {
+            getLock().readLock().unlock();
+        }
     }
 
     @Override
     default void saveTx(Tx tx) {
-        synchronized (getLock()) {
+        try {
+            getLock().writeLock().lock();
             T tr = createTransaction();
             executeInTransaction(tr, () -> {
                 _saveTx(tr, tx);
                 _triggerTxsStoredEvent(Arrays.asList(tx));
             });
-        } // synchronized
+        } finally {
+            getLock().writeLock().unlock();
+        }
     }
 
     @Override
     default void saveTxs(List<Tx> txs) {
-        synchronized (getLock()) {
+        try {
+            getLock().writeLock().lock();
             /*
                 Any operation performed on a List of Items will need to be split into smaller lists, just to make sure
                 each Transaction is small (some KeyValue vendors have limitations)
@@ -638,39 +670,55 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
                 executeInTransaction(tr, () -> _saveTxs(tr, subList));
             }
             _triggerTxsStoredEvent(txs);
-        } // synchronized
+        } finally {
+            getLock().writeLock().unlock();
+        }
     }
 
     @Override
     default boolean containsTx(Sha256Wrapper txHash) {
-        AtomicBoolean result = new AtomicBoolean();
-        T tr = createTransaction();
-        executeInTransaction(tr, () -> result.set(_getTxBytes(tr, txHash.toString()) != null));
-        return result.get();
+        try {
+            getLock().readLock().lock();
+            AtomicBoolean result = new AtomicBoolean();
+            T tr = createTransaction();
+            executeInTransaction(tr, () -> result.set(_getTxBytes(tr, txHash.toString()) != null));
+            return result.get();
+        } finally {
+            getLock().readLock().unlock();
+        }
     }
 
     @Override
     default Optional<Tx> getTx(Sha256Wrapper txHash) {
-        AtomicReference<Tx> result = new AtomicReference<>();
-        T tr = createTransaction();
-        executeInTransaction(tr, () -> result.set(_getTx(tr, txHash.toString())));
-        return Optional.ofNullable(result.get());
+        try {
+            getLock().readLock().lock();
+            AtomicReference<Tx> result = new AtomicReference<>();
+            T tr = createTransaction();
+            executeInTransaction(tr, () -> result.set(_getTx(tr, txHash.toString())));
+            return Optional.ofNullable(result.get());
+        } finally {
+            getLock().readLock().unlock();
+        }
     }
 
     @Override
     default void removeTx(Sha256Wrapper txHash) {
-        synchronized (getLock()) {
+        try {
+            getLock().writeLock().lock();
             T tr = createTransaction();
             executeInTransaction(tr, () -> {
                 _removeTx(tr, txHash.toString());
                 _triggerTxsRemovedEvent(Arrays.asList(txHash));
             });
-        } // synchronized
+        } finally {
+            getLock().writeLock().unlock();
+        }
     }
 
     @Override
     default void removeTxs(List<Sha256Wrapper> txHashes) {
-        synchronized (getLock()) {
+        try {
+            getLock().writeLock().lock();
             /*
                 Any operation performed on a List of Items will need to be split into smaller lists, just to make sure
                 each Transaction is small (some KeyValue vendors have limitations)
@@ -683,41 +731,57 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
                 );
             }
             _triggerTxsRemovedEvent(txHashes);
-        } // synchronized
+        } finally {
+            getLock().writeLock().unlock();
+        }
     }
 
     @Override
     default List<Sha256Wrapper> getTxsNeeded(Sha256Wrapper txHash) {
-        List<Sha256Wrapper> result = new ArrayList<>();
-        T tr = createTransaction();
-        executeInTransaction(tr, () -> {
-            Tx tx = _getTx(tr, txHash.toString());
-            if (tx == null) return;
-            Set<Sha256Wrapper> txsNeeded = tx.getInputs().stream()
-                    .map(i -> i.getOutpoint().getHash())
-                    .collect(Collectors.toSet());
-            result.addAll(txsNeeded);
-        });
-        return result;
+        try {
+            getLock().readLock().lock();
+            List<Sha256Wrapper> result = new ArrayList<>();
+            T tr = createTransaction();
+            executeInTransaction(tr, () -> {
+                Tx tx = _getTx(tr, txHash.toString());
+                if (tx == null) return;
+                Set<Sha256Wrapper> txsNeeded = tx.getInputs().stream()
+                        .map(i -> i.getOutpoint().getHash())
+                        .collect(Collectors.toSet());
+                result.addAll(txsNeeded);
+            });
+            return result;
+        } finally {
+            getLock().readLock().unlock();
+        }
     }
 
     @Override
     default long getNumTxs() {
-        byte[] startingWith = keyStartingWith(fullKey(fullKeyForTxs(), KEY_PREFFIX_TX));
-        return numKeys(startingWith);
+        try {
+            getLock().readLock().lock();
+            byte[] startingWith = keyStartingWith(fullKey(fullKeyForTxs(), KEY_PREFFIX_TX));
+            return numKeys(startingWith);
+        } finally {
+            getLock().readLock().unlock();
+        }
     }
 
     @Override
     default void linkTxToBlock(Sha256Wrapper txHash, Sha256Wrapper blockHash) {
-        synchronized (getLock()) {
+        try {
+            getLock().writeLock().lock();
             T tr = createTransaction();
             executeInTransaction(tr, () -> _linkTxToBlock(tr, txHash.toString(), blockHash.toString()));
-        } // synchronized
+        } finally {
+            getLock().writeLock().unlock();
+        }
     }
 
     @Override
     default void linkTxsToBlock(List<Sha256Wrapper> txsHashes, Sha256Wrapper blockHash) {
-        synchronized (getLock()) {
+        try {
+            getLock().writeLock().lock();
             /*
                 Any operation performed on a List of Items will need to be split into smaller lists, just to make sure
                 each Transaction is small (some KeyValue vendors have limitations)
@@ -732,20 +796,26 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
             }
             T tr = createTransaction();
             executeInTransaction(tr, () -> _addBlockNumTxs(tr, blockHash.toString(), txsHashes.size()));
-        } // synchronized
+        } finally {
+            getLock().writeLock().unlock();
+        }
     }
 
     @Override
     default void unlinkTxFromBlock(Sha256Wrapper txHash, Sha256Wrapper blockHash) {
-        synchronized(getLock()) {
+        try {
+            getLock().writeLock().lock();
             T tr = createTransaction();
             executeInTransaction(tr, () -> _unlinkTxFromBlock(tr, txHash.toString(), blockHash.toString()));
-        } // synchronized
+        } finally {
+            getLock().writeLock().unlock();
+        }
     }
 
     @Override
     default void unlinkTxsFromBlock(List<Sha256Wrapper> txsHashes, Sha256Wrapper blockHash) {
-        synchronized (getLock()) {
+        try {
+            getLock().writeLock().lock();
             /*
                 Any operation performed on a List of Items will need to be split into smaller lists, just to make sure
                 each Transaction is small (some KeyValue vendors have limitations)
@@ -759,70 +829,100 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
             }
             T tr = createTransaction();
             executeInTransaction(tr, () -> _addBlockNumTxs(tr, blockHash.toString(), -txsHashes.size()));
-        } // synchronized
+        } finally {
+            getLock().writeLock().unlock();
+        }
     }
 
     @Override
     default void unlinkTx(Sha256Wrapper txHash) {
-        synchronized (getLock()) {
+        try {
+            getLock().writeLock().lock();
             T tr = createTransaction();
             executeInTransaction(tr, () -> _unlinkTx(tr, txHash.toString()));
-        } // synchronized
+        } finally {
+            getLock().writeLock().unlock();
+        }
     }
 
     @Override
     default void unlinkBlock(Sha256Wrapper blockHash) {
-        synchronized (getLock()) {
+        try {
+            getLock().writeLock().lock();
             _unlinkBlock(blockHash.toString());
-        } // synchronized
+        } finally {
+            getLock().writeLock().unlock();
+        }
     }
 
     @Override
     default boolean isTxLinkToblock(Sha256Wrapper txHash, Sha256Wrapper blockHash) {
-        AtomicBoolean result = new AtomicBoolean();
-        T tr = createTransaction();
-        executeInTransaction(tr, () -> result.set(_isTxLinkToBlock(tr, txHash.toString(), blockHash.toString())));
-        return result.get();
+        try {
+            getLock().readLock().lock();
+            AtomicBoolean result = new AtomicBoolean();
+            T tr = createTransaction();
+            executeInTransaction(tr, () -> result.set(_isTxLinkToBlock(tr, txHash.toString(), blockHash.toString())));
+            return result.get();
+        } finally {
+            getLock().readLock().unlock();
+        }
+
     }
 
     @Override
     default List<Sha256Wrapper> getBlockHashLinkedToTx(Sha256Wrapper txHash) {
-        List<Sha256Wrapper> result = new ArrayList<>();
-        T tr = createTransaction();
-        executeInTransaction(tr, () -> {
-                    List<String> hashes = _getBlockHashesLinkedToTx(tr, txHash.toString());
-                    result.addAll(hashes.stream().map(Sha256Wrapper::wrap).collect(Collectors.toList()));
+        try {
+            getLock().readLock().lock();
+            List<Sha256Wrapper> result = new ArrayList<>();
+            T tr = createTransaction();
+            executeInTransaction(tr, () -> {
+                List<String> hashes = _getBlockHashesLinkedToTx(tr, txHash.toString());
+                result.addAll(hashes.stream().map(Sha256Wrapper::wrap).collect(Collectors.toList()));
 
-        });
-        return result;
+            });
+            return result;
+        } finally {
+            getLock().readLock().unlock();
+        }
     }
 
     @Override
     default Iterable<Sha256Wrapper> getBlockTxs(Sha256Wrapper blockHash) {
-        if (!containsBlock(blockHash)) return null; // Check
+        try {
+            getLock().readLock().lock();
+            if (!containsBlock(blockHash)) return null; // Check
 
-        byte[] keyPreffix = keyStartingWith(fullKey(fullKeyForBlockDir(blockHash.toString()), KEY_PREFFIX_TX_LINK));
-        Function<E, Sha256Wrapper> buildKeyFunction = e -> {
-            byte[] key = keyFromItem(e);
-            return Sha256Wrapper.wrap(extractTxHashFromKey(key).get());
-        };
+            byte[] keyPreffix = keyStartingWith(fullKey(fullKeyForBlockDir(blockHash.toString()), KEY_PREFFIX_TX_LINK));
+            Function<E, Sha256Wrapper> buildKeyFunction = e -> {
+                byte[] key = keyFromItem(e);
+                return Sha256Wrapper.wrap(extractTxHashFromKey(key).get());
+            };
 
-        Iterator<Sha256Wrapper> it = getIterator(keyPreffix, null, null, buildKeyFunction);
-        Iterable<Sha256Wrapper> result = () -> it;
-        return result;
+            Iterator<Sha256Wrapper> it = getIterator(keyPreffix, null, null, buildKeyFunction);
+            Iterable<Sha256Wrapper> result = () -> it;
+            return result;
+        } finally {
+            getLock().readLock().unlock();
+        }
     }
 
     @Override
     default long getBlockNumTxs(Sha256Wrapper blockHash) {
-        AtomicLong result = new AtomicLong();
-        T tr = createTransaction();
-        executeInTransaction(tr, () -> result.set(_getBlockNumTxs(tr, blockHash.toString())));
-        return result.get();
+        try {
+            getLock().readLock().lock();
+            AtomicLong result = new AtomicLong();
+            T tr = createTransaction();
+            executeInTransaction(tr, () -> result.set(_getBlockNumTxs(tr, blockHash.toString())));
+            return result.get();
+        } finally {
+            getLock().readLock().unlock();
+        }
     }
 
     @Override
     default void saveBlockTxs(Sha256Wrapper blockHash, List<Tx> txs) {
-        synchronized (getLock()) {
+        try {
+            getLock().writeLock().lock();
             /*
                 Any operation performed on a List of Items will need to be split into smaller lists, just to make sure
                 each Transaction is small (some KeyValue vendors have limitations)
@@ -840,12 +940,15 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
                 });
             } // for...
             _triggerTxsStoredEvent(txs);
-        } // synchronized
+        } finally {
+            getLock().writeLock().unlock();
+        }
     }
 
     @Override
     default void removeBlockTxs(Sha256Wrapper blockHash) {
-        synchronized (getLock()) {
+        try {
+            getLock().writeLock().lock();
             // We remove all The Txs from this Block. the problem is that we need to trigger an TXS_REMOVED Event but the
             // number of Txs must be huge, so we cannot just trigger a single event with a huge list inside. Instead, we
             // are keeping track of the number of Txs we remove, and we only trigger an event when we reach the Threshold.
@@ -863,45 +966,52 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
 
             // In case there are still Tx that have not been published in an Event...
             if (batchTxsRemoved.size() > 0) _triggerTxsRemovedEvent(batchTxsRemoved);
-        } // synchronized
+        } finally {
+            getLock().writeLock().unlock();
+        }
     }
 
     @Override
     default Optional<BlocksCompareResult> compareBlocks(Sha256Wrapper blockHashA, Sha256Wrapper blockHashB) {
-        Optional<BlockHeader> blockHeaderA = getBlock(blockHashA);
-        Optional<BlockHeader> blockHeaderB = getBlock(blockHashB);
+        try {
+            getLock().readLock().lock();
+            Optional<BlockHeader> blockHeaderA = getBlock(blockHashA);
+            Optional<BlockHeader> blockHeaderB = getBlock(blockHashB);
 
-        if (blockHeaderA.isEmpty() || blockHeaderB.isEmpty()) return Optional.empty();
+            if (blockHeaderA.isEmpty() || blockHeaderB.isEmpty()) return Optional.empty();
 
-        BlocksCompareResult.BlocksCompareResultBuilder resultBuilder = BlocksCompareResult.builder()
-                .blockA(blockHeaderA.get())
-                .blockB(blockHeaderB.get());
+            BlocksCompareResult.BlocksCompareResultBuilder resultBuilder = BlocksCompareResult.builder()
+                    .blockA(blockHeaderA.get())
+                    .blockB(blockHeaderB.get());
 
-        byte[] keyPreffixA = keyStartingWith(fullKey(fullKeyForBlockDir(blockHashA.toString()), KEY_PREFFIX_TX_LINK));
-        byte[] keyPreffixB = keyStartingWith(fullKey(fullKeyForBlockDir(blockHashB.toString()), KEY_PREFFIX_TX_LINK));
+            byte[] keyPreffixA = keyStartingWith(fullKey(fullKeyForBlockDir(blockHashA.toString()), KEY_PREFFIX_TX_LINK));
+            byte[] keyPreffixB = keyStartingWith(fullKey(fullKeyForBlockDir(blockHashB.toString()), KEY_PREFFIX_TX_LINK));
 
-        // We create an Iterable for the TXs in common:
-        Function<E, Sha256Wrapper> buildItemBy = e -> Sha256Wrapper.wrap(extractTxHashFromKey(keyFromItem(e)).get());
+            // We create an Iterable for the TXs in common:
+            Function<E, Sha256Wrapper> buildItemBy = e -> Sha256Wrapper.wrap(extractTxHashFromKey(keyFromItem(e)).get());
 
-        BiPredicate<T, byte[]> commonKeyValid = (tr, k) -> _isTxLinkToBlock(tr, extractTxHashFromKey(k).get(), blockHashB.toString());
-        Iterator<Sha256Wrapper> commonIterator = getIterator(keyPreffixA, null, commonKeyValid, buildItemBy);
-        Iterable<Sha256Wrapper> commonIterable = () -> commonIterator;
-        resultBuilder.txsInCommonIt(commonIterable);
+            BiPredicate<T, byte[]> commonKeyValid = (tr, k) -> _isTxLinkToBlock(tr, extractTxHashFromKey(k).get(), blockHashB.toString());
+            Iterator<Sha256Wrapper> commonIterator = getIterator(keyPreffixA, null, commonKeyValid, buildItemBy);
+            Iterable<Sha256Wrapper> commonIterable = () -> commonIterator;
+            resultBuilder.txsInCommonIt(commonIterable);
 
-        // We create an Iterable for the TXs that are ONLY in the block A:
+            // We create an Iterable for the TXs that are ONLY in the block A:
 
-        BiPredicate<T, byte[]> onlyAKeyValid = (tr, k) -> !_isTxLinkToBlock(tr, extractTxHashFromKey(k).get(), blockHashB.toString());
-        Iterator<Sha256Wrapper> onlyAIterator = getIterator(keyPreffixA, null, onlyAKeyValid, buildItemBy);
-        Iterable<Sha256Wrapper> onlyAIterable = () -> onlyAIterator;
-        resultBuilder.txsOnlyInA(onlyAIterable);
+            BiPredicate<T, byte[]> onlyAKeyValid = (tr, k) -> !_isTxLinkToBlock(tr, extractTxHashFromKey(k).get(), blockHashB.toString());
+            Iterator<Sha256Wrapper> onlyAIterator = getIterator(keyPreffixA, null, onlyAKeyValid, buildItemBy);
+            Iterable<Sha256Wrapper> onlyAIterable = () -> onlyAIterator;
+            resultBuilder.txsOnlyInA(onlyAIterable);
 
-        // We create an Iterable for the TXs that are ONLY in the block B:
-        BiPredicate<T, byte[]> onlyBKeyValid = (tr, k) -> !_isTxLinkToBlock(tr, extractTxHashFromKey(k).get(), blockHashA.toString());
-        Iterator<Sha256Wrapper> onlyBIterator = getIterator(keyPreffixB, null, onlyBKeyValid, buildItemBy);
-        Iterable<Sha256Wrapper> onlyBIterable = () -> onlyBIterator;
-        resultBuilder.txsOnlyInB(onlyBIterable);
+            // We create an Iterable for the TXs that are ONLY in the block B:
+            BiPredicate<T, byte[]> onlyBKeyValid = (tr, k) -> !_isTxLinkToBlock(tr, extractTxHashFromKey(k).get(), blockHashA.toString());
+            Iterator<Sha256Wrapper> onlyBIterator = getIterator(keyPreffixB, null, onlyBKeyValid, buildItemBy);
+            Iterable<Sha256Wrapper> onlyBIterable = () -> onlyBIterator;
+            resultBuilder.txsOnlyInB(onlyBIterable);
 
-        return Optional.of(resultBuilder.build());
+            return Optional.of(resultBuilder.build());
+        } finally {
+            getLock().readLock().unlock();
+        }
     }
 
     /* Events triggering Operations */

@@ -15,9 +15,12 @@ class BlockChainStoreBasicSpec extends BlockChainStoreBasicSpecBase {
     BlockChainStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents,
                                 BlockHeader genesisBlock,
                                 Duration publishStateFrequency,
-                                Duration automaticPrunningFrequency,
-                                Integer prunningHeightDifference) {
+                                Duration forkPrunningFrequency,
+                                Integer forkPrunningHeightDiff,
+                                Duration orphanPrunningFrequency,
+                                Duration orphanPrunningBlockAge) {
         return StoreFactory.getInstance(netId, triggerBlockEvents, triggerTxEvents, genesisBlock,
-                publishStateFrequency, automaticPrunningFrequency, prunningHeightDifference)
+                publishStateFrequency, forkPrunningFrequency, forkPrunningHeightDiff,
+                orphanPrunningFrequency, orphanPrunningBlockAge)
     }
 }

@@ -9,9 +9,6 @@ import com.apple.foundationdb.directory.DirectorySubspace;
 import com.apple.foundationdb.tuple.Tuple;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.nchain.jcl.base.domain.api.base.Tx;
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
 import com.nchain.jcl.base.tools.events.EventBus;
 import com.nchain.jcl.base.tools.thread.ThreadUtils;
 import com.nchain.jcl.store.blockStore.BlockStore;
@@ -19,7 +16,6 @@ import com.nchain.jcl.store.blockStore.events.BlockStoreStreamer;
 import com.nchain.jcl.store.foundationDB.common.FDBIterator;
 import com.nchain.jcl.store.foundationDB.common.FDBSafeIterator;
 import com.nchain.jcl.store.keyValue.blockStore.BlockStoreKeyValue;
-import com.nchain.jcl.store.keyValue.common.HashesList;
 import com.nchain.jcl.store.keyValue.common.KeyValueIterator;
 import lombok.Builder;
 import lombok.Getter;
@@ -29,12 +25,14 @@ import org.slf4j.Logger;
 
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicReference;
+
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
-import java.util.function.Consumer;
+
 import java.util.function.Function;
-import java.util.stream.Collectors;
+
 
 
 /**
@@ -56,7 +54,7 @@ public class BlockStoreFDB implements BlockStoreKeyValue<KeyValue, Transaction>,
     @Getter private final boolean triggerTxEvents;
 
     // A lock (used by some methods, to ensure Thread-safety):
-    @Getter private Object lock = new Object();
+    @Getter private ReadWriteLock lock = new ReentrantReadWriteLock();
 
     // DB Connection:
     @Getter protected FDB fdb;
@@ -192,6 +190,7 @@ public class BlockStoreFDB implements BlockStoreKeyValue<KeyValue, Transaction>,
         try {
             return tr.get(key).get();
         } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
             throw new RuntimeException(e);
         }
     }

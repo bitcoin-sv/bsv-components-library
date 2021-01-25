@@ -17,9 +17,6 @@ implementations might be provided, but the behaviour of all of them must comply 
  
 The Interfaces defined in this module are the following:
 
-![JCL-Store Modules](jcl-Store.png)
-
-
 
  * **BlockStore:**
  This interface provides operations to save/retrieve/remove Blocks and Transactions. Blocks and Transactions are stored
@@ -40,8 +37,9 @@ The Interfaces defined in this module are the following:
 the interfaces above, go check out the documentation of all the implementations provided:
 >
 > [JCL-Store-LevelDB](../../store-levelDB/doc/README.md): *JCL-Store* implementation with LevelDB 
+> 
+> [JCL-Store-FoundationDB](../../store-foundationDB/doc/README.md): *JCL-Store* implementation with FoundationDB 
   
-
 
 Examples of use of these 2 interfaces are detailed in the chapters below
 
@@ -125,12 +123,12 @@ other methods that allows for modifying this relationship, like:
 > Using the methods above create a relation between a Transaction and a Block. This relation might be in one of the following scenarios:
 > 
 >  * A Block might be *empty*. or contain several Transactions, with no upper limit in that number of *Transactions*.
->  * A Transaction might NOT belong to any block at all. This is the situation when the Transaction is not being mined and not included in a block just yet.
+>  * A Transaction might NOT belong to any block at all. This is the situation when the Block i being mined and this Tx is not included in a block just yet.
 >  * A Transaction might belong to ONLY one Block. This is the "normal" scenario where a Transaction is contained in a Block that has been mined and its part of the BlockChain.
 >  * A Transaction might belong to MORE than 1 Block. This is the scenario of a FORK, where 2 or more different Blocks are competing to be the longest Chain, and they all contain the same Transaction.
 >
 >
->All the scenarios above are valid and can be modelled. The method ``getBlockHashLinkedToTx`` returns a *List* of those Blocks the Tx given belongs to. The returned List might an Empty list or a list with 1 or more elements, acording with the scenarios described previosly.
+>All the scenarios above are valid and can be modelled. The method ``getBlockHashLinkedToTx`` returns a *List* of those Blocks the Tx given belongs to. The returned List might an Empty list or a list with 1 or more elements, according to the scenarios described above.
 > 
 
 
@@ -212,7 +210,9 @@ access them, but it can NOT guarantee whether they are enable or not. Enabling o
 is implementation-specific, so **go check the implementation documentation** for the guidelines about how
 to enable/configure the trigering of Events.
 >
-> [JCL-Store-LevelDB](../../store-levelDB/doc/README.md): *JCL-Store* implementation with LevelDB 
+> [JCL-Store-LevelDB](../../store-levelDB/doc/README.md): *JCL-Store* implementation with LevelDB
+> 
+> [JCL-Store-FoundationDB](../../store-foundationDB/doc/README.md): *JCL-Store* implementation with FoundationDB 
 
 
 
@@ -321,6 +321,10 @@ Block so we can get all the *Transactions* belonging to a Block, and we can also
     individual "Chains".
   * It provides methods to "prune" a Chain. This process can also be performed automatically.     
 
+
+
+
+
 ### Getting Chain Information
 
 The *getBlockChainInfo()* accetps a *Block Hash* as a parameter and returns an instance of *ChainInfo*, which stores
@@ -332,9 +336,14 @@ since *Blocks* might be stored in a different order), then it returns an *Empty*
 Optional<ChainInfo> getBlockChainInfo(Sha256Wrapper blockHash);
 ```
 
+In the following picture we can see 2 examples of the DB state at 2 points in time: In the **State A**, 5 blocks are stored: #1, #2, #4 and #5. Only the Blocks #1 and #2 are connecgted to the Chain, so we only have **ChainInfo** for them. In the **State B**, the Block #3 is inserted, and at this moment is automatically **connected** to the Chain, since it's parent (#2) is already stored. And this **connection** process is also triggered through all the Blocks built on top of #3, so in the end all the blocks are connected and we can potentially get **CHainInfo** from all of them.
+
+
+![getChainInfo example](chainInfoExample.png)
+
 ### Traversing the Chain
 
-Using the original *BlockStore* Component was already possible to travel from a *Block* to its parent, and by repeating
+Using the original *BlockStore* Component is already possible to travel from a *Block* to its parent, and by repeating
 this process you could go up to the beginning of the *Chain*. The *BlockChainStore* makes this "traversing" more 
 explicit by adding methods to go "back" to its parent and "forth" to the *Children* of a *Block* given:
 
@@ -348,7 +357,7 @@ an empty list. But in the rare case there is a *Fork* beginning at this *Block*,
 so that's why the methods returns a *List*.
 
 
-### Tips of the Chains and prunning
+### Tips of the Chains
 
 The *BlockChainStore* components provides methods to get direct information about the *Tips* of the *Chains* stored in
 the DB:
@@ -357,6 +366,13 @@ the DB:
 List<Sha256Wrapper> getTipsChains();
 Optional<ChainInfo> getLongestChain();
 ```
+
+An example of the the preovous method used on the following DB State:
+
+![getChainInfo example](tipsChainExample.png)
+
+
+### Forks and prunning
 
 Due to the nature itself of the *BlockCHain*, a *Fork* might appear from time to time. A *Fork* is a situation where 
 *more* than 1 *Blocks* are being built on top of an existing *Block*, so we end up with 2 different *Chains*. 
@@ -374,8 +390,14 @@ by the Network. The *BlockChainStore* Component provides 2 ways to "remove/prune
  
 
 The *prune()* methods allows for removing a *Chain* by specifying the *Block* that makes the *Tip* of that Chain. All 
-the Blocks belonging to that *Chain* will be rmeoved, starting from its *Tip* and all the way back until the moment the 
+the Blocks belonging to that *Chain* will be removed, starting from its *Tip* and all the way back until the moment the 
 *Fork* was created.
+
+The following example shows the state of the Chain before and after prunning a Fork. notice that only the *Tip* of the Fork needs to be specified in the **prune** method:
+
+![getChainInfo example](forkExample.png)
+
+#### Automatic prunning
 
 The problem with the *prune()* method is that is not easy to know when its "safe" to *prune* a Chain. A *Chain* can *ONLY* 
 be safely removed when that Chain has been discarded by the Network and no *Blocks* are being built on top of it. So it's not 

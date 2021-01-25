@@ -39,17 +39,22 @@ class StoreFactory {
         return db
     }
 
+
     /** It creates an Instance of te BlockChainStore interface */
     static BlockChainStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents,
                                        BlockHeader genesisBlock,
                                        Duration publishStateFrequency,
-                                       Duration automaticPrunningFrequency,
-                                       Integer prunningHeightDifference) {
+                                       Duration forkPrunningFrequency,
+                                       Integer forkPrunningHeightDiff,
+                                       Duration orphanPrunningFrequency,
+                                       Duration orphanPrunningBlockAge) {
         Path dbPath = Path.of(buildWorkingFolder())
         BlockChainStoreLevelDBConfig dbConfig = BlockChainStoreLevelDBConfig.chainBuild()
                 .workingFolder(dbPath)
                 .networkId(netId)
                 .genesisBlock(genesisBlock)
+                .forkPrunningHeightDifference(forkPrunningHeightDiff)
+                .orphanPrunningBlockAge(orphanPrunningBlockAge)
                 .build()
 
         BlockChainStore db = BlockChainStoreLevelDB.chainStoreBuilder()
@@ -57,9 +62,10 @@ class StoreFactory {
                 .triggerBlockEvents(triggerBlockEvents)
                 .triggerTxEvents(triggerTxEvents)
                 .statePublishFrequency(publishStateFrequency)
-                .enableAutomaticPrunning(automaticPrunningFrequency != null)
-                .prunningFrequency(automaticPrunningFrequency)
-                .prunningHeightDifference((prunningHeightDifference) != null ? prunningHeightDifference : BlockChainStoreLevelDB.PRUNNING_HEIGHT_DIFF_DEFAULT)
+                .enableAutomaticForkPrunning(forkPrunningFrequency != null)
+                .forkPrunningFrequency(forkPrunningFrequency)
+                .enableAutomaticOrphanPrunning(orphanPrunningFrequency != null)
+                .orphanPrunningFrequency(orphanPrunningFrequency)
                 .build()
         return db;
     }

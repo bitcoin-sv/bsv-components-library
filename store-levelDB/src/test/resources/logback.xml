@@ -23,7 +23,7 @@
     </logger>
 
     <logger name="com.nchain.jcl.store.levelDB" additivity="false">
-        <level value="INFO" />
+        <level value="TRACE" />
         <appender-ref ref="STDOUT" />
     </logger>
 

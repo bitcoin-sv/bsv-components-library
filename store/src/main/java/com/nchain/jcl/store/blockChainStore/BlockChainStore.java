@@ -1,5 +1,6 @@
 package com.nchain.jcl.store.blockChainStore;
 
+import com.nchain.jcl.base.domain.api.base.BlockHeader;
 import com.nchain.jcl.base.domain.api.extended.ChainInfo;
 import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
 import com.nchain.jcl.store.blockChainStore.events.BlockChainStoreStreamer;
@@ -35,6 +36,11 @@ public interface BlockChainStore extends BlockStore {
     List<Sha256Wrapper> getNextBlocks(Sha256Wrapper blockHash);
 
     /**
+     * Returns all the Orphan blocks in the DB
+     */
+    Iterable<Sha256Wrapper> getOrphanBlocks();
+
+    /**
      * Returns the relative info about the Chain that the Block given is connected to. If the Block is not stored in
      * the DB or it' stored but not connected to any Chain (because there might be a GAP between the Genesis clock and
      * this block), then it will return an empty Optional.
@@ -49,6 +55,18 @@ public interface BlockChainStore extends BlockStore {
     List<Sha256Wrapper> getTipsChains();
 
     /**
+     * Returns the List of the Tips of the Chains the block given belongs to
+     */
+    List<Sha256Wrapper> getTipsChains(Sha256Wrapper blockHash);
+
+    /**
+     * Returns the FIRST Block in the same Path as the block given.
+     * If the block has been saved before a Fork, then this method will return the GENESIS Block.
+     * If the block has been saved after a Fork, then this method will return the FIRST Block saved after that Fork
+     */
+    ChainInfo getFirstBlockInPath(Sha256Wrapper blockHash);
+
+    /**
      * Removes the info about the tips of the Chain. Once this information is removed, it won't be possible to get the
      * longest chain. This operation is usually temporal: every time a new block is stored, the chain is revised, and
      * the Tups of the Chain are updated accordingly
@@ -57,7 +75,7 @@ public interface BlockChainStore extends BlockStore {
 
     /**
      * Return the ChainInfo of the Longest (highest) Chain at the moment the method is called.
-     * IMPORTANT_ In case there is a FORK, and there are more than one Chian with the SAME height, this method will
+     * IMPORTANT_ In case there is a FORK, and there are more than one Chain with the SAME height, this method will
      * return one of them.
      */
     Optional<ChainInfo> getLongestChain();
@@ -74,6 +92,7 @@ public interface BlockChainStore extends BlockStore {
      * @param removeTxs     if TRUE, the TXs belonging to each Block will also be removed
      */
     void prune(Sha256Wrapper tipChainHash, boolean removeTxs);
+
 
     /**
      * Returns the current State of the Info stored

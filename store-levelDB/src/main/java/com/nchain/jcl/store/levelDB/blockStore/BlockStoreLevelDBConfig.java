@@ -21,7 +21,7 @@ public class BlockStoreLevelDBConfig implements BlockStoreKeyValueConfig {
     // Transaction BATCH Default Size
     private static final int TRANSACTION_BATCH_SIZE = 5000;
 
-    /** Maximun number of Items that can be processed in a single DB Tramnsaction */
+    /** Maximun number of Items that can be processed in a single DB Transaction */
     private final int transactionBatchSize;
 
     /** Working Folder: The DB info will be created inside this folder */

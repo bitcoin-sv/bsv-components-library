@@ -36,6 +36,7 @@ public class BlockChainInfoSerializer {
         BitcoinSerializerUtils.serializeVarInt(object.getChainWork().intValue(), writer);
         BitcoinSerializerUtils.serializeVarInt(object.getHeight(), writer);
         BitcoinSerializerUtils.serializeVarInt(object.getTotalChainSize(), writer);
+        writer.writeUint32LE(object.getChainPathId());
         return writer.reader().getFullContentAndClose();
     }
 
@@ -49,6 +50,7 @@ public class BlockChainInfoSerializer {
                 .chainWork(BigInteger.valueOf(BitcoinSerializerUtils.deserializeVarInt(reader)))
                 .height((int) BitcoinSerializerUtils.deserializeVarInt(reader))
                 .totalChainSize(BitcoinSerializerUtils.deserializeVarInt(reader))
+                .chainPathId((int)reader.readUint32())
                 .build();
         return resultBuilder.build();
     }

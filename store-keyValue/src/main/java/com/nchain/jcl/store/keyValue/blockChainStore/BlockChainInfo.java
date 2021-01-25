@@ -29,4 +29,5 @@ public class BlockChainInfo implements Serializable {
     private BigInteger chainWork;
     private int height;
     private long totalChainSize;
+    private int chainPathId;
 }

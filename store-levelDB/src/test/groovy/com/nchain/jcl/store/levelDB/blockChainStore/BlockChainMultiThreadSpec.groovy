@@ -1,22 +1,17 @@
-package com.nchain.jcl.store.foundationDB.blockChainStore
+package com.nchain.jcl.store.levelDB.blockChainStore
 
 import com.nchain.jcl.base.domain.api.base.BlockHeader
 import com.nchain.jcl.store.blockChainStore.BlockChainForkSpecBase
+import com.nchain.jcl.store.blockChainStore.BlockChainMultiThreadSpecBase
 import com.nchain.jcl.store.blockChainStore.BlockChainStore
-import com.nchain.jcl.store.foundationDB.DockerTestUtils
-import com.nchain.jcl.store.foundationDB.StoreFactory
+import com.nchain.jcl.store.levelDB.StoreFactory
 
 import java.time.Duration
 
 /**
  * Test scenarios involving a Fork and Prune operations
  */
-class BlockChainForkSpec extends BlockChainForkSpecBase {
-
-    // Start & Stop FoundationDB in Docker Container (check DockerTestUtils for details)...
-    def setupSpec()     { DockerTestUtils.startDocker()}
-    def cleanupSpec()   { DockerTestUtils.stopDocker()}
-
+class BlockChainMultiThreadSpec extends BlockChainMultiThreadSpecBase {
     @Override
     BlockChainStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents,
                                 BlockHeader genesisBlock,

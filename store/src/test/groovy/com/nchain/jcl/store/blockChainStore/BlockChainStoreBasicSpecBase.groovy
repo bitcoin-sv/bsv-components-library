@@ -25,7 +25,7 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
             println(" - Connecting to the DB...")
             BlockHeader genesisBlock = TestingUtils.buildBlock()
             println(" - Using block genesis: " + genesisBlock.getHash())
-            BlockChainStore db = getInstance("BSV-Main", false, false, genesisBlock, null, null, null)
+            BlockChainStore db = getInstance("BSV-Main", false, false, genesisBlock, null, null, null, null, null)
 
         when:
             db.start()
@@ -98,7 +98,7 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
             println(" - Connecting to the DB...")
             BlockHeader genesisBlock = TestingUtils.buildBlock(Sha256Wrapper.ZERO_HASH.toString())
             println(" - Using block genesis: " + genesisBlock.getHash())
-            BlockChainStore db = getInstance("BSV-Main", true, false, genesisBlock, null, null, null)
+            BlockChainStore db = getInstance("BSV-Main", true, false, genesisBlock, null, null, null, null, null)
 
             // We keep track of the Events triggered:
             AtomicInteger numBlocksSavedEvents = new AtomicInteger()
@@ -232,7 +232,7 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
             println(" - Connecting to the DB...")
             BlockHeader genesisBlock = TestingUtils.buildBlock(Sha256Wrapper.ZERO_HASH.toString())
             println(" - Using block genesis: " + genesisBlock.getHash())
-            BlockChainStore db = getInstance("BSV-Main", false, false, genesisBlock, Duration.ofMillis(100), null, null)
+            BlockChainStore db = getInstance("BSV-Main", false, false, genesisBlock, Duration.ofMillis(100), null, null, null, null)
 
             // We store the LAST State published and the number of events triggered:
             AtomicReference<ChainStateEvent> lastState = new AtomicReference<>()
@@ -306,7 +306,7 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
             println(" - Connecting to the DB...")
             BlockHeader genesisBlock = TestingUtils.buildBlock(Sha256Wrapper.ZERO_HASH.toString())
             println(" - Using block genesis: " + genesisBlock.getHash())
-            BlockChainStore db = getInstance("BSV-Main", false, false, genesisBlock, Duration.ofMillis(100), null, null)
+            BlockChainStore db = getInstance("BSV-Main", false, false, genesisBlock, Duration.ofMillis(100), null, null, null, null)
 
         when:
             db.start()

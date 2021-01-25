@@ -1,8 +1,6 @@
 package com.nchain.jcl.store.blockChainStore
 
 import com.nchain.jcl.base.domain.api.base.BlockHeader
-import com.nchain.jcl.store.blockChainStore.BlockChainStore
-import com.nchain.jcl.store.blockStore.BlockStore
 import spock.lang.Specification
 
 import java.time.Duration
@@ -26,6 +24,8 @@ abstract class BlockChainStoreSpecBase extends Specification {
     abstract BlockChainStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents,
                                          BlockHeader genesisBlock,
                                          Duration publishStateFrequency,
-                                         Duration automaticPrunningFrequency,
-                                         Integer prunningHeightDifference);
+                                         Duration forkPrunningFrequency,
+                                         Integer forkPrunningHeightDiff,
+                                         Duration orphanPrunningFrequency,
+                                         Duration orphanPrunningBlockAge);
 }

@@ -23,7 +23,7 @@ abstract class BlockChainForkSpecBase extends BlockChainStoreSpecBase {
             println(" - Connecting to the DB...")
             BlockHeader genesisBlock = TestingUtils.buildBlock(Sha256Wrapper.ZERO_HASH.toString())
             println(" - Using block genesis: " + genesisBlock.getHash())
-            BlockChainStore db = getInstance("BSV-Main", false, false, genesisBlock, Duration.ofMillis(100), null, null)
+            BlockChainStore db = getInstance("BSV-Main", false, false, genesisBlock, Duration.ofMillis(100), null, null, null, null)
 
             // We keep track of the Events triggered:
             List<ChainForkEvent> forkEvents = new ArrayList<>()
@@ -135,7 +135,7 @@ abstract class BlockChainForkSpecBase extends BlockChainStoreSpecBase {
             println(" - Connecting to the DB...")
             BlockHeader genesisBlock = TestingUtils.buildBlock(Sha256Wrapper.ZERO_HASH.toString())
             println(" - Using block genesis: " + genesisBlock.getHash())
-            BlockChainStore db = getInstance("BSV-Main", false, false, genesisBlock, Duration.ofMillis(100), Duration.ofSeconds(1), 1)
+            BlockChainStore db = getInstance("BSV-Main", false, false, genesisBlock, Duration.ofMillis(100), Duration.ofSeconds(1), 1, null, null)
 
             // We keep track of the Events triggered:
             List<ChainForkEvent> forkEvents = new ArrayList<>()

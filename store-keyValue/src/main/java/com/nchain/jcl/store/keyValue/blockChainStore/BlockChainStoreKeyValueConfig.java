@@ -3,6 +3,8 @@ package com.nchain.jcl.store.keyValue.blockChainStore;
 import com.nchain.jcl.base.domain.api.base.BlockHeader;
 import com.nchain.jcl.store.keyValue.blockStore.BlockStoreKeyValueConfig;
 
+import java.time.Duration;
+
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
@@ -15,4 +17,17 @@ public interface BlockChainStoreKeyValueConfig extends BlockStoreKeyValueConfig 
 
     /** Returns the Genesis Block used to initialize the DB. This block will make the ROOT of the Chain */
     BlockHeader getGenesisBlock();
+
+    /**
+     * If the automatic Prunning is enabled, then any shorter branch which difference with the main branch is
+     * equals or more than this number, will be pruned
+     */
+    int getForkPrunningHeightDifference();
+
+    /** If TRUE, all the TXs linked to a Block will also be removed when the Block is pruned */
+    boolean isForkPrunningIncludeTxs();
+
+    /** If Automatic Orphan Prunning is enabled, any Orphan block older than this value will be removed */
+    Duration getOrphanPrunningBlockAge();
+
 }

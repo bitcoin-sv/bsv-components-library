@@ -8,6 +8,7 @@ import com.nchain.jcl.store.foundationDB.blockChainStore.BlockChainStoreFDBConfi
 import com.nchain.jcl.store.foundationDB.blockStore.BlockStoreFDB
 import com.nchain.jcl.store.foundationDB.blockStore.BlockStoreFDBConfig
 
+import java.nio.file.Path
 import java.time.Duration
 
 
@@ -31,16 +32,22 @@ class StoreFactory {
         return blockStore
     }
 
+
     /** It creates an Instance of te BlockChainStore interface */
     static BlockChainStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents,
                                        BlockHeader genesisBlock,
                                        Duration publishStateFrequency,
-                                       Duration automaticPrunningFrequency,
-                                       Integer prunningHeightDifference) {
-        BlockChainStoreFDBConfig dbConfig = BlockChainStoreFDBConfig.chainBuilder()
-                .networkId(netId)
+                                       Duration forkPrunningFrequency,
+                                       Integer forkPrunningHeightDiff,
+                                       Duration orphanPrunningFrequency,
+                                       Duration orphanPrunningBlockAge) {
+
+        BlockChainStoreFDBConfig dbConfig = BlockChainStoreFDBConfig.chainBuild()
                 .clusterFile(CLUSTER_FILE)
+                .networkId(netId)
                 .genesisBlock(genesisBlock)
+                .forkPrunningHeightDifference(forkPrunningHeightDiff)
+                .orphanPrunningBlockAge(orphanPrunningBlockAge)
                 .build()
 
         BlockChainStore db = BlockChainStoreFDB.chainStoreBuilder()
@@ -48,10 +55,11 @@ class StoreFactory {
                 .triggerBlockEvents(triggerBlockEvents)
                 .triggerTxEvents(triggerTxEvents)
                 .statePublishFrequency(publishStateFrequency)
-                .enableAutomaticPrunning(automaticPrunningFrequency != null)
-                .prunningFrequency(automaticPrunningFrequency)
-                .prunningHeightDifference((prunningHeightDifference) != null ? prunningHeightDifference : BlockChainStoreFDB.PRUNNING_HEIGHT_DIFF_DEFAULT)
+                .enableAutomaticForkPrunning(forkPrunningFrequency != null)
+                .forkPrunningFrequency(forkPrunningFrequency)
+                .enableAutomaticOrphanPrunning(orphanPrunningFrequency != null)
+                .orphanPrunningFrequency(orphanPrunningFrequency)
                 .build()
-        return db;
+        return db
     }
 }

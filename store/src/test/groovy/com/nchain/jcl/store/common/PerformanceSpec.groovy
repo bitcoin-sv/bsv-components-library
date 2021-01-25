@@ -71,7 +71,9 @@ abstract class PerformanceSpec extends Specification {
 
             println("Performance Test End.")
         then:
-            db.getNumBlocks() == 0
+            // After the CleanUp, there will be ZERO Blocks if the DB is a BlockStore, or 1 (the GENESIS) block is
+            // the DB is a BlockChainStore...
+            (db.getNumBlocks() == 0) || (db.getNumBlocks() == 1)
             db.getNumTxs() == 0
         cleanup:
             db.stop()
