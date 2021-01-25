@@ -33,7 +33,7 @@ public class BlockChainInfoSerializer {
         if (object == null) return null;
         ByteArrayWriter writer = new ByteArrayWriter();
         BitcoinSerializerUtils.serializeVarStr(object.getBlockHash(), writer);
-        BitcoinSerializerUtils.serializeVarInt(object.getChainWork().intValue(), writer);
+        BitcoinSerializerUtils.serializeVarInt(object.getChainWork().longValue(), writer);
         BitcoinSerializerUtils.serializeVarInt(object.getHeight(), writer);
         BitcoinSerializerUtils.serializeVarInt(object.getTotalChainSize(), writer);
         writer.writeUint32LE(object.getChainPathId());

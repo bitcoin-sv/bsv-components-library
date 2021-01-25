@@ -467,28 +467,40 @@ The first step is always to select and create an instance of the ``ProtocolConfi
 ```
 ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder().build();
 ```
-the line above cfreates an instance of ``ProtocolConfig``already configured for the netwrok we need. Now, we can change anhy parameter in it. Since all these parameters are contained inside a different *group*, we need to *extract* first the *group*, change it, and then *inject* it back.
-
-In the following example we are changin a few properties of the ``ProtocolBasicConf``*group*:
+the line above creates an instance of ``ProtocolConfig``already configured for the 
+network we need. This class will be fed into the *P2P* Service:
 
 ```
-// First initialization:
-ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder().build()
-
-// We extract the Basic config and change it:
-ProtocolBasicConfig newBasicConfig = config.getBasicConfig().toBuilder()
-                .protocolVersion(11)
-                .magicPackage(100L)
-                .build()
-                
-// We inject back the Basic Config after the change                
-config = config.toBuilder()
-				.basicConfig(newBasicConfig)
-				.build();
-                
+P2P p2p = new P2PBuilder("testing")
+                    .config(config)
+                    .build();
 ```
 
-> Rememeber that the *Configuration* classes in *JCL-Net* are *immutable*, that's the reason why we need to invoke the ``toBuilder()`` method. Using that method we can create a *Copy* of a *Configuration*, apply whatever changes we need, and create a new one.
+We can feed the *P2P* service with additional configurations, which *overwrite* the general one 
+created above. When we *customize* a configuration, we usually only want to change one property, or 
+just a few, and rely on the default values for the rest. 
+
+So the best approach is to *extract* the piece of configuration we want from the *general* configuration 
+(the one created in the first place), change what needs to changed, and then inject it *back* into the 
+*P2P* service, like in the following example where we change the *user_agent* property, which is part 
+of the *Handshake Configuration*:
+
+
+```
+ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder().build();
+
+HandshakeHandlerConfig handshakeConfig = config.getHandshakeConfig().toBuilder()
+                    .userAgent("testing new User Agent")
+                    .relayTxs(false)
+                    .build();
+P2P p2p = new P2PBuilder("testing")
+                    .config(config)
+                    .config(handshakeConfig)
+                    .build();
+```
+
+
+> Remember that the *Configuration* classes in *JCL-Net* are *immutable*, that's the reason why we need to invoke the ``toBuilder()`` method. Using that method we can create a *Copy* of a *Configuration*, apply whatever changes we need, and create a new one.
  
  
 #### Changing basic configuration and shortcut for common properties
