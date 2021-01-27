@@ -311,7 +311,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                 _removeChainPath(tr, blockChainInfo.getChainPathId());
 
             // Now, after disconecting this block, we need to check how many Connected Children its parent has left:
-            // If it still has exactly ONE Children, then we can merge the Parent Path nad its Children's Path, so they
+            // If it still has exactly ONE Children, then we can merge the Parent Path and its Children's Path, so they
             // become the same....
             if (blockChainParentInfo != null) {
                 List<BlockChainInfo> connectedChildren =_getNextConnectedBlocks(tr, blockChainParentInfo.getBlockHash());
@@ -451,22 +451,29 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         return result;
     }
 
+
     private void _propagateChainPathUnderBlock(T tr, BlockChainInfo blockChainInfo, int pathIdToReplace, int newPathId) {
 
-        if (blockChainInfo.getChainPathId() == pathIdToReplace) {
+        // We Update the BlockInfoChain info for this block, reflecting the new Path Id its linked to, and also
+        // does the same for all its children until it reaches a Block with more than 1 children....
+
+        BlockChainInfo blockChainInfoToUpdate = blockChainInfo;
+
+        while (true) {
+            if (blockChainInfoToUpdate == null) break;
+            if (blockChainInfoToUpdate.getChainPathId() != pathIdToReplace) break;
             getLogger().trace("Update Path for Block " + blockChainInfo.getBlockHash() + " (height: " + blockChainInfo.getHeight() + ") [ " + pathIdToReplace + " ->  " + newPathId + "]");
 
-            // We update this Block Cain Info...
-            blockChainInfo = blockChainInfo.toBuilder().chainPathId(newPathId).build();
-            _saveBlockChainInfo(tr, blockChainInfo);
+            // We update this Block Chain Info...
+            blockChainInfoToUpdate = blockChainInfoToUpdate.toBuilder().chainPathId(newPathId).build();
+            _saveBlockChainInfo(tr, blockChainInfoToUpdate);
 
-            // We look into its children...
+            // We only keep going if this block ONLY has 1 CHILD:
             List<String> children = _getNextBlocks(tr, blockChainInfo.getBlockHash());
-            for (String childBlockHash : children) {
-                BlockChainInfo childChainInfo = _getBlockChainInfo(tr, childBlockHash);
-                _propagateChainPathUnderBlock(tr, childChainInfo, pathIdToReplace, newPathId);
-            }
-        }
+            if (children.size() != 1) break;
+            blockChainInfoToUpdate = _getBlockChainInfo(tr, children.get(0));
+        } // while...
+
     }
 
     /*
