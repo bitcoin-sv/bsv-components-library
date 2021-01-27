@@ -297,7 +297,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         BlockChainInfo blockChainInfo = _getBlockChainInfo(tr, blockHash);
         if (blockChainInfo != null) {
             BlockHeader block = _getBlock(tr, blockHash);
-            getLogger().trace("Disconnecting Block " + blockChainInfo.getBlockHash() + " (path: " + blockChainInfo.getChainPathId() + ")...");
+            getLogger().trace("Disconnecting Block " + blockChainInfo.getBlockHash() + "(height: " + blockChainInfo.getHeight() + ") (path: " + blockChainInfo.getChainPathId() + ")...");
 
             // We remove the ChainInfo for this Node (this will disconnect this Block from the Chain):
             _removeBlockChainInfo(tr, blockHash);
@@ -311,7 +311,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                 _removeChainPath(tr, blockChainInfo.getChainPathId());
 
             // Now, after disconecting this block, we need to check how many Connected Children its parent has left:
-            // If it still has exactly ONE Children, then we can merge the PArent´´Ath nad its Children's Path, so they
+            // If it still has exactly ONE Children, then we can merge the Parent Path nad its Children's Path, so they
             // become the same....
             if (blockChainParentInfo != null) {
                 List<BlockChainInfo> connectedChildren =_getNextConnectedBlocks(tr, blockChainParentInfo.getBlockHash());
@@ -454,7 +454,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     private void _propagateChainPathUnderBlock(T tr, BlockChainInfo blockChainInfo, int pathIdToReplace, int newPathId) {
 
         if (blockChainInfo.getChainPathId() == pathIdToReplace) {
-            getLogger().trace("Update Path for Block " + blockChainInfo.getBlockHash() + " [ " + pathIdToReplace + " ->  " + newPathId + "]");
+            getLogger().trace("Update Path for Block " + blockChainInfo.getBlockHash() + " (height: " + blockChainInfo.getHeight() + ") [ " + pathIdToReplace + " ->  " + newPathId + "]");
 
             // We update this Block Cain Info...
             blockChainInfo = blockChainInfo.toBuilder().chainPathId(newPathId).build();
