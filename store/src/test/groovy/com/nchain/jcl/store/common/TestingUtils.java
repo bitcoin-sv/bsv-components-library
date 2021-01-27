@@ -39,7 +39,8 @@ public class TestingUtils {
                 .merkleRoot(Sha256Wrapper.wrap(buildRandomHash()))
                 .prevBlockHash(parentHashFinal)
                 .nonce(1)
-                .difficultyTarget(10)
+                //.difficultyTarget(453036989)
+                .difficultyTarget(486604799)
                 .time(Instant.now().getEpochSecond())
                 .build();
     }

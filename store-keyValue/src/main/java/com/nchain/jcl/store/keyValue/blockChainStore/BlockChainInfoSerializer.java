@@ -3,8 +3,10 @@ package com.nchain.jcl.store.keyValue.blockChainStore;
 import com.nchain.jcl.base.serialization.BitcoinSerializerUtils;
 import com.nchain.jcl.base.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.base.tools.bytes.ByteArrayWriter;
+import com.nchain.jcl.base.tools.bytes.ByteTools;
 
 import java.math.BigInteger;
+
 
 /**
  * @author i.fernandez@nchain.com
@@ -13,6 +15,17 @@ import java.math.BigInteger;
  * A serializer class for the BlockChainInfo class.
  */
 public class BlockChainInfoSerializer {
+
+    // The ChainWork is stored in a 12-byte array, same as in BitcoinJ (what if it takes more?).
+    // The value is stored in a BigInteger, which then extracts it as a byte array, which might be shorter.
+    // In order to save time, we store a predefined set of smaller Arrays that can be used to pad
+
+    private static final int CHAIN_WORK_BYTES = 12;
+    private static final byte[][] EMPTY_ARRAYS = new byte[CHAIN_WORK_BYTES][];
+
+    static {
+        for (int i = 0; i < CHAIN_WORK_BYTES; i++) EMPTY_ARRAYS[i] = new byte[i];
+    }
 
     // Singleton:
     private static BlockChainInfoSerializer instance;
@@ -33,10 +46,19 @@ public class BlockChainInfoSerializer {
         if (object == null) return null;
         ByteArrayWriter writer = new ByteArrayWriter();
         BitcoinSerializerUtils.serializeVarStr(object.getBlockHash(), writer);
-        BitcoinSerializerUtils.serializeVarInt(object.getChainWork().longValue(), writer);
+
+        // Chain Work Bytes:
+        byte[] chainWorkBytes = object.getChainWork() == null ? ByteTools.EMPTY_BYTE_ARRAY : object.getChainWork().toByteArray();
+        if (chainWorkBytes.length < CHAIN_WORK_BYTES) {
+            // Pad to the right size
+            writer.write(EMPTY_ARRAYS[CHAIN_WORK_BYTES - chainWorkBytes.length]);
+        }
+        writer.write(chainWorkBytes);
+
         BitcoinSerializerUtils.serializeVarInt(object.getHeight(), writer);
         BitcoinSerializerUtils.serializeVarInt(object.getTotalChainSize(), writer);
         writer.writeUint32LE(object.getChainPathId());
+
         return writer.reader().getFullContentAndClose();
     }
 
@@ -47,7 +69,7 @@ public class BlockChainInfoSerializer {
         ByteArrayReader reader = new ByteArrayReader(raw);
         resultBuilder
                 .blockHash(BitcoinSerializerUtils.deserializeVarStr(reader))
-                .chainWork(BigInteger.valueOf(BitcoinSerializerUtils.deserializeVarInt(reader)))
+                .chainWork(new BigInteger(1, reader.read(CHAIN_WORK_BYTES)))
                 .height((int) BitcoinSerializerUtils.deserializeVarInt(reader))
                 .totalChainSize(BitcoinSerializerUtils.deserializeVarInt(reader))
                 .chainPathId((int)reader.readUint32())

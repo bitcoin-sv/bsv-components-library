@@ -67,7 +67,7 @@ import java.util.stream.Collectors;
  *              "tx_l:3f62b8f3447cc716900ea6fab805fa86226af7246ff0f984a8ab7e7f1d6b48ae" (value not important)
  *              "tx_l:0a3e25c984b47b3d6dd0f11e2d14159b79ff7744e9f9e6be986f812cb6ef2fef" (value not important)
  *
- *  - The second one is store din the "/Txs" directory, using a "tx_block:[txHash]:[blockHash:" Key. In the previous
+ *  - The second one is stored in the "/Txs" directory, using a "tx_block:[txHash]:[blockHash:" Key. In the previous
  *  example, we suld have these 2 Keys:
  *      - TXS
  *          "tx_block:3f62b8f3447cc716900ea6fab805fa86226af7246ff0f984a8ab7e7f1d6b48ae:000000000000000004700fc34237707d8b92d398bb6f8bc76e421e7a42dec4b3"

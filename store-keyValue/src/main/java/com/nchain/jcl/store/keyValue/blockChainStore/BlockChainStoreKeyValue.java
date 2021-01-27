@@ -159,7 +159,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         // We set the value of the ChainWork:
         BigInteger chainWork = (parentBlockChainInfo != null)
                                 ? parentBlockChainInfo.getChainWork().add(block.getWork())
-                                : getConfig().getGenesisBlock().getWork().add(block.getWork());
+                                : getConfig().getGenesisBlock().getWork();
 
         // We build the object and save it:
         BlockChainInfo blockChainInfo = BlockChainInfo.builder()

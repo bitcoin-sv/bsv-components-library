@@ -503,7 +503,8 @@ P2P p2p = new P2PBuilder("testing")
 > Remember that the *Configuration* classes in *JCL-Net* are *immutable*, that's the reason why we need to invoke the ``toBuilder()`` method. Using that method we can create a *Copy* of a *Configuration*, apply whatever changes we need, and create a new one.
  
  
-#### Changing basic configuration and shortcut for common properties
+
+#### Changing basic configuration and shortcut for common properties
  
 In the previous chapter there is already one example of how to change the ``ProtocolBasicConf``*group*. If you look at the picture showing the content of the ``ProtocolConfig`` instance, you'll see that some of the *properties* within the ``ProtocolBasicConf`` are written in **bold** letters. Those are the properties that are most commonly changed, and for that reason the ``ProtocolConfig``offers a shortcut: you can change those properties **directly** from the ``ProtocolConfig`` instance:
  
@@ -517,6 +518,7 @@ ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder()
 ```
 
 To change the rest of the *Basic Parameters*, we need to extract them, change them and inject them back in, as it's been explained already.
+
 
 #### List of Basic properties
 All this properties are part of the ``ProtocolBasicConf`` *group*, and can be changed at runtime.
@@ -559,7 +561,8 @@ HandshakeHandlerConfig handshakeConfig = config.getHandshakeConfig().toBuilder()
 config = config.toBuilder().handshakeConfig(handshakeConfig).build();
 ``` 
 
-#### Changing the Discovery Process
+
+#### Changing the Discovery Process
 
 The **DiscoveryHandlerConfig* group controls how the *P2P* Service finds new remote Addresses of remote *Peers* to connect to.
 The properties you can change here are:
@@ -686,15 +689,18 @@ Object and it contains different types of information, depending on the event it
 
 ### General Events
 
-### Start Event
+#### Start Event
 An Event triggered when the Network Activity has started. At this moment, no Peers have been connected yet. This is a good place for initilization logic.
 
 This Event is accesible by:``[P2Pservice].EVENTS.GENERAL.START``
 
-The Event class passed as paremeter to the *forEach* method is an instance of
+The Event class passed as parameter to the *forEach* method is an instance of
 ``com.nchain.jcl.net.network.events.NetStartEvent``
 
-### Stop Event
+
+
+#### Stop Event
+
 An Event triggered when the Network Activity has stopped. This is a good place to release resoruces or other related logic.
 
 This Event is accesible by:``[P2Pservice].STOP``
