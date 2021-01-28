@@ -63,8 +63,9 @@ public interface BlockChainStore extends BlockStore {
      * Returns the FIRST Block in the same Path as the block given.
      * If the block has been saved before a Fork, then this method will return the GENESIS Block.
      * If the block has been saved after a Fork, then this method will return the FIRST Block saved after that Fork
+     * If the block given is not connected, it will return an Empty Optional
      */
-    ChainInfo getFirstBlockInPath(Sha256Wrapper blockHash);
+    Optional<ChainInfo> getFirstBlockInPath(Sha256Wrapper blockHash);
 
     /**
      * Removes the info about the tips of the Chain. Once this information is removed, it won't be possible to get the

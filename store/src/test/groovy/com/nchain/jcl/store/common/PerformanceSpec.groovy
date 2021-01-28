@@ -17,7 +17,7 @@ abstract class PerformanceSpec extends Specification {
 
     abstract BlockStore getInstance(String netID, boolean triggerBlockEvents, boolean triggerTxEvents);
 
-    //@Ignore
+    @Ignore // time-consuming
     def "Testing Saving Block and Txs and linke them later on "() {
         int NUM_TXS = 100_000
         given:
@@ -47,7 +47,7 @@ abstract class PerformanceSpec extends Specification {
             db.stop()
     }
 
-    //@Ignore
+    @Ignore // time-consuming
     def "Testing Saving Block and Txs and linke them at the moment of saving"() {
         int NUM_TXS = 100_000
         given:

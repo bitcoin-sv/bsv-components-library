@@ -10,6 +10,7 @@ import com.nchain.jcl.store.blockChainStore.events.ChainPruneEvent;
 import com.nchain.jcl.store.blockChainStore.events.ChainStateEvent;
 import com.nchain.jcl.store.keyValue.blockStore.BlockStoreKeyValue;
 import com.nchain.jcl.store.keyValue.common.HashesList;
+import org.checkerframework.checker.units.qual.C;
 
 import java.math.BigInteger;
 import java.time.Duration;
@@ -302,25 +303,6 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             // We remove the ChainInfo for this Node (this will disconnect this Block from the Chain):
             _removeBlockChainInfo(tr, blockHash);
 
-            // Now we need to check if the Path used by this Block can be removed or not. It can be removed if:
-            // - the Parent is NOT Connected
-            // - the parent is connected But its Path is Different
-
-            BlockChainInfo blockChainParentInfo =  _getBlockChainInfo(tr, block.getPrevBlockHash().toString());
-            if (blockChainParentInfo == null || blockChainParentInfo.getChainPathId() != blockChainInfo.getChainPathId())
-                _removeChainPath(tr, blockChainInfo.getChainPathId());
-
-            // Now, after disconecting this block, we need to check how many Connected Children its parent has left:
-            // If it still has exactly ONE Children, then we can merge the Parent Path and its Children's Path, so they
-            // become the same....
-            if (blockChainParentInfo != null) {
-                List<BlockChainInfo> connectedChildren =_getNextConnectedBlocks(tr, blockChainParentInfo.getBlockHash());
-                if (connectedChildren.size() == 1) {
-                    _removeChainPath(tr, connectedChildren.get(0).getChainPathId());
-                    _propagateChainPathUnderBlock(tr, connectedChildren.get(0), connectedChildren.get(0).getChainPathId(), blockChainParentInfo.getChainPathId());
-                }
-            }
-
             // We update the tip of the chain (this block is not the tip anymore, if its already)
             _updateTipsChain(tr, null, blockHash);
 
@@ -539,11 +521,15 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                 // that tip in the result
                 List<String> tipsChain = _getChainTips(tr);
                 for (String tipHash : tipsChain) {
+                    // we get the PathId of this Tip:
                     int chainPathId = _getBlockChainInfo(tr, tipHash).getChainPathId();
                     boolean blockHashIsPartOfPath = false;
                     do {
+                        // If the Path of this Tip is the msae as the Path of our Block, then we are done.
                         blockHashIsPartOfPath |= chainPathId == blockChainInfo.getChainPathId();
+                        // If not, then we keep searching but this time on the Parent of this Path, if any:
                         ChainPathInfo pathInfo = _getChainPathInfo(tr, chainPathId);
+                        getLogger().warn("Checking getTipsChains(" + blockHash.toString() + "), checking on Tip [" + tipHash + "] with path = " + chainPathId + ((pathInfo != null)? " [path exists]" : "[path NOT exists"));
                         chainPathId = pathInfo.getParent_id();
 
                     } while (chainPathId != -1 && !blockHashIsPartOfPath);
@@ -557,31 +543,55 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     }
 
     @Override
-    default ChainInfo getFirstBlockInPath(Sha256Wrapper blockHash) {
+    default Optional<ChainInfo> getFirstBlockInPath(Sha256Wrapper blockHash) {
         try {
             getLock().readLock().lock();
             AtomicReference<ChainInfo> result = new AtomicReference<>();
             T tr = createTransaction();
             executeInTransaction(tr, () -> {
-                // We get the Path Info linked to this block...
+
+                // If the Block is not connect we just break and return:
                 BlockChainInfo blockChainInfo = _getBlockChainInfo(tr, blockHash.toString());
-                ChainPathInfo pathInfo = _getChainPathInfo(tr, blockChainInfo.getChainPathId());
+                if (blockChainInfo == null) return;
 
-                // Now we retrieve the blockChain info of the FIRST Block in this Path, and we convert it to
-                // a ChainInfo Object...
-                BlockChainInfo firstBlockInfo = _getBlockChainInfo(tr, pathInfo.getBlockHash());
-                BlockHeader firstBlockHeader = _getBlock(tr, firstBlockInfo.getBlockHash());
+                // Now we get loop over the Paths that make the history of this block: The block it belongs to, the
+                // parent of that block, and so on. For each PAth, we get the Block that Path begins with, and check
+                // if there is a Fork at that point or not. Of there is a fork, then that Block is the FIRST Block in
+                // the Path of this Block. If there is no fork (because it's been already pruned), then we continue
+                // doing the same with the parent Path....
 
+                int pathId = blockChainInfo.getChainPathId();
+                ChainPathInfo pathInfo = _getChainPathInfo(tr, pathId);
+                while (true) {
+                    // We get the Block this Path begins with:
+                    BlockHeader blockBeginPath = _getBlock(tr, pathInfo.getBlockHash());
+                    // if its the genesis, we are done:
+                    if (blockBeginPath.getHash().equals(getConfig().getGenesisBlock().getHash())) break;
+
+                    // Its any other Block. No we check if at this point there is still a fork. There is a Fork if
+                    // the Block parent of the Beginning of the PAth still has MORE than one children:
+
+                    BlockChainInfo parentPathBlockInfo  = _getBlockChainInfo(tr, blockBeginPath.getPrevBlockHash().toString());
+                    List<String> parentPathBlockChildren = _getNextBlocks(tr, parentPathBlockInfo.getBlockHash());
+                    boolean isAFork = (parentPathBlockChildren.size() > 1);
+
+                    if (isAFork) break;
+                    if (pathInfo.getParent_id() == -1) break;
+                    pathInfo = _getChainPathInfo(tr, pathInfo.getParent_id());
+                } // while...
+
+                // At this point, the info we are looking for is in the pathInfo after the loop
+                BlockChainInfo blockResultInfo = _getBlockChainInfo(tr, pathInfo.getBlockHash());
+                BlockHeader blockResultHeader = _getBlock(tr, pathInfo.getBlockHash());
                 ChainInfo chainInfoResult = ChainInfo.builder()
-                        .header(firstBlockHeader)
-                        .chainWork(firstBlockInfo.getChainWork())
-                        .height(firstBlockInfo.getHeight())
-                        .sizeInBytes(firstBlockInfo.getTotalChainSize())
+                        .header(blockResultHeader)
+                        .chainWork(blockResultInfo.getChainWork())
+                        .height(blockResultInfo.getHeight())
+                        .sizeInBytes(blockResultInfo.getTotalChainSize())
                         .build();
-
                 result.set(chainInfoResult);
             });
-            return result.get();
+            return Optional.ofNullable(result.get());
 
         } finally {
             getLock().readLock().unlock();

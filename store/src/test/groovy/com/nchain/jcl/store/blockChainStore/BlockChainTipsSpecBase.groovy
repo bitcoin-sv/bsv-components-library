@@ -72,9 +72,16 @@ abstract class BlockChainTipsSpecBase extends BlockChainStoreSpecBase {
             List<Sha256Wrapper> tipsForBlockC = db.getTipsChains(blockC.hash) // E, G
 
             // We check the FIRST Block of the PATH of each Tip:
-            ChainInfo firstBlockOfBlockD = db.getFirstBlockInPath(blockD.hash) // B
-            ChainInfo firstBlockOfBlockE = db.getFirstBlockInPath(blockE.hash) // E
-            ChainInfo firstBlockOfBlockG = db.getFirstBlockInPath(blockG.hash) // F
+            Optional<ChainInfo> firstBlockOfBlockD = db.getFirstBlockInPath(blockD.hash) // B
+            Optional<ChainInfo> firstBlockOfBlockE = db.getFirstBlockInPath(blockE.hash) // E
+            Optional<ChainInfo> firstBlockOfBlockG = db.getFirstBlockInPath(blockG.hash) // F
+
+            // Now, we prune the branch with tip (G) and we check again the Tips:
+            db.prune(blockG.hash, false)
+
+            Optional<ChainInfo> firstBlockOfBlockDAfterPrunning = db.getFirstBlockInPath(blockD.hash) // B
+            Optional<ChainInfo> firstBlockOfBlockEAfterPrunning = db.getFirstBlockInPath(blockE.hash) // E
+            Optional<ChainInfo> firstBlockOfBlockGAfterPrunning = db.getFirstBlockInPath(blockG.hash) // F
 
         then:
                 tipsChain.size() == 3
@@ -94,9 +101,13 @@ abstract class BlockChainTipsSpecBase extends BlockChainStoreSpecBase {
                 tipsForBlockC.contains(blockE.hash)
                 tipsForBlockC.contains(blockG.hash)
 
-                firstBlockOfBlockD.header.hash.equals(blockB.hash)
-                firstBlockOfBlockE.header.hash.equals(blockE.hash)
-                firstBlockOfBlockG.header.hash.equals(blockF.hash)
+                firstBlockOfBlockD.get().header.hash.equals(blockB.hash)
+                firstBlockOfBlockE.get().header.hash.equals(blockE.hash)
+                firstBlockOfBlockG.get().header.hash.equals(blockF.hash)
+
+                firstBlockOfBlockDAfterPrunning.get().header.hash.equals(blockB.hash)
+                firstBlockOfBlockEAfterPrunning.get().header.hash.equals(blockC.hash)
+                firstBlockOfBlockGAfterPrunning.isEmpty()
 
         cleanup:
             println(" - Cleanup...")
@@ -142,7 +153,7 @@ abstract class BlockChainTipsSpecBase extends BlockChainStoreSpecBase {
             List<Sha256Wrapper> tipsChainBlockBAfterFirstBranch = db.getTipsChains(blockB.getHash())
 
             // We check the FIRST Block of the PATH of each Tip:
-            ChainInfo firstBlockOfBlockC = db.getFirstBlockInPath(blockC.hash) // genesis
+            Optional<ChainInfo> firstBlockOfBlockC = db.getFirstBlockInPath(blockC.hash) // genesis
 
             // Now we create a another Branch of blocks:
             //   [B]
@@ -173,8 +184,8 @@ abstract class BlockChainTipsSpecBase extends BlockChainStoreSpecBase {
             List<Sha256Wrapper> tipsChainBlockBAfterConnectingBranch = db.getTipsChains(blockB.getHash())
 
             // We check the FIRST Block of the PATH of each Tip:
-            ChainInfo firstBlockOfBlockG = db.getFirstBlockInPath(blockG.hash) // genesis
-            ChainInfo firstBlockOfBlockI = db.getFirstBlockInPath(blockI.hash) // genesis
+            Optional<ChainInfo> firstBlockOfBlockG = db.getFirstBlockInPath(blockG.hash) // genesis
+            Optional<ChainInfo> firstBlockOfBlockI = db.getFirstBlockInPath(blockI.hash) // genesis
 
 
             println(" - Genesis: " + genesisBlock.hash.toString())
@@ -196,7 +207,7 @@ abstract class BlockChainTipsSpecBase extends BlockChainStoreSpecBase {
             tipsChainAfterFirstBranch.contains(blockC.hash)
             tipsChainBlockBAfterFirstBranch.contains(blockC.hash)
 
-            firstBlockOfBlockC.header.hash.equals(genesisBlock.hash)
+            firstBlockOfBlockC.get().header.hash.equals(genesisBlock.hash)
 
             tipsChainAfterSecondBranch.equals(tipsChainAfterFirstBranch)
             tipsChainBlockBAfterSecondBranch.equals(tipsChainBlockBAfterFirstBranch)
@@ -207,8 +218,8 @@ abstract class BlockChainTipsSpecBase extends BlockChainStoreSpecBase {
             tipsChainAfterConnectingBranch.contains(blockI.hash)
             tipsChainBlockBAfterConnectingBranch.equals(tipsChainAfterConnectingBranch)
 
-            firstBlockOfBlockG.header.hash.equals(blockF.hash)
-            firstBlockOfBlockI.header.hash.equals(blockH.hash)
+            firstBlockOfBlockG.get().header.hash.equals(blockF.hash)
+            firstBlockOfBlockI.get().header.hash.equals(blockH.hash)
 
 
         cleanup:

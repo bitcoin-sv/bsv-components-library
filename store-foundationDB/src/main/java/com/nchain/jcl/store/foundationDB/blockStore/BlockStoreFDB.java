@@ -109,9 +109,11 @@ public class BlockStoreFDB implements BlockStoreKeyValue<KeyValue, Transaction>,
     @Override
     public void start() {
         // We init the DB Connection...
+        getLogger().debug("FDB Connection: Setting up version...");
         fdb = FDB.selectAPIVersion(config.getApiVersion());
+        getLogger().debug("FDB Connection: Connecting to the DB...");
         db = (config.getClusterFile() == null)? fdb.open() : fdb.open(config.getClusterFile());
-
+        getLogger().debug("FDB Connection: Connecting established.");
         // We initialize the Directory Layer and the directory structure:
         dirLayer = new DirectoryLayer();
         db.run( tr -> {
