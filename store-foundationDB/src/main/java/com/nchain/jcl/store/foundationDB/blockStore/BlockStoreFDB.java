@@ -133,10 +133,15 @@ public class BlockStoreFDB implements BlockStoreKeyValue<KeyValue, Transaction>,
 
     @Override
     public void stop() {
-        synchronized (getLock()) {
+        try {
+            getLock().writeLock().lock();
+            log.info("FDB-Store Stopping...");
             this.db.close();
             this.executorService.shutdownNow();
-        } // synchronized
+            log.info("FDB-Store Stopped.");
+        } finally {
+            getLock().writeLock().unlock();
+        }
     }
 
     @Override public byte[] keyStartingWith(byte[] preffix) {

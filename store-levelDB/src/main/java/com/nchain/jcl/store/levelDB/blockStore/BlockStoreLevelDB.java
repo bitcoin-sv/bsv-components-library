@@ -99,7 +99,6 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
         throw new RuntimeException("Type not convertible to String");
     }
 
-
     @Override
     public byte[] fullKey(Object ...subKeys) {
         if (subKeys == null) return null;
@@ -172,23 +171,26 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
     }
 
     @Override
-    public void start() {
+    public synchronized void start() {
         log.info("JCL-Store Configuration:");
         log.info(" - LevelDB Implementation");
         log.info(" - working dir: " + Paths.get(config.getWorkingFolder().toString(), LEVELDB_FOLDER).toAbsolutePath());
     }
 
     @Override
-    public void stop() {
-        synchronized (getLock()) {
+    public synchronized void stop() {
             try {
-                this.levelDBStore.close();
+                getLock().writeLock().lock();
+                log.info("LevelDB-Store Stopping...");
                 this.executorService.shutdownNow();
+                this.levelDBStore.close();
+                log.info("LevelDB-Store Stopped.");
             } catch (IOException ioe) {
                 log.error(ioe.getMessage(), ioe);
                 throw new RuntimeException(ioe);
+            } finally {
+                getLock().writeLock().unlock();
             }
-        } // synchronized
     }
 
     @Override

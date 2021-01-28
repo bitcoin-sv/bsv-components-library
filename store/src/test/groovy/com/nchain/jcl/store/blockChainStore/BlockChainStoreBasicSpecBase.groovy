@@ -239,7 +239,7 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
             AtomicInteger numStateEvents = new AtomicInteger()
 
             db.EVENTS().STATE.forEach({e ->
-                //println("Updating State: num blocks: " + e.getState().numBlocks)
+                println("State Event Triggered: num blocks: " + e.getState().numBlocks)
                 lastState.set(e)
                 numStateEvents.incrementAndGet()
             })
@@ -277,14 +277,13 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
             db.printKeys()
 
             int numEventsTriggered_2 = numStateEvents.get()
-            boolean okAfter2Blocks = (numEventsTriggered_2 > numEventsTriggered_1) &&
-                    (lastState.get().state.numBlocks == 3) &&
-                    (lastState.get().state.tipsChains.size() == 1) &&
-                    (lastState.get().state.tipsChains.stream().map({ c-> c.header.getHash()}).anyMatch({h -> h.equals(block_2.getHash())}))
 
         then:
             okAferGenesis
-            okAfter2Blocks
+            // Events Check after Genesis block inserted:
+            (numEventsTriggered_2 > numEventsTriggered_1)
+            (lastState.get().state.numBlocks == 3)
+            (lastState.get().state.tipsChains.stream().map({ c-> c.header.getHash()}).anyMatch({h -> h.equals(block_2.getHash())}))
         cleanup:
             println(" - Cleanup...")
             db.removeBlocks(Arrays.asList(genesisBlock.getHash(), block_1.getHash(), block_2.getHash()))

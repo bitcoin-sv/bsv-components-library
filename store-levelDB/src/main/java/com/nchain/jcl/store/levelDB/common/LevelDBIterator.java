@@ -36,16 +36,19 @@ public class LevelDBIterator<I> extends KeyValueIteratorImpl<I, Object, Map.Entr
                            byte[] endingWithSuffix,
                            Predicate<byte[]> keyIsValidWhen,
                            Function<Map.Entry<byte[], byte[]>, I> buildItemBy) {
-
         super(startingWithPreffix, endingWithSuffix,
-              (keyIsValidWhen != null)? (tr, key) -> keyIsValidWhen.test(key) : null, buildItemBy);
+                (keyIsValidWhen != null)? (tr, key) -> keyIsValidWhen.test(key) : null, buildItemBy);
+        try {
+            // We init the basic properties:
+            this.levelDB = database;
 
-        // We init the basic properties:
-        this.levelDB = database;
-
-        // We init the Level DB Iterator and point it to the First Key:
-        iterator = database.iterator();
-        iterator.seek(super.keyPreffix);
+            // We init the Level DB Iterator and point it to the First Key:
+            iterator = database.iterator();
+            iterator.seek(super.keyPreffix);
+        } catch (Exception e) {
+            // This mit happens sometimes, when trying to use the Iterator when the Db is closing...
+            throw new RuntimeException("Error Initializing LevelDB Iterator");
+        }
     }
 
     @Override protected boolean hasNextItemFromDB()                             { return iterator.hasNext(); }

@@ -5,6 +5,7 @@ import com.nchain.jcl.base.tools.crypto.Sha256Wrapper
 import com.nchain.jcl.store.blockChainStore.events.ChainForkEvent
 import com.nchain.jcl.store.blockChainStore.events.ChainPruneEvent
 import com.nchain.jcl.store.common.TestingUtils
+import spock.lang.Ignore
 
 import java.time.Duration
 
@@ -83,7 +84,11 @@ abstract class BlockChainForkSpecBase extends BlockChainStoreSpecBase {
             println(" - Chain Tips:")
             tips.forEach({ t -> println(" - Block " + t.toString())})
 
-            boolean tipsOK = (tips.size() == 2) && (tips.contains(block_4.getHash())) && (tips.contains(block_4B.getHash()))
+            boolean tipsOKBeforePruning = (tips.size() == 2) && (tips.contains(block_4.getHash())) && (tips.contains(block_4B.getHash()))
+
+            // We also verify the tips of some specific blocks: 2 and 3
+            List<Sha256Wrapper> tipsBlock2BeforePrunning = db.getTipsChains(block_2.hash)
+            List<Sha256Wrapper> tipsBlock3BeforePrunning = db.getTipsChains(block_3.hash)
 
             // and now we prune it:
             println(" > Prunning from Tip: " + block_4B.getHash() + " ...")
@@ -94,7 +99,11 @@ abstract class BlockChainForkSpecBase extends BlockChainStoreSpecBase {
             println(" - Chain Tips:")
             tips.forEach({ t -> println(" - Block " + t.toString())})
 
-            boolean afterPrune = (tips.size() == 1) && (tips.get(0).equals(block_4.getHash()))
+            boolean tipsOKAfterPruning = (tips.size() == 1) && (tips.get(0).equals(block_4.getHash()))
+
+            // We also verify the tips of some specific blocks: 2 and 3
+            List<Sha256Wrapper> tipsBlock2AfterPrunning = db.getTipsChains(block_2.hash)
+            List<Sha256Wrapper> tipsBlock3AfterPrunning = db.getTipsChains(block_3.hash)
 
             // Some waiting, to give the events time to reach the callbacks:
             Thread.sleep(50)
@@ -103,7 +112,13 @@ abstract class BlockChainForkSpecBase extends BlockChainStoreSpecBase {
             db.printKeys()
 
         then:
-            tipsOK
+            tipsOKBeforePruning
+            tipsBlock2BeforePrunning.size() == 2
+            tipsBlock2BeforePrunning.contains(block_4.hash)
+            tipsBlock2BeforePrunning.contains(block_4B.hash)
+            tipsBlock3BeforePrunning.size() == 1
+            tipsBlock3BeforePrunning.contains(block_4.hash)
+
             pruneEvents.size() == 1
             pruneEvents.get(0).tipForkHash.equals(block_4B.getHash())
             pruneEvents.get(0).parentForkHash.equals(block_2.getHash())
@@ -111,13 +126,84 @@ abstract class BlockChainForkSpecBase extends BlockChainStoreSpecBase {
             forkEvents.size() == 1
             forkEvents.get(0).blockForkHash.equals(block_3B.getHash())
             forkEvents.get(0).parentForkHash.equals(block_2.getHash())
-            afterPrune
+
+            tipsOKAfterPruning
+            tipsBlock2AfterPrunning.size() == 1
+            tipsBlock2AfterPrunning.contains(block_4.hash)
+            tipsBlock3AfterPrunning.size() == 1
+            tipsBlock3AfterPrunning.contains(block_4.hash)
 
         cleanup:
             println(" - Cleanup...")
             db.removeBlocks(Arrays.asList(genesisBlock.getHash(), block_1.getHash(), block_2.getHash(),
                     block_3.getHash(), block_4.getHash(), block_3B.getHash(), block_4B.getHash()))
             db.removeTipsChains()
+            // We check the DB Content in the console...
+            db.printKeys()
+            db.stop()
+            println(" - Test Done.")
+    }
+
+    /**
+     * We test that prunning a LONG Chain works fine and there are no StackTrace issues...
+     */
+    @Ignore // time Consuming
+    def "Testing Prunning a Long Chain"() {
+        given:
+            // Configuration and DB start up:
+            println(" - Connecting to the DB...")
+            BlockHeader genesisBlock = TestingUtils.buildBlock(Sha256Wrapper.ZERO_HASH.toString())
+            println(" - Using block genesis: " + genesisBlock.getHash())
+            BlockChainStore db = getInstance("BSV-Main", false, false, genesisBlock, Duration.ofMillis(100), null, null, null, null)
+
+        when:
+            db.start()
+
+            // We insert the main Chain: [genesis] -> ...100 blocks
+            Sha256Wrapper parentBlockHash = genesisBlock.hash
+            for (int i = 0; i < 100; i++) {
+                BlockHeader block = TestingUtils.buildBlock(parentBlockHash.toString())
+                db.saveBlock(block)
+                parentBlockHash = block.hash
+            }
+
+            // Now we create 1 separate Chains: A and B: starting from the last block, These chains are quite long (100K)
+            Sha256Wrapper parentBlockHashA = parentBlockHash;
+            Sha256Wrapper parentBlockHashB = parentBlockHash;
+            for (int i = 0; i < 10_000; i++) {
+                BlockHeader newBlockA = TestingUtils.buildBlock(parentBlockHashA.toString())
+                BlockHeader newBlockB = TestingUtils.buildBlock(parentBlockHashB.toString())
+                db.saveBlock(newBlockA)
+                db.saveBlock(newBlockB)
+                parentBlockHashA = newBlockA.hash
+                parentBlockHashB = newBlockB.hash
+            }
+
+            // We check the tips:
+            List<Sha256Wrapper> tipsBeforePrunning = db.getTipsChains()
+
+            // Now we prune one of them:
+            db.prune(tipsBeforePrunning.get(0), true)
+
+            // And now we check the tips again:
+            List<Sha256Wrapper> tipsAfterPrunning = db.getTipsChains()
+
+            // And we prune the remainnig Tip. This would prune the whole DB:
+            db.prune(tipsAfterPrunning.get(0), true)
+            long numBlocksEnd = db.getNumBlocks()
+            Thread.sleep(100)
+
+        then:
+            tipsBeforePrunning.size() == 2
+            tipsBeforePrunning.contains(parentBlockHashA)
+            tipsBeforePrunning.contains(parentBlockHashB)
+
+            tipsAfterPrunning.size() == 1
+            numBlocksEnd == 0
+
+
+        cleanup:
+            println(" - Cleanup...")
             // We check the DB Content in the console...
             db.printKeys()
             db.stop()

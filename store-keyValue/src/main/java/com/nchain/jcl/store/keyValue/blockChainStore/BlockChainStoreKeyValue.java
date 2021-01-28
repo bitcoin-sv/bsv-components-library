@@ -341,8 +341,17 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     }
 
     default void _publishState() {
-        ChainStateEvent event = ChainStateEvent.builder().state(getState()).build();
-        getEventBus().publish(event);
+            try {
+                getLock().readLock().lock();
+                //getLogger().trace("Publishing State...");
+                ChainStateEvent event = ChainStateEvent.builder().state(getState()).build();
+                getEventBus().publish(event);
+                //getLogger().trace("State published");
+            } catch (Exception e) {
+                getLogger().error("ERROR at publishing State", e);
+            } finally {
+                 getLock().readLock().unlock();
+            }
     }
 
 
@@ -469,7 +478,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             _saveBlockChainInfo(tr, blockChainInfoToUpdate);
 
             // We only keep going if this block ONLY has 1 CHILD:
-            List<String> children = _getNextBlocks(tr, blockChainInfo.getBlockHash());
+            List<String> children = _getNextBlocks(tr, blockChainInfoToUpdate.getBlockHash());
             if (children.size() != 1) break;
             blockChainInfoToUpdate = _getBlockChainInfo(tr, children.get(0));
         } // while...
@@ -482,14 +491,20 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
 
     @Override
     default BlockChainStoreState getState() {
-        List<ChainInfo> tipsChainInfo = getTipsChains().stream()
-                .map(h -> getBlockChainInfo(h).get())
-                .collect(Collectors.toList());
-        return BlockChainStoreState.builder()
-                .tipsChains(tipsChainInfo)
-                .numBlocks(getNumBlocks())
-                .numTxs(getNumTxs())
-                .build();
+        try {
+            getLock().readLock().lock();
+            List<ChainInfo> tipsChainInfo = getTipsChains().stream()
+                    .map(h -> getBlockChainInfo(h).get())
+                    .collect(Collectors.toList());
+            return BlockChainStoreState.builder()
+                    .tipsChains(tipsChainInfo)
+                    .numBlocks(getNumBlocks())
+                    .numTxs(getNumTxs())
+                    .build();
+        } finally {
+            getLock().readLock().unlock();
+        }
+
     }
 
     @Override
@@ -511,7 +526,6 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     @Override
     default List<Sha256Wrapper> getTipsChains(Sha256Wrapper blockHash) {
         try {
-
             getLock().readLock().lock();
             List<Sha256Wrapper> result = new ArrayList<>();
             T tr = createTransaction();
@@ -704,7 +718,6 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             if (!tipsChains.contains(tipChainHash))
                 throw new RuntimeException("The Hash specified for Prunning is NOT the Tip of any Chain.");
 
-            getLogger().debug("Prunning chain tip #" + tipChainHash + " ...");
 
             // Now we move from the tip backwards until we find a Block that has MORE than one child (one being the Block
             // we are removing)
@@ -714,7 +727,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             long numBlocksRemoved = 0;
             while (keepGoing) {
 
-                // We find the Parent of this Block, ad we stop if the parent has MORE than one child /that would mean that
+                // We find the Parent of this Block, and we stop if the parent has MORE than one child /that would mean that
                 // that parent is the block right BEFORE the Fork), and we stop in that case
                 Optional<Sha256Wrapper> parentHashOpt = getPrevBlock(hashBlockToRemove);
                 if (parentHashOpt.isPresent()) {
@@ -729,8 +742,9 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
 
                 numBlocksRemoved++;
 
-                // In the next loop, we try to remove the Parent
-                hashBlockToRemove = parentHashOpt.get();
+                // In the next loop, we try to remove the Parent, if the parent exists
+                if (parentHashOpt.isEmpty()) keepGoing = false;
+                else hashBlockToRemove = parentHashOpt.get();
             } // while...
 
             getLogger().debug("chain tip #" + tipChainHash + " Pruned. " + numBlocksRemoved + " blocks removed.");
@@ -755,47 +769,47 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     //   longer than "prunningAgeDifference"
 
     default void _automaticForkPrunning() {
-        try {
-            getLogger().info("Automatic Fork Pruning initiating...");
-            getLock().writeLock().lock();
-            // We only prune if there is more than one chain:
-            List<Sha256Wrapper> tipsChain = getTipsChains();
-            if (tipsChain != null && (tipsChain.size() > 0)) {
-                ChainInfo longestChain = getLongestChain().get();
-                List<Sha256Wrapper> tipsToPrune = getState().getTipsChains().stream()
-                        .filter(c -> (!c.equals(longestChain))
-                                && ((longestChain.getHeight() - c.getHeight()) >= getConfig().getForkPrunningHeightDifference()))
-                        .map(c -> c.getHeader().getHash())
-                        .collect(Collectors.toList());
-                tipsToPrune.forEach(c -> prune(c, getConfig().isForkPrunningIncludeTxs()));
+            try {
+                getLock().writeLock().lock();
+                getLogger().info("Automatic Fork Pruning initiating...");
+                // We only prune if there is more than one chain:
+                List<Sha256Wrapper> tipsChain = getTipsChains();
+                if (tipsChain != null && (tipsChain.size() > 1)) {
+                    ChainInfo longestChain = getLongestChain().get();
+                    List<Sha256Wrapper> tipsToPrune = getState().getTipsChains().stream()
+                            .filter(c -> (!c.equals(longestChain))
+                                    && ((longestChain.getHeight() - c.getHeight()) >= getConfig().getForkPrunningHeightDifference()))
+                            .map(c -> c.getHeader().getHash())
+                            .collect(Collectors.toList());
+                    tipsToPrune.forEach(c -> prune(c, getConfig().isForkPrunningIncludeTxs()));
+                }
+                getLogger().info("Automatic Fork Pruning finished.");
+            } finally {
+                getLock().writeLock().unlock();
             }
-            getLogger().info("Automatic Fork Pruning finished.");
-        } finally {
-            getLock().writeLock().unlock();
-        }
     }
 
     default void _automaticOrphanPrunning() {
-        try {
-            getLogger().info("Automatic Orphan Pruning initiating...");
-            getLock().writeLock().lock();
-            int numBlocksRemoved = 0;
-            // we get the list of Orphans, and we remove them if they are old" enough:
-            Iterator<Sha256Wrapper> orphansIt = getOrphanBlocks().iterator();
-            while (orphansIt.hasNext()) {
-                Sha256Wrapper blockHash = orphansIt.next();
-                Optional<BlockHeader> blockHeaderOpt = getBlock(blockHash);
-                if (blockHeaderOpt.isPresent()) {
-                    Instant blockTime = Instant.ofEpochSecond(blockHeaderOpt.get().getTime());
-                    if (Duration.between(blockTime, Instant.now()).compareTo(getConfig().getOrphanPrunningBlockAge()) > 0) {
-                        removeBlock(blockHash);
-                        numBlocksRemoved++;
+            try {
+                getLock().writeLock().lock();
+                getLogger().info("Automatic Orphan Pruning initiating...");
+                int numBlocksRemoved = 0;
+                // we get the list of Orphans, and we remove them if they are old" enough:
+                Iterator<Sha256Wrapper> orphansIt = getOrphanBlocks().iterator();
+                while (orphansIt.hasNext()) {
+                    Sha256Wrapper blockHash = orphansIt.next();
+                    Optional<BlockHeader> blockHeaderOpt = getBlock(blockHash);
+                    if (blockHeaderOpt.isPresent()) {
+                        Instant blockTime = Instant.ofEpochSecond(blockHeaderOpt.get().getTime());
+                        if (Duration.between(blockTime, Instant.now()).compareTo(getConfig().getOrphanPrunningBlockAge()) > 0) {
+                            removeBlock(blockHash);
+                            numBlocksRemoved++;
+                        }
                     }
-                }
-            } // while...
-            getLogger().info("Automatic Orphan Prnning finished. " + numBlocksRemoved + " orphan Blocks Removed");
-        } finally {
-            getLock().writeLock().unlock();
+                } // while...
+                getLogger().info("Automatic Orphan Prnning finished. " + numBlocksRemoved + " orphan Blocks Removed");
+            } finally {
+                getLock().writeLock().unlock();
+            }
         }
-    }
 }
