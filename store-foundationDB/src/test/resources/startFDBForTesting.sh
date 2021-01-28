@@ -26,3 +26,4 @@ echo "FDB Started."
 
 echo "Initializing DB..."
 fdbcli -C $CLUSTER_FILE --exec "configure new single memory"
+fdbcli -C $CLUSTER_FILE --exec "writemode on; clearrange \"\" \xFF"

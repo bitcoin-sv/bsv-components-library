@@ -38,6 +38,11 @@ start it yourself in order to do some quick tests or main programs, you can do i
 In the **/installation** folder there are the files needed to run a **FoundationDB** DB in a **Docker** container, and 
 the **cluster** file needed to connect to it.
 
+> IMPORTANT: Even if you run FDB in a Docker Container, you still need to have the client Libraries installed in your 
+local machine, and these libraries must be **the same version** as the ones used in Docker. So make sure that the 
+version specified in the *docker-compose.yaml* file specifies the same version as the ones you have installed (you can 
+check the libraries version in your machine by typing ``fdbcli --version``)
+
 The following command starts the Container:
 
 ``docker-compose -f docker-compose.yml -d up fdb``
