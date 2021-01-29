@@ -15,7 +15,7 @@ import java.time.Duration
 abstract class BlockChainForkSpecBase extends BlockChainStoreSpecBase {
 
     /**
-     * We create a MAin Chian, and then a Fork Chain. We check that the Fork event is triggered. Then we prune the
+     * We create a Main Chain, and then a Fork Chain. We check that the Fork event is triggered. Then we prune the
      * fork chain, and we check that the chain is pruned and the event triggered.
      */
     def "Testing Fork and Prunning"() {
@@ -199,7 +199,7 @@ abstract class BlockChainForkSpecBase extends BlockChainStoreSpecBase {
             tipsBeforePrunning.contains(parentBlockHashB)
 
             tipsAfterPrunning.size() == 1
-            numBlocksEnd == 0
+            numBlocksEnd == 1 // GENESIS
 
 
         cleanup:

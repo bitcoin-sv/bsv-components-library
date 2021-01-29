@@ -728,33 +728,28 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             if (!tipsChains.contains(tipChainHash))
                 throw new RuntimeException("The Hash specified for Prunning is NOT the Tip of any Chain.");
 
-
             // Now we move from the tip backwards until we find a Block that has MORE than one child (one being the Block
             // we are removing)
 
-            boolean keepGoing = true;
             Sha256Wrapper hashBlockToRemove = tipChainHash;
+            Optional<Sha256Wrapper> parentHashOpt = getPrevBlock(hashBlockToRemove);
             long numBlocksRemoved = 0;
-            while (keepGoing) {
+            while (true) {
+                // we do NOT prune the GENESIS Block:
+                if (hashBlockToRemove.equals(getConfig().getGenesisBlock().getHash())) break;
+                // We prune it:
 
-                // We find the Parent of this Block, and we stop if the parent has MORE than one child /that would mean that
-                // that parent is the block right BEFORE the Fork), and we stop in that case
-                Optional<Sha256Wrapper> parentHashOpt = getPrevBlock(hashBlockToRemove);
-                if (parentHashOpt.isPresent()) {
-                    List<Sha256Wrapper> children = getNextBlocks(parentHashOpt.get());
-                    if (children.size() > 1) keepGoing = false;
-                }
-
-                // If enabled, we remove its TXs...
                 if (removeTxs) removeBlockTxs(hashBlockToRemove);
-                // We remove this Block
                 removeBlock(hashBlockToRemove);
-
                 numBlocksRemoved++;
 
-                // In the next loop, we try to remove the Parent, if the parent exists
-                if (parentHashOpt.isEmpty()) keepGoing = false;
-                else hashBlockToRemove = parentHashOpt.get();
+                // If it does not have parent or the parent has more than one Child, we stop right here:
+                if (parentHashOpt.isEmpty()) break;
+                if (getNextBlocks(parentHashOpt.get()).size() > 0) break;
+
+                // In the next iteration we try to prune its parent...
+                hashBlockToRemove = parentHashOpt.get();
+                parentHashOpt = getPrevBlock(hashBlockToRemove);
             } // while...
 
             getLogger().debug("chain tip #" + tipChainHash + " Pruned. " + numBlocksRemoved + " blocks removed.");
@@ -762,7 +757,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             // We trigger a Prune Event:
             ChainPruneEvent event = ChainPruneEvent.builder()
                     .tipForkHash(tipChainHash)
-                    .parentForkHash(hashBlockToRemove)
+                    .parentForkHash(parentHashOpt.get())
                     .numBlocksPruned(numBlocksRemoved)
                     .build();
             getEventBus().publish(event);

@@ -245,6 +245,11 @@ public interface BlockStore {
      */
     BlockStoreStreamer EVENTS();
 
+    /**
+     * Removes the Whole DB
+     */
+    void clear();
+
     // ONLY FOR TESTING
     /** Returns the number of Keys starting with the preffix given */
     long getNumKeys(String keyPrefix);

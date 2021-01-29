@@ -126,4 +126,13 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
         super.stop();
     }
 
+    @Override
+    public void clear() {
+        // We clear the DB the usual way:
+        super.clear();
+        // and we restore the Genesis block:
+        Object tr = createTransaction();
+        executeInTransaction(tr, () -> _initGenesisBlock(tr, config.getGenesisBlock()));
+    }
+
 }

@@ -15,9 +15,12 @@ import org.iq80.leveldb.DBIterator;
 import org.iq80.leveldb.Options;
 import org.slf4j.Logger;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Comparator;
 import java.util.Iterator;
 
 import java.util.Map;
@@ -56,7 +59,7 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
     @Getter private ReadWriteLock lock = new ReentrantReadWriteLock();
 
     // LevelDB instance:
-    protected final DB levelDBStore;
+    protected DB levelDBStore;
 
     // Configuration
     @Getter private BlockStoreLevelDBConfig config;
@@ -191,6 +194,29 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
             } finally {
                 getLock().writeLock().unlock();
             }
+    }
+
+    @Override
+    public void clear() {
+        // LevelDb stores all the info inside a Folder in the File System, so the fastest way is to just remove the
+        // folder content, and re-initiate the DB...
+        try {
+            getLock().writeLock().lock();
+            levelDBStore.close();
+            Path levelDBPath = Paths.get(config.getWorkingFolder().toString(), LEVELDB_FOLDER);
+            Files.walk(levelDBPath)
+                    .sorted(Comparator.reverseOrder())
+                    .map(Path::toFile)
+                    .forEach(File::delete);
+            Files.createDirectory(levelDBPath);
+            Options options = new Options();
+            levelDBStore = factory.open(levelDBPath.toFile(), options);
+        } catch (IOException ioe) {
+          getLogger().error("ERROR Clearing the DB", ioe);
+        } finally {
+            getLock().writeLock().unlock();
+        }
+
     }
 
     @Override

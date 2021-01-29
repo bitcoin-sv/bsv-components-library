@@ -116,4 +116,15 @@ public class BlockChainStoreFDB extends BlockStoreFDB implements BlockChainStore
             this.scheduledExecutorService.shutdownNow();
         super.stop();
     }
+
+    @Override
+    public void clear() {
+        // We clear the DB the usual way:
+        super.clear();
+        // and we restore the Genesis block:
+        db.run(tr -> {
+            _initGenesisBlock(tr, config.getGenesisBlock());
+            return null;
+        });
+    }
 }

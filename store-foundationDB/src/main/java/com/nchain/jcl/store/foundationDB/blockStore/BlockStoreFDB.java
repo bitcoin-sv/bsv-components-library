@@ -72,10 +72,6 @@ public class BlockStoreFDB implements BlockStoreKeyValue<KeyValue, Transaction>,
     @Getter protected final EventBus eventBus;
     private final BlockStoreStreamer blockStoreStreamer;
 
-    // An executor Service for running internal Db operations in parallel:
-
-    private final int BATCH_DB_OPERATIONS_PARALLEL = 3000;
-
     @Builder
     public BlockStoreFDB(@NonNull BlockStoreFDBConfig config,
                          boolean triggerBlockEvents, boolean triggerTxEvents) {
@@ -115,9 +111,13 @@ public class BlockStoreFDB implements BlockStoreKeyValue<KeyValue, Transaction>,
         db = (config.getClusterFile() == null)? fdb.open() : fdb.open(config.getClusterFile());
         getLogger().debug("FDB Connection: Connecting established.");
         // We initialize the Directory Layer and the directory structure:
+        initDirectoryStructure();
+    }
+
+    /* It creates the Directory Layer structure */
+    protected void initDirectoryStructure() {
         dirLayer = new DirectoryLayer();
         db.run( tr -> {
-
             blockchainDir    = dirLayer.createOrOpen(tr, Arrays.asList(DIR_BLOCKCHAIN)).join();
             netDir           = blockchainDir.createOrOpen(tr, Arrays.asList(config.getNetworkId())).join();
             blocksDir        = netDir.createOrOpen(tr, Arrays.asList(DIR_BLOCKS)).join();
@@ -130,7 +130,6 @@ public class BlockStoreFDB implements BlockStoreKeyValue<KeyValue, Transaction>,
 
             return null;
         });
-
     }
 
     @Override
@@ -322,6 +321,18 @@ public class BlockStoreFDB implements BlockStoreKeyValue<KeyValue, Transaction>,
         // might have had to reset it in order not to brake the FoundationDB limitations)
         iterator.getCurrentTransaction().commit().join();
         iterator.getCurrentTransaction().close();
+    }
+
+    @Override
+    public void clear() {
+
+        db.run(tr -> {
+            // We remove The Blocks and Txs layers
+            dirLayer.remove(tr);
+            // And we init again the Directory Layer structure:
+            initDirectoryStructure();
+            return null;
+        });
     }
 
     @Override
