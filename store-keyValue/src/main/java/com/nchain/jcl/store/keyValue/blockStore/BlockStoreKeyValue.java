@@ -601,11 +601,11 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
         try {
             getLock().writeLock().lock();
             T tr = createTransaction();
-            executeInTransaction(tr, () -> {
-                _removeBlock(tr, blockHash.toString());
-                _unlinkBlock(blockHash.toString());
-                _triggerBlocksRemovedEvent(Arrays.asList(blockHash));
-            });
+               executeInTransaction(tr, () -> {
+                   _removeBlock(tr, blockHash.toString());
+                   _unlinkBlock(blockHash.toString());
+                   _triggerBlocksRemovedEvent(Arrays.asList(blockHash));
+              });
         } finally {
             getLock().writeLock().unlock();
         }

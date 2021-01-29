@@ -168,7 +168,7 @@ abstract class BlockChainStoreOrphanSpecBase extends BlockChainStoreSpecBase {
             // At this point, the automatic pruning should have Removed the Block 4...
 
             // We get the current Chain Tips and the List or Orphans:
-            println("Getting Info from he Chain after FIRST PRunning:")
+            println("Getting Info from the Chain after FIRST PRunning:")
             List<Sha256Wrapper> tipsAfterFirstPrunning = db.getTipsChains()
             List<Sha256Wrapper> orphansAfterFirstPrunning = new ArrayList<>()
             Iterator<Sha256Wrapper> orphanBlocksIt2 = db.getOrphanBlocks().iterator()

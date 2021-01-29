@@ -529,7 +529,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                         blockHashIsPartOfPath |= chainPathId == blockChainInfo.getChainPathId();
                         // If not, then we keep searching but this time on the Parent of this Path, if any:
                         ChainPathInfo pathInfo = _getChainPathInfo(tr, chainPathId);
-                        getLogger().warn("Checking getTipsChains(" + blockHash.toString() + "), checking on Tip [" + tipHash + "] with path = " + chainPathId + ((pathInfo != null)? " [path exists]" : "[path NOT exists"));
+                        //getLogger().warn("Checking getTipsChains(" + blockHash.toString() + "), checking on Tip [" + tipHash + "] with path = " + chainPathId + ((pathInfo != null)? " [path exists]" : "[path NOT exists"));
                         chainPathId = pathInfo.getParent_id();
 
                     } while (chainPathId != -1 && !blockHashIsPartOfPath);
@@ -801,25 +801,29 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
 
     default void _automaticOrphanPrunning() {
             try {
-                getLock().writeLock().lock();
+                //getLock().readLock().lock();
                 getLogger().info("Automatic Orphan Pruning initiating...");
                 int numBlocksRemoved = 0;
                 // we get the list of Orphans, and we remove them if they are old" enough:
                 Iterator<Sha256Wrapper> orphansIt = getOrphanBlocks().iterator();
                 while (orphansIt.hasNext()) {
                     Sha256Wrapper blockHash = orphansIt.next();
+                    //getLogger().info("Automatic Orphan Pruning:: Checking block " + blockHash.toString() + "...");
                     Optional<BlockHeader> blockHeaderOpt = getBlock(blockHash);
+                    //getLogger().info("Automatic Orphan Pruning:: Checking block Header " + blockHash.toString() + "...");
                     if (blockHeaderOpt.isPresent()) {
                         Instant blockTime = Instant.ofEpochSecond(blockHeaderOpt.get().getTime());
                         if (Duration.between(blockTime, Instant.now()).compareTo(getConfig().getOrphanPrunningBlockAge()) > 0) {
+                            //getLogger().info("Automatic Orphan Pruning:: Prunning Block " + blockHash.toString() + "...");
                             removeBlock(blockHash);
                             numBlocksRemoved++;
+                            getLogger().info("Automatic Orphan Pruning:: Block pruned." + blockHash.toString());
                         }
                     }
                 } // while...
-                getLogger().info("Automatic Orphan Prnning finished. " + numBlocksRemoved + " orphan Blocks Removed");
+                getLogger().info("Automatic Orphan Prunning finished. " + numBlocksRemoved + " orphan Blocks Removed");
             } finally {
-                getLock().writeLock().unlock();
+                //getLock().readLock().unlock();
             }
         }
 }
