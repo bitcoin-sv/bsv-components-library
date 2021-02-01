@@ -2,6 +2,7 @@ package com.nchain.jcl.net.protocol.wrapper;
 
 import com.nchain.jcl.base.tools.events.Event;
 import com.nchain.jcl.base.tools.events.EventBus;
+import com.nchain.jcl.net.network.events.BlacklistPeerRequest;
 import com.nchain.jcl.net.protocol.events.*;
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.events.ConnectPeerRequest;
@@ -74,6 +75,13 @@ public class P2PRequestHandler {
         public DisablePingPongRequest buildRequest() { return new DisablePingPongRequest(peerAddress);}
     }
 
+    /** A Builder for BlacklistPeerRequest */
+    @AllArgsConstructor
+    public class BlacklistPeerRequestBuilder extends Request {
+        private PeerAddress peerAddress;
+        public BlacklistPeerRequest buildRequest() { return new BlacklistPeerRequest(peerAddress);}
+    }
+
     /**
      * A convenience Class for Requests related to Peer operations
      */
@@ -102,6 +110,9 @@ public class P2PRequestHandler {
         }
         public DisablePingPongRequestBuilder disablePingPong(PeerAddress peerAddress) {
             return new DisablePingPongRequestBuilder(peerAddress);
+        }
+        public BlacklistPeerRequestBuilder blacklist(PeerAddress peerAddress) {
+            return new BlacklistPeerRequestBuilder(peerAddress);
         }
     }
 

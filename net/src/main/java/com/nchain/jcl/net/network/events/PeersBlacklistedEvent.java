@@ -32,7 +32,9 @@ public class PeersBlacklistedEvent extends Event {
         CONNECTION_REJECTED (Optional.of(Duration.ofDays(1))),
         SERIALIZATION_ERROR (Optional.empty()),
         FAILED_HANDSHAKE    (Optional.empty()),
-        PINGPONG_TIMEOUT    (Optional.of(Duration.ofMinutes(40)));
+        PINGPONG_TIMEOUT    (Optional.of(Duration.ofMinutes(40))),
+        CLIENT              (Optional.empty()) // Blacklisted by the Client of JCL
+        ;
 
         @Getter private Optional<Duration> expirationTime;
     }

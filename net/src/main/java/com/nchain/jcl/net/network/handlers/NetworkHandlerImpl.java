@@ -281,14 +281,15 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
 
     // We register this calss to LISTEN for some Events that might be published by another Hndlers.
     public void registerForEvents() {
-        eventBus.subscribe(DisconnectPeerRequest.class, e -> onDisconnectPeerRequest((DisconnectPeerRequest) e));
-        eventBus.subscribe(ConnectPeerRequest.class, e -> onConnectPeerRequest((ConnectPeerRequest) e));
-        eventBus.subscribe(ConnectPeersRequest.class, e -> onConnectPeersRequest((ConnectPeersRequest) e));
-        eventBus.subscribe(PeersBlacklistedEvent.class, e -> onPeersBlacklisted((PeersBlacklistedEvent) e));
-        eventBus.subscribe(PeersWhitelistedEvent.class, e -> onPeersWhitelisted((PeersWhitelistedEvent) e));
-        eventBus.subscribe(ResumeConnectingRequest.class, e -> onResumeConnecting((ResumeConnectingRequest) e));
-        eventBus.subscribe(StopConnectingRequest.class, e -> onStopConnecting((StopConnectingRequest) e));
-        eventBus.subscribe(DisconnectPeersRequest.class, e-> onDisconnectPeers((DisconnectPeersRequest) e));
+        eventBus.subscribe(DisconnectPeerRequest.class,     e -> onDisconnectPeerRequest((DisconnectPeerRequest) e));
+        eventBus.subscribe(ConnectPeerRequest.class,        e -> onConnectPeerRequest((ConnectPeerRequest) e));
+        eventBus.subscribe(ConnectPeersRequest.class,       e -> onConnectPeersRequest((ConnectPeersRequest) e));
+        eventBus.subscribe(PeersBlacklistedEvent.class,     e -> onPeersBlacklisted((PeersBlacklistedEvent) e));
+        eventBus.subscribe(PeersWhitelistedEvent.class,     e -> onPeersWhitelisted((PeersWhitelistedEvent) e));
+        eventBus.subscribe(ResumeConnectingRequest.class,   e -> onResumeConnecting((ResumeConnectingRequest) e));
+        eventBus.subscribe(StopConnectingRequest.class,     e -> onStopConnecting((StopConnectingRequest) e));
+        eventBus.subscribe(DisconnectPeersRequest.class,    e -> onDisconnectPeers((DisconnectPeersRequest) e));
+        eventBus.subscribe(BlacklistPeerRequest.class,      e -> onBlacklistPeer((BlacklistPeerRequest) e));
     }
 
     // Event Handlers:
@@ -312,6 +313,10 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     private void onDisconnectPeers(DisconnectPeersRequest request) {
         this.disconnect(request.getPeersToDisconnect());
         this.disconnectAllExcept(request.getPeersToKeep());
+    }
+
+    private void onBlacklistPeer(BlacklistPeerRequest request) {
+        this.blacklist(request.getPeerAddress().getIp(), PeersBlacklistedEvent.BlacklistReason.CLIENT);
     }
 
     @Override
