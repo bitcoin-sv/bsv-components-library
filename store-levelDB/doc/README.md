@@ -38,6 +38,8 @@ BlockStore db = BlockStoreLevelDB.builder()
                     .build()
 ```
 
+## BlockChainStore Setup:
+
 After the instance is created, you can already start using the ``BlockStore`` module:
 > * [JCL-Store: Using the BlockStore component](../../store/doc/README.md#BlockStore-interface)
 
@@ -55,6 +57,8 @@ BlockStore db = BlockStoreLevelDB.builder()
                     .build()
 ```
 
+## BlockChainStore Setup:
+
 > **IMPORTANT: Performance Tips**
 > 
 > Enabling the Events might affect the performance. Enabling the *Block* Events is not a problem, but enabling *Tx* Events might be. So it's a good practice to enable the *Tx* Events *ONLY* during tests and development, but 
@@ -64,7 +68,7 @@ BlockStore db = BlockStoreLevelDB.builder()
 > 
 > **As a general Rule, ALWAYS use the Plural version of the ``saveXX``methods, so one Event per method invocation is triggered, instead of one Event per each object being saved.**
 
-## BlockChainStore Setup:
+
 
 The following example shows the difference in relation to the Events Triggered:
 
