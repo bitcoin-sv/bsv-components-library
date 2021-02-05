@@ -96,7 +96,9 @@ BlockStoreLevelDBConfig dbConfig = BlockChainStoreLevelDBConfig()
                     .build()
 BlockStore db = BlockStoreLevelDB.builder()
                     .config(dbConfig)
-                    .genesisBlock(new ProtocolBSVMainConfig().getGenesisBlock()) // from JCL-Net
+                    .genesisBlock(ProtocolConfigBuilder
+                    	.get(new MainNetParams(Net.MAINNET)
+                    	.getGenesisBlock()) // from JCL-Net
                     .build()
 ```
 
@@ -116,7 +118,9 @@ The following configuration enables the *Automatic Prunning* and sets up the Fre
 RuntimeConfig runtimeConfig = new RuntimeConfigDefault();
 BlockStoreLevelDBConfig dbConfig = BlockChainStoreLevelDBConfig()
                     .config(runtimeConfig)
-                    .genesisBlock(new ProtocolBSVMainConfig().getGenesisBlock())
+                    .genesisBlock(ProtocolConfigBuilder
+                    	.get(new MainNetParams(Net.MAINNET)
+                    	.getGenesisBlock())
                     .forkPrunningHeightDifference(2)
                     .build()
 BlockStore db = BlockStoreLevelDB.builder()
@@ -146,7 +150,9 @@ The following configuration enables the *Automatic Orphan Prunning* and sets up 
 RuntimeConfig runtimeConfig = new RuntimeConfigDefault();
 BlockStoreLevelDBConfig dbConfig = BlockChainStoreLevelDBConfig()
                     .config(runtimeConfig)
-                    .genesisBlock(new ProtocolBSVMainConfig().getGenesisBlock())
+                    .genesisBlock(ProtocolConfigBuilder
+                    	.get(new MainNetParams(Net.MAINNET)
+                    	.getGenesisBlock())
                     .orphanPrunningBlockAge(Duration.ofMinutes(30)
                     .build()
 BlockStore db = BlockStoreLevelDB.builder()
