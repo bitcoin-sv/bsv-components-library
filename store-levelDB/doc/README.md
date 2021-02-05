@@ -28,8 +28,6 @@ The ``RuntimeConfig`` contains values about the *SW* and *HW* environment where 
 
 The process is very straightforward: we create a ``BlockStoreLevelDBConfig``and we use it to get an instance. This Configuration makes use of the *RuntimeConfiguration* defined previously.
 
-## BlockStore Setup:
-
 
 ```
 RuntimeConfig runtimeConfig = new RuntimeConfigDefault();
@@ -88,7 +86,7 @@ db.saveTxs(txs);				// PERFORMANCE OK
 ```
 
 
-## BlockStore Setup:
+## BlockChainStore Setup:
 
 The process is very straightforward: we create a ``BlockChainStoreLevelDBConfig``and we use it to get an instance. But in this case, since the ``BlockChainStore`` keeps information about the *Chain*, it's important to configure the component properly so we add the right *Blocks* in it, and NOT *Blocks* form other *Chains*. 
 
@@ -99,10 +97,10 @@ The *genesis* Block of each *Chain* can be obtained from the *Protocol Configura
 
 ```
 RuntimeConfig runtimeConfig = new RuntimeConfigDefault();
-BlockStoreLevelDBConfig dbConfig = BlockChainStoreLevelDBConfig()
+BlockChainStoreLevelDBConfig dbConfig = BlockChainStoreLevelDBConfig()
                     .config(runtimeConfig)
                     .build()
-BlockStore db = BlockStoreLevelDB.builder()
+BlockChainStore db = BlockChainStoreLevelDB.builder()
                     .config(dbConfig)
                     .genesisBlock(ProtocolConfigBuilder
                     	.get(new MainNetParams(Net.MAINNET)
@@ -110,10 +108,9 @@ BlockStore db = BlockStoreLevelDB.builder()
                     .build()
 ```
 
-After the instance is created, you can already start using the ``BlockStore``  module:
-> * [JCL-Store: Using the BlockChainStore component](../../store/doc/README.md#BlockChainStore-interface)
+After the instance is created, you can already start using the ``BlockStore``  module.
 
-In the ``BlockChainStore``component, the *Streaming* of the *Fork* and *PRUNE* Events are *ALWAYS* enabled.
+In the ``BlockChainStore``component, the *Streaming* of the *Fork* and *Prune* Events are *ALWAYS* enabled.
 
 ### Automatic Fork Prunning:
 
