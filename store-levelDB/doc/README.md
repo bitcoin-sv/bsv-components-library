@@ -41,8 +41,7 @@ BlockStore db = BlockStoreLevelDB.builder()
 
 
 
-After the instance is created, you can already start using the ``BlockStore`` module:
-> * [JCL-Store: Using the BlockStore component](../../store/doc/README.md#BlockStore-interface)
+After the instance is created, you can already start using the ``BlockStore`` module.
 
 The *Block* and *Transaction* Events are *DISABLED* by Default. To enabled them:
 
