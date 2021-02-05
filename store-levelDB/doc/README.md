@@ -28,7 +28,7 @@ The ``RuntimeConfig`` contains values about the *SW* and *HW* environment where 
 
 The process is very straightforward: we create a ``BlockStoreLevelDBConfig``and we use it to get an instance. This Configuration makes use of the *RuntimeConfiguration* defined previously.
 
-## BlockChainStore Setup:
+## BlockStore Setup:
 
 
 ```
