@@ -88,7 +88,7 @@ db.saveTxs(txs);				// PERFORMANCE OK
 ```
 
 
-## BlockChainStore Setup:
+## BlockStore Setup:
 
 The process is very straightforward: we create a ``BlockChainStoreLevelDBConfig``and we use it to get an instance. But in this case, since the ``BlockChainStore`` keeps information about the *Chain*, it's important to configure the component properly so we add the right *Blocks* in it, and NOT *Blocks* form other *Chains*. 
 
