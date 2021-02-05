@@ -28,6 +28,9 @@ The ``RuntimeConfig`` contains values about the *SW* and *HW* environment where 
 
 The process is very straightforward: we create a ``BlockStoreLevelDBConfig``and we use it to get an instance. This Configuration makes use of the *RuntimeConfiguration* defined previously.
 
+## BlockChainStore Setup:
+
+
 ```
 RuntimeConfig runtimeConfig = new RuntimeConfigDefault();
 BlockStoreLevelDBConfig dbConfig = BlockStoreLevelDBConfig.builder()
@@ -38,7 +41,7 @@ BlockStore db = BlockStoreLevelDB.builder()
                     .build()
 ```
 
-## BlockChainStore Setup:
+
 
 After the instance is created, you can already start using the ``BlockStore`` module:
 > * [JCL-Store: Using the BlockStore component](../../store/doc/README.md#BlockStore-interface)
@@ -57,7 +60,6 @@ BlockStore db = BlockStoreLevelDB.builder()
                     .build()
 ```
 
-## BlockChainStore Setup:
 
 > **IMPORTANT: Performance Tips**
 > 
