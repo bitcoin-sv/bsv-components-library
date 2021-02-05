@@ -383,6 +383,8 @@ enough to "know" when a *FORK* has happened, we also need to *wait* until we are
 one and it can be removed. For all these reasons, the *BlockChainSore* also includes, as part of its specification, an 
 "automatic" prunning system:
 
+### Block History (testing)
+
 > By enabling the *Automatic Prunning*, the *BlockChainStore* Component will take care of keeping track of all the *Chains*, and
 it will also detect when the right time for removing/prunning one of them is. A *Chain* can safely be removed when the 
 difference in height with the longest *Chain* is bigger than a *Threshold* specified. The *Automatic Prunning* Configuration
@@ -392,7 +394,7 @@ The next chapters below explain how the chain *History* is stored and the method
 
 ### Block History
 
-The *BlockChainStore* module uses the term of *Path* to store information about the *history* of the chain. A *Path* is a sequence of blocks in sequence, without any fork between them. Over time, as Forks are created and discarded, the *BlockChainStore* changes and stores this information so it can be used later on to bring up a block's history.
+The *BlockChainStore* module uses the concept of *Path* to store information about the *history* of the chain. A *Path* is a sequence of blocks in sequence, without any fork between them. Over time, as Forks are created and discarded, the *BlockChainStore* changes and stores this information so it can be used later on to bring up a block's history.
 
 Some examples of *Paths* are showed below:
 
@@ -404,17 +406,17 @@ If later on a Fork occurs, then the original Path is broken down:
 
 ![Paths example 2](paths-example2.png)
 
-When later on one of the forks is discarded by the Network and *pruned* by *BlockChainStore*, then the *Path* is deleted, but the *Paths* structure remains.
+When later on one of the forks is discarded by the Network and *pruned* by *BlockChainStore*, then the *Path* is deleted, but the previous structure remains:
 
 ![Paths example 3](paths-example3.png)
 
-The fact that the previous breakdown of Paths is still there after removing a branch allows the *BlockChainStore* module to *know* the complete history of the block. In the previous example, the *History* of the Block 4 can be summed up as:
+The fact that the previous Paths are still there after removing a branch allows the *BlockChainStore* module to *know* the complete history of the block. In the previous example, the *History* of the Block 4 can be summed up as:
 
 * [date 1]: Creation of the Genesis block 
 * [date 2]: Fork at height #2
 * [date 3]: Creation of block #4C
 
-In this example, we *know* that there's been a Fork at a specific point in time, even though the fork itself is now gone.
+In this example, we *know* that there's been a Fork at a specific point in time, *even though the fork itself is now gone*.
 
 #### Block History Operations
 
