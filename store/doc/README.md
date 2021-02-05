@@ -492,6 +492,6 @@ In *JCL-Store*, only guidelines about how to use the interfaces is provided. Bef
 must be obtained, but that process is implementation-specific. So for instructions of how to crete instances of 
 the interfaces above, go check out the documentation of all the implementations provided:
 
-[JCL-Store-LevelDB](../../store-levelDB/doc/README.md): *JCL-Store* implementation with LevelDB 
+[JCL-Store-LevelDB](https://bitbucket.org/nchteamnch/java-component-library/src/develop/store-levelDB/doc/README.md): *JCL-Store* implementation with LevelDB 
  
-[JCL-Store-FoundationDB](../../store-foundationDB/doc/README.md): *JCL-Store* implementation with FoundationDB 
+[JCL-Store-FoundationDB](https://bitbucket.org/nchteamnch/java-component-library/src/develop/store-foundationDB/doc/README.md): *JCL-Store* implementation with FoundationDB 
