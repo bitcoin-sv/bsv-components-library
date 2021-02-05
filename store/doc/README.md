@@ -390,10 +390,7 @@ is implementation-specific, so **go check the specific implementation**:
 
 The next chapters below explain how the chain *History* is stored and the methods available to read it.
 
-### Block History (testing)
-
-
-### Block History
+### Block History
 
 The *BlockChainStore* module uses the concept of *Path* to store information about the *history* of the chain. A *Path* is a sequence of blocks in sequence, without any fork between them. Over time, as Forks are created and discarded, the *BlockChainStore* changes and stores this information so it can be used later on to bring up a block's history.
 
