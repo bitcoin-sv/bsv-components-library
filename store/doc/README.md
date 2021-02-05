@@ -391,6 +391,7 @@ is implementation-specific, so **go check the specific implementation**:
 The next chapters below explain how the chain *History* is stored and the methods available to read it.
 
 ### Block History
+#### Block History Operations
 
 #### Block History Operations
 
