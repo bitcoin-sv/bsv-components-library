@@ -153,14 +153,14 @@ The following configuration enables the *Automatic Orphan Prunning* and sets up 
 
 ```
 RuntimeConfig runtimeConfig = new RuntimeConfigDefault();
-BlockStoreLevelDBConfig dbConfig = BlockChainStoreLevelDBConfig()
+BlockChainStoreLevelDBConfig dbConfig = BlockChainStoreLevelDBConfig()
                     .config(runtimeConfig)
                     .genesisBlock(ProtocolConfigBuilder
                     	.get(new MainNetParams(Net.MAINNET)
                     	.getGenesisBlock())
                     .orphanPrunningBlockAge(Duration.ofMinutes(30)
                     .build()
-BlockStore db = BlockStoreLevelDB.builder()
+BlockChainStore db = BlockChainStoreLevelDB.builder()
                     .config(dbConfig)
                     .enableAutomaticOrphanPrunning(true)
                     .orphanPrunningFrequency(Duration.ofSeconds(40)) 
