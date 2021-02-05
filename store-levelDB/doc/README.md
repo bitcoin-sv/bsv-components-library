@@ -64,6 +64,8 @@ BlockStore db = BlockStoreLevelDB.builder()
 > 
 > **As a general Rule, ALWAYS use the Plural version of the ``saveXX``methods, so one Event per method invocation is triggered, instead of one Event per each object being saved.**
 
+## BlockChainStore Setup:
+
 The following example shows the difference in relation to the Events Triggered:
 
 ```
@@ -79,7 +81,6 @@ txs.forEach(tx -> db.save(tx)); // WARNING: IMPACT ON PERFORMANCE
 db.saveTxs(txs);				// PERFORMANCE OK
 ```
 
-## BlockChainStore Setup2:
 
 ## BlockChainStore Setup:
 
