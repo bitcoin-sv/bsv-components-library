@@ -79,7 +79,7 @@ txs.forEach(tx -> db.save(tx)); // WARNING: IMPACT ON PERFORMANCE
 db.saveTxs(txs);				// PERFORMANCE OK
 ```
 
-## BlockChainStore Setup:
+## BlockChainStore Setup2:
 
 ## BlockChainStore Setup:
 
