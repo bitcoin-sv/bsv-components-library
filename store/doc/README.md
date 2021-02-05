@@ -392,6 +392,10 @@ The next chapters below explain how the chain *History* is stored and the method
 
 ### Block History
 
+#### Block History Operations
+
+
+
 The *BlockChainStore* module uses the concept of *Path* to store information about the *history* of the chain. A *Path* is a sequence of blocks in sequence, without any fork between them. Over time, as Forks are created and discarded, the *BlockChainStore* changes and stores this information so it can be used later on to bring up a block's history.
 
 Some examples of *Paths* are showed below:
@@ -416,7 +420,7 @@ The fact that the previous Paths are still there after removing a branch allows 
 
 In this example, we *know* that there's been a Fork at a specific point in time, *even though the fork itself is now gone*.
 
-#### Block History Operations
+
 
 The *getFirstBlockInHistory(blockHash)* returns the *Hash* of the Block that is the *parent* of 
 the first Block prior to the block given, or the *genesis* block if there is no Fork or the forks have been pruned.
