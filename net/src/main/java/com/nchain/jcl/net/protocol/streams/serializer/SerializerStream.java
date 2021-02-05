@@ -1,10 +1,5 @@
 package com.nchain.jcl.net.protocol.streams.serializer;
 
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader;
-import com.nchain.jcl.base.tools.log.LoggerUtil;
-import com.nchain.jcl.base.tools.streams.OutputStream;
-import com.nchain.jcl.base.tools.streams.OutputStreamImpl;
-import com.nchain.jcl.base.tools.streams.StreamDataEvent;
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.streams.PeerOutputStream;
 import com.nchain.jcl.net.network.streams.PeerStreamInfo;
@@ -13,6 +8,11 @@ import com.nchain.jcl.net.protocol.messages.VersionMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl;
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext;
+import com.nchain.jcl.tools.bytes.ByteArrayReader;
+import com.nchain.jcl.tools.log.LoggerUtil;
+import com.nchain.jcl.tools.streams.OutputStream;
+import com.nchain.jcl.tools.streams.OutputStreamImpl;
+import com.nchain.jcl.tools.streams.StreamDataEvent;
 
 import java.math.BigInteger;
 import java.util.Arrays;

@@ -1,12 +1,6 @@
 package com.nchain.jcl.net.protocol.streams.deserializer;
 
-import com.nchain.jcl.base.tools.bytes.*;
-import com.nchain.jcl.base.tools.config.RuntimeConfig;
-import com.nchain.jcl.base.tools.log.LoggerUtil;
-import com.nchain.jcl.base.tools.streams.InputStream;
-import com.nchain.jcl.base.tools.streams.InputStreamImpl;
-import com.nchain.jcl.base.tools.streams.StreamDataEvent;
-import com.nchain.jcl.base.tools.streams.StreamErrorEvent;
+
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.streams.PeerInputStream;
 import com.nchain.jcl.net.network.streams.PeerStreamInfo;
@@ -14,8 +8,7 @@ import com.nchain.jcl.net.network.streams.nio.NIOInputStreamSource;
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig;
 import com.nchain.jcl.net.protocol.handlers.message.MessagePreSerializer;
 import com.nchain.jcl.net.protocol.messages.HeaderMsg;
-import com.nchain.jcl.net.protocol.messages.PartialBlockHeaderMsg;
-import com.nchain.jcl.net.protocol.messages.PartialBlockTXsMsg;
+
 import com.nchain.jcl.net.protocol.messages.VersionMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.Message;
@@ -24,6 +17,16 @@ import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.net.protocol.serialization.common.MsgSerializersFactory;
 import com.nchain.jcl.net.protocol.serialization.largeMsgs.MsgPartDeserializationErrorEvent;
 import com.nchain.jcl.net.protocol.serialization.largeMsgs.MsgPartDeserializedEvent;
+import com.nchain.jcl.tools.bytes.ByteArrayBuilder;
+import com.nchain.jcl.tools.bytes.ByteArrayMemoryConfiguration;
+import com.nchain.jcl.tools.bytes.ByteArrayReader;
+import com.nchain.jcl.tools.bytes.ByteArrayWriter;
+import com.nchain.jcl.tools.config.RuntimeConfig;
+import com.nchain.jcl.tools.log.LoggerUtil;
+import com.nchain.jcl.tools.streams.InputStream;
+import com.nchain.jcl.tools.streams.InputStreamImpl;
+import com.nchain.jcl.tools.streams.StreamDataEvent;
+import com.nchain.jcl.tools.streams.StreamErrorEvent;
 import lombok.Getter;
 import lombok.Setter;
 

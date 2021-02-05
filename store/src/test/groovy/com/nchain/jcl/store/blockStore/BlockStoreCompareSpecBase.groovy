@@ -1,9 +1,10 @@
 package com.nchain.jcl.store.blockStore
 
-import com.nchain.jcl.base.domain.api.base.BlockHeader
-import com.nchain.jcl.base.domain.api.base.Tx
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper
+
 import com.nchain.jcl.store.common.TestingUtils
+import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
+import io.bitcoinj.bitcoin.api.base.Tx
+import io.bitcoinj.core.Sha256Hash
 
 import java.time.Duration
 import java.time.Instant
@@ -28,7 +29,7 @@ abstract class BlockStoreCompareSpecBase extends BlockStoreSpecBase {
             db.start()
 
             // We create a Block A, and link some Txs to it:
-            BlockHeader blockA = TestingUtils.buildBlock()
+            HeaderReadOnly blockA = TestingUtils.buildBlock()
             db.saveBlock(blockA)
             List<Tx> txsA = new ArrayList<>()
             for (int i = 0; i < NUM_TXS; i++) txsA.add(TestingUtils.buildTx())
@@ -38,7 +39,7 @@ abstract class BlockStoreCompareSpecBase extends BlockStoreSpecBase {
 
 
             // We create a Block B, and link some Txs to it:
-            BlockHeader blockB = TestingUtils.buildBlock()
+            HeaderReadOnly blockB = TestingUtils.buildBlock()
             db.saveBlock(blockB)
             List<Tx> txsB = new ArrayList<>()
             for (int i = 0; i < NUM_TXS; i++) txsB.add(TestingUtils.buildTx())
@@ -68,10 +69,10 @@ abstract class BlockStoreCompareSpecBase extends BlockStoreSpecBase {
             println(" - Checking TXs in Common:")
             Instant timeInit = Instant.now()
             AtomicBoolean inCommonOK = new AtomicBoolean(true)
-            Iterator<Sha256Wrapper> txsInCommonIt = comparison.getTxsInCommonIt().iterator()
+            Iterator<Sha256Hash> txsInCommonIt = comparison.getTxsInCommonIt().iterator()
             long numTxsInCommon = 0;
             while (txsInCommonIt.hasNext()) {
-                Sha256Wrapper txHash = txsInCommonIt.next();
+                Sha256Hash txHash = txsInCommonIt.next();
                 numTxsInCommon++;
                 println("  - TX in common: " + txHash)
                 inCommonOK.set(inCommonOK.get() && db.isTxLinkToblock(txHash, blockA.getHash()))
@@ -83,10 +84,10 @@ abstract class BlockStoreCompareSpecBase extends BlockStoreSpecBase {
             println(" - Checking TXs only in block " + blockA.getHash() + ":")
             timeInit = Instant.now()
             AtomicBoolean onlyAOK = new AtomicBoolean(true)
-            Iterator<Sha256Wrapper> txsOnlyA = comparison.getTxsOnlyInA().iterator()
+            Iterator<Sha256Hash> txsOnlyA = comparison.getTxsOnlyInA().iterator()
             long numTxsOnlyInA = 0;
             while (txsOnlyA.hasNext()) {
-                Sha256Wrapper txHash = txsOnlyA.next();
+                Sha256Hash txHash = txsOnlyA.next();
                 numTxsOnlyInA++
                 println(" - TX only in Block A: " + txHash)
                 onlyAOK.set(onlyAOK.get() && db.isTxLinkToblock(txHash, blockA.getHash()) && !db.isTxLinkToblock(txHash, blockB.getHash()))
@@ -97,10 +98,10 @@ abstract class BlockStoreCompareSpecBase extends BlockStoreSpecBase {
             println(" - Checking TXs only in block " + blockB.getHash() + ":")
             timeInit = Instant.now()
             AtomicBoolean onlyBOK = new AtomicBoolean(true)
-            Iterator<Sha256Wrapper> txsOnlyB = comparison.getTxsOnlyInB().iterator()
+            Iterator<Sha256Hash> txsOnlyB = comparison.getTxsOnlyInB().iterator()
             long numTxsOnlyInB = 0;
             while (txsOnlyB.hasNext()) {
-                Sha256Wrapper txHash = txsOnlyB.next();
+                Sha256Hash txHash = txsOnlyB.next();
                 numTxsOnlyInB++
                 println(" - TX only in Block B: " + txHash)
                 onlyBOK.set(onlyBOK.get() && db.isTxLinkToblock(txHash, blockB.getHash()) && !db.isTxLinkToblock(txHash, blockA.getHash()))

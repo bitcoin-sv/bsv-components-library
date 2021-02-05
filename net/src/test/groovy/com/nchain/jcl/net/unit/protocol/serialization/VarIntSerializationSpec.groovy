@@ -7,9 +7,9 @@ import com.nchain.jcl.net.protocol.serialization.VarIntMsgSerializer
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
 import com.nchain.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter
-import com.nchain.jcl.base.tools.bytes.HEX
+import com.nchain.jcl.tools.bytes.ByteArrayReader
+import com.nchain.jcl.tools.bytes.ByteArrayWriter
+import io.bitcoinj.core.Utils
 import spock.lang.Specification
 
 /**
@@ -33,9 +33,9 @@ class VarIntSerializationSpec extends Specification {
             DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
-            VarIntMsgSerializer serializer = VarIntMsgSerializer.getInstance()
+        VarIntMsgSerializer serializer = VarIntMsgSerializer.getInstance()
             VarIntMsg message = null
-            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_VARINT_MSG), byteInterval, delayMs)
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_VARINT_MSG), byteInterval, delayMs)
         when:
             message = serializer.deserialize(context, byteReader)
         then:
@@ -58,7 +58,7 @@ class VarIntSerializationSpec extends Specification {
             ByteArrayWriter byteWriter = new ByteArrayWriter()
             serializer.serialize(context, message, byteWriter)
             byte[] messageBytes = byteWriter.reader().getFullContent()
-            messageBytesStr = HEX.encode(messageBytes)
+            messageBytesStr = Utils.HEX.encode(messageBytes)
         then:
             messageBytesStr.equals(REF_VARINT_MSG)
     }

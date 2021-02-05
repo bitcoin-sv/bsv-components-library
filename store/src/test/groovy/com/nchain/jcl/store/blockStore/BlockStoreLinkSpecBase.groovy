@@ -1,10 +1,11 @@
 package com.nchain.jcl.store.blockStore
 
 
-import com.nchain.jcl.base.domain.api.base.BlockHeader
-import com.nchain.jcl.base.domain.api.base.Tx
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper
+
 import com.nchain.jcl.store.common.TestingUtils
+import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
+import io.bitcoinj.bitcoin.api.base.Tx
+import io.bitcoinj.core.Sha256Hash
 
 import java.time.Duration
 import java.time.Instant
@@ -50,7 +51,7 @@ abstract class BlockStoreLinkSpecBase extends BlockStoreSpecBase {
             db.start()
 
             // We save a Block...
-            BlockHeader blockHeader = TestingUtils.buildBlock()
+            HeaderReadOnly blockHeader = TestingUtils.buildBlock()
             println(" - Saving Block " + blockHeader.getHash().toString() + "...")
             db.saveBlock(blockHeader)
 
@@ -109,8 +110,8 @@ abstract class BlockStoreLinkSpecBase extends BlockStoreSpecBase {
             //TestingUtils.clearDB(blockStore.db)
 
             // We create several blocks and save them;
-            BlockHeader block1 = TestingUtils.buildBlock()
-            BlockHeader block2 = TestingUtils.buildBlock()
+            HeaderReadOnly block1 = TestingUtils.buildBlock()
+            HeaderReadOnly block2 = TestingUtils.buildBlock()
             println(" - Saving a Batch with 2 Blocks:")
             println(" - block 1: " + block1.getHash().toString())
             println(" - block 2: " + block2.getHash().toString())
@@ -144,10 +145,10 @@ abstract class BlockStoreLinkSpecBase extends BlockStoreSpecBase {
             // We check the DB Content in the console...
             db.printKeys()
 
-            List<Sha256Wrapper> blocksFromTx1 = db.getBlockHashLinkedToTx(tx1.getHash())
-            List<Sha256Wrapper> blocksFromTx2 = db.getBlockHashLinkedToTx(tx2.getHash())
-            List<Sha256Wrapper> blocksFromTx3 = db.getBlockHashLinkedToTx(tx3.getHash())
-            List<Sha256Wrapper> blocksFromTx4 = db.getBlockHashLinkedToTx(tx4.getHash())
+            List<Sha256Hash> blocksFromTx1 = db.getBlockHashLinkedToTx(tx1.getHash())
+            List<Sha256Hash> blocksFromTx2 = db.getBlockHashLinkedToTx(tx2.getHash())
+            List<Sha256Hash> blocksFromTx3 = db.getBlockHashLinkedToTx(tx3.getHash())
+            List<Sha256Hash> blocksFromTx4 = db.getBlockHashLinkedToTx(tx4.getHash())
 
             boolean OK_txShared =   db.isTxLinkToblock(tx2.getHash(), block1.getHash()) &&
                                     db.isTxLinkToblock(tx2.getHash(), block2.getHash())
@@ -185,7 +186,7 @@ abstract class BlockStoreLinkSpecBase extends BlockStoreSpecBase {
             db.start()
 
             // We create and save a Block
-            BlockHeader block = TestingUtils.buildBlock()
+            HeaderReadOnly block = TestingUtils.buildBlock()
             println(" - Saving Block " + block.getHash().toString() + "...")
             db.saveBlock(block)
 
@@ -199,7 +200,7 @@ abstract class BlockStoreLinkSpecBase extends BlockStoreSpecBase {
 
             // Now we are going to extract them using an Iterable, and we make sure that we extract all of them, so
             // we use a Map to keep track of them;
-            Map<Sha256Wrapper, Boolean> txsRead = txs
+            Map<Sha256Hash, Boolean> txsRead = txs
                 .stream()
                 .collect(Collectors.toMap({ tx -> tx.getHash()}, { h -> false}))
 
@@ -208,9 +209,9 @@ abstract class BlockStoreLinkSpecBase extends BlockStoreSpecBase {
 
             // Now we use the Iterable to loop over the Txs linked to that Block...
             println(" - Getting a Iterable over the Txs linked to the Block " + block.getHash().toString() + "...")
-            Iterator<Sha256Wrapper> txsIt = db.getBlockTxs(block.getHash()).iterator()
+            Iterator<Sha256Hash> txsIt = db.getBlockTxs(block.getHash()).iterator()
             while (txsIt.hasNext()) {
-                Sha256Wrapper key = txsIt.next();
+                Sha256Hash key = txsIt.next();
                 System.out.println(" - Reading Tx from Iterator : " + key.toString());
                 txsRead.put(key, true)
             }
@@ -240,8 +241,8 @@ abstract class BlockStoreLinkSpecBase extends BlockStoreSpecBase {
             db.start()
 
             // We save 2 Blocks:
-            BlockHeader block1 = TestingUtils.buildBlock()
-            BlockHeader block2 = TestingUtils.buildBlock()
+            HeaderReadOnly block1 = TestingUtils.buildBlock()
+            HeaderReadOnly block2 = TestingUtils.buildBlock()
             println(" - Saving Block " + block1.getHash().toString() + "...")
             println(" - Saving Block " + block2.getHash().toString() + "...")
             db.saveBlock(block1)
@@ -277,13 +278,13 @@ abstract class BlockStoreLinkSpecBase extends BlockStoreSpecBase {
             // We check the Txs have been properly linked to the block 1:
             int numTxsLinkedBlock1 = db.getBlockNumTxs(block1.getHash())
             boolean txsLinkedBlock1_OK = true
-            List<Sha256Wrapper> txsLinkedBlock1Hashes = new ArrayList()
+            List<Sha256Hash> txsLinkedBlock1Hashes = new ArrayList()
 
             // We check that all the Txs linked to this Block1 are correct (they are also present in the original
             // List of Txs...
-            Iterator<Sha256Wrapper> txsLinkedBlock1It = db.getBlockTxs(block1.getHash()).iterator()
+            Iterator<Sha256Hash> txsLinkedBlock1It = db.getBlockTxs(block1.getHash()).iterator()
             while (txsLinkedBlock1It.hasNext()) {
-                Sha256Wrapper txHash = txsLinkedBlock1It.next()
+                Sha256Hash txHash = txsLinkedBlock1It.next()
                 txsLinkedBlock1_OK &= !txsLinkedBlock1Hashes.contains(txHash) && txs.stream().anyMatch({tx -> tx.getHash().equals(txHash)})
                 txsLinkedBlock1Hashes.add(txHash)
             }
@@ -293,8 +294,8 @@ abstract class BlockStoreLinkSpecBase extends BlockStoreSpecBase {
             // We check that the FIRST Tx has been linked to the FIRST and SECOND Blocks:
             boolean txsLinkedBlock2_OK = true
             int numTxLinkedBlock2 = db.getBlockNumTxs(block2.getHash())
-            Iterator<Sha256Wrapper> txsLinkedBlock2It = db.getBlockTxs(block2.getHash()).iterator()
-            Sha256Wrapper txLinkedBlock2Hash = txsLinkedBlock2It.next()
+            Iterator<Sha256Hash> txsLinkedBlock2It = db.getBlockTxs(block2.getHash()).iterator()
+            Sha256Hash txLinkedBlock2Hash = txsLinkedBlock2It.next()
 
             txsLinkedBlock2_OK = txLinkedBlock2Hash.equals(sharedTx.getHash()) && (numTxLinkedBlock2 == 1)
 
@@ -313,7 +314,7 @@ abstract class BlockStoreLinkSpecBase extends BlockStoreSpecBase {
             println(" - Checking that all the Txs has NO blocks linked to them:")
             boolean block1Unlinked_OK = true;
             for (int i = 1; i < txs.size(); i++) {
-                List<Sha256Wrapper> blocksLinked = db.getBlockHashLinkedToTx(txs.get(i).getHash())
+                List<Sha256Hash> blocksLinked = db.getBlockHashLinkedToTx(txs.get(i).getHash())
                 println(" - tx " + txs.get(i).getHash().toString() + " , " + blocksLinked.size() + " blocks linked to it")
                 block1Unlinked_OK &= (blocksLinked.size() == 0)
             }

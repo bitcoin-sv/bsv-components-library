@@ -1,9 +1,6 @@
 package com.nchain.jcl.net.protocol.handlers.handshake;
 
-import com.nchain.jcl.base.tools.bitcoin.NonceUtils;
-import com.nchain.jcl.base.tools.config.RuntimeConfig;
-import com.nchain.jcl.base.tools.handlers.HandlerImpl;
-import com.nchain.jcl.base.tools.log.LoggerUtil;
+
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.events.*;
 import com.nchain.jcl.net.protocol.events.*;
@@ -14,6 +11,10 @@ import com.nchain.jcl.net.protocol.messages.VersionAckMsg;
 import com.nchain.jcl.net.protocol.messages.VersionMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
+import com.nchain.jcl.net.tools.NonceUtils;
+import com.nchain.jcl.tools.config.RuntimeConfig;
+import com.nchain.jcl.tools.handlers.HandlerImpl;
+import com.nchain.jcl.tools.log.LoggerUtil;
 import lombok.Getter;
 
 import java.math.BigInteger;

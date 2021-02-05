@@ -1,9 +1,6 @@
 package com.nchain.jcl.net.unit.protocol.streams.deserializer
 
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter
-import com.nchain.jcl.base.tools.config.RuntimeConfig
-import com.nchain.jcl.base.tools.config.provided.RuntimeConfigDefault
+
 import com.nchain.jcl.net.network.PeerAddress
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
@@ -26,6 +23,10 @@ import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.net.protocol.serialization.common.MsgSerializersFactory
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
+import com.nchain.jcl.tools.bytes.ByteArrayReader
+import com.nchain.jcl.tools.bytes.ByteArrayWriter
+import com.nchain.jcl.tools.config.RuntimeConfig
+import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault
 import spock.lang.Specification
 
 import java.time.Duration

@@ -1,8 +1,9 @@
 package com.nchain.jcl.store.blockChainStore.events;
 
-import com.nchain.jcl.base.tools.events.EventBus;
-import com.nchain.jcl.base.tools.events.EventStreamer;
+
 import com.nchain.jcl.store.blockStore.events.BlockStoreStreamer;
+import com.nchain.jcl.tools.events.EventBus;
+import com.nchain.jcl.tools.events.EventStreamer;
 
 /**
  * @author i.fernandez@nchain.com

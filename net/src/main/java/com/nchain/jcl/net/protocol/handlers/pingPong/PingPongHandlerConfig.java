@@ -1,11 +1,14 @@
 package com.nchain.jcl.net.protocol.handlers.pingPong;
 
-import com.nchain.jcl.base.tools.handlers.HandlerConfig;
+
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig;
+import com.nchain.jcl.tools.handlers.HandlerConfig;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.time.Duration;
 
 /**
  * @author i.fernandez@nchain.com
@@ -19,10 +22,14 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PingPongHandlerConfig extends HandlerConfig {
 
+    // Default Values:
+    public static final Long DEFAULT_INACTIVITY_TIMEOUT = Duration.ofMinutes(4).toMillis();
+    public static final Long DEFAULT_RESPONSE_TIMEOUT = Duration.ofMinutes(3).toMillis();
+
     private ProtocolBasicConfig basicConfig;
 
     @Builder.Default
-    private long inactivityTimeout = 240000; // 3 minutes
+    private long inactivityTimeout = DEFAULT_INACTIVITY_TIMEOUT;
     @Builder.Default
-    private long responseTimeout = 180000; // 2 minutes;
+    private long responseTimeout = DEFAULT_RESPONSE_TIMEOUT;
 }

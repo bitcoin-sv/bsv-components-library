@@ -1,7 +1,8 @@
 package com.nchain.jcl.store.blockStore.events;
 
-import com.nchain.jcl.base.tools.events.EventBus;
-import com.nchain.jcl.base.tools.events.EventStreamer;
+
+import com.nchain.jcl.tools.events.EventBus;
+import com.nchain.jcl.tools.events.EventStreamer;
 
 /**
  * @author i.fernandez@nchain.com
@@ -12,7 +13,7 @@ import com.nchain.jcl.base.tools.events.EventStreamer;
  */
 public class BlockStoreStreamer {
     private final EventBus eventBus;
-    public final EventStreamer<BlocksSavedEvent>    BLOCKS_SAVED;
+    public final EventStreamer<BlocksSavedEvent> BLOCKS_SAVED;
     public final EventStreamer<BlocksRemovedEvent>  BLOCKS_REMOVED;
     public final EventStreamer<TxsSavedEvent>       TXS_SAVED;
     public final EventStreamer<TxsRemovedEvent>     TXS_REMOVED;

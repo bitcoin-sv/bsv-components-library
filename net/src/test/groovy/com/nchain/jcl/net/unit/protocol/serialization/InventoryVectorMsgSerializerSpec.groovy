@@ -12,10 +12,10 @@ import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder
 import com.nchain.jcl.net.protocol.serialization.InventoryVectorMsgSerializer
 import com.nchain.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter
-import com.nchain.jcl.base.tools.bytes.HEX
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper
+import com.nchain.jcl.tools.bytes.ByteArrayReader
+import com.nchain.jcl.tools.bytes.ByteArrayWriter
+import io.bitcoinj.core.Sha256Hash
+import io.bitcoinj.core.Utils
 import spock.lang.Specification
 
 /**
@@ -34,7 +34,7 @@ class InventoryVectorMsgSerializerSpec extends Specification {
     private static final String REF_INV_VEC_BODY_MSG = "01000000a69d45e7abc3b8fc363d13b88aaa2f2ec62bf77b6881e8bd7bd1012fd81d802b"
     private static final String REF_INV_VEC_FULL_MSG = "e3e1f3e8696e76656e746f727956656324000000653cfe1701000000a69d45e7abc3b8fc363d13b88aaa2f2ec62bf77b6881e8bd7bd1012fd81d802b"
     private static final InventoryVectorMsg.VectorType REF_INV_VEC_TYPE = InventoryVectorMsg.VectorType.MSG_TX
-    public static final byte[] REF_INV_VEC_BYTES = Sha256Wrapper.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6").getBytes()
+    public static final byte[] REF_INV_VEC_BYTES = Sha256Hash.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6").getBytes()
     private static final HashMsg REF_HASH_MSG = HashMsg.builder().hash(REF_INV_VEC_BYTES).build()
 
 
@@ -55,7 +55,7 @@ class InventoryVectorMsgSerializerSpec extends Specification {
         when:
             InventoryVectorMsgSerializer.getInstance().serialize(context, inventoryVectorMsg, byteWriter)
             byte[] messageBytes = byteWriter.reader().getFullContent()
-            messageSerialized = HEX.encode(messageBytes)
+            messageSerialized = Utils.HEX.encode(messageBytes)
         then:
              messageSerialized.equals(REF_INV_VEC_BODY_MSG)
     }
@@ -68,7 +68,7 @@ class InventoryVectorMsgSerializerSpec extends Specification {
                     .maxBytesToRead((long) (REF_INV_VEC_BODY_MSG.length()/2))
                     .build()
             InventoryVectorMsg inventoryVectorMsg = null
-            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_INV_VEC_BODY_MSG), byteInterval, delayMs);
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_INV_VEC_BODY_MSG), byteInterval, delayMs);
         when:
              inventoryVectorMsg = InventoryVectorMsgSerializer.getInstance().deserialize(context, byteReader)
         then:
@@ -92,7 +92,7 @@ class InventoryVectorMsgSerializerSpec extends Specification {
         BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
             byte[] bytes = serializer.serialize(context, inventoryBitcoinMsg, InventoryVectorMsg.MESSAGE_TYPE).getFullContent()
-            String rejectMsgSerialized = HEX.encode(bytes)
+            String rejectMsgSerialized = Utils.HEX.encode(bytes)
         then:
             rejectMsgSerialized.equals(REF_INV_VEC_FULL_MSG)
     }
@@ -103,7 +103,7 @@ class InventoryVectorMsgSerializerSpec extends Specification {
             DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
-            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_INV_VEC_FULL_MSG), byteInterval, delayMs);
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_INV_VEC_FULL_MSG), byteInterval, delayMs);
         BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
         when:
             BitcoinMsg<InventoryVectorMsg> bitcoinMsg = bitcoinSerializer.deserialize(

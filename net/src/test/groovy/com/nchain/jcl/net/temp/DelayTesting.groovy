@@ -1,7 +1,6 @@
 package com.nchain.jcl.net.temp
 
-import com.nchain.jcl.base.tools.bytes.HEX
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper
+
 import com.nchain.jcl.net.network.PeerAddress
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
@@ -17,11 +16,14 @@ import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
+import io.bitcoinj.core.Sha256Hash
 import org.junit.Test
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.time.Instant
 
+@Ignore
 class DelayTesting extends Specification {
 
     private GetHeadersMsg getHeaderFromHash(String hash, long protocolVersion){
@@ -95,7 +97,7 @@ class DelayTesting extends Specification {
     @Test
     def "testing genesisBlock"() {
         given:
-            Sha256Wrapper blockHash = new ProtocolBSVMainConfig().genesisBlock.getHash()
+            Sha256Hash blockHash = Sha256Hash.wrap(new ProtocolBSVMainConfig().genesisBlock.getHash().hashBytes)
         expect:
             blockHash.toString().equalsIgnoreCase("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f")
     }

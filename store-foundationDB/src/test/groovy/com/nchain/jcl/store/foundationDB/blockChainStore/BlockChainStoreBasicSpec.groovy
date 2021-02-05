@@ -1,10 +1,10 @@
 package com.nchain.jcl.store.foundationDB.blockChainStore
 
-import com.nchain.jcl.base.domain.api.base.BlockHeader
 import com.nchain.jcl.store.blockChainStore.BlockChainStore
 import com.nchain.jcl.store.blockChainStore.BlockChainStoreBasicSpecBase
 import com.nchain.jcl.store.foundationDB.DockerTestUtils
 import com.nchain.jcl.store.foundationDB.StoreFactory
+import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
 
 import java.time.Duration
 
@@ -19,7 +19,7 @@ class BlockChainStoreBasicSpec extends BlockChainStoreBasicSpecBase {
 
     @Override
     BlockChainStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents,
-                                BlockHeader genesisBlock,
+                                HeaderReadOnly genesisBlock,
                                 Duration publishStateFrequency,
                                 Duration forkPrunningFrequency,
                                 Integer forkPrunningHeightDiff,

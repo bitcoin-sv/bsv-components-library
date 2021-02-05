@@ -1,8 +1,9 @@
 package com.nchain.jcl.net.protocol.messages;
 
 import com.google.common.base.Preconditions;
-import com.nchain.jcl.base.tools.bytes.HEX;
+
 import com.nchain.jcl.net.protocol.messages.common.Message;
+import io.bitcoinj.core.Utils;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -47,6 +48,6 @@ public class HashMsg extends Message {
     }
 
     @Override
-    public String toString() { return HEX.encode(hashBytes);}
+    public String toString() { return Utils.HEX.encode(hashBytes);}
 
 }

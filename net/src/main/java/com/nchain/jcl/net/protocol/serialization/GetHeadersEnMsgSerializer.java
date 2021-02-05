@@ -1,13 +1,14 @@
 package com.nchain.jcl.net.protocol.serialization;
 
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader;
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter;
-import com.nchain.jcl.base.tools.bytes.ByteTools;
+
 import com.nchain.jcl.net.protocol.messages.GetHeadersEnMsg;
 import com.nchain.jcl.net.protocol.messages.HashMsg;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.net.protocol.serialization.common.MessageSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext;
+import com.nchain.jcl.tools.bytes.ByteArrayReader;
+import com.nchain.jcl.tools.bytes.ByteArrayWriter;
+import io.bitcoinj.core.Utils;
 
 /**
  * @author m.jose@nchain.com
@@ -45,7 +46,7 @@ public class GetHeadersEnMsgSerializer implements MessageSerializer<GetHeadersEn
     @Override
     public void serialize(SerializerContext context, GetHeadersEnMsg message, ByteArrayWriter byteWriter) {
         byteWriter.writeUint32LE(message.getVersion());
-        byteWriter.write(ByteTools.reverseBytes(message.getBlockLocatorHash().getHashBytes()));
-        byteWriter.write(ByteTools.reverseBytes(message.getHashStop().getHashBytes()));
+        byteWriter.write(Utils.reverseBytes(message.getBlockLocatorHash().getHashBytes()));
+        byteWriter.write(Utils.reverseBytes(message.getHashStop().getHashBytes()));
     }
 }

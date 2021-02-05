@@ -1,7 +1,8 @@
 package com.nchain.jcl.net.network.streams;
 
 import com.nchain.jcl.net.network.PeerAddress;
-import com.nchain.jcl.base.tools.streams.StreamState;
+import com.nchain.jcl.tools.streams.StreamState;
+
 
 /**
  * @author i.fernandez@nchain.com

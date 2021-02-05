@@ -1,9 +1,9 @@
 package com.nchain.jcl.net.protocol.messages;
 
-import com.nchain.jcl.base.domain.api.base.TxOutPoint;
-import com.nchain.jcl.base.domain.bean.base.TxOutPointBean;
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
+
 import com.nchain.jcl.net.protocol.messages.common.Message;
+import io.bitcoinj.bitcoin.api.base.TxOutPoint;
+import io.bitcoinj.bitcoin.bean.base.TxOutPointBean;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
@@ -56,8 +56,4 @@ public class TxOutPointMsg extends Message {
         return "hash: " + hash + ", index: " + index;
     }
 
-    /** Returns a BitcoinObject containing the same information */
-    public TxOutPoint toBean() {
-        return new TxOutPointBean(lengthInBytes, Sha256Wrapper.wrap(hash.getHashBytes()), index);
-    }
 }

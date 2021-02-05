@@ -1,8 +1,9 @@
 package com.nchain.jcl.net.unit.protocol.tools;
 
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader;
-import com.nchain.jcl.base.tools.bytes.ByteArrayReaderOptimized;
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter;
+
+import com.nchain.jcl.tools.bytes.ByteArrayReader;
+import com.nchain.jcl.tools.bytes.ByteArrayReaderOptimized;
+import com.nchain.jcl.tools.bytes.ByteArrayWriter;
 import lombok.extern.slf4j.Slf4j;
 
 

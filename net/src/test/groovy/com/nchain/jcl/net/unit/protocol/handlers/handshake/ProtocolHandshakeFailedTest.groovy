@@ -2,6 +2,8 @@ package com.nchain.jcl.net.unit.protocol.handlers.handshake
 
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
+import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
+import com.nchain.jcl.net.protocol.config.ProtocolConfigImpl
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.events.PeerHandshakeRejectedEvent
 import com.nchain.jcl.net.protocol.handlers.blacklist.BlacklistHandler
@@ -11,6 +13,7 @@ import com.nchain.jcl.net.protocol.handlers.pingPong.PingPongHandler
 import com.nchain.jcl.net.unit.protocol.tools.MsgTest
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
+import io.bitcoinj.params.MainNetParams
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicBoolean
@@ -28,28 +31,27 @@ class ProtocolHandshakeFailedTest extends Specification {
         given:
 
             // Server Definition:
+            ProtocolConfig protocolConfig = ProtocolConfigBuilder.get(new MainNetParams())
 
-            ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder()
-
-                    .build()
             // We disable all the Handlers we don't need for this Test:
             P2P server = new P2PBuilder("server")
-                    .config(config)
+                    .config(protocolConfig)
                     .serverPort(0) // Random Port
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
                     .build()
+
             // Client Definition:
             // First we obtain the Basic BSV Configuration
             // Then we set the changes:
             // - a random Port ("0")
             // - a wrong protocolNumber.
 
-            ProtocolConfig bsvConfig = new ProtocolBSVMainConfig()
-            ProtocolConfig wrongConfig = bsvConfig.toBuilder()
+
+            ProtocolConfig wrongConfig = ((ProtocolConfigImpl) protocolConfig).toBuilder()
                 .port(0)
-                .basicConfig(bsvConfig.getBasicConfig().toBuilder().protocolVersion(0).build())
+                .basicConfig(protocolConfig.getBasicConfig().toBuilder().protocolVersion(0).build())
                 .build()
 
             // We disable all the Handlers we don't need for this Test:
@@ -93,27 +95,26 @@ class ProtocolHandshakeFailedTest extends Specification {
         given:
 
             // Server Definition:
-            ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder()
-                    .build()
+            ProtocolConfig protocolConfig = ProtocolConfigBuilder.get(new MainNetParams())
             // We disable all the Handlers we don't need for this Test:
             P2P server = new P2PBuilder("server")
-                    .config(config)
+                    .config(protocolConfig)
                     .serverPort(0) // Random Port
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
                     .build()
+
             // Client Definition:
             // We change the "User Agent" used by the Client, to use an incorrect one (in the protocolBSVMainConfig
             // class, any user_agent containing "ABC" and some other patterns are blacklisted)
-            ProtocolConfig clientConfig = new ProtocolBSVMainConfig().toBuilder().port(0).build()
 
-            HandshakeHandlerConfig handshakeConfig = clientConfig.getHandshakeConfig().toBuilder()
+            HandshakeHandlerConfig handshakeConfig = protocolConfig.getHandshakeConfig().toBuilder()
                 .userAgent("ABC")
                 .build()
             // We disable all the Handlers we don't need for this Test:
             P2P client = new P2PBuilder("client")
-                    .config(clientConfig)
+                    .config(protocolConfig)
                     .config(handshakeConfig)
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
@@ -155,11 +156,10 @@ class ProtocolHandshakeFailedTest extends Specification {
     def "Failed Handshaked-Duplicated ACK"() {
         given:
             // Server and Client Definition:
-            ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder()
-                    .build()
+         ProtocolConfig protocolConfig = ProtocolConfigBuilder.get(new MainNetParams())
             // We disable all the Handlers we don't need for this Test:
             P2P server = new P2PBuilder("server")
-                    .config(config)
+                    .config(protocolConfig)
                     .serverPort(0) // Random Port
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
@@ -167,7 +167,7 @@ class ProtocolHandshakeFailedTest extends Specification {
                     .build()
             // We disable all the Handlers we don't need for this Test:
             P2P client = new P2PBuilder("client")
-                    .config(config)
+                    .config(protocolConfig)
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
                     .excludeHandler(BlacklistHandler.HANDLER_ID)

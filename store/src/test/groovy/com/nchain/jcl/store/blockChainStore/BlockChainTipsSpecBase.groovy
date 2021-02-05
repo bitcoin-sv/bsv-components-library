@@ -1,9 +1,10 @@
 package com.nchain.jcl.store.blockChainStore
 
-import com.nchain.jcl.base.domain.api.base.BlockHeader
-import com.nchain.jcl.base.domain.api.extended.ChainInfo
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper
+
 import com.nchain.jcl.store.common.TestingUtils
+import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
+import io.bitcoinj.bitcoin.api.extended.ChainInfo
+import io.bitcoinj.core.Sha256Hash
 
 import java.time.Duration
 import java.util.stream.Collectors
@@ -25,7 +26,7 @@ abstract class BlockChainTipsSpecBase extends BlockChainStoreSpecBase {
         given:
             // Configuration and DB start up:
             println(" - Connecting to the DB...")
-            BlockHeader genesisBlock = TestingUtils.buildBlock(Sha256Wrapper.ZERO_HASH.toString())
+            HeaderReadOnly genesisBlock = TestingUtils.buildBlock(Sha256Hash.ZERO_HASH.toString())
             println(" - Using block genesis: " + genesisBlock.getHash())
             BlockChainStore db = getInstance("BSV-Main", false, false, genesisBlock, Duration.ofMillis(100), null, null, null, null)
 
@@ -39,15 +40,15 @@ abstract class BlockChainTipsSpecBase extends BlockChainStoreSpecBase {
 
             // This should create 3 Tips: D, E and G.
 
-            BlockHeader blockA = TestingUtils.buildBlock(genesisBlock.hash.toString())
-            BlockHeader blockB = TestingUtils.buildBlock(blockA.hash.toString())
-            BlockHeader blockC = TestingUtils.buildBlock(blockA.hash.toString())
-            BlockHeader blockD = TestingUtils.buildBlock(blockB.hash.toString())
-            BlockHeader blockE = TestingUtils.buildBlock(blockC.hash.toString())
-            BlockHeader blockF = TestingUtils.buildBlock(blockC.hash.toString())
-            BlockHeader blockG = TestingUtils.buildBlock(blockF.hash.toString())
+            HeaderReadOnly blockA = TestingUtils.buildBlock(genesisBlock.hash.toString())
+            HeaderReadOnly blockB = TestingUtils.buildBlock(blockA.hash.toString())
+            HeaderReadOnly blockC = TestingUtils.buildBlock(blockA.hash.toString())
+            HeaderReadOnly blockD = TestingUtils.buildBlock(blockB.hash.toString())
+            HeaderReadOnly blockE = TestingUtils.buildBlock(blockC.hash.toString())
+            HeaderReadOnly blockF = TestingUtils.buildBlock(blockC.hash.toString())
+            HeaderReadOnly blockG = TestingUtils.buildBlock(blockF.hash.toString())
 
-            List<BlockHeader> blocksToSave = Arrays.asList(blockA, blockB, blockC, blockD, blockE, blockF, blockG)
+            List<HeaderReadOnly> blocksToSave = Arrays.asList(blockA, blockB, blockC, blockD, blockE, blockF, blockG)
             db.saveBlocks(blocksToSave)
 
             println(" - Genesis: " + genesisBlock.hash.toString())
@@ -64,24 +65,24 @@ abstract class BlockChainTipsSpecBase extends BlockChainStoreSpecBase {
 
             // First, we check the Tips:
 
-            List<Sha256Wrapper> tipsChain = db.getTipsChains()
+            List<Sha256Hash> tipsChain = db.getTipsChains()
 
-            // Now we try "getTipsChainChain()" with different Blocks:
-            List<Sha256Wrapper> tipsForBlockA = db.getTipsChains(blockA.hash) // D, E, G
-            List<Sha256Wrapper> tipsForBlockB = db.getTipsChains(blockB.hash) // D
-            List<Sha256Wrapper> tipsForBlockC = db.getTipsChains(blockC.hash) // E, G
+            // Now we Sha256Hash "getTipsChainChain()" with different Blocks:
+            List<Sha256Hash> tipsForBlockA = db.getTipsChains(blockA.hash) // D, E, G
+            List<Sha256Hash> tipsForBlockB = db.getTipsChains(blockB.hash) // D
+            List<Sha256Hash> tipsForBlockC = db.getTipsChains(blockC.hash) // E, G
 
             // We check the FIRST Block of the PATH of each Tip:
-            Optional<ChainInfo> firstBlockOfBlockD = db.getFirstBlockInPath(blockD.hash) // B
-            Optional<ChainInfo> firstBlockOfBlockE = db.getFirstBlockInPath(blockE.hash) // E
-            Optional<ChainInfo> firstBlockOfBlockG = db.getFirstBlockInPath(blockG.hash) // F
+            Optional<ChainInfo> firstBlockOfBlockD = db.getFirstBlockInHistory(blockD.hash) // B
+            Optional<ChainInfo> firstBlockOfBlockE = db.getFirstBlockInHistory(blockE.hash) // E
+            Optional<ChainInfo> firstBlockOfBlockG = db.getFirstBlockInHistory(blockG.hash) // F
 
             // Now, we prune the branch with tip (G) and we check again the Tips:
             db.prune(blockG.hash, false)
 
-            Optional<ChainInfo> firstBlockOfBlockDAfterPrunning = db.getFirstBlockInPath(blockD.hash) // B
-            Optional<ChainInfo> firstBlockOfBlockEAfterPrunning = db.getFirstBlockInPath(blockE.hash) // E
-            Optional<ChainInfo> firstBlockOfBlockGAfterPrunning = db.getFirstBlockInPath(blockG.hash) // F
+            Optional<ChainInfo> firstBlockOfBlockDAfterPrunning = db.getFirstBlockInHistory(blockD.hash) // B
+            Optional<ChainInfo> firstBlockOfBlockEAfterPrunning = db.getFirstBlockInHistory(blockE.hash) // E
+            Optional<ChainInfo> firstBlockOfBlockGAfterPrunning = db.getFirstBlockInHistory(blockG.hash) // F
 
         then:
                 tipsChain.size() == 3
@@ -133,7 +134,7 @@ abstract class BlockChainTipsSpecBase extends BlockChainStoreSpecBase {
         given:
             // Configuration and DB start up:
             println(" - Connecting to the DB...")
-            BlockHeader genesisBlock = TestingUtils.buildBlock(Sha256Wrapper.ZERO_HASH.toString())
+            HeaderReadOnly genesisBlock = TestingUtils.buildBlock(Sha256Hash.ZERO_HASH.toString())
             println(" - Using block genesis: " + genesisBlock.getHash())
             BlockChainStore db = getInstance("BSV-Main", false, false, genesisBlock, Duration.ofMillis(100), null, null, null, null)
 
@@ -143,17 +144,17 @@ abstract class BlockChainTipsSpecBase extends BlockChainStoreSpecBase {
             // We create first a tree like this:
             // - [genesis] - [A] - [B] - [C]
             // These bocks will be automatically connected to the Chain:
-            BlockHeader blockA = TestingUtils.buildBlock(genesisBlock.hash.toString())
-            BlockHeader blockB = TestingUtils.buildBlock(blockA.hash.toString())
-            BlockHeader blockC = TestingUtils.buildBlock(blockB.hash.toString())
+            HeaderReadOnly blockA = TestingUtils.buildBlock(genesisBlock.hash.toString())
+            HeaderReadOnly blockB = TestingUtils.buildBlock(blockA.hash.toString())
+            HeaderReadOnly blockC = TestingUtils.buildBlock(blockB.hash.toString())
             db.saveBlocks(Arrays.asList(blockA, blockB, blockC))
 
             // we check the Tips:
-            List<Sha256Wrapper> tipsChainAfterFirstBranch = db.getTipsChains()
-            List<Sha256Wrapper> tipsChainBlockBAfterFirstBranch = db.getTipsChains(blockB.getHash())
+            List<Sha256Hash> tipsChainAfterFirstBranch = db.getTipsChains()
+            List<Sha256Hash> tipsChainBlockBAfterFirstBranch = db.getTipsChains(blockB.getHash())
 
             // We check the FIRST Block of the PATH of each Tip:
-            Optional<ChainInfo> firstBlockOfBlockC = db.getFirstBlockInPath(blockC.hash) // genesis
+            Optional<ChainInfo> firstBlockOfBlockC = db.getFirstBlockInHistory(blockC.hash) // genesis
 
             // Now we create a another Branch of blocks:
             //   [B]
@@ -162,30 +163,30 @@ abstract class BlockChainTipsSpecBase extends BlockChainStoreSpecBase {
             // But the Block [D] will NOT be saved yet, so the branch starting from [E] wil be saved but will be
             // DISCONNECTED from the Chain
 
-            BlockHeader blockD = TestingUtils.buildBlock(blockB.hash.toString())
-            BlockHeader blockE = TestingUtils.buildBlock(blockD.hash.toString())
-            BlockHeader blockF = TestingUtils.buildBlock(blockE.hash.toString())
-            BlockHeader blockG = TestingUtils.buildBlock(blockF.hash.toString())
-            BlockHeader blockH = TestingUtils.buildBlock(blockE.hash.toString())
-            BlockHeader blockI = TestingUtils.buildBlock(blockH.hash.toString())
+            HeaderReadOnly blockD = TestingUtils.buildBlock(blockB.hash.toString())
+            HeaderReadOnly blockE = TestingUtils.buildBlock(blockD.hash.toString())
+            HeaderReadOnly blockF = TestingUtils.buildBlock(blockE.hash.toString())
+            HeaderReadOnly blockG = TestingUtils.buildBlock(blockF.hash.toString())
+            HeaderReadOnly blockH = TestingUtils.buildBlock(blockE.hash.toString())
+            HeaderReadOnly blockI = TestingUtils.buildBlock(blockH.hash.toString())
 
-            List<BlockHeader> blocksToSave = Arrays.asList(blockE, blockF, blockG, blockH, blockI)
+            List<HeaderReadOnly> blocksToSave = Arrays.asList(blockE, blockF, blockG, blockH, blockI)
             db.saveBlocks(blocksToSave)
 
             // we check the Tips:
-            List<Sha256Wrapper> tipsChainAfterSecondBranch = db.getTipsChains()
-            List<Sha256Wrapper> tipsChainBlockBAfterSecondBranch = db.getTipsChains(blockB.getHash())
+            List<Sha256Hash> tipsChainAfterSecondBranch = db.getTipsChains()
+            List<Sha256Hash> tipsChainBlockBAfterSecondBranch = db.getTipsChains(blockB.getHash())
 
             // Now we save the Block [D] ,which will trigger the connection of all the Nodes in the last branch
             db.saveBlock(blockD)
 
             // we check the Tips:
-            List<Sha256Wrapper> tipsChainAfterConnectingBranch = db.getTipsChains()
-            List<Sha256Wrapper> tipsChainBlockBAfterConnectingBranch = db.getTipsChains(blockB.getHash())
+            List<Sha256Hash> tipsChainAfterConnectingBranch = db.getTipsChains()
+            List<Sha256Hash> tipsChainBlockBAfterConnectingBranch = db.getTipsChains(blockB.getHash())
 
             // We check the FIRST Block of the PATH of each Tip:
-            Optional<ChainInfo> firstBlockOfBlockG = db.getFirstBlockInPath(blockG.hash) // genesis
-            Optional<ChainInfo> firstBlockOfBlockI = db.getFirstBlockInPath(blockI.hash) // genesis
+            Optional<ChainInfo> firstBlockOfBlockG = db.getFirstBlockInHistory(blockG.hash) // genesis
+            Optional<ChainInfo> firstBlockOfBlockI = db.getFirstBlockInHistory(blockI.hash) // genesis
 
 
             println(" - Genesis: " + genesisBlock.hash.toString())

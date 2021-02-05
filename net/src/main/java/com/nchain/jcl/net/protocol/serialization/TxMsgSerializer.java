@@ -1,12 +1,13 @@
 package com.nchain.jcl.net.protocol.serialization;
 
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader;
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter;
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
+
 import com.nchain.jcl.net.protocol.messages.*;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.net.protocol.serialization.common.MessageSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext;
+import com.nchain.jcl.tools.bytes.ByteArrayReader;
+import com.nchain.jcl.tools.bytes.ByteArrayWriter;
+import io.bitcoinj.core.Sha256Hash;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +23,7 @@ public class TxMsgSerializer implements MessageSerializer<TxMsg> {
     private static TxMsgSerializer instance;
 
     // Reference to singleton instances used during serialization/Deserialization. Defined here for performance
-    private static VarIntMsgSerializer          varIntMsgSerializer         = VarIntMsgSerializer.getInstance();
+    private static VarIntMsgSerializer varIntMsgSerializer         = VarIntMsgSerializer.getInstance();
     private static TxInputMsgSerializer txInputMessageSerializer    = TxInputMsgSerializer.getInstance();
     private static TxOutputMsgSerializer txOutputMessageSerializer   = TxOutputMsgSerializer.getInstance();
 
@@ -85,8 +86,8 @@ public class TxMsgSerializer implements MessageSerializer<TxMsg> {
 
             byte[] txBytes = writer.reader().getFullContentAndClose();
             HashMsg txHash =  HashMsg.builder().hash(
-                    Sha256Wrapper.wrapReversed(
-                            Sha256Wrapper.twiceOf(txBytes).getBytes()).getBytes())
+                    Sha256Hash.wrapReversed(
+                            Sha256Hash.twiceOf(txBytes).getBytes()).getBytes())
                     .build();
             txBuilder.hash(Optional.of(txHash));
         } else txBuilder.hash(Optional.empty());

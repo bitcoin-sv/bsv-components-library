@@ -1,15 +1,16 @@
 package com.nchain.jcl.net.protocol.serialization;
 
 
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader;
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter;
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
+
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.net.protocol.serialization.common.MessageSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext;
 import com.nchain.jcl.net.protocol.messages.RejectMsg;
 import com.nchain.jcl.net.protocol.messages.RejectMsgBuilder;
 import com.nchain.jcl.net.protocol.messages.VarStrMsg;
+import com.nchain.jcl.tools.bytes.ByteArrayReader;
+import com.nchain.jcl.tools.bytes.ByteArrayWriter;
+import io.bitcoinj.core.Sha256Hash;
 
 /**
  * @author i.fernandez@nchain.com
@@ -56,7 +57,7 @@ public class RejectMsgSerializer implements MessageSerializer<RejectMsg> {
 
         if ((message.getStr().equals(RejectMsg.MESSAGE_BLOCK)) || (message.getStr().equals(RejectMsg.MESSAGE_TX))) {
             byteReader.waitForBytes(32);
-            Sha256Wrapper dataHash = Sha256Wrapper.wrapReversed(byteReader.read(32));
+            Sha256Hash dataHash = Sha256Hash.wrapReversed(byteReader.read(32));
             builder.setData(dataHash);
         } else {
             if (context.getMaxBytesToRead() == null)
@@ -80,7 +81,7 @@ public class RejectMsgSerializer implements MessageSerializer<RejectMsg> {
         byteWriter.write(message.getCcode().getValue());
         VarStrMsgSerializer.getinstance().serialize(context, message.getReason(), byteWriter);
         if (message.getDataHash() != null) {
-            byteWriter.write(Sha256Wrapper.wrapReversed(message.getDataHash().getBytes()).getBytes());
+            byteWriter.write(Sha256Hash.wrapReversed(message.getDataHash().getBytes()).getBytes());
         }
     }
 

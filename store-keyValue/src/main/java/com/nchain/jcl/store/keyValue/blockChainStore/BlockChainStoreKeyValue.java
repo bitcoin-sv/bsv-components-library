@@ -1,8 +1,6 @@
 package com.nchain.jcl.store.keyValue.blockChainStore;
 
-import com.nchain.jcl.base.domain.api.base.BlockHeader;
-import com.nchain.jcl.base.domain.api.extended.ChainInfo;
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
+
 import com.nchain.jcl.store.blockChainStore.BlockChainStore;
 import com.nchain.jcl.store.blockChainStore.BlockChainStoreState;
 import com.nchain.jcl.store.blockChainStore.events.ChainForkEvent;
@@ -10,7 +8,11 @@ import com.nchain.jcl.store.blockChainStore.events.ChainPruneEvent;
 import com.nchain.jcl.store.blockChainStore.events.ChainStateEvent;
 import com.nchain.jcl.store.keyValue.blockStore.BlockStoreKeyValue;
 import com.nchain.jcl.store.keyValue.common.HashesList;
-import org.checkerframework.checker.units.qual.C;
+import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
+import io.bitcoinj.bitcoin.api.extended.ChainInfo;
+import io.bitcoinj.bitcoin.bean.extended.ChainInfoBean;
+import io.bitcoinj.core.Sha256Hash;
+
 
 import java.math.BigInteger;
 import java.time.Duration;
@@ -145,7 +147,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         remove(tr, fullKeyForBlockChainInfo(blockHash));
     }
 
-    private BlockChainInfo _saveBlockChainInfo(T tr, BlockHeader block, BlockChainInfo parentBlockChainInfo, int chainPathId) {
+    private BlockChainInfo _saveBlockChainInfo(T tr, HeaderReadOnly block, BlockChainInfo parentBlockChainInfo, int chainPathId) {
 
         // We calculate the Height of the Chain:
         int resultHeight = (parentBlockChainInfo != null)
@@ -154,8 +156,8 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         // We calculate the Size Inn Bytes of the Chain:
         // TODO: Possible overflow here????
         long resultChainSize = (parentBlockChainInfo != null)
-                ? block.getSizeInBytes() + parentBlockChainInfo.getTotalChainSize()
-                : block.getSizeInBytes();
+                ? block.getMessageSize() + parentBlockChainInfo.getTotalChainSize()
+                : block.getMessageSize();
 
         // We set the value of the ChainWork:
         BigInteger chainWork = (parentBlockChainInfo != null)
@@ -236,7 +238,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         _saveChainTips(tr, tipsToSave);
     }
 
-    private void _connectBlock(T tr, BlockHeader blockHeader, BlockChainInfo parentBlockChainInfo) {
+    private void _connectBlock(T tr, HeaderReadOnly blockHeader, BlockChainInfo parentBlockChainInfo) {
 
         getLogger().trace("Connecting Block " + blockHeader.getHash().toString() + " ...");
         // Block chain Info that will be inserted for this Block:
@@ -285,7 +287,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         List<String> children = _getNextBlocks(tr, blockHeader.getHash().toString());
         if (children != null && children.size() > 0) {
             for (String childHashHex : children) {
-                Optional<BlockHeader> childBlock = getBlock(Sha256Wrapper.wrap(childHashHex));
+                Optional<HeaderReadOnly> childBlock = getBlock(Sha256Hash.wrap(childHashHex));
                 if (childBlock.isPresent()) _connectBlock(tr, childBlock.get(), blockChainInfo);
             }
         } else {
@@ -297,7 +299,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         // If this block is already connected we remove the Chain Info:
         BlockChainInfo blockChainInfo = _getBlockChainInfo(tr, blockHash);
         if (blockChainInfo != null) {
-            BlockHeader block = _getBlock(tr, blockHash);
+            HeaderReadOnly block = _getBlock(tr, blockHash);
             getLogger().trace("Disconnecting Block " + blockChainInfo.getBlockHash() + "(height: " + blockChainInfo.getHeight() + ") (path: " + blockChainInfo.getChainPathId() + ")...");
 
             // We remove the ChainInfo for this Node (this will disconnect this Block from the Chain):
@@ -312,7 +314,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         }
     }
 
-    default void _initGenesisBlock(T tr, BlockHeader genesisBlock) {
+    default void _initGenesisBlock(T tr, HeaderReadOnly genesisBlock) {
         // We init the Info stored about the Paths in the Chain:
         _updateLastPathId(tr, 0);
         _createNewChainPath(tr, -1, genesisBlock.getHash().toString());
@@ -338,7 +340,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
 
 
     @Override
-    default void _saveBlock(T tr, BlockHeader blockHeader) {
+    default void _saveBlock(T tr, HeaderReadOnly blockHeader) {
         String parentHashHex = blockHeader.getPrevBlockHash().toString();
 
         // we save te Block...:
@@ -370,7 +372,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     @Override
     default void _removeBlock(T tr, String blockHash) {
         // Basic check if the block exists:
-        BlockHeader block = _getBlock(tr, blockHash);
+        HeaderReadOnly block = _getBlock(tr, blockHash);
         if (block == null) return;
 
         // We remove the relationship between this block and its parent:
@@ -490,14 +492,14 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     }
 
     @Override
-    default List<Sha256Wrapper> getTipsChains() {
+    default List<Sha256Hash> getTipsChains() {
         try {
             getLock().readLock().lock();
-            List<Sha256Wrapper> result = new ArrayList<>();
+            List<Sha256Hash> result = new ArrayList<>();
             T tr = createTransaction();
             executeInTransaction(tr , () -> {
                 List<String> tipsChain = _getChainTips(tr);
-                result.addAll(tipsChain.stream().map(h -> Sha256Wrapper.wrap(h)).collect(Collectors.toList()));
+                result.addAll(tipsChain.stream().map(h -> Sha256Hash.wrap(h)).collect(Collectors.toList()));
             });
             return result;
         } finally {
@@ -506,10 +508,10 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     }
 
     @Override
-    default List<Sha256Wrapper> getTipsChains(Sha256Wrapper blockHash) {
+    default List<Sha256Hash> getTipsChains(Sha256Hash blockHash) {
         try {
             getLock().readLock().lock();
-            List<Sha256Wrapper> result = new ArrayList<>();
+            List<Sha256Hash> result = new ArrayList<>();
             T tr = createTransaction();
             executeInTransaction(tr, () -> {
                 // We only continue if the Block given is connected:
@@ -533,7 +535,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                         chainPathId = pathInfo.getParent_id();
 
                     } while (chainPathId != -1 && !blockHashIsPartOfPath);
-                    if (blockHashIsPartOfPath) result.add(Sha256Wrapper.wrap(tipHash));
+                    if (blockHashIsPartOfPath) result.add(Sha256Hash.wrap(tipHash));
                 }
             });
             return result;
@@ -543,7 +545,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     }
 
     @Override
-    default Optional<ChainInfo> getFirstBlockInPath(Sha256Wrapper blockHash) {
+    default Optional<ChainInfo> getFirstBlockInHistory(Sha256Hash blockHash) {
         try {
             getLock().readLock().lock();
             AtomicReference<ChainInfo> result = new AtomicReference<>();
@@ -564,7 +566,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                 ChainPathInfo pathInfo = _getChainPathInfo(tr, pathId);
                 while (true) {
                     // We get the Block this Path begins with:
-                    BlockHeader blockBeginPath = _getBlock(tr, pathInfo.getBlockHash());
+                    HeaderReadOnly blockBeginPath = _getBlock(tr, pathInfo.getBlockHash());
                     // if its the genesis, we are done:
                     if (blockBeginPath.getHash().equals(getConfig().getGenesisBlock().getHash())) break;
 
@@ -582,13 +584,12 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
 
                 // At this point, the info we are looking for is in the pathInfo after the loop
                 BlockChainInfo blockResultInfo = _getBlockChainInfo(tr, pathInfo.getBlockHash());
-                BlockHeader blockResultHeader = _getBlock(tr, pathInfo.getBlockHash());
-                ChainInfo chainInfoResult = ChainInfo.builder()
-                        .header(blockResultHeader)
-                        .chainWork(blockResultInfo.getChainWork())
-                        .height(blockResultInfo.getHeight())
-                        .sizeInBytes(blockResultInfo.getTotalChainSize())
-                        .build();
+                HeaderReadOnly blockResultHeader = _getBlock(tr, pathInfo.getBlockHash());
+
+                ChainInfoBean chainInfoResult = new ChainInfoBean(blockResultHeader);
+                chainInfoResult.setChainWork(blockResultInfo.getChainWork());
+                chainInfoResult.setHeight(blockResultInfo.getHeight());
+                chainInfoResult.makeImmutable();
                 result.set(chainInfoResult);
             });
             return Optional.ofNullable(result.get());
@@ -612,24 +613,24 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     }
 
     @Override
-    default Optional<ChainInfo> getBlockChainInfo(Sha256Wrapper blockHash) {
+    default Optional<ChainInfo> getBlockChainInfo(Sha256Hash blockHash) {
         try {
             getLock().readLock().lock();
             AtomicReference<ChainInfo> result = new AtomicReference<>();
             T tr = createTransaction();
             executeInTransaction(tr, () -> {
-                BlockHeader block = _getBlock(tr, blockHash.toString());
+                HeaderReadOnly block = _getBlock(tr, blockHash.toString());
                 if (block == null) return;
 
                 byte[] value = read(tr, fullKeyForBlockChainInfo(blockHash.toString()));
                 BlockChainInfo blockChainInfo = toBlockChainInfo(value);
-                ChainInfo chainInfoResult = ChainInfo.builder()
-                        .header(block)
-                        .chainWork(blockChainInfo.getChainWork())
-                        .height(blockChainInfo.getHeight())
-                        .sizeInBytes(blockChainInfo.getTotalChainSize())
-                        .build();
+
+                ChainInfoBean chainInfoResult = new ChainInfoBean(block);
+                chainInfoResult.setChainWork(blockChainInfo.getChainWork());
+                chainInfoResult.setHeight(blockChainInfo.getHeight());
+                chainInfoResult.makeImmutable();
                 result.set(chainInfoResult);
+
             });
             return Optional.ofNullable(result.get());
         } finally {
@@ -655,10 +656,10 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     }
 
     @Override
-    default Optional<Sha256Wrapper> getPrevBlock(Sha256Wrapper blockHash) {
+    default Optional<Sha256Hash> getPrevBlock(Sha256Hash blockHash) {
         try {
             getLock().readLock().lock();
-            Optional<Sha256Wrapper> result = getBlock(blockHash).map(b -> b.getPrevBlockHash());
+            Optional<Sha256Hash> result = getBlock(blockHash).map(b -> b.getPrevBlockHash());
             return result;
         } finally {
             getLock().readLock().unlock();
@@ -666,14 +667,14 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     }
 
     @Override
-    default List<Sha256Wrapper> getNextBlocks(Sha256Wrapper blockHash) {
+    default List<Sha256Hash> getNextBlocks(Sha256Hash blockHash) {
         try {
             getLock().readLock().lock();
-            List<Sha256Wrapper> result = new ArrayList<>();
+            List<Sha256Hash> result = new ArrayList<>();
             T tr = createTransaction();
             executeInTransaction(tr, () -> {
                 List<String> children = _getNextBlocks(tr, blockHash.toString());
-                result.addAll(children.stream().map(h -> Sha256Wrapper.wrap(h)).collect(Collectors.toList()));
+                result.addAll(children.stream().map(h -> Sha256Hash.wrap(h)).collect(Collectors.toList()));
             });
             return result;
         } finally {
@@ -682,7 +683,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     }
 
     @Override
-    default Iterable<Sha256Wrapper> getOrphanBlocks() {
+    default Iterable<Sha256Hash> getOrphanBlocks() {
 
         // We configure the parameters for creating an Iterator that loops over the ORPHAN Blocks:
 
@@ -696,33 +697,33 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         BiPredicate<T, byte[]> keyVerifier = (tr, key) -> {
             String blockHash = extractBlockHashFromKey(key).get();
             if (blockHash.equals(getConfig().getGenesisBlock().getHash().toString())) return false;
-            BlockHeader block = _getBlock(tr, blockHash);
-            BlockHeader parent = _getBlock(tr, block.getPrevBlockHash().toString());
+            HeaderReadOnly block = _getBlock(tr, blockHash);
+            HeaderReadOnly parent = _getBlock(tr, block.getPrevBlockHash().toString());
             return (parent == null);
         };
 
         // The "buildItemBy" is the function used to take a Key and return each Item of the Iterator. The iterator
         // will returns a series of BlockHeader, so this function will build a BlockHeader out of a Key:
 
-        Function<E, Sha256Wrapper> buildItemBy = (E item) -> {
+        Function<E, Sha256Hash> buildItemBy = (E item) -> {
             byte[] key = keyFromItem(item);
             String blockHash = extractBlockHashFromKey(key).get();
-            return Sha256Wrapper.wrap(blockHash);
+            return Sha256Hash.wrap(blockHash);
         };
 
         // With everything set up, we create our Iterator and return it wrapped up in an Iterable:
-        Iterator<Sha256Wrapper> iterator = getIterator(startingWithKey, null, keyVerifier, buildItemBy);
+        Iterator<Sha256Hash> iterator = getIterator(startingWithKey, null, keyVerifier, buildItemBy);
 
-        Iterable<Sha256Wrapper> result = () -> iterator;
+        Iterable<Sha256Hash> result = () -> iterator;
         return result;
     }
 
     @Override
-    default void prune(Sha256Wrapper tipChainHash, boolean removeTxs) {
+    default void prune(Sha256Hash tipChainHash, boolean removeTxs) {
         getLogger().debug("Prunning chain tip #" + tipChainHash + " ...");
         try {
             getLock().writeLock().lock();
-            List<Sha256Wrapper> tipsChains = getTipsChains();
+            List<Sha256Hash> tipsChains = getTipsChains();
 
             // First we check if this Hash really is a TIP of a chain:
             if (!tipsChains.contains(tipChainHash))
@@ -731,8 +732,8 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             // Now we move from the tip backwards until we find a Block that has MORE than one child (one being the Block
             // we are removing)
 
-            Sha256Wrapper hashBlockToRemove = tipChainHash;
-            Optional<Sha256Wrapper> parentHashOpt = getPrevBlock(hashBlockToRemove);
+            Sha256Hash hashBlockToRemove = tipChainHash;
+            Optional<Sha256Hash> parentHashOpt = getPrevBlock(hashBlockToRemove);
             long numBlocksRemoved = 0;
             while (true) {
                 // we do NOT prune the GENESIS Block:
@@ -778,10 +779,10 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                 getLock().writeLock().lock();
                 getLogger().info("Automatic Fork Pruning initiating...");
                 // We only prune if there is more than one chain:
-                List<Sha256Wrapper> tipsChain = getTipsChains();
+                List<Sha256Hash> tipsChain = getTipsChains();
                 if (tipsChain != null && (tipsChain.size() > 1)) {
                     ChainInfo longestChain = getLongestChain().get();
-                    List<Sha256Wrapper> tipsToPrune = getState().getTipsChains().stream()
+                    List<Sha256Hash> tipsToPrune = getState().getTipsChains().stream()
                             .filter(c -> (!c.equals(longestChain))
                                     && ((longestChain.getHeight() - c.getHeight()) >= getConfig().getForkPrunningHeightDifference()))
                             .map(c -> c.getHeader().getHash())
@@ -800,11 +801,11 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                 getLogger().info("Automatic Orphan Pruning initiating...");
                 int numBlocksRemoved = 0;
                 // we get the list of Orphans, and we remove them if they are old" enough:
-                Iterator<Sha256Wrapper> orphansIt = getOrphanBlocks().iterator();
+                Iterator<Sha256Hash> orphansIt = getOrphanBlocks().iterator();
                 while (orphansIt.hasNext()) {
-                    Sha256Wrapper blockHash = orphansIt.next();
+                    Sha256Hash blockHash = orphansIt.next();
                     //getLogger().info("Automatic Orphan Pruning:: Checking block " + blockHash.toString() + "...");
-                    Optional<BlockHeader> blockHeaderOpt = getBlock(blockHash);
+                    Optional<HeaderReadOnly> blockHeaderOpt = getBlock(blockHash);
                     //getLogger().info("Automatic Orphan Pruning:: Checking block Header " + blockHash.toString() + "...");
                     if (blockHeaderOpt.isPresent()) {
                         Instant blockTime = Instant.ofEpochSecond(blockHeaderOpt.get().getTime());

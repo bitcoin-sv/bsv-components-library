@@ -1,6 +1,6 @@
 package com.nchain.jcl.net.protocol.serialization.largeMsgs;
 
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader;
+
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.PartialBlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.PartialBlockTXsMsg;
@@ -8,6 +8,7 @@ import com.nchain.jcl.net.protocol.messages.TxMsg;
 import com.nchain.jcl.net.protocol.serialization.BlockHeaderMsgSerializer;
 import com.nchain.jcl.net.protocol.serialization.TxMsgSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
+import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;

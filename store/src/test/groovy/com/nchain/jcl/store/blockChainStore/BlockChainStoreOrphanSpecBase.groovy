@@ -1,10 +1,11 @@
 package com.nchain.jcl.store.blockChainStore
 
-import com.nchain.jcl.base.domain.api.base.BlockHeader
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper
+
 import com.nchain.jcl.store.blockStore.BlockStore
 import com.nchain.jcl.store.blockStore.BlockStoreSpecBase
 import com.nchain.jcl.store.common.TestingUtils
+import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
+import io.bitcoinj.core.Sha256Hash
 
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicInteger
@@ -29,7 +30,7 @@ abstract class BlockChainStoreOrphanSpecBase extends BlockChainStoreSpecBase {
         given:
             // Configuration and DB start up:
             println(" - Connecting to the DB...")
-            BlockHeader genesisBlock = TestingUtils.buildBlock(Sha256Wrapper.ZERO_HASH.toString())
+            HeaderReadOnly genesisBlock = TestingUtils.buildBlock(Sha256Hash.ZERO_HASH.toString())
             println(" - Using block genesis: " + genesisBlock.getHash())
             BlockChainStore db = getInstance("BSV-Main", false, false, genesisBlock, Duration.ofMillis(100), null, null, null, null)
 
@@ -38,8 +39,8 @@ abstract class BlockChainStoreOrphanSpecBase extends BlockChainStoreSpecBase {
             // We define a chain of Blocks:
             // [GENESIS] - [Block1] - [Block2]
 
-            BlockHeader block1 = TestingUtils.buildBlock(genesisBlock.hash.toString())
-            BlockHeader block2 = TestingUtils.buildBlock(block1.hash.toString())
+            HeaderReadOnly block1 = TestingUtils.buildBlock(genesisBlock.hash.toString())
+            HeaderReadOnly block2 = TestingUtils.buildBlock(block1.hash.toString())
             db.saveBlocks(Arrays.asList(block1, block2))
 
             // And now we define 2 more branches: These first branch can be connected to the main chain, but for now
@@ -48,11 +49,11 @@ abstract class BlockChainStoreOrphanSpecBase extends BlockChainStoreSpecBase {
             //  - (Block3-MISSING) - [Block4] - [Block5]
             //  - [Block5] - (Block6-MISSING) - [Block7] - [Block8]
 
-            BlockHeader block3 = TestingUtils.buildBlock(block2.hash.toString())
-            BlockHeader block4 = TestingUtils.buildBlock(block3.hash.toString())
-            BlockHeader block5 = TestingUtils.buildBlock(block4.hash.toString())
-            BlockHeader block6 = TestingUtils.buildBlock(block5.hash.toString())
-            BlockHeader block7 = TestingUtils.buildBlock(block6.hash.toString())
+            HeaderReadOnly block3 = TestingUtils.buildBlock(block2.hash.toString())
+            HeaderReadOnly block4 = TestingUtils.buildBlock(block3.hash.toString())
+            HeaderReadOnly block5 = TestingUtils.buildBlock(block4.hash.toString())
+            HeaderReadOnly block6 = TestingUtils.buildBlock(block5.hash.toString())
+            HeaderReadOnly block7 = TestingUtils.buildBlock(block6.hash.toString())
 
             db.saveBlocks(Arrays.asList(block4, block5, block7))
 
@@ -61,10 +62,10 @@ abstract class BlockChainStoreOrphanSpecBase extends BlockChainStoreSpecBase {
 
             // We get an iterator with the Orphans blocks a this moment, which should be [Block4] and [Block7]:
             println(" - Getting Orphans:")
-            Set<Sha256Wrapper> orphanBlocks = new HashSet<>()
-            Iterator<Sha256Wrapper> orphanBlocksIt = db.getOrphanBlocks().iterator()
+            Set<Sha256Hash> orphanBlocks = new HashSet<>()
+            Iterator<Sha256Hash> orphanBlocksIt = db.getOrphanBlocks().iterator()
             while (orphanBlocksIt.hasNext()) {
-                Sha256Wrapper orphan = orphanBlocksIt.next()
+                Sha256Hash orphan = orphanBlocksIt.next()
                 println(" Orphan block found: " + orphan)
                 orphanBlocks.add(orphan)
             }
@@ -77,10 +78,10 @@ abstract class BlockChainStoreOrphanSpecBase extends BlockChainStoreSpecBase {
             db.printKeys()
 
             println(" - Getting Orphans AFTER Reconnecting the different Branches:")
-            Set<Sha256Wrapper> orphanBlocksAfterConnecting = new HashSet<>()
-            Iterator<Sha256Wrapper> orphanBlocksAfterConnectingIt = db.getOrphanBlocks().iterator()
+            Set<Sha256Hash> orphanBlocksAfterConnecting = new HashSet<>()
+            Iterator<Sha256Hash> orphanBlocksAfterConnectingIt = db.getOrphanBlocks().iterator()
             while (orphanBlocksAfterConnectingIt.hasNext()) {
-                Sha256Wrapper orphan = orphanBlocksAfterConnectingIt.next()
+                Sha256Hash orphan = orphanBlocksAfterConnectingIt.next()
                 println(" Orphan block found: " + orphan)
                 orphanBlocksAfterConnecting.add(orphan)
             }
@@ -112,7 +113,7 @@ abstract class BlockChainStoreOrphanSpecBase extends BlockChainStoreSpecBase {
         given:
             // Configuration and DB start up:
             println(" - Connecting to the DB...")
-            BlockHeader genesisBlock = TestingUtils.buildBlock(Sha256Wrapper.ZERO_HASH.toString())
+            HeaderReadOnly genesisBlock = TestingUtils.buildBlock(Sha256Hash.ZERO_HASH.toString())
             println(" - Using block genesis: " + genesisBlock.getHash())
             BlockChainStore db = getInstance("BSV-Main", false, false, genesisBlock, Duration.ofMillis(100), null, null, ORPHAN_PRUNNING_FREQUENCY, ORPHAN_PRUNNING_AGE)
 
@@ -123,8 +124,8 @@ abstract class BlockChainStoreOrphanSpecBase extends BlockChainStoreSpecBase {
 
             // We save a chain of 3 Blocks:
             // [GENESIS] - [Block1] - [Block2]
-            BlockHeader block1 = TestingUtils.buildBlock(genesisBlock.hash.toString())
-            BlockHeader block2 = TestingUtils.buildBlock(block1.hash.toString())
+            HeaderReadOnly block1 = TestingUtils.buildBlock(genesisBlock.hash.toString())
+            HeaderReadOnly block2 = TestingUtils.buildBlock(block1.hash.toString())
 
             println("Storing main chain of blocks:")
             println(" - Genesis: " + genesisBlock.hash)
@@ -136,8 +137,8 @@ abstract class BlockChainStoreOrphanSpecBase extends BlockChainStoreSpecBase {
             // Now we save an Orphan:
             //  [*] - [Block 4]
 
-            BlockHeader block3 = TestingUtils.buildBlock(block2.hash.toString()) // Not SAVED
-            BlockHeader block4 = TestingUtils.buildBlock(block3.hash.toString())
+            HeaderReadOnly block3 = TestingUtils.buildBlock(block2.hash.toString()) // Not SAVED
+            HeaderReadOnly block4 = TestingUtils.buildBlock(block3.hash.toString())
 
             println("Storing an Orphan:")
             println("              |- * (missing)")
@@ -150,7 +151,7 @@ abstract class BlockChainStoreOrphanSpecBase extends BlockChainStoreSpecBase {
 
             Thread.sleep((long)(ORPHAN_PRUNNING_AGE.toMillis() / 2))
 
-            BlockHeader block5 = TestingUtils.buildBlock(block4.hash.toString())
+            HeaderReadOnly block5 = TestingUtils.buildBlock(block4.hash.toString())
             println("Storing an Orphan:")
             println("                      |- Block 4: " + block4.hash)
             println("                            |- Block 5: " + block5.hash)
@@ -158,9 +159,9 @@ abstract class BlockChainStoreOrphanSpecBase extends BlockChainStoreSpecBase {
 
             // We get the current Chain Tips and the List or Orphans:
             // At this moment, the Automatic Orphan Pruning should have NOT been triggered yet:
-            List<Sha256Wrapper> tipsBeforePrunning = db.getTipsChains()
-            List<Sha256Wrapper> orphansBeforePrunning = new ArrayList<>()
-            Iterator<Sha256Wrapper> orphanBlocksIt = db.getOrphanBlocks().iterator()
+            List<Sha256Hash> tipsBeforePrunning = db.getTipsChains()
+            List<Sha256Hash> orphansBeforePrunning = new ArrayList<>()
+            Iterator<Sha256Hash> orphanBlocksIt = db.getOrphanBlocks().iterator()
             while (orphanBlocksIt.hasNext()) { orphansBeforePrunning.add(orphanBlocksIt.next())}
 
             // Now we wait a bit, enough for the Automatic Pruning to the triggered.
@@ -169,11 +170,11 @@ abstract class BlockChainStoreOrphanSpecBase extends BlockChainStoreSpecBase {
 
             // We get the current Chain Tips and the List or Orphans:
             println("Getting Info from the Chain after FIRST PRunning:")
-            List<Sha256Wrapper> tipsAfterFirstPrunning = db.getTipsChains()
-            List<Sha256Wrapper> orphansAfterFirstPrunning = new ArrayList<>()
-            Iterator<Sha256Wrapper> orphanBlocksIt2 = db.getOrphanBlocks().iterator()
+            List<Sha256Hash> tipsAfterFirstPrunning = db.getTipsChains()
+            List<Sha256Hash> orphansAfterFirstPrunning = new ArrayList<>()
+            Iterator<Sha256Hash> orphanBlocksIt2 = db.getOrphanBlocks().iterator()
             while (orphanBlocksIt2.hasNext()) {
-                Sha256Wrapper orphanHash = orphanBlocksIt2.next()
+                Sha256Hash orphanHash = orphanBlocksIt2.next()
                 println("  - Orphan Block found: " + orphanHash)
                 orphansAfterFirstPrunning.add(orphanHash)
             }
@@ -184,11 +185,11 @@ abstract class BlockChainStoreOrphanSpecBase extends BlockChainStoreSpecBase {
 
             // We get the current Chain Tips and the List or Orphans:
             println("Getting Info from he Chain after SECOND PRunning:")
-            List<Sha256Wrapper> tipsAfterSecondPrunning = db.getTipsChains()
-            List<Sha256Wrapper> orphansAfterSecondPrunning = new ArrayList<>()
-            Iterator<Sha256Wrapper> orphanBlocksIt3 = db.getOrphanBlocks().iterator()
+            List<Sha256Hash> tipsAfterSecondPrunning = db.getTipsChains()
+            List<Sha256Hash> orphansAfterSecondPrunning = new ArrayList<>()
+            Iterator<Sha256Hash> orphanBlocksIt3 = db.getOrphanBlocks().iterator()
             while (orphanBlocksIt3.hasNext()) {
-                Sha256Wrapper orphanHash = orphanBlocksIt3.next()
+                Sha256Hash orphanHash = orphanBlocksIt3.next()
                 println("  - Orphan Block found: " + orphanHash)
                 orphansAfterFirstPrunning.add(orphanHash)
             }

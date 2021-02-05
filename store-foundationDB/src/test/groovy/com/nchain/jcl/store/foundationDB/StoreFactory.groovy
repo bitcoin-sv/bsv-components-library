@@ -1,12 +1,12 @@
 package com.nchain.jcl.store.foundationDB
 
-import com.nchain.jcl.base.domain.api.base.BlockHeader
 import com.nchain.jcl.store.blockChainStore.BlockChainStore
 import com.nchain.jcl.store.blockStore.BlockStore
 import com.nchain.jcl.store.foundationDB.blockChainStore.BlockChainStoreFDB
 import com.nchain.jcl.store.foundationDB.blockChainStore.BlockChainStoreFDBConfig
 import com.nchain.jcl.store.foundationDB.blockStore.BlockStoreFDB
 import com.nchain.jcl.store.foundationDB.blockStore.BlockStoreFDBConfig
+import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
 
 import java.nio.file.Path
 import java.time.Duration
@@ -35,7 +35,7 @@ class StoreFactory {
 
     /** It creates an Instance of te BlockChainStore interface */
     static BlockChainStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents,
-                                       BlockHeader genesisBlock,
+                                       HeaderReadOnly genesisBlock,
                                        Duration publishStateFrequency,
                                        Duration forkPrunningFrequency,
                                        Integer forkPrunningHeightDiff,

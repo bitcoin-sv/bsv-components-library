@@ -1,10 +1,12 @@
 package com.nchain.jcl.net.protocol.config.provided;
 
-import com.nchain.jcl.base.domain.api.base.BlockHeader;
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
+
 import com.nchain.jcl.net.protocol.config.*;
 import com.nchain.jcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig;
 import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandlerConfig;
+import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
+import com.nchain.jcl.net.protocol.messages.HashMsg;
+import io.bitcoinj.core.Sha256Hash;
 import lombok.Getter;
 
 
@@ -14,6 +16,14 @@ import lombok.Getter;
  *
  * Stores the Configuration needed to run the Default P2P Handlers in the BSV STN Network.
  */
+/*
+    This class is DEPRECATED.
+    Pre-defined Protocol Configuration instances are now obtained by using the ProtocolConfigBuilder and the
+    NetworkParam classes from BitcoinJ.
+    This class is still here because some of its parameters are different from te ones in BitcoinJ, like the list
+    of DNS. Since these values might make some difference in terms of performance, we keep it for future reference.
+ */
+@Deprecated
 @Getter
 public class ProtocolBSVStnConfig extends ProtocolConfigImpl implements ProtocolConfig {
 
@@ -33,14 +43,13 @@ public class ProtocolBSVStnConfig extends ProtocolConfigImpl implements Protocol
     };
 
     // Genesis Block for BSV-STN:
-    private static BlockHeader genesisBlock = BlockHeader.builder()
+    public static BlockHeaderMsg genesisBlock = BlockHeaderMsg.builder()
             .version(1)
-            .prevBlockHash(Sha256Wrapper.ZERO_HASH)
-            .merkleRoot(Sha256Wrapper.wrap("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"))
+            .prevBlockHash(HashMsg.builder().hash(Sha256Hash.ZERO_HASH.getBytes()).build())
+            .merkleRoot(HashMsg.builder().hash(Sha256Hash.wrap("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b").getBytes()).build())
             .difficultyTarget(0x1d00ffffL)
             .nonce(414098458)
-            .time(1296688602L)
-            .numTxs(1)
+            .creationTimestamp(1296688602L)
             .build();
 
     // Basic Configuration:

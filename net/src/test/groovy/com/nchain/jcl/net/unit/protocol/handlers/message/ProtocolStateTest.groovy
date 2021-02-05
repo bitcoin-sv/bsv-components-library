@@ -2,6 +2,7 @@ package com.nchain.jcl.net.unit.protocol.handlers.message
 
 import com.nchain.jcl.net.network.handlers.NetworkHandler
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
+import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.handlers.blacklist.BlacklistHandler
 import com.nchain.jcl.net.protocol.handlers.discovery.DiscoveryHandler
@@ -9,6 +10,7 @@ import com.nchain.jcl.net.protocol.handlers.message.MessageHandler
 import com.nchain.jcl.net.protocol.handlers.pingPong.PingPongHandler
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
+import io.bitcoinj.params.MainNetParams
 import spock.lang.Specification
 
 import java.time.Duration
@@ -28,8 +30,7 @@ class ProtocolStateTest extends Specification {
     def "Testing Client/Server Msgs exchange"() {
         given:
             // We disable the Handlers we dont need for this Test:
-            ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder()
-                    .build()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams())
             P2P server = new P2PBuilder("server")
                     .config(config)
                     .serverPort(0) // Random Port

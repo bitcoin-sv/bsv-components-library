@@ -1,13 +1,13 @@
 package com.nchain.jcl.net.protocol.serialization;
 
 
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader;
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.net.protocol.serialization.common.MessageSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext;
 import com.nchain.jcl.net.protocol.messages.TxInputMsg;
 import com.nchain.jcl.net.protocol.messages.TxOutPointMsg;
+import com.nchain.jcl.tools.bytes.ByteArrayReader;
+import com.nchain.jcl.tools.bytes.ByteArrayWriter;
 
 /**
  * @author m.jose@nchain.com
@@ -20,7 +20,7 @@ public class TxInputMsgSerializer implements MessageSerializer<TxInputMsg> {
 
     // Reference to singleton instances used during serialization/Deserialization. Defined here for performance
     private static TxOutPointMsgSerializer  txOutPointMsgSerializer = TxOutPointMsgSerializer.getInstance();
-    private static VarIntMsgSerializer      varIntMsgSerializer     = VarIntMsgSerializer.getInstance();
+    private static VarIntMsgSerializer varIntMsgSerializer     = VarIntMsgSerializer.getInstance();
 
     private TxInputMsgSerializer() { }
 

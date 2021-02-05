@@ -1,6 +1,7 @@
 package com.nchain.jcl.store.blockStore.events;
 
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
+
+import io.bitcoinj.core.Sha256Hash;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
@@ -17,10 +18,10 @@ import java.util.List;
 @Value
 @EqualsAndHashCode(callSuper = false)
 public class BlocksRemovedEvent extends BlockStoreEvent {
-    private List<Sha256Wrapper> blockHashes;
+    private List<Sha256Hash> blockHashes;
 
     @Builder
-    public BlocksRemovedEvent(List<Sha256Wrapper> blockHashes) {
+    public BlocksRemovedEvent(List<Sha256Hash> blockHashes) {
         this.blockHashes = new ArrayList<>(blockHashes);
     }
 }

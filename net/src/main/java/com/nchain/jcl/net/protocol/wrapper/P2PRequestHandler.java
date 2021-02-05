@@ -1,7 +1,6 @@
 package com.nchain.jcl.net.protocol.wrapper;
 
-import com.nchain.jcl.base.tools.events.Event;
-import com.nchain.jcl.base.tools.events.EventBus;
+
 import com.nchain.jcl.net.network.events.BlacklistPeerRequest;
 import com.nchain.jcl.net.protocol.events.*;
 import com.nchain.jcl.net.network.PeerAddress;
@@ -9,6 +8,8 @@ import com.nchain.jcl.net.network.events.ConnectPeerRequest;
 import com.nchain.jcl.net.network.events.DisconnectPeerRequest;
 import com.nchain.jcl.net.network.events.PeerDisconnectedEvent.DisconnectedReason;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
+import com.nchain.jcl.tools.events.Event;
+import com.nchain.jcl.tools.events.EventBus;
 import lombok.AllArgsConstructor;
 
 import java.net.UnknownHostException;

@@ -6,7 +6,7 @@ import com.nchain.jcl.net.protocol.config.provided.ProtocolBTCMainConfig;
 import com.nchain.jcl.net.protocol.events.PeerHandshakedEvent;
 import com.nchain.jcl.net.protocol.messages.VersionMsg;
 import com.nchain.jcl.net.protocol.wrapper.P2P;
-import com.nchain.jcl.net.protocol.wrapper.P2PBuilder;
+
 import org.junit.Ignore;
 import org.junit.Test;
 

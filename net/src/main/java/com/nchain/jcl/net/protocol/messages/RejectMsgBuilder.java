@@ -1,8 +1,9 @@
 package com.nchain.jcl.net.protocol.messages;
 
 
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
+
 import com.nchain.jcl.net.protocol.messages.common.MessageBuilder;
+import io.bitcoinj.core.Sha256Hash;
 import lombok.EqualsAndHashCode;
 
 /**
@@ -22,7 +23,7 @@ public class RejectMsgBuilder extends MessageBuilder<RejectMsg> {
     private RejectMsg.RejectCode ccode;
     private VarStrMsg reason;
     private byte[] data;
-    private Sha256Wrapper dataHash;
+    private Sha256Hash dataHash;
 
     /** Constructor */
     public RejectMsgBuilder() {}
@@ -59,7 +60,7 @@ public class RejectMsgBuilder extends MessageBuilder<RejectMsg> {
     }
 
     /** It assigns the "data" field as the HASH of a TX or Block */
-    public RejectMsgBuilder setData(Sha256Wrapper data) {
+    public RejectMsgBuilder setData(Sha256Hash data) {
         this.data = null;
         this.dataHash = data;
         return this;

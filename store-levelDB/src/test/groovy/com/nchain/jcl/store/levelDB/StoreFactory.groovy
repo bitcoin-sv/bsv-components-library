@@ -1,12 +1,13 @@
 package com.nchain.jcl.store.levelDB
 
-import com.nchain.jcl.base.domain.api.base.BlockHeader
+
 import com.nchain.jcl.store.blockChainStore.BlockChainStore
 import com.nchain.jcl.store.blockStore.BlockStore
 import com.nchain.jcl.store.levelDB.blockChainStore.BlockChainStoreLevelDB
 import com.nchain.jcl.store.levelDB.blockChainStore.BlockChainStoreLevelDBConfig
 import com.nchain.jcl.store.levelDB.blockStore.BlockStoreLevelDB
 import com.nchain.jcl.store.levelDB.blockStore.BlockStoreLevelDBConfig
+import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
 
 import java.nio.file.Path
 import java.time.Duration
@@ -42,7 +43,7 @@ class StoreFactory {
 
     /** It creates an Instance of te BlockChainStore interface */
     static BlockChainStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents,
-                                       BlockHeader genesisBlock,
+                                       HeaderReadOnly genesisBlock,
                                        Duration publishStateFrequency,
                                        Duration forkPrunningFrequency,
                                        Integer forkPrunningHeightDiff,

@@ -1,14 +1,14 @@
 package com.nchain.jcl.net.protocol.serialization.common;
 
 
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader;
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter;
-import com.nchain.jcl.base.tools.bytes.ByteTools;
-import com.nchain.jcl.base.tools.crypto.Sha256;
 import com.nchain.jcl.net.protocol.messages.HeaderMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 import com.nchain.jcl.net.protocol.serialization.HeaderMsgSerializer;
+import com.nchain.jcl.tools.bytes.ByteArrayReader;
+import com.nchain.jcl.tools.bytes.ByteArrayWriter;
+import io.bitcoinj.core.Sha256Hash;
+import io.bitcoinj.core.Utils;
 
 /**
  * @author i.fernandez@nchain.com
@@ -85,7 +85,7 @@ public class BitcoinMsgSerializerImpl implements BitcoinMsgSerializer {
         // Crypto or hashing operations are computational-consuming tasks, so we only perform some of them
         // when they are really needed. In the case of the Checksum, we calculate it here before serialization:
 
-        long checksum = ByteTools.readUint32(Sha256.hashTwice(bodyBytes));
+        long checksum = Utils.readUint32(Sha256Hash.hashTwice(bodyBytes), 0);
 
         // We need to inject the checksum into the HeaderMsg. But the BitcoinMsg object is immutable, so we need
         // to build another HeaderMsg taking the original one as a reference:

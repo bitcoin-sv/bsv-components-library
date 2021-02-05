@@ -2,10 +2,10 @@ package com.nchain.jcl.store.foundationDB.blockChainStore;
 
 import com.apple.foundationdb.KeyValue;
 import com.apple.foundationdb.Transaction;
-import com.nchain.jcl.base.tools.thread.ThreadUtils;
 import com.nchain.jcl.store.blockChainStore.events.BlockChainStoreStreamer;
 import com.nchain.jcl.store.foundationDB.blockStore.BlockStoreFDB;
 import com.nchain.jcl.store.keyValue.blockChainStore.BlockChainStoreKeyValue;
+import com.nchain.jcl.tools.thread.ThreadUtils;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NonNull;

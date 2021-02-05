@@ -7,9 +7,9 @@ import com.nchain.jcl.net.protocol.messages.PartialBlockTXsMsg
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.net.protocol.serialization.largeMsgs.BigBlockDeserializer
 import com.nchain.jcl.net.unit.protocol.tools.MsgTest
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader
-import com.nchain.jcl.base.tools.bytes.ByteArrayReaderOptimized
-import com.nchain.jcl.base.tools.bytes.HEX
+import com.nchain.jcl.tools.bytes.ByteArrayReader
+import com.nchain.jcl.tools.bytes.ByteArrayReaderOptimized
+import io.bitcoinj.core.Utils
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicBoolean
@@ -40,7 +40,7 @@ class BigBlockDeserializerTest extends Specification {
             // We configure the Deserializer and feed it with callbacks, so we deserialize notified when its different parts are
             // Deserialized:
             DeserializerContext deserializedContext = DeserializerContext.builder().protocolBasicConfig(protocolConfig.getBasicConfig()).build()
-            ByteArrayReader reader = new ByteArrayReader(HEX.decode(BLOCK_HEX))
+            ByteArrayReader reader = new ByteArrayReader(Utils.HEX.decode(BLOCK_HEX))
             ByteArrayReader optimizedReader = new ByteArrayReaderOptimized(reader)
             BigBlockDeserializer bigBlockDeserializer = new BigBlockDeserializer()
 

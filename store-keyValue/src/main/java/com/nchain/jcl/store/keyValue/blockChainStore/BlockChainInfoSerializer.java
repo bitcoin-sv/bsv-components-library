@@ -1,9 +1,11 @@
 package com.nchain.jcl.store.keyValue.blockChainStore;
 
-import com.nchain.jcl.base.serialization.BitcoinSerializerUtils;
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader;
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter;
-import com.nchain.jcl.base.tools.bytes.ByteTools;
+
+
+import com.nchain.jcl.tools.bytes.ByteArrayReader;
+import com.nchain.jcl.tools.bytes.ByteArrayWriter;
+import com.nchain.jcl.tools.serialization.BitcoinSerializerUtils;
+import io.bitcoinj.core.Utils;
 
 import java.math.BigInteger;
 
@@ -48,7 +50,7 @@ public class BlockChainInfoSerializer {
         BitcoinSerializerUtils.serializeVarStr(object.getBlockHash(), writer);
 
         // Chain Work Bytes:
-        byte[] chainWorkBytes = object.getChainWork() == null ? ByteTools.EMPTY_BYTE_ARRAY : object.getChainWork().toByteArray();
+        byte[] chainWorkBytes = object.getChainWork() == null ? Utils.EMPTY_BYTE_ARRAY : object.getChainWork().toByteArray();
         if (chainWorkBytes.length < CHAIN_WORK_BYTES) {
             // Pad to the right size
             writer.write(EMPTY_ARRAYS[CHAIN_WORK_BYTES - chainWorkBytes.length]);

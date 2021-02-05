@@ -1,9 +1,9 @@
 package com.nchain.jcl.net.protocol.messages;
 
 import com.google.common.base.Preconditions;
-import com.nchain.jcl.base.domain.api.base.TxInput;
-import com.nchain.jcl.base.domain.bean.base.TxInputBean;
 import com.nchain.jcl.net.protocol.messages.common.Message;
+import io.bitcoinj.bitcoin.api.base.TxInput;
+import io.bitcoinj.bitcoin.bean.base.TxInputBean;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
@@ -74,8 +74,4 @@ public class TxInputMsg extends Message {
         return result.toString();
     }
 
-    /** Returns a BitcoinObject containing the same information */
-    public TxInput toBean() {
-        return new TxInputBean(lengthInBytes, sequence, pre_outpoint.toBean(), signature_script);
-    }
 }

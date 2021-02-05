@@ -11,10 +11,10 @@ import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializer
 import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter
-import com.nchain.jcl.base.tools.bytes.HEX
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper
+import com.nchain.jcl.tools.bytes.ByteArrayReader
+import com.nchain.jcl.tools.bytes.ByteArrayWriter
+import io.bitcoinj.core.Sha256Hash
+import io.bitcoinj.core.Utils
 import spock.lang.Specification
 
 /**
@@ -40,49 +40,49 @@ class HeadersMsgSerializerSpec extends Specification {
 
         BlockHeaderMsg blockHeaderMsg = BlockHeaderMsg.builder()
                 .version(70013)
-                .hash(HashMsg.builder().hash(Sha256Wrapper.wrap("a9f965385ffd6da76dbf8226ca0f061d6e05737fdf34ba6edb9ea1d012666b16").getBytes()).build())
-                .prevBlockHash(HashMsg.builder().hash(Sha256Wrapper.ZERO_HASH.getBytes()).build())
-                .merkleRoot(HashMsg.builder().hash(Sha256Wrapper.ZERO_HASH.getBytes()).build())
+                .hash(HashMsg.builder().hash(Sha256Hash.wrap("a9f965385ffd6da76dbf8226ca0f061d6e05737fdf34ba6edb9ea1d012666b16").getBytes()).build())
+                .prevBlockHash(HashMsg.builder().hash(Sha256Hash.ZERO_HASH.getBytes()).build())
+                .merkleRoot(HashMsg.builder().hash(Sha256Hash.ZERO_HASH.getBytes()).build())
                 .difficultyTarget(1)
                 .creationTimestamp(0)
                 .nonce(1)
                 .transactionCount(1)
                 .build()
 
-        HeadersMsg headersMsg = HeadersMsg.builder().blockHeaderMsgList(Arrays.asList(blockHeaderMsg)).build()
+            HeadersMsg headersMsg = HeadersMsg.builder().blockHeaderMsgList(Arrays.asList(blockHeaderMsg)).build()
 
-        ByteArrayWriter byteWriter = new ByteArrayWriter()
+            ByteArrayWriter byteWriter = new ByteArrayWriter()
         when:
-        HeadersMsgSerializer.getInstance().serialize(serializerContext, headersMsg, byteWriter)
-        HeadersMsg deserializedHeadersMsg = HeadersMsgSerializer.getInstance().deserialize(deserializerContext, byteWriter.reader())
+            HeadersMsgSerializer.getInstance().serialize(serializerContext, headersMsg, byteWriter)
+            HeadersMsg deserializedHeadersMsg = HeadersMsgSerializer.getInstance().deserialize(deserializerContext, byteWriter.reader())
         then:
-        blockHeaderMsg.equals(deserializedHeadersMsg.getBlockHeaderMsgList().get(0))
+            blockHeaderMsg.equals(deserializedHeadersMsg.getBlockHeaderMsgList().get(0))
     }
 
     def "testing HeadersMsg throwing Exception "() {
         given:
-        BlockHeaderMsg blockHeaderMsg = BlockHeaderMsg.builder()
-                .version(70013)
-                .hash(HashMsg.builder().hash(Sha256Wrapper.wrap("a9f965385ffd6da76dbf8226ca0f061d6e05737fdf34ba6edb9ea1d012666b16").getBytes()).build())
-                .prevBlockHash(HashMsg.builder().hash(Sha256Wrapper.ZERO_HASH.getBytes()).build())
-                .merkleRoot(HashMsg.builder().hash(Sha256Wrapper.ZERO_HASH.getBytes()).build())
-                .difficultyTarget(1)
-                .creationTimestamp(0)
-                .nonce(1)
-                .transactionCount(1)
-                .build()
+            BlockHeaderMsg blockHeaderMsg = BlockHeaderMsg.builder()
+                    .version(70013)
+                    .hash(HashMsg.builder().hash(Sha256Hash.wrap("a9f965385ffd6da76dbf8226ca0f061d6e05737fdf34ba6edb9ea1d012666b16").getBytes()).build())
+                    .prevBlockHash(HashMsg.builder().hash(Sha256Hash.ZERO_HASH.getBytes()).build())
+                    .merkleRoot(HashMsg.builder().hash(Sha256Hash.ZERO_HASH.getBytes()).build())
+                    .difficultyTarget(1)
+                    .creationTimestamp(0)
+                    .nonce(1)
+                    .transactionCount(1)
+                    .build()
 
-        List<BlockHeaderMsg> msgList = new ArrayList<>();
+            List<BlockHeaderMsg> msgList = new ArrayList<>();
 
         when:
-        for (int i = 0; i < HeadersMsg.MAX_ADDRESSES + 1; i++) {
-            msgList.add(blockHeaderMsg);
-        }
+            for (int i = 0; i < HeadersMsg.MAX_ADDRESSES + 1; i++) {
+                msgList.add(blockHeaderMsg);
+            }
 
-        HeadersMsg.builder().blockHeaderMsgList(msgList).build();
+            HeadersMsg.builder().blockHeaderMsgList(msgList).build();
         then:
-        IllegalArgumentException ex = thrown()
-        ex.message == 'Headers message exceeds maximum size'
+            IllegalArgumentException ex = thrown()
+            ex.message == 'Headers message exceeds maximum size'
 
     }
 
@@ -90,32 +90,32 @@ class HeadersMsgSerializerSpec extends Specification {
     def "testing HeadersMsg COMPLETE Serializing and Deserializing"() {
         given:
 
-        SerializerContext serializerContext = SerializerContext.builder()
-                .build()
+            SerializerContext serializerContext = SerializerContext.builder()
+                    .build()
 
-        DeserializerContext deserializerContext = DeserializerContext.builder()
-                .build()
+            DeserializerContext deserializerContext = DeserializerContext.builder()
+                    .build()
 
-        ByteArrayWriter byteArrayWriter = new ByteArrayWriter()
-        byteArrayWriter.write(HEX.decode(VALID_HEADER))
+            ByteArrayWriter byteArrayWriter = new ByteArrayWriter()
+            byteArrayWriter.write(Utils.HEX.decode(VALID_HEADER))
 
-        HeadersMsg headersMsg = HeadersMsgSerializer.getInstance().deserialize(deserializerContext, byteArrayWriter.reader())
+            HeadersMsg headersMsg = HeadersMsgSerializer.getInstance().deserialize(deserializerContext, byteArrayWriter.reader())
 
-        HeaderMsg headerMsg = HeaderMsg.builder()
-                .checksum(714299174)
-                .command(HeadersMsg.MESSAGE_TYPE)
-                .length((int)headersMsg.getLengthInBytes())
-                .magic(1)
-                .build();
+            HeaderMsg headerMsg = HeaderMsg.builder()
+                    .checksum(714299174)
+                    .command(HeadersMsg.MESSAGE_TYPE)
+                    .length((int)headersMsg.getLengthInBytes())
+                    .magic(1)
+                    .build();
 
-        BitcoinMsg<HeadersMsg> headersBitcoinMsg = new BitcoinMsg<HeadersMsg>(headerMsg, headersMsg);
+            BitcoinMsg<HeadersMsg> headersBitcoinMsg = new BitcoinMsg<HeadersMsg>(headerMsg, headersMsg);
 
-        BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
+            BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
-        ByteArrayReader byteArrayReader = serializer.serialize(serializerContext, headersBitcoinMsg, HeadersMsg.MESSAGE_TYPE)
-        BitcoinMsg<HeadersMsg> deserializedHeadersBitcoinMsg = serializer.deserialize(deserializerContext, byteArrayReader, HeadersMsg.MESSAGE_TYPE)
+            ByteArrayReader byteArrayReader = serializer.serialize(serializerContext, headersBitcoinMsg, HeadersMsg.MESSAGE_TYPE)
+            BitcoinMsg<HeadersMsg> deserializedHeadersBitcoinMsg = serializer.deserialize(deserializerContext, byteArrayReader, HeadersMsg.MESSAGE_TYPE)
         then:
-        headersBitcoinMsg.equals(deserializedHeadersBitcoinMsg)
+            headersBitcoinMsg.equals(deserializedHeadersBitcoinMsg)
 
     }
 

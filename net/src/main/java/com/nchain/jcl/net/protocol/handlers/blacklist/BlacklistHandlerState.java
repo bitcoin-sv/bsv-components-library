@@ -1,7 +1,8 @@
 package com.nchain.jcl.net.protocol.handlers.blacklist;
 
-import com.nchain.jcl.base.tools.handlers.HandlerState;
+
 import com.nchain.jcl.net.network.events.PeersBlacklistedEvent;
+import com.nchain.jcl.tools.handlers.HandlerState;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;

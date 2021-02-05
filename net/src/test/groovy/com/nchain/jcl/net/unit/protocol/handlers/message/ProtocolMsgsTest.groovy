@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.unit.protocol.handlers.message
 
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
+import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.handlers.blacklist.BlacklistHandler
 import com.nchain.jcl.net.protocol.handlers.discovery.DiscoveryHandler
@@ -11,6 +12,7 @@ import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg
 import com.nchain.jcl.net.unit.protocol.tools.MsgTest
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
+import io.bitcoinj.params.MainNetParams
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -26,8 +28,7 @@ class ProtocolMsgsTest extends Specification {
     def "Testing Client/Server Msgs exchange"() {
         given:
             // Server and client configuration:
-            ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder()
-                    .build()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams())
             // We disable all the Handlers we don't need for this Test:
             P2P server = new P2PBuilder("server")
                     .config(config)

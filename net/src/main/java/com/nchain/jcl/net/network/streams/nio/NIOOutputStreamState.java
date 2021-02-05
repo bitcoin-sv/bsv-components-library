@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.network.streams.nio;
 
-import com.nchain.jcl.base.tools.streams.StreamState;
+
+import com.nchain.jcl.tools.streams.StreamState;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;

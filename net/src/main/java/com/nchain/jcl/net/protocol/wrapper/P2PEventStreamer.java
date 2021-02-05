@@ -1,8 +1,5 @@
 package com.nchain.jcl.net.protocol.wrapper;
 
-import com.nchain.jcl.base.tools.events.Event;
-import com.nchain.jcl.base.tools.events.EventBus;
-import com.nchain.jcl.base.tools.events.EventStreamer;
 import com.nchain.jcl.net.network.events.*;
 import com.nchain.jcl.net.protocol.events.*;
 import com.nchain.jcl.net.protocol.messages.*;
@@ -13,6 +10,9 @@ import com.nchain.jcl.net.protocol.handlers.discovery.DiscoveryHandlerState;
 import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandlerState;
 import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerState;
 import com.nchain.jcl.net.protocol.handlers.pingPong.PingPongHandlerState;
+import com.nchain.jcl.tools.events.Event;
+import com.nchain.jcl.tools.events.EventBus;
+import com.nchain.jcl.tools.events.EventStreamer;
 
 import java.util.function.Predicate;
 

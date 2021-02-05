@@ -1,10 +1,6 @@
 package com.nchain.jcl.net.protocol.handlers.block;
 
-import com.nchain.jcl.base.tools.bytes.HEX;
-import com.nchain.jcl.base.tools.config.RuntimeConfig;
-import com.nchain.jcl.base.tools.handlers.HandlerImpl;
-import com.nchain.jcl.base.tools.log.LoggerUtil;
-import com.nchain.jcl.base.tools.thread.ThreadUtils;
+
 import com.nchain.jcl.net.protocol.events.*;
 import com.nchain.jcl.net.protocol.messages.*;
 import com.nchain.jcl.net.network.PeerAddress;
@@ -14,6 +10,11 @@ import com.nchain.jcl.net.network.events.PeerDisconnectedEvent;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
 import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStream;
+import com.nchain.jcl.tools.config.RuntimeConfig;
+import com.nchain.jcl.tools.handlers.HandlerImpl;
+import com.nchain.jcl.tools.log.LoggerUtil;
+import com.nchain.jcl.tools.thread.ThreadUtils;
+import io.bitcoinj.core.Utils;
 import lombok.Getter;
 
 import java.time.Duration;
@@ -288,7 +289,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
             blocksPending.remove(blockHash);
 
             // We use the Bitcoin Protocol to ask for that Block, sending a GETDATA message...
-            HashMsg hashMsg =  HashMsg.builder().hash(HEX.decode(blockHash))
+            HashMsg hashMsg =  HashMsg.builder().hash(Utils.HEX.decode(blockHash))
                     .build();
             InventoryVectorMsg invMsg = InventoryVectorMsg.builder()
                     .type(InventoryVectorMsg.VectorType.MSG_BLOCK)

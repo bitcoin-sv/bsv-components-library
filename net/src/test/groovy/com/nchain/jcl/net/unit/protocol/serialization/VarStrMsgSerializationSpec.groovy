@@ -7,9 +7,9 @@ import com.nchain.jcl.net.protocol.serialization.VarStrMsgSerializer
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
 import com.nchain.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter
-import com.nchain.jcl.base.tools.bytes.HEX
+import com.nchain.jcl.tools.bytes.ByteArrayReader
+import com.nchain.jcl.tools.bytes.ByteArrayWriter
+import io.bitcoinj.core.Utils
 import spock.lang.Specification
 
 /**
@@ -29,13 +29,13 @@ class VarStrMsgSerializationSpec extends Specification {
             DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
-            VarStrMsgSerializer serializer = VarStrMsgSerializer.getinstance()
+        VarStrMsgSerializer serializer = VarStrMsgSerializer.getinstance()
             VarStrMsg message
 
         when:
             // We convert the String in a ByteArray, Careful here, since the "VarInt" part is in HEX format,
             // but the "VarStr" part is in Char Format:
-            byte[] varIntBytes = HEX.decode(VARSTR_MSG_VARINT)
+            byte[] varIntBytes = Utils.HEX.decode(VARSTR_MSG_VARINT)
             byte[] varStrBytes = VARSTR_MSG_VARSTR.getBytes()
             byte[] varStrWhole = new byte[varIntBytes.length + varStrBytes.length]
             System.arraycopy(varIntBytes, 0, varStrWhole, 0, varIntBytes.length)

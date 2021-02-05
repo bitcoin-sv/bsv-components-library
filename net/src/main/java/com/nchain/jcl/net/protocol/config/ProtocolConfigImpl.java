@@ -1,7 +1,6 @@
 package com.nchain.jcl.net.protocol.config;
 
-import com.nchain.jcl.base.domain.api.base.BlockHeader;
-import com.nchain.jcl.base.tools.handlers.HandlerConfig;
+
 import com.nchain.jcl.net.network.config.NetworkConfig;
 import com.nchain.jcl.net.network.config.provided.NetworkDefaultConfig;
 import com.nchain.jcl.net.protocol.handlers.blacklist.BlacklistHandler;
@@ -16,6 +15,8 @@ import com.nchain.jcl.net.protocol.handlers.message.MessageHandler;
 import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerConfig;
 import com.nchain.jcl.net.protocol.handlers.pingPong.PingPongHandler;
 import com.nchain.jcl.net.protocol.handlers.pingPong.PingPongHandlerConfig;
+import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
+import com.nchain.jcl.tools.handlers.HandlerConfig;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -41,7 +42,7 @@ public class ProtocolConfigImpl implements ProtocolConfig {
     protected NetworkConfig networkConfig = new NetworkDefaultConfig();
 
     // Header of the Genesis Block of this Chain
-    @Getter private BlockHeader genesisBlock;
+    @Getter private BlockHeaderMsg genesisBlock;
 
     // We store some references to each Handler Configuration Builders. They contain already
     // default values for its variables, and others can be overwritten by child-classes
@@ -67,7 +68,7 @@ public class ProtocolConfigImpl implements ProtocolConfig {
                                 Integer minPeers,
                                 Integer maxPeers,
                                 // Genesis block:
-                                BlockHeader genesisBlock,
+                                BlockHeaderMsg genesisBlock,
                                 // Handlers Configuration:
                                 ProtocolBasicConfig basicConfig,
                                 NetworkConfig networkConfig,

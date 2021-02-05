@@ -5,6 +5,8 @@ import com.nchain.jcl.net.protocol.messages.*;
 import com.nchain.jcl.net.protocol.serialization.*;
 import com.nchain.jcl.net.protocol.serialization.largeMsgs.BigBlockDeserializer;
 import com.nchain.jcl.net.protocol.serialization.largeMsgs.LargeMessageDeserializer;
+import com.nchain.jcl.net.protocol.serialization.VarIntMsgSerializer;
+import com.nchain.jcl.net.protocol.serialization.VarStrMsgSerializer;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -11,9 +11,9 @@ import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder
 import com.nchain.jcl.net.protocol.serialization.PongMsgSerializer
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
 import com.nchain.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter
-import com.nchain.jcl.base.tools.bytes.HEX
+import com.nchain.jcl.tools.bytes.ByteArrayReader
+import com.nchain.jcl.tools.bytes.ByteArrayWriter
+import io.bitcoinj.core.Utils
 import spock.lang.Specification
 
 /**
@@ -46,7 +46,7 @@ class PongMsgSerializerSpec extends Specification {
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
             PongMsg message = null
-            ByteArrayReader byteReader = new ByteArrayReader(HEX.decode(REF_BODY_PONG_MSG))
+            ByteArrayReader byteReader = new ByteArrayReader(Utils.HEX.decode(REF_BODY_PONG_MSG))
         when:
             message = PongMsgSerializer.getInstance().deserialize(context, byteReader)
 
@@ -69,7 +69,7 @@ class PongMsgSerializerSpec extends Specification {
             String messageSerialized = null
         when:
             PongMsgSerializer.getInstance().serialize(context, message, byteWriter)
-            messageSerialized = HEX.encode(byteWriter.reader().getFullContent())
+            messageSerialized = Utils.HEX.encode(byteWriter.reader().getFullContent())
             byteWriter.reader()
         then:
             messageSerialized.equals(REF_BODY_PONG_MSG)
@@ -81,7 +81,7 @@ class PongMsgSerializerSpec extends Specification {
             DeserializerContext context = DeserializerContext.builder()
                 .protocolBasicConfig(config.getBasicConfig())
                 .build()
-            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_PONG_MSG), byteInterval, delayMs)
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_PONG_MSG), byteInterval, delayMs)
             BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
             BitcoinMsg<PongMsg> message = bitcoinSerializer.deserialize(context, byteReader, PongMsg.MESSAGE_TYPE)
@@ -105,7 +105,7 @@ class PongMsgSerializerSpec extends Specification {
         BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
             byte[] pongMsgBytes = bitcoinSerializer.serialize(context, bitcoinPongMsg, PongMsg.MESSAGE_TYPE).getFullContent()
-            String pongMsgDeserialzed = HEX.encode(pongMsgBytes)
+            String pongMsgDeserialzed = Utils.HEX.encode(pongMsgBytes)
         then:
             pongMsgDeserialzed.equals(REF_PONG_MSG)
     }

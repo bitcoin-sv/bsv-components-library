@@ -14,10 +14,10 @@ import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
 import com.nchain.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter
-import com.nchain.jcl.base.tools.bytes.HEX
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper
+import com.nchain.jcl.tools.bytes.ByteArrayReader
+import com.nchain.jcl.tools.bytes.ByteArrayWriter
+import io.bitcoinj.core.Sha256Hash
+import io.bitcoinj.core.Utils
 import spock.lang.Specification
 
 /**
@@ -36,7 +36,7 @@ import spock.lang.Specification
 class NotFoundMsgSerilaizerSpec extends Specification {
     private static final String REF_NOTFOUND_MSG_BODY = "0101000000a69d45e7abc3b8fc363d13b88aaa2f2ec62bf77b6881e8bd7bd1012fd81d802b"
 
-    public static final byte[] REF_INV_MSG_BITES = Sha256Wrapper.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6").getBytes()
+    public static final byte[] REF_INV_MSG_BITES = Sha256Hash.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6").getBytes()
     private static final HashMsg REF_HASH_MSG = HashMsg.builder().hash(REF_INV_MSG_BITES).build()
     private static final String REF_NOTFOUND_MSG_FULL = "e3e1f3e86e6f74666f756e640000000025000000e27152ce0101000000a69d45e7abc3b8fc363d13b88aaa2f2ec62bf77b6881e8bd7bd1012fd81d802b"
 
@@ -60,7 +60,7 @@ class NotFoundMsgSerilaizerSpec extends Specification {
         when:
             NotFoundMsgSerilaizer.getInstance().serialize(context, getdataMsg, byteWriter)
             byte[] messageBytes = byteWriter.reader().getFullContent()
-            messageSerialized = HEX.encode(messageBytes)
+            messageSerialized = Utils.HEX.encode(messageBytes)
         then:
             messageSerialized.equals(REF_NOTFOUND_MSG_BODY)
     }
@@ -73,7 +73,7 @@ class NotFoundMsgSerilaizerSpec extends Specification {
                 .maxBytesToRead((long) (REF_NOTFOUND_MSG_BODY.length()/2))
                 .build()
             NotFoundMsg inventoryMsg = null
-        ByteArrayReader byteArrayReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_NOTFOUND_MSG_BODY), byteInterval, delayMs);
+            ByteArrayReader byteArrayReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_NOTFOUND_MSG_BODY), byteInterval, delayMs);
         when:
             inventoryMsg = NotFoundMsgSerilaizer.getInstance().deserialize(context, byteArrayReader)
         then:
@@ -103,7 +103,7 @@ class NotFoundMsgSerilaizerSpec extends Specification {
             BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
             byte[] bytes = serializer.serialize(context, notFoundMsgBitcoinMsg, NotFoundMsg.MESSAGE_TYPE).getFullContent()
-            String serialized = HEX.encode(bytes)
+            String serialized = Utils.HEX.encode(bytes)
         then:
             serialized.equals(REF_NOTFOUND_MSG_FULL)
     }
@@ -116,7 +116,7 @@ class NotFoundMsgSerilaizerSpec extends Specification {
                 .maxBytesToRead((long) (REF_NOTFOUND_MSG_FULL.length() / 2))
                 .build()
         BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
-            ByteArrayReader byteArrayReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_NOTFOUND_MSG_FULL), byteInterval, delayMs);
+            ByteArrayReader byteArrayReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_NOTFOUND_MSG_FULL), byteInterval, delayMs);
         when:
             BitcoinMsg<NotFoundMsg> getDataMsg = bitcoinSerializer.deserialize(context, byteArrayReader, NotFoundMsg.MESSAGE_TYPE)
         then:

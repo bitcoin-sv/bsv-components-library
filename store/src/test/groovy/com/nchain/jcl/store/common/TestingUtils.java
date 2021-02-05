@@ -1,10 +1,12 @@
 package com.nchain.jcl.store.common;
 
-import com.nchain.jcl.base.core.Coin;
-import com.nchain.jcl.base.domain.api.base.*;
-import com.nchain.jcl.base.tools.bytes.HEX;
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
+
 import com.nchain.jcl.store.blockStore.BlockStore;
+import io.bitcoinj.bitcoin.api.base.*;
+import io.bitcoinj.bitcoin.bean.base.*;
+import io.bitcoinj.core.Coin;
+import io.bitcoinj.core.Sha256Hash;
+import io.bitcoinj.core.Utils;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -28,25 +30,24 @@ public class TestingUtils {
         byte[] bytes = new byte[32];
         Random rand = new Random();
         for (int i = 0; i < 32 ; i++) bytes[i] = (byte) rand.nextInt(255);
-        return HEX.encode(bytes);
+        return Utils.HEX.encode(bytes);
     }
 
     /** Convenience method to generate a Dummy Block */
-    public static BlockHeader buildBlock(String parentHashHex) {
-        Sha256Wrapper parentHashFinal = (parentHashHex != null) ? Sha256Wrapper.wrap(parentHashHex) : Sha256Wrapper.ZERO_HASH;
-        return BlockHeader.builder()
-               // .hash(Sha256Wrapper.wrap(blockHashHex))
-                .merkleRoot(Sha256Wrapper.wrap(buildRandomHash()))
-                .prevBlockHash(parentHashFinal)
-                .nonce(1)
-                //.difficultyTarget(453036989)
-                .difficultyTarget(486604799)
-                .time(Instant.now().getEpochSecond())
-                .build();
+    public static HeaderReadOnly buildBlock(String parentHashHex) {
+        Sha256Hash parentHashFinal = (parentHashHex != null) ? Sha256Hash.wrap(parentHashHex) : Sha256Hash.ZERO_HASH;
+        HeaderBean result = new HeaderBean((AbstractBlock) null);
+        result.setMerkleRoot(Sha256Hash.wrap(buildRandomHash()));
+        result.setPrevBlockHash(parentHashFinal);
+        result.setNonce(1);
+        result.setDifficultyTarget(486604799);
+        result.setTime(Instant.now().getEpochSecond());
+        result.makeImmutable();
+        return result;
     }
 
     /** Convenience method to build a Block with NO Parent */
-    public static BlockHeader buildBlock() {
+    public static HeaderReadOnly buildBlock() {
         return buildBlock(buildRandomHash());
     }
 
@@ -57,26 +58,34 @@ public class TestingUtils {
         // If "parentTxHash" is not null, we use it as the Hash of the TX which output we are spending
         String parentOutputHash = (parentTxHash != null) ? parentTxHash : buildRandomHash();
 
-        return Tx.builder()
-                .version(1)
-                .lockTime(2)
-                .inputs(Arrays.asList(
-                        TxInput.builder()
-                                .sequenceNumber(rand.nextInt(100))
-                                .scriptBytes(new byte[0])
-                                .outpoint(
-                                        TxOutPoint.builder()
-                                                .index(rand.nextInt(10))
-                                                .hash(Sha256Wrapper.wrap(parentOutputHash))
-                                                .build())
-                                .build()))
-                .outputs(Arrays.asList(
-                        TxOutput.builder()
-                                .scriptBytes(new byte[0])
-                                .value(Coin.valueOf(rand.nextInt(100)))
-                                .build()
-                ))
-                .build();
+        TxBean result = new TxBean((AbstractBlock) null);
+        result.setVersion(1);
+        result.setLockTime(2);
+        List<TxInput> inputs = new ArrayList<>();
+
+        TxInput txInput1 = new TxInputBean(result);
+        txInput1.setSequenceNumber(rand.nextInt(100));
+        txInput1.setScriptBytes(new byte[0]);
+
+        TxOutPoint txOutpoint1 = new TxOutPointBean(txInput1);
+        txOutpoint1.setIndex(rand.nextInt(10));
+        txOutpoint1.setHash(Sha256Hash.wrap(parentOutputHash));
+
+        txInput1.setOutpoint(txOutpoint1);
+        inputs.add(txInput1);
+        result.setInputs(inputs);
+
+        List<TxOutput> outputs = new ArrayList<>();
+
+        TxOutput txOutput = new TxOutputBean(result);
+        txOutput.setScriptBytes(new byte[0]);
+        txOutput.setValue(Coin.valueOf(rand.nextInt(100)));
+        outputs.add(txOutput);
+        result.setOutputs(outputs);
+
+        result.makeImmutable();
+        return result;
+
     }
 
     /** Convenience method to generate a Dummy Tx: */
@@ -90,7 +99,7 @@ public class TestingUtils {
     /**
      * It saves a Block and a variable number of Txs eparately, and then they linke them together, returning the time the whole operation takes
      */
-    public static long performanceLinkBlockAndTxs(BlockStore db, BlockHeader block, int numTxs) {
+    public static long performanceLinkBlockAndTxs(BlockStore db, HeaderReadOnly block, int numTxs) {
         Instant beginTime = Instant.now();
         db.saveBlock(block);
         System.out.println(" - Block saved.");
@@ -113,7 +122,7 @@ public class TestingUtils {
     /**
      * It saves a Block and a variable number of Txs and link them together at the same time
      */
-    public static long performanceSaveBlockAndTxs(BlockStore db, BlockHeader block, int numTxs) {
+    public static long performanceSaveBlockAndTxs(BlockStore db, HeaderReadOnly block, int numTxs) {
         Instant beginTime = Instant.now();
         db.saveBlock(block);
         System.out.println(" - Block saved.");

@@ -1,10 +1,9 @@
 package com.nchain.jcl.store.levelDB.blockChainStore
 
-import com.nchain.jcl.base.domain.api.base.BlockHeader
-import com.nchain.jcl.store.blockChainStore.BlockChainForkSpecBase
 import com.nchain.jcl.store.blockChainStore.BlockChainStore
 import com.nchain.jcl.store.blockChainStore.BlockChainStoreOrphanSpecBase
 import com.nchain.jcl.store.levelDB.StoreFactory
+import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
 
 import java.time.Duration
 
@@ -14,7 +13,7 @@ import java.time.Duration
 class BlockChainOrphanSpec extends BlockChainStoreOrphanSpecBase {
     @Override
     BlockChainStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents,
-                                BlockHeader genesisBlock,
+                                HeaderReadOnly genesisBlock,
                                 Duration publishStateFrequency,
                                 Duration forkPrunningFrequency,
                                 Integer forkPrunningHeightDiff,

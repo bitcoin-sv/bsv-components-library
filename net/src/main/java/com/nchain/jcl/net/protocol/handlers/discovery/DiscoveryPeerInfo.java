@@ -1,9 +1,10 @@
 package com.nchain.jcl.net.protocol.handlers.discovery;
 
-import com.nchain.jcl.base.tools.files.CSVSerializable;
-import com.nchain.jcl.base.tools.util.DateTimeUtils;
+
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.protocol.messages.VersionMsg;
+import com.nchain.jcl.tools.files.CSVSerializable;
+import com.nchain.jcl.tools.util.DateTimeUtils;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

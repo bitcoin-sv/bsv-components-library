@@ -1,7 +1,8 @@
 package com.nchain.jcl.net.protocol.serialization.largeMsgs;
 
-import com.nchain.jcl.base.tools.events.EventBus;
+
 import com.nchain.jcl.net.protocol.messages.common.Message;
+import com.nchain.jcl.tools.events.EventBus;
 
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;

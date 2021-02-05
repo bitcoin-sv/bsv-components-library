@@ -8,8 +8,8 @@ import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializer
 import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter
+import com.nchain.jcl.tools.bytes.ByteArrayReader
+import com.nchain.jcl.tools.bytes.ByteArrayWriter
 import spock.lang.Specification
 
 /**
@@ -24,49 +24,49 @@ class MemPoolMsgSerializerSpec extends Specification {
 
     def "testing MemPoolMsg Serializing and Deserializing"() {
         given:
-        SerializerContext serializerContext = SerializerContext.builder()
-                .build()
+            SerializerContext serializerContext = SerializerContext.builder()
+                    .build()
 
-        DeserializerContext deserializerContext = DeserializerContext.builder()
-                .build()
+            DeserializerContext deserializerContext = DeserializerContext.builder()
+                    .build()
 
-        MemPoolMsg memPoolMsg = MemPoolMsg.builder().build()
+            MemPoolMsg memPoolMsg = MemPoolMsg.builder().build()
 
-        ByteArrayWriter byteWriter = new ByteArrayWriter()
+            ByteArrayWriter byteWriter = new ByteArrayWriter()
         when:
-        MemPoolMsgSerializer.getInstance().serialize(serializerContext, memPoolMsg, byteWriter)
-        MemPoolMsg deserializedMemPoolMsg = MemPoolMsgSerializer.getInstance().deserialize(deserializerContext, byteWriter.reader())
+            MemPoolMsgSerializer.getInstance().serialize(serializerContext, memPoolMsg, byteWriter)
+            MemPoolMsg deserializedMemPoolMsg = MemPoolMsgSerializer.getInstance().deserialize(deserializerContext, byteWriter.reader())
         then:
-        memPoolMsg.equals(deserializedMemPoolMsg)
+            memPoolMsg.equals(deserializedMemPoolMsg)
     }
 
 
     def "testing MemPoolMsg COMPLETE Serializing and Deserializing"() {
         given:
-        SerializerContext serializerContext = SerializerContext.builder()
-                .build()
+            SerializerContext serializerContext = SerializerContext.builder()
+                    .build()
 
-        DeserializerContext deserializerContext = DeserializerContext.builder()
-                .build()
+            DeserializerContext deserializerContext = DeserializerContext.builder()
+                    .build()
 
-        MemPoolMsg memPoolMsg = MemPoolMsg.builder().build()
+            MemPoolMsg memPoolMsg = MemPoolMsg.builder().build()
 
-        HeaderMsg headerMsg = HeaderMsg.builder()
-                .checksum(3806393949)
-                .command(MemPoolMsg.MESSAGE_TYPE)
-                .length((int)memPoolMsg.getLengthInBytes())
-                .magic(1)
-                .build();
+            HeaderMsg headerMsg = HeaderMsg.builder()
+                    .checksum(3806393949)
+                    .command(MemPoolMsg.MESSAGE_TYPE)
+                    .length((int)memPoolMsg.getLengthInBytes())
+                    .magic(1)
+                    .build();
 
 
-        BitcoinMsg<MemPoolMsg> memPoolBitcoinMsg = new BitcoinMsg<MemPoolMsg>(headerMsg, memPoolMsg);
+            BitcoinMsg<MemPoolMsg> memPoolBitcoinMsg = new BitcoinMsg<MemPoolMsg>(headerMsg, memPoolMsg);
 
-        BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
+            BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
-        ByteArrayReader byteArrayReader = serializer.serialize(serializerContext, memPoolBitcoinMsg, MemPoolMsg.MESSAGE_TYPE)
-        BitcoinMsg<MemPoolMsg> deserializedMemPoolBitcoinMsg = serializer.deserialize(deserializerContext, byteArrayReader, MemPoolMsg.MESSAGE_TYPE)
+            ByteArrayReader byteArrayReader = serializer.serialize(serializerContext, memPoolBitcoinMsg, MemPoolMsg.MESSAGE_TYPE)
+            BitcoinMsg<MemPoolMsg> deserializedMemPoolBitcoinMsg = serializer.deserialize(deserializerContext, byteArrayReader, MemPoolMsg.MESSAGE_TYPE)
         then:
-        memPoolBitcoinMsg.equals(deserializedMemPoolBitcoinMsg)
+            memPoolBitcoinMsg.equals(deserializedMemPoolBitcoinMsg)
 
     }
 

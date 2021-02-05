@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.unit.protocol.handlers.message
 
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
+import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.handlers.blacklist.BlacklistHandler
 import com.nchain.jcl.net.protocol.handlers.discovery.DiscoveryHandler
@@ -8,6 +9,7 @@ import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandler
 import com.nchain.jcl.net.protocol.handlers.pingPong.PingPongHandler
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
+import io.bitcoinj.params.MainNetParams
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -23,8 +25,7 @@ class ProtocolConnectionTest extends Specification {
     def "Testing Client/Server communication"() {
         given:
             // Server Definition:
-            ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder()
-                    .build()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams())
             // We disable all the Handlers we don't need for this Test:
             P2P server = new P2PBuilder("server")
                     .config(config)

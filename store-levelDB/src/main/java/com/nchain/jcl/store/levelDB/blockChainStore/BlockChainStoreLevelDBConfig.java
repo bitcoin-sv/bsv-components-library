@@ -1,9 +1,10 @@
 package com.nchain.jcl.store.levelDB.blockChainStore;
 
-import com.nchain.jcl.base.domain.api.base.BlockHeader;
-import com.nchain.jcl.base.tools.config.RuntimeConfig;
+
 import com.nchain.jcl.store.keyValue.blockChainStore.BlockChainStoreKeyValueConfig;
 import com.nchain.jcl.store.levelDB.blockStore.BlockStoreLevelDBConfig;
+import com.nchain.jcl.tools.config.RuntimeConfig;
+import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -24,7 +25,7 @@ public class BlockChainStoreLevelDBConfig extends BlockStoreLevelDBConfig implem
     // Default: The Age of an Orphan Block to be eligible for prunning
     private static Duration DEFAULT_ORPHAN_AGE = Duration.ofMinutes(30);
 
-    private BlockHeader genesisBlock;
+    private HeaderReadOnly genesisBlock;
     private int         forkPrunningHeightDifference = DEFAULT_FORK_HEIGH_DIFF;
     private boolean     forkPrunningIncludeTxs;
     private Duration    orphanPrunningBlockAge = DEFAULT_ORPHAN_AGE;
@@ -34,7 +35,7 @@ public class BlockChainStoreLevelDBConfig extends BlockStoreLevelDBConfig implem
                                         RuntimeConfig runtimeConfig,
                                         Integer transactionSize,
                                         String networkId,
-                                        BlockHeader genesisBlock,
+                                        HeaderReadOnly genesisBlock,
                                         Integer forkPrunningHeightDifference,
                                         boolean forkPrunningIncludeTxs,
                                         Duration orphanPrunningBlockAge) {

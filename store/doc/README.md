@@ -1,19 +1,11 @@
 # JCL-Store
 
-*JCL-Store* is the Storage Module in *JCL*. It provides capabilities to Store information and retrieve it at any time.
-The term "information" used here is generic: different applications or modules might have different needs, so 
-there is no one-solution-fits-all in this case. Instead, *JCL-Store* provides several *Interfaces/Components*, each one providing 
+*JCL-Store* is the Storage Module in *JCL*. It provides capabilities to Store information about blocks and Transactions.
+It provides several *Interfaces/Components*, each one providing 
 a different set of functionalities.
 
-*JCL-Store* only provides the definition of the storage interfaces. For each interface, several 
-implementations might be provided, but the behaviour of all of them must comply with the specification defined in this document.
-
-**Use *JCL-Store* if you need to:**
-
- * Store information about *Transactions* and *Blocks* in a permanent storage, so it can be recovered later on.
- * store information about the multiple *chains* that might be present in a specific network
- * Be notified about *Fork* or *Prune* Events.
-
+> for specific implementation of the interfaces defined in this documentation, go to the end of the document, *Implementations* chapter.
+> 
  
 The Interfaces defined in this module are the following:
 
@@ -30,15 +22,6 @@ The Interfaces defined in this module are the following:
  case the Blocks are not separate entities, but now it's also possible to *traverse* the chain starting from any 
  specific Block, going back and forth through the chain, detect *Forks*, *prune* branches, etc.
 
-> **About creating Instances:**
-> 
-> In *JCL-Store*, only guidelines about how to use these interfaces is provided. Before using an interface an instance
-> must be obtained, but that process is implementation-specific. So for instructions fo how to crete instances of 
-the interfaces above, go check out the documentation of all the implementations provided:
->
-> [JCL-Store-LevelDB](../../store-levelDB/doc/README.md): *JCL-Store* implementation with LevelDB 
-> 
-> [JCL-Store-FoundationDB](../../store-foundationDB/doc/README.md): *JCL-Store* implementation with FoundationDB 
   
 
 Examples of use of these 2 interfaces are detailed in the chapters below
@@ -73,14 +56,14 @@ the methods:
 
 ```
 // We store Blocks:
-BlockHeader blockHeader = ...           // we get a Block Header from somewhere
-List<BlockHeader> blockHeaders = ...    // We got a List of Blocks from somewhere
+HeaderReadOnly blockHeader = ...           // we get a Block Header from somewhere
+List<HeaderReadOnly> blockHeaders = ...    // We got a List of Blocks from somewhere
 db.saveBlock(blockHeader);
 db.saveBlocks(blockHeaders);
 
 // We store Txs serparately:
-Transaction tx = ...                    // we got a Tx from somewhere
-List<Transaction> txs = ...             // we got a List of Txs from somewhere
+Tx tx = ...                    // we got a Tx from somewhere
+List<Tx> txs = ...             // we got a List of Txs from somewhere
 db.saveTx(Tx);
 db.saveTxs(txs)
 
@@ -92,8 +75,8 @@ can be stored at different points in time. For example, in the following example
 stored at the very moment when they are saved:
 
 ```
-BlockHeader blockHeader = ...           // we get a Block Header
-List<Transaction> txs = ...             // we got a List of Tx belong to that Block
+HeaderReadOnly blockHeader = ...    // we get a Block Header
+List<Tx> txs = ...                  // we got a List of Tx that belong to that Block
 
 db.saveBlockTxs(blockHeader, txs);
 
@@ -102,8 +85,8 @@ db.saveBlockTxs(blockHeader, txs);
 It's also possible to store the Block and Transaction separately and set that relation later on:
 
 ```
-BlockHeader blockHeader = ...           // we get a Block Header
-List<Transaction> txs = ...             // we got a List of Tx belong to that Block
+HeaderReadOnly blockHeader = ...           // we get a Block Header
+List<Tx> txs = ...             // we got a List of Tx belong to that Block
 
 db.saveBlock(block);
 db.saveTxs(txs);
@@ -135,7 +118,7 @@ other methods that allows for modifying this relationship, like:
 We can retrieve the Txs belonging to a Block. The result comes as an *Iterable* of the Transactions *Hashes* contained in that block:
 
 ```
-Iterable<Sha256Wrapper> getBlockTxs(Sha256Wrapper blockHash);
+Iterable<Sha256Hash> getBlockTxs(Sha256Hash blockHash);
 ```
 
 An example of looping over the results of the prvious method:
@@ -149,7 +132,7 @@ BlockHeader block = ...
 System.out.println("Number of Txs:" + db.getBlockNumTxs(block.getHash()));
 
 // No we print every Txs contained in this block:
-Iterator<Sha256Wrapper> txsIt = db.getBlockTxs(block.getHash()).iterator();
+Iterator<Sha256Hash> txsIt = db.getBlockTxs(block.getHash()).iterator();
 while (txsIt.hasNext()) {
 System.out.println("Tx Hash: " + txsIt.next());
 }
@@ -209,11 +192,6 @@ public void processTxsRemoved(TxsRemovedEvent event) {
 access them, but it can NOT guarantee whether they are enable or not. Enabling or disabling the Events 
 is implementation-specific, so **go check the implementation documentation** for the guidelines about how
 to enable/configure the trigering of Events.
->
-> [JCL-Store-LevelDB](../../store-levelDB/doc/README.md): *JCL-Store* implementation with LevelDB
-> 
-> [JCL-Store-FoundationDB](../../store-foundationDB/doc/README.md): *JCL-Store* implementation with FoundationDB 
-
 
 
 ### Filtering of Events
@@ -243,14 +221,14 @@ Optional<BlocksCompareResult> compareBlocks(Sha256Wrapper blockHashA, Sha256Wrap
 
 That Methods return the result *inmediately*. That result is composed of several *iterables*, each one of them showing different information: one will iterate over the Transactions both blocks have in common, another will do the same but over those Transactions that only the first Block has but not the second, etc. The complexity here is not coming from getting the result (which is inmediate), but from iterating those results (whch might take more or less time depending on the number of Txs, but the complexity to loop over the whole set of Transaction is *O(n)*.
 
-### Getting Transactions Dependent
+### Getting previous (predecessor) Transactions
 
 A Transaction *A* depends on a Transactions *B* and *C* if *A* is using some of the *outputs* from *B* and *C*. So the Transaction *A* will ony be validated after the Transactions *B* and *C* have been validated as well.
 
 There is a specific method to retrieve the *Transactions* that one Transaction relies on:
 
 ```
-List<Sha256Wrapper> getTxsNeeded(Sha256Wrapper txHash);
+List<Sha256Hash> getPreviousTxs(Sha256Hash txHash);
 ```
 
 In the example above, this method will return a list containing the *Hashes* of the Transactions *B* and *C*.
@@ -307,19 +285,19 @@ In the *BlockStore* component, both *Blocks* and *Transactions* are separate ent
 Block so we can get all the *Transactions* belonging to a Block, and we can also *travel* from a Block to its *parent*,
  since that information is contained within the *BlockHeader* itself, but that's all we can do.
  
-*Blocks* are part of a bigger structure called *Chain*, which is also known as *BlockChain*. This
- *Chain* is a sequence of *Blocks* in an specific order. The *BlockChainStore* components offers new methods to provide
+The *BlockChainStore* interface, on the other hand, provides much more information. *Blocks* are part of a *Chain*, which is a sequence of *Blocks* in an specific order. The *BlockChainStore* components offers new methods to provide
  useful information about this *Chain*, like:
  
   * get relative information about the *Chain*, like its *height* or proof of Work. This information is "relative" because
     its specific for a particular *Block*. Another *Block* in the same chain will have a different *height* and a 
     different *proof of Work*.
-  * Useful method to *traverse* the chain, not ony from a *Block* to it's *parent* in the chaib, but also from a *Block*
+  * Useful method to *traverse* the chain, not ony from a *Block* to it's *parent*, but also from a *Block*
     to its "children", so you can *traverse* back and forth.
-  * It keeps track of the *Tip* of the *Chain* (the most recent *Block* stored)
+  * It keeps track of the *Tips* of the *Chain* (the most recent *Blocks* stored)
   * In case there is a *Fork* (more than 2 chains are being built on top of a Block), it also keeps track of all those
     individual "Chains".
-  * It provides methods to "prune" a Chain. This process can also be performed automatically.     
+  * It provides methods to "prune" a Chain. This process can also be performed automatically.
+  * It provides the *History* of a Block. This *History* is a sequence of Events, from the very begining of the *Chain* until the cretion of the *Block* iself, along with all the *Forks* that happened in between. Even if those *Forks* are then discarded by the network and even pruned, the information about a fork "happening" at that height is still recorded.
 
 
 
@@ -333,10 +311,10 @@ not Store, or it's stored but its *NOT* connected to a *Chain* (because for inst
 since *Blocks* might be stored in a different order), then it returns an *Empty* Optional.
 
 ```
-Optional<ChainInfo> getBlockChainInfo(Sha256Wrapper blockHash);
+Optional<ChainInfo> getBlockChainInfo(Sha256Hash blockHash);
 ```
 
-In the following picture we can see 2 examples of the DB state at 2 points in time: In the **State A**, 5 blocks are stored: #1, #2, #4 and #5. Only the Blocks #1 and #2 are connecgted to the Chain, so we only have **ChainInfo** for them. In the **State B**, the Block #3 is inserted, and at this moment is automatically **connected** to the Chain, since it's parent (#2) is already stored. And this **connection** process is also triggered through all the Blocks built on top of #3, so in the end all the blocks are connected and we can potentially get **CHainInfo** from all of them.
+In the following picture we can see 2 examples of the DB state at 2 points in time: In the **State A**, 5 blocks are stored: *genesis*, #1, #2, #4 and #5. Only the Blocks #1 and #2 are connected to the Chain, so we only have **ChainInfo** for them. In the **State B**, the Block #3 is inserted, and at this moment is automatically **connected** to the Chain, since it's parent (#2) is already stored. And this **connection** process is also triggered through all the Blocks built on top of #3, so in the end all the blocks are connected and we can potentially get **ChainInfo** from all of them.
 
 
 ![getChainInfo example](chainInfoExample.png)
@@ -348,8 +326,8 @@ this process you could go up to the beginning of the *Chain*. The *BlockChainSto
 explicit by adding methods to go "back" to its parent and "forth" to the *Children* of a *Block* given:
 
 ```
-Optional<Sha256Wrapper> getPrevBlock(Sha256Wrapper blockHash);
-List<Sha256Wrapper> getNextBlocks(Sha256Wrapper blockHash);
+Optional<Sha256Hash> getPrevBlock(Sha256Hash blockHash);
+List<Sha256Hash> getNextBlocks(Sha256Hash blockHash);
 ```
 
 In a regular situation when we only have one *Chain*, the ``getNextBlocks`` will return either a List of one *Block*, or 
@@ -363,7 +341,7 @@ The *BlockChainStore* components provides methods to get direct information abou
 the DB:
 
 ```
-List<Sha256Wrapper> getTipsChains();
+List<Sha256Hash> getTipsChains();
 Optional<ChainInfo> getLongestChain();
 ```
 
@@ -408,10 +386,44 @@ one and it can be removed. For all these reasons, the *BlockChainSore* also incl
 > By enabling the *Automatic Prunning*, the *BlockChainStore* Component will take care of keeping track of all the *Chains*, and
 it will also detect when the right time for removing/prunning one of them is. A *Chain* can safely be removed when the 
 difference in height with the longest *Chain* is bigger than a *Threshold* specified. The *Automatic Prunning* Configuration
-is implementation-specific, so **go check the documentation**:
->
-> [JCL-Store-LevelDB](../store-levelDB/doc/README.md): *JCL-Store* implementation with LevelDB 
+is implementation-specific, so **go check the specific implementation**:
 
+### Block History
+
+The *BlockChainStore* module uses the term of *Path* to store information about the *history* of the chain. A *Path* is a sequence of blocks in sequence, without any fork between them. Over time, as Forks are created and discarded, the *BlockChainStore* changes and stores this information so it can be used later on to bring up a block's history.
+
+Some examples of *Paths* are showed below:
+
+In this picture, we have a chain of 4 Blocks. There is only 1 Path, from *genesis* up to the *Tip*:
+
+![Paths example 1](paths-example1.png)
+
+If later on a Fork occurs, then the original Path is broken down:
+
+![Paths example 2](paths-example2.png)
+
+When later on one of the forks is discarded by the Network and *pruned* by *BlockChainStore*, then the *Path* is deleted, but the *Paths* structure remains.
+
+![Paths example 3](paths-example3.png)
+
+The fact that the previous breakdown of Paths is still there after removing a branch allows the *BlockChainStore* module to *know* the complete history of the block. In the previous example, the *History* of the Block 4 can be summed up as:
+
+* [date 1]: Creation of the Genesis block 
+* [date 2]: Fork at height #2
+* [date 3]: Creation of block #4C
+
+In this example, we *know* that there's been a Fork at a specific point in time, even though the fork itself is now gone.
+
+#### Block History Operations
+
+The *getFirstBlockInHistory(blockHash)* returns the *Hash* of the Block that is the *parent* of 
+the first Block prior to the block given, or the *genesis* block if there is no Fork or the forks have been pruned.
+
+```
+Optional<ChainInfo> getFirstBlockInHistory(Sha256Hash blockHash);
+```
+
+> *PENDING TO ADD MORE METHODS IN THIS SECTION...*
 
 
 ### Streaming of Events
@@ -436,9 +448,8 @@ about the state of the DB (Number of Blocks, Txs, etc)
 db.EVENTS().STATE.forEach(System.out::println)
 ```
 
-> Enabling the Streaming of *STATE* Events is implementation-specific, so **go check out** the documentation:
->
-> [JCL-Store-LevelDB](../../store-levelDB/doc/README.md): *JCL-Store* implementation with LevelDB 
+> Enabling the Streaming of *STATE* Events is implementation-specific, so **go check out** the implementation documentation:
+
 
 ### Reference
 
@@ -470,3 +481,14 @@ An Event triggered periodically based on the configuration (implementation-speci
  
  The Event class passed as parameter to the *forEach* method is an instance of
 ``com.nchain.jcl.store.blockChainStore.events.ChainStateEvent``
+
+
+# Implementations
+
+In *JCL-Store*, only guidelines about how to use the interfaces is provided. Before using an interface an instance
+must be obtained, but that process is implementation-specific. So for instructions of how to crete instances of 
+the interfaces above, go check out the documentation of all the implementations provided:
+
+[JCL-Store-LevelDB](../../store-levelDB/doc/README.md): *JCL-Store* implementation with LevelDB 
+ 
+[JCL-Store-FoundationDB](../../store-foundationDB/doc/README.md): *JCL-Store* implementation with FoundationDB 

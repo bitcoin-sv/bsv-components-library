@@ -1,14 +1,18 @@
 package com.nchain.jcl.net.unit.protocol.handlers.handshake
 
+import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
+import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.events.MinHandshakedPeersLostEvent
 import com.nchain.jcl.net.protocol.events.MinHandshakedPeersReachedEvent
 import com.nchain.jcl.net.protocol.handlers.blacklist.BlacklistHandler
 import com.nchain.jcl.net.protocol.handlers.discovery.DiscoveryHandler
+import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandlerConfig
 import com.nchain.jcl.net.protocol.handlers.pingPong.PingPongHandler
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
+import io.bitcoinj.params.MainNetParams
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicBoolean
@@ -26,8 +30,7 @@ class ProtocolHandshakeOKTest extends Specification {
     def "testing Handshake OK"() {
         given:
             // Server and Client Definition:
-            ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder()
-                    .build()
+            ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder().build()
             // We disable all the Handlers we don't need for this Test:
             P2P server = new P2PBuilder("server")
                     .config(config)
@@ -78,15 +81,20 @@ class ProtocolHandshakeOKTest extends Specification {
             int MAX_PEERS = 3
             int NUM_CLIENTS = 4
             // Server Definition:
-            // We change the Default P2P Configuration, to stablish the parameters for this Test:
-            ProtocolConfig protocolConfig = new ProtocolBSVMainConfig().toBuilder()
-                    .minPeers(MIN_PEERS)
-                    .maxPeers(MAX_PEERS)
+            // We change the Default P2P Configuration, to establish the parameters for this Test:
+
+            ProtocolConfig protocolConfig = ProtocolConfigBuilder.get(new MainNetParams())
+
+            // We set up the MIN and MAX Peers
+            ProtocolBasicConfig basicConfig = protocolConfig.basicConfig.toBuilder()
+                    .minPeers(OptionalInt.of(MIN_PEERS))
+                    .maxPeers(OptionalInt.of(MAX_PEERS))
                     .build()
 
             // We disable all the Handlers we don't need for this Test:
             P2P server = new P2PBuilder("server")
                     .config(protocolConfig)
+                    .config(basicConfig)
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
@@ -97,6 +105,7 @@ class ProtocolHandshakeOKTest extends Specification {
             for (int i = 0; i < NUM_CLIENTS; i++) {
                 // We disable all the Handlers we don't need for this Test:
                 P2P client = new P2PBuilder("client-" + i)
+                        .config(protocolConfig)
                         .excludeHandler(PingPongHandler.HANDLER_ID)
                         .excludeHandler(DiscoveryHandler.HANDLER_ID)
                         .excludeHandler(BlacklistHandler.HANDLER_ID)
@@ -135,7 +144,7 @@ class ProtocolHandshakeOKTest extends Specification {
 
             // We do a little waiting, to make sure al the handshakes have been performed.
             // At his point, the "MinHandshakedPeersReachedEvent" must have been reached...
-            Thread.sleep(500)
+            Thread.sleep(1000)
             println(" >> CLIENTS DISCONNECTING FROM SERVER...")
 
             // Now we disconnect the clients from the Server one by one. At some point, the

@@ -1,10 +1,11 @@
 package com.nchain.jcl.net.unit.protocol.tools;
 
-import com.nchain.jcl.base.tools.bytes.ByteArrayBuilder;
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader;
-import com.nchain.jcl.base.tools.streams.InputStreamSourceImpl;
-import com.nchain.jcl.base.tools.streams.StreamCloseEvent;
-import com.nchain.jcl.base.tools.streams.StreamDataEvent;
+
+import com.nchain.jcl.tools.bytes.ByteArrayBuilder;
+import com.nchain.jcl.tools.bytes.ByteArrayReader;
+import com.nchain.jcl.tools.streams.InputStreamSourceImpl;
+import com.nchain.jcl.tools.streams.StreamCloseEvent;
+import com.nchain.jcl.tools.streams.StreamDataEvent;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;

@@ -1,9 +1,7 @@
 package com.nchain.jcl.net.protocol.messages;
 
 import com.google.common.collect.ImmutableList;
-import com.nchain.jcl.base.domain.api.base.Tx;
-import com.nchain.jcl.base.domain.bean.base.TxBean;
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
+
 import com.nchain.jcl.net.protocol.messages.common.Message;
 import lombok.Builder;
 import lombok.Data;
@@ -111,16 +109,4 @@ public class TxMsg extends Message {
         return result.toString();
     }
 
-    /** Returns a BitcoinObject containing the same information */
-    public Tx toBean() {
-        TxBean.TxBeanBuilder txBuilder = Tx.builder()
-                .sizeInBytes(lengthInBytes)
-                .lockTime(lockTime)
-                .version(version)
-                .inputs(tx_in.stream().map(i -> i.toBean()).collect(Collectors.toList()))
-                .outputs(tx_out.stream().map(o -> o.toBean()).collect(Collectors.toList()));
-        if (hash.isPresent())
-            txBuilder.hash(Sha256Wrapper.wrap(hash.get().getHashBytes()));
-        return txBuilder.build();
-    }
 }

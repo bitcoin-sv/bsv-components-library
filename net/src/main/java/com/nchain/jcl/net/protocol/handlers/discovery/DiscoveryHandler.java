@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.protocol.handlers.discovery;
 
-import com.nchain.jcl.base.tools.handlers.Handler;
+
+import com.nchain.jcl.tools.handlers.Handler;
 
 /**
  * @author i.fernandez@nchain.com

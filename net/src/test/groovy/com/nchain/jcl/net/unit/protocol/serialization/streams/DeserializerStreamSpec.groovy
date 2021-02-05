@@ -8,11 +8,11 @@ import com.nchain.jcl.net.protocol.streams.deserializer.Deserializer
 import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerConfig
 import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStream
 import com.nchain.jcl.net.unit.protocol.tools.MsgTest
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader
-import com.nchain.jcl.base.tools.bytes.HEX
-import com.nchain.jcl.base.tools.config.RuntimeConfig
-import com.nchain.jcl.base.tools.config.provided.RuntimeConfigDefault
-import com.nchain.jcl.base.tools.streams.StreamDataEvent
+import com.nchain.jcl.tools.bytes.ByteArrayReader
+import com.nchain.jcl.tools.config.RuntimeConfig
+import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault
+import com.nchain.jcl.tools.streams.StreamDataEvent
+import io.bitcoinj.core.Utils
 import spock.lang.Specification
 
 import java.util.concurrent.ExecutorService
@@ -29,7 +29,7 @@ class DeserializerStreamSpec extends Specification {
      */
     def "Testing Deserializer Empty Messages"() {
         given:
-            RuntimeConfig   runtimeConfig = new RuntimeConfigDefault()
+        RuntimeConfig runtimeConfig = new RuntimeConfigDefault()
             ProtocolConfig protocolConfig = new ProtocolBSVMainConfig()
             ExecutorService executor = Executors.newSingleThreadExecutor()
 
@@ -47,7 +47,7 @@ class DeserializerStreamSpec extends Specification {
             // are identical:
             BitcoinMsg<VersionAckMsg> msg = MsgTest.getVersionAckMsg()
         when:
-            ByteArrayReader reader = new ByteArrayReader(HEX.decode(MsgTest.VERSION_ACK_HEX))
+            ByteArrayReader reader = new ByteArrayReader(Utils.HEX.decode(MsgTest.VERSION_ACK_HEX))
             source.send(new StreamDataEvent<ByteArrayReader>(reader))
             // We need to wait a bit, for the events to be triggered...
             Thread.sleep(100)

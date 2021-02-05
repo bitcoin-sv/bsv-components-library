@@ -1,8 +1,8 @@
 package com.nchain.jcl.store.foundationDB.blockStore;
 
-import com.nchain.jcl.base.tools.config.RuntimeConfig;
-import com.nchain.jcl.base.tools.config.provided.RuntimeConfigDefault;
 import com.nchain.jcl.store.keyValue.blockStore.BlockStoreKeyValueConfig;
+import com.nchain.jcl.tools.config.RuntimeConfig;
+import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NonNull;

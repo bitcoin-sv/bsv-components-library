@@ -1,14 +1,15 @@
 package com.nchain.jcl.net.protocol.serialization;
 
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader;
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter;
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
+
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.HashMsg;
 import com.nchain.jcl.net.protocol.messages.VarIntMsg;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.net.protocol.serialization.common.MessageSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext;
+import com.nchain.jcl.tools.bytes.ByteArrayReader;
+import com.nchain.jcl.tools.bytes.ByteArrayWriter;
+import io.bitcoinj.core.Sha256Hash;
 
 /**
  * @author i.fernandez@nchain.com
@@ -43,8 +44,8 @@ public class BlockHeaderMsgSerializer implements MessageSerializer<BlockHeaderMs
         byte[] blockHeaderBytes = byteReader.read(HEADER_LENGTH);
 
         HashMsg hash =  HashMsg.builder().hash(
-                Sha256Wrapper.wrapReversed(
-                        Sha256Wrapper.twiceOf(blockHeaderBytes).getBytes()).getBytes())
+                Sha256Hash.wrapReversed(
+                        Sha256Hash.twiceOf(blockHeaderBytes).getBytes()).getBytes())
                 .build();
 
        // String blockHashStr = HEX.encode(hash.getHashBytes());
@@ -92,7 +93,7 @@ public class BlockHeaderMsgSerializer implements MessageSerializer<BlockHeaderMs
     }
 
     private byte[] getBytesHash(HashMsg hash) {
-        return Sha256Wrapper.wrapReversed(hash.getHashBytes()).getBytes();
+        return Sha256Hash.wrapReversed(hash.getHashBytes()).getBytes();
     }
 
 }

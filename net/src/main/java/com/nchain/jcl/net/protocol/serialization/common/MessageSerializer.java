@@ -1,9 +1,8 @@
 package com.nchain.jcl.net.protocol.serialization.common;
 
-
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader;
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter;
 import com.nchain.jcl.net.protocol.messages.common.Message;
+import com.nchain.jcl.tools.bytes.ByteArrayReader;
+import com.nchain.jcl.tools.bytes.ByteArrayWriter;
 
 /**
  * @author i.fernandez@nchain.com

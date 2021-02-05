@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.unit.protocol.handlers.pingPong
 
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
+import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.handlers.blacklist.BlacklistHandler
 import com.nchain.jcl.net.protocol.handlers.discovery.DiscoveryHandler
@@ -8,6 +9,7 @@ import com.nchain.jcl.net.protocol.handlers.pingPong.PingPongHandler
 import com.nchain.jcl.net.protocol.handlers.pingPong.PingPongHandlerConfig
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
+import io.bitcoinj.params.MainNetParams
 import spock.lang.Specification
 
 import java.time.Duration
@@ -38,7 +40,7 @@ class ProtocolPingPongFailTest extends Specification {
             Duration waitingTime = Duration.ofMillis(responseTimeout.toMillis() * 5) // 3 times as much
 
             // Server Definition:
-            ProtocolConfig serverConfig = new ProtocolBSVMainConfig()
+            ProtocolConfig serverConfig = ProtocolConfigBuilder.get(new MainNetParams())
 
             PingPongHandlerConfig serverPingConfig = serverConfig.getPingPongConfig()
                 .toBuilder()
@@ -58,10 +60,10 @@ class ProtocolPingPongFailTest extends Specification {
             // NOTE: We are going to REMOVE the Ping/Pong Handler from the Client, so this client will NOT reply to
             // PING Messages and therefore won't implement the Ping/Pong P2P
             // We disable the Handlers we dont need for this Test:
-            ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder()
-                    .build()
+
+            ProtocolConfig clientConfig = ProtocolConfigBuilder.get(new MainNetParams())
             P2P client = new P2PBuilder("client")
-                    .config(config)
+                    .config(clientConfig)
                     .serverPort(0) // Random Port
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)

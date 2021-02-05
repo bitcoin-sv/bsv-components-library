@@ -1,10 +1,6 @@
 package com.nchain.jcl.net.protocol.handlers.pingPong;
 
-import com.nchain.jcl.base.tools.bitcoin.NonceUtils;
-import com.nchain.jcl.base.tools.config.RuntimeConfig;
-import com.nchain.jcl.base.tools.handlers.HandlerImpl;
-import com.nchain.jcl.base.tools.log.LoggerUtil;
-import com.nchain.jcl.base.tools.thread.ThreadUtils;
+
 import com.nchain.jcl.net.protocol.events.*;
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.events.DisconnectPeerRequest;
@@ -15,6 +11,11 @@ import com.nchain.jcl.net.protocol.messages.PingMsg;
 import com.nchain.jcl.net.protocol.messages.PongMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
+import com.nchain.jcl.net.tools.NonceUtils;
+import com.nchain.jcl.tools.config.RuntimeConfig;
+import com.nchain.jcl.tools.handlers.HandlerImpl;
+import com.nchain.jcl.tools.log.LoggerUtil;
+import com.nchain.jcl.tools.thread.ThreadUtils;
 import lombok.Getter;
 
 import java.util.Map;

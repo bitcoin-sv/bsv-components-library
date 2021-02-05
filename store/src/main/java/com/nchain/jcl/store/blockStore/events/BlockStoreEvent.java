@@ -1,7 +1,7 @@
 package com.nchain.jcl.store.blockStore.events;
 
-import com.nchain.jcl.base.tools.events.Event;
 
+import com.nchain.jcl.tools.events.Event;
 
 /**
  * @author i.fernandez@nchain.com

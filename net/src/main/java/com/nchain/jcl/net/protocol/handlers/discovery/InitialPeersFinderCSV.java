@@ -1,8 +1,11 @@
 package com.nchain.jcl.net.protocol.handlers.discovery;
 
-import com.nchain.jcl.base.tools.files.FileUtils;
-import com.nchain.jcl.base.tools.util.StringUtils;
+
 import com.nchain.jcl.net.network.PeerAddress;
+import com.nchain.jcl.tools.files.FileUtils;
+import com.nchain.jcl.tools.log.LoggerUtil;
+import com.nchain.jcl.tools.util.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 
 import java.net.UnknownHostException;
 import java.nio.file.Files;
@@ -20,6 +23,7 @@ import java.util.stream.Collectors;
  * This class returns an initial list of Peers to connect to after reading a static list of reliable Peers from a
  * CSV File.
  */
+@Slf4j
 public class InitialPeersFinderCSV implements InitialPeersFinder {
     private static final String CSV_SEPARATOR = ",";
     private static final String NET_FOLDER = "net";
@@ -27,6 +31,7 @@ public class InitialPeersFinderCSV implements InitialPeersFinder {
 
     private FileUtils fileUtils;
     private DiscoveryHandlerConfig config;
+
     /** Constructor */
     public InitialPeersFinderCSV(FileUtils fileutils, DiscoveryHandlerConfig config) {
         this.fileUtils = fileutils;
@@ -38,6 +43,7 @@ public class InitialPeersFinderCSV implements InitialPeersFinder {
         List<PeerAddress> result = new ArrayList<>();
         try {
             String fileName = StringUtils.fileNamingFriendly(config.getBasicConfig().getId()) + FILE_INITIAL_SUFFIX;
+            log.trace("loading Peer from CSV file: " + fileName + "...");
             Path dataPath = fileUtils.getRootPath();
             Path filePath = Paths.get(dataPath.toString(), NET_FOLDER, fileName);
             if (!Files.exists(filePath))

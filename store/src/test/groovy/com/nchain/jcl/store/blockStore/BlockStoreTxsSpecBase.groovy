@@ -1,9 +1,10 @@
 package com.nchain.jcl.store.blockStore
 
 
-import com.nchain.jcl.base.domain.api.base.Tx
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper
+
 import com.nchain.jcl.store.common.TestingUtils
+import io.bitcoinj.bitcoin.api.base.Tx
+import io.bitcoinj.core.Sha256Hash
 
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.stream.Collectors
@@ -123,10 +124,10 @@ abstract class BlockStoreTxsSpecBase extends BlockStoreSpecBase {
 
             // Now we recover each of them, checking that the info about the Txs Needed is correct for each one...
             Boolean OK = true
-            List<Sha256Wrapper> txHashes = txs.stream().map({ tx -> tx.getHash()}).collect(Collectors.toList())
+            List<Sha256Hash> txHashes = txs.stream().map({ tx -> tx.getHash()}).collect(Collectors.toList())
             for (int i = 0; i < NUM_TXS; i++) {
                 Tx tx = db.getTx(txHashes.get(i)).get()
-                List<Sha256Wrapper> txsNeeded = db.getTxsNeeded(tx.getHash())
+                List<Sha256Hash> txsNeeded = db.getPreviousTxs(tx.getHash())
                 if (i > 0) {
                     OK &= txsNeeded.size() == 1 &&  txsNeeded.get(0).equals(txHashes.get(i - 1))
                 }

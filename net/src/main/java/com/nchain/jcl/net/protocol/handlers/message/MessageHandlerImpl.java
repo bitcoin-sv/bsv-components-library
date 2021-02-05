@@ -1,11 +1,6 @@
 package com.nchain.jcl.net.protocol.handlers.message;
 
-import com.nchain.jcl.base.tools.config.RuntimeConfig;
-import com.nchain.jcl.base.tools.handlers.HandlerImpl;
-import com.nchain.jcl.base.tools.log.LoggerUtil;
-import com.nchain.jcl.base.tools.streams.StreamDataEvent;
-import com.nchain.jcl.base.tools.streams.StreamErrorEvent;
-import com.nchain.jcl.base.tools.thread.ThreadUtils;
+
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.events.*;
 import com.nchain.jcl.net.protocol.events.*;
@@ -13,6 +8,12 @@ import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.streams.deserializer.Deserializer;
 import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStream;
 import com.nchain.jcl.net.protocol.streams.MessageStream;
+import com.nchain.jcl.tools.config.RuntimeConfig;
+import com.nchain.jcl.tools.handlers.HandlerImpl;
+import com.nchain.jcl.tools.log.LoggerUtil;
+import com.nchain.jcl.tools.streams.StreamDataEvent;
+import com.nchain.jcl.tools.streams.StreamErrorEvent;
+import com.nchain.jcl.tools.thread.ThreadUtils;
 import lombok.Getter;
 
 import java.math.BigInteger;
@@ -117,7 +118,8 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
             super.eventBus.publish(new MsgReceivedEvent(peerAddress, btcMsg));
             updateState(1, 0);
         } else {
-            super.eventBus.publish(new DisconnectPeerRequest(peerAddress, "Wrong Network Id"));
+            logger.trace(peerAddress, " ERROR In incoming msg :: " + validationError);
+            super.eventBus.publish(new DisconnectPeerRequest(peerAddress, validationError));
         }
     }
     // Event Handler:

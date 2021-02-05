@@ -1,7 +1,7 @@
 package com.nchain.jcl.net.protocol.serialization.largeMsgs;
 
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
+import com.nchain.jcl.tools.bytes.ByteArrayReader;
 
 import java.util.function.Consumer;
 

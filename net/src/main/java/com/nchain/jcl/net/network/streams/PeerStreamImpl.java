@@ -1,9 +1,8 @@
 package com.nchain.jcl.net.network.streams;
 
 
-
-import com.nchain.jcl.base.tools.streams.StreamImpl;
 import com.nchain.jcl.net.network.PeerAddress;
+import com.nchain.jcl.tools.streams.StreamImpl;
 
 import java.util.concurrent.ExecutorService;
 

@@ -1,14 +1,15 @@
 package com.nchain.jcl.net.protocol.handlers.blacklist;
 
-import com.nchain.jcl.base.tools.config.RuntimeConfig;
-import com.nchain.jcl.base.tools.handlers.HandlerImpl;
-import com.nchain.jcl.base.tools.log.LoggerUtil;
-import com.nchain.jcl.base.tools.thread.ThreadUtils;
-import com.nchain.jcl.base.tools.util.StringUtils;
+
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.events.*;
 import com.nchain.jcl.net.protocol.events.PeerHandshakeRejectedEvent;
 import com.nchain.jcl.net.protocol.events.PingPongFailedEvent;
+import com.nchain.jcl.tools.config.RuntimeConfig;
+import com.nchain.jcl.tools.handlers.HandlerImpl;
+import com.nchain.jcl.tools.log.LoggerUtil;
+import com.nchain.jcl.tools.thread.ThreadUtils;
+import com.nchain.jcl.tools.util.StringUtils;
 import lombok.Getter;
 
 import java.net.InetAddress;

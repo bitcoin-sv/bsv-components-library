@@ -8,6 +8,7 @@ import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandlerConfig
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
+import io.bitcoinj.params.MainNetParams
 import org.junit.Test
 import spock.lang.Ignore
 import spock.lang.Specification
@@ -134,8 +135,8 @@ class BlockDownloadTest extends Specification {
             allBlocksDone
 
         where:
-            config                     |   block_hashes
-           new ProtocolBSVMainConfig() |   BLOCKS_BSV_MAIN
+            config                                                                           |   block_hashes
+           com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder.get(new MainNetParams()) |   BLOCKS_BSV_MAIN
            // new ProtocolBSVStnConfig()      |   BLOCKS_BSV_STN
            //new ProtocolBTCMainConfig() |   BLOCKS_BTC_MAIN
     }

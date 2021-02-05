@@ -1,7 +1,8 @@
 package com.nchain.jcl.store.blockStore;
 
-import com.nchain.jcl.base.domain.api.base.BlockHeader;
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
+
+import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
+import io.bitcoinj.core.Sha256Hash;
 import lombok.Builder;
 import lombok.Value;
 
@@ -15,10 +16,10 @@ import lombok.Value;
 @Value
 @Builder
 public class BlocksCompareResult {
-    private BlockHeader blockA;
-    private BlockHeader blockB;
-    private Iterable<Sha256Wrapper> txsInCommonIt;
-    private Iterable<Sha256Wrapper> txsOnlyInA;
-    private Iterable<Sha256Wrapper> txsOnlyInB;
+    private HeaderReadOnly blockA;
+    private HeaderReadOnly blockB;
+    private Iterable<Sha256Hash> txsInCommonIt;
+    private Iterable<Sha256Hash> txsOnlyInA;
+    private Iterable<Sha256Hash> txsOnlyInB;
 
 }

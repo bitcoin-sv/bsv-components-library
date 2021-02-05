@@ -1,8 +1,9 @@
 package com.nchain.jcl.net.protocol.handlers.message;
 
-import com.nchain.jcl.base.tools.handlers.HandlerConfig;
+
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig;
 import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerConfig;
+import com.nchain.jcl.tools.handlers.HandlerConfig;
 import lombok.Builder;
 import lombok.Value;
 

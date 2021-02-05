@@ -9,11 +9,11 @@ import com.nchain.jcl.net.protocol.serialization.TxInputMsgSerializer
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
 import com.nchain.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader
-import com.nchain.jcl.base.tools.bytes.ByteArrayReaderOptimized
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter
-import com.nchain.jcl.base.tools.bytes.HEX
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper
+import com.nchain.jcl.tools.bytes.ByteArrayReader
+import com.nchain.jcl.tools.bytes.ByteArrayReaderOptimized
+import com.nchain.jcl.tools.bytes.ByteArrayWriter
+import io.bitcoinj.core.Sha256Hash
+import io.bitcoinj.core.Utils
 import spock.lang.Specification
 
 /**
@@ -31,7 +31,7 @@ class TxInputMsgSerializerSpec extends Specification {
 
     public static final String REF_MSG = "a69d45e7abc3b8fc363d13b88aaa2f2ec62bf77b6881e8bd7bd1012fd81d802b00000000010000000100"
 
-    public static final byte[] REF_BITES = Sha256Wrapper.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6").getBytes();
+    public static final byte[] REF_BITES = Sha256Hash.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6").getBytes();
     public static final long SEQUENCE = 65536
 
     def "Testing TxInputMessage Deserializing"(int byteInterval, int delayMs) {
@@ -43,7 +43,7 @@ class TxInputMsgSerializerSpec extends Specification {
             TxInputMsgSerializer serializer = TxInputMsgSerializer.getInstance()
             TxInputMsg message
         when:
-            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_MSG), byteInterval, delayMs)
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_MSG), byteInterval, delayMs)
            message = serializer.deserialize(context, new ByteArrayReaderOptimized(byteReader))
         then:
            message.getSequence()  == SEQUENCE
@@ -71,7 +71,7 @@ class TxInputMsgSerializerSpec extends Specification {
         when:
             ByteArrayWriter byteWriter = new ByteArrayWriter()
             serializer.serialize(context, txInputMessage, byteWriter)
-            messageSerializedBytes =  HEX.encode(byteWriter.reader().getFullContent())
+            messageSerializedBytes =  Utils.HEX.encode(byteWriter.reader().getFullContent())
         then:
              messageSerializedBytes == REF_MSG
     }

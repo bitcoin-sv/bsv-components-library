@@ -1,9 +1,6 @@
 package com.nchain.jcl.net.unit.protocol.serialization
 
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter
-import com.nchain.jcl.base.tools.bytes.HEX
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper
+
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.messages.*
@@ -15,6 +12,10 @@ import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
 import com.nchain.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
+import com.nchain.jcl.tools.bytes.ByteArrayReader
+import com.nchain.jcl.tools.bytes.ByteArrayWriter
+import io.bitcoinj.core.Sha256Hash
+import io.bitcoinj.core.Utils
 import spock.lang.Specification
 /**
  * @author m.jose@nchain.com
@@ -33,10 +34,10 @@ class GetHeadersEnMsgSerializerSpec extends Specification {
                 .protocolBasicConfig(config.getBasicConfig())
                 .build()
 
-            byte[] locatorHash = Sha256Wrapper.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6").getBytes()
+            byte[] locatorHash = Sha256Hash.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6").getBytes()
             HashMsg hashMsg = HashMsg.builder().hash(locatorHash).build()
 
-            byte[] stopHash = Sha256Wrapper.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da9").getBytes()
+            byte[] stopHash = Sha256Hash.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da9").getBytes()
             HashMsg stopHashMsg = HashMsg.builder().hash(stopHash).build()
 
             GetHeadersEnMsg getHeadersEnMsg = GetHeadersEnMsg.builder()
@@ -44,11 +45,11 @@ class GetHeadersEnMsgSerializerSpec extends Specification {
                     .blockLocatorHash(hashMsg)
                     .hashStop(stopHashMsg).build();
 
-        ByteArrayWriter byteWriter = new ByteArrayWriter()
+            ByteArrayWriter byteWriter = new ByteArrayWriter()
         when:
             GetHeadersEnMsgSerializer.getInstance().serialize(context, getHeadersEnMsg, byteWriter)
             byte[] messageBytes = byteWriter.reader().getFullContent()
-            String messageSerialized = HEX.encode(messageBytes)
+            String messageSerialized = Utils.HEX.encode(messageBytes)
         then:
             messageSerialized == REF_GETHEADERSEN_MSG_BODY
     }
@@ -62,8 +63,8 @@ class GetHeadersEnMsgSerializerSpec extends Specification {
                     .maxBytesToRead((long) (REF_GETHEADERSEN_MSG_BODY.length()/2))
                     .build()
             GetHeadersEnMsg  getHeadersEnMsg
-            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_GETHEADERSEN_MSG_BODY), byteInterval, delayMs);
-            byte[] locatorHash = Sha256Wrapper.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6").getBytes()
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_GETHEADERSEN_MSG_BODY), byteInterval, delayMs);
+            byte[] locatorHash = Sha256Hash.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6").getBytes()
             HashMsg hashMsg = HashMsg.builder().hash(locatorHash).build()
         when:
             getHeadersEnMsg = GetHeadersEnMsgSerializer.getInstance().deserialize(context, byteReader)
@@ -89,7 +90,7 @@ class GetHeadersEnMsgSerializerSpec extends Specification {
             BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
             byte[] bytes = serializer.serialize(context, getHeadersMsgBitcoinMsg, GetHeadersEnMsg.MESSAGE_TYPE).getFullContent()
-            String msgSerialized = HEX.encode(bytes)
+            String msgSerialized = Utils.HEX.encode(bytes)
         then:
             msgSerialized.equals(REF_GETHEADERSEN_MSG_FULL)
     }
@@ -101,7 +102,7 @@ class GetHeadersEnMsgSerializerSpec extends Specification {
                     .protocolBasicConfig(config.getBasicConfig())
                     .maxBytesToRead((long) (REF_GETHEADERSEN_MSG_FULL.length() / 2))
                     .build()
-            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_GETHEADERSEN_MSG_FULL), byteInterval, delayMs);
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_GETHEADERSEN_MSG_FULL), byteInterval, delayMs);
 
             BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
         when:
@@ -115,10 +116,10 @@ class GetHeadersEnMsgSerializerSpec extends Specification {
     }
 
     private GetHeadersEnMsg buildGetHeadersEnMsg(ProtocolBSVMainConfig config) {
-        byte[] locatorHash = Sha256Wrapper.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6").getBytes()
+        byte[] locatorHash = Sha256Hash.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6").getBytes()
         HashMsg hashMsg = HashMsg.builder().hash(locatorHash).build()
 
-        byte[] stopHash = Sha256Wrapper.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da9").getBytes()
+        byte[] stopHash = Sha256Hash.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da9").getBytes()
         HashMsg stopHashMsg = HashMsg.builder().hash(stopHash).build()
 
         GetHeadersEnMsg getHeadersEnMsg = GetHeadersEnMsg.builder()

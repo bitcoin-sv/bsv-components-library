@@ -10,8 +10,8 @@ import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
 import com.nchain.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader
-import com.nchain.jcl.base.tools.bytes.HEX
+import com.nchain.jcl.tools.bytes.ByteArrayReader
+import io.bitcoinj.core.Utils
 import spock.lang.Specification
 
 /**
@@ -32,13 +32,13 @@ class GetAddrMsgSerializerSpec extends Specification {
 
     def "Testing GetAddr Full Message Deserializing"(int byteInterval, int delayMs) {
         given:
-        ProtocolConfig config = new ProtocolBSVMainConfig()
-        DeserializerContext context = DeserializerContext.builder()
-                    .protocolBasicConfig(config.getBasicConfig())
-                    .build()
-        BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
-            BitcoinMsg<GetAddrMsg> getAddrMsg = null
-        ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(GETADDR_MSG), byteInterval, delayMs);
+            ProtocolConfig config = new ProtocolBSVMainConfig()
+            DeserializerContext context = DeserializerContext.builder()
+                        .protocolBasicConfig(config.getBasicConfig())
+                        .build()
+            BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
+                BitcoinMsg<GetAddrMsg> getAddrMsg = null
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(GETADDR_MSG), byteInterval, delayMs);
         when:
             getAddrMsg = bitcoinSerializer.<GetAddrMsg>deserialize(context,
                     byteReader, GetAddrMsg.MESSAGE_TYPE)
@@ -61,7 +61,7 @@ class GetAddrMsgSerializerSpec extends Specification {
             String msgSerializedHex = null
         when:
             byte[] serializedMsg = bitcoinSerializer.serialize(context, getAddrMsg, GetAddrMsg.MESSAGE_TYPE).getFullContent()
-            msgSerializedHex = HEX.encode(serializedMsg)
+            msgSerializedHex = Utils.HEX.encode(serializedMsg)
         then:
             msgSerializedHex.equals(GETADDR_MSG)
     }

@@ -14,9 +14,9 @@ import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
 import com.nchain.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter
-import com.nchain.jcl.base.tools.bytes.HEX
+import com.nchain.jcl.tools.bytes.ByteArrayReader
+import com.nchain.jcl.tools.bytes.ByteArrayWriter
+import io.bitcoinj.core.Utils
 import spock.lang.Specification
 
 /**
@@ -59,11 +59,11 @@ class VersionMsgSerializationSpec extends Specification {
             ProtocolConfig config = new ProtocolBSVMainConfig()
             DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
-                    .maxBytesToRead(HEX.decode(REF_BODY_ADDRESS_MSG).length)
+                    .maxBytesToRead(Utils.HEX.decode(REF_BODY_ADDRESS_MSG).length)
                     .insideVersionMsg(true)
                     .build()
             VersionMsg message = null
-            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_BODY_ADDRESS_MSG), byteInterval, delayMs);
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_BODY_ADDRESS_MSG), byteInterval, delayMs);
 
         when:
             message = VersionMsgSerializer.getInstance().deserialize(context, byteReader)
@@ -106,7 +106,7 @@ class VersionMsgSerializationSpec extends Specification {
         when:
             VersionMsgSerializer.getInstance().serialize(context, message, byteWriter)
             byte[] messageBytes = byteWriter.reader().getFullContent()
-            messageSerialized = HEX.encode(messageBytes)
+            messageSerialized = Utils.HEX.encode(messageBytes)
         then:
             messageSerialized.equals(REF_BODY_ADDRESS_MSG)
     }
@@ -119,7 +119,7 @@ class VersionMsgSerializationSpec extends Specification {
                 .insideVersionMsg(true)
                 .build()
 
-            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_ADDRESS_MSG), byteInterval, delayMs);
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_ADDRESS_MSG), byteInterval, delayMs);
             BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
             BitcoinMsg<VersionMsg> message = bitcoinSerializer.deserialize(context, byteReader, VersionMsg.MESSAGE_TYPE)
@@ -161,7 +161,7 @@ class VersionMsgSerializationSpec extends Specification {
             BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
             byte[] versionMsgBytes = bitcoinSerializer.serialize(context, bitcoinVersionMsg, VersionMsg.MESSAGE_TYPE).getFullContent()
-            String versionMsgDeserialzed = HEX.encode(versionMsgBytes)
+            String versionMsgDeserialzed = Utils.HEX.encode(versionMsgBytes)
         then:
             versionMsgDeserialzed.equals(REF_ADDRESS_MSG)
     }

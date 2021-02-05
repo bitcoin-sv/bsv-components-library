@@ -1,7 +1,6 @@
 package com.nchain.jcl.net.protocol.streams;
 
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader;
-import com.nchain.jcl.base.tools.config.RuntimeConfig;
+
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.streams.*;
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig;
@@ -12,6 +11,8 @@ import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStream;
 import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStreamState;
 import com.nchain.jcl.net.protocol.streams.serializer.SerializerStream;
 import com.nchain.jcl.net.protocol.streams.serializer.SerializerStreamState;
+import com.nchain.jcl.tools.bytes.ByteArrayReader;
+import com.nchain.jcl.tools.config.RuntimeConfig;
 
 import java.util.concurrent.ExecutorService;
 

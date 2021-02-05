@@ -1,11 +1,6 @@
 package com.nchain.jcl.net.protocol.handlers.discovery;
 
-import com.nchain.jcl.base.tools.config.RuntimeConfig;
-import com.nchain.jcl.base.tools.handlers.HandlerImpl;
-import com.nchain.jcl.base.tools.log.LoggerUtil;
-import com.nchain.jcl.base.tools.thread.ThreadUtils;
-import com.nchain.jcl.base.tools.util.DateTimeUtils;
-import com.nchain.jcl.base.tools.util.StringUtils;
+
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.events.*;
 import com.nchain.jcl.net.protocol.events.InitialPeersLoadedEvent;
@@ -17,6 +12,12 @@ import com.nchain.jcl.net.protocol.messages.GetAddrMsg;
 import com.nchain.jcl.net.protocol.messages.NetAddressMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
+import com.nchain.jcl.tools.config.RuntimeConfig;
+import com.nchain.jcl.tools.handlers.HandlerImpl;
+import com.nchain.jcl.tools.log.LoggerUtil;
+import com.nchain.jcl.tools.thread.ThreadUtils;
+import com.nchain.jcl.tools.util.DateTimeUtils;
+import com.nchain.jcl.tools.util.StringUtils;
 import lombok.Getter;
 
 import java.net.InetAddress;
@@ -131,10 +132,11 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
         try {
             // We load the initial set of Peers. Depending on the Configuration, we'll have different methods to
             // load the initial set of Peers. This logic is implemented by the "PeerFinder".
-            logger.debug("Loading Pool with Peers Finder...");
+
             InitialPeersFinder peersFinder = config.getDiscoveryMethod().equals(DiscoveryHandlerConfig.DiscoveryMethod.DNS)
                     ? new InitialPeersFinderSeed(this.config)
                     : new InitialPeersFinderCSV(super.runtimeConfig.getFileUtils(), this.config);
+            logger.debug("Loading Pool with Peers Finder: " + peersFinder.getClass().getSimpleName() + "...");
             List<DiscoveryPeerInfo> initialPeers = peersFinder.findPeers().stream()
                     .map(p -> new DiscoveryPeerInfo(p))
                     .collect(Collectors.toList());

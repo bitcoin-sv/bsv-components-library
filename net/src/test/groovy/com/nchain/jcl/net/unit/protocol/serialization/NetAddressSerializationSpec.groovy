@@ -8,9 +8,9 @@ import com.nchain.jcl.net.protocol.serialization.NetAddressMsgSerializer
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
 import com.nchain.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter
-import com.nchain.jcl.base.tools.bytes.HEX
+import com.nchain.jcl.tools.bytes.ByteArrayReader
+import com.nchain.jcl.tools.bytes.ByteArrayWriter
+import io.bitcoinj.core.Utils
 import spock.lang.Specification
 
 /**
@@ -41,7 +41,7 @@ class NetAddressSerializationSpec extends Specification {
                     .build()
         NetAddressMsgSerializer serializer = NetAddressMsgSerializer.getInstance()
         NetAddressMsg address = null
-        ByteArrayReader byteArrayReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_ADDRESS_MSG), byteInterval, delayMs);
+        ByteArrayReader byteArrayReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_ADDRESS_MSG), byteInterval, delayMs);
         when:
             address = serializer.deserialize(context, byteArrayReader)
         then:
@@ -70,7 +70,7 @@ class NetAddressSerializationSpec extends Specification {
             ByteArrayWriter byteWriter = new ByteArrayWriter()
             serializer.serialize(context, address, byteWriter)
             byte[] addressBytes = byteWriter.reader().getFullContent()
-            msgSerializedHex = HEX.encode(addressBytes)
+            msgSerializedHex = Utils.HEX.encode(addressBytes)
         then:
             msgSerializedHex.equals(REF_ADDRESS_MSG)
     }

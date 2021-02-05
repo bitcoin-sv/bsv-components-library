@@ -1,13 +1,14 @@
 package com.nchain.jcl.net.protocol.config;
 
-import com.nchain.jcl.base.domain.api.base.BlockHeader;
-import com.nchain.jcl.base.tools.handlers.HandlerConfig;
+
 import com.nchain.jcl.net.protocol.handlers.blacklist.BlacklistHandlerConfig;
 import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandlerConfig;
 import com.nchain.jcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig;
 import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandlerConfig;
 import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerConfig;
 import com.nchain.jcl.net.protocol.handlers.pingPong.PingPongHandlerConfig;
+import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
+import com.nchain.jcl.tools.handlers.HandlerConfig;
 
 import java.util.Map;
 
@@ -64,6 +65,9 @@ public interface ProtocolConfig{
     BlockDownloaderHandlerConfig    getBlockDownloaderConfig();
 
     /** Header of the Genesis Block of this Network */
-    BlockHeader getGenesisBlock();
+    BlockHeaderMsg getGenesisBlock();
 
+    default ProtocolConfigImpl.ProtocolConfigImplBuilder toBuilder() {
+        return new ProtocolConfigImpl.ProtocolConfigImplBuilder();
+    }
 }

@@ -1,8 +1,8 @@
 package com.nchain.jcl.net.protocol.messages;
 
 
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
 import com.nchain.jcl.net.protocol.messages.common.Message;
+import io.bitcoinj.core.Sha256Hash;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -121,12 +121,12 @@ public class RejectMsg extends Message {
     // Convenience field: At this moment, the only application for the "data" field is to store the HASH of
     // either a TX/Block Header Hash, so we keep the general case "byte[]" but we use the "dataHash" in those
     // specific cases (which are the only cases right now):
-    private Sha256Wrapper dataHash;
+    private Sha256Hash dataHash;
 
 
 
     @Builder
-    protected RejectMsg(VarStrMsg message, RejectCode ccode, VarStrMsg reason ,Sha256Wrapper dataHash, byte[] data) {
+    protected RejectMsg(VarStrMsg message, RejectCode ccode, VarStrMsg reason ,Sha256Hash dataHash, byte[] data) {
         this.message = message;
         this.ccode = ccode;
         this.reason = reason;

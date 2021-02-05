@@ -1,10 +1,11 @@
 package com.nchain.jcl.store.blockChainStore
 
-import com.nchain.jcl.base.domain.api.base.BlockHeader
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper
+
 import com.nchain.jcl.store.blockChainStore.events.ChainForkEvent
 import com.nchain.jcl.store.blockChainStore.events.ChainPruneEvent
 import com.nchain.jcl.store.common.TestingUtils
+import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
+import io.bitcoinj.core.Sha256Hash
 import spock.lang.Ignore
 
 import java.time.Duration
@@ -22,7 +23,7 @@ abstract class BlockChainForkSpecBase extends BlockChainStoreSpecBase {
         given:
             // Configuration and DB start up:
             println(" - Connecting to the DB...")
-            BlockHeader genesisBlock = TestingUtils.buildBlock(Sha256Wrapper.ZERO_HASH.toString())
+            HeaderReadOnly genesisBlock = TestingUtils.buildBlock(Sha256Hash.ZERO_HASH.toString())
             println(" - Using block genesis: " + genesisBlock.getHash())
             BlockChainStore db = getInstance("BSV-Main", false, false, genesisBlock, Duration.ofMillis(100), null, null, null, null)
 
@@ -44,10 +45,10 @@ abstract class BlockChainForkSpecBase extends BlockChainStoreSpecBase {
 
             // We insert the main Chain: [genesis] -> 1 -> 2 -> 3 -> 4
 
-            BlockHeader block_1 = TestingUtils.buildBlock(genesisBlock.getHash().toString())
-            BlockHeader block_2 = TestingUtils.buildBlock(block_1.getHash().toString())
-            BlockHeader block_3 = TestingUtils.buildBlock(block_2.getHash().toString())
-            BlockHeader block_4 = TestingUtils.buildBlock(block_3.getHash().toString())
+            HeaderReadOnly block_1 = TestingUtils.buildBlock(genesisBlock.getHash().toString())
+            HeaderReadOnly block_2 = TestingUtils.buildBlock(block_1.getHash().toString())
+            HeaderReadOnly block_3 = TestingUtils.buildBlock(block_2.getHash().toString())
+            HeaderReadOnly block_4 = TestingUtils.buildBlock(block_3.getHash().toString())
 
             println(" - Inserting a Chain of 5 blocks:")
             db.saveBlocks(Arrays.asList(block_1, block_2, block_3, block_4))
@@ -59,7 +60,7 @@ abstract class BlockChainForkSpecBase extends BlockChainStoreSpecBase {
             println("  Block 4:                 |- " + block_4.getHash().toString())
 
             // We verify the Tips fo the Chains:
-            List<Sha256Wrapper> tips = db.getTipsChains()
+            List<Sha256Hash> tips = db.getTipsChains()
             println(" - Chain Tips:")
             tips.forEach({ t -> println(" - Block " + t.toString())})
 
@@ -67,8 +68,8 @@ abstract class BlockChainForkSpecBase extends BlockChainStoreSpecBase {
             // [genesis] -> 1 -> 2 -> 3  -> 4
             //                    \-> 3B -> 4B
 
-            BlockHeader block_3B = TestingUtils.buildBlock(block_2.getHash().toString())
-            BlockHeader block_4B = TestingUtils.buildBlock(block_3B.getHash().toString())
+            HeaderReadOnly block_3B = TestingUtils.buildBlock(block_2.getHash().toString())
+            HeaderReadOnly block_4B = TestingUtils.buildBlock(block_3B.getHash().toString())
             println(" - Inserting a Chain of 2 Blocks (3B and 4B) on top of Block 2:")
             println("  Genesis:" + genesisBlock.getHash().toString())
             println("  Block 1:  |- " + block_1.getHash().toString())
@@ -87,8 +88,8 @@ abstract class BlockChainForkSpecBase extends BlockChainStoreSpecBase {
             boolean tipsOKBeforePruning = (tips.size() == 2) && (tips.contains(block_4.getHash())) && (tips.contains(block_4B.getHash()))
 
             // We also verify the tips of some specific blocks: 2 and 3
-            List<Sha256Wrapper> tipsBlock2BeforePrunning = db.getTipsChains(block_2.hash)
-            List<Sha256Wrapper> tipsBlock3BeforePrunning = db.getTipsChains(block_3.hash)
+            List<Sha256Hash> tipsBlock2BeforePrunning = db.getTipsChains(block_2.hash)
+            List<Sha256Hash> tipsBlock3BeforePrunning = db.getTipsChains(block_3.hash)
 
             // and now we prune it:
             println(" > Prunning from Tip: " + block_4B.getHash() + " ...")
@@ -102,8 +103,8 @@ abstract class BlockChainForkSpecBase extends BlockChainStoreSpecBase {
             boolean tipsOKAfterPruning = (tips.size() == 1) && (tips.get(0).equals(block_4.getHash()))
 
             // We also verify the tips of some specific blocks: 2 and 3
-            List<Sha256Wrapper> tipsBlock2AfterPrunning = db.getTipsChains(block_2.hash)
-            List<Sha256Wrapper> tipsBlock3AfterPrunning = db.getTipsChains(block_3.hash)
+            List<Sha256Hash> tipsBlock2AfterPrunning = db.getTipsChains(block_2.hash)
+            List<Sha256Hash> tipsBlock3AfterPrunning = db.getTipsChains(block_3.hash)
 
             // Some waiting, to give the events time to reach the callbacks:
             Thread.sleep(50)
@@ -152,7 +153,7 @@ abstract class BlockChainForkSpecBase extends BlockChainStoreSpecBase {
         given:
             // Configuration and DB start up:
             println(" - Connecting to the DB...")
-            BlockHeader genesisBlock = TestingUtils.buildBlock(Sha256Wrapper.ZERO_HASH.toString())
+            HeaderReadOnly genesisBlock = TestingUtils.buildBlock(Sha256Hash.ZERO_HASH.toString())
             println(" - Using block genesis: " + genesisBlock.getHash())
             BlockChainStore db = getInstance("BSV-Main", false, false, genesisBlock, Duration.ofMillis(100), null, null, null, null)
 
@@ -160,19 +161,19 @@ abstract class BlockChainForkSpecBase extends BlockChainStoreSpecBase {
             db.start()
 
             // We insert the main Chain: [genesis] -> ...100 blocks
-            Sha256Wrapper parentBlockHash = genesisBlock.hash
+            Sha256Hash parentBlockHash = genesisBlock.hash
             for (int i = 0; i < 100; i++) {
-                BlockHeader block = TestingUtils.buildBlock(parentBlockHash.toString())
+                HeaderReadOnly block = TestingUtils.buildBlock(parentBlockHash.toString())
                 db.saveBlock(block)
                 parentBlockHash = block.hash
             }
 
             // Now we create 1 separate Chains: A and B: starting from the last block, These chains are quite long (100K)
-            Sha256Wrapper parentBlockHashA = parentBlockHash;
-            Sha256Wrapper parentBlockHashB = parentBlockHash;
+            Sha256Hash parentBlockHashA = parentBlockHash;
+            Sha256Hash parentBlockHashB = parentBlockHash;
             for (int i = 0; i < 10_000; i++) {
-                BlockHeader newBlockA = TestingUtils.buildBlock(parentBlockHashA.toString())
-                BlockHeader newBlockB = TestingUtils.buildBlock(parentBlockHashB.toString())
+                HeaderReadOnly newBlockA = TestingUtils.buildBlock(parentBlockHashA.toString())
+                HeaderReadOnly newBlockB = TestingUtils.buildBlock(parentBlockHashB.toString())
                 db.saveBlock(newBlockA)
                 db.saveBlock(newBlockB)
                 parentBlockHashA = newBlockA.hash
@@ -180,13 +181,13 @@ abstract class BlockChainForkSpecBase extends BlockChainStoreSpecBase {
             }
 
             // We check the tips:
-            List<Sha256Wrapper> tipsBeforePrunning = db.getTipsChains()
+            List<Sha256Hash> tipsBeforePrunning = db.getTipsChains()
 
             // Now we prune one of them:
             db.prune(tipsBeforePrunning.get(0), true)
 
             // And now we check the tips again:
-            List<Sha256Wrapper> tipsAfterPrunning = db.getTipsChains()
+            List<Sha256Hash> tipsAfterPrunning = db.getTipsChains()
 
             // And we prune the remainnig Tip. This would prune the whole DB:
             db.prune(tipsAfterPrunning.get(0), true)
@@ -219,7 +220,7 @@ abstract class BlockChainForkSpecBase extends BlockChainStoreSpecBase {
         given:
             // Configuration and DB start up:
             println(" - Connecting to the DB...")
-            BlockHeader genesisBlock = TestingUtils.buildBlock(Sha256Wrapper.ZERO_HASH.toString())
+            HeaderReadOnly genesisBlock = TestingUtils.buildBlock(Sha256Hash.ZERO_HASH.toString())
             println(" - Using block genesis: " + genesisBlock.getHash())
             BlockChainStore db = getInstance("BSV-Main", false, false, genesisBlock, Duration.ofMillis(100), Duration.ofSeconds(1), 1, null, null)
 
@@ -241,10 +242,10 @@ abstract class BlockChainForkSpecBase extends BlockChainStoreSpecBase {
 
             // We insert the main Chain: [genesis] -> 1 -> 2 -> 3 -> 4
 
-            BlockHeader block_1 = TestingUtils.buildBlock(genesisBlock.getHash().toString())
-            BlockHeader block_2 = TestingUtils.buildBlock(block_1.getHash().toString())
-            BlockHeader block_3 = TestingUtils.buildBlock(block_2.getHash().toString())
-            BlockHeader block_4 = TestingUtils.buildBlock(block_3.getHash().toString())
+            HeaderReadOnly block_1 = TestingUtils.buildBlock(genesisBlock.getHash().toString())
+            HeaderReadOnly block_2 = TestingUtils.buildBlock(block_1.getHash().toString())
+            HeaderReadOnly block_3 = TestingUtils.buildBlock(block_2.getHash().toString())
+            HeaderReadOnly block_4 = TestingUtils.buildBlock(block_3.getHash().toString())
 
             println(" - Saving a Chain with 4 Blocks:")
             println("  Genesis:" + genesisBlock.getHash().toString())
@@ -259,7 +260,7 @@ abstract class BlockChainForkSpecBase extends BlockChainStoreSpecBase {
             //                     \-> 3B
             //               \-> 2C -> 3C
 
-            BlockHeader block_3B = TestingUtils.buildBlock(block_2.getHash().toString())
+            HeaderReadOnly block_3B = TestingUtils.buildBlock(block_2.getHash().toString())
             println(" - Saving a Block 3B that will create a FORK:")
             println("  Genesis:" + genesisBlock.getHash().toString())
             println("  Block 1:  |- " + block_1.getHash().toString())
@@ -270,8 +271,8 @@ abstract class BlockChainForkSpecBase extends BlockChainStoreSpecBase {
             db.saveBlock(block_3B)
             Thread.sleep(500)
 
-            BlockHeader block_2C = TestingUtils.buildBlock(block_1.getHash().toString())
-            BlockHeader block_3C = TestingUtils.buildBlock(block_2C.getHash().toString())
+            HeaderReadOnly block_2C = TestingUtils.buildBlock(block_1.getHash().toString())
+            HeaderReadOnly block_3C = TestingUtils.buildBlock(block_2C.getHash().toString())
             println(" - Saving 2 Blocks: 2C and 3C that will create another FORK:")
             println("  Block 1:  |- " + block_1.getHash().toString())
             println("  Block 2:       |- " + block_2.getHash().toString())
@@ -288,7 +289,7 @@ abstract class BlockChainForkSpecBase extends BlockChainStoreSpecBase {
             Thread.sleep(4000)
 
             // Now we check the state of the Tips of the chain:
-            List<Sha256Wrapper> tips = db.getTipsChains()
+            List<Sha256Hash> tips = db.getTipsChains()
             boolean tipChainAfterPruneOK = (tips.size() == 1) && (tips.get(0).equals(block_4.getHash()))
 
             // Now we check the content of the PRUNE Events. When there are more than one FORK like here, we cannot

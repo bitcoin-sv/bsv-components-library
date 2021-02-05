@@ -1,14 +1,16 @@
 package com.nchain.jcl.net.network.streams.nio;
 
 import com.nchain.jcl.net.network.PeerAddress;
-import com.nchain.jcl.net.network.streams.PeerOutputStream;
+
 import com.nchain.jcl.net.network.config.NetworkConfig;
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader;
-import com.nchain.jcl.base.tools.config.RuntimeConfig;
-import com.nchain.jcl.base.tools.log.LoggerUtil;
-import com.nchain.jcl.base.tools.streams.OutputStreamDestinationImpl;
-import com.nchain.jcl.base.tools.streams.StreamCloseEvent;
-import com.nchain.jcl.base.tools.streams.StreamDataEvent;
+
+import com.nchain.jcl.net.network.streams.PeerOutputStream;
+import com.nchain.jcl.tools.bytes.ByteArrayReader;
+import com.nchain.jcl.tools.config.RuntimeConfig;
+import com.nchain.jcl.tools.log.LoggerUtil;
+import com.nchain.jcl.tools.streams.OutputStreamDestinationImpl;
+import com.nchain.jcl.tools.streams.StreamCloseEvent;
+import com.nchain.jcl.tools.streams.StreamDataEvent;
 import lombok.Getter;
 
 import java.io.IOException;

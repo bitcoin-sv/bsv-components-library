@@ -1,6 +1,7 @@
 package com.nchain.jcl.store.blockChainStore;
 
-import com.nchain.jcl.base.domain.api.extended.ChainInfo;
+
+import io.bitcoinj.bitcoin.api.extended.ChainInfo;
 import lombok.Builder;
 import lombok.Value;
 

@@ -1,14 +1,15 @@
 package com.nchain.jcl.net.protocol.serialization;
 
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader;
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter;
-import com.nchain.jcl.base.tools.bytes.HEX;
+
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.BlockMsg;
 import com.nchain.jcl.net.protocol.messages.TxMsg;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.net.protocol.serialization.common.MessageSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext;
+import com.nchain.jcl.tools.bytes.ByteArrayReader;
+import com.nchain.jcl.tools.bytes.ByteArrayWriter;
+import io.bitcoinj.core.Utils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -45,7 +46,7 @@ public class BlockMsgSerializer implements MessageSerializer<BlockMsg> {
         // We are logging the Deserialization process. But we only log every 1% of progress, so no we do some Math
         // to calculate how many Txs we need to process before we log them...
 
-        String blockHash = HEX.encode(blockHeader.getHash().getHashBytes());
+        String blockHash = Utils.HEX.encode(blockHeader.getHash().getHashBytes());
         int numTxs = (int) blockHeader.getTransactionCount().getValue();
         int percentageLog = 1; // 1%
         int numTxsForEachLog = (percentageLog * numTxs) / 100;

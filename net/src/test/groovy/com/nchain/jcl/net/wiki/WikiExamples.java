@@ -22,6 +22,7 @@ import java.util.List;
  *
  * Pieces of code used as examples for the "wiki" of the JCL project.
  */
+@Ignore
 public class WikiExamples {
 
     @Ignore

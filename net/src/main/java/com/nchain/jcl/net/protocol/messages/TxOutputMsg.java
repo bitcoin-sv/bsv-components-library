@@ -1,10 +1,11 @@
 package com.nchain.jcl.net.protocol.messages;
 
 import com.google.common.base.Preconditions;
-import com.nchain.jcl.base.core.Coin;
-import com.nchain.jcl.base.domain.api.base.TxOutput;
-import com.nchain.jcl.base.domain.bean.base.TxOutputBean;
+
 import com.nchain.jcl.net.protocol.messages.common.Message;
+import io.bitcoinj.bitcoin.api.base.TxOutput;
+import io.bitcoinj.bitcoin.bean.base.TxOutputBean;
+import io.bitcoinj.core.Coin;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
@@ -63,8 +64,4 @@ public class TxOutputMsg extends Message {
         return "value: " + txValue + ", scriptLength: " + pk_script_length;
     }
 
-    /** Returns a BitcoinObject containing the same information */
-    public TxOutput toBean() {
-        return new TxOutputBean(lengthInBytes, Coin.valueOf(txValue), pk_script);
-    }
 }

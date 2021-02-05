@@ -1,7 +1,7 @@
 package com.nchain.jcl.net.network.handlers;
 
 import com.nchain.jcl.net.network.PeerAddress;
-import com.nchain.jcl.base.tools.handlers.Handler;
+import com.nchain.jcl.tools.handlers.Handler;
 
 import java.util.List;
 

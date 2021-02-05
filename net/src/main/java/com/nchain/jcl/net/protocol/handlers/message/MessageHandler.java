@@ -1,8 +1,8 @@
 package com.nchain.jcl.net.protocol.handlers.message;
 
-import com.nchain.jcl.base.tools.handlers.Handler;
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
+import com.nchain.jcl.tools.handlers.Handler;
 
 /**
  * @author i.fernandez@nchain.com

@@ -14,11 +14,16 @@ import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
 import com.nchain.jcl.net.protocol.streams.serializer.SerializerStream
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter
-import com.nchain.jcl.base.tools.bytes.ByteTools
-import com.nchain.jcl.base.tools.crypto.Sha256
 import com.nchain.jcl.base.tools.streams.*
+import com.nchain.jcl.tools.bytes.ByteArrayReader
+import com.nchain.jcl.tools.bytes.ByteArrayWriter
+import com.nchain.jcl.tools.streams.OutputStream
+import com.nchain.jcl.tools.streams.OutputStreamDestination
+import com.nchain.jcl.tools.streams.OutputStreamDestinationImpl
+import com.nchain.jcl.tools.streams.StreamDataEvent
+import com.nchain.jcl.tools.streams.StreamState
+import io.bitcoinj.core.Sha256Hash
+import io.bitcoinj.core.Utils
 import spock.lang.Specification
 
 import java.util.concurrent.ExecutorService
@@ -41,6 +46,7 @@ class SerializerStreamSpec extends Specification {
             super(executor)
             this.peerAddress = peerAddress
         }
+
         StreamState getState() { return null} // Not used now...
         PeerAddress getPeerAddress() { return peerAddress}
     }
@@ -79,7 +85,7 @@ class SerializerStreamSpec extends Specification {
             ByteArrayWriter versionByteWriter = new ByteArrayWriter();
             VersionMsgSerializer.getInstance().serialize(serializerContext, versionMsg, versionByteWriter);
             byte[] bodyBytes = versionByteWriter.reader().getFullContentAndClose()
-            long checksum = ByteTools.readUint32(Sha256.hashTwice(bodyBytes));
+            long checksum = Utils.readUint32(Sha256Hash.hashTwice(bodyBytes), 0);
 
             //generate the bitcoins header message with the calculated checksum
             HeaderMsg header = HeaderMsg.builder()

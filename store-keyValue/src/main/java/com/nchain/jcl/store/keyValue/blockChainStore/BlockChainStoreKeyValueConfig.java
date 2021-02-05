@@ -1,7 +1,8 @@
 package com.nchain.jcl.store.keyValue.blockChainStore;
 
-import com.nchain.jcl.base.domain.api.base.BlockHeader;
+
 import com.nchain.jcl.store.keyValue.blockStore.BlockStoreKeyValueConfig;
+import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
 
 import java.time.Duration;
 
@@ -16,7 +17,7 @@ import java.time.Duration;
 public interface BlockChainStoreKeyValueConfig extends BlockStoreKeyValueConfig {
 
     /** Returns the Genesis Block used to initialize the DB. This block will make the ROOT of the Chain */
-    BlockHeader getGenesisBlock();
+    HeaderReadOnly getGenesisBlock();
 
     /**
      * If the automatic Prunning is enabled, then any shorter branch which difference with the main branch is

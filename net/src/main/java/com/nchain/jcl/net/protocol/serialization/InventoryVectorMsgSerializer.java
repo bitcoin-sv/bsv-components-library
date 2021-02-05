@@ -1,15 +1,16 @@
 package com.nchain.jcl.net.protocol.serialization;
 
 
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader;
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter;
-import com.nchain.jcl.base.tools.bytes.ByteTools;
+
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.net.protocol.serialization.common.MessageSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext;
 import com.nchain.jcl.net.protocol.messages.HashMsg;
 import com.nchain.jcl.net.protocol.messages.InventoryVectorMsg;
 import com.nchain.jcl.net.protocol.messages.VarIntMsg;
+import com.nchain.jcl.tools.bytes.ByteArrayReader;
+import com.nchain.jcl.tools.bytes.ByteArrayWriter;
+import io.bitcoinj.core.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +51,7 @@ public class InventoryVectorMsgSerializer implements MessageSerializer<Inventory
     @Override
     public void serialize(SerializerContext context, InventoryVectorMsg message, ByteArrayWriter byteWriter) {
         byteWriter.writeUint32LE(message.getType().getValue());
-        byteWriter.write(ByteTools.reverseBytes(message.getHashMsg().getHashBytes()));
+        byteWriter.write(Utils.reverseBytes(message.getHashMsg().getHashBytes()));
     }
 
     /**

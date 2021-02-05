@@ -1,11 +1,12 @@
 package com.nchain.jcl.store.common
 
-import com.nchain.jcl.base.domain.api.base.BlockHeader
-import com.nchain.jcl.base.domain.api.base.Tx
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper
+
 import com.nchain.jcl.store.blockStore.BlockStore
 import com.nchain.jcl.store.blockStore.BlockStoreSpecBase
 import com.nchain.jcl.store.common.TestingUtils
+import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
+import io.bitcoinj.bitcoin.api.base.Tx
+import io.bitcoinj.core.Sha256Hash
 
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
@@ -59,9 +60,9 @@ abstract class IteratorSpecBase extends BlockStoreSpecBase {
     /**
      * Convenience method to insert a block and several Txs in the DB and return the list of Tx Hashes inserted
      */
-    private List<Sha256Wrapper> loadInitData(BlockHeader block, BlockStore blockStore) {
+    private List<Sha256Hash> loadInitData(HeaderReadOnly block, BlockStore blockStore) {
         blockStore.saveBlock(block)
-        List<Sha256Wrapper> result = new ArrayList<>()
+        List<Sha256Hash> result = new ArrayList<>()
         for (int i = 0; i < NUM_TXS; i++) {
             Tx tx = TestingUtils.buildTx()
             result.add(tx.getHash())
@@ -105,8 +106,8 @@ abstract class IteratorSpecBase extends BlockStoreSpecBase {
             //TestingUtils.clearDB(blockStore.db)
 
             // We insert a Block and several Txs linked to it:
-            BlockHeader block = TestingUtils.buildBlock()
-            List<Sha256Wrapper> txHashes = loadInitData(block, db)
+            HeaderReadOnly block = TestingUtils.buildBlock()
+            List<Sha256Hash> txHashes = loadInitData(block, db)
             db.printKeys()
             AtomicBoolean OK = new AtomicBoolean(true)
 
@@ -142,8 +143,8 @@ abstract class IteratorSpecBase extends BlockStoreSpecBase {
             //TestingUtils.clearDB(blockStore.db)
 
             // We insert a Block and several Txs linked to it:
-            BlockHeader block = TestingUtils.buildBlock()
-            List<Sha256Wrapper> txHashes = loadInitData(block, db)
+            HeaderReadOnly block = TestingUtils.buildBlock()
+            List<Sha256Hash> txHashes = loadInitData(block, db)
             db.printKeys()
             AtomicBoolean OK = new AtomicBoolean(true)
 
@@ -179,8 +180,8 @@ abstract class IteratorSpecBase extends BlockStoreSpecBase {
             //TestingUtils.clearDB(blockStore.db)
 
             // We insert a Block and several Txs linked to it:
-            BlockHeader block = TestingUtils.buildBlock()
-            List<Sha256Wrapper> txHashes = loadInitData(block, db)
+            HeaderReadOnly block = TestingUtils.buildBlock()
+            List<Sha256Hash> txHashes = loadInitData(block, db)
             db.printKeys()
             AtomicBoolean OK = new AtomicBoolean(true)
 
@@ -217,8 +218,8 @@ abstract class IteratorSpecBase extends BlockStoreSpecBase {
             //TestingUtils.clearDB(blockStore.db)
 
             // We insert a Block and several Txs linked to it:
-            BlockHeader block = TestingUtils.buildBlock()
-            List<Sha256Wrapper> txHashes = loadInitData(block, db)
+            HeaderReadOnly block = TestingUtils.buildBlock()
+            List<Sha256Hash> txHashes = loadInitData(block, db)
             db.printKeys()
             AtomicBoolean OK = new AtomicBoolean(true)
 

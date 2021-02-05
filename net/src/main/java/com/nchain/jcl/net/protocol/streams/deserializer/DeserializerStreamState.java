@@ -1,9 +1,10 @@
 package com.nchain.jcl.net.protocol.streams.deserializer;
 
-import com.nchain.jcl.base.tools.streams.StreamState;
+
 import com.nchain.jcl.net.protocol.messages.HeaderMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.Message;
+import com.nchain.jcl.tools.streams.StreamState;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

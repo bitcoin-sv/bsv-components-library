@@ -1,8 +1,9 @@
 package com.nchain.jcl.net.protocol.handlers.blacklist;
 
-import com.nchain.jcl.base.tools.files.CSVSerializable;
-import com.nchain.jcl.base.tools.util.DateTimeUtils;
+
 import com.nchain.jcl.net.network.events.PeersBlacklistedEvent;
+import com.nchain.jcl.tools.files.CSVSerializable;
+import com.nchain.jcl.tools.util.DateTimeUtils;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -26,7 +27,7 @@ import java.util.StringTokenizer;
 @NoArgsConstructor
 @Getter
 @Setter
-public class BlacklistHostInfo implements CSVSerializable  {
+public class BlacklistHostInfo implements CSVSerializable {
     // Host IP Address:
     private InetAddress ip;
     // If blacklisted, these variables stores the reason and the time when it was blacklisted:

@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.network.streams;
 
-import com.nchain.jcl.base.tools.streams.OutputStream;
+
+import com.nchain.jcl.tools.streams.OutputStream;
 
 /**
  * @author i.fernandez@nchain.com

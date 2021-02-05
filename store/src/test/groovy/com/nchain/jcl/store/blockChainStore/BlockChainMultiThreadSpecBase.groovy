@@ -1,11 +1,11 @@
 package com.nchain.jcl.store.blockChainStore
 
-import com.nchain.jcl.base.domain.api.base.BlockHeader
-import com.nchain.jcl.base.domain.api.extended.ChainInfo
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper
+
 
 import com.nchain.jcl.store.common.TestingUtils
-
+import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
+import io.bitcoinj.bitcoin.api.extended.ChainInfo
+import io.bitcoinj.core.Sha256Hash
 
 import java.time.Duration
 import java.time.Instant
@@ -28,12 +28,12 @@ abstract class BlockChainMultiThreadSpecBase extends BlockChainStoreSpecBase {
         given:
             // Configuration and DB start up:
             println(" - Connecting to the DB...")
-            BlockHeader genesisBlock = TestingUtils.buildBlock(Sha256Wrapper.ZERO_HASH.toString())
+            HeaderReadOnly genesisBlock = TestingUtils.buildBlock(Sha256Hash.ZERO_HASH.toString())
             println(" - Using block genesis: " + genesisBlock.getHash())
             BlockChainStore db = getInstance("BSV-Main", false, false, genesisBlock, Duration.ofMillis(100), null, null,         null, null)
 
             // We create an additional Block
-            BlockHeader block = TestingUtils.buildBlock(genesisBlock.hash.toString())
+            HeaderReadOnly block = TestingUtils.buildBlock(genesisBlock.hash.toString())
 
             // We define the time noth process will be running:
             Duration testDuration = Duration.ofSeconds(2)

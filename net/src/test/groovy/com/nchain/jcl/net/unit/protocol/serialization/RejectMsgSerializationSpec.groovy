@@ -12,9 +12,9 @@ import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
 import com.nchain.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter
-import com.nchain.jcl.base.tools.bytes.HEX
+import com.nchain.jcl.tools.bytes.ByteArrayReader
+import com.nchain.jcl.tools.bytes.ByteArrayWriter
+import io.bitcoinj.core.Utils
 import spock.lang.Specification
 
 /**
@@ -58,7 +58,7 @@ class RejectMsgSerializationSpec extends Specification {
             RejectMsgSerializer.getInstance().serialize(context, rejectMessage, byteWriter)
             byte[] messageBytes = byteWriter.reader().getFullContent()
             byteWriter.reader()
-            messageSerialized = HEX.encode(messageBytes)
+            messageSerialized = Utils.HEX.encode(messageBytes)
         then:
             messageSerialized.equals(REF_REJECT_BODY_MSG)
     }
@@ -71,7 +71,7 @@ class RejectMsgSerializationSpec extends Specification {
                     .maxBytesToRead((long) (REF_REJECT_BODY_MSG.length() / 2))
                     .build()
             RejectMsg rejectMsg = null
-            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_REJECT_BODY_MSG), byteInterval, delayMs)
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_REJECT_BODY_MSG), byteInterval, delayMs)
         when:
             rejectMsg = RejectMsgSerializer.getInstance().deserialize(context, byteReader)
         then:
@@ -98,7 +98,7 @@ class RejectMsgSerializationSpec extends Specification {
             BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
             byte[] bytes = serializer.serialize(context, rejectBitcoinMsg, RejectMsg.MESSAGE_TYPE).getFullContent()
-            String rejectMsgSerialized = HEX.encode(bytes)
+            String rejectMsgSerialized = Utils.HEX.encode(bytes)
         then:
             rejectMsgSerialized.equals(REF_REJECT_MSG)
     }
@@ -110,7 +110,7 @@ class RejectMsgSerializationSpec extends Specification {
                     .protocolBasicConfig(config.getBasicConfig())
                     .maxBytesToRead((long) (REF_REJECT_BODY_MSG.length() / 2))
                     .build()
-            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_REJECT_MSG), byteInterval, delayMs)
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_REJECT_MSG), byteInterval, delayMs)
             BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
         when:
             BitcoinMsg<RejectMsg> rejectBitcoinMsg = bitcoinSerializer.deserialize(context, byteReader, RejectMsg.MESSAGE_TYPE)

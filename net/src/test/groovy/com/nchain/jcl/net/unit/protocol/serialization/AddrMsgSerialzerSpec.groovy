@@ -13,9 +13,9 @@ import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
 import com.nchain.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter
-import com.nchain.jcl.base.tools.bytes.HEX
+import com.nchain.jcl.tools.bytes.ByteArrayReader
+import com.nchain.jcl.tools.bytes.ByteArrayWriter
+import io.bitcoinj.core.Utils
 import spock.lang.Specification
 
 /**
@@ -57,7 +57,7 @@ class AddrMsgSerialzerSpec extends Specification {
                         .build()
             AddrMsgSerialzer serializer = AddrMsgSerialzer.getInstance()
             AddrMsg address = null
-            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_ADDRESS_MSG), byteInterval, delayMs);
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_ADDRESS_MSG), byteInterval, delayMs);
         when:
              address = serializer.deserialize(context,byteReader)
         then:
@@ -85,7 +85,7 @@ class AddrMsgSerialzerSpec extends Specification {
         when:
             serializer.serialize(context, addMessages, byteWriter)
             byte[] messageBytes = byteWriter.reader().getFullContentAndClose()
-            msgSerializedHex = HEX.encode(messageBytes)
+            msgSerializedHex = Utils.HEX.encode(messageBytes)
         then:
             msgSerializedHex.equals(REF_ADDRESS_MSG)
     }
@@ -103,7 +103,7 @@ class AddrMsgSerialzerSpec extends Specification {
         BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
             byte[] addrMsgBytes = bitcoinSerializer.serialize(context, bitcoinVersionMsg, AddrMsg.MESSAGE_TYPE).getFullContent()
-            String addrMsgDeserialzed = HEX.encode(addrMsgBytes)
+            String addrMsgDeserialzed = Utils.HEX.encode(addrMsgBytes)
         then:
              addrMsgDeserialzed.equals(REF_COMPLETE_ADDRESS_MSG)
     }
@@ -126,7 +126,7 @@ class AddrMsgSerialzerSpec extends Specification {
                     .protocolBasicConfig(config.getBasicConfig())
                     .maxBytesToRead((long) (REF_ADDRESS_MSG.length()/2))
                     .build()
-            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_COMPLETE_ADDRESS_MSG), byteInterval, delayMs)
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_COMPLETE_ADDRESS_MSG), byteInterval, delayMs)
             BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
             BitcoinMsg<AddrMsg> message = bitcoinSerializer.deserialize(context, byteReader, AddrMsg.MESSAGE_TYPE)

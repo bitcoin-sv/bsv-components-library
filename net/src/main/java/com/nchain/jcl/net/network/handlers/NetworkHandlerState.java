@@ -1,6 +1,6 @@
 package com.nchain.jcl.net.network.handlers;
 
-import com.nchain.jcl.base.tools.handlers.HandlerState;
+import com.nchain.jcl.tools.handlers.HandlerState;
 import lombok.Builder;
 import lombok.Value;
 

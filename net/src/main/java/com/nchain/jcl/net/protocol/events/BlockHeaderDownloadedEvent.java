@@ -1,8 +1,9 @@
 package com.nchain.jcl.net.protocol.events;
 
-import com.nchain.jcl.base.tools.events.Event;
+
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
+import com.nchain.jcl.tools.events.Event;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;

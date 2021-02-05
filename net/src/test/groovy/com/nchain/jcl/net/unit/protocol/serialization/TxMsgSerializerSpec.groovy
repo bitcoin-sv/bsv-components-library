@@ -1,7 +1,6 @@
 package com.nchain.jcl.net.unit.protocol.serialization
 
-import com.nchain.jcl.base.domain.api.base.Tx
-import com.nchain.jcl.base.domain.api.base.TxInput
+
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.messages.HashMsg
@@ -19,9 +18,12 @@ import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.net.protocol.serialization.common.MsgSerializersFactory
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
 import com.nchain.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter
-import com.nchain.jcl.base.tools.bytes.HEX
+import com.nchain.jcl.tools.bytes.ByteArrayReader
+import com.nchain.jcl.tools.bytes.ByteArrayWriter
+import io.bitcoinj.bitcoin.api.base.Tx
+import io.bitcoinj.bitcoin.bean.base.FullBlockBean
+import io.bitcoinj.bitcoin.bean.base.TxBean
+import io.bitcoinj.core.Utils
 import org.spongycastle.crypto.tls.DefaultTlsServer
 import spock.lang.Specification
 
@@ -41,10 +43,10 @@ class TxMsgSerializerSpec extends Specification {
     public static final String REF_MSG ="010000000193e3073ecc1d27f17e3d287ccefdfdba5f7d8c160242dbcd547b18baef12f9b31a0000006b483045022100af501dc9ef2907247d28a5169b8362ca49" +
             "4e1993f833928b77264e604329eec40220313594f38f97c255bcea6d5a4a68e920508ef93fd788bcf5b0ad2fa5d34940180121034bb555cc39ba30561793cf39a35c403fe8cf4a89403b02b51e058960520" +
             "bd1e3ffffffff02b3bb0200000000001976a914f7d52018971f4ab9b56f0036958f84ae0325ccdc88ac98100700000000001976a914f230f0a16a98433eca0fa70487b85fb83f7b61cd88ac00000000"
-    public static final byte[] signature_script  = HEX.decode("483045022100af501dc9ef2907247d28a5169b8362ca494e1993f833928b77264e604329eec40220313594f38f97c255bcea6d5a4a68e920508ef93fd788bcf5b0ad2fa5d34940180121034bb555cc39ba30561793cf39a35c403fe8cf4a89403b02b51e058960520bd1e3")
-    public static final byte[] pk_script_one = HEX.decode("76a914f7d52018971f4ab9b56f0036958f84ae0325ccdc88ac")
-    public static final byte[] pk_script_two = HEX.decode("76a914f230f0a16a98433eca0fa70487b85fb83f7b61cd88ac")
-    public static final byte[] outpoint_bytes = HEX.decode("b3f912efba187b54cddb4202168c7d5fbafdfdce7c283d7ef1271dcc3e07e393")
+    public static final byte[] signature_script  = Utils.HEX.decode("483045022100af501dc9ef2907247d28a5169b8362ca494e1993f833928b77264e604329eec40220313594f38f97c255bcea6d5a4a68e920508ef93fd788bcf5b0ad2fa5d34940180121034bb555cc39ba30561793cf39a35c403fe8cf4a89403b02b51e058960520bd1e3")
+    public static final byte[] pk_script_one = Utils.HEX.decode("76a914f7d52018971f4ab9b56f0036958f84ae0325ccdc88ac")
+    public static final byte[] pk_script_two = Utils.HEX.decode("76a914f230f0a16a98433eca0fa70487b85fb83f7b61cd88ac")
+    public static final byte[] outpoint_bytes = Utils.HEX.decode("b3f912efba187b54cddb4202168c7d5fbafdfdce7c283d7ef1271dcc3e07e393")
 
     public static final String REF_MSG_FULL ="e3e1f3e8747800000000000000000000e20000001c9c6bb4010000000193e3073ecc1d27f17e3d287ccefdfdba5f7d8c160242dbcd547b18baef12f9b31a0000006" +
             "b483045022100af501dc9ef2907247d28a5169b8362ca494e1993f833928b77264e604329eec40220313594f38f97c255bcea6d5a4a68e920508ef93fd788bcf5b0ad2fa5d34940180121034bb555cc39ba30561793cf39a35c" +
@@ -60,7 +62,7 @@ class TxMsgSerializerSpec extends Specification {
             TxMsgSerializer serializer = TxMsgSerializer.getInstance()
             TxMsg message
         when:
-            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_MSG), byteInterval, delayMs)
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_MSG), byteInterval, delayMs)
             message = serializer.deserialize(context, byteReader)
         then:
 
@@ -110,7 +112,7 @@ class TxMsgSerializerSpec extends Specification {
         when:
                 ByteArrayWriter byteWriter = new ByteArrayWriter()
                 serializer.serialize(context, transactionMsg, byteWriter)
-                messageSerializedBytes =  HEX.encode(byteWriter.reader().getFullContent())
+                messageSerializedBytes =  Utils.HEX.encode(byteWriter.reader().getFullContent())
                 byteWriter.reader()
         then:
              messageSerializedBytes == REF_MSG
@@ -122,7 +124,7 @@ class TxMsgSerializerSpec extends Specification {
             DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
-            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_MSG_FULL), byteInterval, delayMs)
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_MSG_FULL), byteInterval, delayMs)
             BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
             BitcoinMsg<TxMsg> message = bitcoinSerializer.deserialize(context, byteReader, TxMsg.MESSAGE_TYPE)
@@ -179,34 +181,8 @@ class TxMsgSerializerSpec extends Specification {
             BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
             byte[] msgBytes = bitcoinSerializer.serialize(context, bitcoinVersionMsg, TxMsg.MESSAGE_TYPE).getFullContent()
-            String msgDeserialized = HEX.encode(msgBytes)
+            String msgDeserialized = Utils.HEX.encode(msgBytes)
         then:
             msgDeserialized.equals(REF_MSG_FULL)
-    }
-
-    def "Generating Tx Bean from Tx Msg"() {
-        given:
-            ProtocolConfig config = new ProtocolBSVMainConfig()
-            DeserializerContext context = DeserializerContext.builder()
-                    .protocolBasicConfig(config.basicConfig)
-                    .build()
-
-        when:
-            TxMsg txMsg = MsgSerializersFactory.getSerializer(TxMsg.MESSAGE_TYPE).deserialize(context, new ByteArrayReader(HEX.decode(REF_MSG)))
-            Tx txBean = txMsg.toBean()
-        then:
-            txBean.version == txMsg.version
-            txBean.inputs.size() == txMsg.tx_in_count.value
-            txBean.outputs.size() == txMsg.tx_out_count.value
-            txBean.lockTime == txMsg.lockTime
-            for (int i = 0; i < txBean.inputs.size(); i++) {
-                txBean.inputs.get(i).scriptBytes == txMsg.tx_in.get(i).signature_script
-                txBean.inputs.get(i).sequenceNumber == txMsg.tx_in.get(i).sequence
-                txBean.inputs.get(i).outpoint.index == txMsg.tx_in.get(i).pre_outpoint.index
-            }
-            for (int i = 0; i < txBean.outputs.size(); i++) {
-                txBean.outputs.get(i).value.value == txMsg.tx_out.get(i).txValue
-                txBean.outputs.get(i).scriptBytes == txMsg.tx_out.get(i).pk_script
-            }
     }
 }

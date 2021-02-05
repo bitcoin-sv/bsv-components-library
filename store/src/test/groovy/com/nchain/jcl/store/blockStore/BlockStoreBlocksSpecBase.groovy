@@ -1,8 +1,7 @@
 package com.nchain.jcl.store.blockStore
 
-import com.nchain.jcl.base.domain.api.base.BlockHeader
 import com.nchain.jcl.store.common.TestingUtils
-
+import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -35,12 +34,9 @@ abstract class BlockStoreBlocksSpecBase extends BlockStoreSpecBase {
         when:
             db.start()
             // We define 3 Blocks:
-            BlockHeader block1 = TestingUtils.buildBlock()
-            BlockHeader block2 = TestingUtils.buildBlock()
-            BlockHeader block3 = TestingUtils.buildBlock()
-
-            // We "simulate" the blocks 2 has 5 Txs...
-            block2 = block2.toBuilder().numTxs(5).build()
+            HeaderReadOnly block1 = TestingUtils.buildBlock()
+            HeaderReadOnly block2 = TestingUtils.buildBlock()
+            HeaderReadOnly block3 = TestingUtils.buildBlock()
 
             // We save 1 individual block:
             println(" - Saving Block " + block1.getHash().toString() + "...")
@@ -56,7 +52,7 @@ abstract class BlockStoreBlocksSpecBase extends BlockStoreSpecBase {
 
             // We check the number of Blocks inserted, and also the content of one of them:
             long numBlocksInserted = db.getNumBlocks()
-            BlockHeader block2Read = db.getBlock(block2.getHash()).get()
+            HeaderReadOnly block2Read = db.getBlock(block2.getHash()).get()
 
             // We check the DB Content in the console...
             db.printKeys()

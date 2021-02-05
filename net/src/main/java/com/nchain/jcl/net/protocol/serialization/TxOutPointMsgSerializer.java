@@ -1,14 +1,15 @@
 package com.nchain.jcl.net.protocol.serialization;
 
 
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader;
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter;
-import com.nchain.jcl.base.tools.bytes.ByteTools;
+
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.net.protocol.serialization.common.MessageSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext;
 import com.nchain.jcl.net.protocol.messages.HashMsg;
 import com.nchain.jcl.net.protocol.messages.TxOutPointMsg;
+import com.nchain.jcl.tools.bytes.ByteArrayReader;
+import com.nchain.jcl.tools.bytes.ByteArrayWriter;
+import io.bitcoinj.core.Utils;
 
 /**
  * @author m.jose@nchain.com
@@ -54,7 +55,7 @@ public class TxOutPointMsgSerializer implements MessageSerializer<TxOutPointMsg>
     }
 
     private byte[] reverseBytes(HashMsg hashMsg) {
-        return ByteTools.reverseBytes(hashMsg.getHashBytes());
+        return Utils.reverseBytes(hashMsg.getHashBytes());
     }
 
 }

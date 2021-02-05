@@ -9,10 +9,10 @@ import com.nchain.jcl.net.protocol.messages.PingMsg
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder
 import com.nchain.jcl.net.protocol.serialization.PingMsgSerializer
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter
-import com.nchain.jcl.base.tools.bytes.HEX
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
+import com.nchain.jcl.tools.bytes.ByteArrayReader
+import com.nchain.jcl.tools.bytes.ByteArrayWriter
+import io.bitcoinj.core.Utils
 import spock.lang.Specification
 
 /**
@@ -41,11 +41,11 @@ class PingMsgSerializerSpec extends Specification {
     def "testing Ping Message Body Deserializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = new ProtocolBSVMainConfig()
-        DeserializerContext context = DeserializerContext.builder()
+            DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
             PingMsg message = null
-            ByteArrayReader byteReader = new ByteArrayReader(HEX.decode(REF_BODY_PING_MSG))
+            ByteArrayReader byteReader = new ByteArrayReader(Utils.HEX.decode(REF_BODY_PING_MSG))
 
         when:
             message = PingMsgSerializer.getInstance().deserialize(context, byteReader)
@@ -69,7 +69,7 @@ class PingMsgSerializerSpec extends Specification {
             String messageSerialized = null
         when:
             PingMsgSerializer.getInstance().serialize(context, message, byteWriter)
-            messageSerialized = HEX.encode(byteWriter.reader().getFullContent())
+            messageSerialized = Utils.HEX.encode(byteWriter.reader().getFullContent())
         then:
             messageSerialized.equals(REF_BODY_PING_MSG)
     }
@@ -80,8 +80,8 @@ class PingMsgSerializerSpec extends Specification {
             DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
-            ByteArrayReader byteReader = new ByteArrayReader(HEX.decode(REF_PING_MSG))
-        BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
+            ByteArrayReader byteReader = new ByteArrayReader(Utils.HEX.decode(REF_PING_MSG))
+            BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
             BitcoinMsg<PingMsg> message = bitcoinSerializer.deserialize(context, byteReader, PingMsg.MESSAGE_TYPE)
         then:
@@ -104,7 +104,7 @@ class PingMsgSerializerSpec extends Specification {
             BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
             byte[] pingMsgBytes = bitcoinSerializer.serialize(context, bitcoinPingMsg, PingMsg.MESSAGE_TYPE).getFullContent()
-            String pingnMsgDeserialzed = HEX.encode(pingMsgBytes)
+            String pingnMsgDeserialzed = Utils.HEX.encode(pingMsgBytes)
         then:
             pingnMsgDeserialzed.equals(REF_PING_MSG)
     }

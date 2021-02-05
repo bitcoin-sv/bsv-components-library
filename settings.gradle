@@ -2,7 +2,7 @@ rootProject.name = 'jcl'
 
 include 'base'
 include 'net'
-include 'script'
+include 'tools'
 include 'store'
 include 'store-keyValue'
 include 'store-levelDB'

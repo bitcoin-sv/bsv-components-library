@@ -2,11 +2,13 @@ package com.nchain.jcl.net.integration.protocol.handlers.discovery
 
 import com.nchain.jcl.net.network.PeerAddress
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
+import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.handlers.blacklist.BlacklistHandler
 import com.nchain.jcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
+import io.bitcoinj.params.MainNetParams
 import spock.lang.Ignore
 import spock.lang.Specification
 
@@ -41,7 +43,7 @@ class DiscoveryRenewTest extends Specification {
             final int MAX_PEERS = 6
 
             // We set up the configuration
-            ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams()).toBuilder()
                     .minPeers(MIN_PEERS)
                     .maxPeers(MAX_PEERS)
                     .build()
@@ -116,7 +118,8 @@ class DiscoveryRenewTest extends Specification {
             final int MAX_PEERS = 6
 
             // We set up the configuration
-            ProtocolConfig config = new ProtocolBSVMainConfig()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams())
+
             // We set up the "handshake" renewing process and we disable the "pool" renewing process:
             DiscoveryHandlerConfig discoveryConfig = config.getDiscoveryConfig().toBuilder()
                     .recoveryHandshakeFrequency(Optional.of(jobFrequency))
@@ -127,7 +130,6 @@ class DiscoveryRenewTest extends Specification {
                     .config(config)
                     .config(discoveryConfig)
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
-                    .randomPort()
                     .minPeers(MIN_PEERS)
                     .maxPeers(MAX_PEERS)
                     .build()

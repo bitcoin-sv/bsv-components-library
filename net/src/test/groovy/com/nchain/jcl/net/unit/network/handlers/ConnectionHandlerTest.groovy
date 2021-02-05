@@ -4,15 +4,15 @@ import com.nchain.jcl.net.network.PeerAddress
 import com.nchain.jcl.net.network.events.PeerConnectedEvent
 import com.nchain.jcl.net.network.events.PeerDisconnectedEvent
 import com.nchain.jcl.net.network.events.PeerRejectedEvent
-import com.nchain.jcl.base.tools.config.RuntimeConfig
-import com.nchain.jcl.base.tools.config.provided.RuntimeConfigDefault
-import com.nchain.jcl.base.tools.events.EventBus
-import com.nchain.jcl.base.tools.files.FileUtilsBuilder
-import com.nchain.jcl.base.tools.thread.ThreadUtils
 import com.nchain.jcl.net.network.config.NetworkConfig
 import com.nchain.jcl.net.network.config.provided.NetworkDefaultConfig
 import com.nchain.jcl.net.network.handlers.NetworkHandler
 import com.nchain.jcl.net.network.handlers.NetworkHandlerImpl
+import com.nchain.jcl.tools.config.RuntimeConfig
+import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault
+import com.nchain.jcl.tools.events.EventBus
+import com.nchain.jcl.tools.files.FileUtilsBuilder
+import com.nchain.jcl.tools.thread.ThreadUtils
 import groovy.util.logging.Slf4j
 import spock.lang.Specification
 
@@ -37,7 +37,7 @@ class ConnectionHandlerTest extends Specification {
             runtimeConfig = runtimeConfig.toBuilder()
                     .fileUtils(new FileUtilsBuilder().build())
                     .build()
-        NetworkConfig networkConfig = new NetworkDefaultConfig()
+            NetworkConfig networkConfig = new NetworkDefaultConfig()
 
             // Each one has its own Event-Bus, for events and callbacks handling...
             EventBus serverEventBus = EventBus.builder().executor(serverExecutor).build()
@@ -77,7 +77,7 @@ class ConnectionHandlerTest extends Specification {
             })
 
         when:
-            // TODO: NOTS ABOUT THE ADDRESSES
+            // TODO: NOTES ABOUT THE ADDRESSES
             server.startServer()
             client.start()
             client.connect(server.getPeerAddress())

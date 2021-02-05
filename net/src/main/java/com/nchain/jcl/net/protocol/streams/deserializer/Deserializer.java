@@ -1,9 +1,6 @@
 package com.nchain.jcl.net.protocol.streams.deserializer;
 
 import com.google.common.cache.*;
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader;
-import com.nchain.jcl.base.tools.bytes.ByteArrayReaderOptimized;
-import com.nchain.jcl.base.tools.config.RuntimeConfig;
 import com.nchain.jcl.net.protocol.messages.HeaderMsg;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
@@ -11,6 +8,9 @@ import com.nchain.jcl.net.protocol.serialization.common.MsgSerializersFactory;
 import com.nchain.jcl.net.protocol.serialization.largeMsgs.LargeMessageDeserializer;
 import com.nchain.jcl.net.protocol.serialization.largeMsgs.MsgPartDeserializationErrorEvent;
 import com.nchain.jcl.net.protocol.serialization.largeMsgs.MsgPartDeserializedEvent;
+import com.nchain.jcl.tools.bytes.ByteArrayReader;
+import com.nchain.jcl.tools.bytes.ByteArrayReaderOptimized;
+import com.nchain.jcl.tools.config.RuntimeConfig;
 import lombok.*;
 
 import java.util.function.Consumer;

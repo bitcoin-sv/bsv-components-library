@@ -1,7 +1,8 @@
 package com.nchain.jcl.net.network.events;
 
-import com.nchain.jcl.base.tools.events.Event;
-import com.nchain.jcl.base.tools.handlers.HandlerState;
+
+import com.nchain.jcl.tools.events.Event;
+import com.nchain.jcl.tools.handlers.HandlerState;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 

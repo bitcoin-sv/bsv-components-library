@@ -1,16 +1,17 @@
 package com.nchain.jcl.net.protocol.serialization;
 
 
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader;
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter;
-import com.nchain.jcl.base.tools.bytes.ByteTools;
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
+
 import com.nchain.jcl.net.protocol.messages.BaseGetDataAndHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.HashMsg;
 import com.nchain.jcl.net.protocol.messages.VarIntMsg;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.net.protocol.serialization.common.MessageSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext;
+import com.nchain.jcl.tools.bytes.ByteArrayReader;
+import com.nchain.jcl.tools.bytes.ByteArrayWriter;
+import io.bitcoinj.core.Sha256Hash;
+import io.bitcoinj.core.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,10 +67,10 @@ public class BaseGetDataAndHeaderMsgSerializer implements MessageSerializer<Base
         // We have to flip it around, as it's been read off the wire in little endian.
         List<HashMsg> locatorhashes = message.getBlockLocatorHash();
         for(HashMsg locatorHash:locatorhashes) {
-            byteWriter.write(ByteTools.reverseBytes(locatorHash.getHashBytes()));
+            byteWriter.write(Utils.reverseBytes(locatorHash.getHashBytes()));
         }
 
-        byteWriter.write(ByteTools.reverseBytes(message.getHashStop().getHashBytes()));
+        byteWriter.write(Utils.reverseBytes(message.getHashStop().getHashBytes()));
 
     }
 
@@ -78,7 +79,7 @@ public class BaseGetDataAndHeaderMsgSerializer implements MessageSerializer<Base
         // We are not using the HashMsgSerializer for deserialize as
         // We have to flip it around, as it's been read off the wire in little endian.
         // Not the most efficient way to do this but the clearest.
-        Sha256Wrapper byteWrapper =  Sha256Wrapper.wrapReversed(byteReader.read(HashMsg.HASH_LENGTH));
+        Sha256Hash byteWrapper =  Sha256Hash.wrapReversed(byteReader.read(HashMsg.HASH_LENGTH));
         HashMsg hashMsg =  HashMsg.builder().hash(byteWrapper.getBytes()).build();
         return  hashMsg;
     }

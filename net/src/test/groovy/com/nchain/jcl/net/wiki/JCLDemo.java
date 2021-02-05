@@ -6,6 +6,7 @@ import com.nchain.jcl.net.protocol.events.BlockTXsDownloadedEvent;
 import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerConfig;
 import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerConfig;
 import com.nchain.jcl.net.protocol.wrapper.P2P;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.time.Duration;
@@ -15,6 +16,7 @@ import java.time.Duration;
  * Copyright (c) 2018-2020 nChain Ltd
  * @date 2020-09-24
  */
+@Ignore
 public class JCLDemo {
 
     @Test

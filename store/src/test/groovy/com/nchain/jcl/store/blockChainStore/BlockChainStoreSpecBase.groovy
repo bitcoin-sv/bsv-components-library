@@ -1,6 +1,6 @@
 package com.nchain.jcl.store.blockChainStore
 
-import com.nchain.jcl.base.domain.api.base.BlockHeader
+import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
 import spock.lang.Specification
 
 import java.time.Duration
@@ -22,7 +22,7 @@ import java.time.Duration
 abstract class BlockChainStoreSpecBase extends Specification {
     /** Returns a concrete implementation of the BlockStore interface. This is implementation-specific */
     abstract BlockChainStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents,
-                                         BlockHeader genesisBlock,
+                                         HeaderReadOnly genesisBlock,
                                          Duration publishStateFrequency,
                                          Duration forkPrunningFrequency,
                                          Integer forkPrunningHeightDiff,

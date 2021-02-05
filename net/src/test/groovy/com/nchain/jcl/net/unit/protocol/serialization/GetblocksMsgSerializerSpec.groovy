@@ -12,9 +12,9 @@ import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder
 import com.nchain.jcl.net.protocol.serialization.GetblocksMsgSerializer
 import com.nchain.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter
-import com.nchain.jcl.base.tools.bytes.HEX
+import com.nchain.jcl.tools.bytes.ByteArrayReader
+import com.nchain.jcl.tools.bytes.ByteArrayWriter
+import io.bitcoinj.core.Utils
 import spock.lang.Specification
 
 /**
@@ -50,7 +50,7 @@ class GetblocksMsgSerializerSpec extends Specification {
         when:
             GetblocksMsgSerializer.getInstance().serialize(context, getBlocksMsg, byteWriter)
             byte[] messageBytes = byteWriter.reader().getFullContent()
-            messageSerialized = HEX.encode(messageBytes)
+            messageSerialized = Utils.HEX.encode(messageBytes)
         then:
              messageSerialized.equals(REF_GETBLOCKS_MSG_BODY)
     }
@@ -63,7 +63,7 @@ class GetblocksMsgSerializerSpec extends Specification {
                     .maxBytesToRead((long) (REF_GETBLOCKS_MSG_BODY.length()/2))
                     .build()
             GetBlocksMsg getBlocksMsg
-            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_GETBLOCKS_MSG_BODY), byteInterval, delayMs);
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_GETBLOCKS_MSG_BODY), byteInterval, delayMs);
         when:
             getBlocksMsg = GetblocksMsgSerializer.getInstance().deserialize(context, byteReader)
         then:
@@ -90,7 +90,7 @@ class GetblocksMsgSerializerSpec extends Specification {
             BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
             byte[] bytes = serializer.serialize(context, getBlocksMsgBitcoinMsg, GetBlocksMsg.MESSAGE_TYPE).getFullContent()
-            String msgSerialized = HEX.encode(bytes)
+            String msgSerialized = Utils.HEX.encode(bytes)
         then:
             msgSerialized.equals(REF_GETBLOCKS_MSG_FULL)
     }
@@ -102,7 +102,7 @@ class GetblocksMsgSerializerSpec extends Specification {
                     .protocolBasicConfig(config.getBasicConfig())
                     .maxBytesToRead((long) (REF_GETBLOCKS_MSG_FULL.length() / 2))
                     .build()
-            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_GETBLOCKS_MSG_FULL), byteInterval, delayMs);
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_GETBLOCKS_MSG_FULL), byteInterval, delayMs);
         BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
         when:
             BitcoinMsg<GetBlocksMsg> getBlocksMsgBitcoinMsg = bitcoinSerializer.deserialize(context, byteReader, GetBlocksMsg.MESSAGE_TYPE)

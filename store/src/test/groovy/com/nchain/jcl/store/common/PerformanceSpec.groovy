@@ -1,7 +1,8 @@
 package com.nchain.jcl.store.common
 
-import com.nchain.jcl.base.domain.api.base.BlockHeader
+
 import com.nchain.jcl.store.blockStore.BlockStore
+import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
 import spock.lang.Ignore
 import spock.lang.Specification
 
@@ -22,7 +23,7 @@ abstract class PerformanceSpec extends Specification {
         int NUM_TXS = 100_000
         given:
             BlockStore db = getInstance("BV-Main", false, false)
-            BlockHeader block = TestingUtils.buildBlock()
+            HeaderReadOnly block = TestingUtils.buildBlock()
         when:
             db.start()
             println("Starting Performance Test...")
@@ -52,7 +53,7 @@ abstract class PerformanceSpec extends Specification {
         int NUM_TXS = 100_000
         given:
             BlockStore db = getInstance("BV-Main", false, false)
-            BlockHeader block = TestingUtils.buildBlock()
+            HeaderReadOnly block = TestingUtils.buildBlock()
         when:
             db.start()
             println("Starting Performance Test...")

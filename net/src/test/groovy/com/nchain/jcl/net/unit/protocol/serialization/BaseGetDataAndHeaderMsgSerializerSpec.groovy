@@ -10,10 +10,10 @@ import com.nchain.jcl.net.protocol.serialization.BaseGetDataAndHeaderMsgSerializ
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
 import com.nchain.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter
-import com.nchain.jcl.base.tools.bytes.HEX
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper
+import com.nchain.jcl.tools.bytes.ByteArrayReader
+import com.nchain.jcl.tools.bytes.ByteArrayWriter
+import io.bitcoinj.core.Sha256Hash
+import io.bitcoinj.core.Utils
 import spock.lang.Specification
 
 /**
@@ -42,7 +42,7 @@ class BaseGetDataAndHeaderMsgSerializerSpec extends Specification {
         when:
             BaseGetDataAndHeaderMsgSerializer.getInstance().serialize(context, baseMsg, byteWriter)
             messageBytes = byteWriter.reader().getFullContent()
-            messageSerialized = HEX.encode(messageBytes)
+            messageSerialized = Utils.HEX.encode(messageBytes)
         then:
             messageSerialized.equals(REF_MSG_BODY)
     }
@@ -56,7 +56,7 @@ class BaseGetDataAndHeaderMsgSerializerSpec extends Specification {
                     .maxBytesToRead((long)(REF_MSG_BODY.length()/2))
                     .build()
 
-            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_MSG_BODY), byteInterval, delayMs);
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_MSG_BODY), byteInterval, delayMs);
             BaseGetDataAndHeaderMsg baseMsg
         when:
              baseMsg = BaseGetDataAndHeaderMsgSerializer.getInstance().deserialize(context, byteReader)
@@ -72,11 +72,11 @@ class BaseGetDataAndHeaderMsgSerializerSpec extends Specification {
 
     public static BaseGetDataAndHeaderMsg buildBaseMsg(ProtocolBasicConfig config) {
         List<HashMsg> locators = new ArrayList<Byte[]>();
-        byte[] locatorHash = Sha256Wrapper.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6").getBytes()
+        byte[] locatorHash = Sha256Hash.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6").getBytes()
         HashMsg hashMsg = HashMsg.builder().hash(locatorHash).build()
         locators.add(hashMsg);
 
-        byte[] stopHash = Sha256Wrapper.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da9").getBytes()
+        byte[] stopHash = Sha256Hash.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da9").getBytes()
         HashMsg stopHashMsg = HashMsg.builder().hash(stopHash).build()
         VarIntMsg hashCount = VarIntMsg.builder().value(locators.size()).build();
         BaseGetDataAndHeaderMsg  baseMsg =  BaseGetDataAndHeaderMsg.builder()

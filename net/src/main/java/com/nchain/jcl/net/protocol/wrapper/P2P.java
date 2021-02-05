@@ -1,11 +1,6 @@
 package com.nchain.jcl.net.protocol.wrapper;
 
-import com.nchain.jcl.base.tools.config.RuntimeConfig;
-import com.nchain.jcl.base.tools.config.provided.RuntimeConfigDefault;
-import com.nchain.jcl.base.tools.events.EventBus;
-import com.nchain.jcl.base.tools.handlers.Handler;
-import com.nchain.jcl.base.tools.log.LoggerUtil;
-import com.nchain.jcl.base.tools.thread.ThreadUtils;
+
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.config.NetworkConfig;
 import com.nchain.jcl.net.network.config.provided.NetworkDefaultConfig;
@@ -15,7 +10,12 @@ import com.nchain.jcl.net.network.handlers.NetworkHandlerImpl;
 import com.nchain.jcl.net.protocol.config.ProtocolConfig;
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig;
 import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandler;
-import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandlerConfig;
+import com.nchain.jcl.tools.config.RuntimeConfig;
+import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault;
+import com.nchain.jcl.tools.events.EventBus;
+import com.nchain.jcl.tools.handlers.Handler;
+import com.nchain.jcl.tools.log.LoggerUtil;
+import com.nchain.jcl.tools.thread.ThreadUtils;
 import lombok.Getter;
 
 import java.time.Duration;

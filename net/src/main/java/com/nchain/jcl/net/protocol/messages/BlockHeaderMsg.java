@@ -1,8 +1,11 @@
 package com.nchain.jcl.net.protocol.messages;
 
-import com.nchain.jcl.base.domain.api.base.BlockHeader;
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
+
 import com.nchain.jcl.net.protocol.messages.common.Message;
+import io.bitcoinj.bitcoin.api.base.AbstractBlock;
+import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
+import io.bitcoinj.bitcoin.bean.base.HeaderBean;
+import io.bitcoinj.core.Sha256Hash;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
@@ -72,16 +75,17 @@ public class BlockHeaderMsg extends Message {
     @Override
     protected void validateMessage() {}
 
-    /** Returns a BitcoinObject containing the same information */
-    public BlockHeader toBean() {
-        return BlockHeader.builder()
-                .sizeInBytes(lengthInBytes)
-                .version(version)
-                .prevBlockHash(Sha256Wrapper.wrap(prevBlockHash.getHashBytes()))
-                .merkleRoot(Sha256Wrapper.wrap(merkleRoot.getHashBytes()))
-                .time(creationTimestamp)
-                .difficultyTarget(difficultyTarget)
-                .nonce(nonce)
-                .build();
+    /** Returns a Domain Class */
+    public HeaderReadOnly toBean() {
+        HeaderBean result = new HeaderBean((AbstractBlock) null);
+        result.setTime(this.creationTimestamp);
+        result.setDifficultyTarget(this.difficultyTarget);
+        result.setNonce(this.nonce);
+        result.setPrevBlockHash(Sha256Hash.wrap(this.prevBlockHash.getHashBytes()));
+        result.setVersion(this.version);
+        result.setMerkleRoot(Sha256Hash.wrap(this.merkleRoot.getHashBytes()));
+        result.setHash(Sha256Hash.wrap(this.hash.getHashBytes()));
+        return result;
     }
+
 }

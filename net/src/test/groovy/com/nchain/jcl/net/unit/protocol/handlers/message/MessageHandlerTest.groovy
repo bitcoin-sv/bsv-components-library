@@ -6,6 +6,7 @@ import com.nchain.jcl.net.network.config.provided.NetworkDefaultConfig
 import com.nchain.jcl.net.network.handlers.NetworkHandler
 import com.nchain.jcl.net.network.handlers.NetworkHandlerImpl
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
+import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.events.MsgReceivedEvent
 import com.nchain.jcl.net.protocol.events.PeerMsgReadyEvent
@@ -16,10 +17,11 @@ import com.nchain.jcl.net.protocol.messages.AddrMsg
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg
 import com.nchain.jcl.net.protocol.streams.MessageStream
 import com.nchain.jcl.net.unit.protocol.tools.MsgTest
-import com.nchain.jcl.base.tools.config.RuntimeConfig
-import com.nchain.jcl.base.tools.config.provided.RuntimeConfigDefault
-import com.nchain.jcl.base.tools.events.EventBus
-import com.nchain.jcl.base.tools.thread.ThreadUtils
+import com.nchain.jcl.tools.config.RuntimeConfig
+import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault
+import com.nchain.jcl.tools.events.EventBus
+import com.nchain.jcl.tools.thread.ThreadUtils
+import io.bitcoinj.params.MainNetParams
 import spock.lang.Specification
 
 import java.util.concurrent.ExecutorService
@@ -31,7 +33,7 @@ class MessageHandlerTest extends Specification {
 
 
     /**
-     * We test that a Ser and a Client connect to each other, and they exchange a Message, which is
+     * We test that a Server and a Client connect to each other, and they exchange a Message, which is
      * Serialized/Deserialized properly by the Message Handler.
      *
      * NOTE: In this test we are using the low-level classes directly: The individual Handlers, the EventBus and
@@ -54,8 +56,8 @@ class MessageHandlerTest extends Specification {
             RuntimeConfig runtimeConfig = new RuntimeConfigDefault()
 
 
-            ProtocolConfig serverProtocolConfig = new ProtocolBSVMainConfig().toBuilder().port(0).build()
-            ProtocolConfig clientProtocolConfig = new ProtocolBSVMainConfig().toBuilder().port(0).build();
+            ProtocolConfig serverConfig = ProtocolConfigBuilder.get(new MainNetParams()).toBuilder().port(0).build()
+            ProtocolConfig clientConfig = ProtocolConfigBuilder.get(new MainNetParams()).toBuilder().port(0).build()
 
             NetworkConfig networkConfig = new NetworkDefaultConfig()
 
@@ -69,7 +71,7 @@ class MessageHandlerTest extends Specification {
                 PeerAddress.localhost(0))
             serverNetworkHandler.useEventBus(serverBus)
 
-            MessageHandlerConfig serverMsgConfig = serverProtocolConfig.getMessageConfig()
+            MessageHandlerConfig serverMsgConfig = serverConfig.getMessageConfig()
             MessageHandler serverMsgHandler = new MessageHandlerImpl(serverID, runtimeConfig, serverMsgConfig)
             serverMsgHandler.useEventBus(serverBus)
             serverMsgHandler.init()
@@ -86,7 +88,7 @@ class MessageHandlerTest extends Specification {
                 PeerAddress.localhost(0))
             clientNetworkHandler.useEventBus(clientBus)
 
-            MessageHandlerConfig clientMsgConfig = clientProtocolConfig.getMessageConfig()
+            MessageHandlerConfig clientMsgConfig = clientConfig.getMessageConfig()
             MessageHandler clientMsgHandler = new MessageHandlerImpl(clientID, runtimeConfig, clientMsgConfig)
             clientMsgHandler.useEventBus(clientBus)
             clientMsgHandler.init()

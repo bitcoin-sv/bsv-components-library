@@ -7,10 +7,10 @@ import com.nchain.jcl.net.protocol.serialization.TxOutputMsgSerializer
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
 import com.nchain.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter
-import com.nchain.jcl.base.tools.bytes.HEX
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper
+import com.nchain.jcl.tools.bytes.ByteArrayReader
+import com.nchain.jcl.tools.bytes.ByteArrayWriter
+import io.bitcoinj.core.Sha256Hash
+import io.bitcoinj.core.Utils
 import spock.lang.Specification
 
 /**
@@ -28,7 +28,7 @@ class TxOutputMsgSerializerSpec extends Specification {
 
     public static final String REF_MSG = "00f2052a01000000202b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6"
 
-    public static final byte[] REF_BITES = Sha256Wrapper.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6").getBytes();
+    public static final byte[] REF_BITES = Sha256Hash.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6").getBytes();
     //2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6
     public static final long COIN_VALUE = 5000000000
 
@@ -40,7 +40,7 @@ class TxOutputMsgSerializerSpec extends Specification {
                     .build()
             TxOutputMsgSerializer serializer = TxOutputMsgSerializer.getInstance()
             TxOutputMsg message
-            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_MSG), byteInterval, delayMs)
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_MSG), byteInterval, delayMs)
         when:
             message = serializer.deserialize(context, byteReader)
         then:
@@ -68,7 +68,7 @@ class TxOutputMsgSerializerSpec extends Specification {
         when:
             ByteArrayWriter byteWriter = new ByteArrayWriter()
             serializer.serialize(context, txOutputMessage, byteWriter)
-            messageSerializedBytes =  HEX.encode(byteWriter.reader().getFullContent())
+            messageSerializedBytes =  Utils.HEX.encode(byteWriter.reader().getFullContent())
         then:
             messageSerializedBytes == REF_MSG
     }

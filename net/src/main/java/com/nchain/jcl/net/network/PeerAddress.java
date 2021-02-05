@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.network;
 
-import com.nchain.jcl.base.tools.files.CSVSerializable;
+
+import com.nchain.jcl.tools.files.CSVSerializable;
 import lombok.EqualsAndHashCode;
 
 import java.net.InetAddress;

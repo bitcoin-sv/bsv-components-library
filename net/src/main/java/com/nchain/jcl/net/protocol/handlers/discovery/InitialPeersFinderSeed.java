@@ -1,7 +1,9 @@
 package com.nchain.jcl.net.protocol.handlers.discovery;
 
-import com.nchain.jcl.base.tools.files.FileUtils;
+
 import com.nchain.jcl.net.network.PeerAddress;
+import com.nchain.jcl.tools.files.FileUtils;
+import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -17,9 +19,9 @@ import java.util.stream.Collectors;
  * This class returns an initial list of Peers to connect to after looking into a hardcoded list of
  * DNS, which is provided by the P2P Configuration
  */
+@Slf4j
 public class InitialPeersFinderSeed implements InitialPeersFinder {
 
-    private FileUtils fileUtils;
     private DiscoveryHandlerConfig config;
 
     /** Constructor */
@@ -37,7 +39,9 @@ public class InitialPeersFinderSeed implements InitialPeersFinder {
                     PeerAddress peerAddress = PeerAddress.fromIp(inetAddress.getHostAddress() + ":" + config.getBasicConfig().getPort());
                     if (peerAddress != null) result.add(peerAddress);
                 }
-            } catch (UnknownHostException e) { continue;}
+            } catch (UnknownHostException e) {
+                continue;
+            }
         }
         return result.stream().collect(Collectors.toList());
     }

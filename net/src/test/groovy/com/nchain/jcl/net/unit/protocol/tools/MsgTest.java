@@ -1,18 +1,19 @@
 package com.nchain.jcl.net.unit.protocol.tools;
 
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader;
-import com.nchain.jcl.base.tools.bytes.HEX;
-import com.nchain.jcl.base.tools.streams.InputStreamSourceImpl;
-import com.nchain.jcl.base.tools.streams.StreamState;
-import com.nchain.jcl.net.protocol.messages.AddrMsg;
-import com.nchain.jcl.net.protocol.messages.VersionAckMsg;
-import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl;
-import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
+
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.streams.PeerInputStream;
 import com.nchain.jcl.net.protocol.config.ProtocolConfig;
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig;
+import com.nchain.jcl.net.protocol.messages.AddrMsg;
+import com.nchain.jcl.net.protocol.messages.VersionAckMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
+import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl;
+import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
+import com.nchain.jcl.tools.bytes.ByteArrayReader;
+import com.nchain.jcl.tools.streams.InputStreamSourceImpl;
+import com.nchain.jcl.tools.streams.StreamState;
+import io.bitcoinj.core.Utils;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -57,7 +58,7 @@ public class MsgTest {
                 .protocolBasicConfig(config.getBasicConfig())
                 .maxBytesToRead((long) (ADDR_BODY_HEX.length()/2))
                 .build();
-        ByteArrayReader byteReader = new ByteArrayReader(HEX.decode(ADDR_MSG_HEX));
+        ByteArrayReader byteReader = new ByteArrayReader(Utils.HEX.decode(ADDR_MSG_HEX));
         BitcoinMsg<AddrMsg> result = BitcoinMsgSerializerImpl.getInstance().deserialize(context, byteReader, AddrMsg.MESSAGE_TYPE);
         return result;
     }
@@ -68,7 +69,7 @@ public class MsgTest {
                 .protocolBasicConfig(config.getBasicConfig())
                 .maxBytesToRead((long) (VERSION_ACK_HEX.length()/2))
                 .build();
-        ByteArrayReader byteReader = new ByteArrayReader(HEX.decode(VERSION_ACK_HEX));
+        ByteArrayReader byteReader = new ByteArrayReader(Utils.HEX.decode(VERSION_ACK_HEX));
         BitcoinMsg<VersionAckMsg> result = BitcoinMsgSerializerImpl.getInstance().deserialize(context, byteReader, VersionAckMsg.MESSAGE_TYPE);
         return result;
     }

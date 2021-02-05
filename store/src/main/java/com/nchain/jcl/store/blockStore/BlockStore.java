@@ -1,9 +1,10 @@
 package com.nchain.jcl.store.blockStore;
 
-import com.nchain.jcl.base.domain.api.base.BlockHeader;
-import com.nchain.jcl.base.domain.api.base.Tx;
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
+
 import com.nchain.jcl.store.blockStore.events.BlockStoreStreamer;
+import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
+import io.bitcoinj.bitcoin.api.base.Tx;
+import io.bitcoinj.core.Sha256Hash;
 
 import java.util.List;
 import java.util.Optional;
@@ -44,24 +45,24 @@ public interface BlockStore {
      * operations are expected, this method might affect highly the performance. In that case you should use the
      * "saveBlocks()" method instead.
      */
-    void saveBlock(BlockHeader blockHeader);
+    void saveBlock(HeaderReadOnly blockHeader);
 
     /**
      * Saves the list of Blocks given.
      * If the Block Events are enabled, this method will trigger a "BlocksSavedEvent" containing a list with the
      * hashes of the Blocks saved.
      */
-    void saveBlocks(List<BlockHeader> blockHeaders);
+    void saveBlocks(List<HeaderReadOnly> blockHeaders);
 
     /**
      * Tells whether the Db contains the Block given
      */
-    boolean containsBlock(Sha256Wrapper blockHash);
+    boolean containsBlock(Sha256Hash blockHash);
 
     /**
      * Retrieves the Block specified by the Hash given
      */
-    Optional<BlockHeader> getBlock(Sha256Wrapper blockHash);
+    Optional<HeaderReadOnly> getBlock(Sha256Hash blockHash);
 
     /**
      * Removes the block with the HASH given.
@@ -71,7 +72,7 @@ public interface BlockStore {
      * If the Block Events are enabled, this method triggeres a "BlocksRemovedEvent", with a list containing this
      * block hash.
      */
-    void removeBlock(Sha256Wrapper blockHash);
+    void removeBlock(Sha256Hash blockHash);
 
     /**
      * Removes the Blocks referenced by the list of Hashes (in HEX format)
@@ -81,7 +82,7 @@ public interface BlockStore {
      * If the Block Events are enabled, this methods triggered a "BlocksRemovedEvent" containing the list of
      * these block hashes.
      */
-    void removeBlocks(List<Sha256Wrapper> blockHashes);
+    void removeBlocks(List<Sha256Hash> blockHashes);
 
     /**
      * Returns the total number of Blocks stored in the DB
@@ -108,12 +109,12 @@ public interface BlockStore {
     /**
      * Tells whether the Db contains the Tx given
      */
-    boolean containsTx(Sha256Wrapper txHash);
+    boolean containsTx(Sha256Hash txHash);
 
     /**
      * Retrieves the TX with the HASH given, or null if it's not found
      */
-    Optional<Tx> getTx(Sha256Wrapper txHash);
+    Optional<Tx> getTx(Sha256Hash txHash);
 
     /**
      * Removes the TX with the HASH (in HEX format) given.
@@ -124,7 +125,7 @@ public interface BlockStore {
      * If a high number of "removeTx" operatiosn are expected, this might highly affect the performane, in that case
      * you should use the "removeTxs()" method instead.
      */
-    void removeTx(Sha256Wrapper txHash);
+    void removeTx(Sha256Hash txHash);
 
     /**
      * Removes the TXs referenced by the List of HASHes given
@@ -133,14 +134,14 @@ public interface BlockStore {
      * If the TX Events are enabled, this methid will trigger a "TxsRemovedEvent" Event, containing a List with these
      * Tx Hashes.
      */
-    void removeTxs(List<Sha256Wrapper> txHashes);
+    void removeTxs(List<Sha256Hash> txHashes);
 
 
     /**
      * Returns the list of Txs that the Tx given (parameter) depends on, because it's using some of their outputs
      * as inputs.
      */
-    List<Sha256Wrapper> getTxsNeeded(Sha256Wrapper txHash);
+    List<Sha256Hash> getPreviousTxs(Sha256Hash txHash);
 
     /**
      * Returns the total number of Txs stored in the DB
@@ -154,42 +155,42 @@ public interface BlockStore {
      * This method does NOT check whether the Tx is already linked to another Block, so that verification must be
      * performed outside of this method if the DB are to be in a consistent state.
      */
-    void linkTxToBlock(Sha256Wrapper txHash, Sha256Wrapper blockHash);
+    void linkTxToBlock(Sha256Hash txHash, Sha256Hash blockHash);
 
     /**
      * It links the Txs given to this Block.
      * This method does NOT check whether the Txs are already linked to another Block, so that verification must be
      * performed outside of this method if the DB are to be in a consistent state.
      */
-    void linkTxsToBlock(List<Sha256Wrapper> txsHashes, Sha256Wrapper blockHashes);
+    void linkTxsToBlock(List<Sha256Hash> txsHashes, Sha256Hash blockHashes);
 
     /**
      * It un-links the Tx from the Block given.
      */
-    void unlinkTxFromBlock(Sha256Wrapper txHash, Sha256Wrapper blockHash);
+    void unlinkTxFromBlock(Sha256Hash txHash, Sha256Hash blockHash);
 
     /**
      * It un-links the Txs from the Block given.
      */
-    void unlinkTxsFromBlock(List<Sha256Wrapper> txsHashes, Sha256Wrapper blockHashes);
+    void unlinkTxsFromBlock(List<Sha256Hash> txsHashes, Sha256Hash blockHashes);
 
     /**
      * It unlinks the Tx from any Block it might belong to. It doe NOT remove the Tx itself, only the relation with
      * any Block there might be.
      */
-    void unlinkTx(Sha256Wrapper txHash);
+    void unlinkTx(Sha256Hash txHash);
 
     /**
      * It unliks the block given from any Tx it migth contain
      * this method does NOT remove the Tx themselves, only the relation with the Block. If you need to remove the
      * Txs belonging to a Block, use the "removeBlockTxs()" method instead.
      */
-    void unlinkBlock(Sha256Wrapper blockHash);
+    void unlinkBlock(Sha256Hash blockHash);
 
     /**
      * Indicates if the Tx given belongs to the Block given.
      */
-    boolean isTxLinkToblock(Sha256Wrapper txHash, Sha256Wrapper blockHash);
+    boolean isTxLinkToblock(Sha256Hash txHash, Sha256Hash blockHash);
 
     /**
      * Retrieves the Block Hash of the Block the TX given belongs to. The result is usually a List that is either:
@@ -200,21 +201,21 @@ public interface BlockStore {
      * - A List with more than 1 Block Hashes: This is a Fork scenario: The TX has been contained in more than 1 Block,
      *   so this Tx belongs to 2 different Chains, until the fork is resolved and one of the Chains is pruned.
      */
-    List<Sha256Wrapper> getBlockHashLinkedToTx(Sha256Wrapper txHash);
+    List<Sha256Hash> getBlockHashLinkedToTx(Sha256Hash txHash);
 
 
     /**  Returns an Iterable with the Tx Hashes belonging to the block given */
-    Iterable<Sha256Wrapper> getBlockTxs(Sha256Wrapper blockHash);
+    Iterable<Sha256Hash> getBlockTxs(Sha256Hash blockHash);
 
     /** Returns the number of TXs belonging to this block */
-    long getBlockNumTxs(Sha256Wrapper blockHash);
+    long getBlockNumTxs(Sha256Hash blockHash);
 
     /**
      * Saves the Transactiosn given and links them to the block
      * Using this method instead of "saveTxs" allows for creating the relationship between a Block and its
      * Transactions, so they can be retrieved alter on by the method "getBlockTxs".
      */
-    void saveBlockTxs(Sha256Wrapper blockHash, List<Tx> txs);
+    void saveBlockTxs(Sha256Hash blockHash, List<Tx> txs);
 
     /**
      * Removes all the TXs belonging to the block given. The Tx and their relations with the Block given are
@@ -228,14 +229,14 @@ public interface BlockStore {
      * a threshold specified (10_000 by default), then several "TxRemovedEvent" Events will be triggered, until all
      * the Tx hashes are triggered.
      */
-    void removeBlockTxs(Sha256Wrapper blockHash);
+    void removeBlockTxs(Sha256Hash blockHash);
 
     /**
      * It compares the content of both Blocks, and return the result highlighting what Tx they both have in common, the
      * ones missing in one of them and the other, etc.
      * If any of the Blocks does not exists, it returns an Empty optional.
      */
-    Optional<BlocksCompareResult> compareBlocks(Sha256Wrapper blockHashA, Sha256Wrapper blockHashB);
+    Optional<BlocksCompareResult> compareBlocks(Sha256Hash blockHashA, Sha256Hash blockHashB);
 
     // Events Streaming:
 

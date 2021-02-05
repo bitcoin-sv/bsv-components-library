@@ -1,11 +1,12 @@
 package com.nchain.jcl.store.blockChainStore
 
 
-import com.nchain.jcl.base.domain.api.base.BlockHeader
-import com.nchain.jcl.base.domain.api.extended.ChainInfo
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper
+
 import com.nchain.jcl.store.blockChainStore.events.ChainStateEvent
 import com.nchain.jcl.store.common.TestingUtils
+import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
+import io.bitcoinj.bitcoin.api.extended.ChainInfo
+import io.bitcoinj.core.Sha256Hash
 
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicInteger
@@ -23,7 +24,7 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
         final int NUM_CHAIN_BLOCKS = 5
         given:
             println(" - Connecting to the DB...")
-            BlockHeader genesisBlock = TestingUtils.buildBlock()
+            HeaderReadOnly genesisBlock = TestingUtils.buildBlock()
             println(" - Using block genesis: " + genesisBlock.getHash())
             BlockChainStore db = getInstance("BSV-Main", false, false, genesisBlock, null, null, null, null, null)
 
@@ -32,13 +33,13 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
             //TestingUtils.clearDB(db.db)
 
             // We insert a chain of Blocks, connected to each other
-            List<BlockHeader> blocks = new ArrayList<>();
+            List<HeaderReadOnly> blocks = new ArrayList<>();
             blocks.add(genesisBlock)
             String parentHash = genesisBlock.getHash().toString()
             String tipHash = null
             println(" - Generating " + NUM_CHAIN_BLOCKS + " Blocks with relation parent-child between them:")
             for (int i = 1; i < NUM_CHAIN_BLOCKS; i++) {
-                BlockHeader block = TestingUtils.buildBlock(parentHash)
+                HeaderReadOnly block = TestingUtils.buildBlock(parentHash)
                 tipHash = block.getHash().toString()
                 println("  - Block " + block.getHash() + " , parent: " + parentHash)
                 blocks.add(block)
@@ -51,7 +52,7 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
             // As we traverse the Chain we make sure that we loop over all the Blocks created previously:
             Set<String> hashesTraversedGenesis = new HashSet<>()
             println(" - Traversing the Chain from the Tip (" + tipHash + "), Back to the genesis block:")
-            Optional<BlockHeader> block = db.getBlock(Sha256Wrapper.wrap(tipHash))
+            Optional<HeaderReadOnly> block = db.getBlock(Sha256Hash.wrap(tipHash))
             while (block.isPresent()) {
                 hashesTraversedGenesis.add(block.get().getHash().toString())
                 println(" - Block " + block.get().getHash())
@@ -62,12 +63,12 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
 
             // Now we take the genesis block and we traverse the chain up to the Tip of the Chain:
             Set<String> hashesTraversedTip = new HashSet<>()
-            Sha256Wrapper startBlockHash = genesisBlock.getHash()
+            Sha256Hash startBlockHash = genesisBlock.getHash()
             println(" - Traversing the Chain from  Genesis (" + startBlockHash + "), to the Tip:")
             while (startBlockHash != null) {
                 hashesTraversedTip.add(startBlockHash.toString())
                 println(" - Block " + startBlockHash + " obtained.")
-                List<Sha256Wrapper> children = db.getNextBlocks(startBlockHash)
+                List<Sha256Hash> children = db.getNextBlocks(startBlockHash)
                 startBlockHash = (children != null && children.size() > 0) ? children.get(0) : null
             }
 
@@ -96,7 +97,7 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
     def "testing saving/removing Blocks and Chain Tips updates"() {
         given:
             println(" - Connecting to the DB...")
-            BlockHeader genesisBlock = TestingUtils.buildBlock(Sha256Wrapper.ZERO_HASH.toString())
+            HeaderReadOnly genesisBlock = TestingUtils.buildBlock(Sha256Hash.ZERO_HASH.toString())
             println(" - Using block genesis: " + genesisBlock.getHash())
             BlockChainStore db = getInstance("BSV-Main", true, false, genesisBlock, null, null, null, null, null)
 
@@ -112,13 +113,13 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
             // Right after starting the DB from an empty state, the only Block in the DB should be the genesis block,
             // which is also part of the Tip...
             db.printKeys()
-            List<Sha256Wrapper> tipsChain = db.getTipsChains()
+            List<Sha256Hash> tipsChain = db.getTipsChains()
             ChainInfo tipChainInfo = db.getBlockChainInfo(tipsChain.get(0)).get()
             boolean beforeInserting = (tipsChain.size() == 1) && tipsChain.contains(genesisBlock.getHash()) &&
                     tipChainInfo.getHeight() == 0
 
             // We insert Blocks 1, 2 and 3 ( [genesis] -> 1 -> 2 -> 3)
-            BlockHeader block_1 = TestingUtils.buildBlock(genesisBlock.getHash().toString())
+            HeaderReadOnly block_1 = TestingUtils.buildBlock(genesisBlock.getHash().toString())
             println(" - Saving Block 1: " + block_1.getHash())
             db.saveBlock(block_1)
             tipsChain = db.getTipsChains()
@@ -135,7 +136,7 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
             boolean afterInsert1_tipChaininfoOK = tipChainInfo.getHeight() == 1
             int afterInsert1_numBlocksSaved = numBlocksSavedEvents.get()
 
-            BlockHeader block_2 = TestingUtils.buildBlock(block_1.getHash().toString())
+            HeaderReadOnly block_2 = TestingUtils.buildBlock(block_1.getHash().toString())
             println(" - Saving Block 2: " + block_2.getHash())
             db.saveBlock(block_2)
             tipsChain = db.getTipsChains()
@@ -153,7 +154,7 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
             int afterInsert2_numBlocksSaved = numBlocksSavedEvents.get()
 
 
-            BlockHeader block_3 = TestingUtils.buildBlock(block_2.getHash().toString())
+            HeaderReadOnly block_3 = TestingUtils.buildBlock(block_2.getHash().toString())
             println(" - Saving Block 3: " + block_3.getHash())
             db.saveBlock(block_3)
             tipsChain = db.getTipsChains()
@@ -230,7 +231,7 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
         given:
             // Configuration and DB start up:
             println(" - Connecting to the DB...")
-            BlockHeader genesisBlock = TestingUtils.buildBlock(Sha256Wrapper.ZERO_HASH.toString())
+            HeaderReadOnly genesisBlock = TestingUtils.buildBlock(Sha256Hash.ZERO_HASH.toString())
             println(" - Using block genesis: " + genesisBlock.getHash())
             BlockChainStore db = getInstance("BSV-Main", false, false, genesisBlock, Duration.ofMillis(100), null, null, null, null)
 
@@ -261,8 +262,8 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
 
 
             // We insert a chain of 2 more blocks: [genesis] -> 1 -> 2
-            BlockHeader block_1 = TestingUtils.buildBlock(genesisBlock.getHash().toString())
-            BlockHeader block_2 = TestingUtils.buildBlock(block_1.getHash().toString())
+            HeaderReadOnly block_1 = TestingUtils.buildBlock(genesisBlock.getHash().toString())
+            HeaderReadOnly block_2 = TestingUtils.buildBlock(block_1.getHash().toString())
 
             println(" - Saving a batch of 2 Blocks:")
             println(" - Block " + block_1.getHash().toString())
@@ -303,7 +304,7 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
         given:
             // Configuration and DB start up:
             println(" - Connecting to the DB...")
-            BlockHeader genesisBlock = TestingUtils.buildBlock(Sha256Wrapper.ZERO_HASH.toString())
+            HeaderReadOnly genesisBlock = TestingUtils.buildBlock(Sha256Hash.ZERO_HASH.toString())
             println(" - Using block genesis: " + genesisBlock.getHash())
             BlockChainStore db = getInstance("BSV-Main", false, false, genesisBlock, Duration.ofMillis(100), null, null, null, null)
 
@@ -314,7 +315,7 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
             db.printKeys()
 
             // We create a block, and we insert it several times...
-            BlockHeader block = TestingUtils.buildBlock(genesisBlock.getHash().toString())
+            HeaderReadOnly block = TestingUtils.buildBlock(genesisBlock.getHash().toString())
             for (int i = 0; i < NUM_BLOCKS; i++) db.saveBlock(block);
 
             // Now we check

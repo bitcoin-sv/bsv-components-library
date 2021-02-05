@@ -1,6 +1,8 @@
 package com.nchain.jcl.net.protocol.config;
 
-import com.nchain.jcl.base.tools.handlers.HandlerConfig;
+
+import com.nchain.jcl.tools.handlers.HandlerConfig;
+import io.bitcoinj.params.NetworkParameters;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,12 +22,13 @@ import java.util.OptionalInt;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProtocolBasicConfig extends HandlerConfig {
+
     private String id;
     private long magicPackage;
     private int  port;
 
     @Builder.Default
-    private int protocolVersion = ProtocolVersion.CURRENT.getBitcoinProtocolVersion();
+    private int protocolVersion = NetworkParameters.ProtocolVersion.CURRENT.getBitcoinProtocolVersion();
     @Builder.Default
     private OptionalInt maxPeers = OptionalInt.empty();
     @Builder.Default

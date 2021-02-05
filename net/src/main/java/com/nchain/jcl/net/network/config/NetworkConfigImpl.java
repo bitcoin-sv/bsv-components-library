@@ -1,7 +1,7 @@
 package com.nchain.jcl.net.network.config;
 
-import com.nchain.jcl.base.tools.handlers.HandlerConfig;
-import com.nchain.jcl.net.network.config.NetworkConfig;
+
+import com.nchain.jcl.tools.handlers.HandlerConfig;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

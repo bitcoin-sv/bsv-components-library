@@ -12,9 +12,9 @@ import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder
 import com.nchain.jcl.net.protocol.serialization.GetHeadersMsgSerializer
 import com.nchain.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter
-import com.nchain.jcl.base.tools.bytes.HEX
+import com.nchain.jcl.tools.bytes.ByteArrayReader
+import com.nchain.jcl.tools.bytes.ByteArrayWriter
+import io.bitcoinj.core.Utils
 import spock.lang.Specification
 
 /**
@@ -54,7 +54,7 @@ class GetHeadersMsgSerializerSpec extends Specification{
         when:
             GetHeadersMsgSerializer.getInstance().serialize(context, getHeadersMsg, byteWriter)
             byte[] messageBytes = byteWriter.reader().getFullContent()
-            String messageSerialized = HEX.encode(messageBytes)
+            String messageSerialized = Utils.HEX.encode(messageBytes)
         then:
             messageSerialized == REF_GETHEADERS_MSG_BODY
 
@@ -68,7 +68,7 @@ class GetHeadersMsgSerializerSpec extends Specification{
                     .maxBytesToRead((long) (REF_GETHEADERS_MSG_BODY.length()/2))
                     .build()
             GetHeadersMsg getHeadersMsg
-            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_GETHEADERS_MSG_BODY), byteInterval, delayMs);
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_GETHEADERS_MSG_BODY), byteInterval, delayMs);
         when:
             getHeadersMsg = GetHeadersMsgSerializer.getInstance().deserialize(context, byteReader)
         then:
@@ -89,14 +89,14 @@ class GetHeadersMsgSerializerSpec extends Specification{
                     .build()
             BaseGetDataAndHeaderMsg baseMsg = BaseGetDataAndHeaderMsgSerializerSpec.buildBaseMsg(config.getBasicConfig())
             GetHeadersMsg  getHeadersMsg =  GetHeadersMsg.builder().baseGetDataAndHeaderMsg(baseMsg).build();
-            ByteArrayReader byteReader = new ByteArrayReader(HEX.decode(REF_GETHEADERS_MSG_BODY))
+            ByteArrayReader byteReader = new ByteArrayReader(Utils.HEX.decode(REF_GETHEADERS_MSG_BODY))
 
 
             BitcoinMsg<GetHeadersMsg> getHeadersMsgBitcoinMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), getHeadersMsg).build()
             BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
             byte[] bytes = serializer.serialize(context, getHeadersMsgBitcoinMsg, GetHeadersMsg.MESSAGE_TYPE).getFullContent()
-            String msgSerialized = HEX.encode(bytes)
+            String msgSerialized = Utils.HEX.encode(bytes)
         then:
             msgSerialized.equals(REF_GETHEADERS_MSG_FULL)
     }
@@ -108,7 +108,7 @@ class GetHeadersMsgSerializerSpec extends Specification{
                     .protocolBasicConfig(config.getBasicConfig())
                     .maxBytesToRead((long) (REF_GETHEADERS_MSG_FULL.length() / 2))
                     .build()
-            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(HEX.decode(REF_GETHEADERS_MSG_FULL), byteInterval, delayMs);
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_GETHEADERS_MSG_FULL), byteInterval, delayMs);
 
             BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
         when:

@@ -1,13 +1,14 @@
 package com.nchain.jcl.net.unit.protocol.serialization
 
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter
-import com.nchain.jcl.base.tools.bytes.HEX
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper
+
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.messages.*
 import com.nchain.jcl.net.protocol.serialization.BlockHeaderEnMsgSerializer
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
+import com.nchain.jcl.tools.bytes.ByteArrayWriter
+import io.bitcoinj.core.Sha256Hash
+import io.bitcoinj.core.Utils
 import spock.lang.Ignore
 import spock.lang.Specification
 /**
@@ -25,15 +26,15 @@ class BlockHeaderEnMsgSpec extends Specification {
             "a61a6fd56893a405bcffbf6555995ddedc7e6cd4e5ceb83a37e1cf8f98ffffffff02004d92d86a00000014b8083945473bc8289ef" +
             "b681f94de7b07a5b851ad00743ba40b00000014ef01911c9efec6799d1ee5f7c6fb072d9669da8000000000"
 
-    public static final byte[] PREV_BLOCK_HASH = Sha256Wrapper.wrap("00000000454db91f604275b3fb257882d9f76" +
+    public static final byte[] PREV_BLOCK_HASH = Sha256Hash.wrap("00000000454db91f604275b3fb257882d9f76" +
             "102f2df647d80885943681bf140").bytes
-    public static final byte[] MERKLE_ROOT = Sha256Wrapper.wrap("1220ab39897b24e60c216587f980fb6820" +
+    public static final byte[] MERKLE_ROOT = Sha256Hash.wrap("1220ab39897b24e60c216587f980fb6820" +
             "f30827af4be06585b2cfcc17270a5d").bytes
-    public static final byte[] TR1_PK_SCRIPT_ONE = HEX.decode("04a313febd5f91b6a13bd9c5317030518fee96d1319" +
-            "a0eb10076917294933d09c17dc1588a06953a264738f2acea0c66b99e796caa4f28158e0dd5f6fed69a185b")
+    public static final byte[] TR1_PK_SCRIPT_ONE = Utils.HEX.decode("04a313febd5f91b6a13bd9c5317030518fee96d1319" +
+                                                                 "a0eb10076917294933d09c17dc1588a06953a264738f2acea0c66b99e796caa4f28158e0dd5f6fed69a185b")
 
-    public static final byte[] TR2_PK_SCRIPT_ONE = HEX.decode("b8083945473bc8289efb681f94de7b07a5b851ad")
-    public static final byte[] TR2_PK_SCRIPT_TWO = HEX.decode("ef01911c9efec6799d1ee5f7c6fb072d9669da80")
+    public static final byte[] TR2_PK_SCRIPT_ONE = Utils.HEX.decode("b8083945473bc8289efb681f94de7b07a5b851ad")
+    public static final byte[] TR2_PK_SCRIPT_TWO = Utils.HEX.decode("ef01911c9efec6799d1ee5f7c6fb072d9669da80")
 
   @Ignore  def "testing blockMessage BlockHeaderEnrichedMsg Serializing"() {
         given:

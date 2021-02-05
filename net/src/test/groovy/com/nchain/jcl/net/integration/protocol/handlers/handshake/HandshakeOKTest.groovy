@@ -1,12 +1,14 @@
 package com.nchain.jcl.net.integration.protocol.handlers.handshake
 
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
+import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.events.MinHandshakedPeersLostEvent
 import com.nchain.jcl.net.protocol.events.MinHandshakedPeersReachedEvent
 import com.nchain.jcl.net.protocol.handlers.blacklist.BlacklistHandler
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
+import io.bitcoinj.params.MainNetParams
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -39,7 +41,7 @@ class HandshakeOKTest extends Specification {
             final int MAX_PEERS = 6
 
             // We set the Default Config:
-            ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams()).toBuilder()
                 .minPeers(MIN_PEERS)
                 .maxPeers(MAX_PEERS)
                 .build();
@@ -96,7 +98,8 @@ class HandshakeOKTest extends Specification {
 
         when:
             server.startServer()
-            Thread.sleep(10000)
+            Thread.sleep(20000) // Raise this number if DNS are poor and takes longer to establish connections
+
             // The Service will start connecting to the Peers and handshaking with them.
             // The connection will stop at the moment we have MAX_PEER handshaked. At that moment, the service will
             // disconnect from any other additional Pees that he might have handshaked after that, so the number of

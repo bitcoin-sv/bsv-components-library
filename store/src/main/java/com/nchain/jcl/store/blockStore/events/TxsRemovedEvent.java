@@ -1,13 +1,14 @@
 package com.nchain.jcl.store.blockStore.events;
 
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
+
+import io.bitcoinj.core.Sha256Hash;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+
 
 /**
  * @author i.fernandez@nchain.com
@@ -19,10 +20,10 @@ import java.util.List;
 @Value
 @EqualsAndHashCode(callSuper = false)
 public class TxsRemovedEvent extends BlockStoreEvent {
-    private final List<Sha256Wrapper> txHashes;
+    private final List<Sha256Hash> txHashes;
 
     @Builder
-    public TxsRemovedEvent(List<Sha256Wrapper> txHashes) {
+    public TxsRemovedEvent(List<Sha256Hash> txHashes) {
         this.txHashes = new ArrayList<>(txHashes);
     }
 }

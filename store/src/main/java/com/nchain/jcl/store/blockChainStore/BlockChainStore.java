@@ -1,13 +1,14 @@
 package com.nchain.jcl.store.blockChainStore;
 
-import com.nchain.jcl.base.domain.api.base.BlockHeader;
-import com.nchain.jcl.base.domain.api.extended.ChainInfo;
-import com.nchain.jcl.base.tools.crypto.Sha256Wrapper;
+
 import com.nchain.jcl.store.blockChainStore.events.BlockChainStoreStreamer;
 import com.nchain.jcl.store.blockStore.BlockStore;
+import io.bitcoinj.bitcoin.api.extended.ChainInfo;
+import io.bitcoinj.core.Sha256Hash;
 
 import java.util.List;
 import java.util.Optional;
+
 
 /**
  * @author i.fernandez@nchain.com
@@ -25,7 +26,7 @@ public interface BlockChainStore extends BlockStore {
     /**
      * Returns the Hash of the Previous Block in the Chain
      */
-    Optional<Sha256Wrapper> getPrevBlock(Sha256Wrapper blockHash);
+    Optional<Sha256Hash> getPrevBlock(Sha256Hash blockHash);
 
     /**
      * Returns a List containing the list of Blocks builts on top of the Block given. Possible results:
@@ -33,31 +34,31 @@ public interface BlockChainStore extends BlockStore {
      * - 1-item List: The regular case
      * - n-items list: A fork scenario.
      */
-    List<Sha256Wrapper> getNextBlocks(Sha256Wrapper blockHash);
+    List<Sha256Hash> getNextBlocks(Sha256Hash blockHash);
 
     /**
      * Returns all the Orphan blocks in the DB
      */
-    Iterable<Sha256Wrapper> getOrphanBlocks();
+    Iterable<Sha256Hash> getOrphanBlocks();
 
     /**
      * Returns the relative info about the Chain that the Block given is connected to. If the Block is not stored in
      * the DB or it' stored but not connected to any Chain (because there might be a GAP between the Genesis clock and
      * this block), then it will return an empty Optional.
      */
-    Optional<ChainInfo> getBlockChainInfo(Sha256Wrapper blockHash);
+    Optional<ChainInfo> getBlockChainInfo(Sha256Hash blockHash);
 
     /**
      * Returns the list of Tips of all the chains stored in the DB. In a "normal" scenario there will be only one Tip,
      * but there night also be a fork, in which case we can potentially have more than one Chain (and more than one
      * tip).
      */
-    List<Sha256Wrapper> getTipsChains();
+    List<Sha256Hash> getTipsChains();
 
     /**
      * Returns the List of the Tips of the Chains the block given belongs to
      */
-    List<Sha256Wrapper> getTipsChains(Sha256Wrapper blockHash);
+    List<Sha256Hash> getTipsChains(Sha256Hash blockHash);
 
     /**
      * Returns the FIRST Block in the same Path as the block given.
@@ -65,7 +66,7 @@ public interface BlockChainStore extends BlockStore {
      * If the block has been saved after a Fork, then this method will return the FIRST Block saved after that Fork
      * If the block given is not connected, it will return an Empty Optional
      */
-    Optional<ChainInfo> getFirstBlockInPath(Sha256Wrapper blockHash);
+    Optional<ChainInfo> getFirstBlockInHistory(Sha256Hash blockHash);
 
     /**
      * Removes the info about the tips of the Chain. Once this information is removed, it won't be possible to get the
@@ -92,7 +93,7 @@ public interface BlockChainStore extends BlockStore {
      * @param tipChainHash  Tip of the Chain that we want to rune
      * @param removeTxs     if TRUE, the TXs belonging to each Block will also be removed
      */
-    void prune(Sha256Wrapper tipChainHash, boolean removeTxs);
+    void prune(Sha256Hash tipChainHash, boolean removeTxs);
 
 
     /**

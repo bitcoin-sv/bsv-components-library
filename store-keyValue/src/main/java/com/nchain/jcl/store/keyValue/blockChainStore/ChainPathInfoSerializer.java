@@ -1,8 +1,9 @@
 package com.nchain.jcl.store.keyValue.blockChainStore;
 
-import com.nchain.jcl.base.serialization.BitcoinSerializerUtils;
-import com.nchain.jcl.base.tools.bytes.ByteArrayReader;
-import com.nchain.jcl.base.tools.bytes.ByteArrayWriter;
+
+import com.nchain.jcl.tools.bytes.ByteArrayReader;
+import com.nchain.jcl.tools.bytes.ByteArrayWriter;
+import com.nchain.jcl.tools.serialization.BitcoinSerializerUtils;
 
 /**
  * @author i.fernandez@nchain.com
