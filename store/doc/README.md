@@ -388,6 +388,8 @@ it will also detect when the right time for removing/prunning one of them is. A 
 difference in height with the longest *Chain* is bigger than a *Threshold* specified. The *Automatic Prunning* Configuration
 is implementation-specific, so **go check the specific implementation**:
 
+The next chapters below explain how the chain *History* is stored and the methods available to read it.
+
 ### Block History
 
 The *BlockChainStore* module uses the term of *Path* to store information about the *history* of the chain. A *Path* is a sequence of blocks in sequence, without any fork between them. Over time, as Forks are created and discarded, the *BlockChainStore* changes and stores this information so it can be used later on to bring up a block's history.
