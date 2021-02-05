@@ -383,14 +383,15 @@ enough to "know" when a *FORK* has happened, we also need to *wait* until we are
 one and it can be removed. For all these reasons, the *BlockChainSore* also includes, as part of its specification, an 
 "automatic" prunning system:
 
-### Block History (testing)
-
 > By enabling the *Automatic Prunning*, the *BlockChainStore* Component will take care of keeping track of all the *Chains*, and
 it will also detect when the right time for removing/prunning one of them is. A *Chain* can safely be removed when the 
 difference in height with the longest *Chain* is bigger than a *Threshold* specified. The *Automatic Prunning* Configuration
 is implementation-specific, so **go check the specific implementation**:
 
 The next chapters below explain how the chain *History* is stored and the methods available to read it.
+
+### Block History (testing)
+
 
 ### Block History
 
