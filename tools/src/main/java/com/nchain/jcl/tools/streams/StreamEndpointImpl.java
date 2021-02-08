@@ -1,7 +1,5 @@
 package com.nchain.jcl.tools.streams;
 
-import lombok.AllArgsConstructor;
-
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -11,7 +9,6 @@ import java.util.concurrent.ExecutorService;
  * Implementation of a StreamEndpoint.
  * // TODO: Pending to Test and extend Documentation
  */
-@AllArgsConstructor
 public abstract class StreamEndpointImpl<T>  implements StreamEndpoint<T>, Stream<T> {
     protected ExecutorService executor;
 
@@ -22,6 +19,12 @@ public abstract class StreamEndpointImpl<T>  implements StreamEndpoint<T>, Strea
     public StreamEndpointImpl(ExecutorService executor) {
         this.executor = executor;
 
+    }
+
+    public StreamEndpointImpl(ExecutorService executor, InputStreamSourceImpl<T> source, OutputStreamDestinationImpl<T> destination) {
+        this.executor = executor;
+        this.source = source;
+        this.destination = destination;
     }
 
     public abstract InputStreamSourceImpl<T> buildSource();

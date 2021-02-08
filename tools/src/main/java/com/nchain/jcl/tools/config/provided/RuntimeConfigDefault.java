@@ -4,8 +4,6 @@ package com.nchain.jcl.tools.config.provided;
 import com.nchain.jcl.tools.bytes.ByteArrayMemoryConfiguration;
 import com.nchain.jcl.tools.config.RuntimeConfigImpl;
 import com.nchain.jcl.tools.files.FileUtilsBuilder;
-import lombok.EqualsAndHashCode;
-import lombok.Value;
 
 import java.time.Duration;
 
@@ -15,9 +13,7 @@ import java.time.Duration;
  *
  * Default RuntimeConfiguration.
  */
-@Value
-@EqualsAndHashCode(callSuper = true)
-public class RuntimeConfigDefault extends RuntimeConfigImpl {
+public final class RuntimeConfigDefault extends RuntimeConfigImpl {
 
     private static final ByteArrayMemoryConfiguration BYTE_ARRAY_MEMORY_CONFIGURATION = ByteArrayMemoryConfiguration.builder()
             .byteArraySize(ByteArrayMemoryConfiguration.ARRAY_SIZE_NORMAL)
@@ -52,5 +48,9 @@ public class RuntimeConfigDefault extends RuntimeConfigImpl {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public String toString() {
+        return "RuntimeConfigDefault";
     }
 }

@@ -1,7 +1,8 @@
 package com.nchain.jcl.tools.bytes;
 
 import io.bitcoinj.core.Utils;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.time.Duration;
@@ -15,11 +16,11 @@ import java.time.Duration;
  * <p>
  * IMPORTANT: The Reader CONSUMES the data as it reads them, so its not possible to use the same Reader twice.
  */
-@Slf4j
 public class ByteArrayReader {
 
     protected static final Duration THRESHOLD_WAITING = Duration.ofMillis(5000); // 5 sec
     protected static final Duration WAITING_INTERVAL = Duration.ofMillis(100);
+    private static final Logger log = LoggerFactory.getLogger(ByteArrayReader.class);
 
     protected ByteArrayBuilder builder;
     protected long bytesReadCount = 0; // Number of bytes read....

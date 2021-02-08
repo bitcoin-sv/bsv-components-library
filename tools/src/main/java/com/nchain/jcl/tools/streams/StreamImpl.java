@@ -1,7 +1,5 @@
 package com.nchain.jcl.tools.streams;
 
-import lombok.AllArgsConstructor;
-
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -10,7 +8,6 @@ import java.util.concurrent.ExecutorService;
  *
  * // TODO: Pending to Test and extend Documentation
  */
-@AllArgsConstructor
 public abstract class StreamImpl<S,T> implements Stream<S> {
 
     protected ExecutorService executor;
@@ -22,6 +19,13 @@ public abstract class StreamImpl<S,T> implements Stream<S> {
     public StreamImpl(ExecutorService executor, Stream<T> streamOrigin) {
         this.executor = executor;
         this.streamOrigin = streamOrigin;
+    }
+
+    public StreamImpl(ExecutorService executor, Stream<T> streamOrigin, InputStream<S> inputStream, OutputStream<S> outputStream) {
+        this.executor = executor;
+        this.streamOrigin = streamOrigin;
+        this.inputStream = inputStream;
+        this.outputStream = outputStream;
     }
 
     public abstract InputStream<S> buildInputStream();

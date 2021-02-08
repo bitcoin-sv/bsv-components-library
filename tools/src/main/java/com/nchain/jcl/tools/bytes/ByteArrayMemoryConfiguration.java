@@ -1,8 +1,5 @@
 package com.nchain.jcl.tools.bytes;
 
-import lombok.Builder;
-import lombok.Getter;
-
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
@@ -26,12 +23,42 @@ public class ByteArrayMemoryConfiguration {
 
     // Capacity of each individual ByteArray created. Only applies to implementation that store the info in
     // Memory (like the ByteArrayImpl)
-    @Getter
     private Integer byteArraySize = ARRAY_SIZE_NORMAL;
 
 
-    @Builder(toBuilder = true)
     public ByteArrayMemoryConfiguration(Integer byteArraySize) {
         this.byteArraySize = (byteArraySize != null) ? byteArraySize: ARRAY_SIZE_NORMAL;
+    }
+
+    public static ByteArrayMemoryConfigurationBuilder builder() {
+        return new ByteArrayMemoryConfigurationBuilder();
+    }
+
+    public Integer getByteArraySize() {
+        return this.byteArraySize;
+    }
+
+    public ByteArrayMemoryConfigurationBuilder toBuilder() {
+        return new ByteArrayMemoryConfigurationBuilder().byteArraySize(this.byteArraySize);
+    }
+
+    public static class ByteArrayMemoryConfigurationBuilder {
+        private Integer byteArraySize;
+
+        ByteArrayMemoryConfigurationBuilder() {
+        }
+
+        public ByteArrayMemoryConfiguration.ByteArrayMemoryConfigurationBuilder byteArraySize(Integer byteArraySize) {
+            this.byteArraySize = byteArraySize;
+            return this;
+        }
+
+        public ByteArrayMemoryConfiguration build() {
+            return new ByteArrayMemoryConfiguration(byteArraySize);
+        }
+
+        public String toString() {
+            return "ByteArrayMemoryConfiguration.ByteArrayMemoryConfigurationBuilder(byteArraySize=" + this.byteArraySize + ")";
+        }
     }
 }

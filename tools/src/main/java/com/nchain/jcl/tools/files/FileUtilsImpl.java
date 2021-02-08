@@ -1,7 +1,7 @@
 package com.nchain.jcl.tools.files;
 
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -21,10 +21,10 @@ import java.util.stream.Collectors;
  *
  * Basic implementation for FileUtils
  */
-@Slf4j
 public class FileUtilsImpl implements FileUtils {
 
-    @Getter private Path rootPath;
+    private static final Logger log = LoggerFactory.getLogger(FileUtilsImpl.class);
+    private Path rootPath;
 
     /** Constructor */
     public FileUtilsImpl(Path rootPath) throws IOException{
@@ -83,4 +83,7 @@ public class FileUtilsImpl implements FileUtils {
         }
     }
 
+    public Path getRootPath() {
+        return this.rootPath;
+    }
 }

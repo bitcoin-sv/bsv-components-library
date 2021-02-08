@@ -1,9 +1,6 @@
 package com.nchain.jcl.tools.bytes;
 
 
-import lombok.Getter;
-import lombok.Setter;
-
 import javax.annotation.concurrent.GuardedBy;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -19,7 +16,7 @@ import static com.google.common.base.Preconditions.checkArgument;
  */
 public class ByteArrayImpl implements ByteArray {
 
-    @Getter @Setter protected ByteBuffer buffer;
+    protected ByteBuffer buffer;
     protected int capacity;
     protected int dataSize;
     protected int remaining;
@@ -138,4 +135,12 @@ public class ByteArrayImpl implements ByteArray {
     public long capacity()     { return capacity; }
 
     public boolean isEmpty()  { return dataSize == 0; }
+
+    public ByteBuffer getBuffer() {
+        return this.buffer;
+    }
+
+    public void setBuffer(ByteBuffer buffer) {
+        this.buffer = buffer;
+    }
 }

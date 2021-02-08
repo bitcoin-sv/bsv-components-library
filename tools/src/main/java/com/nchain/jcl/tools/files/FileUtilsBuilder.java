@@ -1,7 +1,8 @@
 package com.nchain.jcl.tools.files;
 
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
@@ -19,11 +20,11 @@ import static com.google.common.base.Preconditions.checkState;
  * A Builder for FileUtils instances.
  *
  */
-@Slf4j
 public class FileUtilsBuilder {
 
     // Default name for the Root Folder.
     private final static String ROOT_FOLDER = "jcl";
+    private static final Logger log = LoggerFactory.getLogger(FileUtilsBuilder.class);
 
     // The root folder assigned to the FileUtils instance.
     private String rootFolder = ROOT_FOLDER;

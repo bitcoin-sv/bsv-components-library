@@ -1,7 +1,8 @@
 package com.nchain.jcl.tools.bytes;
 
 import io.bitcoinj.core.Utils;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -25,9 +26,9 @@ import java.io.IOException;
  * it, moving content from the regular Builder we still have and into the Buffer. But since the buffer is big enough,
  * this refresh should happen not very frequently.
  */
-@Slf4j
 public class ByteArrayReaderOptimized extends ByteArrayReader {
 
+    private static final Logger log = LoggerFactory.getLogger(ByteArrayReaderOptimized.class);
     private int BUFFER_SIZE = 1_000_000;
     //private int BUFFER_SIZE = 50;
     private byte[] buffer = new byte[BUFFER_SIZE];
