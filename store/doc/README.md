@@ -121,7 +121,7 @@ We can retrieve the Txs belonging to a Block. The result comes as an *Iterable* 
 Iterable<Sha256Hash> getBlockTxs(Sha256Hash blockHash);
 ```
 
-An example of looping over the results of the prvious method:
+An example of looping over the results of the previous method:
 
 
 ```
@@ -234,6 +234,38 @@ List<Sha256Hash> getPreviousTxs(Sha256Hash txHash);
 In the example above, this method will return a list containing the *Hashes* of the Transactions *B* and *C*.
 
 > Note that in this example, the Transaction *B* and *C* might NOT be stored yet in the DB, since the Transactions might come in different order when you receive them from the network.
+
+### Expanding the Model
+
+> NOTE: This feature is not implemented yet. Coming soon...
+
+All the previous operations allows to save, retrieve and update *Blocks* ad *Transactions*. But in some scenarios it might be usefl to store *more* information about them, for example:
+
+* A flag indicating if a *Transaction* is validated
+* A field indicating the number of *Peers* that have boadcast a specific *Block* or *Transaction*
+* A field indicating a *custom* metric based on *custom* caluclations made on a *Block*
+* etc
+
+The *BlockStore* Module allows to *add* individual *fields* and *attach* them to either *Transactions* or *Blocks* in runtime. You just need to specify the *Name* for that field and its *Type* during the Configuration, and then you can use that field to assing the value. 
+For example, in the following example, we are using a "validated" field (boolean) which specify wheter a *Transaction* has been validated, and a "validationError" field (String) that stores 
+the specific validation error it the validation has failed:
+
+```
+// Assignning custom fields on saving:
+Tx tx = ...                    // we got a Tx from somewhere
+List<Tx> txs = ...             // we got a List of Txs from somewhere
+db.saveTx(Tx, true);			 // Transaction validated
+db.saveTxs(txs, false)			 // Transactions NOT validated
+
+// Retrieving fields:
+Sha256Hash txHash = ...
+boolean isTxValidated = (Boolean) db.getTxField(txHash)
+
+```
+
+The same approach cen be applied to *Blocks* as well.
+
+
 
 
 ### Reference
