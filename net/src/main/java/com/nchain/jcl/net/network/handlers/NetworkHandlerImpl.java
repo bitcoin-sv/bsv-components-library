@@ -8,7 +8,6 @@ import com.nchain.jcl.net.network.events.*;
 import com.nchain.jcl.net.network.streams.nio.NIOInputStreamSource;
 import com.nchain.jcl.net.network.streams.nio.NIOOutputStreamDestination;
 import com.nchain.jcl.net.network.streams.nio.NIOStream;
-
 import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.events.EventBus;
 import com.nchain.jcl.tools.files.FileUtils;
@@ -18,7 +17,6 @@ import com.nchain.jcl.tools.streams.StreamCloseEvent;
 import com.nchain.jcl.tools.thread.ThreadUtils;
 import com.nchain.jcl.tools.thread.TimeoutTask;
 import com.nchain.jcl.tools.thread.TimeoutTaskBuilder;
-import lombok.Getter;
 
 import java.io.IOException;
 import java.net.*;
@@ -57,6 +55,10 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     /** Subfolder to store local files in */
     private static final String NET_FOLDER = "net";
 
+    public PeerAddress getPeerAddress() {
+        return this.peerAddress;
+    }
+
     /**
      * Inner class that is attached to each Key in the selector. It represents a connection with
      * one particular Peer:
@@ -81,7 +83,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     private LoggerUtil logger;
 
     // Local Address of this Handler running:
-    @Getter private PeerAddress peerAddress;
+    private PeerAddress peerAddress;
 
     // Indicates if we are running in SERVER_MODE (incoming connections allowed)
     private boolean server_mode = false;
@@ -671,22 +673,22 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
                 return;
             }
             if (key.isConnectable()) {
-                //handlerLogger.logPeer(Level.TRACE, "Handling Connectable Key " + key + "...");
+                logger.trace( "Handling Connectable Key " + key + "...");
                 handleConnect(key);
                 return;
             }
             if (key.isReadable()) {
-                //handlerLogger.logPeer(Level.TRACE, "Handling Readable Key " + key + "...");
+                logger.trace( "Handling Readable Key " + key + "...");
                 handleRead(key);
                 return;
             }
             if (key.isWritable()) {
-                //handlerLogger.logPeer(Level.TRACE, "Handling Writable Key " + key + "...");
+                logger.trace( "Handling Writable Key " + key + "...");
                 handleWrite(key);
                 return;
             }
             if ((server_mode) && (key.isAcceptable())) {
-                //handlerLogger.logPeer(Level.TRACE, "Handling Acceptable Key " + key + "...");
+                logger.trace("Handling Acceptable Key " + key + "...");
                 handleAccept(key);
                 return;
             }
@@ -740,7 +742,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         //handlerLogger.log(Level.TRACE, "read key...");
         KeyConnectionAttach keyConnection = (KeyConnectionAttach) key.attachment();
         int numBytesRead = ((NIOInputStreamSource)keyConnection.stream.input()).readFromSocket();
-        //logger.trace(numBytesRead + " read from " + ((NIOOutputStreamDestination) keyConnection.stream.output()).getPeerAddress().toString());
+        logger.trace(numBytesRead + " read from " + ((NIOOutputStreamDestination) keyConnection.stream.output()).getPeerAddress().toString());
         if (numBytesRead == -1) {
             logger.trace(keyConnection.peerAddress, "Connection closed by the Remote Peer.");
             this.closeKey(key, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_REMOTE);
@@ -761,7 +763,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         // We write the data to the Peer (through the Stream wrapped out around it) and we run the callbacks:
         KeyConnectionAttach keyConnection = (KeyConnectionAttach) key.attachment();
         int numBytesWrite = ((NIOOutputStreamDestination) keyConnection.stream.output()).writeToSocket();
-        //logger.trace(numBytesWrite + " written to " + ((NIOOutputStreamDestination) keyConnection.stream.output()).getPeerAddress().toString());
+        logger.trace(numBytesWrite + " written to " + ((NIOOutputStreamDestination) keyConnection.stream.output()).getPeerAddress().toString());
     }
 
     /**

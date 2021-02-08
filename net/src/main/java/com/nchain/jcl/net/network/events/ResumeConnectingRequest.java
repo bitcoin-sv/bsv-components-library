@@ -2,7 +2,6 @@ package com.nchain.jcl.net.network.events;
 
 
 import com.nchain.jcl.tools.events.Event;
-import lombok.Value;
 
 /**
  * @author i.fernandez@nchain.com
@@ -12,5 +11,9 @@ import lombok.Value;
  * This Event is usually triggered when the number of connections has dropped below some
  * defined threshold.
  */
-@Value
-public class ResumeConnectingRequest extends Event {}
+public final class ResumeConnectingRequest extends Event {
+    public ResumeConnectingRequest() {}
+    public String toString() {
+        return "ResumeConnectingRequest()";
+    }
+}

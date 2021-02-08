@@ -105,14 +105,12 @@ class HandshakeOKTest extends Specification {
             // disconnect from any other additional Pees that he might have handshaked after that, so the number of
             // Peers handshaked remains at MAX_PEER.
             println(" >>> CHECKING NUMBER OF PEERS HANDSHAKED: " + numPeersHandshakes.get())
-            boolean connection_stable = numPeersHandshakes.get() == MAX_PEERS
             println(" >>> STOPPING...")
             server.stop()
         then:
             // We check that at some pint in time, we've reached the MIN and MAX Peers to handshake:
             minHandshakedReachedEvent.get() != null
             minHandshakedReachedEvent.get() != null
-            // we check
-            connection_stable
+            numPeersHandshakes.get() == MAX_PEERS
     }
 }

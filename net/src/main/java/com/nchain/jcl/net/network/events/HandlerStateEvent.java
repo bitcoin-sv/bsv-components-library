@@ -3,8 +3,6 @@ package com.nchain.jcl.net.network.events;
 
 import com.nchain.jcl.tools.events.Event;
 import com.nchain.jcl.tools.handlers.HandlerState;
-import lombok.AllArgsConstructor;
-import lombok.Value;
 
 /**
  * @author i.fernandez@nchain.com
@@ -12,13 +10,12 @@ import lombok.Value;
  *
  * An Event triggered when a Handler publishes its current State.
  */
-@Value
-@AllArgsConstructor
-public class HandlerStateEvent extends Event {
-    private HandlerState state;
+public final class HandlerStateEvent extends Event {
+    private final HandlerState state;
 
+    public HandlerStateEvent(HandlerState state)    { this.state = state; }
+    public HandlerState getState()                  { return this.state; }
     @Override
-    public String toString() {
-        return "Event[State]: " + state.toString();
-    }
+    public String toString()                        { return "Event[State]: " + state.toString(); }
+
 }

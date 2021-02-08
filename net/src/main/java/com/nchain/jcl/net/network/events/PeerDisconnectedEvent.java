@@ -1,10 +1,7 @@
 package com.nchain.jcl.net.network.events;
 
-import com.nchain.jcl.tools.events.Event;
 import com.nchain.jcl.net.network.PeerAddress;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
+import com.nchain.jcl.tools.events.Event;
 
 /**
  * @author i.fernandez@nchain.com
@@ -12,18 +9,25 @@ import lombok.Value;
  *
  * An Event triggered when a Peer is disconnected.
  */
-@Value
-@Builder(toBuilder = true)
-@AllArgsConstructor
-public class PeerDisconnectedEvent extends Event {
+public final class PeerDisconnectedEvent extends Event {
+
     /** Definition of Reason why a Peer has been disconnected */
     public enum DisconnectedReason {
         UNDEFINED,
         DISCONNECTED_BY_LOCAL,
         DISCONNECTED_BY_REMOTE
     }
-    private PeerAddress peerAddress;
-    private DisconnectedReason reason;
+
+    private final PeerAddress peerAddress;
+    private final DisconnectedReason reason;
+
+    public PeerDisconnectedEvent(PeerAddress peerAddress, DisconnectedReason reason) {
+        this.peerAddress = peerAddress;
+        this.reason = reason;
+    }
+
+    public PeerAddress getPeerAddress()     { return this.peerAddress; }
+    public DisconnectedReason getReason()   { return this.reason; }
 
     @Override
     public String toString() {

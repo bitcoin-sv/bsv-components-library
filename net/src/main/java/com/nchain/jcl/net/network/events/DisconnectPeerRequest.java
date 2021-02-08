@@ -1,10 +1,7 @@
 package com.nchain.jcl.net.network.events;
 
 import com.nchain.jcl.net.network.PeerAddress;
-
 import com.nchain.jcl.tools.events.Event;
-import lombok.Builder;
-import lombok.Value;
 
 /**
  * @author i.fernandez@nchain.com
@@ -12,13 +9,11 @@ import lombok.Value;
  *
  * An Event that represents a Request to Disconnect from one Peer. It also might include a Reason for that.
  */
-@Value
-@Builder(toBuilder = true)
-public class DisconnectPeerRequest extends Event {
+public final class DisconnectPeerRequest extends Event {
 
-    private PeerAddress peerAddress;
-    private PeerDisconnectedEvent.DisconnectedReason reason;
-    private String detail;
+    private final PeerAddress peerAddress;
+    private final PeerDisconnectedEvent.DisconnectedReason reason;
+    private final String detail;
 
     public DisconnectPeerRequest(PeerAddress peerAddress, PeerDisconnectedEvent.DisconnectedReason reason, String detail) {
         this.peerAddress = peerAddress;
@@ -32,6 +27,14 @@ public class DisconnectPeerRequest extends Event {
 
     public DisconnectPeerRequest(PeerAddress peerAddress, String detail) {
         this(peerAddress, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL, detail);
+    }
+
+    public PeerAddress getPeerAddress()                         { return this.peerAddress; }
+    public PeerDisconnectedEvent.DisconnectedReason getReason() { return this.reason; }
+    public String getDetail()                                   { return this.detail; }
+
+    public String toString() {
+        return "DisconnectPeerRequest(peerAddress=" + this.getPeerAddress() + ", reason=" + this.getReason() + ", detail=" + this.getDetail() + ")";
     }
 
 }

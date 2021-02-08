@@ -2,9 +2,6 @@ package com.nchain.jcl.net.network.streams.nio;
 
 
 import com.nchain.jcl.tools.streams.StreamState;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
 
 import java.math.BigInteger;
 
@@ -14,11 +11,44 @@ import java.math.BigInteger;
  *
  * This class stores the state of the NIOOutputStreamState.
  */
-@AllArgsConstructor
-@Value
-@Builder(toBuilder = true)
-public class NIOOutputStreamState extends StreamState {
+public final class NIOOutputStreamState extends StreamState {
     // Number of bytes sent through this stream since the beginning
-    @Builder.Default
     private BigInteger numBytesSent = BigInteger.ZERO;
+
+    public NIOOutputStreamState(BigInteger numBytesSent) {
+        if (numBytesSent != null)
+            this.numBytesSent = numBytesSent;
+    }
+
+    public BigInteger getNumBytesSent() {
+        return this.numBytesSent;
+    }
+
+    @Override
+    public String toString() {
+        return "NIOOutputStreamState(numBytesSent=" + this.getNumBytesSent() + ")";
+    }
+
+    public static NIOOutputStreamStateBuilder builder() {
+        return new NIOOutputStreamStateBuilder();
+    }
+
+    public NIOOutputStreamStateBuilder toBuilder() {
+        return new NIOOutputStreamStateBuilder().numBytesSent(this.numBytesSent);
+    }
+
+    /**
+     * Builder
+     */
+    public static class NIOOutputStreamStateBuilder {
+        private BigInteger numBytesSent;
+
+        NIOOutputStreamStateBuilder() { }
+
+        public NIOOutputStreamState.NIOOutputStreamStateBuilder numBytesSent(BigInteger numBytesSent) {
+            this.numBytesSent = numBytesSent;
+            return this;
+        }
+        public NIOOutputStreamState build() { return new NIOOutputStreamState(numBytesSent); }
+    }
 }

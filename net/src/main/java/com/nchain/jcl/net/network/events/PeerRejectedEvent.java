@@ -2,9 +2,6 @@ package com.nchain.jcl.net.network.events;
 
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.tools.events.Event;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
 
 /**
  * @author i.fernandez@nchain.com
@@ -13,18 +10,26 @@ import lombok.Value;
  * An Event Triggered when a connection to a Peer has been Rejected. So the connectin never took place in
  * the first place.
  */
-@Value
-@Builder(toBuilder = true)
-@AllArgsConstructor
-public class PeerRejectedEvent extends Event {
+public final class PeerRejectedEvent extends Event {
+
     /** Different Reasons why the conneciton has been rejected */
     public enum RejectedReason {
         INTERNAL_ERROR,
         TIMEOUT
     }
-    private PeerAddress peerAddress;
-    private RejectedReason reason;
-    private String detail; // might be null
+    private final PeerAddress peerAddress;
+    private final RejectedReason reason;
+    private final String detail; // might be null
+
+    public PeerRejectedEvent(PeerAddress peerAddress, RejectedReason reason, String detail) {
+        this.peerAddress = peerAddress;
+        this.reason = reason;
+        this.detail = detail;
+    }
+
+    public PeerAddress getPeerAddress() { return this.peerAddress; }
+    public RejectedReason getReason()   { return this.reason; }
+    public String getDetail()           { return this.detail; }
 
     @Override
     public String toString() {

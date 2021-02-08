@@ -2,9 +2,6 @@ package com.nchain.jcl.net.network.events;
 
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.tools.events.Event;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
 
 /**
  * @author i.fernandez@nchain.com
@@ -12,9 +9,13 @@ import lombok.Value;
  *
  * An Event that represents a Request to Connect to one specific Peer.
  */
-@AllArgsConstructor
-@Value
-@Builder(toBuilder = true)
-public class ConnectPeerRequest extends Event {
-    private PeerAddress peerAddres;
+public final class ConnectPeerRequest extends Event {
+    private final PeerAddress peerAddres;
+
+    public ConnectPeerRequest(PeerAddress peerAddres)   { this.peerAddres = peerAddres; }
+    public PeerAddress getPeerAddres()                  { return this.peerAddres; }
+
+    public String toString() {
+        return "ConnectPeerRequest(peerAddres=" + this.getPeerAddres() + ")";
+    }
 }

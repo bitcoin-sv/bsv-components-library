@@ -2,7 +2,6 @@ package com.nchain.jcl.net.network.events;
 
 
 import com.nchain.jcl.tools.events.Event;
-import lombok.Value;
 
 /**
  * @author i.fernandez@nchain.com
@@ -11,6 +10,9 @@ import lombok.Value;
  * An Event that represents a Request to Stop Connecting to more Peers in the Network.
  * This Request is usually triggered when we reach the minimum number of desired connections.
  */
-@Value
-public class StopConnectingRequest extends Event {
+public final class StopConnectingRequest extends Event {
+    public StopConnectingRequest() {}
+    public String toString() {
+        return "StopConnectingRequest()";
+    }
 }

@@ -1,9 +1,7 @@
 package com.nchain.jcl.net.network.streams.nio;
 
 import com.nchain.jcl.net.network.PeerAddress;
-
 import com.nchain.jcl.net.network.config.NetworkConfig;
-
 import com.nchain.jcl.net.network.streams.PeerInputStream;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.tools.config.RuntimeConfig;
@@ -11,7 +9,6 @@ import com.nchain.jcl.tools.log.LoggerUtil;
 import com.nchain.jcl.tools.streams.InputStreamSourceImpl;
 import com.nchain.jcl.tools.streams.StreamCloseEvent;
 import com.nchain.jcl.tools.streams.StreamDataEvent;
-import lombok.Getter;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -44,9 +41,7 @@ public class NIOInputStreamSource extends InputStreamSourceImpl<ByteArrayReader>
     // For loggin:
     LoggerUtil logger;
 
-    @Getter
     private PeerAddress peerAddress;
-    @Getter
     private NIOInputStreamState state;
 
     // The Selection Key and the Sockets linked to the physical connection to the remote Peer
@@ -167,5 +162,13 @@ public class NIOInputStreamSource extends InputStreamSourceImpl<ByteArrayReader>
     public void close(StreamCloseEvent event) {
         super.close(event);
         key.cancel();
+    }
+
+    public PeerAddress getPeerAddress() {
+        return this.peerAddress;
+    }
+
+    public NIOInputStreamState getState() {
+        return this.state;
     }
 }

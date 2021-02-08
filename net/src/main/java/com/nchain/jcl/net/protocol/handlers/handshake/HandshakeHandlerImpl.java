@@ -409,11 +409,10 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
         super.eventBus.publish(event);
 
         // We request a disconnection from this Peer:
-        DisconnectPeerRequest request = DisconnectPeerRequest.builder()
-                .peerAddress(peerInfo.getPeerAddress())
-                .reason(PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL)
-                .detail(detail)
-                .build();
+        DisconnectPeerRequest request = new DisconnectPeerRequest(
+                peerInfo.getPeerAddress(),
+                PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL,
+                detail);
         super.eventBus.publish(request);
 
         // We remove it from our List of Peers...

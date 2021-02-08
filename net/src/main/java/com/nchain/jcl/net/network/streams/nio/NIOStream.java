@@ -1,11 +1,8 @@
 package com.nchain.jcl.net.network.streams.nio;
 
 
-
-
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.config.NetworkConfig;
-
 import com.nchain.jcl.net.network.streams.PeerInputStream;
 import com.nchain.jcl.net.network.streams.PeerOutputStream;
 import com.nchain.jcl.net.network.streams.PeerStream;
@@ -14,7 +11,6 @@ import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.streams.InputStreamSourceImpl;
 import com.nchain.jcl.tools.streams.OutputStreamDestinationImpl;
 import com.nchain.jcl.tools.streams.StreamEndpointImpl;
-import lombok.Getter;
 
 import java.nio.channels.SelectionKey;
 import java.util.concurrent.ExecutorService;
@@ -31,10 +27,8 @@ public class NIOStream extends StreamEndpointImpl<ByteArrayReader> implements Pe
 
     private RuntimeConfig runtimeConfig;
     private NetworkConfig networkConfig;
-    @Getter private PeerAddress peerAddress;
+    private PeerAddress peerAddress;
     private SelectionKey key;
-
-    @Getter private NIOStreamState state;
 
     public NIOStream(ExecutorService executor, RuntimeConfig runtimeConfig, NetworkConfig networkConfig,
                      PeerAddress peerAddress, SelectionKey key) {
@@ -73,4 +67,7 @@ public class NIOStream extends StreamEndpointImpl<ByteArrayReader> implements Pe
                 .build();
     }
 
+    public PeerAddress getPeerAddress() {
+        return this.peerAddress;
+    }
 }

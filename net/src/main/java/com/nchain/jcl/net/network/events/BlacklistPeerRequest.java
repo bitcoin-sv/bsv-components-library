@@ -1,11 +1,8 @@
 package com.nchain.jcl.net.network.events;
 
 
-import com.nchain.jcl.tools.events.Event;
 import com.nchain.jcl.net.network.PeerAddress;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
+import com.nchain.jcl.tools.events.Event;
 
 /**
  * @author i.fernandez@nchain.com
@@ -15,11 +12,16 @@ import lombok.Value;
  *
  * A Request to Blacklist a Peer
  */
-@Value
-@Builder(toBuilder = true)
-@AllArgsConstructor
-public class BlacklistPeerRequest extends Event {
+public final class BlacklistPeerRequest extends Event {
     // NOTE: We do NOT Specify a REASON, since this Request will be triggered by the Client, so its up to the Client
     // to know and keep track of that.
-    private PeerAddress peerAddress;
+    private final PeerAddress peerAddress;
+
+    public BlacklistPeerRequest(PeerAddress peerAddress)    { this.peerAddress = peerAddress; }
+    public PeerAddress getPeerAddress()                     { return this.peerAddress; }
+
+    public String toString() {
+        return "BlacklistPeerRequest(peerAddress=" + this.getPeerAddress() + ")";
+    }
+
 }

@@ -2,7 +2,6 @@ package com.nchain.jcl.net.network;
 
 
 import com.nchain.jcl.tools.files.CSVSerializable;
-import lombok.EqualsAndHashCode;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -17,7 +16,6 @@ import java.util.StringTokenizer;
  * A class that wraps the info to locate a Peer in the Blockchain Network.
  * This class is immutable and safe for MultiThreading
  */
-@EqualsAndHashCode
 public final class PeerAddress implements CSVSerializable {
 
     private String address;
@@ -163,5 +161,32 @@ public final class PeerAddress implements CSVSerializable {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public boolean equals(final Object o) {
+        if (o == this) return true;
+        if (!(o instanceof PeerAddress)) return false;
+        final PeerAddress other = (PeerAddress) o;
+        final Object this$address = this.address;
+        final Object other$address = other.address;
+        if (this$address == null ? other$address != null : !this$address.equals(other$address)) return false;
+        final Object this$ip = this.getIp();
+        final Object other$ip = other.getIp();
+        if (this$ip == null ? other$ip != null : !this$ip.equals(other$ip)) return false;
+        if (this.getPort() != other.getPort()) return false;
+        if (this.verified != other.verified) return false;
+        return true;
+    }
+
+    public int hashCode() {
+        final int PRIME = 59;
+        int result = 1;
+        final Object $address = this.address;
+        result = result * PRIME + ($address == null ? 43 : $address.hashCode());
+        final Object $ip = this.getIp();
+        result = result * PRIME + ($ip == null ? 43 : $ip.hashCode());
+        result = result * PRIME + this.getPort();
+        result = result * PRIME + (this.verified ? 79 : 97);
+        return result;
     }
 }

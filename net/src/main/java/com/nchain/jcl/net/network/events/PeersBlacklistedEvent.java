@@ -1,10 +1,6 @@
 package com.nchain.jcl.net.network.events;
 
 import com.nchain.jcl.tools.events.Event;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Value;
 
 import java.net.InetAddress;
 import java.time.Duration;
@@ -20,14 +16,11 @@ import java.util.Optional;
  * It also provides information about the REASON why it's been blacklisted, which also contains
  * the expirationTime (the date after which this Peer is whitelisted and can be used again).
  */
-@Value
-@Builder(toBuilder = true)
-@AllArgsConstructor
-public class PeersBlacklistedEvent extends Event {
+public final class PeersBlacklistedEvent extends Event {
+
     /**
      * Definition of all the Reasons why a Peer can be blacklisted
      */
-    @AllArgsConstructor
     public enum BlacklistReason {
         CONNECTION_REJECTED (Optional.of(Duration.ofDays(1))),
         SERIALIZATION_ERROR (Optional.empty()),
@@ -36,9 +29,21 @@ public class PeersBlacklistedEvent extends Event {
         CLIENT              (Optional.empty()) // Blacklisted by the Client of JCL
         ;
 
-        @Getter private Optional<Duration> expirationTime;
+        private Optional<Duration> expirationTime;
+
+        private BlacklistReason(Optional<Duration> expirationTime)  { this.expirationTime = expirationTime; }
+        public Optional<Duration> getExpirationTime()               { return this.expirationTime; }
     }
-    private Map<InetAddress, BlacklistReason> inetAddress;
+
+    private final Map<InetAddress, BlacklistReason> inetAddress;
+
+    public PeersBlacklistedEvent(Map<InetAddress, BlacklistReason> inetAddress) {
+        this.inetAddress = inetAddress;
+    }
+
+    public Map<InetAddress, BlacklistReason> getInetAddress() {
+        return this.inetAddress;
+    }
 
     @Override
     public String toString() {

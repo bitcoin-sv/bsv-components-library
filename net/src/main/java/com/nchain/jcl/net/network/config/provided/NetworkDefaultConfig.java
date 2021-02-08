@@ -12,7 +12,6 @@ import java.util.OptionalInt;
  * A Simple NetWork configuration that is supposed to work fine in a local Development
  * Environment, like a regular laptop with at least 8GB of RAM.
  */
-@Getter
 public class NetworkDefaultConfig extends NetworkConfigImpl {
 
     private static final int port = 8333;

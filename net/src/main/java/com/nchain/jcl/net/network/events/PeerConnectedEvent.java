@@ -2,9 +2,6 @@ package com.nchain.jcl.net.network.events;
 
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.tools.events.Event;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
 
 /**
  * @author i.fernandez@nchain.com
@@ -15,12 +12,11 @@ import lombok.Value;
  * PeerHandshakedEvent, which is triggered when a Peer is connected and the handshake is done, so real
  * communication can be performed.
  */
-@Value
-@AllArgsConstructor
-@Builder(toBuilder = true)
-public class PeerConnectedEvent extends Event {
-    private PeerAddress peerAddress;
+public final class PeerConnectedEvent extends Event {
+    private final PeerAddress peerAddress;
 
+    public PeerConnectedEvent(PeerAddress peerAddress)  { this.peerAddress = peerAddress; }
+    public PeerAddress getPeerAddress()                 { return this.peerAddress; }
     @Override
     public String toString() {
         return "Event[Peer Connected]: " + peerAddress.toString();
