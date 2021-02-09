@@ -4,9 +4,6 @@ package com.nchain.jcl.net.protocol.events;
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.protocol.messages.VersionMsg;
 import com.nchain.jcl.tools.events.Event;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
 
 /**
  * @author i.fernandez@nchain.com
@@ -14,13 +11,18 @@ import lombok.Value;
  *
  * An Event triggered when A Peer has been handshaked and it's ready to communicate with.
  */
-@Value
-@Builder(toBuilder = true)
-@AllArgsConstructor
-public class PeerHandshakedEvent extends Event {
-    private PeerAddress peerAddress;
+public final class PeerHandshakedEvent extends Event {
+    private final PeerAddress peerAddress;
     // Version Msg sent by the remote Peer during the Handshake process:
-    private VersionMsg versionMsg;
+    private final VersionMsg versionMsg;
+
+    public PeerHandshakedEvent(PeerAddress peerAddress, VersionMsg versionMsg) {
+        this.peerAddress = peerAddress;
+        this.versionMsg = versionMsg;
+    }
+
+    public PeerAddress getPeerAddress() { return this.peerAddress; }
+    public VersionMsg getVersionMsg()   { return this.versionMsg; }
 
     @Override
     public String toString() {

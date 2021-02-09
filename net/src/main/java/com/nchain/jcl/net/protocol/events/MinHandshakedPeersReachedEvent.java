@@ -1,9 +1,6 @@
 package com.nchain.jcl.net.protocol.events;
 
 import com.nchain.jcl.tools.events.Event;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
 
 /**
  * @author i.fernandez@nchain.com
@@ -12,9 +9,17 @@ import lombok.Value;
  * An Event triggered when the minimun number of Peers Handshaked has been reached, as specified in the P2P
  * Configuration.
  */
-@Value
-@Builder(toBuilder = true)
-@AllArgsConstructor
-public class MinHandshakedPeersReachedEvent extends Event {
-    private int numPeers;
+public final class MinHandshakedPeersReachedEvent extends Event {
+    private final int numPeers;
+
+    public MinHandshakedPeersReachedEvent(int numPeers) {
+        this.numPeers = numPeers;
+    }
+
+    public int getNumPeers() { return this.numPeers; }
+
+    @Override
+    public String toString() {
+        return "MinHandshakedPeersReachedEvent(numPeers=" + this.getNumPeers() + ")";
+    }
 }

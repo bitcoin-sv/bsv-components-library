@@ -400,13 +400,14 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
         updateStatus(0,false, false, 1);
 
         // We notify the event:
-        PeerHandshakeRejectedEvent event = PeerHandshakeRejectedEvent.builder()
-                .versionMsg(peerInfo.getVersionMsgReceived())
-                .peerAddress(peerInfo.getPeerAddress())
-                .reason(reason)
-                .detail(detail)
-                .build();
-        super.eventBus.publish(event);
+        super.eventBus.publish(
+                new PeerHandshakeRejectedEvent(
+                        peerInfo.getPeerAddress(),
+                        peerInfo.getVersionMsgReceived(),
+                        reason,
+                        detail
+                )
+        );
 
         // We request a disconnection from this Peer:
         DisconnectPeerRequest request = new DisconnectPeerRequest(

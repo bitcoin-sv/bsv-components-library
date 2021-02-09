@@ -4,9 +4,6 @@ package com.nchain.jcl.net.protocol.events;
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
 import com.nchain.jcl.tools.events.Event;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
 
 /**
  * @author i.fernandez@nchain.com
@@ -16,10 +13,20 @@ import lombok.Value;
  *
  * An Event triggered when a Block Header has been downloaded.
  */
-@Value
-@Builder(toBuilder = true)
-@AllArgsConstructor
-public class BlockHeaderDownloadedEvent extends Event {
-    private PeerAddress peerAddress;
-    private BlockHeaderMsg blockHeaderMsg;
+public final class BlockHeaderDownloadedEvent extends Event {
+    private final PeerAddress peerAddress;
+    private final BlockHeaderMsg blockHeaderMsg;
+
+    public BlockHeaderDownloadedEvent(PeerAddress peerAddress, BlockHeaderMsg blockHeaderMsg) {
+        this.peerAddress = peerAddress;
+        this.blockHeaderMsg = blockHeaderMsg;
+    }
+
+    public PeerAddress getPeerAddress()         { return this.peerAddress; }
+    public BlockHeaderMsg getBlockHeaderMsg()   { return this.blockHeaderMsg; }
+
+    @Override
+    public String toString() {
+        return "BlockHeaderDownloadedEvent(peerAddress=" + this.getPeerAddress() + ", blockHeaderMsg=" + this.getBlockHeaderMsg() + ")";
+    }
 }

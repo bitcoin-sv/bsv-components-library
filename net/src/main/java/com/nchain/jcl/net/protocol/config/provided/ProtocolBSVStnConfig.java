@@ -24,7 +24,6 @@ import lombok.Getter;
     of DNS. Since these values might make some difference in terms of performance, we keep it for future reference.
  */
 @Deprecated
-@Getter
 public class ProtocolBSVStnConfig extends ProtocolConfigImpl implements ProtocolConfig {
 
     // Specific values for BSV STN Net:
@@ -81,7 +80,4 @@ public class ProtocolBSVStnConfig extends ProtocolConfigImpl implements Protocol
                 null,            // Default Blacklist Config
                 null);    // Default Block Downloader Config
     }
-
-    @Override
-    public String getId() { return id;}
 }

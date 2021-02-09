@@ -2,9 +2,6 @@ package com.nchain.jcl.net.protocol.events;
 
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.tools.events.Event;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
 
 /**
  * @author i.fernandez@nchain.com
@@ -12,10 +9,7 @@ import lombok.Value;
  *
  * An Event triggered when a Peer has failed to perform the Ping/Pong P2P
  */
-@Value
-@Builder(toBuilder = true)
-@AllArgsConstructor
-public class PingPongFailedEvent extends Event {
+public final class PingPongFailedEvent extends Event {
 
     /** Stores the different reason why a Ping-Pong might fail */
     public enum PingPongFailedReason {
@@ -24,6 +18,19 @@ public class PingPongFailedEvent extends Event {
         WRONG_NONCE
     }
 
-    private PeerAddress peerAddress;
-    private PingPongFailedReason reason;
+    private final PeerAddress peerAddress;
+    private final PingPongFailedReason reason;
+
+    public PingPongFailedEvent(PeerAddress peerAddress, PingPongFailedReason reason) {
+        this.peerAddress = peerAddress;
+        this.reason = reason;
+    }
+
+    public PeerAddress getPeerAddress()     { return this.peerAddress; }
+    public PingPongFailedReason getReason() { return this.reason; }
+
+    @Override
+    public String toString() {
+        return "PingPongFailedEvent(peerAddress=" + this.getPeerAddress() + ", reason=" + this.getReason() + ")";
+    }
 }

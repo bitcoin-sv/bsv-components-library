@@ -2,9 +2,6 @@ package com.nchain.jcl.net.protocol.events;
 
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.tools.events.Event;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
 
 /**
  * @author i.fernandez@nchain.com
@@ -14,9 +11,17 @@ import lombok.Value;
  *
  * A Request to Disable the Ping/Pong protocol for a Particular Peer
  */
-@Value
-@Builder(toBuilder = true)
-@AllArgsConstructor
-public class DisablePingPongRequest extends Event {
-    private PeerAddress peerAddress;
+public final class DisablePingPongRequest extends Event {
+    private final PeerAddress peerAddress;
+
+    public DisablePingPongRequest(PeerAddress peerAddress) {
+        this.peerAddress = peerAddress;
+    }
+
+    public PeerAddress getPeerAddress() { return this.peerAddress; }
+
+    @Override
+    public String toString() {
+        return "DisablePingPongRequest(peerAddress=" + this.getPeerAddress() + ")";
+    }
 }

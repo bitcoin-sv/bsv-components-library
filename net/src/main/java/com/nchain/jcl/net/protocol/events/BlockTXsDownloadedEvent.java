@@ -4,9 +4,6 @@ import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.TxMsg;
 import com.nchain.jcl.tools.events.Event;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
 
 import java.util.List;
 
@@ -22,11 +19,23 @@ import java.util.List;
  * @see BlockDownloadedEvent
  * @see LiteBlockDownloadedEvent
  */
-@Value
-@Builder(toBuilder = true)
-@AllArgsConstructor
-public class BlockTXsDownloadedEvent extends Event {
-    private PeerAddress peerAddress;
-    private BlockHeaderMsg blockHeaderMsg;
-    private List<TxMsg> txsMsg;
+public final class BlockTXsDownloadedEvent extends Event {
+    private final PeerAddress peerAddress;
+    private final BlockHeaderMsg blockHeaderMsg;
+    private final List<TxMsg> txsMsg;
+
+    public BlockTXsDownloadedEvent(PeerAddress peerAddress, BlockHeaderMsg blockHeaderMsg, List<TxMsg> txsMsg) {
+        this.peerAddress = peerAddress;
+        this.blockHeaderMsg = blockHeaderMsg;
+        this.txsMsg = txsMsg;
+    }
+
+    public PeerAddress getPeerAddress()         { return this.peerAddress; }
+    public BlockHeaderMsg getBlockHeaderMsg()   { return this.blockHeaderMsg; }
+    public List<TxMsg> getTxsMsg()              { return this.txsMsg; }
+
+    @Override
+    public String toString() {
+        return "BlockTXsDownloadedEvent(peerAddress=" + this.getPeerAddress() + ", blockHeaderMsg=" + this.getBlockHeaderMsg() + ", txsMsg=" + this.getTxsMsg() + ")";
+    }
 }

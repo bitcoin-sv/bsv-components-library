@@ -4,9 +4,6 @@ package com.nchain.jcl.net.protocol.events;
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.tools.events.Event;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
 
 /**
  * @author i.fernandez@nchain.com
@@ -14,10 +11,20 @@ import lombok.Value;
  *
  * An Event representing a Request to send a Message to an specific Peer
  */
-@Value
-@AllArgsConstructor
-@Builder
-public class SendMsgRequest extends Event {
-    private PeerAddress peerAddress;
-    private BitcoinMsg<?> btcMsg;
+public final class SendMsgRequest extends Event {
+    private final PeerAddress peerAddress;
+    private final BitcoinMsg<?> btcMsg;
+
+    public SendMsgRequest(PeerAddress peerAddress, BitcoinMsg<?> btcMsg) {
+        this.peerAddress = peerAddress;
+        this.btcMsg = btcMsg;
+    }
+
+    public PeerAddress getPeerAddress() { return this.peerAddress; }
+    public BitcoinMsg<?> getBtcMsg()    { return this.btcMsg; }
+
+    @Override
+    public String toString() {
+        return "SendMsgRequest(peerAddress=" + this.getPeerAddress() + ", btcMsg=" + this.getBtcMsg() + ")";
+    }
 }

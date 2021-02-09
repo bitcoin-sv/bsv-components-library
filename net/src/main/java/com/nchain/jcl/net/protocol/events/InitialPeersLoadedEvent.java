@@ -3,9 +3,6 @@ package com.nchain.jcl.net.protocol.events;
 
 import com.nchain.jcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig;
 import com.nchain.jcl.tools.events.Event;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
 
 /**
  * @author i.fernandez@nchain.com
@@ -16,10 +13,20 @@ import lombok.Value;
  * An Event triggered when the Discovery Handler loads the initial Set of Peers that is used to start the
  * connection process to the P2P Network.
  */
-@Value
-@Builder(toBuilder = true)
-@AllArgsConstructor
-public class InitialPeersLoadedEvent extends Event {
-    private int numPeersLoaded;
-    private DiscoveryHandlerConfig.DiscoveryMethod discoveryMethod;
+public final class InitialPeersLoadedEvent extends Event {
+    private final int numPeersLoaded;
+    private final DiscoveryHandlerConfig.DiscoveryMethod discoveryMethod;
+
+    public InitialPeersLoadedEvent(int numPeersLoaded, DiscoveryHandlerConfig.DiscoveryMethod discoveryMethod) {
+        this.numPeersLoaded = numPeersLoaded;
+        this.discoveryMethod = discoveryMethod;
+    }
+
+    public int getNumPeersLoaded()                                      { return this.numPeersLoaded; }
+    public DiscoveryHandlerConfig.DiscoveryMethod getDiscoveryMethod()  { return this.discoveryMethod; }
+
+    @Override
+    public String toString() {
+        return "InitialPeersLoadedEvent(numPeersLoaded=" + this.getNumPeersLoaded() + ", discoveryMethod=" + this.getDiscoveryMethod() + ")";
+    }
 }

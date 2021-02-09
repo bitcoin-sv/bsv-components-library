@@ -17,8 +17,6 @@ import com.nchain.jcl.net.protocol.handlers.pingPong.PingPongHandler;
 import com.nchain.jcl.net.protocol.handlers.pingPong.PingPongHandlerConfig;
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
 import com.nchain.jcl.tools.handlers.HandlerConfig;
-import lombok.Builder;
-import lombok.Getter;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,35 +31,31 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 public class ProtocolConfigImpl implements ProtocolConfig {
 
-    @Getter
     protected String id;
 
     // Network Configuration: default
-    @Getter
-    @Builder.Default
     protected NetworkConfig networkConfig = new NetworkDefaultConfig();
 
     // Header of the Genesis Block of this Chain
-    @Getter private BlockHeaderMsg genesisBlock;
+    private BlockHeaderMsg genesisBlock;
 
     // We store some references to each Handler Configuration Builders. They contain already
     // default values for its variables, and others can be overwritten by child-classes
 
-    @Getter protected ProtocolBasicConfig basicConfig;
-    @Getter protected MessageHandlerConfig messageConfig;
-    @Getter protected HandshakeHandlerConfig handshakeConfig;
-    @Getter protected PingPongHandlerConfig pingPongConfig;
-    @Getter protected DiscoveryHandlerConfig discoveryConfig;
-    @Getter protected BlacklistHandlerConfig blacklistConfig;
-    @Getter protected BlockDownloaderHandlerConfig blockDownloaderConfig;
-    @Getter protected Map<String, HandlerConfig> handlersConfig = new HashMap<>();
+    protected ProtocolBasicConfig basicConfig;
+    protected MessageHandlerConfig messageConfig;
+    protected HandshakeHandlerConfig handshakeConfig;
+    protected PingPongHandlerConfig pingPongConfig;
+    protected DiscoveryHandlerConfig discoveryConfig;
+    protected BlacklistHandlerConfig blacklistConfig;
+    protected BlockDownloaderHandlerConfig blockDownloaderConfig;
+    protected Map<String, HandlerConfig> handlersConfig = new HashMap<>();
 
     // Convenience parameters:
     Integer port;
     Integer minPeers;
     Integer maxPeers;
 
-    @Builder(toBuilder = true)
     public ProtocolConfigImpl(
                                 // Convenience parameters:
                                 Integer port,
@@ -136,6 +130,112 @@ public class ProtocolConfigImpl implements ProtocolConfig {
         handlersConfig.put(BlockDownloaderHandler.HANDLER_ID, this.blockDownloaderConfig);
     }
 
+
+
     @Override
     public String toString() { return getId();}
+
+    public String getId()                                           { return this.id; }
+    public NetworkConfig getNetworkConfig()                         { return this.networkConfig; }
+    public BlockHeaderMsg getGenesisBlock()                         { return this.genesisBlock; }
+    public ProtocolBasicConfig getBasicConfig()                     { return this.basicConfig; }
+    public MessageHandlerConfig getMessageConfig()                  { return this.messageConfig; }
+    public HandshakeHandlerConfig getHandshakeConfig()              { return this.handshakeConfig; }
+    public PingPongHandlerConfig getPingPongConfig()                { return this.pingPongConfig; }
+    public DiscoveryHandlerConfig getDiscoveryConfig()              { return this.discoveryConfig; }
+    public BlacklistHandlerConfig getBlacklistConfig()              { return this.blacklistConfig; }
+    public BlockDownloaderHandlerConfig getBlockDownloaderConfig()  { return this.blockDownloaderConfig; }
+    public Map<String, HandlerConfig> getHandlersConfig()           { return this.handlersConfig; }
+
+    public static ProtocolConfigImplBuilder builder() {
+        return new ProtocolConfigImplBuilder();
+    }
+
+    public ProtocolConfigImplBuilder toBuilder() {
+        return new ProtocolConfigImplBuilder().port(this.port).minPeers(this.minPeers).maxPeers(this.maxPeers).genesisBlock(this.genesisBlock).basicConfig(this.basicConfig).networkConfig(this.networkConfig).messageConfig(this.messageConfig).handshakeConfig(this.handshakeConfig).pingPongConfig(this.pingPongConfig).discoveryConfig(this.discoveryConfig).blacklistConfig(this.blacklistConfig).blockDownloaderConfig(this.blockDownloaderConfig);
+    }
+
+    /**
+     * Builder
+     */
+    public static class ProtocolConfigImplBuilder {
+        private Integer port;
+        private Integer minPeers;
+        private Integer maxPeers;
+        private BlockHeaderMsg genesisBlock;
+        private ProtocolBasicConfig basicConfig;
+        private NetworkConfig networkConfig;
+        private MessageHandlerConfig messageConfig;
+        private HandshakeHandlerConfig handshakeConfig;
+        private PingPongHandlerConfig pingPongConfig;
+        private DiscoveryHandlerConfig discoveryConfig;
+        private BlacklistHandlerConfig blacklistConfig;
+        private BlockDownloaderHandlerConfig blockDownloaderConfig;
+
+        ProtocolConfigImplBuilder() {}
+
+        public ProtocolConfigImpl.ProtocolConfigImplBuilder port(Integer port) {
+            this.port = port;
+            return this;
+        }
+
+        public ProtocolConfigImpl.ProtocolConfigImplBuilder minPeers(Integer minPeers) {
+            this.minPeers = minPeers;
+            return this;
+        }
+
+        public ProtocolConfigImpl.ProtocolConfigImplBuilder maxPeers(Integer maxPeers) {
+            this.maxPeers = maxPeers;
+            return this;
+        }
+
+        public ProtocolConfigImpl.ProtocolConfigImplBuilder genesisBlock(BlockHeaderMsg genesisBlock) {
+            this.genesisBlock = genesisBlock;
+            return this;
+        }
+
+        public ProtocolConfigImpl.ProtocolConfigImplBuilder basicConfig(ProtocolBasicConfig basicConfig) {
+            this.basicConfig = basicConfig;
+            return this;
+        }
+
+        public ProtocolConfigImpl.ProtocolConfigImplBuilder networkConfig(NetworkConfig networkConfig) {
+            this.networkConfig = networkConfig;
+            return this;
+        }
+
+        public ProtocolConfigImpl.ProtocolConfigImplBuilder messageConfig(MessageHandlerConfig messageConfig) {
+            this.messageConfig = messageConfig;
+            return this;
+        }
+
+        public ProtocolConfigImpl.ProtocolConfigImplBuilder handshakeConfig(HandshakeHandlerConfig handshakeConfig) {
+            this.handshakeConfig = handshakeConfig;
+            return this;
+        }
+
+        public ProtocolConfigImpl.ProtocolConfigImplBuilder pingPongConfig(PingPongHandlerConfig pingPongConfig) {
+            this.pingPongConfig = pingPongConfig;
+            return this;
+        }
+
+        public ProtocolConfigImpl.ProtocolConfigImplBuilder discoveryConfig(DiscoveryHandlerConfig discoveryConfig) {
+            this.discoveryConfig = discoveryConfig;
+            return this;
+        }
+
+        public ProtocolConfigImpl.ProtocolConfigImplBuilder blacklistConfig(BlacklistHandlerConfig blacklistConfig) {
+            this.blacklistConfig = blacklistConfig;
+            return this;
+        }
+
+        public ProtocolConfigImpl.ProtocolConfigImplBuilder blockDownloaderConfig(BlockDownloaderHandlerConfig blockDownloaderConfig) {
+            this.blockDownloaderConfig = blockDownloaderConfig;
+            return this;
+        }
+
+        public ProtocolConfigImpl build() {
+            return new ProtocolConfigImpl(port, minPeers, maxPeers, genesisBlock, basicConfig, networkConfig, messageConfig, handshakeConfig, pingPongConfig, discoveryConfig, blacklistConfig, blockDownloaderConfig);
+        }
+    }
 }

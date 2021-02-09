@@ -2,9 +2,6 @@ package com.nchain.jcl.net.protocol.events;
 
 
 import com.nchain.jcl.tools.events.Event;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
 
 /**
  * @author i.fernandez@nchain.com
@@ -15,9 +12,17 @@ import lombok.Value;
  * An Event triggered when the Maximun number of Pers Handshaked has been reached, as specified in the P2P
  * Configuration.
  */
-@Value
-@Builder(toBuilder = true)
-@AllArgsConstructor
-public class MaxHandshakedPeersReachedEvent extends Event {
-    private int numPeers;
+public final class MaxHandshakedPeersReachedEvent extends Event {
+    private final int numPeers;
+
+    public MaxHandshakedPeersReachedEvent(int numPeers) {
+        this.numPeers = numPeers;
+    }
+
+    public int getNumPeers() { return this.numPeers; }
+
+    @Override
+    public String toString() {
+        return "MaxHandshakedPeersReachedEvent(numPeers=" + this.getNumPeers() + ")";
+    }
 }

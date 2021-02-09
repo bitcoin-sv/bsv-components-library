@@ -24,7 +24,6 @@ import lombok.Getter;
     of DNS. Since these values might make some difference in terms of performance, we keep it for future reference.
  */
 @Deprecated
-@Getter
 public class ProtocolBSVMainConfig extends ProtocolConfigImpl implements ProtocolConfig {
 
     // Specific values for BSV Main Net:
@@ -83,7 +82,4 @@ public class ProtocolBSVMainConfig extends ProtocolConfigImpl implements Protoco
 
     }
 
-
-    @Override
-    public String getId() { return id;}
 }

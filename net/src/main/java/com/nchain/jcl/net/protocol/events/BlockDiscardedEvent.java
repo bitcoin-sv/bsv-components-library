@@ -2,9 +2,6 @@ package com.nchain.jcl.net.protocol.events;
 
 
 import com.nchain.jcl.tools.events.Event;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
 
 /**
  * @author i.fernandez@nchain.com
@@ -16,16 +13,25 @@ import lombok.Value;
  * provides info about the Block (Hash) and the reason why the Block has been discarded
  * A Block discarded might be attempted again after some time, depending on configuration.
  */
-@Value
-@Builder(toBuilder = true)
-@AllArgsConstructor
-public class BlockDiscardedEvent extends Event {
+public final class BlockDiscardedEvent extends Event {
 
     /** Definition of possible reasons why a block might be Discarded during Downloaded */
     public enum DiscardedReason {
         TIMEOUT // It takes too long to download the bock
     }
 
-    private String hash;
-    private DiscardedReason reason;
+    private final String hash;
+    private final DiscardedReason reason;
+
+    public BlockDiscardedEvent(String hash, DiscardedReason reason) {
+        this.hash = hash;
+        this.reason = reason;
+    }
+
+    public String getHash()             { return this.hash; }
+    public DiscardedReason getReason()  { return this.reason; }
+    @Override
+    public String toString() {
+        return "BlockDiscardedEvent(hash=" + this.getHash() + ", reason=" + this.getReason() + ")";
+    }
 }

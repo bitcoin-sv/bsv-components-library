@@ -92,7 +92,7 @@ class DiscoveryOKTest extends Specification {
             try {
                 println("Starting P2P ...")
                 server.startServer()
-                Thread.sleep(10000)
+                Thread.sleep(30000) // Raise this timeout if the DNS are poor and take long to find peers
                 println("P2P Stopping...")
                 server.stop()
                 println("P2P Stopped.")

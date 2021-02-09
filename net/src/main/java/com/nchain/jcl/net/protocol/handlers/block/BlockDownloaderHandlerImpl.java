@@ -204,11 +204,12 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
     private synchronized void processWholeBlockReceived(BlockPeerInfo peerInfo, BitcoinMsg<BlockMsg> blockMesage) {
 
         // We publish an specific event for this Lite Block being downloaded:
-        super.eventBus.publish(LiteBlockDownloadedEvent.builder()
-                    .peerAddress(peerInfo.getPeerAddress())
-                    .block(blockMesage)
-                    .downloadingTime(Duration.between(peerInfo.getCurrentBlockInfo().getStartTimestamp(), Instant.now()))
-                    .build());
+        super.eventBus.publish(
+                new LiteBlockDownloadedEvent(
+                    peerInfo.getPeerAddress(),
+                    blockMesage,
+                    Duration.between(peerInfo.getCurrentBlockInfo().getStartTimestamp(), Instant.now()))
+        );
 
         // We notify the Header has been downloaded:
         super.eventBus.publish(new BlockHeaderDownloadedEvent(peerInfo.getPeerAddress(), blockMesage.getBody().getBlockHeader()));
@@ -229,12 +230,14 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
             super.eventBus.publish(new EnablePingPongRequest(peerInfo.getPeerAddress()));
 
             // We publish an Event notifying that this Block being downloaded:
-            super.eventBus.publish(BlockDownloadedEvent.builder()
-                    .peerAddress(peerInfo.getPeerAddress())
-                    .blockHeader(blockHeader)
-                    .blockSize(blockSize)
-                    .downloadingTime(Duration.between(peerInfo.getCurrentBlockInfo().getStartTimestamp(), Instant.now()))
-                    .build());
+            super.eventBus.publish(
+                new BlockDownloadedEvent(
+                        peerInfo.getPeerAddress(),
+                        blockHeader,
+                        Duration.between(peerInfo.getCurrentBlockInfo().getStartTimestamp(), Instant.now()),
+                        blockSize
+                )
+            );
 
             // We reset the peer, to make it ready for a new download, and we updateNextMessage the workingState:
             peerInfo.reset();

@@ -4,9 +4,6 @@ package com.nchain.jcl.net.protocol.events;
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
 import com.nchain.jcl.tools.events.Event;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
 
 import java.time.Duration;
 
@@ -27,12 +24,26 @@ import java.time.Duration;
  * @see MsgReceivedEvent (when the Msg is of type PartialBlockHeaderMSg or PartialBlockTXsMsg)
  *
  */
-@Value
-@Builder(toBuilder = true)
-@AllArgsConstructor
-public class BlockDownloadedEvent extends Event {
-    private PeerAddress peerAddress;
-    private BlockHeaderMsg blockHeader;
-    private Duration downloadingTime;
-    private Long blockSize;
+public final class BlockDownloadedEvent extends Event {
+    private final PeerAddress peerAddress;
+    private final BlockHeaderMsg blockHeader;
+    private final Duration downloadingTime;
+    private final Long blockSize;
+
+    public BlockDownloadedEvent(PeerAddress peerAddress, BlockHeaderMsg blockHeader, Duration downloadingTime, Long blockSize) {
+        this.peerAddress = peerAddress;
+        this.blockHeader = blockHeader;
+        this.downloadingTime = downloadingTime;
+        this.blockSize = blockSize;
+    }
+
+    public PeerAddress getPeerAddress()     { return this.peerAddress; }
+    public BlockHeaderMsg getBlockHeader()  { return this.blockHeader; }
+    public Duration getDownloadingTime()    { return this.downloadingTime; }
+    public Long getBlockSize()              { return this.blockSize; }
+
+    @Override
+    public String toString() {
+        return "BlockDownloadedEvent(peerAddress=" + this.getPeerAddress() + ", blockHeader=" + this.getBlockHeader() + ", downloadingTime=" + this.getDownloadingTime() + ", blockSize=" + this.getBlockSize() + ")";
+    }
 }

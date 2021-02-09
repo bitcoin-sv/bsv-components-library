@@ -5,9 +5,6 @@ import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.protocol.messages.BlockMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.tools.events.Event;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
 
 import java.time.Duration;
 
@@ -27,12 +24,23 @@ import java.time.Duration;
  *
  * @see BlockDownloadedEvent
  */
-@Value
-@Builder(toBuilder = true)
-@AllArgsConstructor
-public class LiteBlockDownloadedEvent extends Event {
-    private PeerAddress peerAddress;
-    private BitcoinMsg<BlockMsg> block; // Whole Downloaded Block.
-    private Duration downloadingTime;
+public final class LiteBlockDownloadedEvent extends Event {
+    private final PeerAddress peerAddress;
+    private final BitcoinMsg<BlockMsg> block; // Whole Downloaded Block.
+    private final Duration downloadingTime;
 
+    public LiteBlockDownloadedEvent(PeerAddress peerAddress, BitcoinMsg<BlockMsg> block, Duration downloadingTime) {
+        this.peerAddress = peerAddress;
+        this.block = block;
+        this.downloadingTime = downloadingTime;
+    }
+
+    public PeerAddress getPeerAddress()     { return this.peerAddress; }
+    public BitcoinMsg<BlockMsg> getBlock()  { return this.block; }
+    public Duration getDownloadingTime()    { return this.downloadingTime; }
+
+    @Override
+    public String toString() {
+        return "LiteBlockDownloadedEvent(peerAddress=" + this.getPeerAddress() + ", block=" + this.getBlock() + ", downloadingTime=" + this.getDownloadingTime() + ")";
+    }
 }

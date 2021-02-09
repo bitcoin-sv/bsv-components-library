@@ -2,9 +2,6 @@ package com.nchain.jcl.net.protocol.events;
 
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.tools.events.Event;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
 
 /**
  * @author i.fernandez@nchain.com
@@ -14,9 +11,17 @@ import lombok.Value;
  *
  * An Event representing a Request to broadcast a Message to all the Peers we are connected to.
  */
-@Value
-@AllArgsConstructor
-@Builder
-public class BroadcastMsgRequest extends Event {
-    private BitcoinMsg<?> btcMsg;
+public final class BroadcastMsgRequest extends Event {
+    private final BitcoinMsg<?> btcMsg;
+
+    public BroadcastMsgRequest(BitcoinMsg<?> btcMsg) {
+        this.btcMsg = btcMsg;
+    }
+
+    public BitcoinMsg<?> getBtcMsg() { return this.btcMsg; }
+
+    @Override
+    public String toString() {
+        return "BroadcastMsgRequest(btcMsg=" + this.getBtcMsg() + ")";
+    }
 }

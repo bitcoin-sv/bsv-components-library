@@ -2,9 +2,6 @@ package com.nchain.jcl.net.protocol.events;
 
 
 import com.nchain.jcl.tools.events.Event;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
 
 import java.util.List;
 
@@ -16,9 +13,17 @@ import java.util.List;
  *
  * A Request for Downloading a Block
  */
-@Value
-@Builder(toBuilder = true)
-@AllArgsConstructor
-public class BlocksDownloadRequest extends Event {
-    private List<String> blockHashes;
+public final class BlocksDownloadRequest extends Event {
+    private final List<String> blockHashes;
+
+    public BlocksDownloadRequest(List<String> blockHashes) {
+        this.blockHashes = blockHashes;
+    }
+
+    public List<String> getBlockHashes() { return this.blockHashes; }
+
+    @Override
+    public String toString() {
+        return "BlocksDownloadRequest(blockHashes=" + this.getBlockHashes() + ")";
+    }
 }

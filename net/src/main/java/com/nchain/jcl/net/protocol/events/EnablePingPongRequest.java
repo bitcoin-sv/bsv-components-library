@@ -3,9 +3,6 @@ package com.nchain.jcl.net.protocol.events;
 
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.tools.events.Event;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
 
 /**
  * @author i.fernandez@nchain.com
@@ -15,9 +12,17 @@ import lombok.Value;
  *
  * A Request to Enable the Ping/Pong protocol for a particular Peer
  */
-@Value
-@Builder(toBuilder = true)
-@AllArgsConstructor
-public class EnablePingPongRequest extends Event {
-    private PeerAddress peerAddress;
+public final class EnablePingPongRequest extends Event {
+    private final PeerAddress peerAddress;
+
+    public EnablePingPongRequest(PeerAddress peerAddress) {
+        this.peerAddress = peerAddress;
+    }
+
+    public PeerAddress getPeerAddress() { return this.peerAddress; }
+
+    @Override
+    public String toString() {
+        return "EnablePingPongRequest(peerAddress=" + this.getPeerAddress() + ")";
+    }
 }

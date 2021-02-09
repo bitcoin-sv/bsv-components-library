@@ -22,7 +22,6 @@ import lombok.Getter;
     of DNS. Since these values might make some difference in terms of performance, we keep it for future reference.
  */
 @Deprecated
-@Getter
 public class ProtocolBTCMainConfig extends ProtocolConfigImpl implements ProtocolConfig {
 
     // Specific values for BTC main Net:
@@ -87,7 +86,4 @@ public class ProtocolBTCMainConfig extends ProtocolConfigImpl implements Protoco
                 null,            // Default Blacklist Config
                 null);    // Default Block Downloader Config
     }
-
-    @Override
-    public String getId() { return id;}
 }
