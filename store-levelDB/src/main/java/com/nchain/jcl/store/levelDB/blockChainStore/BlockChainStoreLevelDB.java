@@ -5,11 +5,9 @@ import com.nchain.jcl.store.blockChainStore.events.BlockChainStoreStreamer;
 import com.nchain.jcl.store.keyValue.blockChainStore.BlockChainStoreKeyValue;
 import com.nchain.jcl.store.levelDB.blockStore.BlockStoreLevelDB;
 import com.nchain.jcl.tools.thread.ThreadUtils;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
 
+import javax.annotation.Nonnull;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
@@ -25,11 +23,11 @@ import java.util.concurrent.TimeUnit;
  * connection to the LevelDB.
 
  */
-@Slf4j
 public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockChainStoreKeyValue<Map.Entry<byte[], byte[]>, Object> {
 
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(BlockChainStoreLevelDB.class);
     // Configuration:
-    @Getter private BlockChainStoreLevelDBConfig config;
+    private BlockChainStoreLevelDBConfig config;
 
     // State publish configuration:
     private final Duration statePublishFrequency;
@@ -47,8 +45,7 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
     // Events Streamer:
     private final BlockChainStoreStreamer blockChainStoreStreamer;
 
-    @Builder(builderMethodName = "chainStoreBuilder")
-    public BlockChainStoreLevelDB(@NonNull BlockChainStoreLevelDBConfig config,
+    public BlockChainStoreLevelDB(@Nonnull BlockChainStoreLevelDBConfig config,
                                   boolean triggerBlockEvents,
                                   boolean triggerTxEvents,
                                   Duration statePublishFrequency,
@@ -74,6 +71,8 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
 
         blockChainStoreStreamer = new BlockChainStoreStreamer(super.eventBus);
     }
+
+
 
     @Override public byte[] fullKeyForBlockNext(String blockHash)       { return fullKey(this.fullKeyForBlocks(), keyForBlockNext(blockHash));}
     @Override public byte[] fullKeyForBlockChainInfo(String blockHash)  { return fullKey(this.fullKeyForBlocks(), keyForBlockChainInfo(blockHash));}
@@ -136,4 +135,72 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
         executeInTransaction(tr, () -> _initGenesisBlock(tr, config.getGenesisBlock()));
     }
 
+    public BlockChainStoreLevelDBConfig getConfig() {
+        return this.config;
+    }
+
+    public static BlockChainStoreLevelDBBuilder chainStoreBuilder() {
+        return new BlockChainStoreLevelDBBuilder();
+    }
+
+    /**
+     * Builder
+     */
+    public static class BlockChainStoreLevelDBBuilder {
+        private BlockChainStoreLevelDBConfig config;
+        private boolean triggerBlockEvents;
+        private boolean triggerTxEvents;
+        private Duration statePublishFrequency;
+        private Boolean enableAutomaticForkPrunning;
+        private Duration forkPrunningFrequency;
+        private Boolean enableAutomaticOrphanPrunning;
+        private Duration orphanPrunningFrequency;
+
+        BlockChainStoreLevelDBBuilder() {
+        }
+
+        public BlockChainStoreLevelDB.BlockChainStoreLevelDBBuilder config(BlockChainStoreLevelDBConfig config) {
+            this.config = config;
+            return this;
+        }
+
+        public BlockChainStoreLevelDB.BlockChainStoreLevelDBBuilder triggerBlockEvents(boolean triggerBlockEvents) {
+            this.triggerBlockEvents = triggerBlockEvents;
+            return this;
+        }
+
+        public BlockChainStoreLevelDB.BlockChainStoreLevelDBBuilder triggerTxEvents(boolean triggerTxEvents) {
+            this.triggerTxEvents = triggerTxEvents;
+            return this;
+        }
+
+        public BlockChainStoreLevelDB.BlockChainStoreLevelDBBuilder statePublishFrequency(Duration statePublishFrequency) {
+            this.statePublishFrequency = statePublishFrequency;
+            return this;
+        }
+
+        public BlockChainStoreLevelDB.BlockChainStoreLevelDBBuilder enableAutomaticForkPrunning(Boolean enableAutomaticForkPrunning) {
+            this.enableAutomaticForkPrunning = enableAutomaticForkPrunning;
+            return this;
+        }
+
+        public BlockChainStoreLevelDB.BlockChainStoreLevelDBBuilder forkPrunningFrequency(Duration forkPrunningFrequency) {
+            this.forkPrunningFrequency = forkPrunningFrequency;
+            return this;
+        }
+
+        public BlockChainStoreLevelDB.BlockChainStoreLevelDBBuilder enableAutomaticOrphanPrunning(Boolean enableAutomaticOrphanPrunning) {
+            this.enableAutomaticOrphanPrunning = enableAutomaticOrphanPrunning;
+            return this;
+        }
+
+        public BlockChainStoreLevelDB.BlockChainStoreLevelDBBuilder orphanPrunningFrequency(Duration orphanPrunningFrequency) {
+            this.orphanPrunningFrequency = orphanPrunningFrequency;
+            return this;
+        }
+
+        public BlockChainStoreLevelDB build() {
+            return new BlockChainStoreLevelDB(config, triggerBlockEvents, triggerTxEvents, statePublishFrequency, enableAutomaticForkPrunning, forkPrunningFrequency, enableAutomaticOrphanPrunning, orphanPrunningFrequency);
+        }
+    }
 }

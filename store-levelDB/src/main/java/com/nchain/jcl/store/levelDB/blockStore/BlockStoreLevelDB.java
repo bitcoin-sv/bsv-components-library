@@ -7,15 +7,12 @@ import com.nchain.jcl.store.keyValue.common.KeyValueIterator;
 import com.nchain.jcl.store.levelDB.common.LevelDBIterator;
 import com.nchain.jcl.tools.events.EventBus;
 import com.nchain.jcl.tools.thread.ThreadUtils;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.DBIterator;
 import org.iq80.leveldb.Options;
 import org.slf4j.Logger;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -23,14 +20,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.Iterator;
-
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
-
 
 import static org.iq80.leveldb.impl.Iq80DBFactory.factory;
 
@@ -46,7 +41,6 @@ import static org.iq80.leveldb.impl.Iq80DBFactory.factory;
  *  - LevelDB does NOT support Transactions, so we use "Object" as the Transaction type, and all the methods that
  *    are supposed to create/commit/rollback transactions do nothing.
  */
-@Slf4j
 public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], byte[]>, Object> {
 
     // Working Folder where the LevelDB files will be stored. Its an inner folder inside the working folder defined
@@ -55,25 +49,25 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
 
     // A separator for full keys, made from composing smaller sub-keys:
     public static final String KEY_SEPARATOR = "\\";
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(BlockStoreLevelDB.class);
 
     // A lock (used by some methods, to ensure Thread-safety):
-    @Getter private ReadWriteLock lock = new ReentrantReadWriteLock();
+    private ReadWriteLock lock = new ReentrantReadWriteLock();
 
     // LevelDB instance:
     protected DB levelDBStore;
 
     // Configuration
-    @Getter private BlockStoreLevelDBConfig config;
-    @Getter private boolean triggerBlockEvents;
-    @Getter private boolean triggerTxEvents;
+    private BlockStoreLevelDBConfig config;
+    private boolean triggerBlockEvents;
+    private boolean triggerTxEvents;
 
     // Events Configuration:
-    @Getter protected final EventBus eventBus;
+    protected final EventBus eventBus;
     private final ExecutorService executorService;
     private final BlockStoreStreamer blockStoreStreamer;
 
-    @Builder
-    public BlockStoreLevelDB(@NonNull BlockStoreLevelDBConfig  config,
+    public BlockStoreLevelDB(@Nonnull BlockStoreLevelDBConfig  config,
                              boolean triggerBlockEvents,
                              boolean triggerTxEvents) throws RuntimeException {
         try {
@@ -163,7 +157,6 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
         return getIterator(startingWith, endingWith, keyVerifier, buildItemBy);
     }
 
-
     @Override
     public void removeBlockDir(String blockHash) {
         byte[] keyPreffix = fullKeyForBlockDir(blockHash);
@@ -175,14 +168,14 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
     }
 
     @Override
-    public synchronized void start() {
+    public void start() {
         log.info("JCL-Store Configuration:");
         log.info(" - LevelDB Implementation");
         log.info(" - working dir: " + Paths.get(config.getWorkingFolder().toString(), LEVELDB_FOLDER).toAbsolutePath());
     }
 
     @Override
-    public synchronized void stop() {
+    public void stop() {
             try {
                 getLock().writeLock().lock();
                 log.info("LevelDB-Store Stopping...");
@@ -226,5 +219,46 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
         it.seekToFirst();
         log.info(" > DB Content:");
         while (it.hasNext()) log.info(" > " + new String(it.next().getKey()));
+    }
+
+    public ReadWriteLock getLock()              { return this.lock; }
+    public BlockStoreLevelDBConfig getConfig()  { return this.config; }
+    public boolean isTriggerBlockEvents()       { return this.triggerBlockEvents; }
+    public boolean isTriggerTxEvents()          { return this.triggerTxEvents; }
+    public EventBus getEventBus()               { return this.eventBus; }
+
+    public static BlockStoreLevelDBBuilder builder() {
+        return new BlockStoreLevelDBBuilder();
+    }
+
+    /**
+     * Builder
+     */
+    public static class BlockStoreLevelDBBuilder {
+        private @Nonnull BlockStoreLevelDBConfig config;
+        private boolean triggerBlockEvents;
+        private boolean triggerTxEvents;
+
+        BlockStoreLevelDBBuilder() {
+        }
+
+        public BlockStoreLevelDB.BlockStoreLevelDBBuilder config(@Nonnull BlockStoreLevelDBConfig config) {
+            this.config = config;
+            return this;
+        }
+
+        public BlockStoreLevelDB.BlockStoreLevelDBBuilder triggerBlockEvents(boolean triggerBlockEvents) {
+            this.triggerBlockEvents = triggerBlockEvents;
+            return this;
+        }
+
+        public BlockStoreLevelDB.BlockStoreLevelDBBuilder triggerTxEvents(boolean triggerTxEvents) {
+            this.triggerTxEvents = triggerTxEvents;
+            return this;
+        }
+
+        public BlockStoreLevelDB build() throws RuntimeException {
+            return new BlockStoreLevelDB(config, triggerBlockEvents, triggerTxEvents);
+        }
     }
 }
