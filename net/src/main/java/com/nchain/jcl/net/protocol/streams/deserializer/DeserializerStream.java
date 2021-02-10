@@ -8,7 +8,6 @@ import com.nchain.jcl.net.network.streams.nio.NIOInputStreamSource;
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig;
 import com.nchain.jcl.net.protocol.handlers.message.MessagePreSerializer;
 import com.nchain.jcl.net.protocol.messages.HeaderMsg;
-
 import com.nchain.jcl.net.protocol.messages.VersionMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.Message;
@@ -27,8 +26,6 @@ import com.nchain.jcl.tools.streams.InputStream;
 import com.nchain.jcl.tools.streams.InputStreamImpl;
 import com.nchain.jcl.tools.streams.StreamDataEvent;
 import com.nchain.jcl.tools.streams.StreamErrorEvent;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -82,7 +79,7 @@ public class DeserializerStream extends InputStreamImpl<ByteArrayReader, Bitcoin
     // State of this Stream. This variable contains all the information about whats going on at any time
     // Along the execution of this Stream this state wil be updated any time we receive new bytes, or we
     // deserialize different arts of the incoming message.
-    @Getter DeserializerStreamState state; // immutable Class
+    DeserializerStreamState state; // immutable Class
 
     // For loggin:
     private LoggerUtil logger;
@@ -96,11 +93,9 @@ public class DeserializerStream extends InputStreamImpl<ByteArrayReader, Bitcoin
     // We can only deserialize "Big" messages if this flag is TRUE, otherwise an Error is thrown.
     // Doing Real-Time processing implies launching a new Thread, so it should be done carefully. So to do it, we
     // need to specifically "allow" the Stream to do so.
-    @Setter
     private boolean realTimeProcessingEnabled = false;
 
     // If set, this object will be triggered BEFORE the Deserialization process...
-    @Setter
     private MessagePreSerializer preSerializer;
 
     // This is the component responsible for deserializing the normal/small messages. It implements an internal CACHE
@@ -553,4 +548,15 @@ public class DeserializerStream extends InputStreamImpl<ByteArrayReader, Bitcoin
         logger.trace(logPreffix + msg);
     }
 
+    public DeserializerStreamState getState() {
+        return this.state;
+    }
+
+    public void setRealTimeProcessingEnabled(boolean realTimeProcessingEnabled) {
+        this.realTimeProcessingEnabled = realTimeProcessingEnabled;
+    }
+
+    public void setPreSerializer(MessagePreSerializer preSerializer) {
+        this.preSerializer = preSerializer;
+    }
 }

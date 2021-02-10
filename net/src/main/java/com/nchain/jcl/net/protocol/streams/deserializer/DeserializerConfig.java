@@ -3,9 +3,7 @@ package com.nchain.jcl.net.protocol.streams.deserializer;
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.HeadersMsg;
 import com.nchain.jcl.net.protocol.messages.TxMsg;
-import com.nchain.jcl.net.protocol.messages.VersionAckMsg;
-import lombok.Builder;
-import lombok.Value;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -16,20 +14,15 @@ import java.util.Set;
  *
  * Configuration class for the Deserializer.
  */
-@Builder(toBuilder = true)
-@Value
-public class DeserializerConfig {
+public final class DeserializerConfig {
 
     /** Maximum Size of the Cache (in Bytes) */
-    @Builder.Default
-    private final Long maxCacheSizeInBytes = 10_000_000L; // 10 MB
+    private Long maxCacheSizeInBytes = 10_000_000L; // 10 MB
 
     /** Only messages Smaller than this Value will be cached: */
-    @Builder.Default
-    private final Long maxMsgSizeInBytes = 500_000L; // 10KB
+    private Long maxMsgSizeInBytes = 500_000L; // 10KB
 
     /** If TRUE; statistics of the Cache are generating in real-time */
-    @Builder.Default
     private boolean generateStats = false;
 
     // Default List of Messages to Cache...
@@ -40,7 +33,64 @@ public class DeserializerConfig {
     };
 
     /** If the Message is NOT part of this List, then it won't be cached */
-    @Builder.Default
-    private final Set<String> messagesToCache = new HashSet<>(Arrays.asList(DEFAULT_MSGS_TO_CACHE));
+    private Set<String> messagesToCache = new HashSet<>(Arrays.asList(DEFAULT_MSGS_TO_CACHE));
 
+    public DeserializerConfig(Long maxCacheSizeInBytes, Long maxMsgSizeInBytes, Boolean generateStats, Set<String> messagesToCache) {
+        if (maxCacheSizeInBytes != null)    this.maxCacheSizeInBytes = maxCacheSizeInBytes;
+        if (maxMsgSizeInBytes != null)      this.maxMsgSizeInBytes = maxMsgSizeInBytes;
+        if (generateStats != null)          this.generateStats = generateStats;
+        if (messagesToCache != null)        this.messagesToCache = messagesToCache;
+    }
+
+    public static DeserializerConfigBuilder builder()   { return new DeserializerConfigBuilder(); }
+    public Long getMaxCacheSizeInBytes()                { return this.maxCacheSizeInBytes; }
+    public Long getMaxMsgSizeInBytes()                  { return this.maxMsgSizeInBytes; }
+    public boolean isGenerateStats()                    { return this.generateStats; }
+    public Set<String> getMessagesToCache()             { return this.messagesToCache; }
+
+
+    @Override
+    public String toString() {
+        return "DeserializerConfig(maxCacheSizeInBytes=" + this.maxCacheSizeInBytes + ", maxMsgSizeInBytes=" + this.maxMsgSizeInBytes + ", generateStats=" + this.generateStats + ", messagesToCache=" + this.messagesToCache + ")";
+    }
+
+    public DeserializerConfigBuilder toBuilder() {
+        return new DeserializerConfigBuilder().maxCacheSizeInBytes(this.maxCacheSizeInBytes).maxMsgSizeInBytes(this.maxMsgSizeInBytes).generateStats(this.generateStats).messagesToCache(this.messagesToCache);
+    }
+
+    /**
+     * Builder
+     */
+    public static class DeserializerConfigBuilder {
+        private Long maxCacheSizeInBytes;
+        private Long maxMsgSizeInBytes;
+        private boolean generateStats;
+        private Set<String> messagesToCache;
+
+        DeserializerConfigBuilder() { }
+
+        public DeserializerConfig.DeserializerConfigBuilder maxCacheSizeInBytes(Long maxCacheSizeInBytes) {
+            this.maxCacheSizeInBytes = maxCacheSizeInBytes;
+            return this;
+        }
+
+        public DeserializerConfig.DeserializerConfigBuilder maxMsgSizeInBytes(Long maxMsgSizeInBytes) {
+            this.maxMsgSizeInBytes = maxMsgSizeInBytes;
+            return this;
+        }
+
+        public DeserializerConfig.DeserializerConfigBuilder generateStats(boolean generateStats) {
+            this.generateStats = generateStats;
+            return this;
+        }
+
+        public DeserializerConfig.DeserializerConfigBuilder messagesToCache(Set<String> messagesToCache) {
+            this.messagesToCache = messagesToCache;
+            return this;
+        }
+
+        public DeserializerConfig build() {
+            return new DeserializerConfig(maxCacheSizeInBytes, maxMsgSizeInBytes, generateStats, messagesToCache);
+        }
+    }
 }

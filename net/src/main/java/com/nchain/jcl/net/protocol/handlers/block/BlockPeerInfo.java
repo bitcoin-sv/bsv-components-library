@@ -6,7 +6,6 @@ import com.nchain.jcl.net.protocol.messages.BlockMsg;
 import com.nchain.jcl.net.protocol.messages.HeaderMsg;
 import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStream;
 import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStreamState;
-import lombok.Getter;
 
 import java.text.DecimalFormat;
 import java.time.Duration;
@@ -43,7 +42,6 @@ public class BlockPeerInfo {
     /**
      * Definition of Info about the Current Block being downloaded by this Peer.
      */
-    @Getter
     public class BlockProgressInfo {
         protected String hash;
         protected BlockHeaderMsg blockHeaderMsg;
@@ -78,23 +76,32 @@ public class BlockPeerInfo {
             }
             return result.toString();
         }
+
+        public String getHash()                         { return this.hash; }
+        public BlockHeaderMsg getBlockHeaderMsg()       { return this.blockHeaderMsg; }
+        public PeerAddress getPeerAddress()             { return this.peerAddress; }
+        public boolean isCorrupted()                    { return this.corrupted; }
+        public Long getBytesTotal()                     { return this.bytesTotal; }
+        public Long getBytesDownloaded()                { return this.bytesDownloaded; }
+        public Boolean getRealTimeProcessing()          { return this.realTimeProcessing; }
+        public Instant getStartTimestamp()              { return this.startTimestamp; }
+        public Instant getLastBytesReceivedTimestamp()  { return this.lastBytesReceivedTimestamp; }
     }
 
     // A comparator that orders the Peers by Speed (high speed first)
     public static final Comparator<BlockPeerInfo> SPEED_COMPARATOR = (peerA, peerB) -> peerB.downloadSpeed - peerA.downloadSpeed;
 
-
     // Peer Info:
-    @Getter private PeerAddress peerAddress;
-    @Getter private PeerConnectionState connectionState;
-    @Getter private PeerWorkingState workingState;
-    @Getter private Integer downloadSpeed; // bytes/sec
+    private PeerAddress peerAddress;
+    private PeerConnectionState connectionState;
+    private PeerWorkingState workingState;
+    private Integer downloadSpeed; // bytes/sec
 
     // A reference to the Deserializer Stream used by this Peer:
-    @Getter private DeserializerStream stream;
+    private DeserializerStream stream;
 
     // Info bout the Block being currently downloaded by this Peer:
-    @Getter private BlockProgressInfo currentBlockInfo;
+    private BlockProgressInfo currentBlockInfo;
 
 
     /** Constructor */
@@ -108,6 +115,14 @@ public class BlockPeerInfo {
         // chance to probe their speed.
         this.downloadSpeed = Integer.MAX_VALUE;
     }
+
+    public PeerAddress getPeerAddress()             { return this.peerAddress; }
+    public PeerConnectionState getConnectionState() { return this.connectionState; }
+    public PeerWorkingState getWorkingState()       { return this.workingState; }
+    public Integer getDownloadSpeed()               { return this.downloadSpeed; }
+    public DeserializerStream getStream()           { return this.stream; }
+    public BlockProgressInfo getCurrentBlockInfo()  { return this.currentBlockInfo; }
+
 
     /**
      * It resets the peer, to make it ready to download a new Block. This Peer might have been used to downloadad

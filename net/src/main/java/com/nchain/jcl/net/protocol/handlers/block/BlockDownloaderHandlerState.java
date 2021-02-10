@@ -2,8 +2,6 @@ package com.nchain.jcl.net.protocol.handlers.block;
 
 
 import com.nchain.jcl.tools.handlers.HandlerState;
-import lombok.Builder;
-import lombok.Value;
 
 import java.util.List;
 
@@ -13,13 +11,23 @@ import java.util.List;
  *
  * It stores the state of the blockDownloader Handler at a point in time.
  */
-@Value
-@Builder(toBuilder = true)
-public class BlockDownloaderHandlerState extends HandlerState {
-    private List<String> pendingBlocks;
-    private List<String> downloadedBlocks;
-    private List<String> discardedBlocks;
-    private List<BlockPeerInfo.BlockProgressInfo> blocksProgress;
+public final class BlockDownloaderHandlerState extends HandlerState {
+
+    private final List<String> pendingBlocks;
+    private final List<String> downloadedBlocks;
+    private final List<String> discardedBlocks;
+    private final List<BlockPeerInfo.BlockProgressInfo> blocksProgress;
+
+    public BlockDownloaderHandlerState(List<String> pendingBlocks, List<String> downloadedBlocks, List<String> discardedBlocks, List<BlockPeerInfo.BlockProgressInfo> blocksProgress) {
+        this.pendingBlocks = pendingBlocks;
+        this.downloadedBlocks = downloadedBlocks;
+        this.discardedBlocks = discardedBlocks;
+        this.blocksProgress = blocksProgress;
+    }
+
+    public static BlockDownloaderHandlerStateBuilder builder() {
+        return new BlockDownloaderHandlerStateBuilder();
+    }
 
     @Override
     public String toString() {
@@ -32,5 +40,51 @@ public class BlockDownloaderHandlerState extends HandlerState {
         result.append("\n");
         blocksProgress.forEach(b -> result.append(b.toString()).append("\n"));
         return result.toString();
+    }
+
+    public List<String> getPendingBlocks()                              { return this.pendingBlocks; }
+    public List<String> getDownloadedBlocks()                           { return this.downloadedBlocks; }
+    public List<String> getDiscardedBlocks()                            { return this.discardedBlocks; }
+    public List<BlockPeerInfo.BlockProgressInfo> getBlocksProgress()    { return this.blocksProgress; }
+
+    public BlockDownloaderHandlerStateBuilder toBuilder() {
+        return new BlockDownloaderHandlerStateBuilder().pendingBlocks(this.pendingBlocks).downloadedBlocks(this.downloadedBlocks).discardedBlocks(this.discardedBlocks).blocksProgress(this.blocksProgress);
+    }
+
+    /**
+     * Builder
+     */
+    public static class BlockDownloaderHandlerStateBuilder {
+        private List<String> pendingBlocks;
+        private List<String> downloadedBlocks;
+        private List<String> discardedBlocks;
+        private List<BlockPeerInfo.BlockProgressInfo> blocksProgress;
+
+        BlockDownloaderHandlerStateBuilder() {
+        }
+
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder pendingBlocks(List<String> pendingBlocks) {
+            this.pendingBlocks = pendingBlocks;
+            return this;
+        }
+
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder downloadedBlocks(List<String> downloadedBlocks) {
+            this.downloadedBlocks = downloadedBlocks;
+            return this;
+        }
+
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder discardedBlocks(List<String> discardedBlocks) {
+            this.discardedBlocks = discardedBlocks;
+            return this;
+        }
+
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder blocksProgress(List<BlockPeerInfo.BlockProgressInfo> blocksProgress) {
+            this.blocksProgress = blocksProgress;
+            return this;
+        }
+
+        public BlockDownloaderHandlerState build() {
+            return new BlockDownloaderHandlerState(pendingBlocks, downloadedBlocks, discardedBlocks, blocksProgress);
+        }
     }
 }

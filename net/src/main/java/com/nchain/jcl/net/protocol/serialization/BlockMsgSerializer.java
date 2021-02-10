@@ -10,7 +10,7 @@ import com.nchain.jcl.net.protocol.serialization.common.SerializerContext;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.tools.bytes.ByteArrayWriter;
 import io.bitcoinj.core.Utils;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,8 +22,9 @@ import java.util.List;
  * <p>
  * * A Serializer for {@link BlockMsg} messages
  */
-@Slf4j
 public class BlockMsgSerializer implements MessageSerializer<BlockMsg> {
+
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(BlockMsgSerializer.class);
 
     private BlockMsgSerializer() { }
 

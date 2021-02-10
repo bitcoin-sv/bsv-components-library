@@ -2,10 +2,6 @@ package com.nchain.jcl.net.protocol.handlers.block;
 
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig;
 import com.nchain.jcl.tools.handlers.HandlerConfig;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.time.Duration;
 
@@ -16,10 +12,6 @@ import java.time.Duration;
  * Configuration class for the BlockDownloader Handler
  */
 
-@Getter
-@Builder(toBuilder = true)
-@NoArgsConstructor
-@AllArgsConstructor
 public class BlockDownloaderHandlerConfig extends HandlerConfig {
 
     // Default Values:
@@ -33,23 +25,91 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
     private ProtocolBasicConfig basicConfig;
 
     /** Max time to wait for a Block to be downloaded + Deserialized */
-    @Builder.Default
     private Duration maxDownloadTimeout = DEFAULT_MAX_BLOCK_DOWNLOAD_TIMEOUT;
 
     /** MAx time to wait for a Peer to send some bytes */
-    @Builder.Default
     private Duration maxIdleTimeout = DEFAULT_MAX_PEER_IDLE_TIMEOUT;
 
     /** Time to wait until we re-try to download a block after it's been discarded */
-    @Builder.Default
     private Duration retryDiscardedBlocksTimeout = DEFAULT_RETRY_WAITING_TIMEOUT;
 
     /** Maximum number of Attempts to download a Bock before finally giving up on it */
-    @Builder.Default
     private int maxDownloadAttempts = DEFAULT_MAX_BLOCK_ATTEMPTS;
 
     /** Maximum Blocks to download at the same time */
-    @Builder.Default
     private int maxBlocksInParallel = DEFAULT_MAX_DOWNLOADS_IN_PARALLEL;
 
+    public BlockDownloaderHandlerConfig(ProtocolBasicConfig basicConfig, Duration maxDownloadTimeout, Duration maxIdleTimeout, Duration retryDiscardedBlocksTimeout, Integer maxDownloadAttempts, Integer maxBlocksInParallel) {
+        this.basicConfig = basicConfig;
+        if (maxDownloadTimeout != null)             this.maxDownloadTimeout = maxDownloadTimeout;
+        if (maxIdleTimeout != null)                 this.maxIdleTimeout = maxIdleTimeout;
+        if (retryDiscardedBlocksTimeout != null)    this.retryDiscardedBlocksTimeout = retryDiscardedBlocksTimeout;
+        if (maxDownloadAttempts != null)            this.maxDownloadAttempts = maxDownloadAttempts;
+        if (maxBlocksInParallel != null)            this.maxBlocksInParallel = maxBlocksInParallel;
+    }
+
+    public BlockDownloaderHandlerConfig() {}
+
+    public ProtocolBasicConfig getBasicConfig()         { return this.basicConfig; }
+    public Duration getMaxDownloadTimeout()             { return this.maxDownloadTimeout; }
+    public Duration getMaxIdleTimeout()                 { return this.maxIdleTimeout; }
+    public Duration getRetryDiscardedBlocksTimeout()    { return this.retryDiscardedBlocksTimeout; }
+    public int getMaxDownloadAttempts()                 { return this.maxDownloadAttempts; }
+    public int getMaxBlocksInParallel()                 { return this.maxBlocksInParallel; }
+
+    public BlockDownloaderHandlerConfigBuilder toBuilder() {
+        return new BlockDownloaderHandlerConfigBuilder().basicConfig(this.basicConfig).maxDownloadTimeout(this.maxDownloadTimeout).maxIdleTimeout(this.maxIdleTimeout).retryDiscardedBlocksTimeout(this.retryDiscardedBlocksTimeout).maxDownloadAttempts(this.maxDownloadAttempts).maxBlocksInParallel(this.maxBlocksInParallel);
+    }
+
+    public static BlockDownloaderHandlerConfigBuilder builder() {
+        return new BlockDownloaderHandlerConfigBuilder();
+    }
+
+    /**
+     * Builder
+     */
+    public static class BlockDownloaderHandlerConfigBuilder {
+        private ProtocolBasicConfig basicConfig;
+        private Duration maxDownloadTimeout;
+        private Duration maxIdleTimeout;
+        private Duration retryDiscardedBlocksTimeout;
+        private Integer maxDownloadAttempts;
+        private Integer maxBlocksInParallel;
+
+        BlockDownloaderHandlerConfigBuilder() { }
+
+        public BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder basicConfig(ProtocolBasicConfig basicConfig) {
+            this.basicConfig = basicConfig;
+            return this;
+        }
+
+        public BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder maxDownloadTimeout(Duration maxDownloadTimeout) {
+            this.maxDownloadTimeout = maxDownloadTimeout;
+            return this;
+        }
+
+        public BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder maxIdleTimeout(Duration maxIdleTimeout) {
+            this.maxIdleTimeout = maxIdleTimeout;
+            return this;
+        }
+
+        public BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder retryDiscardedBlocksTimeout(Duration retryDiscardedBlocksTimeout) {
+            this.retryDiscardedBlocksTimeout = retryDiscardedBlocksTimeout;
+            return this;
+        }
+
+        public BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder maxDownloadAttempts(int maxDownloadAttempts) {
+            this.maxDownloadAttempts = maxDownloadAttempts;
+            return this;
+        }
+
+        public BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder maxBlocksInParallel(int maxBlocksInParallel) {
+            this.maxBlocksInParallel = maxBlocksInParallel;
+            return this;
+        }
+
+        public BlockDownloaderHandlerConfig build() {
+            return new BlockDownloaderHandlerConfig(basicConfig, maxDownloadTimeout, maxIdleTimeout, retryDiscardedBlocksTimeout, maxDownloadAttempts, maxBlocksInParallel);
+        }
+    }
 }

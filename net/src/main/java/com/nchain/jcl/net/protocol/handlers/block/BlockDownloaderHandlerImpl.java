@@ -1,12 +1,12 @@
 package com.nchain.jcl.net.protocol.handlers.block;
 
 
-import com.nchain.jcl.net.protocol.events.*;
-import com.nchain.jcl.net.protocol.messages.*;
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.events.NetStartEvent;
 import com.nchain.jcl.net.network.events.NetStopEvent;
 import com.nchain.jcl.net.network.events.PeerDisconnectedEvent;
+import com.nchain.jcl.net.protocol.events.*;
+import com.nchain.jcl.net.protocol.messages.*;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
 import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStream;
@@ -15,7 +15,6 @@ import com.nchain.jcl.tools.handlers.HandlerImpl;
 import com.nchain.jcl.tools.log.LoggerUtil;
 import com.nchain.jcl.tools.thread.ThreadUtils;
 import io.bitcoinj.core.Utils;
-import lombok.Getter;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -23,6 +22,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 /**
@@ -54,7 +55,7 @@ import java.util.stream.Collectors;
 public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDownloaderHandler {
 
     private LoggerUtil logger;
-    @Getter private BlockDownloaderHandlerConfig config;
+    private BlockDownloaderHandlerConfig config;
 
     // En Executor and a Listener to trigger jobs in parallels.
     private ExecutorService executor;
@@ -76,6 +77,9 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
     private Map<String, BlockHeaderMsg>   bigBlocksHeaders   = new ConcurrentHashMap<>();
     private Map<String, Long>             bigBlocksCurrentTxs = new ConcurrentHashMap();
 
+    // Lock needed when multiple downloads in parallels are enabled:
+    Lock lock = new ReentrantLock();
+
     /** Constructor */
     public BlockDownloaderHandlerImpl(String id, RuntimeConfig runtimeConfig, BlockDownloaderHandlerConfig config) {
         super(id, runtimeConfig);
@@ -91,7 +95,6 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         super.eventBus.subscribe(PeerHandshakedEvent.class, e -> this.onPeerHandshaked((PeerHandshakedEvent) e));
         super.eventBus.subscribe(PeerDisconnectedEvent.class, e -> this.onPeerDisconnected((PeerDisconnectedEvent) e));
         super.eventBus.subscribe(MsgReceivedEvent.class, e -> this.onMsgReceived((MsgReceivedEvent) e));
-
         super.eventBus.subscribe(BlocksDownloadRequest.class, e -> this.download(((BlocksDownloadRequest) e).getBlockHashes()));
     }
 
@@ -325,55 +328,54 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                 while (it.hasNext()) {
 
                     BlockPeerInfo peerInfo = it.next();
-                    synchronized (peerInfo) {
-                        PeerAddress peerAddress = peerInfo.getPeerAddress();
-                        BlockPeerInfo.PeerWorkingState peerWorkingState = peerInfo.getWorkingState();
-                        BlockPeerInfo.PeerConnectionState peerConnState = peerInfo.getConnectionState();
 
-                        // If the Peer is NOT HANDSHAKED, we skip it...
-                        if (!peerConnState.equals(BlockPeerInfo.PeerConnectionState.HANDSHAKED)) continue;
+                    PeerAddress peerAddress = peerInfo.getPeerAddress();
+                    BlockPeerInfo.PeerWorkingState peerWorkingState = peerInfo.getWorkingState();
+                    BlockPeerInfo.PeerConnectionState peerConnState = peerInfo.getConnectionState();
 
-                        // we update the Progress of this Peer:
-                        peerInfo.updateBytesProgress();
+                    // If the Peer is NOT HANDSHAKED, we skip it...
+                    if (!peerConnState.equals(BlockPeerInfo.PeerConnectionState.HANDSHAKED)) continue;
 
-                        switch (peerWorkingState) {
-                            case IDLE: {
-                                // This peer is idle. If according to config we can download more Blocks, we assign one
-                                // to it, if there is any...
-                                if (blocksPending.size() > 0) {
-                                    long numPeersWorking = peersInfo.values().stream()
-                                            .filter( p -> p.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING))
-                                            .count();
-                                    if (numPeersWorking < config.getMaxBlocksInParallel()) {
-                                        String hash = blocksPending.stream().findFirst().get();
-                                        logger.trace("Putting peer " + peerInfo.getPeerAddress() + " to download " + hash + "...");
-                                        startDownloading(peerInfo, hash);
-                                    }
+                    // we update the Progress of this Peer:
+                    peerInfo.updateBytesProgress();
+
+                    switch (peerWorkingState) {
+                        case IDLE: {
+                            // This peer is idle. If according to config we can download more Blocks, we assign one
+                            // to it, if there is any...
+                            if (blocksPending.size() > 0) {
+                                long numPeersWorking = peersInfo.values().stream()
+                                        .filter( p -> p.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING))
+                                        .count();
+                                if (numPeersWorking < config.getMaxBlocksInParallel()) {
+                                    String hash = blocksPending.stream().findFirst().get();
+                                    logger.trace("Putting peer " + peerInfo.getPeerAddress() + " to download " + hash + "...");
+                                    startDownloading(peerInfo, hash);
                                 }
-                                break;
                             }
+                            break;
+                        }
 
-                            case PROCESSING:{
-                                //logger.trace("> State: ", peerInfo.getPeerAddress(), peerInfo.toString());
-                                String msgFailure = null;
-                                if (peerInfo.isIdleTimeoutBroken(config.getMaxIdleTimeout())) {
-                                    msgFailure = "Idle Time expired";
-                                }
-                                if (peerInfo.isDownloadTimeoutBroken(config.getMaxDownloadTimeout())) {
-                                    msgFailure = "Downloading Time expired";
-                                }
-                                if (peerInfo.getConnectionState().equals(BlockPeerInfo.PeerConnectionState.DISCONNECTED)) {
-                                    msgFailure = "Peer Closed while downloading";
-                                }
-                                if (msgFailure != null) {
-                                    logger.debug(peerAddress.toString(), "Download Failiure", peerInfo.getCurrentBlockInfo().hash, msgFailure);
-                                    processDownloadFailiure(peerInfo);
-                                    peersToRemove.add(peerAddress);
-                                }
-                                break;
+                        case PROCESSING:{
+                            //logger.trace("> State: ", peerInfo.getPeerAddress(), peerInfo.toString());
+                            String msgFailure = null;
+                            if (peerInfo.isIdleTimeoutBroken(config.getMaxIdleTimeout())) {
+                                msgFailure = "Idle Time expired";
                             }
-                        } // Switch...
-                    }
+                            if (peerInfo.isDownloadTimeoutBroken(config.getMaxDownloadTimeout())) {
+                                msgFailure = "Downloading Time expired";
+                            }
+                            if (peerInfo.getConnectionState().equals(BlockPeerInfo.PeerConnectionState.DISCONNECTED)) {
+                                msgFailure = "Peer Closed while downloading";
+                            }
+                            if (msgFailure != null) {
+                                logger.debug(peerAddress.toString(), "Download Failiure", peerInfo.getCurrentBlockInfo().hash, msgFailure);
+                                processDownloadFailiure(peerInfo);
+                                peersToRemove.add(peerAddress);
+                            }
+                            break;
+                        }
+                    } // Switch...
 
                 } // while it.next (each PeerInfo...
 
@@ -398,4 +400,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         }
     }
 
+    public BlockDownloaderHandlerConfig getConfig() {
+        return this.config;
+    }
 }

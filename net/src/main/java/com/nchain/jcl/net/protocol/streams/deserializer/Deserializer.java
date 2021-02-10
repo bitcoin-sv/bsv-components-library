@@ -1,6 +1,9 @@
 package com.nchain.jcl.net.protocol.streams.deserializer;
 
-import com.google.common.cache.*;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheStats;
+import com.google.common.cache.Weigher;
 import com.nchain.jcl.net.protocol.messages.HeaderMsg;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
@@ -11,7 +14,6 @@ import com.nchain.jcl.net.protocol.serialization.largeMsgs.MsgPartDeserializedEv
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.tools.bytes.ByteArrayReaderOptimized;
 import com.nchain.jcl.tools.config.RuntimeConfig;
-import lombok.*;
 
 import java.util.function.Consumer;
 
@@ -48,11 +50,16 @@ public class Deserializer {
      * (in this case "loading" an item means to deserialize it, so we need the Deserialization Context, the
      * byteArrayReader and the Header of the Message we are about to deserialize...
      */
-    @AllArgsConstructor
     class CacheMsgKey {
         private HeaderMsg headerMsg;
         private DeserializerContext desContext;
         private ByteArrayReader reader;
+
+        public CacheMsgKey(HeaderMsg headerMsg, DeserializerContext desContext, ByteArrayReader reader) {
+            this.headerMsg = headerMsg;
+            this.desContext = desContext;
+            this.reader = reader;
+        }
 
         @Override public boolean equals(Object obj) {
             return (obj != null) && (headerMsg.getChecksum() == (((CacheMsgKey) obj).headerMsg.getChecksum()));

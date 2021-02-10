@@ -2,8 +2,6 @@ package com.nchain.jcl.net.protocol.serialization.largeMsgs;
 
 
 import com.nchain.jcl.tools.events.Event;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 
 /**
  * @author i.fernandez@nchain.com
@@ -11,8 +9,14 @@ import lombok.Getter;
  *
  * An Event triggered when a part of a Large Message has been deserialized
  */
-@Getter
-@AllArgsConstructor
 public class MsgPartDeserializedEvent<T> extends Event {
     private T data;
+
+    public MsgPartDeserializedEvent(T data) {
+        this.data = data;
+    }
+
+    public T getData() {
+        return this.data;
+    }
 }

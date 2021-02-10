@@ -9,7 +9,7 @@ import com.nchain.jcl.net.protocol.serialization.BlockHeaderMsgSerializer;
 import com.nchain.jcl.net.protocol.serialization.TxMsgSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -26,11 +26,11 @@ import java.util.concurrent.ExecutorService;
  * "notify" provided vby the parent Class. Those notification will trigger callbacks that previously must have been
  * fed byt he client of this class.
  */
-@Slf4j
 public class BigBlockDeserializer extends LargeMessageDeserializerImpl {
 
     // The TX are Deserialized and notified in batches:
     private static final int TX_BATCH = 10000;
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(BigBlockDeserializer.class);
 
     // Once the Block Header is deserialzed, we keep a reference here, since we include it as well when we
     // deserialze each set of TXs:

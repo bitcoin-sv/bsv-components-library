@@ -1,7 +1,6 @@
 package com.nchain.jcl.net.network.config.provided;
 
 import com.nchain.jcl.net.network.config.NetworkConfigImpl;
-import lombok.Getter;
 
 import java.util.OptionalInt;
 
