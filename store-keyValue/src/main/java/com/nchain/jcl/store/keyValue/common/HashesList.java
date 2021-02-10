@@ -1,8 +1,5 @@
 package com.nchain.jcl.store.keyValue.common;
 
-import lombok.Builder;
-import lombok.Value;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,16 +11,39 @@ import java.util.stream.Collectors;
  *
  * An object that stores a List of Hashes. It might used for storing Block Hashes, Tx Hashes, etc.
  */
-@Builder(toBuilder = true)
-@Value
-public class HashesList implements Serializable {
-    @Builder.Default
+public final class HashesList implements Serializable {
     private List<String> hashes = new ArrayList<>();
 
-    public void addHash(String hash)        { if (!hashes.contains(hash)) hashes.add(hash); }
-    public void removeHash(String hash)     { hashes.remove(hash); }
-    public void clear()                     { hashes.clear(); }
+    HashesList(List<String> hashes) {
+        if (hashes != null) this.hashes = hashes;
+    }
+
+    public void addHash(String hash)            { if (!hashes.contains(hash)) hashes.add(hash); }
+    public void removeHash(String hash)         { hashes.remove(hash); }
+    public void clear()                         { hashes.clear(); }
 
     @Override
-    public String toString()                { return hashes.stream().collect(Collectors.joining(","));}
+    public String toString()                    { return hashes.stream().collect(Collectors.joining(","));}
+    public List<String> getHashes()             { return this.hashes; }
+    public HashesListBuilder toBuilder()        { return new HashesListBuilder().hashes(this.hashes); }
+    public static HashesListBuilder builder()   { return new HashesListBuilder(); }
+
+    /**
+     * Builder
+     */
+    public static class HashesListBuilder {
+        private List<String> hashes;
+
+        HashesListBuilder() {
+        }
+
+        public HashesList.HashesListBuilder hashes(List<String> hashes) {
+            this.hashes = hashes;
+            return this;
+        }
+
+        public HashesList build() {
+            return new HashesList(hashes);
+        }
+    }
 }
