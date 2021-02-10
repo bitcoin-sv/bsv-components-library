@@ -1,9 +1,8 @@
 package com.nchain.jcl.net.protocol.streams.serializer;
 
+import com.google.common.base.Objects;
+import com.nchain.jcl.net.protocol.streams.MessageStreamState;
 import com.nchain.jcl.tools.streams.StreamState;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
 
 import java.math.BigInteger;
 
@@ -13,11 +12,58 @@ import java.math.BigInteger;
  *
  * A class storing the State of the SerializerStream
  */
-@Value
-@AllArgsConstructor
-@Builder(toBuilder = true)
-public class SerializerStreamState extends StreamState {
+public final class SerializerStreamState extends StreamState {
     // Some variables to count the number of messages processed:
-    @Builder.Default
     private BigInteger numMsgs = BigInteger.ZERO;
+
+    public SerializerStreamState(BigInteger numMsgs) {
+        if (numMsgs != null) this.numMsgs = numMsgs;
+    }
+
+    public BigInteger getNumMsgs() {
+        return this.numMsgs;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) return false;
+        if (!(obj instanceof MessageStreamState)) return false;
+        SerializerStreamState other = (SerializerStreamState) obj;
+        return Objects.equal(this.numMsgs, other.numMsgs);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(this.numMsgs);
+    }
+
+    public String toString() {
+        return "SerializerStreamState(numMsgs=" + this.getNumMsgs() + ")";
+    }
+
+    public SerializerStreamStateBuilder toBuilder() {
+        return new SerializerStreamStateBuilder().numMsgs(this.numMsgs);
+    }
+
+    public static SerializerStreamStateBuilder builder() {
+        return new SerializerStreamStateBuilder();
+    }
+
+    /**
+     * Builder
+     */
+    public static class SerializerStreamStateBuilder {
+        private BigInteger numMsgs;
+
+        SerializerStreamStateBuilder() {}
+
+        public SerializerStreamState.SerializerStreamStateBuilder numMsgs(BigInteger numMsgs) {
+            this.numMsgs = numMsgs;
+            return this;
+        }
+
+        public SerializerStreamState build() {
+            return new SerializerStreamState(numMsgs);
+        }
+    }
 }
