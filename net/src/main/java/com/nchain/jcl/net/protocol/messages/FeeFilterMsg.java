@@ -1,11 +1,8 @@
 package com.nchain.jcl.net.protocol.messages;
 
 
+import com.google.common.base.Objects;
 import com.nchain.jcl.net.protocol.messages.common.Message;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
 
 /**
  * @author i.fernandez@nchain.com
@@ -19,16 +16,12 @@ import lombok.ToString;
  * Structure of the Message:
  * - fee: A long value indicating the Fee (in Satoshis / KB)
  */
-@Getter
-@ToString
-@EqualsAndHashCode
 public class FeeFilterMsg extends Message {
 
     public static final String MESSAGE_TYPE = "feefilter";
 
     private Long fee;
 
-    @Builder
     public FeeFilterMsg(Long fee) {
         this.fee = fee;
         init();
@@ -44,4 +37,50 @@ public class FeeFilterMsg extends Message {
 
     @Override
     protected void validateMessage() {}
+
+    public Long getFee() {
+        return this.fee;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(fee);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) { return false; }
+        if (obj == this) { return true; }
+        if (obj.getClass() != getClass()) { return false; }
+        FeeFilterMsg other = (FeeFilterMsg) obj;
+        return Objects.equal(this.fee, other.fee);
+    }
+
+    @Override
+    public String toString() {
+        return "FeeFilterMsg(fee=" + this.getFee() + ")";
+    }
+
+    public static FeeFilterMsgBuilder builder() {
+        return new FeeFilterMsgBuilder();
+    }
+
+    /**
+     * Builder
+     */
+    public static class FeeFilterMsgBuilder {
+        private Long fee;
+
+        FeeFilterMsgBuilder() {
+        }
+
+        public FeeFilterMsg.FeeFilterMsgBuilder fee(Long fee) {
+            this.fee = fee;
+            return this;
+        }
+
+        public FeeFilterMsg build() {
+            return new FeeFilterMsg(fee);
+        }
+    }
 }

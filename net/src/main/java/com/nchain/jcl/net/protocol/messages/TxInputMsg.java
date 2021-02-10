@@ -1,12 +1,8 @@
 package com.nchain.jcl.net.protocol.messages;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.nchain.jcl.net.protocol.messages.common.Message;
-import io.bitcoinj.bitcoin.api.base.TxInput;
-import io.bitcoinj.bitcoin.bean.base.TxInputBean;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Value;
 
 /**
  * @author m.jose@nchain.com
@@ -26,23 +22,16 @@ import lombok.Value;
  *   - field: "sequence"  (4 bytes) int
  *   Transaction version as defined by the sender.
  */
-@Value
-@EqualsAndHashCode
-public class TxInputMsg extends Message {
+public final class TxInputMsg extends Message {
     private static final int sequence_len = 4;
     public static final String MESSAGE_TYPE = "TxIn";
 
-    private TxOutPointMsg pre_outpoint;
-    private VarIntMsg script_length;
-    private byte[] signature_script;
-    private long sequence;
+    private final TxOutPointMsg pre_outpoint;
+    private final VarIntMsg script_length;
+    private final byte[] signature_script;
+    private final long sequence;
 
-    @Override
-    public String getMessageType() {
-        return MESSAGE_TYPE;
-    }
 
-    @Builder
     protected TxInputMsg(TxOutPointMsg pre_outpoint, byte[] signature_script, long sequence) {
         this.pre_outpoint = pre_outpoint;
         this.signature_script = signature_script;
@@ -50,7 +39,6 @@ public class TxInputMsg extends Message {
         this.sequence = sequence;
         init();
     }
-
 
     @Override
     protected long calculateLength() {
@@ -64,6 +52,13 @@ public class TxInputMsg extends Message {
     }
 
     @Override
+    public String getMessageType()          { return MESSAGE_TYPE; }
+    public TxOutPointMsg getPre_outpoint()  { return this.pre_outpoint; }
+    public VarIntMsg getScript_length()     { return this.script_length; }
+    public byte[] getSignature_script()     { return this.signature_script; }
+    public long getSequence()               { return this.sequence; }
+
+    @Override
     public String toString() {
         StringBuffer result = new StringBuffer();
         result.append(" - outpoint: \n");
@@ -74,4 +69,54 @@ public class TxInputMsg extends Message {
         return result.toString();
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(pre_outpoint, script_length, signature_script, sequence);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) { return false; }
+        if (obj == this) { return true; }
+        if (obj.getClass() != getClass()) { return false; }
+        TxInputMsg other = (TxInputMsg) obj;
+        return Objects.equal(this.pre_outpoint, other.pre_outpoint)
+                && Objects.equal(this.script_length, other.script_length)
+                && Objects.equal(this.signature_script, other.signature_script)
+                && Objects.equal(this.sequence, other.sequence);
+    }
+
+    public static TxInputMsgBuilder builder() {
+        return new TxInputMsgBuilder();
+    }
+
+    /**
+     * Builder
+     */
+    public static class TxInputMsgBuilder {
+        private TxOutPointMsg pre_outpoint;
+        private byte[] signature_script;
+        private long sequence;
+
+        TxInputMsgBuilder() { }
+
+        public TxInputMsg.TxInputMsgBuilder pre_outpoint(TxOutPointMsg pre_outpoint) {
+            this.pre_outpoint = pre_outpoint;
+            return this;
+        }
+
+        public TxInputMsg.TxInputMsgBuilder signature_script(byte[] signature_script) {
+            this.signature_script = signature_script;
+            return this;
+        }
+
+        public TxInputMsg.TxInputMsgBuilder sequence(long sequence) {
+            this.sequence = sequence;
+            return this;
+        }
+
+        public TxInputMsg build() {
+            return new TxInputMsg(pre_outpoint, signature_script, sequence);
+        }
+    }
 }

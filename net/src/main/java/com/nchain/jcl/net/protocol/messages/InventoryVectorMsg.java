@@ -1,9 +1,7 @@
 package com.nchain.jcl.net.protocol.messages;
 
+import com.google.common.base.Objects;
 import com.nchain.jcl.net.protocol.messages.common.Message;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Value;
 
 
 /**
@@ -14,14 +12,12 @@ import lombok.Value;
  *
  */
 
-@Value
-@EqualsAndHashCode
-public class InventoryVectorMsg extends Message {
+public final class InventoryVectorMsg extends Message {
 
     public static final String MESSAGE_TYPE = "inventoryVec";
 
     // This value is the Length of the TYPE Field ONLY:
-    public static long VECTOR_TYPE_LENGTH = 4;
+    public static final long VECTOR_TYPE_LENGTH = 4;
 
     public static enum VectorType {
         ERROR(0), //	Any data of with this number may be ignored
@@ -55,22 +51,24 @@ public class InventoryVectorMsg extends Message {
         }
     }
 
-    private VectorType type;
-    private HashMsg hashMsg;
+    private final VectorType type;
+    private final HashMsg hashMsg;
 
-    @Builder
     protected InventoryVectorMsg( VectorType type, HashMsg hashMsg) {
         this.type = type;
         this.hashMsg = hashMsg;
-
         init();
     }
 
     @Override
-    public String getMessageType() {
-        return MESSAGE_TYPE;
-    }
+    public String getMessageType()  { return MESSAGE_TYPE; }
+    public VectorType getType()     { return this.type; }
+    public HashMsg getHashMsg()     { return this.hashMsg; }
 
+    @Override
+    public String toString() {
+        return "InventoryVectorMsg(type=" + this.getType() + ", hashMsg=" + this.getHashMsg() + ")";
+    }
 
     @Override
     protected long calculateLength() {
@@ -81,4 +79,46 @@ public class InventoryVectorMsg extends Message {
     @Override
     protected void validateMessage() {}
 
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(type, hashMsg);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) { return false; }
+        if (obj == this) { return true; }
+        if (obj.getClass() != getClass()) { return false; }
+        InventoryVectorMsg other = (InventoryVectorMsg) obj;
+        return Objects.equal(this.type, other.type)
+                && Objects.equal(this.hashMsg, other.hashMsg);
+    }
+
+    public static InventoryVectorMsgBuilder builder() {
+        return new InventoryVectorMsgBuilder();
+    }
+
+    /**
+     * Builder
+     */
+    public static class InventoryVectorMsgBuilder {
+        private VectorType type;
+        private HashMsg hashMsg;
+
+        InventoryVectorMsgBuilder() {}
+
+        public InventoryVectorMsg.InventoryVectorMsgBuilder type(VectorType type) {
+            this.type = type;
+            return this;
+        }
+
+        public InventoryVectorMsg.InventoryVectorMsgBuilder hashMsg(HashMsg hashMsg) {
+            this.hashMsg = hashMsg;
+            return this;
+        }
+
+        public InventoryVectorMsg build() {
+            return new InventoryVectorMsg(type, hashMsg);
+        }
+    }
 }

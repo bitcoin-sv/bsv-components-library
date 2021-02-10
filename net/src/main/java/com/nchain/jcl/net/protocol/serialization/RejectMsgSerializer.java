@@ -6,7 +6,6 @@ import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.net.protocol.serialization.common.MessageSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext;
 import com.nchain.jcl.net.protocol.messages.RejectMsg;
-import com.nchain.jcl.net.protocol.messages.RejectMsgBuilder;
 import com.nchain.jcl.net.protocol.messages.VarStrMsg;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.tools.bytes.ByteArrayWriter;
@@ -37,19 +36,19 @@ public class RejectMsgSerializer implements MessageSerializer<RejectMsg> {
 
     @Override
     public RejectMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
-        RejectMsgBuilder builder = new RejectMsgBuilder();
+        RejectMsg.RejectMsgBuilder builder = RejectMsg.builder();
 
         // "message" field:
         VarStrMsg message = VarStrMsgSerializer.getinstance().deserialize(context, byteReader);
-        builder.setMessage(message);
+        builder.message(message);
 
         // "ccode" field:
         byteReader.waitForBytes(1);
-        builder.setCcode(RejectMsg.RejectCode.fromCode(byteReader.read()));
+        builder.ccode(RejectMsg.RejectCode.fromCode(byteReader.read()));
 
         // "reason" field:
         VarStrMsg reason = VarStrMsgSerializer.getinstance().deserialize(context, byteReader);
-        builder.setReason(reason);
+        builder.reason(reason);
 
         // The rest of the data is a Generic data field. So far, its content is either empty or filled with the
         // HASH of a TX or Block Header. the value of the "message" field will tell us the case.
@@ -58,7 +57,7 @@ public class RejectMsgSerializer implements MessageSerializer<RejectMsg> {
         if ((message.getStr().equals(RejectMsg.MESSAGE_BLOCK)) || (message.getStr().equals(RejectMsg.MESSAGE_TX))) {
             byteReader.waitForBytes(32);
             Sha256Hash dataHash = Sha256Hash.wrapReversed(byteReader.read(32));
-            builder.setData(dataHash);
+            builder.dataHash(dataHash);
         } else {
             if (context.getMaxBytesToRead() == null)
                 throw new RuntimeException("The value of MaxBytesToRead is needed");
@@ -68,7 +67,7 @@ public class RejectMsgSerializer implements MessageSerializer<RejectMsg> {
 
             byteReader.waitForBytes(0);
             byte[] data = byteReader.read(numBytesToRead);
-            builder.setData(data);
+            builder.data(data);
         }
         RejectMsg result = builder.build();
         return result;

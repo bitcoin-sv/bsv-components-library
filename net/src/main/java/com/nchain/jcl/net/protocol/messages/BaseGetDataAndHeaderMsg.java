@@ -1,10 +1,8 @@
 package com.nchain.jcl.net.protocol.messages;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.nchain.jcl.net.protocol.messages.common.Message;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Value;
 
 import java.util.List;
 
@@ -30,17 +28,14 @@ import java.util.List;
  *   - field: "hash_stop"  (32 bytes)
  *   hash of the last desired block; set to zero to get as many blocks as possible (500)
  */
-@Value
-@EqualsAndHashCode
-public  class BaseGetDataAndHeaderMsg extends Message {
-    private long version;
-    private VarIntMsg hashCount;
-    private ImmutableList<HashMsg> blockLocatorHash;
-    private HashMsg hashStop;
+public final class BaseGetDataAndHeaderMsg extends Message {
+    private final long version;
+    private final VarIntMsg hashCount;
+    private final ImmutableList<HashMsg> blockLocatorHash;
+    private final HashMsg hashStop;
     public static final String MESSAGE_TYPE = "baseGetDataAndHeaderMsg";
     public static final int VERSION_LENGTH = 4;
 
-    @Builder
     protected BaseGetDataAndHeaderMsg( long version, VarIntMsg hashCount, List<HashMsg>  blockLocatorHash, HashMsg hashStop) {
         this.version = version;
         this.hashCount = hashCount;
@@ -48,19 +43,80 @@ public  class BaseGetDataAndHeaderMsg extends Message {
         this.hashStop = hashStop;
         init();
     }
+
     @Override
     protected long calculateLength() {
         long lengthInBytes  = VERSION_LENGTH + hashCount.getLengthInBytes() + blockLocatorHash.size()* HashMsg.HASH_LENGTH + HashMsg.HASH_LENGTH;
         return lengthInBytes;
     }
     @Override
-    protected void validateMessage() {
+    protected void validateMessage() {}
+
+    @Override
+    public String getMessageType()                      { return MESSAGE_TYPE; }
+    public long getVersion()                            { return this.version; }
+    public VarIntMsg getHashCount()                     { return this.hashCount; }
+    public ImmutableList<HashMsg> getBlockLocatorHash() { return this.blockLocatorHash; }
+    public HashMsg getHashStop()                        { return this.hashStop; }
+
+    @Override
+    public String toString() {
+        return "BaseGetDataAndHeaderMsg(version=" + this.getVersion() + ", hashCount=" + this.getHashCount() + ", blockLocatorHash=" + this.getBlockLocatorHash() + ", hashStop=" + this.getHashStop() + ")";
     }
 
     @Override
-    public String getMessageType() {
-        return MESSAGE_TYPE;
+    public int hashCode() {
+        return Objects.hashCode(version, blockLocatorHash, hashStop);
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) { return false; }
+        if (obj == this) { return true; }
+        if (obj.getClass() != getClass()) { return false; }
+        BaseGetDataAndHeaderMsg other = (BaseGetDataAndHeaderMsg) obj;
+        return Objects.equal(this.version, other.version)
+                && Objects.equal(this.blockLocatorHash, other.blockLocatorHash)
+                && Objects.equal(this.hashStop, other.hashStop);
+    }
 
+    public static BaseGetDataAndHeaderMsgBuilder builder() {
+        return new BaseGetDataAndHeaderMsgBuilder();
+    }
+
+    /**
+     * Builder
+     */
+    public static class BaseGetDataAndHeaderMsgBuilder {
+        private long version;
+        private VarIntMsg hashCount;
+        private List<HashMsg> blockLocatorHash;
+        private HashMsg hashStop;
+
+        BaseGetDataAndHeaderMsgBuilder() {}
+
+        public BaseGetDataAndHeaderMsg.BaseGetDataAndHeaderMsgBuilder version(long version) {
+            this.version = version;
+            return this;
+        }
+
+        public BaseGetDataAndHeaderMsg.BaseGetDataAndHeaderMsgBuilder hashCount(VarIntMsg hashCount) {
+            this.hashCount = hashCount;
+            return this;
+        }
+
+        public BaseGetDataAndHeaderMsg.BaseGetDataAndHeaderMsgBuilder blockLocatorHash(List<HashMsg> blockLocatorHash) {
+            this.blockLocatorHash = blockLocatorHash;
+            return this;
+        }
+
+        public BaseGetDataAndHeaderMsg.BaseGetDataAndHeaderMsgBuilder hashStop(HashMsg hashStop) {
+            this.hashStop = hashStop;
+            return this;
+        }
+
+        public BaseGetDataAndHeaderMsg build() {
+            return new BaseGetDataAndHeaderMsg(version, hashCount, blockLocatorHash, hashStop);
+        }
+    }
 }

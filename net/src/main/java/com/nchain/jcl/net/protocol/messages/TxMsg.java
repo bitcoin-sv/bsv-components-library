@@ -1,15 +1,11 @@
 package com.nchain.jcl.net.protocol.messages;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
-
 import com.nchain.jcl.net.protocol.messages.common.Message;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author m.jose@nchain.com
@@ -34,8 +30,6 @@ import java.util.stream.Collectors;
  *  - field: "tx_out" (4 bytes) var_int
  *  The block number or timestamp at which this transaction is unlocked:
  */
-@Data
-@EqualsAndHashCode
 public class TxMsg extends Message {
 
     public static final String MESSAGE_TYPE = "tx";
@@ -57,7 +51,6 @@ public class TxMsg extends Message {
     private List<TxOutputMsg> tx_out;
     private long lockTime;
 
-    @Builder
     protected TxMsg(Optional<HashMsg> hash, long version, List<TxInputMsg> tx_in, List<TxOutputMsg> tx_out, long lockTime) {
         this.hash = hash;
         this.version = version;
@@ -68,6 +61,12 @@ public class TxMsg extends Message {
         this.lockTime = lockTime;
         init();
     }
+
+    public TxMsg(Optional<HashMsg> hash) {
+        this.hash = hash;
+    }
+
+
 
 
     @Override
@@ -85,7 +84,36 @@ public class TxMsg extends Message {
     protected void validateMessage() {}
 
     @Override
-    public String getMessageType() { return MESSAGE_TYPE; }
+    public String getMessageType()          { return MESSAGE_TYPE; }
+    public Optional<HashMsg> getHash()      { return this.hash; }
+    public long getVersion()                { return this.version; }
+    public VarIntMsg getTx_in_count()       { return this.tx_in_count; }
+    public List<TxInputMsg> getTx_in()      { return this.tx_in; }
+    public VarIntMsg getTx_out_count()      { return this.tx_out_count; }
+    public List<TxOutputMsg> getTx_out()    { return this.tx_out; }
+    public long getLockTime()               { return this.lockTime; }
+    public void setVersion(long version)    { this.version = version; }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(hash, version, tx_in_count, tx_in, tx_out_count, tx_out, lockTime, version);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) { return false; }
+        if (obj == this) { return true; }
+        if (obj.getClass() != getClass()) { return false; }
+        TxMsg other = (TxMsg) obj;
+        return Objects.equal(this.hash, other.hash)
+                && Objects.equal(this.version, other.version)
+                && Objects.equal(this.tx_in_count, other.tx_in_count)
+                && Objects.equal(this.tx_in, other.tx_in)
+                && Objects.equal(this.tx_out_count, other.tx_out_count)
+                && Objects.equal(this.tx_out, other.tx_out)
+                && Objects.equal(this.lockTime, other.lockTime)
+                && Objects.equal(this.version, other.version);
+    }
 
     @Override
     public String toString() {
@@ -109,4 +137,54 @@ public class TxMsg extends Message {
         return result.toString();
     }
 
+    public static TxMsgBuilder builder() {
+        return new TxMsgBuilder();
+    }
+
+    /**
+     * Builder
+     */
+    public static class TxMsgBuilder {
+        private Optional<HashMsg> hash;
+        private long version;
+        private List<TxInputMsg> tx_in;
+        private List<TxOutputMsg> tx_out;
+        private long lockTime;
+
+        TxMsgBuilder() {
+        }
+
+        public TxMsg.TxMsgBuilder hash(Optional<HashMsg> hash) {
+            this.hash = hash;
+            return this;
+        }
+
+        public TxMsg.TxMsgBuilder version(long version) {
+            this.version = version;
+            return this;
+        }
+
+        public TxMsg.TxMsgBuilder tx_in(List<TxInputMsg> tx_in) {
+            this.tx_in = tx_in;
+            return this;
+        }
+
+        public TxMsg.TxMsgBuilder tx_out(List<TxOutputMsg> tx_out) {
+            this.tx_out = tx_out;
+            return this;
+        }
+
+        public TxMsg.TxMsgBuilder lockTime(long lockTime) {
+            this.lockTime = lockTime;
+            return this;
+        }
+
+        public TxMsg build() {
+            return new TxMsg(hash, version, tx_in, tx_out, lockTime);
+        }
+
+        public String toString() {
+            return "TxMsg.TxMsgBuilder(hash=" + this.hash + ", version=" + this.version + ", tx_in=" + this.tx_in + ", tx_out=" + this.tx_out + ", lockTime=" + this.lockTime + ")";
+        }
+    }
 }

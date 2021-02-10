@@ -70,7 +70,7 @@ class DiscoveryRenewTest extends Specification {
             // We start the Service. The Discovery Handler will load an initial set of Peers and the service will
             // automatically starts connecting to them...
             server.start()
-            Thread.sleep(2000)
+            Thread.sleep(20000) // raise this number f the DNS are poor
 
             // At this point, the service should have reached the MAX number of Peers handshaked, so the number of
             // connections should be stable (== MAX_PEERS). No GET_ADDR or ADDR messages should be being exchanged

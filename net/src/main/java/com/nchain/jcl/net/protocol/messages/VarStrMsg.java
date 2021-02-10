@@ -1,9 +1,7 @@
 package com.nchain.jcl.net.protocol.messages;
 
+import com.google.common.base.Objects;
 import com.nchain.jcl.net.protocol.messages.common.Message;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Value;
 
 
 /**
@@ -24,24 +22,20 @@ import lombok.Value;
  *  - string: "length" (? bytes) char[]
  *    The string itself (can be empty)
  */
-@Value
-@EqualsAndHashCode
 public final class VarStrMsg extends Message {
 
     public static final String MESSAGE_TYPE = "varStr";
 
-    private VarIntMsg strLength;
-    private String str;
+    private final VarIntMsg strLength;
+    private final String str;
 
-    @Builder
     protected VarStrMsg(String str) {
         this.str = str;
         this.strLength = VarIntMsg.builder().value(str.length()).build();
         init();
     }
 
-    @Override
-    public String getMessageType() {return MESSAGE_TYPE;}
+
 
     @Override
     protected long calculateLength() {
@@ -51,4 +45,56 @@ public final class VarStrMsg extends Message {
 
     @Override
     protected void validateMessage() {}
+
+    @Override
+    public String getMessageType()  { return MESSAGE_TYPE;}
+    public VarIntMsg getStrLength() { return this.strLength; }
+    public String getStr()          { return this.str; }
+
+    @Override
+    public String toString() {
+        return "VarStrMsg(strLength=" + this.getStrLength() + ", str=" + this.getStr() + ")";
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(strLength, str);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) { return false; }
+        if (obj == this) { return true; }
+        if (obj.getClass() != getClass()) { return false; }
+        VarStrMsg other = (VarStrMsg) obj;
+        return Objects.equal(this.strLength, other.strLength)
+                && Objects.equal(this.str, other.str);
+    }
+
+    public static VarStrMsgBuilder builder() {
+        return new VarStrMsgBuilder();
+    }
+
+    /**
+     * Builder
+     */
+    public static class VarStrMsgBuilder {
+        private String str;
+
+        VarStrMsgBuilder() {
+        }
+
+        public VarStrMsg.VarStrMsgBuilder str(String str) {
+            this.str = str;
+            return this;
+        }
+
+        public VarStrMsg build() {
+            return new VarStrMsg(str);
+        }
+
+        public String toString() {
+            return "VarStrMsg.VarStrMsgBuilder(str=" + this.str + ")";
+        }
+    }
 }

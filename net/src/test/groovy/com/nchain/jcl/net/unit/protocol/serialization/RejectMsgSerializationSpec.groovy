@@ -3,7 +3,7 @@ package com.nchain.jcl.net.unit.protocol.serialization
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.messages.RejectMsg
-import com.nchain.jcl.net.protocol.messages.RejectMsgBuilder
+import com.nchain.jcl.net.protocol.messages.VarStrMsg
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder
 import com.nchain.jcl.net.protocol.serialization.RejectMsgSerializer
@@ -47,10 +47,10 @@ class RejectMsgSerializationSpec extends Specification {
             SerializerContext context = SerializerContext.builder()
                 .protocolBasicConfig(config.getBasicConfig())
                 .build()
-            RejectMsg rejectMessage = new RejectMsgBuilder()
-                .setMessage(REF_MESSAGE)
-                .setCcode(REF_CCODE)
-                .setReason(REF_REASON)
+            RejectMsg rejectMessage = RejectMsg.builder()
+                .message(VarStrMsg.builder().str(REF_MESSAGE).build())
+                .ccode(REF_CCODE)
+                .reason(VarStrMsg.builder().str(REF_REASON).build())
                 .build()
             ByteArrayWriter byteWriter = new ByteArrayWriter()
             String messageSerialized = null
@@ -90,11 +90,12 @@ class RejectMsgSerializationSpec extends Specification {
             SerializerContext context = SerializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
-            RejectMsgBuilder rejectMsgBuilder = new RejectMsgBuilder()
-                    .setMessage(REF_MESSAGE)
-                    .setCcode(REF_CCODE)
-                    .setReason(REF_REASON)
-            BitcoinMsg<RejectMsg> rejectBitcoinMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), rejectMsgBuilder).build()
+            RejectMsg rejectMsg = RejectMsg.builder()
+                    .message(VarStrMsg.builder().str(REF_MESSAGE).build())
+                    .ccode(REF_CCODE)
+                    .reason(VarStrMsg.builder().str(REF_REASON).build())
+                    .build()
+            BitcoinMsg<RejectMsg> rejectBitcoinMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), rejectMsg).build()
             BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
             byte[] bytes = serializer.serialize(context, rejectBitcoinMsg, RejectMsg.MESSAGE_TYPE).getFullContent()

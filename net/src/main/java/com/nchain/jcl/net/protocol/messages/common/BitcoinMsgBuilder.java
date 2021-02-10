@@ -21,19 +21,6 @@ public class BitcoinMsgBuilder<M extends Message> {
     /**
      * Constructor.
      * It allows to build instances of {@link BitcoinMsg}.
-     * The Header is automatically created by this builder, but the Body must be created a separate builder
-     * received as a parameter.
-     *
-     * @param config            P2P Configuration
-     * @param bodyBuilder       Builder to create instances of the Message used a Body of the Message
-     */
-    public BitcoinMsgBuilder(ProtocolBasicConfig config, MessageBuilder<M> bodyBuilder) {
-        this(config, bodyBuilder.build());
-    }
-
-    /**
-     * Constructor.
-     * It allows to build instances of {@link BitcoinMsg}.
      * The Header is automatically created by this builder, and the Body is provided.
      *
      * @param config            P2P Configuration

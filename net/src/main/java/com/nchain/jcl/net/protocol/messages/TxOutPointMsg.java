@@ -1,12 +1,8 @@
 package com.nchain.jcl.net.protocol.messages;
 
 
+import com.google.common.base.Objects;
 import com.nchain.jcl.net.protocol.messages.common.Message;
-import io.bitcoinj.bitcoin.api.base.TxOutPoint;
-import io.bitcoinj.bitcoin.bean.base.TxOutPointBean;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Value;
 
 
 /**
@@ -21,26 +17,18 @@ import lombok.Value;
  *  - field: "index" (4 bytes) uint32_t
  *    The index of the specific output in the transaction. The first output is 0, etc.
  */
-@Value
-@EqualsAndHashCode
-public class TxOutPointMsg extends Message {
+public final class TxOutPointMsg extends Message {
 
     public static final String MESSAGE_TYPE = "OutPoint";
 
-    private HashMsg hash;
-    private long index;
+    private final HashMsg hash;
+    private final long index;
 
-    @Builder
     protected TxOutPointMsg(HashMsg hash, long index) {
         this.hash = hash;
         this.index = index;
         init();
     }
-    @Override
-    public String getMessageType() {
-        return MESSAGE_TYPE;
-    }
-
 
     @Override
     protected long calculateLength() {
@@ -52,8 +40,57 @@ public class TxOutPointMsg extends Message {
     protected void validateMessage() {}
 
     @Override
+    public String getMessageType()  { return MESSAGE_TYPE; }
+    public HashMsg getHash()        { return this.hash; }
+    public long getIndex()          { return this.index; }
+
+    @Override
     public String toString() {
         return "hash: " + hash + ", index: " + index;
     }
 
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(hash, index);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) { return false; }
+        if (obj == this) { return true; }
+        if (obj.getClass() != getClass()) { return false; }
+        TxOutPointMsg other = (TxOutPointMsg) obj;
+        return Objects.equal(this.hash, other.hash)
+                && Objects.equal(this.index, other.index);
+    }
+
+    public static TxOutPointMsgBuilder builder() {
+        return new TxOutPointMsgBuilder();
+    }
+
+    /**
+     * Builder
+     */
+    public static class TxOutPointMsgBuilder {
+        private HashMsg hash;
+        private long index;
+
+        TxOutPointMsgBuilder() { }
+
+        public TxOutPointMsg.TxOutPointMsgBuilder hash(HashMsg hash) {
+            this.hash = hash;
+            return this;
+        }
+
+        public TxOutPointMsg.TxOutPointMsgBuilder index(long index) {
+            this.index = index;
+            return this;
+        }
+
+        public TxOutPointMsg build() {
+            return new TxOutPointMsg(hash, index);
+        }
+
+    }
 }

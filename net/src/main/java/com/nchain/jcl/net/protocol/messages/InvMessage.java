@@ -1,11 +1,8 @@
 package com.nchain.jcl.net.protocol.messages;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.nchain.jcl.net.protocol.messages.common.Message;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,9 +23,6 @@ import java.util.stream.Collectors;
  *   Inventory vectors.
  *
  */
-@Getter
-@ToString
-@EqualsAndHashCode
 public class InvMessage extends Message {
     private static final long MAX_ADDRESSES = 50000;
     public static final String MESSAGE_TYPE = "inv";
@@ -39,21 +33,12 @@ public class InvMessage extends Message {
 
     /**
      * Creates the InvMessage Object.Use the corresponding builder to create the instance.
-     *
-     * @param invVectorMsgList
      */
-    @Builder
     protected InvMessage(List<InventoryVectorMsg> invVectorMsgList) {
         this.invVectorList = invVectorMsgList.stream().collect(Collectors.toUnmodifiableList());
         this.count = VarIntMsg.builder().value(invVectorMsgList.size()).build();
         init();
     }
-
-    @Override
-    public String getMessageType() {
-        return MESSAGE_TYPE;
-    }
-
 
     @Override
     protected long calculateLength() {
@@ -65,5 +50,53 @@ public class InvMessage extends Message {
     protected void validateMessage() {
         Preconditions.checkArgument(count.getValue() <= MAX_ADDRESSES,"Inv message too largeMsgs.");
         Preconditions.checkArgument(count.getValue() ==  invVectorList.size(), "InvMessage list and count value are not same.");
+    }
+
+    @Override
+    public String getMessageType()                      { return MESSAGE_TYPE; }
+    public VarIntMsg getCount()                         { return this.count; }
+    public List<InventoryVectorMsg> getInvVectorList()  { return this.invVectorList; }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(count, invVectorList);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) { return false; }
+        if (obj == this) { return true; }
+        if (obj.getClass() != getClass()) { return false; }
+        InvMessage other = (InvMessage) obj;
+        return Objects.equal(this.count, other.count)
+                && Objects.equal(this.invVectorList, other.invVectorList);
+    }
+
+    @Override
+    public String toString() {
+        return "InvMessage(count=" + this.getCount() + ", invVectorList=" + this.getInvVectorList() + ")";
+    }
+
+    public static InvMessageBuilder builder() {
+        return new InvMessageBuilder();
+    }
+
+    /**
+     * Builder
+     */
+    public static class InvMessageBuilder {
+        private List<InventoryVectorMsg> invVectorMsgList;
+
+        InvMessageBuilder() {}
+
+        public InvMessage.InvMessageBuilder invVectorMsgList(List<InventoryVectorMsg> invVectorMsgList) {
+            this.invVectorMsgList = invVectorMsgList;
+            return this;
+        }
+
+        public InvMessage build() {
+            return new InvMessage(invVectorMsgList);
+        }
+
     }
 }

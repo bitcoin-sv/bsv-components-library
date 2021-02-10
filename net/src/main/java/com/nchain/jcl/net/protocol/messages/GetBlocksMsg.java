@@ -1,9 +1,7 @@
 package com.nchain.jcl.net.protocol.messages;
 
+import com.google.common.base.Objects;
 import com.nchain.jcl.net.protocol.messages.common.Message;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Value;
 
 
 /**
@@ -14,22 +12,14 @@ import lombok.Value;
  * in the block locator object, up to hash_stop or 500 blocks, whichever comes first.
  *
  */
-@Value
-@EqualsAndHashCode
-public class GetBlocksMsg extends Message {
+public final class GetBlocksMsg extends Message {
 
     public static final String MESSAGE_TYPE = "getblocks";
-    BaseGetDataAndHeaderMsg baseGetDataAndHeaderMsg;
+    private final BaseGetDataAndHeaderMsg baseGetDataAndHeaderMsg;
 
-    @Builder
     protected GetBlocksMsg(BaseGetDataAndHeaderMsg baseGetDataAndHeaderMsg) {
         this.baseGetDataAndHeaderMsg = baseGetDataAndHeaderMsg;
         init();
-    }
-
-    @Override
-    public String getMessageType() {
-        return MESSAGE_TYPE;
     }
 
     @Override
@@ -41,4 +31,48 @@ public class GetBlocksMsg extends Message {
     @Override
     protected void validateMessage() {}
 
+    @Override
+    public String getMessageType()                              { return MESSAGE_TYPE; }
+    public BaseGetDataAndHeaderMsg getBaseGetDataAndHeaderMsg() { return this.baseGetDataAndHeaderMsg; }
+
+    @Override
+    public String toString() {
+        return "GetBlocksMsg(baseGetDataAndHeaderMsg=" + this.getBaseGetDataAndHeaderMsg() + ")";
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(baseGetDataAndHeaderMsg);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) { return false; }
+        if (obj == this) { return true; }
+        if (obj.getClass() != getClass()) { return false; }
+        GetBlocksMsg other = (GetBlocksMsg) obj;
+        return Objects.equal(this.baseGetDataAndHeaderMsg, other.baseGetDataAndHeaderMsg);
+    }
+
+    public static GetBlocksMsgBuilder builder() {
+        return new GetBlocksMsgBuilder();
+    }
+
+    /**
+     * Builder
+     */
+    public static class GetBlocksMsgBuilder {
+        private BaseGetDataAndHeaderMsg baseGetDataAndHeaderMsg;
+
+        GetBlocksMsgBuilder() {}
+
+        public GetBlocksMsg.GetBlocksMsgBuilder baseGetDataAndHeaderMsg(BaseGetDataAndHeaderMsg baseGetDataAndHeaderMsg) {
+            this.baseGetDataAndHeaderMsg = baseGetDataAndHeaderMsg;
+            return this;
+        }
+
+        public GetBlocksMsg build() {
+            return new GetBlocksMsg(baseGetDataAndHeaderMsg);
+        }
+    }
 }

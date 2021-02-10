@@ -1,9 +1,7 @@
 package com.nchain.jcl.net.protocol.messages;
 
+import com.google.common.base.Objects;
 import com.nchain.jcl.net.protocol.messages.common.Message;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Value;
 
 
 /**
@@ -32,23 +30,16 @@ import lombok.Value;
  *   format: 0xFF followed by the length as uint64_t
  *
  */
-@Value
-@EqualsAndHashCode
 public final class VarIntMsg extends Message {
 
     public static final String MESSAGE_TYPE = "varInt";
 
     private final long value;
 
-    @Builder
     protected VarIntMsg(long value) {
         this.value = value;
         init();
     }
-
-    @Override
-    public String getMessageType() {return MESSAGE_TYPE;}
-
 
     @Override
     protected long calculateLength() {
@@ -71,12 +62,51 @@ public final class VarIntMsg extends Message {
         return 9; // 1 marker + 8 data bytes
     }
 
-
     @Override
     protected void validateMessage() {}
 
     @Override
+    public String getMessageType()  { return MESSAGE_TYPE;}
+    public long getValue()          { return this.value; }
+
+    @Override
     public String toString() {
         return String.valueOf(value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(value);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) { return false; }
+        if (obj == this) { return true; }
+        if (obj.getClass() != getClass()) { return false; }
+        VarIntMsg other = (VarIntMsg) obj;
+        return Objects.equal(this.value, other.value);
+    }
+
+    public static VarIntMsgBuilder builder() {
+        return new VarIntMsgBuilder();
+    }
+
+    /**
+     * Builder
+     */
+    public static class VarIntMsgBuilder {
+        private long value;
+
+        VarIntMsgBuilder() {}
+
+        public VarIntMsg.VarIntMsgBuilder value(long value) {
+            this.value = value;
+            return this;
+        }
+
+        public VarIntMsg build() {
+            return new VarIntMsg(value);
+        }
     }
 }

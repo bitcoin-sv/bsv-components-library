@@ -1,9 +1,6 @@
 package com.nchain.jcl.net.protocol.messages;
 
-
 import com.nchain.jcl.net.protocol.messages.common.Message;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
 
 /**
  * @author i.fernandez@nchain.com
@@ -14,15 +11,14 @@ import lombok.EqualsAndHashCode;
  * header with the command string "verack".
  *
  */
-@EqualsAndHashCode
 public final class VersionAckMsg extends Message {
 
     // Message Type (stored in the "command" field in the HeaderMsg of a Bitcoin Message
     public static final String MESSAGE_TYPE = "verack";
     private static final int MESSAGE_LENGTH = 0;
 
-    @Builder
     protected VersionAckMsg() {init(); }
+
 
     @Override
     public String getMessageType() { return MESSAGE_TYPE; }
@@ -33,15 +29,17 @@ public final class VersionAckMsg extends Message {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        return true; // Since all VerackMsg are empty, they are ALWAYS Equals
+    public int hashCode() {
+        return 1;
     }
 
     @Override
-    public int hashCode() {
-        return 0; // TODO: Careful
+    public boolean equals(Object obj) {
+        if (obj == null) { return false; }
+        if (obj == this) { return true; }
+        if (obj.getClass() != getClass()) { return false; }
+        return true;
     }
-
 
     @Override
     protected long calculateLength() {
@@ -51,4 +49,20 @@ public final class VersionAckMsg extends Message {
 
     @Override
     protected void validateMessage() {}
+
+
+    public static VersionAckMsgBuilder builder() {
+        return new VersionAckMsgBuilder();
+    }
+
+    /**
+     * Builder
+     */
+    public static class VersionAckMsgBuilder {
+        VersionAckMsgBuilder() {}
+
+        public VersionAckMsg build() {
+            return new VersionAckMsg();
+        }
+    }
 }

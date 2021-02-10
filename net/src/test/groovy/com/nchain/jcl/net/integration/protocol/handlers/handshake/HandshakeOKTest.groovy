@@ -98,7 +98,7 @@ class HandshakeOKTest extends Specification {
 
         when:
             server.startServer()
-            Thread.sleep(20000) // Raise this number if DNS are poor and takes longer to establish connections
+            Thread.sleep(30000) // Raise this number if DNS are poor and takes longer to establish connections
 
             // The Service will start connecting to the Peers and handshaking with them.
             // The connection will stop at the moment we have MAX_PEER handshaked. At that moment, the service will

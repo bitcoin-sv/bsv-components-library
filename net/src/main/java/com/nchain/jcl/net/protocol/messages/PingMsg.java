@@ -1,9 +1,7 @@
 package com.nchain.jcl.net.protocol.messages;
 
+import com.google.common.base.Objects;
 import com.nchain.jcl.net.protocol.messages.common.Message;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Value;
 
 
 /**
@@ -22,15 +20,12 @@ import lombok.Value;
  *   identify the ping message to which it is replying.
  *
  */
-@Value
-@EqualsAndHashCode
-public class PingMsg extends Message {
+public final class PingMsg extends Message {
     public static final String MESSAGE_TYPE = "ping";
-    protected static int FIXED_MESSAGE_LENGTH = 8;
+    protected static final int FIXED_MESSAGE_LENGTH = 8;
 
-    private long nonce;
+    private final long nonce;
 
-    @Builder
     protected PingMsg(long nonce) {
         this.nonce = nonce;
         init();
@@ -46,8 +41,46 @@ public class PingMsg extends Message {
     protected void validateMessage() {}
 
     @Override
-    public String getMessageType() {
-        return MESSAGE_TYPE;
+    public String getMessageType()  { return MESSAGE_TYPE; }
+    public long getNonce()          { return this.nonce; }
+
+    @Override
+    public String toString() {
+        return "PingMsg(nonce=" + this.getNonce() + ")";
+    }
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(nonce);
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) { return false; }
+        if (obj == this) { return true; }
+        if (obj.getClass() != getClass()) { return false; }
+        PingMsg other = (PingMsg) obj;
+        return Objects.equal(this.nonce, other.nonce);
+    }
+
+    public static PingMsgBuilder builder() {
+        return new PingMsgBuilder();
+    }
+
+    /**
+     * Builder
+     */
+    public static class PingMsgBuilder {
+        private long nonce;
+
+        PingMsgBuilder() { }
+
+        public PingMsg.PingMsgBuilder nonce(long nonce) {
+            this.nonce = nonce;
+            return this;
+        }
+
+        public PingMsg build() {
+            return new PingMsg(nonce);
+        }
+    }
 }

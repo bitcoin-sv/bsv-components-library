@@ -1,10 +1,8 @@
 package com.nchain.jcl.net.protocol.messages;
 
 
+import com.google.common.base.Objects;
 import com.nchain.jcl.net.protocol.messages.common.Message;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Value;
 
 /**
  * @author m.jose@nchain.com
@@ -19,20 +17,16 @@ import lombok.Value;
  *   Random nonce assigned to this pong message.
  *   The pong message sends back the same nonce received in the ping message it is replying to.
  */
-@Value
-@EqualsAndHashCode
-public class PongMsg extends Message {
-    protected static int FIXED_MESSAGE_LENGTH = 8;
+public final class PongMsg extends Message {
+    protected static final int FIXED_MESSAGE_LENGTH = 8;
     public static final String MESSAGE_TYPE = "pong";
 
-    private long nonce;
+    private final long nonce;
 
-    @Builder
     public PongMsg(long nonce) {
         this.nonce = nonce;
         init();
     }
-
 
     @Override
     protected long calculateLength() {
@@ -44,7 +38,47 @@ public class PongMsg extends Message {
     protected void validateMessage() {}
 
     @Override
-    public String getMessageType() {
-        return MESSAGE_TYPE;
+    public String getMessageType()  { return MESSAGE_TYPE; }
+    public long getNonce()          { return this.nonce; }
+
+    @Override
+    public String toString() {
+        return "PongMsg(nonce=" + this.getNonce() + ")";
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(nonce);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) { return false; }
+        if (obj == this) { return true; }
+        if (obj.getClass() != getClass()) { return false; }
+        PongMsg other = (PongMsg) obj;
+        return Objects.equal(this.nonce, other.nonce);
+    }
+
+    public static PongMsgBuilder builder() {
+        return new PongMsgBuilder();
+    }
+
+    /**
+     * Builder
+     */
+    public static class PongMsgBuilder {
+        private long nonce;
+
+        PongMsgBuilder() {}
+
+        public PongMsg.PongMsgBuilder nonce(long nonce) {
+            this.nonce = nonce;
+            return this;
+        }
+
+        public PongMsg build() {
+            return new PongMsg(nonce);
+        }
     }
 }

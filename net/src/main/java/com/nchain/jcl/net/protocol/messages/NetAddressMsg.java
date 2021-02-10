@@ -1,10 +1,8 @@
 package com.nchain.jcl.net.protocol.messages;
 
+import com.google.common.base.Objects;
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.protocol.messages.common.Message;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Value;
 
 
 /**
@@ -32,8 +30,6 @@ import lombok.Value;
  *  - field: "getPort" (2 bytes) uint16_t
  *    getPort number, network byte order
  */
-@Value
-@EqualsAndHashCode
 public final class NetAddressMsg extends Message {
     // An NetAddressMsg has a length of 30 Bytes or 26 bytes, depending whether it has a timestamp or not.
     public static final int MESSAGE_LENGTH = 30;
@@ -46,17 +42,12 @@ public final class NetAddressMsg extends Message {
     private final long services;
 
     // Constructor
-    @Builder
     protected NetAddressMsg(Long timestamp, long services, PeerAddress address) {
         this.timestamp = timestamp;
         this.services = services;
         this.address = address;
         init();
     }
-
-    @Override
-    public String getMessageType() {return MESSAGE_TYPE;}
-
 
     @Override
     protected long calculateLength() {
@@ -66,4 +57,65 @@ public final class NetAddressMsg extends Message {
 
     @Override
     protected void validateMessage() {}
+
+    @Override
+    public String getMessageType()  { return MESSAGE_TYPE;}
+    public Long getTimestamp()      { return this.timestamp; }
+    public PeerAddress getAddress() { return this.address; }
+    public long getServices()       { return this.services; }
+
+    @Override
+    public String toString() {
+        return "NetAddressMsg(timestamp=" + this.getTimestamp() + ", address=" + this.getAddress() + ", services=" + this.getServices() + ")";
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(timestamp, address, services);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) { return false; }
+        if (obj == this) { return true; }
+        if (obj.getClass() != getClass()) { return false; }
+        NetAddressMsg other = (NetAddressMsg) obj;
+        return Objects.equal(this.timestamp, other.timestamp)
+                && Objects.equal(this.address, other.address)
+                && Objects.equal(this.services, other.services);
+    }
+
+    public static NetAddressMsgBuilder builder() {
+        return new NetAddressMsgBuilder();
+    }
+
+    /**
+     * Builder
+     */
+    public static class NetAddressMsgBuilder {
+        private Long timestamp;
+        private long services;
+        private PeerAddress address;
+
+        NetAddressMsgBuilder() {}
+
+        public NetAddressMsg.NetAddressMsgBuilder timestamp(Long timestamp) {
+            this.timestamp = timestamp;
+            return this;
+        }
+
+        public NetAddressMsg.NetAddressMsgBuilder services(long services) {
+            this.services = services;
+            return this;
+        }
+
+        public NetAddressMsg.NetAddressMsgBuilder address(PeerAddress address) {
+            this.address = address;
+            return this;
+        }
+
+        public NetAddressMsg build() {
+            return new NetAddressMsg(timestamp, services, address);
+        }
+    }
 }

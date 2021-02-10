@@ -1,9 +1,7 @@
 package com.nchain.jcl.net.protocol.messages;
 
+import com.google.common.base.Objects;
 import com.nchain.jcl.net.protocol.messages.common.Message;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Value;
 
 /**
  * @author m.fletcher@nchain.com
@@ -11,17 +9,15 @@ import lombok.Value;
  *
  * This message consists of only a message header with the command string "sendheaders".
  */
-@Value
-@EqualsAndHashCode
-public class SendHeadersMsg extends Message {
+public final class SendHeadersMsg extends Message {
 
     public static final String MESSAGE_TYPE = "sendheaders";
     private static final int MESSAGE_LENGTH = 0;
 
-    @Builder
     public SendHeadersMsg(){
         init();
     }
+
 
     @Override
     public String getMessageType() {
@@ -35,6 +31,37 @@ public class SendHeadersMsg extends Message {
 
     @Override
     protected void validateMessage() {
+    }
 
+    public String toString() {
+        return "SendHeadersMsg()";
+    }
+
+    @Override
+    public int hashCode() {
+        return 1;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) { return false; }
+        if (obj == this) { return true; }
+        if (obj.getClass() != getClass()) { return false; }
+        return true;
+    }
+
+    public static SendHeadersMsgBuilder builder() {
+        return new SendHeadersMsgBuilder();
+    }
+
+    /**
+     * Builder
+     */
+    public static class SendHeadersMsgBuilder {
+        SendHeadersMsgBuilder() { }
+
+        public SendHeadersMsg build() {
+            return new SendHeadersMsg();
+        }
     }
 }

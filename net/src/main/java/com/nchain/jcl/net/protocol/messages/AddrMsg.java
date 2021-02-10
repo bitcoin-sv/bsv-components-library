@@ -1,11 +1,9 @@
 package com.nchain.jcl.net.protocol.messages;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.nchain.jcl.net.protocol.messages.common.Message;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Value;
 
 import java.util.List;
 
@@ -27,22 +25,17 @@ import java.util.List;
  *   Address of other nodes on the network.
  *
  */
-@Value
-@EqualsAndHashCode
-public class AddrMsg extends Message {
+public final class AddrMsg extends Message {
+
     private static final long MAX_ADDRESSES = 1000;
     public static final String MESSAGE_TYPE = "addr";
 
-    private VarIntMsg count;
-    private ImmutableList<NetAddressMsg> addrList;
-
+    private final VarIntMsg count;
+    private final ImmutableList<NetAddressMsg> addrList;
 
     /**
      * Creates the AddrMsg Object.Use the corresponding builder to create the instance.
-     *
-     * @param addrList
      */
-    @Builder
     protected AddrMsg( List<NetAddressMsg> addrList) {
         this.addrList = ImmutableList.copyOf(addrList);
         this.count = VarIntMsg.builder().value(this.addrList.size()).build();
@@ -52,7 +45,6 @@ public class AddrMsg extends Message {
     @Override
     protected long calculateLength() {
         long lengthInBytes  = count.getLengthInBytes();
-
         for (NetAddressMsg netAddressMsg : addrList) {
             lengthInBytes += netAddressMsg.getLengthInBytes();
         }
@@ -66,7 +58,49 @@ public class AddrMsg extends Message {
     }
 
     @Override
-    public String getMessageType() {
-        return MESSAGE_TYPE;
+    public String getMessageType()                      { return MESSAGE_TYPE; }
+    public VarIntMsg getCount()                         { return this.count; }
+    public ImmutableList<NetAddressMsg> getAddrList()   { return this.addrList; }
+
+    @Override
+    public String toString() {
+        return "AddrMsg(count=" + this.getCount() + ", addrList=" + this.getAddrList() + ")";
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(addrList, count);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) { return false; }
+        if (obj == this) { return true; }
+        if (obj.getClass() != getClass()) { return false; }
+        AddrMsg other = (AddrMsg) obj;
+        return Objects.equal(this.addrList, other.addrList)
+                && Objects.equal(this.count, other.count);
+    }
+
+    public static AddrMsgBuilder builder() {
+        return new AddrMsgBuilder();
+    }
+
+    /**
+     * Builder
+     */
+    public static class AddrMsgBuilder {
+        private List<NetAddressMsg> addrList;
+
+        AddrMsgBuilder() {}
+
+        public AddrMsg.AddrMsgBuilder addrList(List<NetAddressMsg> addrList) {
+            this.addrList = addrList;
+            return this;
+        }
+
+        public AddrMsg build() {
+            return new AddrMsg(addrList);
+        }
     }
 }

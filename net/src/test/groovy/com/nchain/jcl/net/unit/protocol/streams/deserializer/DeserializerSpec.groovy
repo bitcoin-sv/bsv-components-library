@@ -207,11 +207,11 @@ class DeserializerSpec extends Specification {
             List<BitcoinMsg> messagesFromCache = deserializeWithCache(protocolConfig, reader, cache)
 
             // Now we check that the Messages searched are EQUALS to the BODIES of the Original Messages, adn the stats:
-            boolean messagesOK = msgsFromP2P.equals(messagesFromCache)
+
             DeserializerState cacheState = cache.getState()
 
         then:
-            messagesOK
+            msgsFromP2P.equals(messagesFromCache)
             cacheState.numLoads == 1
             cacheState.numHits == NUM_MSGS - 1
     }
