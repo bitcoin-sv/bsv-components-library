@@ -69,6 +69,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
     private List<String>            blocksDownloaded = new CopyOnWriteArrayList<>();
     private Map<String, Instant>    blocksDiscarded = new ConcurrentHashMap<>();
 
+    Lock lock = new ReentrantLock();
+
     // The Big Blocks will be Downloaded and Deserialized in Real Time, and we'll get notified every time a
     // block Header or a set of Txs are deserialized. So in order to know WHEN a Bock has been fully serialzied,
     // we need to keep track of the number of TXs contained in each block. When we detect that all the TXs within
@@ -77,8 +79,6 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
     private Map<String, BlockHeaderMsg>   bigBlocksHeaders   = new ConcurrentHashMap<>();
     private Map<String, Long>             bigBlocksCurrentTxs = new ConcurrentHashMap();
 
-    // Lock needed when multiple downloads in parallels are enabled:
-    Lock lock = new ReentrantLock();
 
     /** Constructor */
     public BlockDownloaderHandlerImpl(String id, RuntimeConfig runtimeConfig, BlockDownloaderHandlerConfig config) {
@@ -226,7 +226,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
     private void processDownloadSuccess(BlockPeerInfo peerInfo, BlockHeaderMsg blockHeader, long blockSize) {
         String blockHash = peerInfo.getCurrentBlockInfo().getHash();
 
-        synchronized (this) {
+        try {
+            lock.lock();
             logger.debug(peerInfo.getPeerAddress(), "Block successfully downloaded", blockHash);
 
             // We activated back the ping/Pong Verifications for this Peer
@@ -234,12 +235,12 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
 
             // We publish an Event notifying that this Block being downloaded:
             super.eventBus.publish(
-                new BlockDownloadedEvent(
-                        peerInfo.getPeerAddress(),
-                        blockHeader,
-                        Duration.between(peerInfo.getCurrentBlockInfo().getStartTimestamp(), Instant.now()),
-                        blockSize
-                )
+                    new BlockDownloadedEvent(
+                            peerInfo.getPeerAddress(),
+                            blockHeader,
+                            Duration.between(peerInfo.getCurrentBlockInfo().getStartTimestamp(), Instant.now()),
+                            blockSize
+                    )
             );
 
             // We reset the peer, to make it ready for a new download, and we updateNextMessage the workingState:
@@ -248,8 +249,9 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
 
             blocksDownloaded.add(blockHash);
             blocksNumDownloadAttempts.remove(blockHash);
+        } finally {
+            lock.unlock();
         }
-
     }
 
 
@@ -259,7 +261,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
 
     private void processDownloadFailiure(BlockPeerInfo peerInfo) {
         if (peerInfo == null) return;
-        synchronized (this) {
+        try {
+            lock.lock();
             if (peerInfo.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING)) {
                 String blockHash = peerInfo.getCurrentBlockInfo().getHash();
                 int numAttempts = blocksNumDownloadAttempts.get(blockHash);
@@ -273,9 +276,10 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                     super.eventBus.publish(new BlockDiscardedEvent(blockHash, BlockDiscardedEvent.DiscardedReason.TIMEOUT));
                 }
             }
-
             // We activated back the ping/Pong Verifications for this Peer
             super.eventBus.publish(new EnablePingPongRequest(peerInfo.getPeerAddress()));
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -285,8 +289,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         // - WE update the Peer Info
         // - We disable the Ping/Pong monitor process on it, since it might be busy during the block downloading
         // - We update other structures (num Attempts on this block, and blocks pendings, etc):
-
-        synchronized (this) {
+        try {
+            lock.lock();
             peerInfo.startDownloading(blockHash);
             peerInfo.getStream().upgradeBufferSize();
 
@@ -306,6 +310,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
             BitcoinMsg<GetdataMsg> btcMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), msg).build();
             // We send the message
             super.eventBus.publish(new SendMsgRequest(peerInfo.getPeerAddress(), btcMsg));
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -343,15 +349,20 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                         case IDLE: {
                             // This peer is idle. If according to config we can download more Blocks, we assign one
                             // to it, if there is any...
-                            if (blocksPending.size() > 0) {
-                                long numPeersWorking = peersInfo.values().stream()
-                                        .filter( p -> p.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING))
-                                        .count();
-                                if (numPeersWorking < config.getMaxBlocksInParallel()) {
-                                    String hash = blocksPending.stream().findFirst().get();
-                                    logger.trace("Putting peer " + peerInfo.getPeerAddress() + " to download " + hash + "...");
-                                    startDownloading(peerInfo, hash);
+                            try {
+                                lock.lock();
+                                if (blocksPending.size() > 0) {
+                                    long numPeersWorking = peersInfo.values().stream()
+                                            .filter( p -> p.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING))
+                                            .count();
+                                    if (numPeersWorking < config.getMaxBlocksInParallel()) {
+                                        String hash = blocksPending.stream().findFirst().get();
+                                        logger.trace("Putting peer " + peerInfo.getPeerAddress() + " to download " + hash + "...");
+                                        startDownloading(peerInfo, hash);
+                                    }
                                 }
+                            } finally {
+                                lock.unlock();
                             }
                             break;
                         }
@@ -379,6 +390,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
 
                 } // while it.next (each PeerInfo...
 
+
                 // Now we remove the Peers we decided need to be removed:
                 for (PeerAddress peerAddress : peersToRemove) peersInfo.remove(peerAddress);
 
@@ -388,9 +400,16 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                     if (Duration.between(blocksDiscarded.get(hashDiscarded), Instant.now())
                             .compareTo(config.getRetryDiscardedBlocksTimeout()) > 0) blocksToReTry.add(hashDiscarded);
 
-                for (String hashToRetry : blocksToReTry) {
-                    blocksDiscarded.remove(hashToRetry);
-                    blocksPending.add(hashToRetry);
+                if (blocksToReTry.size() > 0) {
+                    try {
+                        lock.lock();
+                        for (String hashToRetry : blocksToReTry) {
+                            blocksDiscarded.remove(hashToRetry);
+                            blocksPending.add(hashToRetry);
+                        }
+                    } finally {
+                        lock.unlock();
+                    }
                 }
 
                 Thread.sleep(100); // to avoid tight loops...
