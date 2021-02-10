@@ -8,7 +8,6 @@ import com.nchain.jcl.store.foundationDB.blockStore.BlockStoreFDB
 import com.nchain.jcl.store.foundationDB.blockStore.BlockStoreFDBConfig
 import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
 
-import java.nio.file.Path
 import java.time.Duration
 
 
@@ -16,13 +15,16 @@ import java.time.Duration
  * A factory that creates and returns instances of BlockStore and BlockChainStore interfaces
  */
 class StoreFactory {
-    private static final String CLUSTER_FILE = "installation/fdb.cluster";
+    private static final String DOCKER_CLUSTER_FILE = "installation/fdb.cluster";
 
+    private static String getClusterFile() {
+        return FDBTestUtils.useDocker? DOCKER_CLUSTER_FILE : null;
+    }
     /** It creates an instance of the BlockStore interface */
     static BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents) {
         BlockStoreFDBConfig config = BlockStoreFDBConfig.builder()
                 .networkId(netId)
-                .clusterFile(CLUSTER_FILE)
+                .clusterFile(getClusterFile())
                 .build()
         BlockStoreFDB blockStore = BlockStoreFDB.builder()
                 .config(config)
@@ -43,7 +45,7 @@ class StoreFactory {
                                        Duration orphanPrunningBlockAge) {
 
         BlockChainStoreFDBConfig dbConfig = BlockChainStoreFDBConfig.chainBuild()
-                .clusterFile(CLUSTER_FILE)
+                .clusterFile(getClusterFile())
                 .networkId(netId)
                 .genesisBlock(genesisBlock)
                 .forkPrunningHeightDifference(forkPrunningHeightDiff)

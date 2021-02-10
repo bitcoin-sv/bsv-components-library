@@ -3,9 +3,7 @@ package com.nchain.jcl.store.foundationDB.blockStore;
 import com.nchain.jcl.store.keyValue.blockStore.BlockStoreKeyValueConfig;
 import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NonNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 /**
  * @author i.fernandez@nchain.com
@@ -13,7 +11,6 @@ import lombok.NonNull;
  *
  * Configuration class for the FoundationDB Implementation of the BlockStore interface
  */
-@Getter
 public class BlockStoreFDBConfig implements BlockStoreKeyValueConfig {
 
     /**
@@ -56,7 +53,6 @@ public class BlockStoreFDBConfig implements BlockStoreKeyValueConfig {
      */
     private int transactionBatchSize;
 
-    @Builder
     public BlockStoreFDBConfig(RuntimeConfig runtimeConfig,
                                String clusterFile,
                                Integer apiVersion,
@@ -67,5 +63,58 @@ public class BlockStoreFDBConfig implements BlockStoreKeyValueConfig {
         this.apiVersion = (apiVersion != null) ? apiVersion : API_VERSION;
         this.networkId = networkId;
         this.transactionBatchSize = (transactionBatchSize != null) ? transactionBatchSize : TRANSACTION_BATCH_SIZE;
+    }
+
+    public RuntimeConfig getRuntimeConfig() { return this.runtimeConfig; }
+    public String getClusterFile()          { return this.clusterFile; }
+    public int getApiVersion()              { return this.apiVersion; }
+    public String getNetworkId()            { return this.networkId; }
+    public int getTransactionBatchSize()    { return this.transactionBatchSize; }
+
+    public static BlockStoreFDBConfigBuilder builder() {
+        return new BlockStoreFDBConfigBuilder();
+    }
+
+    /**
+     * Builder
+     */
+    public static class BlockStoreFDBConfigBuilder {
+        private RuntimeConfig runtimeConfig;
+        private String clusterFile;
+        private Integer apiVersion;
+        private @NonNull String networkId;
+        private Integer transactionBatchSize;
+
+        BlockStoreFDBConfigBuilder() {
+        }
+
+        public BlockStoreFDBConfig.BlockStoreFDBConfigBuilder runtimeConfig(RuntimeConfig runtimeConfig) {
+            this.runtimeConfig = runtimeConfig;
+            return this;
+        }
+
+        public BlockStoreFDBConfig.BlockStoreFDBConfigBuilder clusterFile(String clusterFile) {
+            this.clusterFile = clusterFile;
+            return this;
+        }
+
+        public BlockStoreFDBConfig.BlockStoreFDBConfigBuilder apiVersion(Integer apiVersion) {
+            this.apiVersion = apiVersion;
+            return this;
+        }
+
+        public BlockStoreFDBConfig.BlockStoreFDBConfigBuilder networkId(@NonNull String networkId) {
+            this.networkId = networkId;
+            return this;
+        }
+
+        public BlockStoreFDBConfig.BlockStoreFDBConfigBuilder transactionBatchSize(Integer transactionBatchSize) {
+            this.transactionBatchSize = transactionBatchSize;
+            return this;
+        }
+
+        public BlockStoreFDBConfig build() {
+            return new BlockStoreFDBConfig(runtimeConfig, clusterFile, apiVersion, networkId, transactionBatchSize);
+        }
     }
 }

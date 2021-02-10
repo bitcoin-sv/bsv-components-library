@@ -2,13 +2,9 @@ package com.nchain.jcl.store.foundationDB.common
 
 import com.nchain.jcl.store.blockStore.BlockStore
 import com.nchain.jcl.store.common.IteratorSpecBase
-import com.nchain.jcl.store.foundationDB.DockerTestUtils
+import com.nchain.jcl.store.foundationDB.FDBTestUtils
 import com.nchain.jcl.store.foundationDB.blockStore.BlockStoreFDB
 import com.nchain.jcl.store.foundationDB.StoreFactory
-import org.junit.ClassRule
-import org.testcontainers.containers.DockerComposeContainer
-import org.testcontainers.spock.Testcontainers
-import spock.lang.Shared
 
 import java.util.function.Function
 
@@ -20,8 +16,8 @@ import java.util.function.Function
 class FDBIteratorSpec extends IteratorSpecBase {
 
     // Start & Stop FoundationDB in Docker Container (check DockerTestUtils for details)...
-    def setupSpec()     { DockerTestUtils.startDocker()}
-    def cleanupSpec()   { DockerTestUtils.stopDocker()}
+    def setupSpec()     { FDBTestUtils.checkFDBBefore()}
+    def cleanupSpec()   { FDBTestUtils.checkFDBAfter()}
 
     @Override
     BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents) {

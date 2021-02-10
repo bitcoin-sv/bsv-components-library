@@ -17,20 +17,20 @@ import com.nchain.jcl.store.keyValue.blockStore.BlockStoreKeyValue;
 import com.nchain.jcl.store.keyValue.common.KeyValueIterator;
 import com.nchain.jcl.tools.events.EventBus;
 import com.nchain.jcl.tools.thread.ThreadUtils;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 
-import java.util.*;
-import java.util.concurrent.*;
-
+import javax.annotation.Nonnull;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
-
 import java.util.function.Function;
 
 
@@ -45,35 +45,34 @@ import java.util.function.Function;
  *
  *  - In FoundationDB, each Database Entrie returned by a LevelDB iterator is KeyValue
  */
-@Slf4j
 public class BlockStoreFDB implements BlockStoreKeyValue<KeyValue, Transaction>, BlockStore {
 
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(BlockStoreFDB.class);
     // Configuration
-    @Getter private BlockStoreFDBConfig config;
-    @Getter private final boolean triggerBlockEvents;
-    @Getter private final boolean triggerTxEvents;
+    private BlockStoreFDBConfig config;
+    private final boolean triggerBlockEvents;
+    private final boolean triggerTxEvents;
 
     // A lock (used by some methods, to ensure Thread-safety):
-    @Getter private ReadWriteLock lock = new ReentrantReadWriteLock();
+    private ReadWriteLock lock = new ReentrantReadWriteLock();
 
     // DB Connection:
-    @Getter protected FDB fdb;
-    @Getter protected Database db;
+    protected FDB fdb;
+    protected Database db;
 
     // Directory Layers within the DB:
     protected DirectoryLayer dirLayer;
-    @Getter protected DirectorySubspace netDir;
-    @Getter protected DirectorySubspace blockchainDir;
-    @Getter protected DirectorySubspace blocksDir;
-    @Getter protected DirectorySubspace txsDir;
+    protected DirectorySubspace netDir;
+    protected DirectorySubspace blockchainDir;
+    protected DirectorySubspace blocksDir;
+    protected DirectorySubspace txsDir;
 
     // Events Streaming Configuration:
     protected final ExecutorService executorService;
-    @Getter protected final EventBus eventBus;
+    protected final EventBus eventBus;
     private final BlockStoreStreamer blockStoreStreamer;
 
-    @Builder
-    public BlockStoreFDB(@NonNull BlockStoreFDBConfig config,
+    public BlockStoreFDB(@Nonnull BlockStoreFDBConfig config,
                          boolean triggerBlockEvents, boolean triggerTxEvents) {
         this.config = config;
         this.triggerBlockEvents = triggerBlockEvents;
@@ -83,8 +82,6 @@ public class BlockStoreFDB implements BlockStoreKeyValue<KeyValue, Transaction>,
         this.executorService = ThreadUtils.getThreadPoolExecutorService("BlockStore-FoundationDB");
         this.eventBus = EventBus.builder().executor(this.executorService).build();
         this.blockStoreStreamer = new BlockStoreStreamer(this.eventBus);
-
-
     }
 
     // Convenience method:
@@ -308,7 +305,6 @@ public class BlockStoreFDB implements BlockStoreKeyValue<KeyValue, Transaction>,
         }
     }
 
-
     @Override
     public void loopOverKeysAndRun(KeyValueIterator<byte[], Transaction> iterator,
                                     Long startingKeyIndex,
@@ -325,12 +321,11 @@ public class BlockStoreFDB implements BlockStoreKeyValue<KeyValue, Transaction>,
 
     @Override
     public void clear() {
-
         db.run(tr -> {
-            // We remove The Blocks and Txs layers
-            dirLayer.remove(tr);
-            // And we init again the Directory Layer structure:
-            initDirectoryStructure();
+           // We remove The Blocks and Txs layers
+           blockchainDir.remove(tr).join();
+           // And we init again the Directory Layer structure:
+           initDirectoryStructure();
             return null;
         });
     }
@@ -344,5 +339,48 @@ public class BlockStoreFDB implements BlockStoreKeyValue<KeyValue, Transaction>,
         });
     }
 
+    public BlockStoreFDBConfig getConfig()      { return this.config; }
+    public boolean isTriggerBlockEvents()       { return this.triggerBlockEvents; }
+    public boolean isTriggerTxEvents()          { return this.triggerTxEvents; }
+    public ReadWriteLock getLock()              { return this.lock; }
+    public FDB getFdb()                         { return this.fdb; }
+    public Database getDb()                     { return this.db; }
+    public DirectorySubspace getNetDir()        { return this.netDir; }
+    public DirectorySubspace getBlockchainDir() { return this.blockchainDir; }
+    public DirectorySubspace getBlocksDir()     { return this.blocksDir; }
+    public DirectorySubspace getTxsDir()        { return this.txsDir; }
+    public EventBus getEventBus()               { return this.eventBus; }
 
+    public static BlockStoreFDBBuilder builder() { return new BlockStoreFDBBuilder(); }
+
+    /**
+     * Builder
+     */
+    public static class BlockStoreFDBBuilder {
+        private @Nonnull BlockStoreFDBConfig config;
+        private boolean triggerBlockEvents;
+        private boolean triggerTxEvents;
+
+        BlockStoreFDBBuilder() {
+        }
+
+        public BlockStoreFDB.BlockStoreFDBBuilder config(@Nonnull BlockStoreFDBConfig config) {
+            this.config = config;
+            return this;
+        }
+
+        public BlockStoreFDB.BlockStoreFDBBuilder triggerBlockEvents(boolean triggerBlockEvents) {
+            this.triggerBlockEvents = triggerBlockEvents;
+            return this;
+        }
+
+        public BlockStoreFDB.BlockStoreFDBBuilder triggerTxEvents(boolean triggerTxEvents) {
+            this.triggerTxEvents = triggerTxEvents;
+            return this;
+        }
+
+        public BlockStoreFDB build() {
+            return new BlockStoreFDB(config, triggerBlockEvents, triggerTxEvents);
+        }
+    }
 }

@@ -6,10 +6,8 @@ import com.nchain.jcl.store.blockChainStore.events.BlockChainStoreStreamer;
 import com.nchain.jcl.store.foundationDB.blockStore.BlockStoreFDB;
 import com.nchain.jcl.store.keyValue.blockChainStore.BlockChainStoreKeyValue;
 import com.nchain.jcl.tools.thread.ThreadUtils;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NonNull;
 
+import javax.annotation.Nonnull;
 import java.time.Duration;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -25,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 public class BlockChainStoreFDB extends BlockStoreFDB implements BlockChainStoreKeyValue<KeyValue, Transaction> {
 
     // Configuration
-    @Getter private BlockChainStoreFDBConfig config;
+    private BlockChainStoreFDBConfig config;
 
     // State publish configuration:
     private final Duration statePublishFrequency;
@@ -43,8 +41,7 @@ public class BlockChainStoreFDB extends BlockStoreFDB implements BlockChainStore
     // Events Streamer:
     private final BlockChainStoreStreamer blockChainStoreStreamer;
 
-    @Builder(builderMethodName = "chainStoreBuilder")
-    public BlockChainStoreFDB(@NonNull BlockChainStoreFDBConfig config,
+    public BlockChainStoreFDB(@Nonnull BlockChainStoreFDBConfig config,
                               boolean triggerBlockEvents,
                               boolean triggerTxEvents, Duration statePublishFrequency,
                               Boolean enableAutomaticForkPrunning,
@@ -72,8 +69,8 @@ public class BlockChainStoreFDB extends BlockStoreFDB implements BlockChainStore
     @Override public byte[] fullKeyForBlockNext(String blockHash)       { return fullKey(blocksDir, keyForBlockNext(blockHash));}
     @Override public byte[] fullKeyForBlockChainInfo(String blockHash)  { return fullKey(blocksDir, keyForBlockChainInfo(blockHash));}
     @Override public byte[] fullKeyForChainTips()                       { return fullKey(blocksDir, keyForChainTips());}
-    @Override public byte[] fullKeyForChainPathsLast()                { return fullKey(blocksDir, keyForChainPathsLast());}
-    @Override public byte[] fullKeyForChainPath(int branchId)         { return fullKey(blocksDir, keyForChainPath(branchId));}
+    @Override public byte[] fullKeyForChainPathsLast()                  { return fullKey(blocksDir, keyForChainPathsLast());}
+    @Override public byte[] fullKeyForChainPath(int branchId)           { return fullKey(blocksDir, keyForChainPath(branchId));}
 
     @Override public BlockChainStoreStreamer EVENTS()                   { return blockChainStoreStreamer;}
 
@@ -126,5 +123,74 @@ public class BlockChainStoreFDB extends BlockStoreFDB implements BlockChainStore
             _initGenesisBlock(tr, config.getGenesisBlock());
             return null;
         });
+    }
+
+    public BlockChainStoreFDBConfig getConfig() {
+        return this.config;
+    }
+
+    public static BlockChainStoreFDBBuilder chainStoreBuilder() {
+        return new BlockChainStoreFDBBuilder();
+    }
+
+    /**
+     * Builder
+     */
+    public static class BlockChainStoreFDBBuilder {
+        private @Nonnull BlockChainStoreFDBConfig config;
+        private boolean triggerBlockEvents;
+        private boolean triggerTxEvents;
+        private Duration statePublishFrequency;
+        private Boolean enableAutomaticForkPrunning;
+        private Duration forkPrunningFrequency;
+        private Boolean enableAutomaticOrphanPrunning;
+        private Duration orphanPrunningFrequency;
+
+        BlockChainStoreFDBBuilder() {
+        }
+
+        public BlockChainStoreFDB.BlockChainStoreFDBBuilder config(@Nonnull BlockChainStoreFDBConfig config) {
+            this.config = config;
+            return this;
+        }
+
+        public BlockChainStoreFDB.BlockChainStoreFDBBuilder triggerBlockEvents(boolean triggerBlockEvents) {
+            this.triggerBlockEvents = triggerBlockEvents;
+            return this;
+        }
+
+        public BlockChainStoreFDB.BlockChainStoreFDBBuilder triggerTxEvents(boolean triggerTxEvents) {
+            this.triggerTxEvents = triggerTxEvents;
+            return this;
+        }
+
+        public BlockChainStoreFDB.BlockChainStoreFDBBuilder statePublishFrequency(Duration statePublishFrequency) {
+            this.statePublishFrequency = statePublishFrequency;
+            return this;
+        }
+
+        public BlockChainStoreFDB.BlockChainStoreFDBBuilder enableAutomaticForkPrunning(Boolean enableAutomaticForkPrunning) {
+            this.enableAutomaticForkPrunning = enableAutomaticForkPrunning;
+            return this;
+        }
+
+        public BlockChainStoreFDB.BlockChainStoreFDBBuilder forkPrunningFrequency(Duration forkPrunningFrequency) {
+            this.forkPrunningFrequency = forkPrunningFrequency;
+            return this;
+        }
+
+        public BlockChainStoreFDB.BlockChainStoreFDBBuilder enableAutomaticOrphanPrunning(Boolean enableAutomaticOrphanPrunning) {
+            this.enableAutomaticOrphanPrunning = enableAutomaticOrphanPrunning;
+            return this;
+        }
+
+        public BlockChainStoreFDB.BlockChainStoreFDBBuilder orphanPrunningFrequency(Duration orphanPrunningFrequency) {
+            this.orphanPrunningFrequency = orphanPrunningFrequency;
+            return this;
+        }
+
+        public BlockChainStoreFDB build() {
+            return new BlockChainStoreFDB(config, triggerBlockEvents, triggerTxEvents, statePublishFrequency, enableAutomaticForkPrunning, forkPrunningFrequency, enableAutomaticOrphanPrunning, orphanPrunningFrequency);
+        }
     }
 }

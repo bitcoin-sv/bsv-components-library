@@ -2,7 +2,7 @@ package com.nchain.jcl.store.foundationDB.blockChainStore
 
 import com.nchain.jcl.store.blockChainStore.BlockChainStore
 import com.nchain.jcl.store.blockChainStore.BlockChainStoreOrphanSpecBase
-import com.nchain.jcl.store.foundationDB.DockerTestUtils
+import com.nchain.jcl.store.foundationDB.FDBTestUtils
 import com.nchain.jcl.store.foundationDB.StoreFactory
 import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
 
@@ -14,8 +14,8 @@ import java.time.Duration
 class BlockChainOrphanSpec extends BlockChainStoreOrphanSpecBase {
 
     // Start & Stop FoundationDB in Docker Container (check DockerTestUtils for details)...
-    def setupSpec()     { DockerTestUtils.startDocker()}
-    def cleanupSpec()   { DockerTestUtils.stopDocker()}
+    def setupSpec()     { FDBTestUtils.checkFDBBefore()}
+    def cleanupSpec()   { FDBTestUtils.checkFDBAfter()}
 
     @Override
     BlockChainStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents,

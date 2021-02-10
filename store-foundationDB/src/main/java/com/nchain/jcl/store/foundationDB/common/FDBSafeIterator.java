@@ -3,9 +3,7 @@ package com.nchain.jcl.store.foundationDB.common;
 import com.apple.foundationdb.Database;
 import com.apple.foundationdb.KeyValue;
 import com.apple.foundationdb.Transaction;
-
 import com.nchain.jcl.store.foundationDB.blockStore.BlockStoreFDBConfig;
-import lombok.Builder;
 
 import java.util.Iterator;
 import java.util.function.BiPredicate;
@@ -37,10 +35,8 @@ public class FDBSafeIterator<T> extends FDBIterator<T> implements Iterator<T> {
 
     // Keeps track of the Maximum number of Items to process before closing the current Transaction
     // and creating a new one:
-    @Builder.Default
     private long maxItemsToProcess = BlockStoreFDBConfig.TRANSACTION_BATCH_SIZE; // Default
     private long numItemsProcessed = 0;
-
 
     // It resets the iterator, closing the current Transaction and creating a new One:
     private void resetIterator(byte[] keyStart) {
@@ -52,7 +48,6 @@ public class FDBSafeIterator<T> extends FDBIterator<T> implements Iterator<T> {
         fdbIterator.next(); // we skip the first one (already processed)
     }
 
-    @Builder(builderMethodName = "safeBuilder")
     public FDBSafeIterator(Database database,
                            byte[] startingWithPreffix,
                            byte[] endingWithSuffix,
@@ -76,5 +71,63 @@ public class FDBSafeIterator<T> extends FDBIterator<T> implements Iterator<T> {
             }
         }
         return result;
+    }
+
+    public static <T> FDBSafeIteratorBuilder<T> safeBuilder() {
+        return new FDBSafeIteratorBuilder<T>();
+    }
+
+    /**
+     * Builder
+     * @param <T> Class of each Item returned by the Iterator
+     */
+    public static class FDBSafeIteratorBuilder<T> {
+        private Database database;
+        private byte[] startingWithPreffix;
+        private byte[] endingWithSuffix;
+        private BiPredicate<Transaction, byte[]> keyIsValidWhen;
+        private Function<KeyValue, T> buildItemBy;
+        private Long maxItemsToProcess;
+
+        FDBSafeIteratorBuilder() {
+        }
+
+        public FDBSafeIteratorBuilder<T> database(Database database) {
+            this.database = database;
+            return this;
+        }
+
+        public FDBSafeIteratorBuilder<T> startingWithPreffix(byte[] startingWithPreffix) {
+            this.startingWithPreffix = startingWithPreffix;
+            return this;
+        }
+
+        public FDBSafeIteratorBuilder<T> endingWithSuffix(byte[] endingWithSuffix) {
+            this.endingWithSuffix = endingWithSuffix;
+            return this;
+        }
+
+        public FDBSafeIteratorBuilder<T> keyIsValidWhen(BiPredicate<Transaction, byte[]> keyIsValidWhen) {
+            this.keyIsValidWhen = keyIsValidWhen;
+            return this;
+        }
+
+        public FDBSafeIteratorBuilder<T> buildItemBy(Function<KeyValue, T> buildItemBy) {
+            this.buildItemBy = buildItemBy;
+            return this;
+        }
+
+        public FDBSafeIteratorBuilder<T> maxItemsToProcess(Long maxItemsToProcess) {
+            this.maxItemsToProcess = maxItemsToProcess;
+            return this;
+        }
+
+        public FDBSafeIterator<T> build() {
+            return new FDBSafeIterator<T>(database, startingWithPreffix, endingWithSuffix, keyIsValidWhen, buildItemBy, maxItemsToProcess);
+        }
+
+        public String toString() {
+            return "FDBSafeIterator.FDBSafeIteratorBuilder(database=" + this.database + ", startingWithPreffix=" + java.util.Arrays.toString(this.startingWithPreffix) + ", endingWithSuffix=" + java.util.Arrays.toString(this.endingWithSuffix) + ", keyIsValidWhen=" + this.keyIsValidWhen + ", buildItemBy=" + this.buildItemBy + ", maxItemsToProcess=" + this.maxItemsToProcess + ")";
+        }
     }
 }

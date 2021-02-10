@@ -1,16 +1,10 @@
 package com.nchain.jcl.store.foundationDB.common;
 
 
-import com.apple.foundationdb.Database;
 import com.apple.foundationdb.KeyValue;
 import com.apple.foundationdb.Transaction;
-import com.apple.foundationdb.directory.DirectorySubspace;
 import com.nchain.jcl.store.keyValue.common.KeyValueIteratorImpl;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
-
+import org.slf4j.Logger;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -48,20 +42,18 @@ import static com.google.common.base.Preconditions.checkArgument;
  * more info about FoundationDB limitations: https://apple.github.io/foundationdb/known-limitations.html
  *
  */
-@Slf4j
 public class FDBIterator<I> extends KeyValueIteratorImpl<I, Transaction, KeyValue> implements Iterator<I> {
 
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(FDBIterator.class);
     // Internal iterator on a FoundationDb connection
     protected Iterator<KeyValue> fdbIterator;
 
     // Current FoundationDB Transaction
-    @Getter
     protected Transaction currentTransaction;
 
     /**
      * Constructor
      */
-    @Builder
     public FDBIterator(Transaction currentTransaction,
                        byte[] startingWithPreffix,
                        byte[] endingWithSuffix,
@@ -86,4 +78,53 @@ public class FDBIterator<I> extends KeyValueIteratorImpl<I, Transaction, KeyValu
     @Override protected KeyValue nextEntryFromDB()              { return fdbIterator.next(); }
     @Override protected byte[] getKeyFromEntry(KeyValue item)   { return item.getKey(); }
     @Override public Transaction getCurrentTransaction()        { return currentTransaction; }
+
+    public static <I> FDBIteratorBuilder<I> builder() {
+        return new FDBIteratorBuilder<I>();
+    }
+
+    /**
+     * Builder
+     * @param <I> Class of each Item returned by the Iterator
+     */
+    public static class FDBIteratorBuilder<I> {
+        private Transaction currentTransaction;
+        private byte[] startingWithPreffix;
+        private byte[] endingWithSuffix;
+        private BiPredicate<Transaction, byte[]> keyIsValidWhen;
+        private Function<KeyValue, I> buildItemBy;
+
+        FDBIteratorBuilder() {
+        }
+
+        public FDBIterator.FDBIteratorBuilder<I> currentTransaction(Transaction currentTransaction) {
+            this.currentTransaction = currentTransaction;
+            return this;
+        }
+
+        public FDBIterator.FDBIteratorBuilder<I> startingWithPreffix(byte[] startingWithPreffix) {
+            this.startingWithPreffix = startingWithPreffix;
+            return this;
+        }
+
+        public FDBIterator.FDBIteratorBuilder<I> endingWithSuffix(byte[] endingWithSuffix) {
+            this.endingWithSuffix = endingWithSuffix;
+            return this;
+        }
+
+        public FDBIterator.FDBIteratorBuilder<I> keyIsValidWhen(BiPredicate<Transaction, byte[]> keyIsValidWhen) {
+            this.keyIsValidWhen = keyIsValidWhen;
+            return this;
+        }
+
+        public FDBIterator.FDBIteratorBuilder<I> buildItemBy(Function<KeyValue, I> buildItemBy) {
+            this.buildItemBy = buildItemBy;
+            return this;
+        }
+
+        public FDBIterator<I> build() {
+            return new FDBIterator<I>(currentTransaction, startingWithPreffix, endingWithSuffix, keyIsValidWhen, buildItemBy);
+        }
+
+    }
 }
