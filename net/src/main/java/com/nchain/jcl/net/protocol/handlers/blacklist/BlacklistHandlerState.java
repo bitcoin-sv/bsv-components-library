@@ -1,12 +1,9 @@
 package com.nchain.jcl.net.protocol.handlers.blacklist;
 
 
+import com.google.common.base.Objects;
 import com.nchain.jcl.net.network.events.PeersBlacklistedEvent;
 import com.nchain.jcl.tools.handlers.HandlerState;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -19,18 +16,77 @@ import java.util.concurrent.ConcurrentHashMap;
  * met: they failed during the handshake, or broken the timeout specified by the PingPong Handler, etc.
  *
  */
-@Value
-@Builder(toBuilder = true)
-@AllArgsConstructor
-public class BlacklistHandlerState extends HandlerState {
-    private long numTotalBlacklisted;
-    @Builder.Default
-    private Map<PeersBlacklistedEvent.BlacklistReason, Integer> blacklistedReasons = new ConcurrentHashMap<>();
+public final class BlacklistHandlerState extends HandlerState {
+    private final long numTotalBlacklisted;
+
+    private  Map<PeersBlacklistedEvent.BlacklistReason, Integer> blacklistedReasons = new ConcurrentHashMap<>();
+
+    public BlacklistHandlerState(long numTotalBlacklisted, Map<PeersBlacklistedEvent.BlacklistReason, Integer> blacklistedReasons) {
+        this.numTotalBlacklisted = numTotalBlacklisted;
+        if (blacklistedReasons != null)
+            this.blacklistedReasons = blacklistedReasons;
+    }
 
     @Override
     public String toString() {
         return "Blacklist Status: [ "
                 + numTotalBlacklisted + " Addresses blacklisted ]"
                 + " count: " + blacklistedReasons;
+    }
+
+    public long getNumTotalBlacklisted() {
+        return this.numTotalBlacklisted;
+    }
+
+    public Map<PeersBlacklistedEvent.BlacklistReason, Integer> getBlacklistedReasons() {
+        return this.blacklistedReasons;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(numTotalBlacklisted, blacklistedReasons);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) { return false; }
+        if (obj == this) { return true; }
+        if (obj.getClass() != getClass()) { return false; }
+        BlacklistHandlerState other = (BlacklistHandlerState) obj;
+        return Objects.equal(this.numTotalBlacklisted, other.numTotalBlacklisted)
+                && Objects.equal(this.blacklistedReasons, other.blacklistedReasons);
+    }
+
+
+    public BlacklistHandlerStateBuilder toBuilder() {
+        return new BlacklistHandlerStateBuilder().numTotalBlacklisted(this.numTotalBlacklisted).blacklistedReasons(this.blacklistedReasons);
+    }
+
+    public static BlacklistHandlerStateBuilder builder() {
+        return new BlacklistHandlerStateBuilder();
+    }
+
+    /**
+     * Builder
+     */
+    public static class BlacklistHandlerStateBuilder {
+        private long numTotalBlacklisted;
+        private Map<PeersBlacklistedEvent.BlacklistReason, Integer> blacklistedReasons;
+
+        BlacklistHandlerStateBuilder() {}
+
+        public BlacklistHandlerState.BlacklistHandlerStateBuilder numTotalBlacklisted(long numTotalBlacklisted) {
+            this.numTotalBlacklisted = numTotalBlacklisted;
+            return this;
+        }
+
+        public BlacklistHandlerState.BlacklistHandlerStateBuilder blacklistedReasons(Map<PeersBlacklistedEvent.BlacklistReason, Integer> blacklistedReasons) {
+            this.blacklistedReasons = blacklistedReasons;
+            return this;
+        }
+
+        public BlacklistHandlerState build() {
+            return new BlacklistHandlerState(numTotalBlacklisted, blacklistedReasons);
+        }
     }
 }

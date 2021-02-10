@@ -2,7 +2,6 @@ package com.nchain.jcl.net.protocol.handlers.pingPong;
 
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.protocol.messages.PingMsg;
-import lombok.Getter;
 
 /**
  * @author i.fernandez@nchain.com
@@ -13,14 +12,14 @@ import lombok.Getter;
  */
 
 public class PingPongPeerInfo {
-    @Getter private PeerAddress peerAddress;
-    @Getter private Long timeLastActivity;
-    @Getter private Long timePingSent;
-    @Getter private Long noncePingSent;
+    private PeerAddress peerAddress;
+    private Long timeLastActivity;
+    private Long timePingSent;
+    private Long noncePingSent;
 
     // If enabled, the Ping/Pong protocol will be disabled for this Peer: The incoming PING/PONG
     // messages from this Peer will be processed, but no verification on timeouts will be made.
-    @Getter private boolean pingPongDisabled;
+    private boolean pingPongDisabled;
 
     /** Constructor */
     public PingPongPeerInfo(PeerAddress peerAddress) {
@@ -47,9 +46,16 @@ public class PingPongPeerInfo {
     public synchronized void enablePingPong() {
         this.pingPongDisabled = false;
     }
+
     /** Disables the PingPong Verification for this Peer */
     public synchronized void disablePingPong() {
         this.pingPongDisabled = true;
         reset();
     }
+
+    public PeerAddress getPeerAddress() { return this.peerAddress; }
+    public Long getTimeLastActivity()   { return this.timeLastActivity; }
+    public Long getTimePingSent()       { return this.timePingSent; }
+    public Long getNoncePingSent()      { return this.noncePingSent; }
+    public boolean isPingPongDisabled() { return this.pingPongDisabled; }
 }

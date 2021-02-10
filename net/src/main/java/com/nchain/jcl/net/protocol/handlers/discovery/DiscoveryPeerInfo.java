@@ -5,9 +5,7 @@ import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.protocol.messages.VersionMsg;
 import com.nchain.jcl.tools.files.CSVSerializable;
 import com.nchain.jcl.tools.util.DateTimeUtils;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
 
 import java.time.LocalDateTime;
 import java.util.StringTokenizer;
@@ -18,10 +16,8 @@ import java.util.StringTokenizer;
  *
  * Information about each Peer/Address needed by the Discovery ProtocolHandler
  */
-@Slf4j
-@Getter
-@NoArgsConstructor
 public class DiscoveryPeerInfo implements CSVSerializable {
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(DiscoveryPeerInfo.class);
     // Peer Address
     private PeerAddress peerAddress;
     // Timestamps as it will be sent in a ADDR messages to other Peers
@@ -42,6 +38,8 @@ public class DiscoveryPeerInfo implements CSVSerializable {
         this.peerAddress = peerAddress;
         this.timestamp = timestamp;
     }
+
+    public DiscoveryPeerInfo() {}
 
     public void reset() {
         //this.timestamp = null;
@@ -82,4 +80,9 @@ public class DiscoveryPeerInfo implements CSVSerializable {
             throw new RuntimeException(e);
         }
     }
+
+    public PeerAddress getPeerAddress()         { return this.peerAddress; }
+    public Long getTimestamp()                  { return this.timestamp; }
+    public VersionMsg getVersionMsg()           { return this.versionMsg; }
+    public LocalDateTime getLastHandshakeTime() { return this.lastHandshakeTime; }
 }

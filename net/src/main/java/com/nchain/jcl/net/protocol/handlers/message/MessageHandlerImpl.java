@@ -5,16 +5,15 @@ import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.events.*;
 import com.nchain.jcl.net.protocol.events.*;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
+import com.nchain.jcl.net.protocol.streams.MessageStream;
 import com.nchain.jcl.net.protocol.streams.deserializer.Deserializer;
 import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStream;
-import com.nchain.jcl.net.protocol.streams.MessageStream;
 import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.handlers.HandlerImpl;
 import com.nchain.jcl.tools.log.LoggerUtil;
 import com.nchain.jcl.tools.streams.StreamDataEvent;
 import com.nchain.jcl.tools.streams.StreamErrorEvent;
 import com.nchain.jcl.tools.thread.ThreadUtils;
-import lombok.Getter;
 
 import java.math.BigInteger;
 import java.util.Map;
@@ -35,13 +34,13 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
     private LoggerUtil logger;
 
     // P2P Configuration (used by the MessageStreams) we wrap around each Peer connection
-    @Getter private MessageHandlerConfig config;
+    private MessageHandlerConfig config;
 
     // We keep track of all the Connected Peers:
     private Map<PeerAddress, MessagePeerInfo> peersInfo = new ConcurrentHashMap<>();
 
     // State of this Handler:
-    @Getter private MessageHandlerState state = MessageHandlerState.builder().build();
+    private MessageHandlerState state = MessageHandlerState.builder().build();
 
     // An instance of a Deserializer. There is ONLY ONE Deserializer for all the Streams in the System.
     private Deserializer deserializer;
@@ -173,4 +172,11 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
         return null;
     }
 
+    public MessageHandlerConfig getConfig() {
+        return this.config;
+    }
+
+    public MessageHandlerState getState() {
+        return this.state;
+    }
 }

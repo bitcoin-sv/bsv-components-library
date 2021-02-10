@@ -3,8 +3,8 @@ package com.nchain.jcl.net.protocol.handlers.handshake;
 
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.events.*;
-import com.nchain.jcl.net.protocol.events.*;
 import com.nchain.jcl.net.protocol.config.ProtocolVersion;
+import com.nchain.jcl.net.protocol.events.*;
 import com.nchain.jcl.net.protocol.messages.NetAddressMsg;
 import com.nchain.jcl.net.protocol.messages.VarStrMsg;
 import com.nchain.jcl.net.protocol.messages.VersionAckMsg;
@@ -15,7 +15,6 @@ import com.nchain.jcl.net.tools.NonceUtils;
 import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.handlers.HandlerImpl;
 import com.nchain.jcl.tools.log.LoggerUtil;
-import lombok.Getter;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -36,13 +35,13 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
     private LoggerUtil logger;
 
     // P2P configuration:
-   @Getter private HandshakeHandlerConfig config;
+   private HandshakeHandlerConfig config;
 
     // We keep track of all the Peers for which we are performing the handshake:
     private Map<PeerAddress, HandshakePeerInfo> peersInfo = new ConcurrentHashMap<>();
 
     // Handler State:
-    @Getter private HandshakeHandlerState state;
+    private HandshakeHandlerState state;
 
     // Local Address we'll use when building Messages...
     private PeerAddress localAddress;
@@ -273,7 +272,7 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
         return result;
     }
 
-    private void checkIfWeNeedMoreHandshakes() {
+    private synchronized void checkIfWeNeedMoreHandshakes() {
 
         // If the service is stopping, we do nothing...
         if (!isStopping) {
@@ -316,15 +315,15 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
         if (checkForMinPeersLost && config.getBasicConfig().getMinPeers().isPresent()
                 && state.getNumCurrentHandshakes() < config.getBasicConfig().getMinPeers().getAsInt()
                 && !minPeersLostEventSent) {
-            super.eventBus.publish(new MinHandshakedPeersLostEvent(config.getBasicConfig().getMinPeers().getAsInt()));
+            super.eventBus.publish(new MinHandshakedPeersLostEvent(state.getNumCurrentHandshakes()));
             minPeersLostEventSent = true;
             minPeersReachedEventSent = false;
         }
 
         if (!checkForMinPeersLost && config.getBasicConfig().getMaxPeers().isPresent()
-                && state.getNumCurrentHandshakes() >= config.getBasicConfig().getMaxPeers().getAsInt()
+                && state.getNumCurrentHandshakes() >= config.getBasicConfig().getMinPeers().getAsInt()
                 && !minPeersReachedEventSent) {
-            super.eventBus.publish(new MinHandshakedPeersReachedEvent( config.getBasicConfig().getMaxPeers().getAsInt()));
+            super.eventBus.publish(new MinHandshakedPeersReachedEvent(state.getNumCurrentHandshakes()));
             minPeersReachedEventSent = true;
             minPeersLostEventSent = false;
         }
@@ -418,5 +417,13 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
 
         // We remove it from our List of Peers...
         peersInfo.remove(peerInfo.getPeerAddress());
+    }
+
+    public HandshakeHandlerConfig getConfig() {
+        return this.config;
+    }
+
+    public HandshakeHandlerState getState() {
+        return this.state;
     }
 }

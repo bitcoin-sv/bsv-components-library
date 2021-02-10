@@ -10,7 +10,6 @@ import com.nchain.jcl.tools.handlers.HandlerImpl;
 import com.nchain.jcl.tools.log.LoggerUtil;
 import com.nchain.jcl.tools.thread.ThreadUtils;
 import com.nchain.jcl.tools.util.StringUtils;
-import lombok.Getter;
 
 import java.net.InetAddress;
 import java.nio.file.Files;
@@ -35,7 +34,7 @@ public class BlacklistHandlerImpl extends HandlerImpl implements BlacklistHandle
     private static final String FILE_BLACKLIST_SUFFIX = "-blacklist-handler.csv";
 
     private LoggerUtil logger;
-    @Getter private BlacklistHandlerConfig config;
+    private BlacklistHandlerConfig config;
 
     // Pool of Hosts. They might be blacklisted or not. We keep track of ALL The different IP addresses (hosts)
     // we connect to during the session:
@@ -44,7 +43,6 @@ public class BlacklistHandlerImpl extends HandlerImpl implements BlacklistHandle
     // An executor, to run jobs in parallel:
     private ExecutorService executor;
 
-    @Getter
     private BlacklistHandlerState state = BlacklistHandlerState.builder().build();
 
     /** Constructor */
@@ -233,5 +231,12 @@ public class BlacklistHandlerImpl extends HandlerImpl implements BlacklistHandle
         }
     }
 
+    public BlacklistHandlerConfig getConfig() {
+        return this.config;
+    }
+
+    public BlacklistHandlerState getState() {
+        return this.state;
+    }
 }
 

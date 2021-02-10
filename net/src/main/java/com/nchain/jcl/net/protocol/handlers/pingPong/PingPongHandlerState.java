@@ -2,8 +2,6 @@ package com.nchain.jcl.net.protocol.handlers.pingPong;
 
 
 import com.nchain.jcl.tools.handlers.HandlerState;
-import lombok.Builder;
-import lombok.Value;
 
 /**
  * @author i.fernandez@nchain.com
@@ -15,13 +13,45 @@ import lombok.Value;
  * the response does not come or comes out of time, the Peer has then broken the timeout and will most
  * probably be blacklisted.
  */
-@Value
-@Builder(toBuilder = true)
-public class PingPongHandlerState extends HandlerState {
-    private long numPingInProcess;
+public final class PingPongHandlerState extends HandlerState {
+    private final long numPingInProcess;
+
+    PingPongHandlerState(long numPingInProcess) {
+        this.numPingInProcess = numPingInProcess;
+    }
+
+    public long getNumPingInProcess() {
+        return this.numPingInProcess;
+    }
 
     @Override
     public String toString() {
         return "PingPong-Handler State: " + numPingInProcess + " Pings in progress";
+    }
+
+    public PingPongHandlerStateBuilder toBuilder() {
+        return new PingPongHandlerStateBuilder().numPingInProcess(this.numPingInProcess);
+    }
+
+    public static PingPongHandlerStateBuilder builder() {
+        return new PingPongHandlerStateBuilder();
+    }
+
+    /**
+     * Builder
+     */
+    public static class PingPongHandlerStateBuilder {
+        private long numPingInProcess;
+
+        PingPongHandlerStateBuilder() {}
+
+        public PingPongHandlerState.PingPongHandlerStateBuilder numPingInProcess(long numPingInProcess) {
+            this.numPingInProcess = numPingInProcess;
+            return this;
+        }
+
+        public PingPongHandlerState build() {
+            return new PingPongHandlerState(numPingInProcess);
+        }
     }
 }

@@ -3,9 +3,8 @@ package com.nchain.jcl.net.protocol.handlers.discovery;
 
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.tools.files.FileUtils;
-import com.nchain.jcl.tools.log.LoggerUtil;
 import com.nchain.jcl.tools.util.StringUtils;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
 
 import java.net.UnknownHostException;
 import java.nio.file.Files;
@@ -23,11 +22,11 @@ import java.util.stream.Collectors;
  * This class returns an initial list of Peers to connect to after reading a static list of reliable Peers from a
  * CSV File.
  */
-@Slf4j
 public class InitialPeersFinderCSV implements InitialPeersFinder {
     private static final String CSV_SEPARATOR = ",";
     private static final String NET_FOLDER = "net";
     private static final String FILE_INITIAL_SUFFIX = "-discovery-handler-seed.csv";
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(InitialPeersFinderCSV.class);
 
     private FileUtils fileUtils;
     private DiscoveryHandlerConfig config;

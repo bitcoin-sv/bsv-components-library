@@ -1,12 +1,12 @@
 package com.nchain.jcl.net.protocol.handlers.pingPong;
 
 
-import com.nchain.jcl.net.protocol.events.*;
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.events.DisconnectPeerRequest;
 import com.nchain.jcl.net.network.events.NetStartEvent;
 import com.nchain.jcl.net.network.events.NetStopEvent;
 import com.nchain.jcl.net.network.events.PeerDisconnectedEvent;
+import com.nchain.jcl.net.protocol.events.*;
 import com.nchain.jcl.net.protocol.messages.PingMsg;
 import com.nchain.jcl.net.protocol.messages.PongMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
@@ -16,7 +16,6 @@ import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.handlers.HandlerImpl;
 import com.nchain.jcl.tools.log.LoggerUtil;
 import com.nchain.jcl.tools.thread.ThreadUtils;
-import lombok.Getter;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,13 +37,13 @@ public class PingPongHandlerImpl extends HandlerImpl implements PingPongHandler 
     private LoggerUtil logger;
 
     // P2P Configuration (used by the MessageStreams) we wrap around each Peer connection
-    @Getter private PingPongHandlerConfig config;
+    private PingPongHandlerConfig config;
 
     // We store info about each Peer:
     private Map<PeerAddress, PingPongPeerInfo> peersInfo = new ConcurrentHashMap<>();
 
     // State of this Handler
-    @Getter private PingPongHandlerState state = PingPongHandlerState.builder().build();
+    private PingPongHandlerState state = PingPongHandlerState.builder().build();
 
     // An Executor, to trigger the "handlePingPongJob" in a different Thread:
     private ExecutorService executor;
@@ -248,4 +247,11 @@ public class PingPongHandlerImpl extends HandlerImpl implements PingPongHandler 
         }
     }
 
+    public PingPongHandlerConfig getConfig() {
+        return this.config;
+    }
+
+    public PingPongHandlerState getState() {
+        return this.state;
+    }
 }

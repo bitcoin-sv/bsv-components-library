@@ -4,10 +4,7 @@ package com.nchain.jcl.net.protocol.handlers.blacklist;
 import com.nchain.jcl.net.network.events.PeersBlacklistedEvent;
 import com.nchain.jcl.tools.files.CSVSerializable;
 import com.nchain.jcl.tools.util.DateTimeUtils;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
 
 import java.net.InetAddress;
 import java.time.Duration;
@@ -23,11 +20,8 @@ import java.util.StringTokenizer;
  * (Not Peer, but a HOST. Only the IP address). If a Host is blacklisted, ALL the Peers using that IP (but with
  * different port) will be disconnected.
  */
-@Slf4j
-@NoArgsConstructor
-@Getter
-@Setter
 public class BlacklistHostInfo implements CSVSerializable {
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(BlacklistHostInfo.class);
     // Host IP Address:
     private InetAddress ip;
     // If blacklisted, these variables stores the reason and the time when it was blacklisted:
@@ -45,6 +39,8 @@ public class BlacklistHostInfo implements CSVSerializable {
     public BlacklistHostInfo(InetAddress ip) {
         this.ip = ip;
     }
+
+    public BlacklistHostInfo() {}
 
     public void reset() {
         this.blacklistReason = null;
@@ -122,4 +118,20 @@ public class BlacklistHostInfo implements CSVSerializable {
             throw new RuntimeException(e);
         }
     }
+
+    public InetAddress getIp()                                          { return this.ip; }
+    public PeersBlacklistedEvent.BlacklistReason getBlacklistReason()   { return this.blacklistReason; }
+    public LocalDateTime getBlacklistTimestamp()                        { return this.blacklistTimestamp; }
+    public int getNumFailedHandshakes()                                 { return this.numFailedHandshakes; }
+    public int getNumFailedPingPongs()                                  { return this.numFailedPingPongs; }
+    public int getNumConnRejections()                                   { return this.numConnRejections; }
+    public int getNumSerializationErrors()                              { return this.numSerializationErrors; }
+
+    public void setIp(InetAddress ip)                                                       { this.ip = ip; }
+    public void setBlacklistReason(PeersBlacklistedEvent.BlacklistReason blacklistReason)   { this.blacklistReason = blacklistReason; }
+    public void setBlacklistTimestamp(LocalDateTime blacklistTimestamp)                     { this.blacklistTimestamp = blacklistTimestamp; }
+    public void setNumFailedHandshakes(int numFailedHandshakes)                             { this.numFailedHandshakes = numFailedHandshakes; }
+    public void setNumFailedPingPongs(int numFailedPingPongs)                               { this.numFailedPingPongs = numFailedPingPongs; }
+    public void setNumConnRejections(int numConnRejections)                                 { this.numConnRejections = numConnRejections; }
+    public void setNumSerializationErrors(int numSerializationErrors)                       { this.numSerializationErrors = numSerializationErrors; }
 }

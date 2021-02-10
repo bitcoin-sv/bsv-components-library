@@ -2,8 +2,6 @@ package com.nchain.jcl.net.protocol.handlers.handshake;
 
 
 import com.nchain.jcl.tools.handlers.HandlerState;
-import lombok.Builder;
-import lombok.Value;
 
 import java.math.BigInteger;
 
@@ -21,16 +19,18 @@ import java.math.BigInteger;
  * instead (these request to resume/stop connections are always triggered when the nuymber of
  * Peer handshakes go above or below some thresholds).
  */
-@Value
-@Builder(toBuilder = true)
-public class HandshakeHandlerState extends HandlerState {
-    @Builder.Default
-    private int numCurrentHandshakes = 0;
-    @Builder.Default
-    private BigInteger numHandshakesFailed = BigInteger.ZERO;
-    @Builder.Default
-    private boolean moreConnsRequested = true;
-    private boolean stopConnsRequested;
+public final class HandshakeHandlerState extends HandlerState {
+    private  int numCurrentHandshakes = 0;
+    private  BigInteger numHandshakesFailed = BigInteger.ZERO;
+    private  boolean moreConnsRequested = true;
+    private  boolean stopConnsRequested;
+
+    HandshakeHandlerState(int numCurrentHandshakes, BigInteger numHandshakesFailed, Boolean moreConnsRequested, Boolean stopConnsRequested) {
+        this.numCurrentHandshakes = numCurrentHandshakes;
+        if (numHandshakesFailed != null)    this.numHandshakesFailed = numHandshakesFailed;
+        if (moreConnsRequested != null)     this.moreConnsRequested = moreConnsRequested;
+        if (stopConnsRequested != null)     this.stopConnsRequested = stopConnsRequested;
+    }
 
     @Override
     public String toString() {
@@ -43,5 +43,54 @@ public class HandshakeHandlerState extends HandlerState {
         if (stopConnsRequested) result.append(" Stop Connections requested");
 
         return result.toString();
+    }
+
+    public int getNumCurrentHandshakes()        { return this.numCurrentHandshakes; }
+    public BigInteger getNumHandshakesFailed()  { return this.numHandshakesFailed; }
+    public boolean isMoreConnsRequested()       { return this.moreConnsRequested; }
+    public boolean isStopConnsRequested()       { return this.stopConnsRequested; }
+
+    public HandshakeHandlerStateBuilder toBuilder() {
+        return new HandshakeHandlerStateBuilder().numCurrentHandshakes(this.numCurrentHandshakes).numHandshakesFailed(this.numHandshakesFailed).moreConnsRequested(this.moreConnsRequested).stopConnsRequested(this.stopConnsRequested);
+    }
+
+    public static HandshakeHandlerStateBuilder builder() {
+        return new HandshakeHandlerStateBuilder();
+    }
+
+    /**
+     * Builder
+     */
+    public static class HandshakeHandlerStateBuilder {
+        private int numCurrentHandshakes;
+        private BigInteger numHandshakesFailed;
+        private Boolean moreConnsRequested;
+        private Boolean stopConnsRequested;
+
+        HandshakeHandlerStateBuilder() {}
+
+        public HandshakeHandlerState.HandshakeHandlerStateBuilder numCurrentHandshakes(int numCurrentHandshakes) {
+            this.numCurrentHandshakes = numCurrentHandshakes;
+            return this;
+        }
+
+        public HandshakeHandlerState.HandshakeHandlerStateBuilder numHandshakesFailed(BigInteger numHandshakesFailed) {
+            this.numHandshakesFailed = numHandshakesFailed;
+            return this;
+        }
+
+        public HandshakeHandlerState.HandshakeHandlerStateBuilder moreConnsRequested(boolean moreConnsRequested) {
+            this.moreConnsRequested = moreConnsRequested;
+            return this;
+        }
+
+        public HandshakeHandlerState.HandshakeHandlerStateBuilder stopConnsRequested(boolean stopConnsRequested) {
+            this.stopConnsRequested = stopConnsRequested;
+            return this;
+        }
+
+        public HandshakeHandlerState build() {
+            return new HandshakeHandlerState(numCurrentHandshakes, numHandshakesFailed, moreConnsRequested, stopConnsRequested);
+        }
     }
 }

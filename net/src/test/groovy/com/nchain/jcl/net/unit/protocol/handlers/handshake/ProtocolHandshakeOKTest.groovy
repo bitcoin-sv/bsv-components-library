@@ -144,7 +144,7 @@ class ProtocolHandshakeOKTest extends Specification {
 
             // We do a little waiting, to make sure al the handshakes have been performed.
             // At his point, the "MinHandshakedPeersReachedEvent" must have been reached...
-            Thread.sleep(1000)
+            Thread.sleep(10000)
             println(" >> CLIENTS DISCONNECTING FROM SERVER...")
 
             // Now we disconnect the clients from the Server one by one. At some point, the
@@ -171,9 +171,9 @@ class ProtocolHandshakeOKTest extends Specification {
             numLostEvents.get() == 2
             numReachedEvents.get() == 2
             reachedEvent.get() != null
-            reachedEvent.get().getNumPeers() == MAX_PEERS
+            reachedEvent.get().getNumPeers() == MIN_PEERS
             lostEvent.get() != null
-            lostEvent.get().getNumPeers() == MIN_PEERS
+            lostEvent.get().getNumPeers() <= MIN_PEERS
 
     }
 }

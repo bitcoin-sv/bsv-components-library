@@ -3,7 +3,6 @@ package com.nchain.jcl.net.protocol.handlers.handshake;
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.protocol.events.PeerHandshakeRejectedEvent;
 import com.nchain.jcl.net.protocol.messages.VersionMsg;
-import lombok.Getter;
 
 
 /**
@@ -15,20 +14,20 @@ import lombok.Getter;
  */
 public class HandshakePeerInfo {
     // Peer Info:
-    @Getter private PeerAddress peerAddress;
+    private PeerAddress peerAddress;
 
     // Version Messages exchanged:
-    @Getter private VersionMsg versionMsgSent;
-    @Getter private VersionMsg versionMsgReceived;
+    private VersionMsg versionMsgSent;
+    private VersionMsg versionMsgReceived;
 
     // These vars store info about the status of the Handshake between the ProtocolHandler adn the Remote Peer above:
-    @Getter private boolean ACKSent;
-    @Getter private boolean ACKReceived;
-    @Getter private boolean handshakeAccepted;
-    @Getter private boolean handshakeRejected;
+    private boolean ACKSent;
+    private boolean ACKReceived;
+    private boolean handshakeAccepted;
+    private boolean handshakeRejected;
 
     // In case the handshake has been rejected, we store the info about it here:
-    @Getter private PeerHandshakeRejectedEvent rejectedEvent;
+    private PeerHandshakeRejectedEvent rejectedEvent;
 
     /** Constructor */
     public HandshakePeerInfo(PeerAddress peerAddress) {
@@ -41,22 +40,6 @@ public class HandshakePeerInfo {
 
     public synchronized void receiveVersionMsg(VersionMsg versionMsgReceived) {
         this.versionMsgReceived = versionMsgReceived;
-    }
-
-    public synchronized void sendACK() {
-        this.ACKSent = true;
-    }
-
-    public synchronized void receiveACK() {
-        this.ACKReceived = true;
-    }
-
-    public boolean isVersionMsgSent() {
-        return versionMsgSent != null;
-    }
-
-    public boolean isVersionMsgReceived() {
-        return versionMsgReceived != null;
     }
 
     /** It registers that the Handshake has been accepted */
@@ -72,8 +55,19 @@ public class HandshakePeerInfo {
     }
 
     /** Return whether the Handshake has been performed successfully based on the values registered previously */
-    public boolean checkHandshakeOK() {
-        return ACKSent && ACKReceived;
-    }
+    public boolean checkHandshakeOK()                       { return ACKSent && ACKReceived; }
 
+    public synchronized void sendACK()                      { this.ACKSent = true; }
+    public synchronized void receiveACK()                   { this.ACKReceived = true; }
+    public boolean isVersionMsgSent()                       { return versionMsgSent != null; }
+    public boolean isVersionMsgReceived()                   { return versionMsgReceived != null; }
+
+    public PeerAddress getPeerAddress()                     { return this.peerAddress; }
+    public VersionMsg getVersionMsgSent()                   { return this.versionMsgSent; }
+    public VersionMsg getVersionMsgReceived()               { return this.versionMsgReceived; }
+    public boolean isACKSent()                              { return this.ACKSent; }
+    public boolean isACKReceived()                          { return this.ACKReceived; }
+    public boolean isHandshakeAccepted()                    { return this.handshakeAccepted; }
+    public boolean isHandshakeRejected()                    { return this.handshakeRejected; }
+    public PeerHandshakeRejectedEvent getRejectedEvent()    { return this.rejectedEvent; }
 }

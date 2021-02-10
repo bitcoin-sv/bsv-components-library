@@ -92,7 +92,7 @@ class HandshakeOKTest extends Specification {
             })
 
             server.EVENTS.PEERS.HANDSHAKED_MIN_LOST.forEach({e ->
-                println(" - Maximum number of Peers Reached: " + e.numPeers)
+                println(" - Minimum number of Peers Lost: " + e.numPeers)
                 minHandshakedLostEvent.set(e)
             })
 

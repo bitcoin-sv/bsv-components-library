@@ -18,7 +18,6 @@ import com.nchain.jcl.tools.log.LoggerUtil;
 import com.nchain.jcl.tools.thread.ThreadUtils;
 import com.nchain.jcl.tools.util.DateTimeUtils;
 import com.nchain.jcl.tools.util.StringUtils;
-import lombok.Getter;
 
 import java.net.InetAddress;
 import java.nio.file.Files;
@@ -59,7 +58,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
     private static final int MAX_ADDR_ADDRESSES = 1000;
 
     private LoggerUtil logger;
-    @Getter private DiscoveryHandlerConfig config;
+    private DiscoveryHandlerConfig config;
     private ScheduledExecutorService executor;
 
     // Pool of Peers. The Peers in this Collection will be used for the future ADDR Messages replied to
@@ -79,7 +78,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
     private boolean isAccceptingConnections = true;
 
     // State:
-    @Getter private DiscoveryHandlerState state = DiscoveryHandlerState.builder().build();
+    private DiscoveryHandlerState state = DiscoveryHandlerState.builder().build();
 
     /** Constructor */
     public DiscoveryHandlerImpl(String id, RuntimeConfig runtimeConfig, DiscoveryHandlerConfig config) {
@@ -511,4 +510,11 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
         }
     }
 
+    public DiscoveryHandlerConfig getConfig() {
+        return this.config;
+    }
+
+    public DiscoveryHandlerState getState() {
+        return this.state;
+    }
 }

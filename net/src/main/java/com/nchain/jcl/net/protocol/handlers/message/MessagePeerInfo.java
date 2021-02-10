@@ -1,8 +1,6 @@
 package com.nchain.jcl.net.protocol.handlers.message;
 
 import com.nchain.jcl.net.protocol.streams.MessageStream;
-import lombok.AllArgsConstructor;
-import lombok.Value;
 
 /**
  * @author i.fernande@nchain.com
@@ -11,8 +9,19 @@ import lombok.Value;
  * This class stores info about each Peer we are connected to. For each one, we store the MessageStream
  * that wraps up the communication between that Peer and us.
  */
-@Value
-@AllArgsConstructor
-public class MessagePeerInfo {
-    private MessageStream stream;
+public final class MessagePeerInfo {
+    private final MessageStream stream;
+
+    public MessagePeerInfo(MessageStream stream) {
+        this.stream = stream;
+    }
+
+    public MessageStream getStream() {
+        return this.stream;
+    }
+
+    @Override
+    public String toString() {
+        return "MessagePeerInfo(stream=" + this.getStream() + ")";
+    }
 }

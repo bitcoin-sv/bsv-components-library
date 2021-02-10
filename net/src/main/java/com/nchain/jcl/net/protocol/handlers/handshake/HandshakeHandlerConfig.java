@@ -4,12 +4,6 @@ package com.nchain.jcl.net.protocol.handlers.handshake;
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig;
 import com.nchain.jcl.net.protocol.config.ProtocolServices;
 import com.nchain.jcl.tools.handlers.HandlerConfig;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
-import java.util.OptionalInt;
 
 /**
  * @author i.fernandez@nchain.com
@@ -17,10 +11,6 @@ import java.util.OptionalInt;
  *
  * It stores the configuration variables needed by the Handshake Handler
  */
-@Getter
-@Builder(toBuilder = true)
-@NoArgsConstructor
-@AllArgsConstructor
 public class HandshakeHandlerConfig extends HandlerConfig {
 
     // Default Values:
@@ -31,11 +21,92 @@ public class HandshakeHandlerConfig extends HandlerConfig {
 
     private ProtocolBasicConfig basicConfig;
 
-    @Builder.Default private int servicesSupported = DEFAULt_SERVICES;
-    @Builder.Default private long block_height = 0;
-    @Builder.Default private String[] userAgentBlacklist = DEFAULT_USER_AGENT_BLACKLIST;
-    @Builder.Default private String[] userAgentWhitelist = DEFAULT_USER_AGENT_WHITELIST;
-    @Builder.Default private String userAgent = DEFAULT_USER_AGENT;
-    @Builder.Default private boolean  relayTxs = false;
+    private int servicesSupported = DEFAULt_SERVICES;
+    private long block_height = 0;
+    private String[] userAgentBlacklist = DEFAULT_USER_AGENT_BLACKLIST;
+    private String[] userAgentWhitelist = DEFAULT_USER_AGENT_WHITELIST;
+    private String userAgent = DEFAULT_USER_AGENT;
+    private boolean  relayTxs = false;
 
+    public HandshakeHandlerConfig(ProtocolBasicConfig basicConfig, Integer servicesSupported, Long block_height, String[] userAgentBlacklist, String[] userAgentWhitelist, String userAgent, boolean relayTxs) {
+        this.basicConfig = basicConfig;
+        if (servicesSupported != null)  this.servicesSupported = servicesSupported;
+        if (block_height != null)       this.block_height = block_height;
+        if (userAgentBlacklist != null) this.userAgentBlacklist = userAgentBlacklist;
+        if (userAgentWhitelist != null) this.userAgentWhitelist = userAgentWhitelist;
+        if (userAgent != null)          this.userAgent = userAgent;
+        this.relayTxs = relayTxs;
+    }
+
+    public HandshakeHandlerConfig() { }
+
+    public ProtocolBasicConfig getBasicConfig() { return this.basicConfig; }
+    public int getServicesSupported()           { return this.servicesSupported; }
+    public long getBlock_height()               { return this.block_height; }
+    public String[] getUserAgentBlacklist()     { return this.userAgentBlacklist; }
+    public String[] getUserAgentWhitelist()     { return this.userAgentWhitelist; }
+    public String getUserAgent()                { return this.userAgent; }
+    public boolean isRelayTxs()                 { return this.relayTxs; }
+
+    public HandshakeHandlerConfigBuilder toBuilder() {
+        return new HandshakeHandlerConfigBuilder().basicConfig(this.basicConfig).servicesSupported(this.servicesSupported).block_height(this.block_height).userAgentBlacklist(this.userAgentBlacklist).userAgentWhitelist(this.userAgentWhitelist).userAgent(this.userAgent).relayTxs(this.relayTxs);
+    }
+
+    public static HandshakeHandlerConfigBuilder builder() {
+        return new HandshakeHandlerConfigBuilder();
+    }
+
+    /**
+     * Builder
+     */
+    public static class HandshakeHandlerConfigBuilder {
+        private ProtocolBasicConfig basicConfig;
+        private int servicesSupported;
+        private long block_height;
+        private String[] userAgentBlacklist;
+        private String[] userAgentWhitelist;
+        private String userAgent;
+        private boolean relayTxs;
+
+        HandshakeHandlerConfigBuilder() {}
+
+        public HandshakeHandlerConfig.HandshakeHandlerConfigBuilder basicConfig(ProtocolBasicConfig basicConfig) {
+            this.basicConfig = basicConfig;
+            return this;
+        }
+
+        public HandshakeHandlerConfig.HandshakeHandlerConfigBuilder servicesSupported(int servicesSupported) {
+            this.servicesSupported = servicesSupported;
+            return this;
+        }
+
+        public HandshakeHandlerConfig.HandshakeHandlerConfigBuilder block_height(long block_height) {
+            this.block_height = block_height;
+            return this;
+        }
+
+        public HandshakeHandlerConfig.HandshakeHandlerConfigBuilder userAgentBlacklist(String[] userAgentBlacklist) {
+            this.userAgentBlacklist = userAgentBlacklist;
+            return this;
+        }
+
+        public HandshakeHandlerConfig.HandshakeHandlerConfigBuilder userAgentWhitelist(String[] userAgentWhitelist) {
+            this.userAgentWhitelist = userAgentWhitelist;
+            return this;
+        }
+
+        public HandshakeHandlerConfig.HandshakeHandlerConfigBuilder userAgent(String userAgent) {
+            this.userAgent = userAgent;
+            return this;
+        }
+
+        public HandshakeHandlerConfig.HandshakeHandlerConfigBuilder relayTxs(boolean relayTxs) {
+            this.relayTxs = relayTxs;
+            return this;
+        }
+
+        public HandshakeHandlerConfig build() {
+            return new HandshakeHandlerConfig(basicConfig, servicesSupported, block_height, userAgentBlacklist, userAgentWhitelist, userAgent, relayTxs);
+        }
+    }
 }
