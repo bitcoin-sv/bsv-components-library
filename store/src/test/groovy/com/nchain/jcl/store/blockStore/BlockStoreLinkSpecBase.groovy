@@ -94,6 +94,7 @@ abstract class BlockStoreLinkSpecBase extends BlockStoreSpecBase {
             println(" - Cleanup:")
             db.removeBlock(blockHeader.getHash())
             db.printKeys()
+            db.clear()
             db.stop()
             println(" - Test Done.")
     }
@@ -170,6 +171,7 @@ abstract class BlockStoreLinkSpecBase extends BlockStoreSpecBase {
             db.removeTxs(Arrays.asList(tx1.getHash(), tx2.getHash(), tx3.getHash(), tx4.getHash()))
             db.removeBlocks(Arrays.asList(block1.getHash(), block2.getHash()))
             db.printKeys()
+            db.clear()
             db.stop()
             println(" - Test Done.")
     }
@@ -225,6 +227,7 @@ abstract class BlockStoreLinkSpecBase extends BlockStoreSpecBase {
             db.removeBlockTxs(block.getHash())
             db.removeBlock(block.getHash())
             db.printKeys()
+            db.clear()
             db.stop()
             println(" - Test Done.")
     }
@@ -336,6 +339,7 @@ abstract class BlockStoreLinkSpecBase extends BlockStoreSpecBase {
             db.removeBlock(block1.getHash())
             db.removeBlock(block2.getHash())
             db.printKeys()
+            db.clear()
             db.stop()
             println(" - Test Done.")
     }

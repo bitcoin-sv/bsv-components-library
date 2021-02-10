@@ -71,6 +71,7 @@ abstract class BlockStoreClearDBSpecBase extends BlockStoreSpecBase {
         cleanup:
             println(" - Cleanup...")
             db.printKeys()
+            db.clear()
             db.stop()
             println(" - Test Done.")
     }

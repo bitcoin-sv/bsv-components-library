@@ -100,6 +100,7 @@ abstract class BlockChainStoreOrphanSpecBase extends BlockChainStoreSpecBase {
                 .collect(Collectors.toList()))
             println(" - Cleanup...")
             db.printKeys()
+            db.clear()
             db.stop()
             println(" - Test Done.")
     }
@@ -220,6 +221,7 @@ abstract class BlockChainStoreOrphanSpecBase extends BlockChainStoreSpecBase {
                     .collect(Collectors.toList()))
             println(" - Cleanup...")
             db.printKeys()
+            db.clear()
             db.stop()
             println(" - Test Done.")
     }

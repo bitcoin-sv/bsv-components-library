@@ -73,6 +73,7 @@ abstract class BlockChainMultiThreadSpecBase extends BlockChainStoreSpecBase {
             executor.submit(readProcess)
             executor.awaitTermination(testDuration.toMillis() * 2, TimeUnit.MILLISECONDS)
             executor.shutdownNow()
+            db.clear()
             db.stop()
         then:
             !error.get()

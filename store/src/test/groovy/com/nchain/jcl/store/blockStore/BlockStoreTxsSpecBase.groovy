@@ -91,6 +91,7 @@ abstract class BlockStoreTxsSpecBase extends BlockStoreSpecBase {
             println(" - Cleanup...")
             db.removeTxs(Arrays.asList(tx1.getHash(), tx2.getHash(), tx3.getHash()))
             db.printKeys()
+            db.clear()
             db.stop()
             println(" - Test Done.")
     }
@@ -138,6 +139,7 @@ abstract class BlockStoreTxsSpecBase extends BlockStoreSpecBase {
             println(" - Cleanup...")
             db.removeTxs(txs.stream().map({tx -> tx.getHash()}).collect(Collectors.toList()))
             db.printKeys()
+            db.clear()
             db.stop()
             println(" - Test Done.")
     }

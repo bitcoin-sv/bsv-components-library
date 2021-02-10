@@ -141,6 +141,7 @@ abstract class BlockChainForkSpecBase extends BlockChainStoreSpecBase {
             db.removeTipsChains()
             // We check the DB Content in the console...
             db.printKeys()
+            db.clear()
             db.stop()
             println(" - Test Done.")
     }
@@ -207,6 +208,7 @@ abstract class BlockChainForkSpecBase extends BlockChainStoreSpecBase {
             println(" - Cleanup...")
             // We check the DB Content in the console...
             db.printKeys()
+            db.clear()
             db.stop()
             println(" - Test Done.")
     }
@@ -240,6 +242,9 @@ abstract class BlockChainForkSpecBase extends BlockChainStoreSpecBase {
         when:
             db.start()
 
+            // We check the DB Content in the console...
+            println("Initial state of the DB:")
+            db.printKeys()
             // We insert the main Chain: [genesis] -> 1 -> 2 -> 3 -> 4
 
             HeaderReadOnly block_1 = TestingUtils.buildBlock(genesisBlock.getHash().toString())
@@ -334,6 +339,7 @@ abstract class BlockChainForkSpecBase extends BlockChainStoreSpecBase {
             db.removeTipsChains()
             // We check the DB Content in the console...
             db.printKeys()
+            db.clear()
             db.stop()
             println(" - Test Done.")
     }

@@ -120,6 +120,7 @@ abstract class BlockStoreCompareSpecBase extends BlockStoreSpecBase {
             db.removeBlock(blockA.getHash())
             db.removeBlock(blockB.getHash())
             db.printKeys()
+            db.clear()
             db.stop()
             println(" - Test Done.")
     }

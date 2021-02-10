@@ -86,6 +86,7 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
             db.removeBlock(genesisBlock.getHash())
             db.removeTipsChains()
             db.printKeys()
+            db.clear()
             db.stop()
             println(" - Test Done.")
     }
@@ -220,6 +221,7 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
             db.removeTipsChains()
             // We check the DB Content in the console...
             db.printKeys()
+            db.clear()
             db.stop()
             println(" - Test Done.")
     }
@@ -291,6 +293,7 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
             db.removeTipsChains()
             // We check the DB Content in the console...
             db.printKeys()
+            db.clear()
             db.stop()
             println(" - Test Done.")
     }
@@ -334,6 +337,7 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
             db.removeTipsChains()
             // We check the DB Content in the console...
             db.printKeys()
+            db.clear()
             db.stop()
             println(" - Test Done.")
     }
