@@ -6,7 +6,6 @@ import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandlerConfig;
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.HashMsg;
 import io.bitcoinj.core.Sha256Hash;
-import lombok.Getter;
 
 /**
  * @author i.fernandez@nchain.com
