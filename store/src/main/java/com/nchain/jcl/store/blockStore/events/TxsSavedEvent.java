@@ -2,9 +2,6 @@ package com.nchain.jcl.store.blockStore.events;
 
 
 import io.bitcoinj.core.Sha256Hash;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Value;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,13 +12,19 @@ import java.util.List;
  *
  * An Event triggered when several TXs are Stored
  */
-@Value
-@EqualsAndHashCode(callSuper = false)
-public class TxsSavedEvent extends BlockStoreEvent {
+public final class TxsSavedEvent extends BlockStoreEvent {
     private final List<Sha256Hash> txHashes;
 
-    @Builder
     public TxsSavedEvent(List<Sha256Hash> txHashes) {
         this.txHashes = new ArrayList<>(txHashes);
+    }
+
+    public List<Sha256Hash> getTxHashes() {
+        return this.txHashes;
+    }
+
+    @Override
+    public String toString() {
+        return "TxsSavedEvent(txHashes=" + this.getTxHashes() + ")";
     }
 }

@@ -2,9 +2,6 @@ package com.nchain.jcl.store.blockStore.events;
 
 
 import io.bitcoinj.core.Sha256Hash;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Value;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,13 +12,19 @@ import java.util.List;
  *
  * An Event triggered when several Blocks are removed form the Storage.
  */
-@Value
-@EqualsAndHashCode(callSuper = false)
-public class BlocksRemovedEvent extends BlockStoreEvent {
-    private List<Sha256Hash> blockHashes;
+public final class BlocksRemovedEvent extends BlockStoreEvent {
+    private final List<Sha256Hash> blockHashes;
 
-    @Builder
     public BlocksRemovedEvent(List<Sha256Hash> blockHashes) {
         this.blockHashes = new ArrayList<>(blockHashes);
+    }
+
+    public List<Sha256Hash> getBlockHashes() {
+        return this.blockHashes;
+    }
+
+    @Override
+    public String toString() {
+        return "BlocksRemovedEvent(blockHashes=" + this.getBlockHashes() + ")";
     }
 }

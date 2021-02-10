@@ -328,7 +328,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             try {
                 getLock().readLock().lock();
                 //getLogger().trace("Publishing State...");
-                ChainStateEvent event = ChainStateEvent.builder().state(getState()).build();
+                ChainStateEvent event = new ChainStateEvent(getState());
                 getEventBus().publish(event);
                 //getLogger().trace("State published");
             } catch (Exception e) {
@@ -359,10 +359,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                 // If this is a fork, we trigger a Fork Event:
                 List<String> parentChilds = _getNextBlocks(tr, blockHeader.getPrevBlockHash().toString());
                 if (parentChilds != null && parentChilds.size() > 1) {
-                    ChainForkEvent event = ChainForkEvent.builder()
-                            .blockForkHash(blockHeader.getHash())
-                            .parentForkHash(blockHeader.getPrevBlockHash())
-                            .build();
+                    ChainForkEvent event = new ChainForkEvent(blockHeader.getPrevBlockHash(), blockHeader.getHash());
                     getEventBus().publish(event);
                 }
             }
@@ -756,11 +753,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             getLogger().debug("chain tip #" + tipChainHash + " Pruned. " + numBlocksRemoved + " blocks removed.");
 
             // We trigger a Prune Event:
-            ChainPruneEvent event = ChainPruneEvent.builder()
-                    .tipForkHash(tipChainHash)
-                    .parentForkHash(parentHashOpt.get())
-                    .numBlocksPruned(numBlocksRemoved)
-                    .build();
+            ChainPruneEvent event = new ChainPruneEvent(tipChainHash, parentHashOpt.get(), numBlocksRemoved);
             getEventBus().publish(event);
         } finally {
             getLock().writeLock().unlock();

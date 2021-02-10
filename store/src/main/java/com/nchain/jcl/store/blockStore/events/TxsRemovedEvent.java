@@ -2,9 +2,6 @@ package com.nchain.jcl.store.blockStore.events;
 
 
 import io.bitcoinj.core.Sha256Hash;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Value;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,13 +14,19 @@ import java.util.List;
  * An Event triggered when several TXs are Removed
  */
 
-@Value
-@EqualsAndHashCode(callSuper = false)
-public class TxsRemovedEvent extends BlockStoreEvent {
+public final class TxsRemovedEvent extends BlockStoreEvent {
     private final List<Sha256Hash> txHashes;
 
-    @Builder
     public TxsRemovedEvent(List<Sha256Hash> txHashes) {
         this.txHashes = new ArrayList<>(txHashes);
+    }
+
+    public List<Sha256Hash> getTxHashes() {
+        return this.txHashes;
+    }
+
+    @Override
+    public String toString() {
+        return "TxsRemovedEvent(txHashes=" + this.getTxHashes() + ")";
     }
 }

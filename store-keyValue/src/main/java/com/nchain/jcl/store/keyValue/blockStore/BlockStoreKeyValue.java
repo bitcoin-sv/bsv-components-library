@@ -1030,25 +1030,25 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     default void _triggerBlocksStoredEvent(List<HeaderReadOnly> blockHeaders) {
         if (isTriggerBlockEvents()) {
             List<Sha256Hash> blockHashes = blockHeaders.stream().map(b -> b.getHash()).collect(Collectors.toList());
-            getEventBus().publish(BlocksSavedEvent.builder().blockHashes(blockHashes).build());
+            getEventBus().publish(new BlocksSavedEvent(blockHashes));
         }
     }
 
     default void _triggerBlocksRemovedEvent(List<Sha256Hash> blockHashes) {
         if (isTriggerBlockEvents())
-            getEventBus().publish(BlocksRemovedEvent.builder().blockHashes(blockHashes).build());
+            getEventBus().publish(new BlocksRemovedEvent(blockHashes));
     }
 
     default void _triggerTxsStoredEvent(List<Tx> txs) {
         if (isTriggerTxEvents()) {
             List<Sha256Hash> txHashes = txs.stream().map(tx -> tx.getHash()).collect(Collectors.toList());
-            getEventBus().publish(TxsSavedEvent.builder().txHashes(txHashes).build());
+            getEventBus().publish(new TxsSavedEvent(txHashes));
         }
     }
 
     default void _triggerTxsRemovedEvent(List<Sha256Hash> txHashes) {
         if (isTriggerTxEvents())
-            getEventBus().publish(TxsRemovedEvent.builder().txHashes(txHashes).build());
+            getEventBus().publish(new TxsRemovedEvent(txHashes));
     }
 
 
