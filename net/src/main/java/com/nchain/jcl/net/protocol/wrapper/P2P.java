@@ -16,7 +16,6 @@ import com.nchain.jcl.tools.events.EventBus;
 import com.nchain.jcl.tools.handlers.Handler;
 import com.nchain.jcl.tools.log.LoggerUtil;
 import com.nchain.jcl.tools.thread.ThreadUtils;
-import lombok.Getter;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -40,9 +39,9 @@ public class P2P {
     private LoggerUtil logger;
 
     // Configurations:
-    @Getter private RuntimeConfig runtimeConfig;
-    @Getter private NetworkConfig networkConfig;
-    @Getter private ProtocolConfig protocolConfig;
+    private RuntimeConfig runtimeConfig;
+    private NetworkConfig networkConfig;
+    private ProtocolConfig protocolConfig;
 
     // Event Bus that will be used to "link" all the Handlers together
     private EventBus eventBus;
@@ -112,7 +111,7 @@ public class P2P {
 
     private void init() {
         try {
-            // If specified, we trigger a new Thread that will deserialize the status of the Handlers and publish them into the
+            // If specified, we trigger a new Thread that will publish the status of the Handlers into the
             // Bus. The Map contains a duration for each Handler Class, so we can set up a different frequency for each
             // State notification...
 
@@ -188,4 +187,7 @@ public class P2P {
         return new P2PBuilder(id);
     }
 
+    public RuntimeConfig getRuntimeConfig()     { return this.runtimeConfig; }
+    public NetworkConfig getNetworkConfig()     { return this.networkConfig; }
+    public ProtocolConfig getProtocolConfig()   { return this.protocolConfig; }
 }

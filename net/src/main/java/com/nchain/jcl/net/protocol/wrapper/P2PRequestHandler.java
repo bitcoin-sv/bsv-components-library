@@ -1,16 +1,15 @@
 package com.nchain.jcl.net.protocol.wrapper;
 
 
-import com.nchain.jcl.net.network.events.BlacklistPeerRequest;
-import com.nchain.jcl.net.protocol.events.*;
 import com.nchain.jcl.net.network.PeerAddress;
+import com.nchain.jcl.net.network.events.BlacklistPeerRequest;
 import com.nchain.jcl.net.network.events.ConnectPeerRequest;
 import com.nchain.jcl.net.network.events.DisconnectPeerRequest;
 import com.nchain.jcl.net.network.events.PeerDisconnectedEvent.DisconnectedReason;
+import com.nchain.jcl.net.protocol.events.*;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.tools.events.Event;
 import com.nchain.jcl.tools.events.EventBus;
-import lombok.AllArgsConstructor;
 
 import java.net.UnknownHostException;
 import java.util.Arrays;
@@ -29,11 +28,14 @@ import java.util.List;
  * bus used by the protocol. Those Requests will be picked up by those Internal handlers subscribed to them, and
  * they will do their job.
  */
-@AllArgsConstructor
 public class P2PRequestHandler {
 
     // The same EventBus that is used by the underlying P2P
     private EventBus eventBus;
+
+    public P2PRequestHandler(EventBus eventBus) {
+        this.eventBus = eventBus;
+    }
 
     /**
      * A base class for a Request. Any Request will extend this class.
@@ -48,39 +50,47 @@ public class P2PRequestHandler {
     }
 
     /** A Builder for ConnectPeerRequest */
-    @AllArgsConstructor
     public class ConnectPeerRequestBuilder extends Request {
         private PeerAddress peerAddress;
-        public ConnectPeerRequest buildRequest() { return new ConnectPeerRequest(peerAddress); }
+
+        public ConnectPeerRequestBuilder(PeerAddress peerAddress)   { this.peerAddress = peerAddress; }
+        public ConnectPeerRequest buildRequest()                    { return new ConnectPeerRequest(peerAddress); }
     }
 
     /** A Builder for DisconnectPeerRequest */
-   @AllArgsConstructor
    public  class DisconnectPeerRequestBuilder extends Request {
         private PeerAddress peerAddress;
         private DisconnectedReason reason;
+
+        public DisconnectPeerRequestBuilder(PeerAddress peerAddress, DisconnectedReason reason) {
+            this.peerAddress = peerAddress;
+            this.reason = reason;
+        }
         public DisconnectPeerRequest buildRequest() { return new DisconnectPeerRequest(peerAddress, reason, null); }
     }
 
     /** A Builder for EnablePingPongRequest */
-    @AllArgsConstructor
     public class EnablePingPongRequestBuilder extends Request {
         private PeerAddress peerAddress;
-        public EnablePingPongRequest buildRequest() { return new EnablePingPongRequest(peerAddress);}
+
+        public EnablePingPongRequestBuilder(PeerAddress peerAddress) { this.peerAddress = peerAddress; }
+        public EnablePingPongRequest buildRequest()                  { return new EnablePingPongRequest(peerAddress);}
     }
 
     /** A Builder for DisablePingPongRequest */
-    @AllArgsConstructor
     public class DisablePingPongRequestBuilder extends Request {
         private PeerAddress peerAddress;
-        public DisablePingPongRequest buildRequest() { return new DisablePingPongRequest(peerAddress);}
+
+        public DisablePingPongRequestBuilder(PeerAddress peerAddress)   { this.peerAddress = peerAddress; }
+        public DisablePingPongRequest buildRequest()                    { return new DisablePingPongRequest(peerAddress);}
     }
 
     /** A Builder for BlacklistPeerRequest */
-    @AllArgsConstructor
     public class BlacklistPeerRequestBuilder extends Request {
         private PeerAddress peerAddress;
-        public BlacklistPeerRequest buildRequest() { return new BlacklistPeerRequest(peerAddress);}
+
+        public BlacklistPeerRequestBuilder(PeerAddress peerAddress) { this.peerAddress = peerAddress; }
+        public BlacklistPeerRequest buildRequest()                  { return new BlacklistPeerRequest(peerAddress);}
     }
 
     /**
@@ -118,21 +128,27 @@ public class P2PRequestHandler {
     }
 
     /** A Builder for SendMsgRequest */
-    @AllArgsConstructor
     public class SendMsgRequestBuilder extends Request {
         private PeerAddress peerAddress;
         private BitcoinMsg<?> btcMsg;
+
+        public SendMsgRequestBuilder(PeerAddress peerAddress, BitcoinMsg<?> btcMsg) {
+            this.peerAddress = peerAddress;
+            this.btcMsg = btcMsg;
+        }
+
         public SendMsgRequest buildRequest() { return new SendMsgRequest(peerAddress, btcMsg); }
     }
     /** A Builder for BroadcastMsgRequest */
-    @AllArgsConstructor
     public class BroadcastMsgRequestBuilder extends Request {
         private BitcoinMsg<?> btcMsg;
-        public BroadcastMsgRequest buildRequest() { return new BroadcastMsgRequest(btcMsg); }
+
+        public BroadcastMsgRequestBuilder(BitcoinMsg<?> btcMsg) { this.btcMsg = btcMsg; }
+        public BroadcastMsgRequest buildRequest()               { return new BroadcastMsgRequest(btcMsg); }
     }
 
     /**
-     * A convenience Class for Request related to Message Operations
+     * A convenience Class for Requests related to Message Operations
      */
     public class MsgsRequestBuilder {
         public SendMsgRequestBuilder send(PeerAddress peerAddress, BitcoinMsg<?> btcMsg) {
@@ -143,11 +159,14 @@ public class P2PRequestHandler {
         }
     }
 
-
-    @AllArgsConstructor
+    /**
+     * A convenience Class for Requests related to Blocks Downloading
+     */
     public class BlockDownloadRequestBuilder extends Request {
         private List<String> blockHash;
-        public BlocksDownloadRequest buildRequest() { return new BlocksDownloadRequest(blockHash); }
+
+        public BlockDownloadRequestBuilder(List<String> blockHash)  { this.blockHash = blockHash; }
+        public BlocksDownloadRequest buildRequest()                 { return new BlocksDownloadRequest(blockHash); }
     }
 
 
