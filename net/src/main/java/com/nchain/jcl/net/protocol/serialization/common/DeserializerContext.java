@@ -2,10 +2,6 @@ package com.nchain.jcl.net.protocol.serialization.common;
 
 
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
 
 /**
  * @author i.fernandez@nchain.com
@@ -17,10 +13,6 @@ import lombok.Setter;
  * This class is immutable and safe for Multithreading
  */
 
-@Getter
-@Setter
-@AllArgsConstructor
-@Builder(toBuilder = true)
 public final class DeserializerContext {
 
     //calculate the hashes when deserialzing block data
@@ -39,4 +31,65 @@ public final class DeserializerContext {
     // Deserialization, but you still need to be careful not to read more bytes than needed from the source.
     private Long maxBytesToRead;
 
+    public DeserializerContext(boolean calculateHashes, ProtocolBasicConfig protocolBasicConfig, boolean insideVersionMsg, Long maxBytesToRead) {
+        this.calculateHashes = calculateHashes;
+        this.protocolBasicConfig = protocolBasicConfig;
+        this.insideVersionMsg = insideVersionMsg;
+        this.maxBytesToRead = maxBytesToRead;
+    }
+
+
+    public boolean isCalculateHashes()                  { return this.calculateHashes; }
+    public ProtocolBasicConfig getProtocolBasicConfig() { return this.protocolBasicConfig; }
+    public boolean isInsideVersionMsg()                 { return this.insideVersionMsg; }
+    public Long getMaxBytesToRead()                     { return this.maxBytesToRead; }
+
+    public void setCalculateHashes(boolean calculateHashes)                     { this.calculateHashes = calculateHashes; }
+    public void setProtocolBasicConfig(ProtocolBasicConfig protocolBasicConfig) { this.protocolBasicConfig = protocolBasicConfig; }
+    public void setInsideVersionMsg(boolean insideVersionMsg)                   { this.insideVersionMsg = insideVersionMsg; }
+    public void setMaxBytesToRead(Long maxBytesToRead)                          { this.maxBytesToRead = maxBytesToRead; }
+
+    public DeserializerContextBuilder toBuilder() {
+        return new DeserializerContextBuilder().calculateHashes(this.calculateHashes).protocolBasicConfig(this.protocolBasicConfig).insideVersionMsg(this.insideVersionMsg).maxBytesToRead(this.maxBytesToRead);
+    }
+
+    public static DeserializerContextBuilder builder() {
+        return new DeserializerContextBuilder();
+    }
+
+    /**
+     * Builder
+     */
+    public static class DeserializerContextBuilder {
+        private boolean calculateHashes;
+        private ProtocolBasicConfig protocolBasicConfig;
+        private boolean insideVersionMsg;
+        private Long maxBytesToRead;
+
+        DeserializerContextBuilder() { }
+
+        public DeserializerContext.DeserializerContextBuilder calculateHashes(boolean calculateHashes) {
+            this.calculateHashes = calculateHashes;
+            return this;
+        }
+
+        public DeserializerContext.DeserializerContextBuilder protocolBasicConfig(ProtocolBasicConfig protocolBasicConfig) {
+            this.protocolBasicConfig = protocolBasicConfig;
+            return this;
+        }
+
+        public DeserializerContext.DeserializerContextBuilder insideVersionMsg(boolean insideVersionMsg) {
+            this.insideVersionMsg = insideVersionMsg;
+            return this;
+        }
+
+        public DeserializerContext.DeserializerContextBuilder maxBytesToRead(Long maxBytesToRead) {
+            this.maxBytesToRead = maxBytesToRead;
+            return this;
+        }
+
+        public DeserializerContext build() {
+            return new DeserializerContext(calculateHashes, protocolBasicConfig, insideVersionMsg, maxBytesToRead);
+        }
+    }
 }

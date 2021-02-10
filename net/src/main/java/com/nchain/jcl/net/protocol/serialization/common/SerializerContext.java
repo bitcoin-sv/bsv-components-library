@@ -2,10 +2,6 @@ package com.nchain.jcl.net.protocol.serialization.common;
 
 
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
 
 /**
  * @author i.fernandez@nchain.com
@@ -16,10 +12,6 @@ import lombok.Setter;
  *
  * This class is immutable and safe for Multithreading
  */
-@Getter
-@Setter
-@AllArgsConstructor
-@Builder(toBuilder = true)
 public final class SerializerContext {
 
     //The Magic Value used in the Messages Header, to identify the Network
@@ -35,4 +27,64 @@ public final class SerializerContext {
     // serialization logic is slightly different in that case)
     private boolean insideVersionMsg;
 
+    public SerializerContext(long magicPackage, int handshakeProtocolVersion, ProtocolBasicConfig protocolBasicConfig, boolean insideVersionMsg) {
+        this.magicPackage = magicPackage;
+        this.handshakeProtocolVersion = handshakeProtocolVersion;
+        this.protocolBasicConfig = protocolBasicConfig;
+        this.insideVersionMsg = insideVersionMsg;
+    }
+
+    public long getMagicPackage()                       { return this.magicPackage; }
+    public int getHandshakeProtocolVersion()            { return this.handshakeProtocolVersion; }
+    public ProtocolBasicConfig getProtocolBasicConfig() { return this.protocolBasicConfig; }
+    public boolean isInsideVersionMsg()                 { return this.insideVersionMsg; }
+
+    public void setMagicPackage(long magicPackage)                              { this.magicPackage = magicPackage; }
+    public void setHandshakeProtocolVersion(int handshakeProtocolVersion)       { this.handshakeProtocolVersion = handshakeProtocolVersion; }
+    public void setProtocolBasicConfig(ProtocolBasicConfig protocolBasicConfig) { this.protocolBasicConfig = protocolBasicConfig; }
+    public void setInsideVersionMsg(boolean insideVersionMsg)                   { this.insideVersionMsg = insideVersionMsg; }
+
+    public SerializerContextBuilder toBuilder() {
+        return new SerializerContextBuilder().magicPackage(this.magicPackage).handshakeProtocolVersion(this.handshakeProtocolVersion).protocolBasicConfig(this.protocolBasicConfig).insideVersionMsg(this.insideVersionMsg);
+    }
+
+    public static SerializerContextBuilder builder() {
+        return new SerializerContextBuilder();
+    }
+
+    /**
+     * Builder
+     */
+    public static class SerializerContextBuilder {
+        private long magicPackage;
+        private int handshakeProtocolVersion;
+        private ProtocolBasicConfig protocolBasicConfig;
+        private boolean insideVersionMsg;
+
+        SerializerContextBuilder() {}
+
+        public SerializerContext.SerializerContextBuilder magicPackage(long magicPackage) {
+            this.magicPackage = magicPackage;
+            return this;
+        }
+
+        public SerializerContext.SerializerContextBuilder handshakeProtocolVersion(int handshakeProtocolVersion) {
+            this.handshakeProtocolVersion = handshakeProtocolVersion;
+            return this;
+        }
+
+        public SerializerContext.SerializerContextBuilder protocolBasicConfig(ProtocolBasicConfig protocolBasicConfig) {
+            this.protocolBasicConfig = protocolBasicConfig;
+            return this;
+        }
+
+        public SerializerContext.SerializerContextBuilder insideVersionMsg(boolean insideVersionMsg) {
+            this.insideVersionMsg = insideVersionMsg;
+            return this;
+        }
+
+        public SerializerContext build() {
+            return new SerializerContext(magicPackage, handshakeProtocolVersion, protocolBasicConfig, insideVersionMsg);
+        }
+    }
 }
