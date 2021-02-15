@@ -88,7 +88,7 @@ It's also possible to store the Block and Transaction separately and set that re
 HeaderReadOnly blockHeader = ...           // we get a Block Header
 List<Tx> txs = ...             // we got a List of Tx belong to that Block
 
-db.saveBlock(block);
+db.saveBlock(blockHeader);
 db.saveTxs(txs);
 txs.forEach(tx -> db.linkTxToBlock(tx, blockHeader));
 
