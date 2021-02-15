@@ -85,8 +85,9 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
 
     // Keys used to store block info and it's relative position within the Chain:
     String KEY_SUFFIX_BLOCK_NEXT     = "next";         // Block built on top of this one
-    String KEY_PREFFIX_BLOCK_CHAIN   = "b_chain";      // Chan info for this block
-    String KEY_CHAIN_TIPS            = "chain_tips";  // List of all the Tip Chains
+    String KEY_PREFFIX_BLOCK_CHAIN   = "b_chain";      // Chain info for this block based on Hash
+    String KEY_PREFFIX_BLOCK_HEIGHT  = "b_height";     // Chain info for this block based on Height
+    String KEY_CHAIN_TIPS            = "chain_tips";   // List of all the Tip Chains
 
     String KEY_PREFFIX_PATHS         = "chain_paths";
     String KEY_SUFFIX_PATHS_LAST     = "last";
@@ -98,6 +99,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
 
     default String keyForBlockNext(String blockHash)        { return KEY_PREFFIX_BLOCK_PROP + blockHash + KEY_SEPARATOR + KEY_SUFFIX_BLOCK_NEXT + KEY_SEPARATOR; }
     default String keyForBlockChainInfo(String blockHash)   { return KEY_PREFFIX_BLOCK_CHAIN + KEY_SEPARATOR + blockHash + KEY_SEPARATOR; }
+    default String keyForBlockByHeight(int height)          { return KEY_PREFFIX_BLOCK_HEIGHT + KEY_SEPARATOR + height + KEY_SEPARATOR;}
     default String keyForChainTips()                        { return KEY_CHAIN_TIPS + KEY_SEPARATOR; }
     default String keyForChainPathsLast()                   { return KEY_PREFFIX_PATHS + KEY_SEPARATOR + KEY_SUFFIX_PATHS_LAST + KEY_SEPARATOR;}
     default String keyForChainPath(int branchId)            { return KEY_PREFFIX_PATH + KEY_SEPARATOR + branchId + KEY_SEPARATOR;}
@@ -106,6 +108,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
 
     byte[] fullKeyForBlockNext(String blockHash);
     byte[] fullKeyForBlockChainInfo(String blockHash);
+    byte[] fullKeyForBlockHashByHeight(int height);
     byte[] fullKeyForChainTips();
     byte[] fullKeyForChainPathsLast();
     byte[] fullKeyForChainPath(int branchId);
@@ -113,12 +116,12 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     /* Functions to serialize Objects:  */
 
     default byte[] bytes(BlockChainInfo blockChainInfo)     { return BlockChainInfoSerializer.getInstance().serialize(blockChainInfo); }
-    default byte[] bytes(ChainPathInfo chainBranchInfo)   { return ChainPathInfoSerializer.getInstance().serialize(chainBranchInfo);}
+    default byte[] bytes(ChainPathInfo chainBranchInfo)     { return ChainPathInfoSerializer.getInstance().serialize(chainBranchInfo);}
 
     /* Functions to deserialize Objects: */
 
     default BlockChainInfo  toBlockChainInfo(byte[] bytes)  { return (isBytesOk(bytes)) ? BlockChainInfoSerializer.getInstance().deserialize(bytes) : null;}
-    default ChainPathInfo   toChainPathInfo(byte[] bytes) { return (isBytesOk(bytes)) ? ChainPathInfoSerializer.getInstance().deserialize(bytes) : null;}
+    default ChainPathInfo   toChainPathInfo(byte[] bytes)   { return (isBytesOk(bytes)) ? ChainPathInfoSerializer.getInstance().deserialize(bytes) : null;}
 
     /*
      BlockChain Store DB Operations:
@@ -176,6 +179,24 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         _saveBlockChainInfo(tr, blockChainInfo);
         return blockChainInfo;
     }
+
+
+    private String _getBlockHashByHeight(T tr, int height) {
+        byte[] value = read(tr, fullKeyForBlockHashByHeight(height));
+        return toString(value);
+    }
+
+    private void _saveBlockHashByHeight(T tr, String blockHash, int height) {
+        byte[] key = fullKeyForBlockHashByHeight(height);
+        byte[] value = bytes(blockHash);
+        save(tr, key, value);
+    }
+
+    private void _removeBlockHashByHeight(T tr, int height) {
+        byte[] key = fullKeyForBlockHashByHeight(height);
+        remove(tr, key);
+    }
+
 
     private List<String> _getNextBlocks(T tr, String blockHash) {
         List<String> result = new ArrayList<>();
@@ -274,6 +295,9 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             blockChainInfo = _saveBlockChainInfo(tr, blockHeader, parentBlockChainInfo, pathIdForNewBlock);
         }
 
+        // We store a Key to link the HEIGHT with its Hash, so we can retrieve it later by its Height in O(1) time...
+        _saveBlockHashByHeight(tr, blockChainInfo.getBlockHash(), blockChainInfo.getHeight());
+
         // Now we update the tips of the Chain:
         List<String> tipsChain = _getChainTips(tr);
 
@@ -304,6 +328,9 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
 
             // We remove the ChainInfo for this Node (this will disconnect this Block from the Chain):
             _removeBlockChainInfo(tr, blockHash);
+
+            // We remove the link f this Height with this block Hash...
+            _removeBlockHashByHeight(tr, blockChainInfo.getHeight());
 
             // We update the tip of the chain (this block is not the tip anymore, if its already)
             _updateTipsChain(tr, null, blockHash);
@@ -607,6 +634,27 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         } finally {
             getLock().writeLock().unlock();
         }
+    }
+
+    @Override
+    default Optional<ChainInfo> getBlock(int height) {
+        AtomicReference<ChainInfo> result = new AtomicReference<>();
+        T tr = createTransaction();
+        executeInTransaction(tr, () -> {
+            String blockHash = _getBlockHashByHeight(tr, height);
+            if (blockHash == null) return;
+            HeaderReadOnly blockResultHeader = _getBlock(tr, blockHash);
+            if (blockResultHeader == null) return;
+            BlockChainInfo blockResultInfo = _getBlockChainInfo(tr, blockHash);
+            if (blockResultInfo == null) return;
+
+            ChainInfoBean chainInfoResult = new ChainInfoBean(blockResultHeader);
+            chainInfoResult.setChainWork(blockResultInfo.getChainWork());
+            chainInfoResult.setHeight(blockResultInfo.getHeight());
+            chainInfoResult.makeImmutable();
+            result.set(chainInfoResult);
+        });
+        return Optional.ofNullable(result.get());
     }
 
     @Override

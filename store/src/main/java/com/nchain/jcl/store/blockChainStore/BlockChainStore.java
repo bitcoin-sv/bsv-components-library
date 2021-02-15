@@ -3,6 +3,7 @@ package com.nchain.jcl.store.blockChainStore;
 
 import com.nchain.jcl.store.blockChainStore.events.BlockChainStoreStreamer;
 import com.nchain.jcl.store.blockStore.BlockStore;
+import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
 import io.bitcoinj.bitcoin.api.extended.ChainInfo;
 import io.bitcoinj.core.Sha256Hash;
 
@@ -22,6 +23,11 @@ import java.util.Optional;
 public interface BlockChainStore extends BlockStore {
 
     // Chain Methods:
+
+    /**
+     * Retrieves the Block specified by the Height given
+     */
+    Optional<ChainInfo> getBlock(int height);
 
     /**
      * Returns the Hash of the Previous Block in the Chain

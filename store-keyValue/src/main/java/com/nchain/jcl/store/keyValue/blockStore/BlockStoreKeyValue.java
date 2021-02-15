@@ -9,7 +9,10 @@ import com.nchain.jcl.store.blockStore.events.*;
 import com.nchain.jcl.store.keyValue.common.HashesList;
 import com.nchain.jcl.store.keyValue.common.HashesListSerializer;
 import com.nchain.jcl.store.keyValue.common.KeyValueIterator;
+import com.nchain.jcl.tools.bytes.ByteArrayReader;
+import com.nchain.jcl.tools.bytes.ByteArrayWriter;
 import com.nchain.jcl.tools.events.EventBus;
+import com.nchain.jcl.tools.serialization.BitcoinSerializerUtils;
 import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
 import io.bitcoinj.bitcoin.api.base.Tx;
 import io.bitcoinj.bitcoin.bean.base.HeaderBean;
@@ -236,6 +239,11 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     default byte[] bytes(Tx tx)                       { return tx.serialize(); }
     default byte[] bytes(Long value)                  { return uint64ToByteArrayLE(value); }
     default byte[] bytes(Integer value)               { return uint32ToByteArrayLE(value); }
+    default byte[] bytes(String value)                {
+        ByteArrayWriter writer = new ByteArrayWriter();
+        BitcoinSerializerUtils.serializeVarStr(value, writer);
+        return writer.reader().getFullContentAndClose();
+    }
 
 
     /* Functions to deserialize Objects: */
@@ -246,6 +254,12 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     default HashesList      toHashes(byte[] bytes)        { return (isBytesOk(bytes)) ? HashesListSerializer.getInstance().deserialize(bytes) : null;}
     default long            toLong(byte[] bytes)          { return (isBytesOk(bytes)) ? Utils.readInt64(bytes, 0) : null;}
     default int             toInt(byte[] bytes)           { return (isBytesOk(bytes)) ? (int) Utils.readUint32(bytes, 0) : null;}
+    default String          toString(byte[] bytes) {
+        if (!isBytesOk(bytes)) return null;
+        ByteArrayReader reader = new ByteArrayReader(bytes);
+        String result = BitcoinSerializerUtils.deserializeVarStr(reader);
+        return result;
+    }
 
 
     /* Given a Key, it extracts the Tx Hash from it as long as the fullKey contains a Tx_hash, otherwise it returns null */

@@ -328,7 +328,7 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
             // We check the DB Content in the console...
             db.printKeys()
 
-            then:
+        then:
                 numBlocksAfterInserts == 2 // including the genesis Block...
                 numTipsChain == 1
         cleanup:
@@ -338,6 +338,54 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
             // We check the DB Content in the console...
             db.printKeys()
             db.clear()
+            db.stop()
+            println(" - Test Done.")
+    }
+
+
+    def "testing Getting Blocks by Height"() {
+        given:
+            // Configuration and DB start up:
+            println(" - Connecting to the DB...")
+            HeaderReadOnly genesisBlock = TestingUtils.buildBlock(Sha256Hash.ZERO_HASH.toString())
+            println(" - Using block genesis: " + genesisBlock.getHash())
+            BlockChainStore db = getInstance("BSV-Main", false, false, genesisBlock, Duration.ofMillis(100), null, null, null, null)
+
+        when:
+            db.start()
+            // We store a chain of 3 Blocks, all connected:
+            HeaderReadOnly block1 = TestingUtils.buildBlock(genesisBlock.hash.toString())
+            HeaderReadOnly block2 = TestingUtils.buildBlock(block1.hash.toString())
+            HeaderReadOnly block3 = TestingUtils.buildBlock(block2.hash.toString())
+
+            db.saveBlocks(Arrays.asList(block1, block2, block3))
+
+            // We check the DB Content in the console...
+            db.printKeys()
+
+            // We get some Blocks by Height and by Hash...
+            Optional<ChainInfo> block1ReadByHeight = db.getBlock(1)
+            Optional<ChainInfo> block2ReadByHeight = db.getBlock(2)
+
+            Optional<HeaderReadOnly> block1ReadByHash = db.getBlock(block1.hash)
+            Optional<HeaderReadOnly> block2ReadByHash = db.getBlock(block2.hash)
+
+            // Now we remove the Block1, so the Block 1 is no longer in the Db and the Block 2 is still in the chain but
+            // is DISCONNECTED, so not posible to retrieve by Height...
+            db.removeBlock(block1.hash)
+
+            Optional<ChainInfo> block1ReadByHeightAferRemoval = db.getBlock(1)
+            Optional<ChainInfo> block2ReadByHeightAferRemoval = db.getBlock(2)
+
+        then:
+            block1ReadByHeight.get().header.hash.toString().equals(block1ReadByHash.get().hash.toString())
+            block2ReadByHeight.get().header.hash.toString().equals(block2ReadByHash.get().hash.toString())
+            block1ReadByHeightAferRemoval.isEmpty()
+            block2ReadByHeightAferRemoval.isEmpty()
+        cleanup:
+            println(" - Cleanup...")
+            db.clear()
+            db.printKeys()
             db.stop()
             println(" - Test Done.")
     }
