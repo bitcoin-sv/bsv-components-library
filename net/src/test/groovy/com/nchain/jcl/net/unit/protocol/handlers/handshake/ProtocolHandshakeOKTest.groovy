@@ -13,6 +13,7 @@ import com.nchain.jcl.net.protocol.handlers.pingPong.PingPongHandler
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
 import io.bitcoinj.params.MainNetParams
+import io.bitcoinj.params.Net
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicBoolean
@@ -30,7 +31,7 @@ class ProtocolHandshakeOKTest extends Specification {
     def "testing Handshake OK"() {
         given:
             // Server and Client Definition:
-            ProtocolConfig config = new ProtocolBSVMainConfig().toBuilder().build()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             // We disable all the Handlers we don't need for this Test:
             P2P server = new P2PBuilder("server")
                     .config(config)
@@ -83,7 +84,7 @@ class ProtocolHandshakeOKTest extends Specification {
             // Server Definition:
             // We change the Default P2P Configuration, to establish the parameters for this Test:
 
-            ProtocolConfig protocolConfig = ProtocolConfigBuilder.get(new MainNetParams())
+            ProtocolConfig protocolConfig = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
 
             // We set up the MIN and MAX Peers
             ProtocolBasicConfig basicConfig = protocolConfig.basicConfig.toBuilder()

@@ -10,6 +10,7 @@ import com.nchain.jcl.net.protocol.handlers.pingPong.PingPongHandlerConfig
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
 import io.bitcoinj.params.MainNetParams
+import io.bitcoinj.params.Net
 import spock.lang.Specification
 
 import java.time.Duration
@@ -40,7 +41,7 @@ class ProtocolPingPongFailTest extends Specification {
             Duration waitingTime = Duration.ofMillis(responseTimeout.toMillis() * 5) // 3 times as much
 
             // Server Definition:
-            ProtocolConfig serverConfig = ProtocolConfigBuilder.get(new MainNetParams())
+            ProtocolConfig serverConfig = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
 
             PingPongHandlerConfig serverPingConfig = serverConfig.getPingPongConfig()
                 .toBuilder()
@@ -61,7 +62,7 @@ class ProtocolPingPongFailTest extends Specification {
             // PING Messages and therefore won't implement the Ping/Pong P2P
             // We disable the Handlers we dont need for this Test:
 
-            ProtocolConfig clientConfig = ProtocolConfigBuilder.get(new MainNetParams())
+            ProtocolConfig clientConfig = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             P2P client = new P2PBuilder("client")
                     .config(clientConfig)
                     .serverPort(0) // Random Port

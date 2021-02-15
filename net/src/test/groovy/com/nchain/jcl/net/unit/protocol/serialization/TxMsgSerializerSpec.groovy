@@ -2,6 +2,7 @@ package com.nchain.jcl.net.unit.protocol.serialization
 
 
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
+import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.messages.HashMsg
 import com.nchain.jcl.net.protocol.messages.TxMsg
@@ -24,6 +25,8 @@ import io.bitcoinj.bitcoin.api.base.Tx
 import io.bitcoinj.bitcoin.bean.base.FullBlockBean
 import io.bitcoinj.bitcoin.bean.base.TxBean
 import io.bitcoinj.core.Utils
+import io.bitcoinj.params.MainNetParams
+import io.bitcoinj.params.Net
 import org.spongycastle.crypto.tls.DefaultTlsServer
 import spock.lang.Specification
 
@@ -55,7 +58,7 @@ class TxMsgSerializerSpec extends Specification {
 
     def "Testing TransactionMsg Deserialize"(int byteInterval, int delayMs) {
         given:
-            ProtocolConfig config = new ProtocolBSVMainConfig()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
@@ -87,7 +90,7 @@ class TxMsgSerializerSpec extends Specification {
 
     def "Testing TxInputMessage Serializing"() {
         given:
-            ProtocolConfig config = new ProtocolBSVMainConfig()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             SerializerContext context = SerializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
@@ -120,7 +123,7 @@ class TxMsgSerializerSpec extends Specification {
 
     def "testing TransactionMsg COMPLETE de-serializing"(int byteInterval, int delayMs) {
         given:
-            ProtocolConfig config = new ProtocolBSVMainConfig()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
@@ -153,7 +156,7 @@ class TxMsgSerializerSpec extends Specification {
 
     def "testing Version Message COMPLETE Serializing"() {
         given:
-            ProtocolConfig config = new ProtocolBSVMainConfig()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             SerializerContext context = SerializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()

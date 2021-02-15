@@ -1,7 +1,9 @@
-package com.nchain.jcl.tools.streams;
+package com.nchain.jcl.net.network.streams;
 
 
+import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.tools.events.EventBus;
+
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -11,20 +13,20 @@ import java.util.function.Consumer;
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  *
- * An implementation of an InputStream, that can be linked to other InputStreams, forming a chain
- * of InputStreams where each one of them implements a "transformation" function over the data, so we
- * can actually have a chain of InputStreams, transforming the data along the way.
+ * An implementation of an PeerInputStream, that can be linked to other PeerInputStreams, forming a chain
+ * of PeerInputStreams where each one of them implements a "transformation" function over the data, so we
+ * can actually have a chain of PeerInputStreams, transforming the data along the way.
  *
  * for example, we can define a chain like this:
- * - An inputStream1, which takes bytes and convert them into Integers before returning them
- * - An inputStream2, which takes Integers and returns String
- * - An inputStream3, which takes Strings and returns instances of a class "Student".
+ * - An peerInputStream1, which takes bytes and convert them into Integers before returning them
+ * - An peerInputStream2, which takes Integers and returns String
+ * - An peerInputStream3, which takes Strings and returns instances of a class "Student".
  *
  * This chain can be represented by this:
  *
  * (our main program) << (Student<"John">) << [inputStream3] << "john" << [inputStream2] << 5 << [inputStream1] << 0101
  *
- * So this class represents an InputStream that can receive some data, run transformations on it, and return
+ * So this class represents a PeerInputStream that can receive some data, run transformations on it, and return
  * a different data type. The "transform" method will implement the transformation function, and will have
  * to be overwritten by the extending classes.
  *
@@ -35,10 +37,11 @@ import java.util.function.Consumer;
  * The transformation function over the data can be executed in blocking mode or in no-blocking mode (running
  * in a different Thread), depending on the ExecutorService passed to the constructor.
  */
-public abstract class InputStreamImpl<I,R> implements InputStream<R> {
+public abstract class PeerInputStreamImpl<I,R> implements PeerInputStream<R> {
 
     protected EventBus eventBus;
-    protected InputStream<I> source;
+    protected PeerAddress peerAddress;
+    protected PeerInputStream<I> source;
 
     /**
      * Constructor.
@@ -50,17 +53,29 @@ public abstract class InputStreamImpl<I,R> implements InputStream<R> {
      *
      * @param source    The input Stream that is linked to this InputStream.
      */
-    public InputStreamImpl(ExecutorService executor,
-                           InputStream<I> source) {
+    public PeerInputStreamImpl(PeerAddress peerAddress,ExecutorService executor, PeerInputStream<I> source) {
         this.eventBus = EventBus.builder().executor(executor).build();
+        this.peerAddress = peerAddress;
         this.source = source;
         if (source != null) linkSource(source);
     }
 
-    protected void linkSource(InputStream<I> source) {
+    public PeerInputStreamImpl(ExecutorService executor, PeerInputStream<I> source) {
+        this(source.getPeerAddress(), executor, source);
+    }
+
+    protected void linkSource(PeerInputStream<I> source) {
         source.onData(this::receiveAndTransform);
         source.onClose(event -> eventBus.publish(event));
     }
+
+    @Override
+    public PeerAddress getPeerAddress() {
+        return peerAddress;
+    }
+
+    @Override
+    public StreamState getState() { return null;}
 
     @Override
     public void onData(Consumer<? extends StreamDataEvent<R>> eventHandler)  {
@@ -77,6 +92,11 @@ public abstract class InputStreamImpl<I,R> implements InputStream<R> {
         eventBus.subscribe(StreamErrorEvent.class, eventHandler);
     }
 
+    @Override
+    public void close(StreamCloseEvent event) {
+        eventBus.publish(new StreamCloseEvent());
+    }
+
     protected synchronized void receiveAndTransform(StreamDataEvent<I> dataEvent) {
         try {
             List<StreamDataEvent<R>> dataTransformed = transform(dataEvent);
@@ -86,7 +106,9 @@ public abstract class InputStreamImpl<I,R> implements InputStream<R> {
         }
     }
 
-    /** This class implements the Transformation over the data, before is returned to the "client" */
+    /**
+     * This method implements the Transformation over the data, before is returned to the "client"
+     */
     public abstract List<StreamDataEvent<R>> transform(StreamDataEvent<I> dataEvent);
 
 }

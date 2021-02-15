@@ -1,7 +1,9 @@
-package com.nchain.jcl.tools.streams;
+package com.nchain.jcl.net.network.streams;
 
 
+import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.tools.events.EventBus;
+
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -11,21 +13,21 @@ import java.util.function.Consumer;
  * @author i.fernandezs@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  *
- * An implementation of an OutputStream, that can be linked to other OutputStreams, forming a chain
- * of OutputStreams where each one of them implements a "transformation" function over the data, so we
+ * An implementation of a PeerOutputStream, that can be linked to other PeerOutputStreams, forming a chain
+ * of PeerOutputStreams where each one of them implements a "transformation" function over the data, so we
  * can actually have a chain of OutputStreams, transforming the data along the way.
  *
  * for example, we can define a chain like this:
- * - An outputStream1, which takes instances of a "Student" class, convert them to String and send the String
- * - An outputStream2, which takes Strings and convert them into Integers before sending
- * - An outputStream3, which takes Strings and convert them into bytes before sending
+ * - An peerOutputStream1, which takes instances of a "Student" class, convert them to String and send the String
+ * - An peerOutputStream2, which takes Strings and convert them into Integers before sending
+ * - An peerOutputStream3, which takes Strings and convert them into bytes before sending
  *
  * This chain can be represented by this:
  *
  * (our main program) >> (Student<"John">) >> [outputStream1] >> "john" >> [outputStream2] >> 5 >> [outputStream3] >> 0101
  *
- * So this class represents an OutputStream that can take some data, run transformations on it, and sending it
- * to the next OutputStream in line. The "transform" method will implement the transformation function, and will have
+ * So this class represents a PeerOutputStream that can take some data, run transformations on it, and sending it
+ * to the next PeerOutputStream in line. The "transform" method will implement the transformation function, and will have
  * to be overwritten by the extending classes.
  *
  *  - param O (OUTPUT): The data that we send to this Stream
@@ -34,10 +36,11 @@ import java.util.function.Consumer;
  * The transformation function over the data can be executed in blocking mode or in no-blocking mode, running
  * in a different Thread, depending on the ExecutorService passed to the constructor.
  */
-public abstract class OutputStreamImpl<O,R> implements OutputStream<O> {
+public abstract class PeerOutputStreamImpl<O,R> implements PeerOutputStream<O> {
 
     protected EventBus eventBus;
-    protected OutputStream<R> destination;
+    protected PeerAddress peerAddress;
+    protected PeerOutputStream<R> destination;
 
     /**
      * Constructor.
@@ -49,12 +52,23 @@ public abstract class OutputStreamImpl<O,R> implements OutputStream<O> {
      *
      * @param destination    The Output Stream that is linked to this OutputStream.
      */
-    public OutputStreamImpl(ExecutorService executor, OutputStream<R> destination) {
+    public PeerOutputStreamImpl(PeerAddress peerAddress, ExecutorService executor, PeerOutputStream<R> destination) {
         this.eventBus = EventBus.builder().executor(executor).build();
+        this.peerAddress = peerAddress;
         this.destination = destination;
         Consumer<StreamDataEvent<O>> dataConsumer = e -> receiveAndTransform(e);
         this.eventBus.subscribe(StreamDataEvent.class, dataConsumer);
     }
+    public PeerOutputStreamImpl(ExecutorService executor, PeerOutputStream<R> destination) {
+        this(destination.getPeerAddress(), executor, destination);
+    }
+
+    @Override
+    public PeerAddress getPeerAddress() {
+        return peerAddress;
+    }
+    @Override
+    public StreamState getState() { return null; }
     @Override
     public void send(StreamDataEvent<O> event)  {
         eventBus.publish(event);
@@ -71,6 +85,6 @@ public abstract class OutputStreamImpl<O,R> implements OutputStream<O> {
         }
     }
 
-    /** This class implements the Transformation over the data, before is sent to the next OutputStream in line */
+    /** This method implements the Transformation over the data, before is sent to the next OutputStream in line */
     public abstract List<StreamDataEvent<R>> transform(StreamDataEvent<O> data);
 }

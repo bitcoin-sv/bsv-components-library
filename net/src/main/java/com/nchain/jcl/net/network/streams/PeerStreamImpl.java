@@ -1,8 +1,6 @@
 package com.nchain.jcl.net.network.streams;
 
-
 import com.nchain.jcl.net.network.PeerAddress;
-import com.nchain.jcl.tools.streams.StreamImpl;
 
 import java.util.concurrent.ExecutorService;
 
@@ -10,35 +8,44 @@ import java.util.concurrent.ExecutorService;
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  *
- * A base implementation of a PeerStream. A PeerStream is very similar to a regular Stream, but with
- * these differences:
- *  - A PeerStream includes an additional method "getPeerAddress()" to return the Peer this Stream is
- *    ultimately connected to.
- *  - A PeerStream includes a method to return the "State" of the Stream ("getState()".
- *  - the "input" and "output" of a PeerStream also have the differences mentioned above, os instead of
- *    "InputStream and "OutputStream" classes, we have now "PeerInputStream" and "PeerOutputStream". These
- *    classes are similar to the "regular" InputStream and outputStream, but also including "getPeerAddress()"
- *    and "getState()".
+ * Base Implementtion of a PeerStream. Futher implementations should extend this.
  */
-public abstract class PeerStreamImpl<S,T> extends StreamImpl<S,T> implements PeerStream<S> {
+public abstract class PeerStreamImpl<S,T> implements PeerStream<S> {
+
+    protected ExecutorService executor;
+    protected PeerAddress peerAddress;
+    protected PeerStream<T> streamOrigin;
+
+    protected PeerInputStream<S> inputStream;
+    protected PeerOutputStream<S> outputStream;
+
 
     public PeerStreamImpl(ExecutorService executor, PeerStream<T> streamOrigin) {
-        super(executor, streamOrigin);
+        this(streamOrigin.getPeerAddress(), executor, streamOrigin);
     }
 
-    public abstract PeerInputStream<S> buildInputStream();
-    public abstract PeerOutputStream<S> buildOutputStream();
+    public PeerStreamImpl(PeerAddress peerAddress, ExecutorService executor, PeerStream<T> streamOrigin) {
+        this.executor = executor;
+        this.peerAddress = peerAddress;
+        this.streamOrigin = streamOrigin;
+    }
 
     @Override
     public PeerInputStream<S> input() {
-        return (PeerInputStream) inputStream;
+        return inputStream;
     }
+
     @Override
     public PeerOutputStream<S> output() {
-        return (PeerOutputStream) outputStream;
+        return outputStream;
     }
-    @Override
-    public PeerAddress getPeerAddress() {
-        return ((PeerStream) streamOrigin).getPeerAddress();
+
+    public void init() {
+        this.inputStream = buildInputStream();
+        this.outputStream = buildOutputStream();
     }
+
+    // To be overwritten by extending classes
+    public abstract PeerInputStream<S> buildInputStream();
+    public abstract PeerOutputStream<S> buildOutputStream();
 }

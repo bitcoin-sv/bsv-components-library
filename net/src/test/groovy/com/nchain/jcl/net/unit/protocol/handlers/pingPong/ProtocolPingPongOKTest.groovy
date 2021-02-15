@@ -9,6 +9,7 @@ import com.nchain.jcl.net.protocol.handlers.pingPong.PingPongHandlerConfig
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
 import io.bitcoinj.params.MainNetParams
+import io.bitcoinj.params.Net
 import spock.lang.Specification
 
 import java.time.Duration
@@ -36,7 +37,7 @@ class ProtocolPingPongOKTest extends Specification {
             Duration waitingTime = Duration.ofMillis(inactivityTimeout.toMillis() * 5) // 3 times as much
 
             // Server Definition:
-            ProtocolConfig serverConfig = ProtocolConfigBuilder.get(new MainNetParams()).toBuilder().port(0).build()
+            ProtocolConfig serverConfig = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET)).toBuilder().port(0).build()
 
             PingPongHandlerConfig serverPingConfig = serverConfig.getPingPongConfig()
                     .toBuilder()
@@ -52,7 +53,7 @@ class ProtocolPingPongOKTest extends Specification {
                     .build()
 
             // Client Definition:
-            ProtocolConfig clientConfig = ProtocolConfigBuilder.get(new MainNetParams()).toBuilder().port(0).build()
+            ProtocolConfig clientConfig = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET)).toBuilder().port(0).build()
 
             PingPongHandlerConfig clientPingConfig = clientConfig.getPingPongConfig()
                     .toBuilder()

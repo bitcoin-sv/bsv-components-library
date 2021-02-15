@@ -1,5 +1,6 @@
 package com.nchain.jcl.net.unit.protocol.serialization
 
+import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
 import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializer
 import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
@@ -16,6 +17,8 @@ import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
 import io.bitcoinj.core.Sha256Hash
 import io.bitcoinj.core.Utils
+import io.bitcoinj.params.MainNetParams
+import io.bitcoinj.params.Net
 import spock.lang.Specification
 
 /**
@@ -41,8 +44,8 @@ class InventoryVectorMsgSerializerSpec extends Specification {
 
     def "testing InventoryVector Message BODY Serializing"() {
         given:
-            ProtocolConfig config = new ProtocolBSVMainConfig()
-        SerializerContext context = SerializerContext.builder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            SerializerContext context = SerializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
             InventoryVectorMsg inventoryVectorMsg  = InventoryVectorMsg.builder()
@@ -62,7 +65,7 @@ class InventoryVectorMsgSerializerSpec extends Specification {
 
     def "testing InventoryVector Message BODY De-Serializing"(int byteInterval, int delayMs) {
         given:
-            ProtocolConfig config = new ProtocolBSVMainConfig()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .maxBytesToRead((long) (REF_INV_VEC_BODY_MSG.length()/2))
@@ -80,7 +83,7 @@ class InventoryVectorMsgSerializerSpec extends Specification {
 
     def "testing InventoryVector Message COMPLETE Serializing"() {
         given:
-            ProtocolConfig config = new ProtocolBSVMainConfig()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             SerializerContext context = SerializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
@@ -99,7 +102,7 @@ class InventoryVectorMsgSerializerSpec extends Specification {
 
     def "testing InventoryVector Message COMPLETE De-serializing"(int byteInterval, int delayMs) {
         given:
-            ProtocolConfig config = new ProtocolBSVMainConfig()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()

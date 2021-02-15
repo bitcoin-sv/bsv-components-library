@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.unit.protocol.serialization
 
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
+import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.messages.TxOutputMsg
 import com.nchain.jcl.net.protocol.serialization.TxOutputMsgSerializer
@@ -11,6 +12,8 @@ import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
 import io.bitcoinj.core.Sha256Hash
 import io.bitcoinj.core.Utils
+import io.bitcoinj.params.MainNetParams
+import io.bitcoinj.params.Net
 import spock.lang.Specification
 
 /**
@@ -34,7 +37,7 @@ class TxOutputMsgSerializerSpec extends Specification {
 
     def "Testing TxOutputMessage Deserializing"(int byteInterval, int delayMs) {
         given:
-            ProtocolConfig config = new ProtocolBSVMainConfig()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
@@ -57,7 +60,7 @@ class TxOutputMsgSerializerSpec extends Specification {
 
     def "Testing TxOutputMessage Serializing"() {
         given:
-            ProtocolConfig config = new ProtocolBSVMainConfig()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             SerializerContext context = SerializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()

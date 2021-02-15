@@ -1,0 +1,29 @@
+package com.nchain.jcl.net.unit.network.streams;
+
+import com.nchain.jcl.net.network.streams.PeerInputStream;
+import com.nchain.jcl.net.network.streams.PeerOutputStream;
+import com.nchain.jcl.net.network.streams.PeerStream;
+import com.nchain.jcl.net.network.streams.PeerStreamImpl;
+
+import java.util.concurrent.ExecutorService;
+
+/**
+ * @author i.fernandez@nchain.com
+ * Copyright (c) 2018-2020 nChain Ltd
+ * @date 2021-02-11
+ */
+public class StringNumberPeerStream extends PeerStreamImpl<String, Integer> {
+
+    public StringNumberPeerStream(ExecutorService executor, PeerStream<Integer> streamOrigin) {
+        super(executor, streamOrigin);
+    }
+
+    @Override
+    public PeerInputStream<String> buildInputStream() {
+        return new StringNumberInputStream(peerAddress, super.executor, super.streamOrigin.input());
+    }
+    @Override
+    public PeerOutputStream<String> buildOutputStream() {
+        return new StringNumberOutputStream(peerAddress, super.executor, super.streamOrigin.output());
+    }
+}

@@ -2,6 +2,7 @@ package com.nchain.jcl.net.unit.protocol.serialization
 
 
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
+import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.messages.*
 import com.nchain.jcl.net.protocol.serialization.BlockHeaderEnMsgSerializer
@@ -9,6 +10,8 @@ import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
 import io.bitcoinj.core.Sha256Hash
 import io.bitcoinj.core.Utils
+import io.bitcoinj.params.MainNetParams
+import io.bitcoinj.params.Net
 import spock.lang.Ignore
 import spock.lang.Specification
 /**
@@ -38,40 +41,40 @@ class BlockHeaderEnMsgSpec extends Specification {
 
   @Ignore  def "testing blockMessage BlockHeaderEnrichedMsg Serializing"() {
         given:
-        ProtocolConfig config = new ProtocolBSVMainConfig()
-        SerializerContext context = SerializerContext.builder()
-                .protocolBasicConfig(config.getBasicConfig())
-                .build()
-        BlockHeaderEnMsgSerializer serializer = BlockHeaderEnMsgSerializer.getInstance()
-        List<HashMsg> transactionMsgList = new ArrayList<>()
-        Optional<HashMsg> transactionMsg1 = makeCoinbaseTransaction().getHash()
-        Optional<HashMsg> transactionMsg2 = makeTransaction().getHash()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            SerializerContext context = SerializerContext.builder()
+                    .protocolBasicConfig(config.getBasicConfig())
+                    .build()
+            BlockHeaderEnMsgSerializer serializer = BlockHeaderEnMsgSerializer.getInstance()
+            List<HashMsg> transactionMsgList = new ArrayList<>()
+            Optional<HashMsg> transactionMsg1 = makeCoinbaseTransaction().getHash()
+            Optional<HashMsg> transactionMsg2 = makeTransaction().getHash()
 
-        transactionMsgList.add(transactionMsg1.get())
-        transactionMsgList.add(transactionMsg2.get())
+            transactionMsgList.add(transactionMsg1.get())
+            transactionMsgList.add(transactionMsg2.get())
 
-        BlockHeaderEnMsg blockHeaderEn = BlockHeaderEnMsg.builder()
-                .version(1)
-                .prevBlockHash(HashMsg.builder().hash(PREV_BLOCK_HASH).build())
-                .merkleRoot(HashMsg.builder().hash(MERKLE_ROOT).build())
-                .creationTimestamp(1288886764)
-                .nBits(486622232)
-                .nonce(90297088)
-                .transactionCount(transactionMsgList.size())
-                .hasCoinbaseData(true)
-                .noMoreHeaders(false)
-                .coinbaseMerkleProof(transactionMsgList)
-                .coinbaseTX(makeCoinbaseTransaction())
-                .build();
-        String blockHeaderEnSerializedBytes
+            BlockHeaderEnMsg blockHeaderEn = BlockHeaderEnMsg.builder()
+                    .version(1)
+                    .prevBlockHash(HashMsg.builder().hash(PREV_BLOCK_HASH).build())
+                    .merkleRoot(HashMsg.builder().hash(MERKLE_ROOT).build())
+                    .creationTimestamp(1288886764)
+                    .nBits(486622232)
+                    .nonce(90297088)
+                    .transactionCount(transactionMsgList.size())
+                    .hasCoinbaseData(true)
+                    .noMoreHeaders(false)
+                    .coinbaseMerkleProof(transactionMsgList)
+                    .coinbaseTX(makeCoinbaseTransaction())
+                    .build();
+            String blockHeaderEnSerializedBytes
 
         when:
-        ByteArrayWriter byteWriter = new ByteArrayWriter()
-        serializer.serialize(context, blockHeaderEn, byteWriter)
-        blockHeaderEnSerializedBytes = HEX.encode(byteWriter.reader().getFullContent())
+            ByteArrayWriter byteWriter = new ByteArrayWriter()
+            serializer.serialize(context, blockHeaderEn, byteWriter)
+            blockHeaderEnSerializedBytes = HEX.encode(byteWriter.reader().getFullContent())
 
         then:
-        blockHeaderEnSerializedBytes == BLOCK_BYTES
+            blockHeaderEnSerializedBytes == BLOCK_BYTES
     }
 
     TxMsg makeTransaction() {

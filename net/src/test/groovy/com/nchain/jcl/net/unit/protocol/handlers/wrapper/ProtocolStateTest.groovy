@@ -1,4 +1,4 @@
-package com.nchain.jcl.net.unit.protocol.handlers.message
+package com.nchain.jcl.net.unit.protocol.handlers.wrapper
 
 import com.nchain.jcl.net.network.handlers.NetworkHandler
 import com.nchain.jcl.net.protocol.config.ProtocolConfig

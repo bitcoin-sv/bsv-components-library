@@ -1,10 +1,8 @@
 package com.nchain.jcl.net.protocol.streams.deserializer;
 
 
-import com.nchain.jcl.net.network.PeerAddress;
-import com.nchain.jcl.net.network.streams.PeerInputStream;
-import com.nchain.jcl.net.network.streams.PeerStreamInfo;
-import com.nchain.jcl.net.network.streams.nio.NIOInputStreamSource;
+import com.nchain.jcl.net.network.streams.*;
+import com.nchain.jcl.net.network.streams.nio.NIOInputStream;
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig;
 import com.nchain.jcl.net.protocol.handlers.message.MessagePreSerializer;
 import com.nchain.jcl.net.protocol.messages.HeaderMsg;
@@ -16,16 +14,13 @@ import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.net.protocol.serialization.common.MsgSerializersFactory;
 import com.nchain.jcl.net.protocol.serialization.largeMsgs.MsgPartDeserializationErrorEvent;
 import com.nchain.jcl.net.protocol.serialization.largeMsgs.MsgPartDeserializedEvent;
+
 import com.nchain.jcl.tools.bytes.ByteArrayBuilder;
 import com.nchain.jcl.tools.bytes.ByteArrayMemoryConfiguration;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.tools.bytes.ByteArrayWriter;
 import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.log.LoggerUtil;
-import com.nchain.jcl.tools.streams.InputStream;
-import com.nchain.jcl.tools.streams.InputStreamImpl;
-import com.nchain.jcl.tools.streams.StreamDataEvent;
-import com.nchain.jcl.tools.streams.StreamErrorEvent;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -73,7 +68,7 @@ import java.util.function.Consumer;
  */
 
 
-public class DeserializerStream extends InputStreamImpl<ByteArrayReader, BitcoinMsg<?>>
+public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, BitcoinMsg<?>>
                                 implements PeerInputStream<BitcoinMsg<?>> {
 
     // State of this Stream. This variable contains all the information about whats going on at any time
@@ -109,7 +104,7 @@ public class DeserializerStream extends InputStreamImpl<ByteArrayReader, Bitcoin
     private static Deserializer deserializer;
 
     /** Constructor */
-    public DeserializerStream(ExecutorService executor, InputStream<ByteArrayReader> source,
+    public DeserializerStream(ExecutorService executor, PeerInputStream<ByteArrayReader> source,
                               RuntimeConfig runtimeConfig, ProtocolBasicConfig protocolBasicConfig,
                               Deserializer deserializer) {
         super(executor, source);
@@ -125,13 +120,6 @@ public class DeserializerStream extends InputStreamImpl<ByteArrayReader, Bitcoin
         // We initialize the Deserializer
         this.deserializer = deserializer;
     }
-
-    @Override
-    public PeerAddress getPeerAddress() {
-        if (source instanceof PeerStreamInfo) return ((PeerStreamInfo) source).getPeerAddress();
-        else throw new RuntimeException("The Source of this Stream is NOT connected to a Peer!");
-    }
-
 
     /**
      * It updates the state of this class to reflect that an error has been thrown. The new State is returned.
@@ -534,12 +522,12 @@ public class DeserializerStream extends InputStreamImpl<ByteArrayReader, Bitcoin
 
     public void upgradeBufferSize() {
         this.realTimeProcessingEnabled = true;
-        ((NIOInputStreamSource) super.source).upgradeBufferSize();
+        ((NIOInputStream) super.source).upgradeBufferSize();
     }
 
     public void resetBufferSize() {
         this.realTimeProcessingEnabled = false;
-        ((NIOInputStreamSource) super.source).resetBufferSize();
+        ((NIOInputStream) super.source).resetBufferSize();
     }
 
     // for convenience...

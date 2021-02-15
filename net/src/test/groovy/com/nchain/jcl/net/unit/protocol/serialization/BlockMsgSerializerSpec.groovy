@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.unit.protocol.serialization
 
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
+import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg
 import com.nchain.jcl.net.protocol.messages.BlockMsg
@@ -22,6 +23,8 @@ import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
 import io.bitcoinj.core.Sha256Hash
 import io.bitcoinj.core.Utils
+import io.bitcoinj.params.MainNetParams
+import io.bitcoinj.params.Net
 import spock.lang.Ignore
 import spock.lang.Specification
 
@@ -55,7 +58,7 @@ class BlockMsgSerializerSpec extends Specification {
     def "testing blockMessage BlockMsgSerializer Deserialize"(int byteInterval, int delayMs) {
         given:
 
-            ProtocolConfig config = new ProtocolBSVMainConfig()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
@@ -89,7 +92,7 @@ class BlockMsgSerializerSpec extends Specification {
 
     def "testing blockMessage BitcoinMsgSerializer Deserialize"(int byteInterval, int delayMs) {
         given:
-            ProtocolConfig config = new ProtocolBSVMainConfig()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             DeserializerContext context = DeserializerContext.builder()
                 .protocolBasicConfig(config.getBasicConfig())
                 .build()
@@ -123,7 +126,7 @@ class BlockMsgSerializerSpec extends Specification {
 
     def "testing blockMessage BlockMsgSerializer Serializing"() {
         given:
-            ProtocolConfig config = new ProtocolBSVMainConfig()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             SerializerContext context = SerializerContext.builder()
                 .protocolBasicConfig(config.getBasicConfig())
                 .build()
@@ -162,36 +165,36 @@ class BlockMsgSerializerSpec extends Specification {
 
     @Ignore   def "testing blockMessage BitcoinMsgSerializer Serializing"() {
         given:
-        ProtocolConfig config = new ProtocolBSVMainConfig()
-        SerializerContext context = SerializerContext.builder()
-                .protocolconfig(config)
-                .build()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            SerializerContext context = SerializerContext.builder()
+                    .protocolconfig(config)
+                    .build()
 
-        List<TxMsg> transactionMsgList = new ArrayList<>()
-        TxMsg transactionMsg1 = makeCoinbaseTransaction()
-        TxMsg transactionMsg2 = makeTransaction()
+            List<TxMsg> transactionMsgList = new ArrayList<>()
+            TxMsg transactionMsg1 = makeCoinbaseTransaction()
+            TxMsg transactionMsg2 = makeTransaction()
 
-        transactionMsgList.add(transactionMsg1)
-        transactionMsgList.add(transactionMsg2)
-        BlockMsg blockMsg = BlockMsg.builder()
-                .version(1)
-                .prevBlockHash(HashMsg.builder().hash(PREV_BLOCK_HASH).build())
-                .merkleRoot(HashMsg.builder().hash(MERKLE_ROOT).build())
-                .creationTimestamp(1288886764)
-                .difficultyTarget(486622232)
-                .nonce(90297088)
-                .transactionMsgs(transactionMsgList).build()
+            transactionMsgList.add(transactionMsg1)
+            transactionMsgList.add(transactionMsg2)
+            BlockMsg blockMsg = BlockMsg.builder()
+                    .version(1)
+                    .prevBlockHash(HashMsg.builder().hash(PREV_BLOCK_HASH).build())
+                    .merkleRoot(HashMsg.builder().hash(MERKLE_ROOT).build())
+                    .creationTimestamp(1288886764)
+                    .difficultyTarget(486622232)
+                    .nonce(90297088)
+                    .transactionMsgs(transactionMsgList).build()
 
-        BitcoinMsg<VersionMsg> bitcoinVersionMsg = new BitcoinMsgBuilder<>(config, blockMsg).build()
-        BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
+            BitcoinMsg<VersionMsg> bitcoinVersionMsg = new BitcoinMsgBuilder<>(config, blockMsg).build()
+            BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
 
 
         when:
 
-        byte[] msgBytes = bitcoinSerializer.serialize(context, bitcoinVersionMsg, BlockMsg.MESSAGE_TYPE)
-        String msgDeserializeVal = HEX.encode(msgBytes)
-        then:
-        msgDeserializeVal.equals(REF_MSG_FULL)
+            byte[] msgBytes = bitcoinSerializer.serialize(context, bitcoinVersionMsg, BlockMsg.MESSAGE_TYPE)
+            String msgDeserializeVal = HEX.encode(msgBytes)
+            then:
+            msgDeserializeVal.equals(REF_MSG_FULL)
     }
 
     TxMsg makeTransaction() {

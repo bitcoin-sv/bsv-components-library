@@ -1,5 +1,6 @@
 package com.nchain.jcl.net.unit.protocol.serialization
 
+import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
 import com.nchain.jcl.net.protocol.messages.HashMsg
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
@@ -18,6 +19,8 @@ import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
 import io.bitcoinj.core.Sha256Hash
 import io.bitcoinj.core.Utils
+import io.bitcoinj.params.MainNetParams
+import io.bitcoinj.params.Net
 import spock.lang.Specification
 
 /**
@@ -42,7 +45,7 @@ class NotFoundMsgSerilaizerSpec extends Specification {
 
     def "testing notFoundMessage BODY Serializing"() {
         given:
-            ProtocolConfig config = new ProtocolBSVMainConfig()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             SerializerContext context  = SerializerContext.builder()
                 .protocolBasicConfig(config.getBasicConfig())
                 .build()
@@ -52,8 +55,8 @@ class NotFoundMsgSerilaizerSpec extends Specification {
                 .build()
             List<InventoryVectorMsg> msgList = new ArrayList<>();
             msgList.add(inventoryVectorMsg);
-        VarIntMsg count = VarIntMsg.builder().value(msgList.size()).build();
-        NotFoundMsg getdataMsg = NotFoundMsg.builder().invVectorMsgList(msgList).count(count).build();
+            VarIntMsg count = VarIntMsg.builder().value(msgList.size()).build();
+            NotFoundMsg getdataMsg = NotFoundMsg.builder().invVectorMsgList(msgList).count(count).build();
 
             ByteArrayWriter byteWriter = new ByteArrayWriter()
             String messageSerialized = null
@@ -67,7 +70,7 @@ class NotFoundMsgSerilaizerSpec extends Specification {
 
     def "testing notFoundMsg  BODY De-Serializing"(int byteInterval, int delayMs) {
         given:
-            ProtocolConfig config = new ProtocolBSVMainConfig()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             DeserializerContext context = DeserializerContext.builder()
                 .protocolBasicConfig(config.getBasicConfig())
                 .maxBytesToRead((long) (REF_NOTFOUND_MSG_BODY.length()/2))
@@ -86,7 +89,7 @@ class NotFoundMsgSerilaizerSpec extends Specification {
 
     def "testing notFoundMessage COMPLETE Serializing"() {
         given:
-            ProtocolConfig config = new ProtocolBSVMainConfig()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             SerializerContext context = SerializerContext.builder()
                 .protocolBasicConfig(config.getBasicConfig())
                 .build()
@@ -110,12 +113,12 @@ class NotFoundMsgSerilaizerSpec extends Specification {
 
     def "testing notFoundMessage COMPLETE De-serializing"(int byteInterval, int delayMs) {
         given:
-            ProtocolConfig config = new ProtocolBSVMainConfig()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             DeserializerContext context = DeserializerContext.builder()
                 .protocolBasicConfig(config.getBasicConfig())
                 .maxBytesToRead((long) (REF_NOTFOUND_MSG_FULL.length() / 2))
                 .build()
-        BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
+            BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
             ByteArrayReader byteArrayReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_NOTFOUND_MSG_FULL), byteInterval, delayMs);
         when:
             BitcoinMsg<NotFoundMsg> getDataMsg = bitcoinSerializer.deserialize(context, byteArrayReader, NotFoundMsg.MESSAGE_TYPE)

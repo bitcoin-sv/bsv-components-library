@@ -2,6 +2,7 @@ package com.nchain.jcl.net.unit.protocol.serialization
 
 
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
+import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.messages.*
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg
@@ -16,6 +17,8 @@ import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
 import io.bitcoinj.core.Sha256Hash
 import io.bitcoinj.core.Utils
+import io.bitcoinj.params.MainNetParams
+import io.bitcoinj.params.Net
 import spock.lang.Specification
 /**
  * @author m.jose@nchain.com
@@ -29,7 +32,7 @@ class GetHeadersEnMsgSerializerSpec extends Specification {
 
     def "testing getGetHeadersenMessage BODY Serializing"() {
         given:
-            ProtocolConfig config = new ProtocolBSVMainConfig()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             SerializerContext context  = SerializerContext.builder()
                 .protocolBasicConfig(config.getBasicConfig())
                 .build()
@@ -41,7 +44,7 @@ class GetHeadersEnMsgSerializerSpec extends Specification {
             HashMsg stopHashMsg = HashMsg.builder().hash(stopHash).build()
 
             GetHeadersEnMsg getHeadersEnMsg = GetHeadersEnMsg.builder()
-                    .version(config.protocolVersion)
+                    .version(config.basicConfig.protocolVersion)
                     .blockLocatorHash(hashMsg)
                     .hashStop(stopHashMsg).build();
 
@@ -57,7 +60,7 @@ class GetHeadersEnMsgSerializerSpec extends Specification {
 
     def "testing getGetHeadersEnMessage BODY De-Serializing"(int byteInterval, int delayMs) {
         given:
-            ProtocolConfig config = new ProtocolBSVMainConfig()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .maxBytesToRead((long) (REF_GETHEADERSEN_MSG_BODY.length()/2))
@@ -79,7 +82,7 @@ class GetHeadersEnMsgSerializerSpec extends Specification {
 
     def "testing getGetHeadersenMessage COMPLETE Serializing"() {
         given:
-            ProtocolConfig config = new ProtocolBSVMainConfig()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             SerializerContext context = SerializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
@@ -97,7 +100,7 @@ class GetHeadersEnMsgSerializerSpec extends Specification {
 
     def "testing getGetHeadersEnMessage COMPLETE De-serializing"(int byteInterval, int delayMs) {
         given:
-            ProtocolConfig config = new ProtocolBSVMainConfig()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .maxBytesToRead((long) (REF_GETHEADERSEN_MSG_FULL.length() / 2))
@@ -115,7 +118,7 @@ class GetHeadersEnMsgSerializerSpec extends Specification {
             10       |    15
     }
 
-    private GetHeadersEnMsg buildGetHeadersEnMsg(ProtocolBSVMainConfig config) {
+    private GetHeadersEnMsg buildGetHeadersEnMsg(ProtocolConfig config) {
         byte[] locatorHash = Sha256Hash.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6").getBytes()
         HashMsg hashMsg = HashMsg.builder().hash(locatorHash).build()
 
@@ -123,7 +126,7 @@ class GetHeadersEnMsgSerializerSpec extends Specification {
         HashMsg stopHashMsg = HashMsg.builder().hash(stopHash).build()
 
         GetHeadersEnMsg getHeadersEnMsg = GetHeadersEnMsg.builder()
-                .version(config.protocolVersion)
+                .version(config.basicConfig.protocolVersion)
                 .blockLocatorHash(hashMsg)
                 .hashStop(stopHashMsg).build();
         getHeadersEnMsg

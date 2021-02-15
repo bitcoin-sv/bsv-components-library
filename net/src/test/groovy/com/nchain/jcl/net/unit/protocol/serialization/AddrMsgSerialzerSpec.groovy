@@ -2,6 +2,7 @@ package com.nchain.jcl.net.unit.protocol.serialization
 
 import com.nchain.jcl.net.network.PeerAddress
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
+import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.messages.AddrMsg
 import com.nchain.jcl.net.protocol.messages.NetAddressMsg
@@ -16,6 +17,8 @@ import com.nchain.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
 import io.bitcoinj.core.Utils
+import io.bitcoinj.params.MainNetParams
+import io.bitcoinj.params.Net
 import spock.lang.Specification
 
 /**
@@ -50,8 +53,8 @@ class AddrMsgSerialzerSpec extends Specification {
 
     def "Testing AddrMsg Body Deserializing"(int byteInterval, int delayMs) {
         given:
-            ProtocolConfig config = new ProtocolBSVMainConfig()
-        DeserializerContext context = DeserializerContext.builder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            DeserializerContext context = DeserializerContext.builder()
                         .protocolBasicConfig(config.getBasicConfig())
                         .maxBytesToRead((Long) (REF_ADDRESS_MSG.length()/2))
                         .build()
@@ -74,8 +77,8 @@ class AddrMsgSerialzerSpec extends Specification {
 
     def "Testing AddrMsg Body Serializing"() {
         given:
-            ProtocolConfig config = new ProtocolBSVMainConfig()
-        SerializerContext context = SerializerContext.builder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            SerializerContext context = SerializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
             AddrMsgSerialzer serializer = AddrMsgSerialzer.getInstance()
@@ -92,7 +95,7 @@ class AddrMsgSerialzerSpec extends Specification {
 
     def "testing Address Message COMPLETE Serializing"() {
         given:
-            ProtocolConfig config = new ProtocolBSVMainConfig()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             SerializerContext context = SerializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
@@ -100,7 +103,7 @@ class AddrMsgSerialzerSpec extends Specification {
            AddrMsg addMessages = buildAddrMsg()
 
             BitcoinMsg<AddrMsg> bitcoinVersionMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), addMessages).build()
-        BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
+            BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
             byte[] addrMsgBytes = bitcoinSerializer.serialize(context, bitcoinVersionMsg, AddrMsg.MESSAGE_TYPE).getFullContent()
             String addrMsgDeserialzed = Utils.HEX.encode(addrMsgBytes)
@@ -121,7 +124,7 @@ class AddrMsgSerialzerSpec extends Specification {
 
     def "testing Address Message COMPLETE de-serializing"(int byteInterval, int delayMs) {
         given:
-            ProtocolConfig config = new ProtocolBSVMainConfig()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .maxBytesToRead((long) (REF_ADDRESS_MSG.length()/2))

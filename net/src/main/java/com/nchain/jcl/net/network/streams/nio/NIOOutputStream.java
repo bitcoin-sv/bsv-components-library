@@ -2,13 +2,15 @@ package com.nchain.jcl.net.network.streams.nio;
 
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.config.NetworkConfig;
+
 import com.nchain.jcl.net.network.streams.PeerOutputStream;
+import com.nchain.jcl.net.network.streams.PeerOutputStreamImpl;
+import com.nchain.jcl.net.network.streams.StreamCloseEvent;
+import com.nchain.jcl.net.network.streams.StreamDataEvent;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.log.LoggerUtil;
-import com.nchain.jcl.tools.streams.OutputStreamDestinationImpl;
-import com.nchain.jcl.tools.streams.StreamCloseEvent;
-import com.nchain.jcl.tools.streams.StreamDataEvent;
+
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -17,6 +19,7 @@ import java.nio.channels.CancelledKeyException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
@@ -42,7 +45,7 @@ import java.util.concurrent.ExecutorService;
  *
  */
 
-public class NIOOutputStreamDestination extends OutputStreamDestinationImpl<ByteArrayReader> implements PeerOutputStream<ByteArrayReader> {
+public class NIOOutputStream extends PeerOutputStreamImpl<ByteArrayReader, ByteArrayReader> implements PeerOutputStream<ByteArrayReader> {
 
     // Configuration:
     private RuntimeConfig runtimeConfig;
@@ -52,7 +55,7 @@ public class NIOOutputStreamDestination extends OutputStreamDestinationImpl<Byte
     LoggerUtil logger;
 
     private PeerAddress peerAddress;
-    private NIOOutputStreamState state;
+    private NIOStreamState state;
 
     // The Selection Key and the Sockets linked to the physical connection to the remote Peer
     private SelectionKey key;
@@ -65,12 +68,12 @@ public class NIOOutputStreamDestination extends OutputStreamDestinationImpl<Byte
     // Here we keep the bytes pending to be written to the Socket:
     private Queue<ByteBuffer> buffersToWrite = new ConcurrentLinkedQueue<>();
 
-    public NIOOutputStreamDestination(ExecutorService executor,
-                                      RuntimeConfig runtimeConfig,
-                                      NetworkConfig networkConfig,
-                                      PeerAddress peerAddress,
-                                      SelectionKey key) {
-        super(executor);
+    public NIOOutputStream(PeerAddress peerAddress,
+                           ExecutorService executor,
+                           RuntimeConfig runtimeConfig,
+                           NetworkConfig networkConfig,
+                           SelectionKey key) {
+        super(peerAddress, executor, null);
         this.logger = new LoggerUtil(peerAddress.toString(), this.getClass());
 
         this.runtimeConfig = runtimeConfig;
@@ -78,20 +81,23 @@ public class NIOOutputStreamDestination extends OutputStreamDestinationImpl<Byte
         this.peerAddress = peerAddress;
         this.key = key;
         this.socketChannel = (SocketChannel) key.channel();
-        this.onData(this::onData);
-        this.onClose(this::onClose);
 
-        this.state = NIOOutputStreamState.builder().build();
+        this.state = NIOStreamState.builder().build();
 
+    }
+
+    @Override
+    public List<StreamDataEvent<ByteArrayReader>> transform(StreamDataEvent<ByteArrayReader> data) {
+        throw new UnsupportedOperationException();
     }
 
     private void updateState(int bytesSentToAdd) {
         this.state.toBuilder()
-                .numBytesSent(state.getNumBytesSent().add(BigInteger.valueOf(bytesSentToAdd)))
+                .numBytesProcessed(state.getNumBytesProcessed().add(BigInteger.valueOf(bytesSentToAdd)))
                 .build();
     }
 
-    public void onData(StreamDataEvent<ByteArrayReader> event) {
+    public void send(StreamDataEvent<ByteArrayReader> event) {
         //logger.trace("Sending " + event.getData().size() + " bytes : " + HEX.encode(event.getData().getFullContent()));
         // We get all the data from this Reader and we add it to the buffer of ByteBuffers.
         bytesToWriteRemaining += event.getData().size();
@@ -99,7 +105,7 @@ public class NIOOutputStreamDestination extends OutputStreamDestinationImpl<Byte
         notifyChannelWritable();
     }
 
-    public void onClose(StreamCloseEvent event) {
+    public void close(StreamCloseEvent event) {
         logger.trace("Closing Stream...");
         key.cancel();
     }
@@ -144,7 +150,7 @@ public class NIOOutputStreamDestination extends OutputStreamDestinationImpl<Byte
         return this.peerAddress;
     }
 
-    public NIOOutputStreamState getState() {
+    public NIOStreamState getState() {
         return this.state;
     }
 }

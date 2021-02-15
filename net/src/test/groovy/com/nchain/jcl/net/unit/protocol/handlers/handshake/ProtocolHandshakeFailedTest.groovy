@@ -12,6 +12,7 @@ import com.nchain.jcl.net.unit.protocol.tools.MsgTest
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
 import io.bitcoinj.params.MainNetParams
+import io.bitcoinj.params.Net
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicBoolean
@@ -29,7 +30,7 @@ class ProtocolHandshakeFailedTest extends Specification {
         given:
 
             // Server Definition:
-            ProtocolConfig protocolConfig = ProtocolConfigBuilder.get(new MainNetParams())
+            ProtocolConfig protocolConfig = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
 
             // We disable all the Handlers we don't need for this Test:
             P2P server = new P2PBuilder("server")
@@ -93,7 +94,7 @@ class ProtocolHandshakeFailedTest extends Specification {
         given:
 
             // Server Definition:
-            ProtocolConfig protocolConfig = ProtocolConfigBuilder.get(new MainNetParams())
+            ProtocolConfig protocolConfig = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             // We disable all the Handlers we don't need for this Test:
             P2P server = new P2PBuilder("server")
                     .config(protocolConfig)
@@ -154,7 +155,7 @@ class ProtocolHandshakeFailedTest extends Specification {
     def "Failed Handshaked-Duplicated ACK"() {
         given:
             // Server and Client Definition:
-         ProtocolConfig protocolConfig = ProtocolConfigBuilder.get(new MainNetParams())
+         ProtocolConfig protocolConfig = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             // We disable all the Handlers we don't need for this Test:
             P2P server = new P2PBuilder("server")
                     .config(protocolConfig)

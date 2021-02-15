@@ -1,8 +1,12 @@
 package com.nchain.jcl.net.unit.protocol.serialization.streams
 
 import com.nchain.jcl.net.network.PeerAddress
-import com.nchain.jcl.net.network.streams.PeerStreamInfo
+import com.nchain.jcl.net.network.streams.PeerOutputStream
+import com.nchain.jcl.net.network.streams.PeerOutputStreamImpl
+import com.nchain.jcl.net.network.streams.StreamDataEvent
+import com.nchain.jcl.net.network.streams.StreamState
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
+import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.messages.HeaderMsg
 import com.nchain.jcl.net.protocol.messages.NetAddressMsg
@@ -14,16 +18,14 @@ import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
 import com.nchain.jcl.net.protocol.streams.serializer.SerializerStream
-import com.nchain.jcl.base.tools.streams.*
+import com.nchain.jcl.net.unit.network.streams.PeerStreamInOutSimulator
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
-import com.nchain.jcl.tools.streams.OutputStream
-import com.nchain.jcl.tools.streams.OutputStreamDestination
-import com.nchain.jcl.tools.streams.OutputStreamDestinationImpl
-import com.nchain.jcl.tools.streams.StreamDataEvent
-import com.nchain.jcl.tools.streams.StreamState
+
 import io.bitcoinj.core.Sha256Hash
 import io.bitcoinj.core.Utils
+import io.bitcoinj.params.MainNetParams
+import io.bitcoinj.params.Net
 import spock.lang.Specification
 
 import java.util.concurrent.ExecutorService
@@ -40,15 +42,18 @@ class SerializerStreamSpec extends Specification {
 
     /** Definition of a Destination connected to a Peer */
 
-    class PeerDestination extends OutputStreamDestinationImpl<ByteArrayReader> implements PeerStreamInfo {
+    class PeerDestination extends PeerStreamInOutSimulator<ByteArrayReader> {
         private PeerAddress peerAddress;
         PeerDestination(ExecutorService executor,  PeerAddress peerAddress) {
-            super(executor)
+            super(peerAddress, executor)
             this.peerAddress = peerAddress
         }
 
         StreamState getState() { return null} // Not used now...
         PeerAddress getPeerAddress() { return peerAddress}
+        List<StreamDataEvent<ByteArrayReader>> transform(StreamDataEvent<ByteArrayReader> data) {
+          return Arrays.asList(data)
+        }
     }
 
     /**
@@ -63,7 +68,7 @@ class SerializerStreamSpec extends Specification {
             //general test config
             ExecutorService executor = Executors.newSingleThreadExecutor()
             VarStrMsg userAgentMsg = VarStrMsg.builder().str(REF_BODY_USER_AGENT).build();
-            ProtocolConfig config = new ProtocolBSVMainConfig()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             DeserializerContext deserializerContext = DeserializerContext.builder().protocolBasicConfig(config.getBasicConfig()).build()
             SerializerContext serializerContext = SerializerContext.builder().protocolBasicConfig(config.getBasicConfig()).build()
 
@@ -103,11 +108,11 @@ class SerializerStreamSpec extends Specification {
 
             // We crate our Destination,and some callbacks to deserialize our message
 
-            OutputStreamDestination<ByteArrayReader> destination = new PeerDestination(executor, REF_BODY_ADDRESS)
+            PeerOutputStream<ByteArrayReader> destination = new PeerDestination(executor, REF_BODY_ADDRESS)
             destination.onData({ e -> receivedMessage = BitcoinMsgSerializerImpl.getInstance().deserialize(deserializerContext, e.getData(), VersionMsg.MESSAGE_TYPE) })
 
             // We create our Output Stream:
-            OutputStream<ByteArrayReader> myOutputStream = new SerializerStream(executor, destination, config.getBasicConfig())
+            PeerOutputStream<BitcoinMsg> myOutputStream = new SerializerStream(executor, destination, config.getBasicConfig())
 
         when:
             myOutputStream.send(new StreamDataEvent<BitcoinMsg>(sentMessage))

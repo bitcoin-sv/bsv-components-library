@@ -2,6 +2,7 @@ package com.nchain.jcl.net.unit.protocol.serialization
 
 import com.nchain.jcl.net.network.PeerAddress
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
+import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.messages.NetAddressMsg
 import com.nchain.jcl.net.protocol.messages.VarStrMsg
@@ -17,6 +18,8 @@ import com.nchain.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
 import io.bitcoinj.core.Utils
+import io.bitcoinj.params.MainNetParams
+import io.bitcoinj.params.Net
 import spock.lang.Specification
 
 /**
@@ -56,7 +59,7 @@ class VersionMsgSerializationSpec extends Specification {
 
     def "testing VersionMSg BODY De-serializing"(int byteInterval, int delayMs) {
         given:
-            ProtocolConfig config = new ProtocolBSVMainConfig()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .maxBytesToRead(Utils.HEX.decode(REF_BODY_ADDRESS_MSG).length)
@@ -81,7 +84,7 @@ class VersionMsgSerializationSpec extends Specification {
 
     def "testing VersionMsg BODY Serializing"() {
         given:
-            ProtocolConfig config = new ProtocolBSVMainConfig()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             SerializerContext context = SerializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .insideVersionMsg(true)
@@ -113,7 +116,7 @@ class VersionMsgSerializationSpec extends Specification {
 
     def "testing Version Message COMPLETE de-serializing"(int byteInterval, int delayMs) {
         given:
-            ProtocolConfig config = new ProtocolBSVMainConfig()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             DeserializerContext context = DeserializerContext.builder()
                 .protocolBasicConfig(config.getBasicConfig())
                 .insideVersionMsg(true)
@@ -139,7 +142,7 @@ class VersionMsgSerializationSpec extends Specification {
 
     def "testing Version Message COMPLETE Serializing"() {
         given:
-            ProtocolConfig config = new ProtocolBSVMainConfig()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             SerializerContext context = SerializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .insideVersionMsg(true)

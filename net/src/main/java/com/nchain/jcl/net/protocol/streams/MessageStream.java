@@ -1,12 +1,13 @@
 package com.nchain.jcl.net.protocol.streams;
 
 
-import com.nchain.jcl.net.network.PeerAddress;
-import com.nchain.jcl.net.network.streams.*;
+import com.nchain.jcl.net.network.streams.PeerStream;
+import com.nchain.jcl.net.network.streams.PeerStreamImpl;
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
+
+
 import com.nchain.jcl.net.protocol.streams.deserializer.Deserializer;
-import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerConfig;
 import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStream;
 import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStreamState;
 import com.nchain.jcl.net.protocol.streams.serializer.SerializerStream;
@@ -47,18 +48,14 @@ public class MessageStream extends PeerStreamImpl<BitcoinMsg<?>, ByteArrayReader
         this.streamOrigin = streamOrigin;
     }
     @Override
-    public PeerInputStream<BitcoinMsg<?>> buildInputStream() {
+    public DeserializerStream buildInputStream() {
         return new DeserializerStream(super.executor, streamOrigin.input(), runtimeConfig, protocolBasicConfig, deserializer);
     }
     @Override
-    public PeerOutputStream<BitcoinMsg<?>> buildOutputStream() {
+    public SerializerStream buildOutputStream() {
         return new SerializerStream(super.executor, streamOrigin.output(), protocolBasicConfig);
     }
-    @Override
-    public PeerAddress getPeerAddress() {
-        if (streamOrigin instanceof PeerStreamInfo) return ((PeerStreamInfo) streamOrigin).getPeerAddress();
-        else throw new RuntimeException("This Stream is NOT connected to a Peer Stream");
-    }
+
     @Override
     public MessageStreamState getState() {
         return MessageStreamState.builder()

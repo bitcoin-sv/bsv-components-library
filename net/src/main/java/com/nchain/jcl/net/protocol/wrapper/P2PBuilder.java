@@ -7,7 +7,6 @@ import com.nchain.jcl.net.network.handlers.NetworkHandlerImpl;
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig;
 import com.nchain.jcl.net.protocol.config.ProtocolConfig;
 import com.nchain.jcl.net.protocol.config.ProtocolConfigImpl;
-import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig;
 import com.nchain.jcl.net.protocol.handlers.blacklist.BlacklistHandler;
 import com.nchain.jcl.net.protocol.handlers.blacklist.BlacklistHandlerConfig;
 import com.nchain.jcl.net.protocol.handlers.blacklist.BlacklistHandlerImpl;

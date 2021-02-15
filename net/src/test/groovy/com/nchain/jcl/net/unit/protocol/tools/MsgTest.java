@@ -3,6 +3,9 @@ package com.nchain.jcl.net.unit.protocol.tools;
 
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.streams.PeerInputStream;
+import com.nchain.jcl.net.network.streams.PeerInputStreamImpl;
+import com.nchain.jcl.net.network.streams.StreamDataEvent;
+import com.nchain.jcl.net.network.streams.StreamState;
 import com.nchain.jcl.net.protocol.config.ProtocolConfig;
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig;
 import com.nchain.jcl.net.protocol.messages.AddrMsg;
@@ -10,11 +13,13 @@ import com.nchain.jcl.net.protocol.messages.VersionAckMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
+import com.nchain.jcl.net.unit.network.streams.PeerStreamInOutSimulator;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
-import com.nchain.jcl.tools.streams.InputStreamSourceImpl;
-import com.nchain.jcl.tools.streams.StreamState;
+
 import io.bitcoinj.core.Utils;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -28,8 +33,8 @@ import java.util.concurrent.Executors;
  */
 public class MsgTest {
 
-    public static class DummyPeerStreamSource extends InputStreamSourceImpl<ByteArrayReader> implements PeerInputStream<ByteArrayReader> {
-        DummyPeerStreamSource(ExecutorService executor) { super(executor);}
+    public static class DummyPeerStreamSource extends PeerStreamInOutSimulator<ByteArrayReader> implements PeerInputStream<ByteArrayReader> {
+        DummyPeerStreamSource(ExecutorService executor) { super( null, executor);}
         public PeerAddress getPeerAddress() { try {return PeerAddress.localhost(8111);} catch (Exception e) {e.printStackTrace(); return null;}}
         public StreamState getState() { return null; }
     }
@@ -48,7 +53,7 @@ public class MsgTest {
     public final static String IGNORE_MSG_HEX       = "e3e1f3e870696e670aa00000000000000800000032ab095c3d9a9cb22d32b40b";
     public final static String INV_MSG_HEX          = "e3e1f3e8696e7600000000000000000025000000e27152ce0101000000a69d45e7abc3b8fc363d13b88aaa2f2ec62bf77b6881e8bd7bd1012fd81d802b";
     public final static String BLOCK_MSG_HEX        = "e3e1f3e8426c6f636b000000000000007f010000dd4043ed0100000040f11b68435988807d64dff20261f7d9827825fbb37542601fb94d45000000005d0a2717cccfb28565e04baf2708f32068fb80f98765210ce6247b8939ab2012ecd9d24c1844011d00d3610502010000000100000000000000000000000000000000000000000000000000000000000000001a00000007041844011d0142ffffffff0100f2052a010000004104a313febd5f91b6a13bd9c5317030518fee96d1319a0eb10076917294933d09c17dc1588a06953a264738f2acea0c66b99e796caa4f28158e0dd5f6fed69a185b000000000100000001aa18a952c3f73e5d7440bc570b2aa78f72059887b25b6a1790514b7feedec090000000004104ac44bdf511477465cb70fef1d06b9241e74d26047ccbdfa641ec9a0115ad35594cbb58a61a6fd56893a405bcffbf6555995ddedc7e6cd4e5ceb83a37e1cf8f98ffffffff02004d92d86a00000014b8083945473bc8289efb681f94de7b07a5b851ad00743ba40b00000014ef01911c9efec6799d1ee5f7c6fb072d9669da8000000000";
-    public final static String BLOCK_BODY_HEX = "0100000040f11b68435988807d64dff20261f7d9827825fbb37542601fb94d45000000005d0a2717cccfb28565e04baf2708f32068fb80f98765210ce6247b8939ab2012ecd9d24c1844011d00d3610502010000000100000000000000000000000000000000000000000000000000000000000000001a00000007041844011d0142ffffffff0100f2052a010000004104a313febd5f91b6a13bd9c5317030518fee96d1319a0eb10076917294933d09c17dc1588a06953a264738f2acea0c66b99e796caa4f28158e0dd5f6fed69a185b000000000100000001aa18a952c3f73e5d7440bc570b2aa78f72059887b25b6a1790514b7feedec090000000004104ac44bdf511477465cb70fef1d06b9241e74d26047ccbdfa641ec9a0115ad35594cbb58a61a6fd56893a405bcffbf6555995ddedc7e6cd4e5ceb83a37e1cf8f98ffffffff02004d92d86a00000014b8083945473bc8289efb681f94de7b07a5b851ad00743ba40b00000014ef01911c9efec6799d1ee5f7c6fb072d9669da8000000000";
+    public final static String BLOCK_BODY_HEX       = "0100000040f11b68435988807d64dff20261f7d9827825fbb37542601fb94d45000000005d0a2717cccfb28565e04baf2708f32068fb80f98765210ce6247b8939ab2012ecd9d24c1844011d00d3610502010000000100000000000000000000000000000000000000000000000000000000000000001a00000007041844011d0142ffffffff0100f2052a010000004104a313febd5f91b6a13bd9c5317030518fee96d1319a0eb10076917294933d09c17dc1588a06953a264738f2acea0c66b99e796caa4f28158e0dd5f6fed69a185b000000000100000001aa18a952c3f73e5d7440bc570b2aa78f72059887b25b6a1790514b7feedec090000000004104ac44bdf511477465cb70fef1d06b9241e74d26047ccbdfa641ec9a0115ad35594cbb58a61a6fd56893a405bcffbf6555995ddedc7e6cd4e5ceb83a37e1cf8f98ffffffff02004d92d86a00000014b8083945473bc8289efb681f94de7b07a5b851ad00743ba40b00000014ef01911c9efec6799d1ee5f7c6fb072d9669da8000000000";
 
     public final static String VERSION_ACK_HEX      = "e3e1f3e876657261636b000000000000000000005df6e0e2";
 

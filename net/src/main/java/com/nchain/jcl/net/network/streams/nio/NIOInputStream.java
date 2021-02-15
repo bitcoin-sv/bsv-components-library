@@ -3,18 +3,20 @@ package com.nchain.jcl.net.network.streams.nio;
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.config.NetworkConfig;
 import com.nchain.jcl.net.network.streams.PeerInputStream;
+import com.nchain.jcl.net.network.streams.PeerInputStreamImpl;
+import com.nchain.jcl.net.network.streams.StreamCloseEvent;
+import com.nchain.jcl.net.network.streams.StreamDataEvent;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.log.LoggerUtil;
-import com.nchain.jcl.tools.streams.InputStreamSourceImpl;
-import com.nchain.jcl.tools.streams.StreamCloseEvent;
-import com.nchain.jcl.tools.streams.StreamDataEvent;
+
 
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -32,7 +34,7 @@ import java.util.concurrent.ExecutorService;
  *   the "send()" method in this class, which will send that ByteArrayReader down the Stream to any other Stream that
  *   might be connected to this Stream (that will be a DeserializerStream).
  */
-public class NIOInputStreamSource extends InputStreamSourceImpl<ByteArrayReader> implements PeerInputStream<ByteArrayReader> {
+public class NIOInputStream extends PeerInputStreamImpl<ByteArrayReader, ByteArrayReader> implements PeerInputStream<ByteArrayReader> {
 
     // Configuration:
     private RuntimeConfig runtimeConfig;
@@ -42,7 +44,7 @@ public class NIOInputStreamSource extends InputStreamSourceImpl<ByteArrayReader>
     LoggerUtil logger;
 
     private PeerAddress peerAddress;
-    private NIOInputStreamState state;
+    private NIOStreamState state;
 
     // The Selection Key and the Sockets linked to the physical connection to the remote Peer
     private SelectionKey key;
@@ -62,12 +64,12 @@ public class NIOInputStreamSource extends InputStreamSourceImpl<ByteArrayReader>
     private int bufferNormalCapacity;
     private int bufferHighCapacity;
 
-    public NIOInputStreamSource(ExecutorService executor,
-                                RuntimeConfig runtimeConfig,
-                                NetworkConfig networkConfig,
-                                PeerAddress peerAddress,
-                                SelectionKey key) {
-        super(executor);
+    public NIOInputStream(PeerAddress peerAddress,
+                          ExecutorService executor,
+                          RuntimeConfig runtimeConfig,
+                          NetworkConfig networkConfig,
+                          SelectionKey key) {
+        super(peerAddress, executor, null);
         this.logger = new LoggerUtil(peerAddress.toString(), this.getClass());
 
         this.runtimeConfig = runtimeConfig;
@@ -80,13 +82,13 @@ public class NIOInputStreamSource extends InputStreamSourceImpl<ByteArrayReader>
         this.bufferHighCapacity = networkConfig.getNioBufferSizeUpgrade();
 
         this.readBuffer = getBufferForReading();
-        this.state = NIOInputStreamState.builder().build();
+        this.state = NIOStreamState.builder().build();
 
     }
 
     private void updateState(int bytesReceivedToAdd) {
         this.state.toBuilder()
-                .numBytesReceived(state.getNumBytesReceived().add(BigInteger.valueOf(bytesReceivedToAdd)))
+                .numBytesProcessed(state.getNumBytesProcessed().add(BigInteger.valueOf(bytesReceivedToAdd)))
                 .build();
     }
 
@@ -150,7 +152,7 @@ public class NIOInputStreamSource extends InputStreamSourceImpl<ByteArrayReader>
             // We send this data down the Stream:
             ByteArrayReader byteArrayReader = new ByteArrayReader(data);
             //logger.debug(read + " bytes received : " + HEX.encode(byteArrayReader.getFullContent()));
-            this.send(new StreamDataEvent<>(byteArrayReader));
+            super.eventBus.publish(new StreamDataEvent<>(byteArrayReader));
             return read;
         } catch (IOException ioe) {
             this.close(new StreamCloseEvent());
@@ -164,11 +166,15 @@ public class NIOInputStreamSource extends InputStreamSourceImpl<ByteArrayReader>
         key.cancel();
     }
 
+    public  List<StreamDataEvent<ByteArrayReader>> transform(StreamDataEvent<ByteArrayReader> dataEvent) {
+        throw new UnsupportedOperationException();
+    }
+
     public PeerAddress getPeerAddress() {
         return this.peerAddress;
     }
 
-    public NIOInputStreamState getState() {
+    public NIOStreamState getState() {
         return this.state;
     }
 }

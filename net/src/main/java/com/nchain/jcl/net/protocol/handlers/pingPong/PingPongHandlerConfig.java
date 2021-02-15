@@ -48,8 +48,8 @@ public class PingPongHandlerConfig extends HandlerConfig {
      */
     public static class PingPongHandlerConfigBuilder {
         private ProtocolBasicConfig basicConfig;
-        private long inactivityTimeout;
-        private long responseTimeout;
+        private Long inactivityTimeout;
+        private Long responseTimeout;
 
         PingPongHandlerConfigBuilder() {}
 
@@ -58,12 +58,12 @@ public class PingPongHandlerConfig extends HandlerConfig {
             return this;
         }
 
-        public PingPongHandlerConfig.PingPongHandlerConfigBuilder inactivityTimeout(long inactivityTimeout) {
+        public PingPongHandlerConfig.PingPongHandlerConfigBuilder inactivityTimeout(Long inactivityTimeout) {
             this.inactivityTimeout = inactivityTimeout;
             return this;
         }
 
-        public PingPongHandlerConfig.PingPongHandlerConfigBuilder responseTimeout(long responseTimeout) {
+        public PingPongHandlerConfig.PingPongHandlerConfigBuilder responseTimeout(Long responseTimeout) {
             this.responseTimeout = responseTimeout;
             return this;
         }

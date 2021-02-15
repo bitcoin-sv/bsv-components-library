@@ -5,15 +5,17 @@ import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.config.NetworkConfig;
 import com.nchain.jcl.net.network.config.NetworkConfigImpl;
 import com.nchain.jcl.net.network.events.*;
-import com.nchain.jcl.net.network.streams.nio.NIOInputStreamSource;
-import com.nchain.jcl.net.network.streams.nio.NIOOutputStreamDestination;
+
+import com.nchain.jcl.net.network.streams.StreamCloseEvent;
+import com.nchain.jcl.net.network.streams.nio.NIOInputStream;
+import com.nchain.jcl.net.network.streams.nio.NIOOutputStream;
 import com.nchain.jcl.net.network.streams.nio.NIOStream;
 import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.events.EventBus;
 import com.nchain.jcl.tools.files.FileUtils;
 import com.nchain.jcl.tools.handlers.HandlerConfig;
 import com.nchain.jcl.tools.log.LoggerUtil;
-import com.nchain.jcl.tools.streams.StreamCloseEvent;
+
 import com.nchain.jcl.tools.thread.ThreadUtils;
 import com.nchain.jcl.tools.thread.TimeoutTask;
 import com.nchain.jcl.tools.thread.TimeoutTaskBuilder;
@@ -446,10 +448,10 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
 
         // We create the NIOStream and link it to this key (as attachment):
         NIOStream stream = new NIOStream(
+                keyAttach.peerAddress,
                 ThreadUtils.PEER_STREAM_EXECUTOR,
                 this.runtimeConfig,
                 this.config,
-                keyAttach.peerAddress,
                 key);
         stream.init();
         keyAttach.stream = stream;
@@ -625,7 +627,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
                     if (keyConnection.stream != null) {
                         // We trigger the Close event down the Stream......
                         logger.trace(keyConnection.stream.getPeerAddress(), "Peer socket closed");
-                        keyConnection.stream.source().close(new StreamCloseEvent());
+                        keyConnection.stream.input().close(new StreamCloseEvent());
                     }
                     pendingToCloseConns.remove(keyConnection.peerAddress);
                     inProgressConns.remove(keyConnection.peerAddress);
@@ -741,8 +743,8 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         // We read the data from the Peer (through the Stream wrapped out around it) and we run the callbacks:
         //handlerLogger.log(Level.TRACE, "read key...");
         KeyConnectionAttach keyConnection = (KeyConnectionAttach) key.attachment();
-        int numBytesRead = ((NIOInputStreamSource)keyConnection.stream.input()).readFromSocket();
-        logger.trace(numBytesRead + " read from " + ((NIOOutputStreamDestination) keyConnection.stream.output()).getPeerAddress().toString());
+        int numBytesRead = ((NIOInputStream)keyConnection.stream.input()).readFromSocket();
+        logger.trace(numBytesRead + " read from " + ((NIOInputStream) keyConnection.stream.input()).getPeerAddress().toString());
         if (numBytesRead == -1) {
             logger.trace(keyConnection.peerAddress, "Connection closed by the Remote Peer.");
             this.closeKey(key, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_REMOTE);
@@ -762,8 +764,8 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     protected void handleWrite(SelectionKey key) throws IOException {
         // We write the data to the Peer (through the Stream wrapped out around it) and we run the callbacks:
         KeyConnectionAttach keyConnection = (KeyConnectionAttach) key.attachment();
-        int numBytesWrite = ((NIOOutputStreamDestination) keyConnection.stream.output()).writeToSocket();
-        logger.trace(numBytesWrite + " written to " + ((NIOOutputStreamDestination) keyConnection.stream.output()).getPeerAddress().toString());
+        int numBytesWrite = ((NIOOutputStream) keyConnection.stream.output()).writeToSocket();
+        logger.trace(numBytesWrite + " written to " + ((NIOOutputStream) keyConnection.stream.output()).getPeerAddress().toString());
     }
 
     /**

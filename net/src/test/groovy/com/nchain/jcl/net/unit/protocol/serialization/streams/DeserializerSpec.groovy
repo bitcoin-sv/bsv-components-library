@@ -1,32 +1,24 @@
-package com.nchain.jcl.net.unit.protocol.streams.deserializer
-
+package com.nchain.jcl.net.unit.protocol.serialization.streams
 
 import com.nchain.jcl.net.network.PeerAddress
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig
+import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
-import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg
-import com.nchain.jcl.net.protocol.messages.HashMsg
-import com.nchain.jcl.net.protocol.messages.HeaderMsg
-import com.nchain.jcl.net.protocol.messages.HeadersMsg
-import com.nchain.jcl.net.protocol.messages.NetAddressMsg
-import com.nchain.jcl.net.protocol.messages.VarStrMsg
-import com.nchain.jcl.net.protocol.messages.VersionMsg
+import com.nchain.jcl.net.protocol.messages.*
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder
 import com.nchain.jcl.net.protocol.messages.common.Message
 import com.nchain.jcl.net.protocol.serialization.HeaderMsgSerializer
-import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerConfig
+import com.nchain.jcl.net.protocol.serialization.common.*
 import com.nchain.jcl.net.protocol.streams.deserializer.Deserializer
+import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerConfig
 import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerState
-import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializer
-import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl
-import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
-import com.nchain.jcl.net.protocol.serialization.common.MsgSerializersFactory
-import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
 import com.nchain.jcl.tools.config.RuntimeConfig
 import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault
+import io.bitcoinj.params.MainNetParams
+import io.bitcoinj.params.Net
 import spock.lang.Specification
 
 import java.time.Duration
@@ -118,7 +110,7 @@ class DeserializerSpec extends Specification {
             that part is generic and encapsulated in a BiConsumer function.
 
      */
-    private List<BitcoinMsg> deserialize( ProtocolBasicConfig protocolConfig, ByteArrayReader reader, DeserializerInterface deserializer) {
+    private List<BitcoinMsg> deserialize(ProtocolBasicConfig protocolConfig, ByteArrayReader reader, DeserializerInterface deserializer) {
         List<BitcoinMsg> result = new ArrayList<>()
         DeserializerContext desContext = DeserializerContext.builder().protocolBasicConfig(protocolConfig).build()
 
@@ -188,7 +180,7 @@ class DeserializerSpec extends Specification {
         int NUM_MSGS = 10
         given:
             // we simulate Messages coming from the BSV Network...
-            ProtocolBasicConfig protocolConfig = new ProtocolBSVMainConfig().basicConfig
+            ProtocolBasicConfig protocolConfig = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET)).basicConfig
 
             // This is the list of "dummy" messages coming down the wire:
             List<BitcoinMsg> msgsFromP2P = new ArrayList<>()

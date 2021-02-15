@@ -3,7 +3,10 @@ package com.nchain.jcl.net.protocol.handlers.message;
 
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.events.*;
+import com.nchain.jcl.net.network.streams.StreamDataEvent;
+import com.nchain.jcl.net.network.streams.StreamErrorEvent;
 import com.nchain.jcl.net.protocol.events.*;
+
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.streams.MessageStream;
 import com.nchain.jcl.net.protocol.streams.deserializer.Deserializer;
@@ -11,8 +14,6 @@ import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStream;
 import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.handlers.HandlerImpl;
 import com.nchain.jcl.tools.log.LoggerUtil;
-import com.nchain.jcl.tools.streams.StreamDataEvent;
-import com.nchain.jcl.tools.streams.StreamErrorEvent;
 import com.nchain.jcl.tools.thread.ThreadUtils;
 
 import java.math.BigInteger;
@@ -44,7 +45,7 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
 
     // An instance of a Deserializer. There is ONLY ONE Deserializer for all the Streams in the System.
     private Deserializer deserializer;
-    
+
     /** Constructor */
     public MessageHandlerImpl(String id, RuntimeConfig runtimeConfig, MessageHandlerConfig config) {
         super(id, runtimeConfig);

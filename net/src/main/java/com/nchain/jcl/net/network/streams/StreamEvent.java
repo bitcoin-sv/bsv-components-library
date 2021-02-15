@@ -1,4 +1,4 @@
-package com.nchain.jcl.tools.streams;
+package com.nchain.jcl.net.network.streams;
 
 
 import com.nchain.jcl.tools.events.Event;

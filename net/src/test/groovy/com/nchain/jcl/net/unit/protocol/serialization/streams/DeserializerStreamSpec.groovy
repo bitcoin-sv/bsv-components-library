@@ -1,6 +1,8 @@
 package com.nchain.jcl.net.unit.protocol.serialization.streams
 
+import com.nchain.jcl.net.network.streams.StreamDataEvent
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
+import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.messages.VersionAckMsg
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg
@@ -11,8 +13,10 @@ import com.nchain.jcl.net.unit.protocol.tools.MsgTest
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.config.RuntimeConfig
 import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault
-import com.nchain.jcl.tools.streams.StreamDataEvent
+
 import io.bitcoinj.core.Utils
+import io.bitcoinj.params.MainNetParams
+import io.bitcoinj.params.Net
 import spock.lang.Specification
 
 import java.util.concurrent.ExecutorService
@@ -29,8 +33,8 @@ class DeserializerStreamSpec extends Specification {
      */
     def "Testing Deserializer Empty Messages"() {
         given:
-        RuntimeConfig runtimeConfig = new RuntimeConfigDefault()
-            ProtocolConfig protocolConfig = new ProtocolBSVMainConfig()
+            RuntimeConfig runtimeConfig = new RuntimeConfigDefault()
+            ProtocolConfig protocolConfig = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             ExecutorService executor = Executors.newSingleThreadExecutor()
 
             // We configure the Streams: The Source and the Deserializer:

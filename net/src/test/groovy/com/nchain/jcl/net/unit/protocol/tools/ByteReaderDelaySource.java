@@ -1,11 +1,12 @@
 package com.nchain.jcl.net.unit.protocol.tools;
 
 
+import com.nchain.jcl.net.network.streams.PeerInputStreamImpl;
+import com.nchain.jcl.net.network.streams.StreamCloseEvent;
+import com.nchain.jcl.net.network.streams.StreamDataEvent;
+import com.nchain.jcl.net.unit.network.streams.PeerStreamInOutSimulator;
 import com.nchain.jcl.tools.bytes.ByteArrayBuilder;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
-import com.nchain.jcl.tools.streams.InputStreamSourceImpl;
-import com.nchain.jcl.tools.streams.StreamCloseEvent;
-import com.nchain.jcl.tools.streams.StreamDataEvent;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
@@ -24,7 +25,7 @@ import java.util.concurrent.TimeUnit;
  */
 
 @Slf4j
-public class ByteReaderDelaySource extends InputStreamSourceImpl<ByteArrayReader> {
+public class ByteReaderDelaySource extends PeerStreamInOutSimulator<ByteArrayReader> {
 
     // Speed
     final int bytesPerSec;
@@ -36,7 +37,7 @@ public class ByteReaderDelaySource extends InputStreamSourceImpl<ByteArrayReader
     private ExecutorService executorService;
 
     public ByteReaderDelaySource(ExecutorService executor, int bytesPerSec) {
-        super(executor);
+        super(null, executor); // no PeerAddress
         this.bytesPerSec = bytesPerSec;
 
         this.byteArrayBuilder = new ByteArrayBuilder();

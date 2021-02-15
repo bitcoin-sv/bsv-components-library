@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.unit.protocol.serialization.streams
 
 import com.nchain.jcl.net.network.streams.PeerInputStream
+import com.nchain.jcl.net.network.streams.StreamDataEvent
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.streams.deserializer.Deserializer
@@ -10,7 +11,6 @@ import com.nchain.jcl.net.unit.protocol.tools.MsgTest
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.config.RuntimeConfig
 import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault
-import com.nchain.jcl.tools.streams.StreamDataEvent
 import io.bitcoinj.core.Utils
 import spock.lang.Specification
 

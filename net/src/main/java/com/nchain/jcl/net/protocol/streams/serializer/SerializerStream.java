@@ -1,8 +1,10 @@
 package com.nchain.jcl.net.protocol.streams.serializer;
 
 import com.nchain.jcl.net.network.PeerAddress;
+
 import com.nchain.jcl.net.network.streams.PeerOutputStream;
-import com.nchain.jcl.net.network.streams.PeerStreamInfo;
+import com.nchain.jcl.net.network.streams.PeerOutputStreamImpl;
+import com.nchain.jcl.net.network.streams.StreamDataEvent;
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig;
 import com.nchain.jcl.net.protocol.messages.VersionMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
@@ -10,9 +12,6 @@ import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.tools.log.LoggerUtil;
-import com.nchain.jcl.tools.streams.OutputStream;
-import com.nchain.jcl.tools.streams.OutputStreamImpl;
-import com.nchain.jcl.tools.streams.StreamDataEvent;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -32,7 +31,7 @@ import java.util.concurrent.ExecutorService;
  * returned by this function will be taken by the parent class and sent to the destination of this class.
  */
 
-public class SerializerStream extends OutputStreamImpl<BitcoinMsg<?>, ByteArrayReader> implements PeerOutputStream<BitcoinMsg<?>> {
+public class SerializerStream extends PeerOutputStreamImpl<BitcoinMsg<?>, ByteArrayReader> implements PeerOutputStream<BitcoinMsg<?>> {
 
     private ProtocolBasicConfig ProtocolBasicConfig;
 
@@ -44,7 +43,7 @@ public class SerializerStream extends OutputStreamImpl<BitcoinMsg<?>, ByteArrayR
 
     /** Constructor.*/
     public SerializerStream(ExecutorService executor,
-                            OutputStream<ByteArrayReader> destination,
+                            PeerOutputStream<ByteArrayReader> destination,
                             ProtocolBasicConfig ProtocolBasicConfig) {
         super(executor, destination);
         this.logger = new LoggerUtil(this.getPeerAddress().toString(), this.getClass());
@@ -82,7 +81,6 @@ public class SerializerStream extends OutputStreamImpl<BitcoinMsg<?>, ByteArrayR
      */
     @Override
     public PeerAddress getPeerAddress() {
-        if (destination instanceof PeerStreamInfo) return ((PeerStreamInfo) destination).getPeerAddress();
-        else throw new RuntimeException("The Destination of this Stream is NOT connected to a Peer!");
+        return peerAddress;
     }
 }

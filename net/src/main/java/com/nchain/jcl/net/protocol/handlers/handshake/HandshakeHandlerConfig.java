@@ -61,7 +61,7 @@ public class HandshakeHandlerConfig extends HandlerConfig {
      */
     public static class HandshakeHandlerConfigBuilder {
         private ProtocolBasicConfig basicConfig;
-        private int servicesSupported;
+        private Integer servicesSupported;
         private long block_height;
         private String[] userAgentBlacklist;
         private String[] userAgentWhitelist;
@@ -75,7 +75,7 @@ public class HandshakeHandlerConfig extends HandlerConfig {
             return this;
         }
 
-        public HandshakeHandlerConfig.HandshakeHandlerConfigBuilder servicesSupported(int servicesSupported) {
+        public HandshakeHandlerConfig.HandshakeHandlerConfigBuilder servicesSupported(Integer servicesSupported) {
             this.servicesSupported = servicesSupported;
             return this;
         }

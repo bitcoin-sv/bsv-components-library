@@ -7,7 +7,6 @@ import com.nchain.jcl.net.network.handlers.NetworkHandler
 import com.nchain.jcl.net.network.handlers.NetworkHandlerImpl
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
-import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.events.MsgReceivedEvent
 import com.nchain.jcl.net.protocol.events.PeerMsgReadyEvent
 import com.nchain.jcl.net.protocol.handlers.message.MessageHandler
@@ -22,6 +21,7 @@ import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault
 import com.nchain.jcl.tools.events.EventBus
 import com.nchain.jcl.tools.thread.ThreadUtils
 import io.bitcoinj.params.MainNetParams
+import io.bitcoinj.params.Net
 import spock.lang.Specification
 
 import java.util.concurrent.ExecutorService
@@ -56,8 +56,8 @@ class MessageHandlerTest extends Specification {
             RuntimeConfig runtimeConfig = new RuntimeConfigDefault()
 
 
-            ProtocolConfig serverConfig = ProtocolConfigBuilder.get(new MainNetParams()).toBuilder().port(0).build()
-            ProtocolConfig clientConfig = ProtocolConfigBuilder.get(new MainNetParams()).toBuilder().port(0).build()
+            ProtocolConfig serverConfig = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET)).toBuilder().port(0).build()
+            ProtocolConfig clientConfig = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET)).toBuilder().port(0).build()
 
             NetworkConfig networkConfig = new NetworkDefaultConfig()
 

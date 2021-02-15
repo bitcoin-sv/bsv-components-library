@@ -1,11 +1,11 @@
 package com.nchain.jcl.net.unit.network.handlers
 
 import com.nchain.jcl.net.network.PeerAddress
+import com.nchain.jcl.net.network.config.NetworkConfig
+import com.nchain.jcl.net.network.config.provided.NetworkDefaultConfig
 import com.nchain.jcl.net.network.events.PeerConnectedEvent
 import com.nchain.jcl.net.network.events.PeerDisconnectedEvent
 import com.nchain.jcl.net.network.events.PeerRejectedEvent
-import com.nchain.jcl.net.network.config.NetworkConfig
-import com.nchain.jcl.net.network.config.provided.NetworkDefaultConfig
 import com.nchain.jcl.net.network.handlers.NetworkHandler
 import com.nchain.jcl.net.network.handlers.NetworkHandlerImpl
 import com.nchain.jcl.tools.config.RuntimeConfig

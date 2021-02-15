@@ -1,58 +1,54 @@
 package com.nchain.jcl.net.network.streams.nio;
 
 
-import com.nchain.jcl.tools.streams.StreamState;
+
+import com.nchain.jcl.net.network.streams.StreamState;
+import java.math.BigInteger;
 
 /**
- * @author i.¡fernandez@nchain.com
+ * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  *
- * This class stores the State of a NIOStream. It's just a placeholder for the States of both the
- * input and the output channels of the Stream.
+ * This class stores the state of the NIOOutputStreamState.
  */
 public final class NIOStreamState extends StreamState {
-    private final NIOInputStreamState inputState;
-    private final NIOOutputStreamState outputState;
+    // Number of bytes sent through this stream since the beginning
+    private BigInteger numBytesProcessed = BigInteger.ZERO;
 
-    NIOStreamState(NIOInputStreamState inputState, NIOOutputStreamState outputState) {
-        this.inputState = inputState;
-        this.outputState = outputState;
+    public NIOStreamState(BigInteger numBytesSent) {
+        if (numBytesSent != null)
+            this.numBytesProcessed = numBytesSent;
     }
 
-    public NIOInputStreamState getInputState()      { return this.inputState; }
-    public NIOOutputStreamState getOutputState()    { return this.outputState; }
+    public BigInteger getNumBytesProcessed() {
+        return this.numBytesProcessed;
+    }
 
     @Override
     public String toString() {
-        return "NIOStreamState(inputState=" + this.getInputState() + ", outputState=" + this.getOutputState() + ")";
+        return "NIOOutputStreamState(numBytesProcessed=" + this.getNumBytesProcessed() + ")";
     }
 
-    public static NIOStreamStateBuilder builder() {
-        return new NIOStreamStateBuilder();
+    public static NIOOutputStreamStateBuilder builder() {
+        return new NIOOutputStreamStateBuilder();
     }
 
-    public NIOStreamStateBuilder toBuilder() {
-        return new NIOStreamStateBuilder().inputState(this.inputState).outputState(this.outputState);
+    public NIOOutputStreamStateBuilder toBuilder() {
+        return new NIOOutputStreamStateBuilder().numBytesProcessed(this.numBytesProcessed);
     }
 
     /**
      * Builder
      */
-    public static class NIOStreamStateBuilder {
-        private NIOInputStreamState inputState;
-        private NIOOutputStreamState outputState;
+    public static class NIOOutputStreamStateBuilder {
+        private BigInteger numBytesProcessed;
 
-        NIOStreamStateBuilder() { }
+        NIOOutputStreamStateBuilder() { }
 
-        public NIOStreamState.NIOStreamStateBuilder inputState(NIOInputStreamState inputState) {
-            this.inputState = inputState;
+        public NIOStreamState.NIOOutputStreamStateBuilder numBytesProcessed(BigInteger numBytesProcessed) {
+            this.numBytesProcessed = numBytesProcessed;
             return this;
         }
-
-        public NIOStreamState.NIOStreamStateBuilder outputState(NIOOutputStreamState outputState) {
-            this.outputState = outputState;
-            return this;
-        }
-        public NIOStreamState build() { return new NIOStreamState(inputState, outputState); }
+        public NIOStreamState build() { return new NIOStreamState(numBytesProcessed); }
     }
 }

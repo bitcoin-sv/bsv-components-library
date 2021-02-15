@@ -1,7 +1,11 @@
 package com.nchain.jcl.net.protocol.handlers.message;
 
 
+
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig;
+
+
+
 import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerConfig;
 import com.nchain.jcl.tools.handlers.HandlerConfig;
 
@@ -13,7 +17,7 @@ import com.nchain.jcl.tools.handlers.HandlerConfig;
  */
 public final class MessageHandlerConfig extends HandlerConfig {
 
-    private final ProtocolBasicConfig basicConfig;
+    private ProtocolBasicConfig basicConfig = ProtocolBasicConfig.builder().build(); // default
 
     /** If set, this object will be invoked BEFORE the DESERIALIZATION takes place */
     private final MessagePreSerializer preSerializer;
@@ -22,7 +26,8 @@ public final class MessageHandlerConfig extends HandlerConfig {
     private DeserializerConfig deserializerConfig = DeserializerConfig.builder().build();
 
     MessageHandlerConfig(ProtocolBasicConfig basicConfig, MessagePreSerializer preSerializer, DeserializerConfig deserializerConfig) {
-        this.basicConfig = basicConfig;
+        if (basicConfig != null)
+            this.basicConfig = basicConfig;
         this.preSerializer = preSerializer;
         if (deserializerConfig != null)
             this.deserializerConfig = deserializerConfig;

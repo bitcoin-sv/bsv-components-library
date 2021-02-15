@@ -1,11 +1,9 @@
 package com.nchain.jcl.net.protocol.streams;
 
 
-import com.google.common.base.Objects;
-import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
+import com.nchain.jcl.net.network.streams.StreamState;
 import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStreamState;
 import com.nchain.jcl.net.protocol.streams.serializer.SerializerStreamState;
-import com.nchain.jcl.tools.streams.StreamState;
 
 /**
  * @author i.fernandez@nchain.com
@@ -26,18 +24,6 @@ public final class MessageStreamState extends StreamState {
     public DeserializerStreamState getInputState()  { return this.inputState; }
     public SerializerStreamState getOutputState()   { return this.outputState; }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null) return false;
-        if (!(obj instanceof MessageStreamState)) return false;
-        MessageStreamState other = (MessageStreamState) obj;
-        return Objects.equal(this.inputState, other.inputState) && Objects.equal(this.outputState, other.outputState);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(this.inputState, this.outputState);
-    }
 
     @Override
     public String toString() {

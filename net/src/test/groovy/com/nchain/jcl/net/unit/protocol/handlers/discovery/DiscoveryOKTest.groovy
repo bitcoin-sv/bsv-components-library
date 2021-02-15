@@ -11,6 +11,7 @@ import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
 import com.nchain.jcl.tools.config.RuntimeConfig
 import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault
 import io.bitcoinj.params.MainNetParams
+import io.bitcoinj.params.Net
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicReference
@@ -29,7 +30,7 @@ class DiscoveryOKTest extends Specification {
     def "Testing Initial Peers loaded from CSV"() {
         given:
             // We set up the Configuration to use the Peers hardcoded in a CSV file:
-            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams())
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
 
             // Since the initial peers are in a CSV in our classpath, we need to use a "RuntimeConfig" specifying a
             // classpath, so we instead of using the Default, we use an specific one
@@ -70,7 +71,7 @@ class DiscoveryOKTest extends Specification {
     def "Testing Initial Peers loaded from DNS"() {
         given:
             // We set up the Configuration to use the Peers obtained by looking up oin the hardcoded DNS
-            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams())
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
 
             DiscoveryHandlerConfig discoveryConfig = config.getDiscoveryConfig().toBuilder()
                 .discoveryMethod(DiscoveryHandlerConfig.DiscoveryMethod.DNS)

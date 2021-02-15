@@ -1,9 +1,6 @@
 package com.nchain.jcl.net.protocol.streams.serializer;
 
-import com.google.common.base.Objects;
-import com.nchain.jcl.net.protocol.streams.MessageStreamState;
-import com.nchain.jcl.tools.streams.StreamState;
-
+import com.nchain.jcl.net.network.streams.StreamState;
 import java.math.BigInteger;
 
 /**
@@ -22,19 +19,6 @@ public final class SerializerStreamState extends StreamState {
 
     public BigInteger getNumMsgs() {
         return this.numMsgs;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null) return false;
-        if (!(obj instanceof MessageStreamState)) return false;
-        SerializerStreamState other = (SerializerStreamState) obj;
-        return Objects.equal(this.numMsgs, other.numMsgs);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(this.numMsgs);
     }
 
     public String toString() {

@@ -1,4 +1,4 @@
-package com.nchain.jcl.tools.streams;
+package com.nchain.jcl.net.network.streams;
 
 /**
  * @author i.fernandez@nchain.com
