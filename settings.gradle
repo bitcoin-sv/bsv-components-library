@@ -1,6 +1,5 @@
 rootProject.name = 'jcl'
 
-include 'base'
 include 'net'
 include 'tools'
 include 'store'
