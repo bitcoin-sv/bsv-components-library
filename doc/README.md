@@ -120,19 +120,3 @@ And you must store the credentials in the *settings.xml* file:
 ```
 
 > NOTE That the value of the **id** field must match the value of the **id** field in the *pom.xml* file.
-
-
-# How to set up *Lombok*
-
-*Lombok* is a *plugin* that includes a set of *Annotations* and a Pre-processor that parses automatically the source fles and generates new methods or extends some classes in the *generated class files*. Examples of these are the autogeneration of *getters*. *builders*, etc.
-
-## How to enable *Lombok* in IntelliJ IDEA
-The *Lombok* libraries are already included in the project, so we only need to *tell* the IDE to be aware of it, so the auto-complete features of the IDE can work properly, among others.
-
-go to *Preferences > Build, Execution, Deployment* and check the *Enable annotation processing* check on the top right corner. Also make usre the *Obtain processors from roject classpath* is selected, right below it.
-
-![high level architecture](lombokInIntelliJIDEA.png) 
-
-
-## How to enable *Lombok* in Eclipse
-The installation in *Eclipse* takes an additional step, bt it's also very straightforward. You can get the instructions [here](https://www.baeldung.com/lombok-ide#eclipse)
