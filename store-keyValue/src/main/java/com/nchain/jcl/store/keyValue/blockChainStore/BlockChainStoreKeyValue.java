@@ -6,6 +6,7 @@ import com.nchain.jcl.store.blockChainStore.BlockChainStoreState;
 import com.nchain.jcl.store.blockChainStore.events.ChainForkEvent;
 import com.nchain.jcl.store.blockChainStore.events.ChainPruneEvent;
 import com.nchain.jcl.store.blockChainStore.events.ChainStateEvent;
+import com.nchain.jcl.store.blockStore.events.InvalidBlockEvent;
 import com.nchain.jcl.store.keyValue.blockStore.BlockStoreKeyValue;
 import com.nchain.jcl.store.keyValue.common.HashesList;
 import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
@@ -122,6 +123,10 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
 
     default BlockChainInfo  toBlockChainInfo(byte[] bytes)  { return (isBytesOk(bytes)) ? BlockChainInfoSerializer.getInstance().deserialize(bytes) : null;}
     default ChainPathInfo   toChainPathInfo(byte[] bytes)   { return (isBytesOk(bytes)) ? ChainPathInfoSerializer.getInstance().deserialize(bytes) : null;}
+
+    /* function definitions */
+
+    default boolean validateBlock(String hash){return true;};
 
     /*
      BlockChain Store DB Operations:
@@ -265,6 +270,19 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         // Block chain Info that will be inserted for this Block:
         BlockChainInfo blockChainInfo;
 
+        // We can only connect a block if the header is valid
+        if( !_validateBlock(blockHeader.getHash().toString())){
+            //remove all traces from the block
+            _removeBlock(tr, blockHeader.getHash().toString());
+
+            //publish invalid block event
+            InvalidBlockEvent event = new InvalidBlockEvent(blockHeader.getPrevBlockHash());
+            getEventBus().publish(event);
+
+            //nothing else to process,
+            return;
+        }
+
         // Special case for the Genesis Block:
         if (parentBlockChainInfo == null) {
             blockChainInfo = _saveBlockChainInfo(tr, blockHeader, parentBlockChainInfo, 1);
@@ -306,18 +324,23 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             _updateTipsChain(tr, null, parentBlockChainInfo.getBlockHash()); // we don't add, just remove
         }
 
+        //Add this block to the chain tips
+        _updateTipsChain(tr, blockHeader.getHash().toString(), null); // We add this block to the Tips
+
         // Now we look into the CHILDREN (Blocks built on top of this Block), and we connect them as well...
         // If the Block has NOT Children, then this is the Last Block that can be connected, so we add it to the Tips
         List<String> children = _getNextBlocks(tr, blockHeader.getHash().toString());
         if (children != null && children.size() > 0) {
             for (String childHashHex : children) {
                 Optional<HeaderReadOnly> childBlock = getBlock(Sha256Hash.wrap(childHashHex));
-                if (childBlock.isPresent()) _connectBlock(tr, childBlock.get(), blockChainInfo);
+                if (childBlock.isPresent()) {
+                    _connectBlock(tr, childBlock.get(), blockChainInfo);
+                }
             }
-        } else {
-            _updateTipsChain(tr, blockHeader.getHash().toString(), null); // We add this block to the Tips
         }
+
     }
+
 
     private void _disconnectBlock(T tr, String blockHash) {
         // If this block is already connected we remove the Chain Info:
@@ -863,4 +886,9 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                 //getLock().readLock().unlock();
             }
         }
+
+    private boolean _validateBlock(String hash) {
+        return validateBlock(hash);
+    }
+
 }

@@ -17,6 +17,7 @@ public class BlockStoreStreamer {
     public final EventStreamer<BlocksRemovedEvent>  BLOCKS_REMOVED;
     public final EventStreamer<TxsSavedEvent>       TXS_SAVED;
     public final EventStreamer<TxsRemovedEvent>     TXS_REMOVED;
+    public final EventStreamer<InvalidBlockEvent> INVALID_BLOCKS;
 
     /** Constructor */
     public BlockStoreStreamer(EventBus eventBus) {
@@ -25,5 +26,6 @@ public class BlockStoreStreamer {
        this.BLOCKS_REMOVED  = new EventStreamer<>(this.eventBus, BlocksRemovedEvent.class);
        this.TXS_SAVED       = new EventStreamer<>(this.eventBus, TxsSavedEvent.class);
        this.TXS_REMOVED     = new EventStreamer<>(this.eventBus, TxsRemovedEvent.class);
+       this.INVALID_BLOCKS = new EventStreamer<>(this.eventBus, InvalidBlockEvent.class);
     }
 }
