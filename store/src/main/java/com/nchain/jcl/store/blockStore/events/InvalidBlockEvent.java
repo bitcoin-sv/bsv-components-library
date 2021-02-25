@@ -11,17 +11,21 @@ import io.bitcoinj.core.Sha256Hash;
  */
 public final class InvalidBlockEvent extends BlockStoreEvent {
     private Sha256Hash blockHash;
+    private String reason;
 
-    public InvalidBlockEvent(Sha256Hash blockHash) {
+    public InvalidBlockEvent(Sha256Hash blockHash, String reason) {
         this.blockHash = blockHash;
+        this.reason = reason;
     }
 
     public Sha256Hash getBlockHash() {
         return this.blockHash;
     }
 
+    public String getReason() {return this.reason;}
+
     @Override
     public String toString() {
-        return "BlocksSavedEvent(blockHash=" + this.getBlockHash() + ")";
+        return "BlocksSavedEvent(blockHash=" + this.getBlockHash() + ", " + "reason= " + reason + ")";
     }
 }

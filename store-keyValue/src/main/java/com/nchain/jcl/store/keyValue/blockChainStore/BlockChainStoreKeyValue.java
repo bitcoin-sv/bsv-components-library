@@ -6,6 +6,7 @@ import com.nchain.jcl.store.blockChainStore.BlockChainStoreState;
 import com.nchain.jcl.store.blockChainStore.events.ChainForkEvent;
 import com.nchain.jcl.store.blockChainStore.events.ChainPruneEvent;
 import com.nchain.jcl.store.blockChainStore.events.ChainStateEvent;
+import com.nchain.jcl.store.blockChainStore.validation.exception.BlockChainRuleFailureException;
 import com.nchain.jcl.store.blockStore.events.InvalidBlockEvent;
 import com.nchain.jcl.store.keyValue.blockStore.BlockStoreKeyValue;
 import com.nchain.jcl.store.keyValue.common.HashesList;
@@ -126,7 +127,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
 
     /* function definitions */
 
-    default boolean validateBlock(String hash){return true;};
+    default void validateBlockChainInfo(ChainInfo block) throws BlockChainRuleFailureException {};
 
     /*
      BlockChain Store DB Operations:
@@ -155,8 +156,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         remove(tr, fullKeyForBlockChainInfo(blockHash));
     }
 
-    private BlockChainInfo _saveBlockChainInfo(T tr, HeaderReadOnly block, BlockChainInfo parentBlockChainInfo, int chainPathId) {
-
+    private BlockChainInfo _getBlockChainInfo(HeaderReadOnly block, BlockChainInfo parentBlockChainInfo, int chainPathId){
         // We calculate the Height of the Chain:
         int resultHeight = (parentBlockChainInfo != null)
                 ? parentBlockChainInfo.getHeight() + 1
@@ -169,8 +169,8 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
 
         // We set the value of the ChainWork:
         BigInteger chainWork = (parentBlockChainInfo != null)
-                                ? parentBlockChainInfo.getChainWork().add(block.getWork())
-                                : getConfig().getGenesisBlock().getWork();
+                ? parentBlockChainInfo.getChainWork().add(block.getWork())
+                : getConfig().getGenesisBlock().getWork();
 
         // We build the object and save it:
         BlockChainInfo blockChainInfo = BlockChainInfo.builder()
@@ -181,8 +181,8 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                 .chainPathId(chainPathId)
                 .build();
 
-        _saveBlockChainInfo(tr, blockChainInfo);
         return blockChainInfo;
+
     }
 
 
@@ -270,22 +270,10 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         // Block chain Info that will be inserted for this Block:
         BlockChainInfo blockChainInfo;
 
-        // We can only connect a block if the header is valid
-        if( !_validateBlock(blockHeader.getHash().toString())){
-            //remove all traces from the block
-            _removeBlock(tr, blockHeader.getHash().toString());
-
-            //publish invalid block event
-            InvalidBlockEvent event = new InvalidBlockEvent(blockHeader.getPrevBlockHash());
-            getEventBus().publish(event);
-
-            //nothing else to process,
-            return;
-        }
 
         // Special case for the Genesis Block:
         if (parentBlockChainInfo == null) {
-            blockChainInfo = _saveBlockChainInfo(tr, blockHeader, parentBlockChainInfo, 1);
+            blockChainInfo = _getBlockChainInfo(blockHeader, parentBlockChainInfo, 1);
         } else {
             // Regular scenario, when connecting a Block to an existing Parent:
             //  - If the parent has NO children we just connect the Block and REUSE the parent's PathId
@@ -309,9 +297,35 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                 // We create a new Path Id for the block we are connecting...
                 pathIdForNewBlock =  _createNewChainPath(tr, parentBlockChainInfo.getChainPathId(), blockHeader.getHash().toString()).getId();
             }
-            // We save and connect this block
-            blockChainInfo = _saveBlockChainInfo(tr, blockHeader, parentBlockChainInfo, pathIdForNewBlock);
+            // connect this block
+            blockChainInfo = _getBlockChainInfo(blockHeader, parentBlockChainInfo, pathIdForNewBlock);
         }
+
+        // We can only connect a block if the header is valid
+        try{
+            //TODO is there better way than this?
+            ChainInfoBean chainInfoBean = new ChainInfoBean(blockHeader);
+            chainInfoBean.setChainWork(blockChainInfo.getChainWork());
+            chainInfoBean.setHeight(blockChainInfo.getHeight());
+            chainInfoBean.makeImmutable();
+
+            //try to validate
+            _validateBlock(chainInfoBean);
+
+        } catch (BlockChainRuleFailureException ex){
+            //publish invalid block event
+            InvalidBlockEvent event = new InvalidBlockEvent(blockHeader.getPrevBlockHash(), ex.getMessage());
+            getEventBus().publish(event);
+
+            //remove all traces from the block
+            _removeBlock(tr, blockHeader.getHash().toString());
+
+            //nothing else to process
+            return;
+        }
+
+        //block is valid, save
+        _saveBlockChainInfo(tr, blockChainInfo);
 
         // We store a Key to link the HEIGHT with its Hash, so we can retrieve it later by its Height in O(1) time...
         _saveBlockHashByHeight(tr, blockChainInfo.getBlockHash(), blockChainInfo.getHeight());
@@ -887,8 +901,8 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             }
         }
 
-    private boolean _validateBlock(String hash) {
-        return validateBlock(hash);
+    private void _validateBlock(ChainInfo block) throws BlockChainRuleFailureException {
+         validateBlockChainInfo(block);
     }
 
 }
