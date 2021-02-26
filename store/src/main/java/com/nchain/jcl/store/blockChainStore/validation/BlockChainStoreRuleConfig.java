@@ -18,41 +18,14 @@ public class BlockChainStoreRuleConfig implements BlockChainStoreConfig {
         this.ruleList = ruleList;
     }
 
+    public static BlockChainStoreLevelDBConfigBuilder builder() {
+        return new BlockChainStoreLevelDBConfigBuilder();
+    }
+
     public  List<BlockChainRule> getRuleList() { return ruleList;}
-    public class BlockChainStoreLevelDBConfigBuilder {
+    public static class BlockChainStoreLevelDBConfigBuilder {
 
             List<BlockChainRule> ruleList;
-
-            public BlockChainStoreRuleConfig.BlockChainStoreLevelDBConfigBuilder withNewDifficultyAdjustmentAlgorithmRule(NewDifficultyAdjustmentAlgorithmRule rule) {
-                ruleList.add(rule);
-                return this;
-            }
-
-            public BlockChainStoreRuleConfig.BlockChainStoreLevelDBConfigBuilder withMinimalDifficultyRule(MinimalDifficultyRule rule) {
-                ruleList.add(rule);
-                return this;
-            }
-
-            public BlockChainStoreRuleConfig.BlockChainStoreLevelDBConfigBuilder withMinimalDifficultyNoChangedRule(MinimalDifficultyNoChangedRule rule) {
-                ruleList.add(rule);
-                return this;
-            }
-
-            public BlockChainStoreRuleConfig.BlockChainStoreLevelDBConfigBuilder withLastNonMinimalDifficultyRuleRule(LastNonMinimalDifficultyRule rule) {
-                ruleList.add(rule);
-                return this;
-            }
-
-            public BlockChainStoreRuleConfig.BlockChainStoreLevelDBConfigBuilder withEmergencyDifficultyAdjustmentRuleRule(EmergencyDifficultyAdjustmentRule rule) {
-                ruleList.add(rule);
-                return this;
-            }
-
-            public BlockChainStoreRuleConfig.BlockChainStoreLevelDBConfigBuilder withDifficultyTransitionPointRuleRule(DifficultyTransitionPointRule rule) {
-                ruleList.add(rule);
-                return this;
-            }
-
 
             public BlockChainStoreRuleConfig.BlockChainStoreLevelDBConfigBuilder addRule(BlockChainRule rule) {
                 ruleList.add(rule);

@@ -6,7 +6,6 @@ import com.nchain.jcl.tools.util.PowUtil;
 import io.bitcoinj.bitcoin.api.extended.ChainInfo;
 
 import java.math.BigInteger;
-import java.util.List;
 import java.util.function.Predicate;
 
 public class MinimalDifficultyNoChangedRule extends AbstractBlockChainRule {
@@ -14,8 +13,8 @@ public class MinimalDifficultyNoChangedRule extends AbstractBlockChainRule {
     private final BigInteger maxTarget;
     private final BlockChainStore blockChainStore;
 
-    public MinimalDifficultyNoChangedRule(List<Predicate<ChainInfo>> predicates, BlockChainStore blockChainStore, BigInteger maxTarget) {
-        super(predicates);
+    public MinimalDifficultyNoChangedRule(Predicate<ChainInfo> predicate, BlockChainStore blockChainStore, BigInteger maxTarget) {
+        super(predicate);
         this.blockChainStore = blockChainStore;
         this.maxTarget = maxTarget;
     }

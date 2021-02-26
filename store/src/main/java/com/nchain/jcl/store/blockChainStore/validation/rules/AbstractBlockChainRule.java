@@ -12,17 +12,15 @@ import java.util.function.Predicate;
  */
 public abstract class AbstractBlockChainRule implements BlockChainRule {
 
-    List<Predicate<ChainInfo>> predicateList;
+    Predicate<ChainInfo> predicate;
 
-    public AbstractBlockChainRule(List<Predicate<ChainInfo>> predicateList){
-        this.predicateList = predicateList;
+    public AbstractBlockChainRule(Predicate<ChainInfo> predicate){
+        this.predicate = predicate;
     }
 
     public boolean applies(ChainInfo candidateBlock) {
-        for(Predicate<ChainInfo> predicate : predicateList){
-            if(!predicate.test(candidateBlock)){
-                return false;
-            }
+        if(!predicate.test(candidateBlock)){
+            return false;
         }
 
         return true;

@@ -11,11 +11,9 @@ import java.util.function.Predicate;
  */
 public class DifficultyTransitionPointPredicate implements Predicate<ChainInfo> {
 
-    private final boolean onlyInverseApplies;
     private final int blockDifficultyAdjustmentInterval;
 
-    public DifficultyTransitionPointPredicate(boolean onlyInverseApplies, int blockDifficultyAdjustmentInterval) {
-        this.onlyInverseApplies = onlyInverseApplies;
+    public DifficultyTransitionPointPredicate(int blockDifficultyAdjustmentInterval) {
         this.blockDifficultyAdjustmentInterval = blockDifficultyAdjustmentInterval;
     }
 

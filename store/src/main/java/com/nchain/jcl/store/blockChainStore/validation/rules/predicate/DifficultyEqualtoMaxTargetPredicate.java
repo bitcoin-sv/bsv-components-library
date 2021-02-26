@@ -21,6 +21,6 @@ public class DifficultyEqualtoMaxTargetPredicate implements Predicate<ChainInfo>
 
     @Override
     public boolean test(ChainInfo chainInfo) {
-        return PowUtil.hasEqualDifficulty(chainInfo.getHeader().getDifficultyTarget(), maxTarget) ;
+        return PowUtil.hasEqualDifficulty(chainInfo.getHeader().getDifficultyTarget(), maxTarget);
     }
 }

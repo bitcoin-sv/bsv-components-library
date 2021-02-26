@@ -8,7 +8,6 @@ import io.bitcoinj.bitcoin.api.extended.ChainInfo;
 import io.bitcoinj.params.NetworkParameters;
 
 import java.math.BigInteger;
-import java.util.List;
 import java.util.function.Predicate;
 
 /**
@@ -21,8 +20,8 @@ public class LastNonMinimalDifficultyRule extends AbstractBlockChainRule {
     private final BlockChainStore blockChainStore;
     private final int blockDifficultyAdjustmentInterval;
 
-    public LastNonMinimalDifficultyRule(List<Predicate<ChainInfo>> predicates, BlockChainStore blockChainStore, BigInteger maxTarget, int blockDifficultyAdjustmentInterval) {
-        super(predicates);
+    public LastNonMinimalDifficultyRule(Predicate<ChainInfo> predicate, BlockChainStore blockChainStore, BigInteger maxTarget, int blockDifficultyAdjustmentInterval) {
+        super(predicate);
         this.blockChainStore = blockChainStore;
         this.maxTarget = maxTarget;
         this.blockDifficultyAdjustmentInterval = blockDifficultyAdjustmentInterval;

@@ -8,7 +8,6 @@ import io.bitcoinj.bitcoin.api.extended.ChainInfo;
 import io.bitcoinj.core.Utils;
 
 import java.math.BigInteger;
-import java.util.List;
 import java.util.function.Predicate;
 
 public class DifficultyTransitionPointRule extends AbstractBlockChainRule {
@@ -18,8 +17,8 @@ public class DifficultyTransitionPointRule extends AbstractBlockChainRule {
     private final int blockDifficultyAdjustmentInterval;
     private final int targetTimespan;
 
-    public DifficultyTransitionPointRule(List<Predicate<ChainInfo>> predicates, BlockChainStore blockChainStore, BigInteger maxTarget, int blockDifficultyAdjustmentInterval, int targetTimespan) {
-        super(predicates);
+    public DifficultyTransitionPointRule(Predicate<ChainInfo> predicate, BlockChainStore blockChainStore, BigInteger maxTarget, int blockDifficultyAdjustmentInterval, int targetTimespan) {
+        super(predicate);
         this.blockChainStore = blockChainStore;
         this.maxTarget = maxTarget;
         this.blockDifficultyAdjustmentInterval = blockDifficultyAdjustmentInterval;

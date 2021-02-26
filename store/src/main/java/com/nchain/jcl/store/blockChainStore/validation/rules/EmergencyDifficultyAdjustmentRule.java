@@ -9,7 +9,6 @@ import io.bitcoinj.core.Utils;
 
 import java.math.BigInteger;
 import java.util.Arrays;
-import java.util.List;
 import java.util.function.Predicate;
 
 public class EmergencyDifficultyAdjustmentRule extends AbstractBlockChainRule {
@@ -21,8 +20,8 @@ public class EmergencyDifficultyAdjustmentRule extends AbstractBlockChainRule {
     private final BlockChainStore blockChainStore;
     private final BigInteger maxTarget;
 
-    public EmergencyDifficultyAdjustmentRule(List<Predicate<ChainInfo>> predicates, BlockChainStore blockChainStore, BigInteger maxTarget) {
-        super(predicates);
+    public EmergencyDifficultyAdjustmentRule(Predicate<ChainInfo> predicate, BlockChainStore blockChainStore, BigInteger maxTarget) {
+        super(predicate);
         this.blockChainStore = blockChainStore;
         this.maxTarget = maxTarget;
     }

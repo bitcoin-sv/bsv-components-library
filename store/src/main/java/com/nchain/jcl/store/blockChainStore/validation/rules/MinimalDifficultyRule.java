@@ -9,7 +9,6 @@ import io.bitcoinj.exception.VerificationException;
 import io.bitcoinj.params.NetworkParameters;
 
 import java.math.BigInteger;
-import java.util.List;
 import java.util.function.Predicate;
 
 /**
@@ -22,8 +21,8 @@ public class MinimalDifficultyRule extends AbstractBlockChainRule {
     private final BlockChainStore blockChainStore;
     private final BigInteger maxTarget;
 
-    public MinimalDifficultyRule(List<Predicate<ChainInfo>> predicates, BlockChainStore blockChainStore, BigInteger maxtarget){
-        super(predicates);
+    public MinimalDifficultyRule(Predicate<ChainInfo> predicate, BlockChainStore blockChainStore, BigInteger maxtarget){
+        super(predicate);
         this.blockChainStore = blockChainStore;
         this.maxTarget = maxtarget;
     }
