@@ -37,18 +37,18 @@ public class RuleConfigBuilder {
                         params.getMaxTarget(),
                         params.getInterval());
 
-                BlockChainRule difficultyTransitionPointRule = new DifficultyTransitionPointRule(difficultyTransitionPointPredicate,
+                BlockChainRule difficultyTransitionPointRule = new DifficultyTransitionPointRule(newDifficultyAdjustmentAlgorithmRulePredicate.negate().and(difficultyTransitionPointPredicate),
                         blockChainStore,
                         params.getMaxTarget(),
                         params.getInterval(),
                         params.getTargetTimespan());
 
-                BlockChainRule minimalDifficultyNoChangedRule = new MinimalDifficultyNoChangedRule(difficultyTransitionPointPredicate.negate().and(blockDifficultyEqualToMaxTarget),
+                BlockChainRule minimalDifficultyNoChangedRule = new MinimalDifficultyNoChangedRule(newDifficultyAdjustmentAlgorithmRulePredicate.negate().and(difficultyTransitionPointPredicate.negate()).and(blockDifficultyEqualToMaxTarget),
                         blockChainStore,
                         params.getMaxTarget());
 
 
-                BlockChainRule emergencyDifficultyAdjustmentRule = new EmergencyDifficultyAdjustmentRule(difficultyTransitionPointPredicate.negate().and(blockDifficultyEqualToMaxTarget.negate()),
+                BlockChainRule emergencyDifficultyAdjustmentRule = new EmergencyDifficultyAdjustmentRule(newDifficultyAdjustmentAlgorithmRulePredicate.negate().and(difficultyTransitionPointPredicate.negate()).and(blockDifficultyEqualToMaxTarget.negate()),
                         blockChainStore,
                         params.getMaxTarget());
 
