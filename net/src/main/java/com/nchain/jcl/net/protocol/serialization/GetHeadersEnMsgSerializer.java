@@ -46,7 +46,7 @@ public class GetHeadersEnMsgSerializer implements MessageSerializer<GetHeadersEn
     @Override
     public void serialize(SerializerContext context, GetHeadersEnMsg message, ByteArrayWriter byteWriter) {
         byteWriter.writeUint32LE(message.getVersion());
-        byteWriter.write(Utils.reverseBytes(message.getBlockLocatorHash().getHashBytes()));
-        byteWriter.write(Utils.reverseBytes(message.getHashStop().getHashBytes()));
+        byteWriter.write(message.getBlockLocatorHash().getHashBytes());
+        byteWriter.write(message.getHashStop().getHashBytes());
     }
 }

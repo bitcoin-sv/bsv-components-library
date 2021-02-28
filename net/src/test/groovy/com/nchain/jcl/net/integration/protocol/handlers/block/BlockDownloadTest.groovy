@@ -8,6 +8,7 @@ import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandlerConfig
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
+import com.nchain.jcl.net.unit.protocol.handlers.wrapper.ProtocolConnectionTest
 import io.bitcoinj.params.MainNetParams
 import org.junit.Test
 import spock.lang.Ignore
@@ -112,7 +113,9 @@ class BlockDownloadTest extends Specification {
 
             // We log the Block Download Status:
             p2p.EVENTS.STATE.BLOCKS.forEach( {e -> println(e)})
-            //p2p.EVENTS.STATE.HANDSHAKE.forEach({ e -> println(e)})
+            p2p.EVENTS.STATE.HANDSHAKE.forEach({ e -> println(e)})
+            p2p.EVENTS.MSGS.ALL.forEach({e -> println(e)})
+            p2p.EVENTS.MSGS.ALL_SENT.forEach({e -> println(e)})
 
         when:
             println(" > Testing Block Download in " + config.toString() + "...")
@@ -135,9 +138,10 @@ class BlockDownloadTest extends Specification {
             allBlocksDone
 
         where:
-            config                                                                           |   block_hashes
-           com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder.get(new MainNetParams()) |   BLOCKS_BSV_MAIN
+            config                     |   block_hashes
+           //com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder.get(MainNetParams.get()) |   BLOCKS_BSV_MAIN
            // new ProtocolBSVStnConfig()      |   BLOCKS_BSV_STN
+            new ProtocolBSVMainConfig() |   BLOCKS_BSV_MAIN
            //new ProtocolBTCMainConfig() |   BLOCKS_BTC_MAIN
     }
 

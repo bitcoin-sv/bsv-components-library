@@ -15,6 +15,7 @@ import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
 import io.bitcoinj.core.Sha256Hash
 import io.bitcoinj.core.Utils
+import spock.lang.Ignore
 import spock.lang.Specification
 
 /**
@@ -29,6 +30,9 @@ class HeadersMsgSerializerSpec extends Specification {
 
     private String VALID_HEADER = "02000000205e1fca54e6fd0a693dd0972354410eab83257ed88c62e60200000000000000003ebc40fea1c8d229e93c9bc72324b2d2012d569786cd7291c0ede1159ce6161939903e5f8a140418b4e8b2040000e0ff2f6ada22d693ecbb7fab93f28f59987b900e24a7a59889af020000000000000000c58585f70e2dbc058679bde693f23da24fa062f2d2e8df9949f9cb7d6ced60fb19a43e5fafdb03189019645f00";
 
+    // TODO: Commenting this test, since the data is wrong. The hash used in this test is NOT in the VALID_HEADER above
+    // TODO: Apart from that, the test uses a List of 1 Header with ZERO HASHEs in some places, which are NOt in the VALID_HEADER above
+    @Ignore
     def "testing HeadersMsg Serializing and Deserializing"() {
         given:
 

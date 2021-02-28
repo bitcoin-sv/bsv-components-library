@@ -41,11 +41,13 @@ class HandshakeOKTest extends Specification {
             final int MAX_PEERS = 6
 
             // We set the Default Config:
+            ProtocolConfig config = new ProtocolBSVMainConfig()
+        /*
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams()).toBuilder()
                 .minPeers(MIN_PEERS)
                 .maxPeers(MAX_PEERS)
                 .build();
-
+        */
             // We disable the Handlers we do NOT need for this test
             P2P server = new P2PBuilder("testing")
                     .config(config)
@@ -95,6 +97,8 @@ class HandshakeOKTest extends Specification {
                 println(" - Minimum number of Peers Lost: " + e.numPeers)
                 minHandshakedLostEvent.set(e)
             })
+
+            server.EVENTS.MSGS.ALL.forEach({e -> println(e)})
 
         when:
             server.startServer()

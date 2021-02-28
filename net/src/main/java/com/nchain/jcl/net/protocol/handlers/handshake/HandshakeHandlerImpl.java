@@ -147,6 +147,7 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
      */
     private void processVersionMessage(HandshakePeerInfo peerInfo, BitcoinMsg<VersionMsg> message) {
 
+        logger.trace( peerInfo.getPeerAddress(), " received VersionMsg...");
         VersionMsg versionMsg = message.getBody();
 
         // We update the Status of this Peer:
@@ -200,7 +201,9 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
         peerInfo.sendACK();
 
         // After this message is processed, we check the Handshake status:
-        if (peerInfo.checkHandshakeOK()) acceptHandshake(peerInfo);
+        if (peerInfo.checkHandshakeOK()) {
+            acceptHandshake(peerInfo);
+        } else logger.trace( peerInfo.getPeerAddress(), " Handshake not accepted, still missing ACK from peer");
     }
 
     /**
@@ -208,6 +211,8 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
      * Configuration and updates the Handshake workingState for this Peer accordingly:
      */
     private void processAckMessage(HandshakePeerInfo peerInfo, BitcoinMsg<VersionAckMsg> message) {
+
+        logger.trace( peerInfo.getPeerAddress(), " received VersionACK...");
 
         // If The Handshake has been already processed, then this Message is a Duplicate:
         if (peerInfo.isHandshakeAccepted() || peerInfo.isHandshakeRejected()) {
@@ -228,14 +233,13 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
         }
 
         // If we reach this far, the ACK is OK:
-        logger.trace( peerInfo.getPeerAddress(), " ACK OK according to handshake.");
-
         // We update the sate of this Peer:
         peerInfo.receiveACK();
 
         // After this message is processed, we check the Handshake status:
-        if (peerInfo.checkHandshakeOK())
+        if (peerInfo.checkHandshakeOK()) {
             acceptHandshake(peerInfo);
+        } logger.trace( peerInfo.getPeerAddress(), " Handshake not accepted, ACK not sent to Peer yet");
     }
 
 

@@ -67,20 +67,16 @@ public class BaseGetDataAndHeaderMsgSerializer implements MessageSerializer<Base
         // We have to flip it around, as it's been read off the wire in little endian.
         List<HashMsg> locatorhashes = message.getBlockLocatorHash();
         for(HashMsg locatorHash:locatorhashes) {
-            byteWriter.write(Utils.reverseBytes(locatorHash.getHashBytes()));
+            byteWriter.write(locatorHash.getHashBytes());
         }
 
-        byteWriter.write(Utils.reverseBytes(message.getHashStop().getHashBytes()));
+        byteWriter.write(message.getHashStop().getHashBytes());
 
     }
 
     protected HashMsg readHashMsg(DeserializerContext context, ByteArrayReader byteReader)  {
         byteReader.waitForBytes(HashMsg.HASH_LENGTH);
-        // We are not using the HashMsgSerializer for deserialize as
-        // We have to flip it around, as it's been read off the wire in little endian.
-        // Not the most efficient way to do this but the clearest.
-        Sha256Hash byteWrapper =  Sha256Hash.wrapReversed(byteReader.read(HashMsg.HASH_LENGTH));
-        HashMsg hashMsg =  HashMsg.builder().hash(byteWrapper.getBytes()).build();
+        HashMsg hashMsg =  HashMsg.builder().hash(byteReader.read(HashMsg.HASH_LENGTH)).build();
         return  hashMsg;
     }
 }

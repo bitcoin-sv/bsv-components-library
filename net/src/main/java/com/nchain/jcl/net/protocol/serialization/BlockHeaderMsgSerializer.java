@@ -44,7 +44,7 @@ public class BlockHeaderMsgSerializer implements MessageSerializer<BlockHeaderMs
         byte[] blockHeaderBytes = byteReader.read(HEADER_LENGTH);
 
         HashMsg hash =  HashMsg.builder().hash(
-                Sha256Hash.wrapReversed(
+                Sha256Hash.wrap(
                         Sha256Hash.twiceOf(blockHeaderBytes).getBytes()).getBytes())
                 .build();
 
@@ -58,8 +58,8 @@ public class BlockHeaderMsgSerializer implements MessageSerializer<BlockHeaderMs
         // These values are taken from the Block Header...
 
         long version = headerReader.readUint32();
-        HashMsg prevBlockHash = HashMsg.builder().hash(getBytesHash(HashMsgSerializer.getInstance().deserialize(context, headerReader))).build();
-        HashMsg merkleRoot = HashMsg.builder().hash(getBytesHash(HashMsgSerializer.getInstance().deserialize(context, headerReader))).build();
+        HashMsg prevBlockHash = HashMsg.builder().hash(HashMsgSerializer.getInstance().deserialize(context, headerReader).getHashBytes()).build();
+        HashMsg merkleRoot = HashMsg.builder().hash(HashMsgSerializer.getInstance().deserialize(context, headerReader).getHashBytes()).build();
         long creationTime = headerReader.readUint32();
         long difficultyTarget = headerReader.readUint32();
         long nonce = headerReader.readUint32();
@@ -84,16 +84,12 @@ public class BlockHeaderMsgSerializer implements MessageSerializer<BlockHeaderMs
     @Override
     public void serialize(SerializerContext context, BlockHeaderMsg message, ByteArrayWriter byteWriter) {
         byteWriter.writeUint32LE(message.getVersion());
-        byteWriter.write(getBytesHash(message.getPrevBlockHash()));
-        byteWriter.write(getBytesHash(message.getMerkleRoot()));
+        byteWriter.write(message.getPrevBlockHash().getHashBytes());
+        byteWriter.write(message.getMerkleRoot().getHashBytes());
         byteWriter.writeUint32LE(message.getCreationTimestamp());
         byteWriter.writeUint32LE(message.getDifficultyTarget());
         byteWriter.writeUint32LE(message.getNonce());
         VarIntMsgSerializer.getInstance().serialize(context, message.getTransactionCount(), byteWriter);
-    }
-
-    private byte[] getBytesHash(HashMsg hash) {
-        return Sha256Hash.wrapReversed(hash.getHashBytes()).getBytes();
     }
 
 }

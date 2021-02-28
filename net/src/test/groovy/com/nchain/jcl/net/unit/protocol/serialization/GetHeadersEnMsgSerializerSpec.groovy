@@ -37,10 +37,12 @@ class GetHeadersEnMsgSerializerSpec extends Specification {
                 .protocolBasicConfig(config.getBasicConfig())
                 .build()
 
-            byte[] locatorHash = Sha256Hash.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6").getBytes()
+            // locator Hash reversed (human-read format)
+            byte[] locatorHash = Sha256Hash.wrapReversed(Utils.HEX.decode("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6")).getBytes()
             HashMsg hashMsg = HashMsg.builder().hash(locatorHash).build()
 
-            byte[] stopHash = Sha256Hash.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da9").getBytes()
+            // stop Hash reversed (human-read format)
+            byte[] stopHash = Sha256Hash.wrapReversed(Utils.HEX.decode("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da9")).getBytes()
             HashMsg stopHashMsg = HashMsg.builder().hash(stopHash).build()
 
             GetHeadersEnMsg getHeadersEnMsg = GetHeadersEnMsg.builder()
@@ -67,7 +69,8 @@ class GetHeadersEnMsgSerializerSpec extends Specification {
                     .build()
             GetHeadersEnMsg  getHeadersEnMsg
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_GETHEADERSEN_MSG_BODY), byteInterval, delayMs);
-            byte[] locatorHash = Sha256Hash.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6").getBytes()
+            // locator Hash reversed (human-read format)
+            byte[] locatorHash = Sha256Hash.wrapReversed(Utils.HEX.decode("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6")).getBytes()
             HashMsg hashMsg = HashMsg.builder().hash(locatorHash).build()
         when:
             getHeadersEnMsg = GetHeadersEnMsgSerializer.getInstance().deserialize(context, byteReader)
@@ -119,10 +122,11 @@ class GetHeadersEnMsgSerializerSpec extends Specification {
     }
 
     private GetHeadersEnMsg buildGetHeadersEnMsg(ProtocolConfig config) {
-        byte[] locatorHash = Sha256Hash.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6").getBytes()
+        // locator Hash reversed (human-read format)
+        byte[] locatorHash = Sha256Hash.wrapReversed(Utils.HEX.decode("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6")).getBytes()
         HashMsg hashMsg = HashMsg.builder().hash(locatorHash).build()
-
-        byte[] stopHash = Sha256Hash.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da9").getBytes()
+        // stop Hash reversed (human-read format)
+        byte[] stopHash = Sha256Hash.wrapReversed(Utils.HEX.decode("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da9")).getBytes()
         HashMsg stopHashMsg = HashMsg.builder().hash(stopHash).build()
 
         GetHeadersEnMsg getHeadersEnMsg = GetHeadersEnMsg.builder()

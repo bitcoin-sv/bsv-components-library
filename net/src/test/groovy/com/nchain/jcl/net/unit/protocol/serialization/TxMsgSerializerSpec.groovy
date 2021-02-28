@@ -12,7 +12,9 @@ import com.nchain.jcl.net.protocol.messages.TxOutputMsg
 import com.nchain.jcl.net.protocol.messages.VersionMsg
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder
+import com.nchain.jcl.net.protocol.serialization.TxInputMsgSerializer
 import com.nchain.jcl.net.protocol.serialization.TxMsgSerializer
+import com.nchain.jcl.net.protocol.serialization.TxOutputMsgSerializer
 import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializer
 import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
@@ -22,6 +24,8 @@ import com.nchain.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
 import io.bitcoinj.bitcoin.api.base.Tx
+import io.bitcoinj.bitcoin.api.base.TxInput
+import io.bitcoinj.bitcoin.api.base.TxOutPoint
 import io.bitcoinj.bitcoin.bean.base.FullBlockBean
 import io.bitcoinj.bitcoin.bean.base.TxBean
 import io.bitcoinj.core.Utils
@@ -43,18 +47,23 @@ import spock.lang.Specification
  * messages with out code and compare the results with that reference.
  */
 class TxMsgSerializerSpec extends Specification {
-    public static final String REF_MSG ="010000000193e3073ecc1d27f17e3d287ccefdfdba5f7d8c160242dbcd547b18baef12f9b31a0000006b483045022100af501dc9ef2907247d28a5169b8362ca49" +
-            "4e1993f833928b77264e604329eec40220313594f38f97c255bcea6d5a4a68e920508ef93fd788bcf5b0ad2fa5d34940180121034bb555cc39ba30561793cf39a35c403fe8cf4a89403b02b51e058960520" +
-            "bd1e3ffffffff02b3bb0200000000001976a914f7d52018971f4ab9b56f0036958f84ae0325ccdc88ac98100700000000001976a914f230f0a16a98433eca0fa70487b85fb83f7b61cd88ac00000000"
-    public static final byte[] signature_script  = Utils.HEX.decode("483045022100af501dc9ef2907247d28a5169b8362ca494e1993f833928b77264e604329eec40220313594f38f97c255bcea6d5a4a68e920508ef93fd788bcf5b0ad2fa5d34940180121034bb555cc39ba30561793cf39a35c403fe8cf4a89403b02b51e058960520bd1e3")
-    public static final byte[] pk_script_one = Utils.HEX.decode("76a914f7d52018971f4ab9b56f0036958f84ae0325ccdc88ac")
-    public static final byte[] pk_script_two = Utils.HEX.decode("76a914f230f0a16a98433eca0fa70487b85fb83f7b61cd88ac")
-    public static final byte[] outpoint_bytes = Utils.HEX.decode("b3f912efba187b54cddb4202168c7d5fbafdfdce7c283d7ef1271dcc3e07e393")
 
-    public static final String REF_MSG_FULL ="e3e1f3e8747800000000000000000000e20000001c9c6bb4010000000193e3073ecc1d27f17e3d287ccefdfdba5f7d8c160242dbcd547b18baef12f9b31a0000006" +
-            "b483045022100af501dc9ef2907247d28a5169b8362ca494e1993f833928b77264e604329eec40220313594f38f97c255bcea6d5a4a68e920508ef93fd788bcf5b0ad2fa5d34940180121034bb555cc39ba30561793cf39a35c" +
-            "403fe8cf4a89403b" +
-            "02b51e058960520bd1e3ffffffff02b3bb0200000000001976a914f7d52018971f4ab9b56f0036958f84ae0325ccdc88ac98100700000000001976a914f230f0a16a98433eca0fa70487b85fb83f7b61cd88ac00000000"
+    // Whole Message in Hex Format:
+    public static final String REF_MSG ="0500000001bad09aa61d4fff3bba3fb8537dedd6db898996303ac2107060e430c16bb2208f010000000c6a0a00000000000000000000050000000105000000000000000c6a0a0000000000000000000005000000"
+
+    // TxInput in HEx Format:
+    public static final REF_INPUT = "bad09aa61d4fff3bba3fb8537dedd6db898996303ac2107060e430c16bb2208f010000000c6a0a0000000000000000000005000000"
+
+    // TxOutput in Hex format
+    public static final REF_OUTPUT = "05000000000000000c6a0a00000000000000000000"
+
+    // Locktime
+    public static final long REF_LOCKTIME = 5
+    // Version
+    public static final long REF_VERSION = 5
+
+    // Complete message, including Header:
+    public static final String REF_MSG_FULL = "e3e1f3e874780000000000000000000054000000b8cc7f1e" + REF_MSG
 
     def "Testing TransactionMsg Deserialize"(int byteInterval, int delayMs) {
         given:
@@ -72,17 +81,10 @@ class TxMsgSerializerSpec extends Specification {
             message.getMessageType() == TxMsg.MESSAGE_TYPE
             message.getTx_in_count().value == 1
             message.getTx_in().size() == 1
-            message.tx_in.get(0).pre_outpoint.hash.hashBytes == outpoint_bytes
-            message.tx_in.get(0).pre_outpoint.index == 26
-            message.tx_in.get(0).signature_script == signature_script
-            message.tx_in.get(0).sequence == 4294967295
-            message.getTx_out_count().value == 2
-
-            message.tx_out.get(0).txValue == 179123
-            message.tx_out.get(0).pk_script== pk_script_one
-
-            message.tx_out.get(1).txValue == 463000
-            message.tx_out.get(1).pk_script== pk_script_two
+            message.getTx_out_count().value == 1
+            message.getTx_out().size() == 1
+            message.version == REF_VERSION
+            message.lockTime == REF_LOCKTIME
         where:
             byteInterval | delayMs
                 10       |    15
@@ -96,21 +98,21 @@ class TxMsgSerializerSpec extends Specification {
                     .build()
             TxMsgSerializer serializer = TxMsgSerializer.getInstance()
 
-            TxOutputMsg txOutputMessageOne = TxOutputMsg.builder().txValue(179123).pk_script(pk_script_one).build();
-            TxOutputMsg txOutputMessageTwo  =TxOutputMsg.builder().txValue(463000).pk_script(pk_script_two).build();
-            List<TxOutputMsg> txOutputMsgs = new ArrayList<>();
-            txOutputMsgs.add(txOutputMessageOne);
-            txOutputMsgs.add(txOutputMessageTwo);
-            HashMsg hash = HashMsg.builder().hash(outpoint_bytes).build();
+            // We build the inputs and outputs directly from the Hex representation:
+            ByteArrayReader reader = new ByteArrayReader(Utils.HEX.decode(REF_INPUT))
+            TxInputMsg txInput = TxInputMsgSerializer.getInstance().deserialize(null, reader)
 
-            TxOutPointMsg txOutPointMsg =TxOutPointMsg.builder().index(26).hash(hash).build();
-            TxInputMsg txInputMessage = TxInputMsg.builder().pre_outpoint(txOutPointMsg)
-                    .sequence(4294967295)
-                    .signature_script(signature_script).build()
-            List<TxInputMsg> txInputs = new ArrayList<>();
-            txInputs.add(txInputMessage)
+            reader = new ByteArrayReader(Utils.HEX.decode(REF_OUTPUT))
+            TxOutputMsg txOutput = TxOutputMsgSerializer.getInstance().deserialize(null, reader)
 
-            TxMsg transactionMsg = TxMsg.builder().version(1).tx_in(txInputs).tx_out(txOutputMsgs).build()
+            // We build the TX:
+            TxMsg transactionMsg = TxMsg.builder()
+                    .version(REF_VERSION)
+                    .lockTime(REF_LOCKTIME)
+                    .tx_in(Arrays.asList(txInput))
+                    .tx_out(Arrays.asList(txOutput))
+                    .build()
+
             String messageSerializedBytes
         when:
                 ByteArrayWriter byteWriter = new ByteArrayWriter()
@@ -136,19 +138,14 @@ class TxMsgSerializerSpec extends Specification {
             message.getHeader().getMagic().equals(config.getBasicConfig().getMagicPackage())
             message.getHeader().getCommand().toUpperCase().equals(TxMsg.MESSAGE_TYPE.toUpperCase())
             message.getBody().getMessageType() == TxMsg.MESSAGE_TYPE
+
             message.getBody().getTx_in_count().value == 1
             message.getBody().getTx_in().size() == 1
-            message.getBody().tx_in.get(0).pre_outpoint.hash.hashBytes == outpoint_bytes
-            message.getBody().tx_in.get(0).pre_outpoint.index == 26
-            message.getBody().tx_in.get(0).signature_script == signature_script
-            message.getBody().tx_in.get(0).sequence == 4294967295
-            message.getBody().getTx_out_count().value == 2
+            message.getBody().getTx_out_count().value == 1
+            message.getBody().getTx_out().size() == 1
+            message.getBody().version == REF_VERSION
+            message.getBody().lockTime == REF_LOCKTIME
 
-            message.getBody().tx_out.get(0).txValue == 179123
-            message.getBody().tx_out.get(0).pk_script== pk_script_one
-
-            message.getBody().tx_out.get(1).txValue == 463000
-            message.getBody().tx_out.get(1).pk_script== pk_script_two
         where:
             byteInterval | delayMs
                 50       |    3
@@ -161,24 +158,20 @@ class TxMsgSerializerSpec extends Specification {
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
 
-            TxOutputMsg txOutputMessageOne = TxOutputMsg.builder().txValue(179123).pk_script(pk_script_one).build();
-            TxOutputMsg txOutputMessageTwo  = TxOutputMsg.builder().txValue(463000).pk_script(pk_script_two).build();
-            List<TxOutputMsg> txOutputMsgs = new ArrayList<>();
-            txOutputMsgs.add(txOutputMessageOne);
-            txOutputMsgs.add(txOutputMessageTwo);
-            HashMsg hash = HashMsg.builder().hash(outpoint_bytes).build();
+            // We build the inputs and outputs directly from the Hex representation:
+            ByteArrayReader reader = new ByteArrayReader(Utils.HEX.decode(REF_INPUT))
+            TxInputMsg txInput = TxInputMsgSerializer.getInstance().deserialize(null, reader)
 
-            TxOutPointMsg txOutPointMsg =TxOutPointMsg.builder().index(26).hash(hash).build();
+            reader = new ByteArrayReader(Utils.HEX.decode(REF_OUTPUT))
+            TxOutputMsg txOutput = TxOutputMsgSerializer.getInstance().deserialize(null, reader)
 
-
-            TxInputMsg txInputMessage =TxInputMsg.builder().pre_outpoint(txOutPointMsg)
-                    .sequence(4294967295)
-                    .signature_script(signature_script).build()
-            List<TxInputMsg> txInputs = new ArrayList<>();
-            txInputs.add(txInputMessage)
-
-
-            TxMsg transactionMsg = TxMsg.builder().version(1).tx_in(txInputs).tx_out(txOutputMsgs).build()
+            // We build the whole Tx Message
+            TxMsg transactionMsg = TxMsg.builder()
+                    .version(REF_VERSION)
+                    .lockTime(REF_LOCKTIME)
+                    .tx_in(Arrays.asList(txInput))
+                    .tx_out(Arrays.asList(txOutput))
+                    .build()
 
             BitcoinMsg<VersionMsg> bitcoinVersionMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), transactionMsg).build()
             BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()

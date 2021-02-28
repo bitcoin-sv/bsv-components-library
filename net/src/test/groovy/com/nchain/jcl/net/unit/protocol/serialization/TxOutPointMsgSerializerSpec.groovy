@@ -2,7 +2,6 @@ package com.nchain.jcl.net.unit.protocol.serialization
 
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
-import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.messages.HashMsg
 import com.nchain.jcl.net.protocol.messages.TxOutPointMsg
 import com.nchain.jcl.net.protocol.serialization.TxOutPointMsgSerializer
@@ -29,9 +28,12 @@ import spock.lang.Specification
  * messages with out code and compare the results with that reference.
  */
 class TxOutPointMsgSerializerSpec extends Specification {
-   public static final String REF_MSG = "a69d45e7abc3b8fc363d13b88aaa2f2ec62bf77b6881e8bd7bd1012fd81d802b00000000"
-
-   public static final byte[] REF_BITES = Sha256Hash.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6").getBytes();
+    // Whole TxOutpoint in Hex format
+    public static final String REF_FULL_MSG = "bad09aa61d4fff3bba3fb8537dedd6db898996303ac2107060e430c16bb2208f01000000"
+    // 'Hash' field in Hex format
+    public static final byte[] REF_HASH = Sha256Hash.wrap("bad09aa61d4fff3bba3fb8537dedd6db898996303ac2107060e430c16bb2208f").getBytes();
+    // 'index' field
+    public static final int REF_INDEX = 1
 
    def "Testing HashMsg Deserializing"(int byteInterval, int delayMs) {
        given:
@@ -42,11 +44,12 @@ class TxOutPointMsgSerializerSpec extends Specification {
             TxOutPointMsgSerializer serializer = TxOutPointMsgSerializer.getInstance()
             TxOutPointMsg message
        when:
-           ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_MSG), byteInterval, delayMs)
+           ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_FULL_MSG), byteInterval, delayMs)
            message = serializer.deserialize(context, byteReader)
        then:
-           message.getHash().hashBytes == REF_BITES
-           message.getMessageType() == TxOutPointMsg.MESSAGE_TYPE
+            message.getHash().hashBytes == REF_HASH
+            message.index == REF_INDEX
+            message.getMessageType() == TxOutPointMsg.MESSAGE_TYPE
        where:
            byteInterval | delayMs
                10       |    25
@@ -58,9 +61,9 @@ class TxOutPointMsgSerializerSpec extends Specification {
             SerializerContext context = SerializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
-           HashMsg hash = HashMsg.builder().hash(REF_BITES).build();
+           HashMsg hash = HashMsg.builder().hash(REF_HASH).build();
 
-           TxOutPointMsg message = TxOutPointMsg.builder().hash(hash).index(0).build()
+           TxOutPointMsg message = TxOutPointMsg.builder().hash(hash).index(REF_INDEX).build()
            TxOutPointMsgSerializer serializer = TxOutPointMsgSerializer.getInstance()
            String messageSerializedBytes
        when:
@@ -68,6 +71,6 @@ class TxOutPointMsgSerializerSpec extends Specification {
             serializer.serialize(context, message, byteWriter)
             messageSerializedBytes =  Utils.HEX.encode(byteWriter.reader().getFullContent())
        then:
-            messageSerializedBytes == REF_MSG
+            messageSerializedBytes == REF_FULL_MSG
    }
 }

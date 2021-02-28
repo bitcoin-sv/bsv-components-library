@@ -2,21 +2,23 @@ package com.nchain.jcl.net.unit.protocol.serialization
 
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
-import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.messages.HashMsg
 import com.nchain.jcl.net.protocol.messages.TxInputMsg
 import com.nchain.jcl.net.protocol.messages.TxOutPointMsg
 import com.nchain.jcl.net.protocol.serialization.TxInputMsgSerializer
+import com.nchain.jcl.net.protocol.serialization.TxOutPointMsgSerializer
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
 import com.nchain.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayReaderOptimized
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
+import io.bitcoinj.core.Coin
 import io.bitcoinj.core.Sha256Hash
 import io.bitcoinj.core.Utils
 import io.bitcoinj.params.MainNetParams
 import io.bitcoinj.params.Net
+import io.bitcoinj.script.ScriptBuilder
 import spock.lang.Specification
 
 /**
@@ -32,10 +34,20 @@ import spock.lang.Specification
  */
 class TxInputMsgSerializerSpec extends Specification {
 
-    public static final String REF_MSG = "a69d45e7abc3b8fc363d13b88aaa2f2ec62bf77b6881e8bd7bd1012fd81d802b00000000010000000100"
+    // Whole Mesage in HEx format
+    public static final String REF_FULL_MSG = "bad09aa61d4fff3bba3fb8537dedd6db898996303ac2107060e430c16bb2208f010000000c6a0a0000000000000000000005000000"
 
-    public static final byte[] REF_BITES = Sha256Hash.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6").getBytes();
-    public static final long SEQUENCE = 65536
+    // TxOutpont in Hex Format:
+    public static final String REF_OUTPOINT = "bad09aa61d4fff3bba3fb8537dedd6db898996303ac2107060e430c16bb2208f01000000"
+
+    // Script used (empty array of 10 bytes)
+    public static final byte[] REF_SCRIPT_BYTES = ScriptBuilder.createOpReturnScript(new byte[10]).program
+    // Sequence number
+    public static final long REF_SEQUENCE = 5
+    // Value
+    public static final Coin REF_VALUE = Coin.valueOf(5)
+
+
 
     def "Testing TxInputMessage Deserializing"(int byteInterval, int delayMs) {
         given:
@@ -46,10 +58,12 @@ class TxInputMsgSerializerSpec extends Specification {
             TxInputMsgSerializer serializer = TxInputMsgSerializer.getInstance()
             TxInputMsg message
         when:
-            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_MSG), byteInterval, delayMs)
+            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_FULL_MSG), byteInterval, delayMs)
            message = serializer.deserialize(context, new ByteArrayReaderOptimized(byteReader))
         then:
-           message.getSequence()  == SEQUENCE
+           message.getSequence()  == REF_SEQUENCE
+           message.getSignature_script() == REF_SCRIPT_BYTES
+           message.getScript_length().value == REF_SCRIPT_BYTES.length
            message.getMessageType() == TxInputMsg.MESSAGE_TYPE
         where:
             byteInterval | delayMs
@@ -64,18 +78,25 @@ class TxInputMsgSerializerSpec extends Specification {
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
             TxInputMsgSerializer serializer = TxInputMsgSerializer.getInstance()
-            HashMsg hash = HashMsg.builder().hash(REF_BITES).build();
 
-            TxOutPointMsg txOutPointMessage =  TxOutPointMsg.builder().hash(hash).index(0).build()
+            // We build our TxInput Object:
+
+            // We build the TxOutpoint directly by deserializing it:
+            ByteArrayReader reader = new ByteArrayReader(Utils.HEX.decode(REF_OUTPOINT))
+            TxOutPointMsg txOutPointMessage =  TxOutPointMsgSerializer.getInstance().deserialize(null, reader)
+
+            // We assign the rest of variables:
             TxInputMsg txInputMessage = TxInputMsg.builder().pre_outpoint(txOutPointMessage)
-                        .sequence(SEQUENCE)
-                        .signature_script(new byte[1]).build()
-            String messageSerializedBytes
+                .sequence(REF_SEQUENCE)
+                .signature_script(REF_SCRIPT_BYTES)
+                .pre_outpoint(txOutPointMessage)
+                .build()
+
         when:
             ByteArrayWriter byteWriter = new ByteArrayWriter()
             serializer.serialize(context, txInputMessage, byteWriter)
-            messageSerializedBytes =  Utils.HEX.encode(byteWriter.reader().getFullContent())
+            String messageSerializedBytes =  Utils.HEX.encode(byteWriter.reader().getFullContent())
         then:
-             messageSerializedBytes == REF_MSG
+             messageSerializedBytes == REF_FULL_MSG
     }
 }

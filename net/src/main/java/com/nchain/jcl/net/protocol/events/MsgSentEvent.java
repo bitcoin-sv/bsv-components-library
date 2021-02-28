@@ -24,6 +24,6 @@ public final class MsgSentEvent extends Event {
 
     @Override
     public String toString() {
-        return "Event[Msg Sent]: " + btcMsg.getHeader().getCommand().toUpperCase() + " : from " + peerAddress.toString();
+        return "Event[Msg Sent]: " + btcMsg.getHeader().getCommand().toUpperCase() + " : to " + peerAddress.toString();
     }
 }

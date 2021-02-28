@@ -299,7 +299,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
             blocksPending.remove(blockHash);
 
             // We use the Bitcoin Protocol to ask for that Block, sending a GETDATA message...
-            HashMsg hashMsg =  HashMsg.builder().hash(Utils.HEX.decode(blockHash))
+            HashMsg hashMsg =  HashMsg.builder().hash(Utils.reverseBytes(Utils.HEX.decode(blockHash)))
                     .build();
             InventoryVectorMsg invMsg = InventoryVectorMsg.builder()
                     .type(InventoryVectorMsg.VectorType.MSG_BLOCK)

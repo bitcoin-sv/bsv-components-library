@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.unit.protocol.serialization
 
 import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
+import com.nchain.jcl.net.protocol.serialization.InventoryVectorMsgSerializer
 import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializer
 import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
@@ -36,12 +37,14 @@ import spock.lang.Specification
  */
 class InvMsgSerializerSpec extends Specification {
 
-    public static final byte[] REF_INV_MSG_BITES =  Sha256Hash.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6").getBytes()
-    private static final InventoryVectorMsg.VectorType REF_INV_VEC_TYPE = InventoryVectorMsg.VectorType.MSG_TX
+    // Body MSG in Hex format,
+    public static final String REF_INV_MSG_BODY =  "01010000000ab288d8e32c31c81d8860149f1adf3c0355db67f6cf52cadf7e2a9a001810bb"
+    public static final int REF_NUM_ITEMS = 1
+    public static final String REF_INV_ITEM = "010000000ab288d8e32c31c81d8860149f1adf3c0355db67f6cf52cadf7e2a9a001810bb"
 
-    private static final String REF_INV_MSG_BODY = "0101000000a69d45e7abc3b8fc363d13b88aaa2f2ec62bf77b6881e8bd7bd1012fd81d802b"
-    private static final String REF_INV_MSG_FULL = "e3e1f3e8696e7600000000000000000025000000e27152ce0101000000a69d45e7abc3b8fc363d13b88aaa2f2ec62bf77b6881e8bd7bd1012fd81d802b"
-    private static final HashMsg REF_HASH_MSG = HashMsg.builder().hash(REF_INV_MSG_BITES).build()
+    // Full MSG, including Header:
+    private static final String REF_INV_MSG_FULL = "e3e1f3e8696e7600000000000000000025000000f9e97b6301010000000ab288d8e32c31c81d8860149f1adf3c0355db67f6cf52cadf7e2a9a001810bb"
+
 
     def "testing invMessage BODY Serializing"() {
         given:
@@ -49,14 +52,14 @@ class InvMsgSerializerSpec extends Specification {
             SerializerContext context  = SerializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
-            InventoryVectorMsg inventoryVectorMsg  = InventoryVectorMsg.builder()
-                    .type(REF_INV_VEC_TYPE)
-                    .hashMsg(REF_HASH_MSG)
+
+            // We build the item by deserializing the content
+            ByteArrayReader reader = new ByteArrayReader(Utils.HEX.decode(REF_INV_ITEM))
+            InventoryVectorMsg inventoryVectorMsg  = InventoryVectorMsgSerializer.getInstance().deserialize(null, reader)
+
+            InvMessage invMessage = InvMessage.builder()
+                    .invVectorMsgList(Arrays.asList(inventoryVectorMsg))
                     .build()
-            List<InventoryVectorMsg> msgList = new ArrayList<>();
-            msgList.add(inventoryVectorMsg);
-            VarIntMsg count = VarIntMsg.builder().value(msgList.size()).build();
-            InvMessage invMessage = InvMessage.builder().invVectorMsgList(msgList).build();
             ByteArrayWriter byteWriter = new ByteArrayWriter()
             String messageSerialized = null
         when:
@@ -93,14 +96,13 @@ class InvMsgSerializerSpec extends Specification {
             SerializerContext context = SerializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
-            InventoryVectorMsg inventoryVectorMsg  = InventoryVectorMsg.builder()
-                    .type(REF_INV_VEC_TYPE)
-                    .hashMsg(REF_HASH_MSG)
+            // We build the item by deserializing the content
+            ByteArrayReader reader = new ByteArrayReader(Utils.HEX.decode(REF_INV_ITEM))
+            InventoryVectorMsg inventoryVectorMsg  = InventoryVectorMsgSerializer.getInstance().deserialize(null, reader)
+
+            InvMessage invMessage = InvMessage.builder()
+                    .invVectorMsgList(Arrays.asList(inventoryVectorMsg))
                     .build()
-            List<InventoryVectorMsg> msgList = new ArrayList<>();
-            msgList.add(inventoryVectorMsg);
-            VarIntMsg count = VarIntMsg.builder().value(msgList.size()).build();
-            InvMessage invMessage = InvMessage.builder().invVectorMsgList(msgList).build();
 
             BitcoinMsg<InvMessage> inventoryBitcoinMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), invMessage).build()
             BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
@@ -127,9 +129,7 @@ class InvMsgSerializerSpec extends Specification {
             invBitcoinMsg.getHeader().getMagic().equals(config.getBasicConfig().getMagicPackage())
             invBitcoinMsg.getHeader().getCommand().equals(InvMessage.MESSAGE_TYPE)
             List<InventoryVectorMsg> inventoryList = invBitcoinMsg.getBody().getInvVectorList()
-            InventoryVectorMsg inventoryVectorMsg = inventoryList.get(0)
             inventoryList.size() == 1
-            inventoryVectorMsg.getType() == REF_INV_VEC_TYPE
         where:
             byteInterval | delayMs
                 10       |    15
@@ -137,17 +137,15 @@ class InvMsgSerializerSpec extends Specification {
 
   def "testing invMessage throwing Exception "() {
         given:
-            InventoryVectorMsg inventoryVectorMsg  = InventoryVectorMsg.builder()
-                    .type(REF_INV_VEC_TYPE)
-                    .hashMsg(REF_HASH_MSG)
-                    .build()
+            ByteArrayReader reader = new ByteArrayReader(Utils.HEX.decode(REF_INV_ITEM))
+            InventoryVectorMsg inventoryVectorMsg  = InventoryVectorMsgSerializer.getInstance().deserialize(null, reader)
             List<InventoryVectorMsg> msgList = new ArrayList<>();
 
             for(int i=0; i < InvMessage.MAX_ADDRESSES + 1; i++) {
                 msgList.add(inventoryVectorMsg);
             }
         when:
-            InvMessage invMessage = InvMessage.builder().invVectorMsgList(msgList).build();
+            InvMessage.builder().invVectorMsgList(msgList).build();
         then:
             final java.lang.IllegalArgumentException ex = thrown()
             ex.message == 'Inv message too largeMsgs.'

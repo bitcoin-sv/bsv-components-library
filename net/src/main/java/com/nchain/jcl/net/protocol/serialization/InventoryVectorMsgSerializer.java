@@ -51,7 +51,7 @@ public class InventoryVectorMsgSerializer implements MessageSerializer<Inventory
     @Override
     public void serialize(SerializerContext context, InventoryVectorMsg message, ByteArrayWriter byteWriter) {
         byteWriter.writeUint32LE(message.getType().getValue());
-        byteWriter.write(Utils.reverseBytes(message.getHashMsg().getHashBytes()));
+        byteWriter.write(message.getHashMsg().getHashBytes());
     }
 
     /**

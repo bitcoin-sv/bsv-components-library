@@ -37,10 +37,14 @@ import spock.lang.Specification
  * messages with out code and compare the results with that reference.
  */
 class NotFoundMsgSerilaizerSpec extends Specification {
+    // Body of the Message
     private static final String REF_NOTFOUND_MSG_BODY = "0101000000a69d45e7abc3b8fc363d13b88aaa2f2ec62bf77b6881e8bd7bd1012fd81d802b"
 
-    public static final byte[] REF_INV_MSG_BITES = Sha256Hash.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6").getBytes()
+    // Hash of the Item, as it comes on the wire (litle endian)
+    public static final byte[] REF_INV_MSG_BITES = Sha256Hash.wrap("a69d45e7abc3b8fc363d13b88aaa2f2ec62bf77b6881e8bd7bd1012fd81d802b").getBytes()
     private static final HashMsg REF_HASH_MSG = HashMsg.builder().hash(REF_INV_MSG_BITES).build()
+
+    // Full Message, inluding Header:
     private static final String REF_NOTFOUND_MSG_FULL = "e3e1f3e86e6f74666f756e640000000025000000e27152ce0101000000a69d45e7abc3b8fc363d13b88aaa2f2ec62bf77b6881e8bd7bd1012fd81d802b"
 
     def "testing notFoundMessage BODY Serializing"() {
