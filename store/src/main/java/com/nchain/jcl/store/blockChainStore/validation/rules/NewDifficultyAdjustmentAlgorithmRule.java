@@ -28,20 +28,16 @@ import java.util.function.Predicate;
 public class NewDifficultyAdjustmentAlgorithmRule extends AbstractBlockChainRule {
 
     private static final int AVERAGE_BLOCKS_PER_DAY = 144;
-    private final BlockChainStore blockChainStore;
-    private final int blockDifficultyAdjustmentInterval;
     private final BigInteger maxTarget;
 
-    public NewDifficultyAdjustmentAlgorithmRule(Predicate<ChainInfo> predicate, BlockChainStore blockChainStore, BigInteger maxTarget, int blockDifficultyAdjustmentInterval){
+    public NewDifficultyAdjustmentAlgorithmRule(Predicate<ChainInfo> predicate, BigInteger maxTarget){
         super(predicate);
-        this.blockChainStore = blockChainStore;
-        this.blockDifficultyAdjustmentInterval = blockDifficultyAdjustmentInterval;
         this.maxTarget = maxTarget;
     }
 
     @Override
-    public void checkRule(ChainInfo candidateBlock) throws BlockChainRuleFailureException {
-        checkNextCashWorkRequired(candidateBlock);
+    public void checkRule(ChainInfo candidateBlock, BlockChainStore blockChainStore) throws BlockChainRuleFailureException {
+        checkNextCashWorkRequired(candidateBlock, blockChainStore);
     }
 
     /**
@@ -53,37 +49,30 @@ public class NewDifficultyAdjustmentAlgorithmRule extends AbstractBlockChainRule
      * block. Because timestamps are the least trustworthy information we have as
      * input, this ensures the algorithm is more resistant to malicious inputs.
      */
-    private void checkNextCashWorkRequired(ChainInfo candidateBlock) throws BlockChainRuleFailureException {
-        ChainInfo prevBlockChainInfo = blockChainStore.getBlockChainInfo(candidateBlock.getHeader().getPrevBlockHash()).get();
-
-        if(prevBlockChainInfo.getHeight() < blockDifficultyAdjustmentInterval )
-            throw new BlockChainRuleFailureException("previous block chain height is less than block difficulty adjustment interval");
-
-
-        ChainInfo last = GetMostSuitableBlock(candidateBlock.getHeight());
-        ChainInfo first = GetMostSuitableBlock(candidateBlock.getHeight() - AVERAGE_BLOCKS_PER_DAY);
+    private void checkNextCashWorkRequired(ChainInfo candidateBlock, BlockChainStore blockChainStore) throws BlockChainRuleFailureException {
+        ChainInfo last = GetMostSuitableBlock(candidateBlock.getHeight(), blockChainStore);
+        ChainInfo first = GetMostSuitableBlock(candidateBlock.getHeight() - AVERAGE_BLOCKS_PER_DAY, blockChainStore);
 
             BigInteger nextTarget = Verification.ComputeTarget(
                     first.getChainWork(), first.getHeader().getTime(), first.getHeight(),
                     last.getChainWork(), last.getHeader().getTime(), last.getHeight());
             PowUtil.verifyDifficulty(maxTarget, nextTarget, candidateBlock.getHeader().getDifficultyTarget());
-
     }
 
     /**
      * To reduce the impact of timestamp manipulation, we select the block we are
      * basing our computation on via a median of 3.
      */
-    private ChainInfo GetMostSuitableBlock(int candidateBlockIndex) throws BlockChainRuleFailureException {
+    private ChainInfo GetMostSuitableBlock(int candidateBlockIndex, BlockChainStore blockChainStore) throws BlockChainRuleFailureException {
         /**
          * In order to avoid a block is a very skewed timestamp to have too much
          * influence, we select the median of the 3 top most blocks as a starting
          * point.
          */
         ChainInfo blocks[] = new ChainInfo[3];
-        blocks[2] = blockChainStore.getBlock(candidateBlockIndex).get();
-        blocks[1] = blockChainStore.getBlock(candidateBlockIndex - 1).orElseThrow(() -> new BlockChainRuleFailureException("Not enough blocks in blockStore to calculate difficulty"));
-        blocks[0] = blockChainStore.getBlock(candidateBlockIndex - 2).orElseThrow(() -> new BlockChainRuleFailureException("Not enough blocks in blockStore to calculate difficulty"));
+        blocks[2] = blockChainStore.getBlock(candidateBlockIndex - 1).orElseThrow(() -> new BlockChainRuleFailureException("Not enough blocks in blockStore to calculate difficulty"));
+        blocks[1] = blockChainStore.getBlock(candidateBlockIndex - 2).orElseThrow(() -> new BlockChainRuleFailureException("Not enough blocks in blockStore to calculate difficulty"));
+        blocks[0] = blockChainStore.getBlock(candidateBlockIndex - 3).orElseThrow(() -> new BlockChainRuleFailureException("Not enough blocks in blockStore to calculate difficulty"));
 
         // Sorting network.
         if (blocks[0].getHeader().getTime() > blocks[2].getHeader().getTime()) {

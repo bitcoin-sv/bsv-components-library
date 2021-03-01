@@ -313,6 +313,8 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             _validateBlock(chainInfoBean);
 
         } catch (BlockChainRuleFailureException ex){
+            getLogger().info("rule failure at height: " + blockChainInfo.getHeight() + " message: " +  ex.getMessage());
+
             //publish invalid block event
             InvalidBlockEvent event = new InvalidBlockEvent(blockHeader.getPrevBlockHash(), ex.getMessage());
             getEventBus().publish(event);

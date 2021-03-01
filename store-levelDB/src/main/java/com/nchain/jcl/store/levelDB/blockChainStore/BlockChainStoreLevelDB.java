@@ -91,7 +91,7 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
     public void validateBlockChainInfo(ChainInfo block) throws BlockChainRuleFailureException {
         for(BlockChainRule rule : config.getBlockChainRules()){
             if(rule.applies(block)){
-                rule.checkRule(block);
+                rule.checkRule(block, this); //TODO? if we're passing this then we shouldn't we make it read only, or separate storage from block
             }
         }
     }

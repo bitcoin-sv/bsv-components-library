@@ -11,17 +11,15 @@ import java.util.function.Predicate;
 public class MinimalDifficultyNoChangedRule extends AbstractBlockChainRule {
 
     private final BigInteger maxTarget;
-    private final BlockChainStore blockChainStore;
 
-    public MinimalDifficultyNoChangedRule(Predicate<ChainInfo> predicate, BlockChainStore blockChainStore, BigInteger maxTarget) {
+    public MinimalDifficultyNoChangedRule(Predicate<ChainInfo> predicate, BigInteger maxTarget) {
         super(predicate);
-        this.blockChainStore = blockChainStore;
         this.maxTarget = maxTarget;
     }
 
     @Override
-    public void checkRule(ChainInfo candidateBlock) throws BlockChainRuleFailureException {
-        ChainInfo prevBlockChainInfo = blockChainStore.getBlockChainInfo(candidateBlock.getHeader().getPrevBlockHash()).get();
+    public void checkRule(ChainInfo candidateBlock,  BlockChainStore blockChainStore) throws BlockChainRuleFailureException {
+        ChainInfo prevBlockChainInfo = blockChainStore.getBlockChainInfo(candidateBlock.getHeader().getPrevBlockHash()).orElseThrow(() -> new BlockChainRuleFailureException("Not enough blocks to check difficulty no changed rule."));
 
         if (PowUtil.hasEqualDifficulty(prevBlockChainInfo.getHeader().getDifficultyTarget(), maxTarget)) {
             if (!PowUtil.hasEqualDifficulty(prevBlockChainInfo.getHeader(), candidateBlock.getHeader())) {

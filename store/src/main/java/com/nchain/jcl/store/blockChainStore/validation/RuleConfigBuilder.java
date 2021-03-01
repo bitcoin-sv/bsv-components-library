@@ -1,14 +1,13 @@
 package com.nchain.jcl.store.blockChainStore.validation;
 
 
-import com.nchain.jcl.store.blockChainStore.BlockChainStore;
 import com.nchain.jcl.store.blockChainStore.validation.rules.*;
-import com.nchain.jcl.store.blockChainStore.validation.rules.predicate.DifficultyAdjustmentActivatedPredicate;
-import com.nchain.jcl.store.blockChainStore.validation.rules.predicate.DifficultyEqualtoMaxTargetPredicate;
-import com.nchain.jcl.store.blockChainStore.validation.rules.predicate.DifficultyTransitionPointPredicate;
+import com.nchain.jcl.store.blockChainStore.validation.rules.predicate.*;
 import io.bitcoinj.bitcoin.api.extended.ChainInfo;
 import io.bitcoinj.params.NetworkParameters;
+import io.bitcoinj.params.STNParams;
 
+import java.util.Date;
 import java.util.function.Predicate;
 
 /**
@@ -21,48 +20,80 @@ import java.util.function.Predicate;
 public class RuleConfigBuilder {
 
 
-    public static BlockChainStoreRuleConfig get(NetworkParameters params, BlockChainStore blockChainStore) {
+    public static BlockChainStoreRuleConfig get(NetworkParameters params) {
 
         BlockChainStoreRuleConfig blockChainStoreRuleConfig;
 
-        switch(params.getId()) {
-            case "org.bitcoin.production":
-                Predicate<ChainInfo> newDifficultyAdjustmentAlgorithmRulePredicate = new DifficultyAdjustmentActivatedPredicate(params.getDAAUpdateHeight());
-                Predicate<ChainInfo> difficultyTransitionPointPredicate = new DifficultyTransitionPointPredicate(params.getInterval());
-                Predicate<ChainInfo> blockDifficultyEqualToMaxTarget = new DifficultyEqualtoMaxTargetPredicate(params.getMaxTarget());
+        Predicate<ChainInfo> difficultyAdjustmentActivatedPredicate = new DifficultyAdjustmentActivatedPredicate(params.getDAAUpdateHeight());
+        Predicate<ChainInfo> difficultyTransitionPointPredicate = new DifficultyTransitionPointPredicate(params.getInterval());
+        Predicate<ChainInfo> blockDifficultyEqualToMaxTarget = new DifficultyEqualtoMaxTargetPredicate(params.getMaxTarget());
+        Predicate<ChainInfo> genesisPredicate = new GenesisPredicate().negate();
+
+        BlockChainRule newDifficultyAdjustmentAlgorithmRule = new NewDifficultyAdjustmentAlgorithmRule(
+                difficultyAdjustmentActivatedPredicate
+                        .and(genesisPredicate),
+                params.getMaxTarget());
+
+        BlockChainRule difficultyTransitionPointRule = new DifficultyTransitionPointRule(
+                difficultyAdjustmentActivatedPredicate.negate()
+                        .and(difficultyTransitionPointPredicate)
+                        .and(genesisPredicate),
+                params.getMaxTarget(),
+                params.getInterval(),
+                params.getTargetTimespan());
+
+        BlockChainRule minimalDifficultyNoChangedRule = new MinimalDifficultyNoChangedRule(
+                difficultyAdjustmentActivatedPredicate.negate()
+                        .and(difficultyTransitionPointPredicate.negate())
+                        .and(blockDifficultyEqualToMaxTarget)
+                        .and(genesisPredicate),
+                params.getMaxTarget());
+
+        BlockChainRule emergencyDifficultyAdjustmentRule = new EmergencyDifficultyAdjustmentRule(
+                difficultyAdjustmentActivatedPredicate.negate()
+                        .and(difficultyTransitionPointPredicate.negate())
+                        .and(blockDifficultyEqualToMaxTarget.negate())
+                        .and(genesisPredicate),
+                params.getMaxTarget());
+
+        BlockChainRule minimumWorkRule = new MinimumWorkRule(params.getMaxTarget());
+
+        BlockChainRule minimalDifficultyRule = new MinimalDifficultyRule(
+                difficultyAdjustmentActivatedPredicate.and(genesisPredicate),
+                params.getMaxTarget(),
+                NetworkParameters.TARGET_SPACING);
 
 
-                BlockChainRule newDifficultyAdjustmentAlgorithmRule = new NewDifficultyAdjustmentAlgorithmRule(newDifficultyAdjustmentAlgorithmRulePredicate,
-                        blockChainStore,
-                        params.getMaxTarget(),
-                        params.getInterval());
-
-                BlockChainRule difficultyTransitionPointRule = new DifficultyTransitionPointRule(newDifficultyAdjustmentAlgorithmRulePredicate.negate().and(difficultyTransitionPointPredicate),
-                        blockChainStore,
-                        params.getMaxTarget(),
-                        params.getInterval(),
-                        params.getTargetTimespan());
-
-                BlockChainRule minimalDifficultyNoChangedRule = new MinimalDifficultyNoChangedRule(newDifficultyAdjustmentAlgorithmRulePredicate.negate().and(difficultyTransitionPointPredicate.negate()).and(blockDifficultyEqualToMaxTarget),
-                        blockChainStore,
-                        params.getMaxTarget());
-
-
-                BlockChainRule emergencyDifficultyAdjustmentRule = new EmergencyDifficultyAdjustmentRule(newDifficultyAdjustmentAlgorithmRulePredicate.negate().and(difficultyTransitionPointPredicate.negate()).and(blockDifficultyEqualToMaxTarget.negate()),
-                        blockChainStore,
-                        params.getMaxTarget());
-
+        switch(params.getNet()) {
+            case STN:
+            case MAINNET:
                 blockChainStoreRuleConfig = BlockChainStoreRuleConfig.builder()
                         .addRule(newDifficultyAdjustmentAlgorithmRule)
                         .addRule(difficultyTransitionPointRule)
                         .addRule(minimalDifficultyNoChangedRule)
                         .addRule(emergencyDifficultyAdjustmentRule)
+                        .addRule(minimumWorkRule)
                         .build();
-
                 break;
 
-            case "org.bitcoin.testnet":
-            case "org.bitcoin.stn":
+
+            case TESTNET3:
+                BlockChainRule lastNonMinimalDifficultyRule = new LastNonMinimalDifficultyRule(
+                        difficultyAdjustmentActivatedPredicate.negate()
+                                .and(difficultyTransitionPointPredicate.negate())
+                                .and(genesisPredicate),
+                        params.getMaxTarget(),
+                        params.getInterval(),
+                        NetworkParameters.TARGET_SPACING);
+
+                blockChainStoreRuleConfig = BlockChainStoreRuleConfig.builder()
+                        .addRule(minimumWorkRule)
+                        .addRule(minimalDifficultyRule)
+                        .addRule(difficultyTransitionPointRule)
+                        .addRule(lastNonMinimalDifficultyRule)
+                        .build();
+                break;
+
             default:
                 throw new UnsupportedOperationException();
 

@@ -17,33 +17,31 @@ public class EmergencyDifficultyAdjustmentRule extends AbstractBlockChainRule {
     private static final int REFERENCE_OF_BLOCKS_PRODUCED_SIZE = 6;
     private static final int REFERENCE_BEFORE_BLOCK_DISTANCE = 10;
 
-    private final BlockChainStore blockChainStore;
     private final BigInteger maxTarget;
 
-    public EmergencyDifficultyAdjustmentRule(Predicate<ChainInfo> predicate, BlockChainStore blockChainStore, BigInteger maxTarget) {
+    public EmergencyDifficultyAdjustmentRule(Predicate<ChainInfo> predicate, BigInteger maxTarget) {
         super(predicate);
-        this.blockChainStore = blockChainStore;
         this.maxTarget = maxTarget;
     }
 
     @Override
-    public void checkRule(ChainInfo candidateBlock) throws BlockChainRuleFailureException {
-        ChainInfo prevBlockChainInfo = blockChainStore.getBlockChainInfo(candidateBlock.getHeader().getPrevBlockHash()).get();
+    public void checkRule(ChainInfo candidateBlock, BlockChainStore blockChainStore) throws BlockChainRuleFailureException {
+        ChainInfo prevBlockChainInfo = blockChainStore.getBlockChainInfo(candidateBlock.getHeader().getPrevBlockHash()).orElseThrow(() -> new BlockChainRuleFailureException("Not enough blocks to check emergency difficulty transition rule."));
 
-        long lastBlocksMPTinSeconds = getMedianProducingTimeInSeconds(prevBlockChainInfo);
+        long lastBlocksMPTinSeconds = getMedianProducingTimeInSeconds(prevBlockChainInfo, blockChainStore);
 
         checkEDARules(prevBlockChainInfo, candidateBlock, lastBlocksMPTinSeconds);
     }
 
-    private long getMedianProducingTimeInSeconds(ChainInfo storedPrev) throws BlockChainRuleFailureException {
-        ChainInfo referenceBlockChainInfo = blockChainStore.getBlock(storedPrev.getHeight() - REFERENCE_OF_BLOCKS_PRODUCED_SIZE).orElseThrow(() -> new BlockChainRuleFailureException("Not enough blocks to check difficulty."));
+    private long getMedianProducingTimeInSeconds(ChainInfo storedPrev, BlockChainStore blockChainStore) throws BlockChainRuleFailureException {
+        ChainInfo referenceBlockChainInfo = blockChainStore.getBlock(storedPrev.getHeight() - REFERENCE_OF_BLOCKS_PRODUCED_SIZE).orElseThrow(() -> new BlockChainRuleFailureException("Not enough blocks to check emergency difficulty adjustment rule."));
 
         if(referenceBlockChainInfo.getHeight() - REFERENCE_BEFORE_BLOCK_DISTANCE < 0 ) {
-            throw new BlockChainRuleFailureException("Not enough blocks to check difficulty.");
+            throw new BlockChainRuleFailureException("Not enough blocks to check emergency difficulty adjustment rule.");
         }
 
-        return getMedianTimestampOfRecentBlocks(storedPrev) -
-                getMedianTimestampOfRecentBlocks(referenceBlockChainInfo);
+        return getMedianTimestampOfRecentBlocks(storedPrev, blockChainStore) -
+                getMedianTimestampOfRecentBlocks(referenceBlockChainInfo, blockChainStore);
     }
 
     private void checkEDARules(ChainInfo prevBlock, ChainInfo candidateBlock, long lastBlocksMPTinSeconds) throws BlockChainRuleFailureException {
@@ -88,7 +86,7 @@ public class EmergencyDifficultyAdjustmentRule extends AbstractBlockChainRule {
     }
 
     //TODO perhaps clean this up to make it more intuitive
-    public long getMedianTimestampOfRecentBlocks(ChainInfo block) {
+    public long getMedianTimestampOfRecentBlocks(ChainInfo block, BlockChainStore blockChainStore) {
         long[] timestamps = new long[11];
         int unused = 9;
 

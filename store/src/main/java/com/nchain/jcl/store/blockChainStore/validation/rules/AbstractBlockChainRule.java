@@ -2,7 +2,6 @@ package com.nchain.jcl.store.blockChainStore.validation.rules;
 
 import io.bitcoinj.bitcoin.api.extended.ChainInfo;
 
-import java.util.List;
 import java.util.function.Predicate;
 
 /**
@@ -18,9 +17,14 @@ public abstract class AbstractBlockChainRule implements BlockChainRule {
         this.predicate = predicate;
     }
 
+    public AbstractBlockChainRule(){
+    }
+
     public boolean applies(ChainInfo candidateBlock) {
-        if(!predicate.test(candidateBlock)){
-            return false;
+        if(predicate != null) {
+            if (!predicate.test(candidateBlock)) {
+                return false;
+            }
         }
 
         return true;

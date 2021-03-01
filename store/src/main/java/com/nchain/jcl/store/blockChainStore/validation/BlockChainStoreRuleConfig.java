@@ -3,6 +3,7 @@ package com.nchain.jcl.store.blockChainStore.validation;
 import com.nchain.jcl.store.blockChainStore.BlockChainStoreConfig;
 import com.nchain.jcl.store.blockChainStore.validation.rules.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -25,7 +26,7 @@ public class BlockChainStoreRuleConfig implements BlockChainStoreConfig {
     public  List<BlockChainRule> getRuleList() { return ruleList;}
     public static class BlockChainStoreLevelDBConfigBuilder {
 
-            List<BlockChainRule> ruleList;
+            List<BlockChainRule> ruleList = new ArrayList<>();
 
             public BlockChainStoreRuleConfig.BlockChainStoreLevelDBConfigBuilder addRule(BlockChainRule rule) {
                 ruleList.add(rule);

@@ -2,7 +2,9 @@ package com.nchain.jcl.tools.util;
 
 import io.bitcoinj.bitcoin.api.base.Header;
 import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
+import io.bitcoinj.core.Sha256Hash;
 import io.bitcoinj.core.Utils;
+import io.bitcoinj.exception.VerificationException;
 
 import java.math.BigInteger;
 
@@ -44,4 +46,18 @@ public class PowUtil {
         return true;
     }
 
+    public static boolean verifyProofOfWork(HeaderReadOnly blockHeader, BigInteger maxTarget) {
+        BigInteger target = blockHeader.getDifficultyTargetAsInteger();
+        if (target.signum() <= 0 || target.compareTo(maxTarget) > 0) {
+                return false;
+        }
+
+        BigInteger hash_ = blockHeader.getHash().toBigInteger();
+        if (hash_.compareTo(target) > 0) {
+            // Proof of work check failed!
+            return false;
+        }
+
+        return true;
+    }
 }
