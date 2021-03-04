@@ -3,7 +3,7 @@ package com.nchain.jcl.net.unit.protocol.handlers.handshake
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
 import com.nchain.jcl.net.protocol.config.ProtocolConfigImpl
-import com.nchain.jcl.net.protocol.events.PeerHandshakeRejectedEvent
+import com.nchain.jcl.net.protocol.events.control.PeerHandshakeRejectedEvent
 import com.nchain.jcl.net.protocol.handlers.blacklist.BlacklistHandler
 import com.nchain.jcl.net.protocol.handlers.discovery.DiscoveryHandler
 import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandlerConfig

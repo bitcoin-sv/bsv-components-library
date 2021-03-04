@@ -53,6 +53,7 @@ class ProtocolPingPongFailTest extends Specification {
             P2P server = new P2PBuilder("server")
                     .config(serverConfig)
                     .config(serverPingConfig)
+                    .serverPort(0) // Random Port
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
                     .build()
@@ -104,6 +105,7 @@ class ProtocolPingPongFailTest extends Specification {
             println(" >>> STOPPING...")
             server.stop()
             client.stop()
+            Thread.sleep(1000) // We make sure the Guava service is down...
 
         then:
             // We check that the Ping/Pong protocol has been triggered at LEAST ONCE by the Server.

@@ -28,9 +28,10 @@ public class ProtocolBSVMainConfig extends ProtocolConfigImpl implements Protoco
 
     // Specific values for BSV Main Net:
 
-    private static String id                   = "BSV [main Net]";
+    public static String id                   = "BSV [main Net]";
     private static long magicPackage           = 0xe8f3e1e3L;
-    private static int services                = ProtocolServices.NODE_BLOOM.getProtocolServices();
+    //private static int services                = ProtocolServices.NODE_BLOOM.getProtocolServices();
+    private static int services                = 0;
     private static int port                    = 8333;
     private static int protocolVersion         = ProtocolVersion.CURRENT.getBitcoinProtocolVersion();
     private static String[] userAgentBlacklist = new String[] {"Bitcoin ABC:", "BUCash:" };

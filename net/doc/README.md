@@ -746,7 +746,7 @@ An Event triggered when A Peer has been handshaked and it's ready to communicate
 This Event is accesible by: ``[P2Pservice].EVENTS.PEERS.HANDSHAKED``
 
 The Event class passed as paremeter to the *forEach* method is an instance of
-``com.nchain.jcl.net.protocol.events.PeerHandshakedEvent``
+``com.nchain.jcl.net.protocol.events.control.PeerHandshakedEvent``
 
 
 ### PeerHandshakeRejectedEvent
@@ -756,7 +756,7 @@ An Event triggered when the Handshake with a Remote Peer has been rejected. Afte
 This Event is accesible by: ``[P2Pservice].EVENTS.PEERS.HANDSHAKED_REJECTED``
 
 The Event class passed as paremeter to the *forEach* method is an instance of
-``com.nchain.jcl.net.protocol.events.PeerHandshakeRejectedEvent``
+``com.nchain.jcl.net.protocol.events.control.PeerHandshakeRejectedEvent``
 
 
 ### PeerHandshakedDisconnectedEvent
@@ -767,7 +767,7 @@ same information can be achieved by listening to the events *PeerHandshakedEvent
 This Event is accesible by: ``[P2Pservice].EVENTS.PEERS.HANDSHAKED_DISCONNECTED``
 
 The Event class passed as paremeter to the *forEach* method is an instance of
-``com.nchain.jcl.net.protocol.events.PeerHandshakedDisconnectedEvent``
+``com.nchain.jcl.net.protocol.events.control.PeerHandshakedDisconnectedEvent``
 
 
 ### MinHandshakedPeersReachedEvent
@@ -779,7 +779,7 @@ to 10 Peers. This Event wil NOT be notified again UNTIL the number of Peers fall
 This Event is accesible by: ``[P2Pservice].EVENTS.PEERS.HANDSHAKED_MIN_REACHED``
 
 The Event class passed as paremeter to the *forEach* method is an instance of
-``com.nchain.jcl.net.protocol.events.MinHandshakedPeersReachedEvent``
+``com.nchain.jcl.net.protocol.events.control.MinHandshakedPeersReachedEvent``
 
 
 ### MinHandshakedPeersLostEvent
@@ -791,7 +791,7 @@ connected to 10 or more Peers, and the number of connections drops below 10.
 This Event is accesible by: ``[P2Pservice].EVENTS.PEERS.HANDSHAKED_MIN_LOST``
 
 The Event class passed as paremeter to the *forEach* method is an instance of
-``com.nchain.jcl.net.protocol.events.MinHandshakedPeersLostEvent``
+``com.nchain.jcl.net.protocol.events.control.MinHandshakedPeersLostEvent``
 
 
 ### PingPongFailedEvent
@@ -802,7 +802,7 @@ An Event triggered when a Peer has failed to perform the Ping/Pong Protocol, whi
  This Event is accesible by: ``[P2Pservice].EVENTS.PEERS.PINGPONG_FAILED``
  
  The Event class passed as paremeter to the *forEach* method is an instance of
-``com.nchain.jcl.net.protocol.events.PingPongFailedEvent``
+``com.nchain.jcl.net.protocol.events.control.PingPongFailedEvent``
  
 > Note: This event only notifies the fact. If you want to check if some action has been taken on this Peer due to this, you 
 should listen to the *PeerDisconnectedEvent* or *PeerBlacklistedEvent* Events. 
@@ -838,7 +838,7 @@ An Event triggered when a Message is received from a Remote Peer.
 This Event is accesible by: ``[P2Pservice].EVENTS.MSGS.ALL``
 
 The Event class passed as paremeter to the *forEach* method is an instance of
-``com.nchain.jcl.net.protocol.events.MsgReceivedEvent``
+``com.nchain.jcl.net.protocol.events.data.MsgReceivedEvent``
 
 If you are interested only in a subset of all possible 
 messages, you can either implement your own logic into the callback to filter them out, or you can also use the different 
@@ -865,7 +865,7 @@ and more specific Events provided:
 > MORE MESSAGES COMING UP...
 
 ### MsgSentEvent
-``com.nchain.jcl.net.protocol.events.MsgSentEvent``
+``com.nchain.jcl.net.protocol.events.data.MsgSentEvent``
 
 (*EVENTS.MSGS.ALL_SENT*)
 
@@ -874,7 +874,7 @@ An Event triggered when a Message is sent to a Remote Peer.
 This Event is accesible by: ``[P2Pservice].EVENTS.MSGS.ALL``
 
 The Event class passed as paremeter to the *forEach* method is an instance of
-``com.nchain.jcl.net.protocol.events.MsgReceivedEvent``
+``com.nchain.jcl.net.protocol.events.data.MsgReceivedEvent``
 
 
 If you are interested only in a subset of all possible 
@@ -1063,7 +1063,7 @@ also provides some info about it (like the Block Header, or the Peer it's been d
  This Event is accesible by: ``[P2Pservice].EVENTS.BLOCKS.BOCK_DOWNLOADED``
  
  The Event class passed as paremeter to the *forEach* method is an instance of
-``com.nchain.jcl.net.protocol.events.BlockDownloadedEvent``
+``com.nchain.jcl.net.protocol.events.control.BlockDownloadedEvent``
 
 
 ### LiteBlockDownloadedEvent
@@ -1074,7 +1074,7 @@ to be put into memory without risking running out of it.
  This Event is accesible by: ``[P2Pservice].EVENTS.BLOCKS.LITE_BOCK_DOWNLOADED``
  
  The Event class passed as paremeter to the *forEach* method is an instance of
-``com.nchain.jcl.net.protocol.events.LiteBlockDownloadedEvent``
+``com.nchain.jcl.net.protocol.events.control.LiteBlockDownloadedEvent``
 
 
 > NOTE:
@@ -1090,7 +1090,7 @@ An Event triggered when a Block Header has been downloaded, whcihi happends whil
  This Event is accesible by: ``[P2Pservice].EVENTS.BLOCKS.BLOCK_HEADER_DOWNLOADED``
  
  The Event class passed as paremeter to the *forEach* method is an instance of
-``com.nchain.jcl.net.protocol.events.BlockHeaderDownloadedEvent``
+``com.nchain.jcl.net.protocol.events.control.BlockHeaderDownloadedEvent``
 
 
 ### BlockTXsDownloadedEvent
@@ -1100,7 +1100,7 @@ An Event triggered when a Set of TXs from a Block has been downloaded. If aBlock
  This Event is accesible by: ``[P2Pservice].EVENTS.BLOCKS.BLOCK_TXS_DOWNLOADED``
  
  The Event class passed as paremeter to the *forEach* method is an instance of
-``com.nchain.jcl.net.protocol.events.BlockTXsDownloadedEvent``
+``com.nchain.jcl.net.protocol.events.control.BlockTXsDownloadedEvent``
 
 
 
@@ -1113,7 +1113,7 @@ provides info about the Block (Hash) and the reason why the Block has been disca
  This Event is accesible by: ``[P2Pservice].EVENTS.BLOCKS.BLOCK_DISCARDED``
 
  The Event class passed as paremeter to the *forEach* method is an instance of
-``com.nchain.jcl.net.protocol.events.BlockDiscardedEvent``
+``com.nchain.jcl.net.protocol.events.control.BlockDiscardedEvent``
 
 
 > A Block discarded might be attempted again after some time, depending on configuration.

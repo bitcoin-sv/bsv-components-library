@@ -5,7 +5,8 @@ import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.events.NetStartEvent;
 import com.nchain.jcl.net.network.events.NetStopEvent;
 import com.nchain.jcl.net.network.events.PeerDisconnectedEvent;
-import com.nchain.jcl.net.protocol.events.*;
+import com.nchain.jcl.net.protocol.events.control.*;
+import com.nchain.jcl.net.protocol.events.data.*;
 import com.nchain.jcl.net.protocol.messages.*;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
@@ -94,7 +95,9 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         super.eventBus.subscribe(PeerMsgReadyEvent.class, e -> this.onPeerMsgReady((PeerMsgReadyEvent) e));
         super.eventBus.subscribe(PeerHandshakedEvent.class, e -> this.onPeerHandshaked((PeerHandshakedEvent) e));
         super.eventBus.subscribe(PeerDisconnectedEvent.class, e -> this.onPeerDisconnected((PeerDisconnectedEvent) e));
-        super.eventBus.subscribe(MsgReceivedEvent.class, e -> this.onMsgReceived((MsgReceivedEvent) e));
+        super.eventBus.subscribe(BlockMsgReceivedEvent.class, e -> this.onBlockMsgReceived((BlockMsgReceivedEvent) e));
+        super.eventBus.subscribe(PartialBlockHeaderMsgReceivedEvent.class, e -> this.onPartialBlockHeaderMsgReceived((PartialBlockHeaderMsgReceivedEvent) e));
+        super.eventBus.subscribe(PartialBlockTxsMsgReceivedEvent.class, e -> this.onPartialBlockTxsMsgReceived((PartialBlockTxsMsgReceivedEvent) e));
         super.eventBus.subscribe(BlocksDownloadRequest.class, e -> this.download(((BlocksDownloadRequest) e).getBlockHashes()));
     }
 
@@ -166,13 +169,21 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
     }
 
     // Event Handler:
-    public void onMsgReceived(MsgReceivedEvent event) {
+    public void onBlockMsgReceived(BlockMsgReceivedEvent event) {
         if (!peersInfo.containsKey(event.getPeerAddress())) return;
-
-        if (event.getBtcMsg().is(BlockMsg.MESSAGE_TYPE))
             processWholeBlockReceived(peersInfo.get(event.getPeerAddress()), (BitcoinMsg<BlockMsg>) event.getBtcMsg());
-        if (event.getBtcMsg().is(PartialBlockHeaderMsg.MESSAGE_TYPE) || event.getBtcMsg().is(PartialBlockTXsMsg.MESSAGE_TYPE))
-            processPartialBlockReceived(peersInfo.get(event.getPeerAddress()), event.getBtcMsg());
+    }
+
+    // Event Handler:
+    public void onPartialBlockHeaderMsgReceived(PartialBlockHeaderMsgReceivedEvent event) {
+        if (!peersInfo.containsKey(event.getPeerAddress())) return;
+         processPartialBlockReceived(peersInfo.get(event.getPeerAddress()), event.getBtcMsg());
+    }
+
+    // Event Handler:
+    public void onPartialBlockTxsMsgReceived(PartialBlockTxsMsgReceivedEvent event) {
+        if (!peersInfo.containsKey(event.getPeerAddress())) return;
+        processPartialBlockReceived(peersInfo.get(event.getPeerAddress()), event.getBtcMsg());
     }
 
     private synchronized void processPartialBlockReceived(BlockPeerInfo peerInfo, BitcoinMsg<?> msg) {

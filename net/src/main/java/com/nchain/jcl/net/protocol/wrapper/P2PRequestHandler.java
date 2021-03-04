@@ -6,7 +6,11 @@ import com.nchain.jcl.net.network.events.BlacklistPeerRequest;
 import com.nchain.jcl.net.network.events.ConnectPeerRequest;
 import com.nchain.jcl.net.network.events.DisconnectPeerRequest;
 import com.nchain.jcl.net.network.events.PeerDisconnectedEvent.DisconnectedReason;
-import com.nchain.jcl.net.protocol.events.*;
+import com.nchain.jcl.net.protocol.events.control.DisablePingPongRequest;
+import com.nchain.jcl.net.protocol.events.control.EnablePingPongRequest;
+import com.nchain.jcl.net.protocol.events.control.BlocksDownloadRequest;
+import com.nchain.jcl.net.protocol.events.control.BroadcastMsgRequest;
+import com.nchain.jcl.net.protocol.events.control.SendMsgRequest;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.tools.events.Event;
 import com.nchain.jcl.tools.events.EventBus;
@@ -33,6 +37,7 @@ public class P2PRequestHandler {
     // The same EventBus that is used by the underlying P2P
     private EventBus eventBus;
 
+
     public P2PRequestHandler(EventBus eventBus) {
         this.eventBus = eventBus;
     }
@@ -45,7 +50,7 @@ public class P2PRequestHandler {
         public abstract Event buildRequest();
         // This method publishes the Request to the Bus
         public void submit() {
-            eventBus.publish(buildRequest());
+             eventBus.publish(buildRequest());
         }
     }
 

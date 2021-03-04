@@ -17,18 +17,30 @@ public class NetworkConfigImpl extends HandlerConfig implements NetworkConfig {
     private OptionalInt maxSocketPendingConnections;
     private OptionalInt timeoutSocketConnection;
     private OptionalInt timeoutSocketIdle;
+    private int maxSocketConnectionsOpeningAtSameTime;
     private int nioBufferSizeLowerBound;
     private int nioBufferSizeUpperBound;
     private int nioBufferSizeUpgrade;
     private int maxMessageSizeAvgInBytes;
     private boolean blockingOnListeners;
 
-    public NetworkConfigImpl(int port, OptionalInt maxSocketConnections, OptionalInt maxSocketPendingConnections, OptionalInt timeoutSocketConnection, OptionalInt timeoutSocketIdle, int nioBufferSizeLowerBound, int nioBufferSizeUpperBound, int nioBufferSizeUpgrade, int maxMessageSizeAvgInBytes, boolean blockingOnListeners) {
+    public NetworkConfigImpl(int port,
+                             OptionalInt maxSocketConnections,
+                             OptionalInt maxSocketPendingConnections,
+                             OptionalInt timeoutSocketConnection,
+                             OptionalInt timeoutSocketIdle,
+                             int maxSocketConnectionsOpeningAtSameTime,
+                             int nioBufferSizeLowerBound,
+                             int nioBufferSizeUpperBound,
+                             int nioBufferSizeUpgrade,
+                             int maxMessageSizeAvgInBytes,
+                             boolean blockingOnListeners) {
         this.port = port;
         this.maxSocketConnections = maxSocketConnections;
         this.maxSocketPendingConnections = maxSocketPendingConnections;
         this.timeoutSocketConnection = timeoutSocketConnection;
         this.timeoutSocketIdle = timeoutSocketIdle;
+        this.maxSocketConnectionsOpeningAtSameTime = maxSocketConnectionsOpeningAtSameTime;
         this.nioBufferSizeLowerBound = nioBufferSizeLowerBound;
         this.nioBufferSizeUpperBound = nioBufferSizeUpperBound;
         this.nioBufferSizeUpgrade = nioBufferSizeUpgrade;
@@ -36,21 +48,31 @@ public class NetworkConfigImpl extends HandlerConfig implements NetworkConfig {
         this.blockingOnListeners = blockingOnListeners;
     }
 
-    public static NetworkConfigImplBuilder builder()    { return new NetworkConfigImplBuilder(); }
+    public static NetworkConfigImplBuilder builder()        { return new NetworkConfigImplBuilder(); }
 
-    public int getPort()                                { return this.port; }
-    public OptionalInt getMaxSocketConnections()        { return this.maxSocketConnections; }
-    public OptionalInt getMaxSocketPendingConnections() { return this.maxSocketPendingConnections; }
-    public OptionalInt getTimeoutSocketConnection()     { return this.timeoutSocketConnection; }
-    public OptionalInt getTimeoutSocketIdle()           { return this.timeoutSocketIdle; }
-    public int getNioBufferSizeLowerBound()             { return this.nioBufferSizeLowerBound; }
-    public int getNioBufferSizeUpperBound()             { return this.nioBufferSizeUpperBound; }
-    public int getNioBufferSizeUpgrade()                { return this.nioBufferSizeUpgrade; }
-    public int getMaxMessageSizeAvgInBytes()            { return this.maxMessageSizeAvgInBytes; }
-    public boolean isBlockingOnListeners()              { return this.blockingOnListeners; }
+    public int getPort()                                    { return this.port; }
+    public OptionalInt getMaxSocketConnections()            { return this.maxSocketConnections; }
+    public OptionalInt getMaxSocketPendingConnections()     { return this.maxSocketPendingConnections; }
+    public OptionalInt getTimeoutSocketConnection()         { return this.timeoutSocketConnection; }
+    public OptionalInt getTimeoutSocketIdle()               { return this.timeoutSocketIdle; }
+    public int getMaxSocketConnectionsOpeningAtSameTime()   { return this.maxSocketConnectionsOpeningAtSameTime; }
+    public int getNioBufferSizeLowerBound()                 { return this.nioBufferSizeLowerBound; }
+    public int getNioBufferSizeUpperBound()                 { return this.nioBufferSizeUpperBound; }
+    public int getNioBufferSizeUpgrade()                    { return this.nioBufferSizeUpgrade; }
+    public int getMaxMessageSizeAvgInBytes()                { return this.maxMessageSizeAvgInBytes; }
 
     public NetworkConfigImplBuilder toBuilder() {
-        return new NetworkConfigImplBuilder().port(this.port).maxSocketConnections(this.maxSocketConnections).maxSocketPendingConnections(this.maxSocketPendingConnections).timeoutSocketConnection(this.timeoutSocketConnection).timeoutSocketIdle(this.timeoutSocketIdle).nioBufferSizeLowerBound(this.nioBufferSizeLowerBound).nioBufferSizeUpperBound(this.nioBufferSizeUpperBound).nioBufferSizeUpgrade(this.nioBufferSizeUpgrade).maxMessageSizeAvgInBytes(this.maxMessageSizeAvgInBytes).blockingOnListeners(this.blockingOnListeners);
+        return new NetworkConfigImplBuilder()
+                .port(this.port)
+                .maxSocketConnections(this.maxSocketConnections)
+                .maxSocketPendingConnections(this.maxSocketPendingConnections)
+                .timeoutSocketConnection(this.timeoutSocketConnection)
+                .timeoutSocketIdle(this.timeoutSocketIdle)
+                .nioBufferSizeLowerBound(this.nioBufferSizeLowerBound)
+                .nioBufferSizeUpperBound(this.nioBufferSizeUpperBound)
+                .nioBufferSizeUpgrade(this.nioBufferSizeUpgrade)
+                .maxMessageSizeAvgInBytes(this.maxMessageSizeAvgInBytes)
+                .blockingOnListeners(this.blockingOnListeners);
     }
 
     /**
@@ -62,6 +84,7 @@ public class NetworkConfigImpl extends HandlerConfig implements NetworkConfig {
         private OptionalInt maxSocketPendingConnections;
         private OptionalInt timeoutSocketConnection;
         private OptionalInt timeoutSocketIdle;
+        private int maxSocketConnectionsOpeningAtSameTime;
         private int nioBufferSizeLowerBound;
         private int nioBufferSizeUpperBound;
         private int nioBufferSizeUpgrade;
@@ -95,6 +118,11 @@ public class NetworkConfigImpl extends HandlerConfig implements NetworkConfig {
             return this;
         }
 
+        public NetworkConfigImpl.NetworkConfigImplBuilder maxSocketConnectionsOpeningAtSameTime(int maxSocketConnectionsOpeningAtSameTime) {
+            this.maxSocketConnectionsOpeningAtSameTime = maxSocketConnectionsOpeningAtSameTime;
+            return this;
+        }
+
         public NetworkConfigImpl.NetworkConfigImplBuilder nioBufferSizeLowerBound(int nioBufferSizeLowerBound) {
             this.nioBufferSizeLowerBound = nioBufferSizeLowerBound;
             return this;
@@ -121,7 +149,18 @@ public class NetworkConfigImpl extends HandlerConfig implements NetworkConfig {
         }
 
         public NetworkConfigImpl build() {
-            return new NetworkConfigImpl(port, maxSocketConnections, maxSocketPendingConnections, timeoutSocketConnection, timeoutSocketIdle, nioBufferSizeLowerBound, nioBufferSizeUpperBound, nioBufferSizeUpgrade, maxMessageSizeAvgInBytes, blockingOnListeners);
+            return new NetworkConfigImpl(
+                    port,
+                    maxSocketConnections,
+                    maxSocketPendingConnections,
+                    timeoutSocketConnection,
+                    timeoutSocketIdle,
+                    maxSocketConnectionsOpeningAtSameTime,
+                    nioBufferSizeLowerBound,
+                    nioBufferSizeUpperBound,
+                    nioBufferSizeUpgrade,
+                    maxMessageSizeAvgInBytes,
+                    blockingOnListeners);
         }
     }
 }

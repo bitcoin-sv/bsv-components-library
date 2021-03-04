@@ -53,14 +53,22 @@ public class VersionMsgSerializer implements MessageSerializer<VersionMsg> {
 
 
         // The "RELAY" Field is optional. So we need to check if the field is there or not. Its NOT enough to just check
-        // if there is mre data in the reader, since that data might belong to tnext message in line, not this one. So
+        // if there is more data in the reader, since that data might belong to next message in line, not this one. So
         // we need to compare the bytes we've read so far for this message, to the MAXIMUM number of Bytes that this
         // message takes in te reader...
         int bytesReadedForThisMessage = 20 + (int) addr_from.getLengthInBytes() + (int) addr_recv.getLengthInBytes() + 8 + 4 + (int) user_agent.getLengthInBytes();
 
-        if (bytesReadedForThisMessage == (context.getMaxBytesToRead() - 1)) {
+        if (bytesReadedForThisMessage <= (context.getMaxBytesToRead() - 1)) {
             byteReader.waitForBytes(1);
             relay = byteReader.readBoolean();
+            bytesReadedForThisMessage++;
+        }
+
+        // We read the remaining bytes that there might still be there..
+        if (bytesReadedForThisMessage < context.getMaxBytesToRead()) {
+            int bytesRemaining = (int) (context.getMaxBytesToRead() - bytesReadedForThisMessage);
+            byteReader.waitForBytes(bytesRemaining);
+            byteReader.read(bytesRemaining);
         }
 
         VersionMsg versionMsg = VersionMsg.builder()

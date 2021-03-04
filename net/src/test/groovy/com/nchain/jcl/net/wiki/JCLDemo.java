@@ -2,7 +2,7 @@ package com.nchain.jcl.net.wiki;
 
 import com.nchain.jcl.net.protocol.config.ProtocolConfig;
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig;
-import com.nchain.jcl.net.protocol.events.BlockTXsDownloadedEvent;
+import com.nchain.jcl.net.protocol.events.control.BlockTXsDownloadedEvent;
 import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerConfig;
 import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerConfig;
 import com.nchain.jcl.net.protocol.wrapper.P2P;

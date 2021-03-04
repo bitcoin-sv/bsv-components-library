@@ -4,7 +4,10 @@ package com.nchain.jcl.net.protocol.handlers.handshake;
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.events.*;
 import com.nchain.jcl.net.protocol.config.ProtocolVersion;
-import com.nchain.jcl.net.protocol.events.*;
+import com.nchain.jcl.net.protocol.events.control.*;
+import com.nchain.jcl.net.protocol.events.control.SendMsgRequest;
+import com.nchain.jcl.net.protocol.events.data.VersionAckMsgReceivedEvent;
+import com.nchain.jcl.net.protocol.events.data.VersionMsgReceivedEvent;
 import com.nchain.jcl.net.protocol.messages.NetAddressMsg;
 import com.nchain.jcl.net.protocol.messages.VarStrMsg;
 import com.nchain.jcl.net.protocol.messages.VersionAckMsg;
@@ -13,14 +16,18 @@ import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
 import com.nchain.jcl.net.tools.NonceUtils;
 import com.nchain.jcl.tools.config.RuntimeConfig;
+import com.nchain.jcl.tools.events.EventQueueProcessor;
 import com.nchain.jcl.tools.handlers.HandlerImpl;
 import com.nchain.jcl.tools.log.LoggerUtil;
+import com.nchain.jcl.tools.thread.ThreadUtils;
 
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 import java.util.OptionalInt;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 /**
@@ -54,21 +61,42 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
     boolean minPeersReachedEventSent = false;
     boolean minPeersLostEventSent = false;
 
+    private Lock lock = new ReentrantLock();
+
+    // The Events captured by this Handler will  e processed in a separate Thread/s, by an EventQueueProcessor, this
+    // way we won't slow down the rate at which the eVents are published and processed in the Bus
+    private EventQueueProcessor eventQueueProcessor;
+
     public HandshakeHandlerImpl(String id, RuntimeConfig runtimeConfig, HandshakeHandlerConfig config) {
         super(id, runtimeConfig);
         this.logger = new LoggerUtil(id, HANDLER_ID, this.getClass());
         this.config = config;
         // We initialize the State:
         this.state = HandshakeHandlerState.builder().build();
+
+        // We start the EventQueueProcessor. We do not expect many messages (compared to the rest of traffic), so a
+        // single Thread will do...
+        this.eventQueueProcessor = new EventQueueProcessor(ThreadUtils.getSingleThreadScheduledExecutorService("Handshake-EventsConsumers"));
     }
 
     // We register this Handler to LISTEN to these Events:
     private void registerForEvents() {
-        super.eventBus.subscribe(NetStartEvent.class, e -> onNetStart((NetStartEvent) e));
-        super.eventBus.subscribe(NetStopEvent.class, e -> onNetStop((NetStopEvent) e));
-        super.eventBus.subscribe(PeerMsgReadyEvent.class, e -> onPeerMsgReady((PeerMsgReadyEvent) e));
-        super.eventBus.subscribe(PeerDisconnectedEvent.class, e -> onPeerDisconnected((PeerDisconnectedEvent) e));
-        super.eventBus.subscribe(MsgReceivedEvent.class, e -> onMsgReceived((MsgReceivedEvent) e));
+
+        this.eventQueueProcessor.addProcessor(NetStartEvent.class, e -> onNetStart((NetStartEvent) e));
+        this.eventQueueProcessor.addProcessor(NetStopEvent.class, e -> onNetStop((NetStopEvent) e));
+        this.eventQueueProcessor.addProcessor(PeerMsgReadyEvent.class, e -> onPeerMsgReady((PeerMsgReadyEvent) e));
+        this.eventQueueProcessor.addProcessor(PeerDisconnectedEvent.class, e -> onPeerDisconnected((PeerDisconnectedEvent) e));
+        this.eventQueueProcessor.addProcessor(VersionMsgReceivedEvent.class, e -> onVersionMessage((VersionMsgReceivedEvent) e));
+        this.eventQueueProcessor.addProcessor(VersionAckMsgReceivedEvent.class, e -> onAckMessage((VersionAckMsgReceivedEvent) e));
+
+        super.eventBus.subscribe(NetStartEvent.class, e -> this.eventQueueProcessor.addEvent(e));
+        super.eventBus.subscribe(NetStopEvent.class, e -> this.eventQueueProcessor.addEvent(e));
+        super.eventBus.subscribe(PeerMsgReadyEvent.class, e -> this.eventQueueProcessor.addEvent(e));
+        super.eventBus.subscribe(PeerDisconnectedEvent.class, e -> this.eventQueueProcessor.addEvent(e));
+        super.eventBus.subscribe(VersionMsgReceivedEvent.class, e -> this.eventQueueProcessor.addEvent(e));
+        super.eventBus.subscribe(VersionAckMsgReceivedEvent.class, e -> this.eventQueueProcessor.addEvent(e));
+
+        this.eventQueueProcessor.start();
     }
 
     @Override
@@ -86,160 +114,177 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
     private void onNetStart(NetStartEvent event) {
         logger.debug("Starting...");
         this.localAddress = event.getLocalAddress();
+
     }
 
     // Event Handler:
     private void onNetStop(NetStopEvent event) {
         isStopping = true;
+        this.eventQueueProcessor.stop();
         logger.debug("Stop.");
     }
 
     // Event Handler:
     private void onPeerDisconnected(PeerDisconnectedEvent event) {
-        HandshakePeerInfo peerInfo = peersInfo.get(event.getPeerAddress());
-        if (peerInfo != null) {
+        try {
+            lock.lock();
+            HandshakePeerInfo peerInfo = peersInfo.get(event.getPeerAddress());
+            if (peerInfo != null) {
 
-            // If the Peer is currently handshaked, we update the status and trigger an specific event:
-            if (peerInfo.isHandshakeAccepted() ) {
-                updateStatus(-1, false,false, 0);
-                super.eventBus.publish(new PeerHandshakedDisconnectedEvent(peerInfo.getPeerAddress(), peerInfo.getVersionMsgReceived()));
-            }
+                // If the Peer is currently handshaked, we update the status and trigger an specific event:
+                if (peerInfo.isHandshakeAccepted() ) {
+                    updateStatus(-1, false,false, 0);
+                    super.eventBus.publish(new PeerHandshakedDisconnectedEvent(peerInfo.getPeerAddress(), peerInfo.getVersionMsgReceived()));
+                }
 
-            // We remove if from our Pool:
-            this.peersInfo.remove(event.getPeerAddress());
+                // We remove if from our Pool:
+                this.peersInfo.remove(event.getPeerAddress());
 
-            checkIfTriggerMinPeersEvent(true);
-            checkIfWeNeedMoreHandshakes();
-        } // if (peerInfo != null)...
+                checkIfTriggerMinPeersEvent(true);
+                checkIfWeNeedMoreHandshakes();
+            } // if (peerInfo != null)...
+        } finally {
+            lock.unlock();
+        }
     }
 
     // Event Handler:
     private void onPeerMsgReady(PeerMsgReadyEvent event) {
-        PeerAddress peerAddress = event.getStream().getPeerAddress();
-        HandshakePeerInfo peerInfo = new HandshakePeerInfo(peerAddress);
-        peersInfo.put(peerAddress, peerInfo);
+        try {
+            lock.lock();
+            PeerAddress peerAddress = event.getStream().getPeerAddress();
+            HandshakePeerInfo peerInfo = new HandshakePeerInfo(peerAddress);
+            peersInfo.put(peerAddress, peerInfo);
 
-        // If we still need Handshakes, we start the process with this Peer:
-        if (!doWeHaveEnoughHandshakes()) startHandshake(peerInfo);
+            // If we still need Handshakes, we start the process with this Peer:
+            if (!doWeHaveEnoughHandshakes()) startHandshake(peerInfo);
 
-        checkIfWeNeedMoreHandshakes();
-    }
-
-    // Event Handler:
-    private void onMsgReceived(MsgReceivedEvent event) {
-        // If this message is coming from a Peer we don't have anymore, we just discard it
-        //System.out.println(">>> - msg received: " + event.getBtcMsg().getBody());
-        HandshakePeerInfo peerInfo = peersInfo.get(event.getPeerAddress());
-        if (peerInfo == null) {
-            logger.trace(event.getPeerAddress(), event.getBtcMsg().getHeader().getCommand().toUpperCase(), " message discarded (Peer already discarded)");
-            return;
+            checkIfWeNeedMoreHandshakes();
+        } finally {
+            lock.unlock();
         }
-        BitcoinMsg<?> message = event.getBtcMsg();
-
-        if (message.is(VersionMsg.MESSAGE_TYPE)) processVersionMessage(peerInfo, (BitcoinMsg<VersionMsg>) message);
-        else if (message.is(VersionAckMsg.MESSAGE_TYPE)) processAckMessage(peerInfo, (BitcoinMsg<VersionAckMsg>) message);
     }
-
 
     /**
      * It processes the VERSION Message received from a Remote Peer. It verifies its content according to our
      * Configuration and updates the Handshake workingState for this Peer accordingly:
      */
-    private void processVersionMessage(HandshakePeerInfo peerInfo, BitcoinMsg<VersionMsg> message) {
+    private void onVersionMessage(VersionMsgReceivedEvent event) {
 
-        logger.trace( peerInfo.getPeerAddress(), " received VersionMsg...");
-        VersionMsg versionMsg = message.getBody();
-
-        // We update the Status of this Peer:
-        peerInfo.receiveVersionMsg(versionMsg);
-
-        // If The Handshake has been already processed, then this Message is a Duplicate:
-        if (peerInfo.isHandshakeAccepted() || peerInfo.isHandshakeRejected()) {
-            rejectHandshake(peerInfo, PeerHandshakeRejectedEvent.HandshakedRejectedReason.PROTOCOL_MSG_DUPLICATE, null);
+        // If this message is coming from a Peer we don't have anymore, we just discard it
+        HandshakePeerInfo peerInfo = peersInfo.get(event.getPeerAddress());
+        if (peerInfo == null) {
+            logger.debug(event.getPeerAddress(), event.getBtcMsg().getHeader().getCommand().toUpperCase(), " message discarded (Peer already discarded)");
             return;
         }
+        logger.debug( peerInfo.getPeerAddress(), " received VersionMsg :: " + event.getBtcMsg().getBody().toString());
+        try {
+            lock.lock();
+            VersionMsg versionMsg = event.getBtcMsg().getBody();
 
-        // We check the Version number:
-        if (message.getBody().getVersion() < ProtocolVersion.ENABLE_VERSION.getBitcoinProtocolVersion()) {
-            rejectHandshake(peerInfo, PeerHandshakeRejectedEvent.HandshakedRejectedReason.WRONG_VERSION, null);
-            return;
-        }
+            // We update the Status of this Peer:
+            peerInfo.receiveVersionMsg(versionMsg);
 
-        // We check the Start Height:
-        if (versionMsg.getStart_height() < 0) {
-            rejectHandshake(peerInfo, PeerHandshakeRejectedEvent.HandshakedRejectedReason.WRONG_START_HEIGHT, null);
-            return;
-        }
-
-        // We check the USER_AGENT:
-        if (config.getUserAgentBlacklist() != null) {
-            for (String pattern : config.getUserAgentBlacklist())
-                if (message.getBody().getUser_agent().getStr().toUpperCase().indexOf(pattern.toUpperCase()) != -1) {
-                    rejectHandshake(peerInfo, PeerHandshakeRejectedEvent.HandshakedRejectedReason.WRONG_USER_AGENT, message.getBody().getUser_agent().getStr());
-                    return;
-                }
-        }
-
-        if (config.getUserAgentWhitelist() != null) {
-            boolean hasOneValidPattern = false;
-            for (String pattern : config.getUserAgentWhitelist())
-                if (message.getBody().getUser_agent().getStr().toUpperCase().indexOf(pattern.toUpperCase()) != -1) {
-                    hasOneValidPattern = true;
-                }
-            if (!hasOneValidPattern) {
-                rejectHandshake(peerInfo, PeerHandshakeRejectedEvent.HandshakedRejectedReason.WRONG_USER_AGENT, message.getBody().getUser_agent().getStr());
+            // If The Handshake has been already processed, then this Message is a Duplicate:
+            if (peerInfo.isHandshakeAccepted() || peerInfo.isHandshakeRejected()) {
+                rejectHandshake(peerInfo, PeerHandshakeRejectedEvent.HandshakedRejectedReason.PROTOCOL_MSG_DUPLICATE, null);
                 return;
             }
+
+            // We check the Version number:
+            if (versionMsg.getVersion() < ProtocolVersion.ENABLE_VERSION.getBitcoinProtocolVersion()) {
+                rejectHandshake(peerInfo, PeerHandshakeRejectedEvent.HandshakedRejectedReason.WRONG_VERSION, null);
+                return;
+            }
+
+            // We check the Start Height:
+            if (versionMsg.getStart_height() < 0) {
+                rejectHandshake(peerInfo, PeerHandshakeRejectedEvent.HandshakedRejectedReason.WRONG_START_HEIGHT, null);
+                return;
+            }
+
+            // We check the USER_AGENT:
+            if (config.getUserAgentBlacklist() != null) {
+                for (String pattern : config.getUserAgentBlacklist())
+                    if (versionMsg.getUser_agent().getStr().toUpperCase().indexOf(pattern.toUpperCase()) != -1) {
+                        rejectHandshake(peerInfo, PeerHandshakeRejectedEvent.HandshakedRejectedReason.WRONG_USER_AGENT, versionMsg.getUser_agent().getStr());
+                        return;
+                    }
+            }
+
+            if (config.getUserAgentWhitelist() != null) {
+                boolean hasOneValidPattern = false;
+                for (String pattern : config.getUserAgentWhitelist())
+                    if (versionMsg.getUser_agent().getStr().toUpperCase().indexOf(pattern.toUpperCase()) != -1) {
+                        hasOneValidPattern = true;
+                    }
+                if (!hasOneValidPattern) {
+                    rejectHandshake(peerInfo, PeerHandshakeRejectedEvent.HandshakedRejectedReason.WRONG_USER_AGENT, versionMsg.getUser_agent().getStr());
+                    return;
+                }
+            }
+
+            // If we reach this far, the Version is compatible. We send an ACK Back:
+            VersionAckMsg ackMsgBody = VersionAckMsg.builder().build();
+            BitcoinMsg<VersionAckMsg> btcAckMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), ackMsgBody).build();
+            super.eventBus.publish(new SendMsgRequest(peerInfo.getPeerAddress(), btcAckMsg));
+
+            // And we update the State of this Peer:
+            peerInfo.sendACK();
+
+            // After this message is processed, we check the Handshake status:
+            if (peerInfo.checkHandshakeOK()) {
+                acceptHandshake(peerInfo);
+            } else logger.debug( peerInfo.getPeerAddress(), " Handshake pending, still missing ACK from peer");
+        } finally {
+            lock.unlock();
         }
-
-        // If we reach this far, the Version is compatible. We send an ACK Back:
-        VersionAckMsg ackMsgBody = VersionAckMsg.builder().build();
-        BitcoinMsg<VersionAckMsg> btcAckMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), ackMsgBody).build();
-        super.eventBus.publish(new SendMsgRequest(peerInfo.getPeerAddress(), btcAckMsg));
-
-        // And we update the State of this Peer:
-        peerInfo.sendACK();
-
-        // After this message is processed, we check the Handshake status:
-        if (peerInfo.checkHandshakeOK()) {
-            acceptHandshake(peerInfo);
-        } else logger.trace( peerInfo.getPeerAddress(), " Handshake not accepted, still missing ACK from peer");
     }
 
     /**
      * It processes the VERSION_ACK Message received from a Remote Peer. It verifies its content according to our
      * Configuration and updates the Handshake workingState for this Peer accordingly:
      */
-    private void processAckMessage(HandshakePeerInfo peerInfo, BitcoinMsg<VersionAckMsg> message) {
+    private void onAckMessage(VersionAckMsgReceivedEvent event) {
 
-        logger.trace( peerInfo.getPeerAddress(), " received VersionACK...");
-
-        // If The Handshake has been already processed, then this Message is a Duplicate:
-        if (peerInfo.isHandshakeAccepted() || peerInfo.isHandshakeRejected()) {
-            rejectHandshake(peerInfo, PeerHandshakeRejectedEvent.HandshakedRejectedReason.PROTOCOL_MSG_DUPLICATE, null);
+        // If this message is coming from a Peer we don't have anymore, we just discard it
+        HandshakePeerInfo peerInfo = peersInfo.get(event.getPeerAddress());
+        if (peerInfo == null) {
+            logger.debug(event.getPeerAddress(), event.getBtcMsg().getHeader().getCommand().toUpperCase(), " message discarded (Peer already discarded)");
             return;
         }
+        logger.debug( peerInfo.getPeerAddress(), " received VersionACK...");
+        try {
+            lock.lock();
+            // If The Handshake has been already processed, then this Message is a Duplicate:
+            if (peerInfo.isHandshakeAccepted() || peerInfo.isHandshakeRejected()) {
+                rejectHandshake(peerInfo, PeerHandshakeRejectedEvent.HandshakedRejectedReason.PROTOCOL_MSG_DUPLICATE, null);
+                return;
+            }
 
-        // We check this Message comes AFTER a VERSION Message sent from us
-        if (!peerInfo.isVersionMsgSent()) {
-            rejectHandshake(peerInfo, PeerHandshakeRejectedEvent.HandshakedRejectedReason.PROTOCOL_MSG_DUPLICATE, null);
-            return;
+            // We check this Message comes AFTER a VERSION Message sent from us
+            if (!peerInfo.isVersionMsgSent()) {
+                rejectHandshake(peerInfo, PeerHandshakeRejectedEvent.HandshakedRejectedReason.PROTOCOL_MSG_DUPLICATE, null);
+                return;
+            }
+
+            // We check that this ACK has not been sent already
+            if (peerInfo.isACKReceived()) {
+                rejectHandshake(peerInfo, PeerHandshakeRejectedEvent.HandshakedRejectedReason.PROTOCOL_MSG_DUPLICATE, null);
+                return;
+            }
+
+            // If we reach this far, the ACK is OK:
+            // We update the sate of this Peer:
+            peerInfo.receiveACK();
+
+            // After this message is processed, we check the Handshake status:
+            if (peerInfo.checkHandshakeOK()) {
+                acceptHandshake(peerInfo);
+            } logger.debug( peerInfo.getPeerAddress(), " Handshake pending, ACK not sent to Peer yet");
+        } finally {
+            lock.unlock();
         }
-
-        // We check that this ACK has not been sent already
-        if (peerInfo.isACKReceived()) {
-            rejectHandshake(peerInfo, PeerHandshakeRejectedEvent.HandshakedRejectedReason.PROTOCOL_MSG_DUPLICATE, null);
-            return;
-        }
-
-        // If we reach this far, the ACK is OK:
-        // We update the sate of this Peer:
-        peerInfo.receiveACK();
-
-        // After this message is processed, we check the Handshake status:
-        if (peerInfo.checkHandshakeOK()) {
-            acceptHandshake(peerInfo);
-        } logger.trace( peerInfo.getPeerAddress(), " Handshake not accepted, ACK not sent to Peer yet");
     }
 
 
@@ -278,33 +323,36 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
 
     private synchronized void checkIfWeNeedMoreHandshakes() {
 
-        // If the service is stopping, we do nothing...
-        if (!isStopping) {
+        try {
+            lock.lock();
+            // If the service is stopping, we do nothing...
+            if (!isStopping) {
 
+                // If we are still below the minimum range of Handshaked Peers and we had Requested to RESUME the connections, we do it now..
+                if (!doWeHaveEnoughHandshakes() && !state.isMoreConnsRequested()) {
+                    logger.debug("Requesting to Resume Connections...");
+                    super.eventBus.publish(new ResumeConnectingRequest());
+                    updateStatus(0, true, false, 0);
+                }
 
+                if (doWeHaveEnoughHandshakes() && !state.isStopConnsRequested()) {
+                    logger.debug("Requesting to Stop Connections...");
+                    super.eventBus.publish(new StopConnectingRequest());
 
-            // If we are still below the minimum range of Handshaked Peers and we had Requested to RESUME the connections, we do it now..
-            if (!doWeHaveEnoughHandshakes() && !state.isMoreConnsRequested()) {
-                logger.trace("Requesting to Resume Connections...");
-                super.eventBus.publish(new ResumeConnectingRequest());
-                updateStatus(0, true, false, 0);
+                    // Now, in order to keep the number of connections stable and predictable, we are going to disconnect
+                    // from those Peers we don't need , since we've already reached the MAX limit:
+
+                    logger.debug("Requesting to disconnect any Peers Except the ones already handshaked...");
+                    List<PeerAddress> peerToKeep = peersInfo.values().stream()
+                            .filter(p -> p.isHandshakeAccepted())
+                            .map(p -> p.getPeerAddress())
+                            .collect(Collectors.toList());
+                    super.eventBus.publish(DisconnectPeersRequest.builder().peersToKeep(peerToKeep).build());
+                    updateStatus(0, false, true, 0);
+                }
             }
-
-            if (doWeHaveEnoughHandshakes() && !state.isStopConnsRequested()) {
-                logger.trace("Requesting to Stop Connections...");
-                super.eventBus.publish(new StopConnectingRequest());
-
-                // Now, in order to keep the number of connections stable and predictable, we are going to disconnect
-                // from those Peers we don't need , since we've already reached the MAX limit:
-
-                logger.trace("Requesting to disconnect any Peers Except the ones already handshaked...");
-                List<PeerAddress> peerToKeep = peersInfo.values().stream()
-                        .filter(p -> p.isHandshakeAccepted())
-                        .map(p -> p.getPeerAddress())
-                        .collect(Collectors.toList());
-                super.eventBus.publish(DisconnectPeersRequest.builder().peersToKeep(peerToKeep).build());
-                updateStatus(0, false, true, 0);
-            }
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -337,7 +385,7 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
      * Starts the Handshake with the Remote Peer, sending a VERSION Msg
      */
     private void startHandshake(HandshakePeerInfo peerInfo) {
-        logger.trace(peerInfo.getPeerAddress(), "Starting Handshake...");
+        logger.debug(peerInfo.getPeerAddress(), "Starting Handshake...");
 
         VarStrMsg userAgentMsg = VarStrMsg.builder().str( config.getUserAgent()).build();
         NetAddressMsg addr_from = NetAddressMsg.builder()
@@ -372,8 +420,8 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
 
         // Check that we have not broken the MAX limit. If we do, we request a disconnection from this Peer
         if (config.getBasicConfig().getMaxPeers().isPresent() && state.getNumCurrentHandshakes() >= config.getBasicConfig().getMaxPeers().getAsInt()) {
-            logger.trace(peerInfo.getPeerAddress(), "Handshake Accepted but not used (already have enough). ");
-            super.eventBus.publish(new PeerDisconnectedEvent(peerInfo.getPeerAddress(), PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL));
+            logger.debug(peerInfo.getPeerAddress(), "Handshake Accepted but not used (already have enough). ");
+            super.eventBus.publish(new DisconnectPeerRequest(peerInfo.getPeerAddress(), "too many handshakes"));
             return;
         }
 
@@ -383,7 +431,7 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
         // If we reach this far, we accept the handshake:
 
         peerInfo.acceptHandshake();
-        logger.trace(peerInfo.getPeerAddress(), "Handshake Accepted (" + state.getNumCurrentHandshakes() + " in total)");
+        logger.debug(peerInfo.getPeerAddress(), "Handshake Accepted (" + state.getNumCurrentHandshakes() + " in total)");
 
         // We trigger the event:
         super.eventBus.publish(new PeerHandshakedEvent(peerInfo.getPeerAddress(), peerInfo.getVersionMsgReceived()));
@@ -397,7 +445,7 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
      */
     private void rejectHandshake(HandshakePeerInfo peerInfo, PeerHandshakeRejectedEvent.HandshakedRejectedReason reason, String detail) {
 
-        logger.trace(peerInfo.getPeerAddress(), " Rejecting Handshake", reason, detail);
+        logger.debug(peerInfo.getPeerAddress(), " Rejecting Handshake", reason, detail);
 
         // We update the state:
         updateStatus(0,false, false, 1);

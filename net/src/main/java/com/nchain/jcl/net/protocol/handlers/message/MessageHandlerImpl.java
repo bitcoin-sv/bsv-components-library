@@ -5,13 +5,18 @@ import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.events.*;
 import com.nchain.jcl.net.network.streams.StreamDataEvent;
 import com.nchain.jcl.net.network.streams.StreamErrorEvent;
-import com.nchain.jcl.net.protocol.events.*;
 
+import com.nchain.jcl.net.protocol.events.control.*;
+import com.nchain.jcl.net.protocol.events.control.BroadcastMsgRequest;
+import com.nchain.jcl.net.protocol.events.data.MsgReceivedEvent;
+import com.nchain.jcl.net.protocol.events.data.MsgSentEvent;
+import com.nchain.jcl.net.protocol.events.control.SendMsgRequest;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.streams.MessageStream;
 import com.nchain.jcl.net.protocol.streams.deserializer.Deserializer;
 import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStream;
 import com.nchain.jcl.tools.config.RuntimeConfig;
+import com.nchain.jcl.tools.events.Event;
 import com.nchain.jcl.tools.handlers.HandlerImpl;
 import com.nchain.jcl.tools.log.LoggerUtil;
 import com.nchain.jcl.tools.thread.ThreadUtils;
@@ -45,6 +50,7 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
 
     // An instance of a Deserializer. There is ONLY ONE Deserializer for all the Streams in the System.
     private Deserializer deserializer;
+
 
     /** Constructor */
     public MessageHandlerImpl(String id, RuntimeConfig runtimeConfig, MessageHandlerConfig config) {
@@ -108,14 +114,23 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
     private void onPeerDisconnected(PeerDisconnectedEvent event) {
         peersInfo.remove(event.getPeerAddress());
     }
+
     // Event Handler:
     private void onStreamMsgReceived(PeerAddress peerAddress, BitcoinMsg<?> btcMsg) {
-        logger.trace(peerAddress, btcMsg.getHeader().getCommand().toUpperCase() + " Msg received.");
+        String msgType = btcMsg.getHeader().getCommand().toUpperCase();
+        logger.trace(peerAddress, msgType + " Msg received.");
         // We run a basic validation on the message,. If OK we publish the Message on the bus, otherwise we request
         // a Peer disconnection (and a Blacklist??)
         String validationError = findErrorInMsg(btcMsg);
         if (validationError == null) {
+            // We propagate this message to the Bus, so other handlers can pick them up if they are subscribed to:
+            Event event = EventFactory.buildIncomingEvent(peerAddress, btcMsg);
+            super.eventBus.publish(event);
+
+            // We also publish a more "general" msgReceived Event, which covers any incoming message...
             super.eventBus.publish(new MsgReceivedEvent(peerAddress, btcMsg));
+
+            // We update the state:
             updateState(1, 0);
         } else {
             logger.trace(peerAddress, " ERROR In incoming msg :: " + validationError);
@@ -143,11 +158,17 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
     public void send(PeerAddress peerAddress, BitcoinMsg<?> btcMessage) {
         if (peersInfo.containsKey(peerAddress)) {
             peersInfo.get(peerAddress).getStream().output().send(new StreamDataEvent<>(btcMessage));
-            // We update the state and trigger the event
-            updateState(0, 1);
-            super.eventBus.publish(new MsgSentEvent(peerAddress, btcMessage));
-        } else logger.trace(peerAddress, " Request to Send Msg Discarded (unknown Peer)");
 
+            // We propagate this message to the Bus, so other handlers can pick them up if they are subscribed to:
+            Event event = EventFactory.buildOutcomingEvent(peerAddress, btcMessage);
+            super.eventBus.publish(event);
+
+            // we also publish a more "general" event, valid ofr any outcoming message
+            super.eventBus.publish(new MsgSentEvent<>(peerAddress, btcMessage));
+
+            // We update the state:
+            updateState(0, 1);
+        } else logger.trace(peerAddress, " Request to Send Msg Discarded (unknown Peer)");
     }
 
     @Override
@@ -180,4 +201,6 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
     public MessageHandlerState getState() {
         return this.state;
     }
+
+
 }

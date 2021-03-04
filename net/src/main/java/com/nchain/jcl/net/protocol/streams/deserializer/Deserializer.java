@@ -125,11 +125,12 @@ public class Deserializer {
     public Message deserialize(HeaderMsg headerMsg, DeserializerContext desContext, ByteArrayReader reader) throws Exception {
         Message result = null;
 
+
         // We build the Cache-Key for this Message...
         CacheMsgKey key = new CacheMsgKey(headerMsg, desContext, reader);
 
-        // We only use the Cache if the requested message is "cacheable"...
-        boolean isCacheable = config.getMessagesToCache().contains(headerMsg.getCommand().toUpperCase()) &&
+        // We only use the Cache if the cache is enabled AND the requested message is "cacheable"...
+        boolean isCacheable = config.isEnabled() && config.getMessagesToCache().contains(headerMsg.getCommand().toUpperCase()) &&
                 (headerMsg.getLength() < config.getMaxMsgSizeInBytes());
 
         if (isCacheable) {

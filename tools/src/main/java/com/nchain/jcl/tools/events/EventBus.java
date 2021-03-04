@@ -1,11 +1,14 @@
 package com.nchain.jcl.tools.events;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+
+
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.function.Consumer;
+import java.util.function.Function;
+
 
 /**
  * @author i.fernandez@nchain.com
@@ -13,63 +16,141 @@ import java.util.function.Consumer;
  *
  * A simple in-Memory Publish/Subscribe EventBus Implementation:
  * You subscribe for an specific Event Type, providing a piece of Code (Consumer/Event Handler) that will be executed
- * (notified) whenever an Event of that type is published to the Bus. The notification process will perform differently,
- * depending on the "ExecutorService" instance passed during creation:
+ * (notified) whenever an Event of that type is published to the Bus.
  *
- * - If not provided, the notification is BLOCKING.
- * - If provided, the notification is NO-BLOCKING, running in a Multithread environment provided by the executor
+ * Yu can also specify if the Event Handler will be executed in the same Thread as the main App or in a multi-thread
+ * environment. If you specify an ExecutorSerice in the constructor, that wil be used to submit task, otherwise they will
+ * be run in the same Thread.
+ *
+ * The EventBus allows for 2-level priority Events, you can specfy what evetn are the ones with higer priority. In order
+ * to enable this fetaure, you need to:
+ * - Pass an additional executor (executorHighPriority) in the constructor. This will be used for the high-priority
+ *   Events.
+ * - Pass a Function in the constructor that will be used to decide the priority of each Event.
+ *
  */
 public class EventBus {
+
+    /** Different Types of Priorities for the Evnets published to the Bus */
+    public enum ConsumerPriority {
+        NORMAL, HIGH
+    }
 
     // For each Event Type, we store the list of Consumers/Event Handlers that will get run/notified
     private Map<Class<? extends Event>, List<Consumer<? extends Event>>> eventHandlers = new ConcurrentHashMap<>();
 
-    // An executorService for notifying the Subscribers asynchronously
+    // Every time an Event is published, we need to get the List of Consumers/Event Handlers linked to that Event Type,
+    // and execute them in sequence. That implies tht we need to create an additional "task" that loops over those
+    // Handlers and executes one after another. In order to improve performance, we are NOT doing that at the moment of
+    // publishing en Event. Instead, we do that we you subscribe the Handlers. So we keep an additional structure where
+    // we have already built this "wrapper" task that loop over the Handlers and executes them in sequence:
+
+    private Map<Class<? extends Event>, Consumer> eventHandlersOptimized = new ConcurrentHashMap<>();
+
+    // We keep track of the number of events published (ONLY FOR TESTING; TIME CONSUMING TASK)
+    private Map<Class<? extends Event>, Long> numEventsPublished = new ConcurrentHashMap<>();
+
+    // An executor for running the Handlers:
     private final ExecutorService executor;
 
+    // An executor for running the HIgh-Priority Events:
+    private final ExecutorService executorHighPriority;
 
-    private EventBus(ExecutorService executor) {
+    // Function that is executed for each Event published to the Bus, to identity its priority and therefore use the
+    // right executor to submit it:
+    private Function<Event, EventBus.ConsumerPriority> eventPriorityChecker;
+
+    /** Constructor */
+    private EventBus(ExecutorService executor, ExecutorService executorHighPriority, Function<Event, EventBus.ConsumerPriority> eventPriorityChecker) {
         this.executor = executor;
+        this.executorHighPriority = (executorHighPriority != null)? executorHighPriority : executor;
+        this.eventPriorityChecker = eventPriorityChecker;
     }
 
-    public static EventBusBuilder builder() {
-        return new EventBusBuilder();
+    /** Constructor with NO High-priority. All Events are run with the same priority */
+    private EventBus(ExecutorService executor) {
+        this(executor, executor, null);
     }
 
-    private void runAndIgnoreException(Consumer eventHandler, Event event) {
-        Runnable task = () -> {try {eventHandler.accept(event);} catch (Exception e) {e.printStackTrace();}};
-        if (executor == null) task.run();   // Synchronously
-        else executor.submit(task);         // Asynchronously
-    }
-
-    public void subscribe(Class<? extends Event> eventClass, Consumer<? extends Event> eventHandler) {
+    /**
+     * It assigns a Handler to an Event Type. More than one Handler can be linked to an Event Type, and they are all
+     * executed in sequence.
+     */
+    public synchronized void subscribe(Class<? extends Event> eventClass, Consumer<? extends Event> eventHandler) {
+        // We add the handler to the list of handlers assigned to this Event Type:
         List<Consumer<? extends Event>> consumers = new ArrayList<>();
         consumers.add(eventHandler);
         eventHandlers.merge(eventClass, consumers, (w, prev) -> {prev.addAll(w); return prev;});
+
+        // We build a "wrapper"(consumer optimized  task that executes ll the handlers linked to this Event Type in
+        // sequence. This is the task that will be executed when an Event is published:
+
+        Consumer<? extends Event> consumerOptimized = (event) -> {
+            List<Consumer<? extends Event>> eventConsumers = eventHandlers.get(eventClass);
+            for (Consumer consumer : eventConsumers) {
+                try {consumer.accept(event);} catch (Exception e) {e.printStackTrace();}
+            }
+        };
+
+        eventHandlersOptimized.put(eventClass, consumerOptimized);
     }
 
+    /**
+     * It publishes a new Event to the Bus and executes the handlers subscribed to it
+     */
     public void publish(Event event) {
-        for (Class eventClass : eventHandlers.keySet()) {
-            if (eventClass.isInstance(event))
-                eventHandlers.get(eventClass).forEach(handler -> runAndIgnoreException(handler, event));
+        ConsumerPriority priority = (eventPriorityChecker != null) ? eventPriorityChecker.apply(event) : ConsumerPriority.HIGH;
+        ExecutorService executorToRun = (priority.equals(ConsumerPriority.HIGH)) ? executorHighPriority : executor;
+        Runnable task = () -> {eventHandlersOptimized.get(event.getClass()).accept(event);};
+        if (executorToRun != null) { // Asynchronously
+            try {
+                executorToRun.submit(task);
+            } catch (RejectedExecutionException e) {
+                // nothing
+            }
         }
+        else task.run(); // Synchronously
     }
 
-    public ExecutorService getExecutor() {
-        return this.executor;
+    /** Returns the EVentBus Status (ONLY FOR TESTING/DEBUGGING) */
+    public String getStatus() {
+        String result = "EventBus Status: \n";
+        Iterator<Class<? extends Event>> events = eventHandlers.keySet().iterator();
+        while (events.hasNext()) {
+            Class eventClass = events.next();
+            Long numEvents = numEventsPublished.get(eventClass) != null ? numEventsPublished.get(eventClass) : 0L;
+            result += eventClass.toString() + " : " + eventHandlers.get(eventClass).size() + " handlers, " + numEvents + " events triggered \n";
+        }
+        return result;
     }
+
+
+    public static EventBusBuilder builder() { return new EventBusBuilder(); }
 
     /**
      * Builder class.
      */
     public static class EventBusBuilder {
         private ExecutorService executor;
+        private ExecutorService executorHighPriority;
+        Function<Event, EventBus.ConsumerPriority> eventPriorityChecker;
 
         EventBusBuilder() {}
         public EventBus.EventBusBuilder executor(ExecutorService executor) {
             this.executor = executor;
             return this;
         }
-        public EventBus build() { return new EventBus(executor); }
+        public EventBus.EventBusBuilder executorHighPriority(ExecutorService executorHighPriority) {
+            this.executorHighPriority = executorHighPriority;
+            return this;
+        }
+
+        public EventBus.EventBusBuilder eventPriorityChecker(Function<Event, EventBus.ConsumerPriority> eventPriorityChecker) {
+            this.eventPriorityChecker = eventPriorityChecker;
+            return this;
+        }
+        public EventBus build() {
+            return new EventBus(executor, executorHighPriority, eventPriorityChecker);
+        }
     }
 }

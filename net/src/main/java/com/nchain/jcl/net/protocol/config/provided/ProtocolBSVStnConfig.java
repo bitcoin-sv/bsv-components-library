@@ -27,7 +27,7 @@ public class ProtocolBSVStnConfig extends ProtocolConfigImpl implements Protocol
 
     // Specific values for BSV STN Net:
 
-    private static String id                   = "BSV [stn Net]";
+    public static String id                   = "BSV [stn Net]";
     private static long magicPackage           = 0xf9c4cefbL;
     private static int services                = ProtocolServices.NODE_BLOOM.getProtocolServices();
     private static int port                    = 9333;

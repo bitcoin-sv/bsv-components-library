@@ -26,6 +26,20 @@ public interface NetworkConfig {
     /** Maximum number of millisecs to wait for an idle Socket before the connection is closed */
     OptionalInt getTimeoutSocketIdle();
 
+    /**
+     * This number indicates the number of connection that the Network Handler will try to open, every time it runs low
+     * on connections and needs more. Opening a new Connection might be expensive in terms of Messages exchange and
+     * threads, so use this field with precaution:
+     *  - If the expected traffic is VERY HIGH, keep this number low (0-10). Sicne the traffic is VERY HIGH, we might
+     *    proabaly have a big number of Threads running in the Bus, we do NOT want even more due to new comnnections
+     *    being opened at the same time.
+     * - If the expected traffic is LOW, you can set a number about (100-200), this will make the Network Handler to
+     *   open 100-300 connections to new Peres simultaneously. That is exepnsice in therms of Threads, but since the
+     *   traffic is low we are not expecting any issue. Use this option is you want to connect to new Peers FAST.
+     * @return
+     */
+    int getMaxSocketConnectionsOpeningAtSameTime();
+
     /** Only relevant for NIO-based implementations. Lower bound for the Socket Buffer size */
     int getNioBufferSizeLowerBound();
 
@@ -37,13 +51,5 @@ public interface NetworkConfig {
 
     /** An aproximation of the max size of a message that will be sent/receive by the Net */
     int getMaxMessageSizeAvgInBytes();
-
-
-    /**
-     * indicates if the listeners are running in blocking mode (same Thread as the system)
-     * If they are running in blocking mode, they might block the system, otherwise the general
-     * performance of the Network Component shouldn't be affected.
-     * */
-    boolean isBlockingOnListeners();
 
 }

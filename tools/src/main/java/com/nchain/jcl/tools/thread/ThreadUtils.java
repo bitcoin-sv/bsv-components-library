@@ -35,6 +35,16 @@ public class ThreadUtils {
     static class EventBusThreadFactory implements ThreadFactory {
         public Thread newThread(Runnable r) {
             Thread thread = new Thread(r);
+            thread.setPriority(Thread.NORM_PRIORITY);
+            thread.setDaemon(true);
+            thread.setName("EventBus Thread");
+            return thread;
+        }
+    }
+
+    static class EventBusThreadFactoryHighPriority implements ThreadFactory {
+        public Thread newThread(Runnable r) {
+            Thread thread = new Thread(r);
             thread.setPriority(Thread.MAX_PRIORITY);
             thread.setDaemon(true);
             thread.setName("EventBus Thread");
@@ -44,6 +54,8 @@ public class ThreadUtils {
 
     // A built-in Executor used for the EventBus shared by all the Network and Protocol Handlers
     public static ExecutorService EVENT_BUS_EXECUTOR = Executors.newCachedThreadPool(new EventBusThreadFactory());
+
+    public static ExecutorService EVENT_BUS_EXECUTOR_HIGH_PRIORITY = Executors.newCachedThreadPool(new EventBusThreadFactoryHighPriority());
 
     // A built-in Executor for the Streams connected to the Remote Peers. This Stream needs to be Single-thread,
     // otherwise the order of the bytes coming in/out from the Peer cannot be guaranteed
@@ -92,5 +104,5 @@ public class ThreadUtils {
      * the listeners.
      */
     // TODO: Another Factory needed for this?
-    public static ExecutorService SYSTEM_EXECUTOR = Executors.newSingleThreadExecutor();
+    public static ExecutorService SYSTEM_EXECUTOR = Executors.newSingleThreadExecutor(getThreadFactory("PeerConnectionExecutor", Thread.MAX_PRIORITY, true));
 }

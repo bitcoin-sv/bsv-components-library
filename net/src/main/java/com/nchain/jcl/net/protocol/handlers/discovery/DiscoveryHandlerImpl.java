@@ -3,16 +3,18 @@ package com.nchain.jcl.net.protocol.handlers.discovery;
 
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.events.*;
-import com.nchain.jcl.net.protocol.events.InitialPeersLoadedEvent;
-import com.nchain.jcl.net.protocol.events.MsgReceivedEvent;
-import com.nchain.jcl.net.protocol.events.PeerHandshakedEvent;
-import com.nchain.jcl.net.protocol.events.SendMsgRequest;
+import com.nchain.jcl.net.protocol.events.data.AddrMsgReceivedEvent;
+import com.nchain.jcl.net.protocol.events.data.GetAddrMsgReceivedEvent;
+import com.nchain.jcl.net.protocol.events.control.InitialPeersLoadedEvent;
+import com.nchain.jcl.net.protocol.events.control.PeerHandshakedEvent;
+import com.nchain.jcl.net.protocol.events.control.SendMsgRequest;
 import com.nchain.jcl.net.protocol.messages.AddrMsg;
 import com.nchain.jcl.net.protocol.messages.GetAddrMsg;
 import com.nchain.jcl.net.protocol.messages.NetAddressMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
 import com.nchain.jcl.tools.config.RuntimeConfig;
+import com.nchain.jcl.tools.events.EventQueueProcessor;
 import com.nchain.jcl.tools.handlers.HandlerImpl;
 import com.nchain.jcl.tools.log.LoggerUtil;
 import com.nchain.jcl.tools.thread.ThreadUtils;
@@ -80,12 +82,20 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
     // State:
     private DiscoveryHandlerState state = DiscoveryHandlerState.builder().build();
 
+    // The Events captured by this Handler will  e processed in a separate Thread/s, by an EventQueueProcessor, this
+    // way we won't slow down the rate at whic the eVents are published and processed in the Bus
+    private EventQueueProcessor eventQueueProcessor;
+
     /** Constructor */
     public DiscoveryHandlerImpl(String id, RuntimeConfig runtimeConfig, DiscoveryHandlerConfig config) {
         super(id, runtimeConfig);
         this.config = config;
         this.logger = new LoggerUtil(id, HANDLER_ID, this.getClass());
         this.executor = ThreadUtils.getSingleThreadScheduledExecutorService("Discovery-Handler-Renew");
+
+        // We start the EventQueueProcessor. We do not expect many messages (compared to the rest of traffic), so a
+        // single Thread will do...
+        this.eventQueueProcessor = new EventQueueProcessor(ThreadUtils.getSingleThreadScheduledExecutorService("Discovery-EventsConsumers"));
     }
 
     @Override
@@ -111,14 +121,28 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
     }
 
     private void registerForEvents() {
-        super.eventBus.subscribe(NetStartEvent.class, e -> this.onStart((NetStartEvent)e));
-        super.eventBus.subscribe(NetStopEvent.class, e -> this.onStop((NetStopEvent)e));
-        super.eventBus.subscribe(PeerHandshakedEvent.class, e -> this.onPeerHandshaked((PeerHandshakedEvent) e));
-        super.eventBus.subscribe(PeersBlacklistedEvent.class, e -> this.onPeerBlacklisted((PeersBlacklistedEvent) e));
-        super.eventBus.subscribe(PeerDisconnectedEvent.class, e -> this.onPeerDisconnected((PeerDisconnectedEvent) e));
-        super.eventBus.subscribe(MsgReceivedEvent.class, e -> this.onMsgReceived((MsgReceivedEvent) e));
-        super.eventBus.subscribe(ResumeConnectingRequest.class, e -> this.onResumeConnecting((ResumeConnectingRequest) e));
-        super.eventBus.subscribe(StopConnectingRequest.class, e -> this.onStopConnecting((StopConnectingRequest) e));
+
+        this.eventQueueProcessor.addProcessor(NetStartEvent.class, e -> this.onStart((NetStartEvent)e));
+        this.eventQueueProcessor.addProcessor(NetStopEvent.class, e -> this.onStop((NetStopEvent)e));
+        this.eventQueueProcessor.addProcessor(PeerHandshakedEvent.class, e -> this.onPeerHandshaked((PeerHandshakedEvent) e));
+        this.eventQueueProcessor.addProcessor(PeersBlacklistedEvent.class, e -> this.onPeerBlacklisted((PeersBlacklistedEvent) e));
+        this.eventQueueProcessor.addProcessor(PeerDisconnectedEvent.class, e -> this.onPeerDisconnected((PeerDisconnectedEvent) e));
+        this.eventQueueProcessor.addProcessor(GetAddrMsgReceivedEvent.class, e -> this.onGetAddrMsg((GetAddrMsgReceivedEvent) e));
+        this.eventQueueProcessor.addProcessor(AddrMsgReceivedEvent.class, e -> this.onAddrMsg((AddrMsgReceivedEvent) e));
+        this.eventQueueProcessor.addProcessor(ResumeConnectingRequest.class, e -> this.onResumeConnecting((ResumeConnectingRequest) e));
+        this.eventQueueProcessor.addProcessor(StopConnectingRequest.class, e -> this.onStopConnecting((StopConnectingRequest) e));
+
+        super.eventBus.subscribe(NetStartEvent.class, e -> this.eventQueueProcessor.addEvent(e));
+        super.eventBus.subscribe(NetStopEvent.class, e -> this.eventQueueProcessor.addEvent(e));
+        super.eventBus.subscribe(PeerHandshakedEvent.class, e -> this.eventQueueProcessor.addEvent(e));
+        super.eventBus.subscribe(PeersBlacklistedEvent.class, e -> this.eventQueueProcessor.addEvent(e));
+        super.eventBus.subscribe(PeerDisconnectedEvent.class, e -> this.eventQueueProcessor.addEvent(e));
+        super.eventBus.subscribe(GetAddrMsgReceivedEvent.class, e -> this.eventQueueProcessor.addEvent(e));
+        super.eventBus.subscribe(AddrMsgReceivedEvent.class, e -> this.eventQueueProcessor.addEvent(e));
+        super.eventBus.subscribe(ResumeConnectingRequest.class, e -> this.eventQueueProcessor.addEvent(e));
+        super.eventBus.subscribe(StopConnectingRequest.class, e -> this.eventQueueProcessor.addEvent(e));
+
+        this.eventQueueProcessor.start();
     }
 
     /**
@@ -187,12 +211,18 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
         logger.debug("Starting...");
         initPool();
     }
+
     // Event Handler:
     public void onStop(NetStopEvent event) {
         logger.debug("Saving High-Quality Peers to disk...");
         savePoolToDisk();
-        // We stop the Jobs:
+
+        // We stop the concurrent Jobs...
         if (executor != null) executor.shutdownNow();
+
+        // We stop the EventQueueProcessor...
+        this.eventQueueProcessor.stop();
+
         logger.debug("Stop.");
         isStopping = true;
     }
@@ -236,11 +266,11 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
     }
     // Event Handler:
     public void onPeerBlacklisted(PeersBlacklistedEvent event) {
-        this.peersBlacklisted.addAll(event.getInetAddress().keySet());
+        this.peersBlacklisted.addAll(event.getInetAddresses().keySet());
 
         // We remove from the Pool all the Peers using this IP:
         List<PeerAddress> toRemoveFromMainPool = peersInfo.keySet().stream()
-                .filter(p -> event.getInetAddress().keySet().contains(p.getIp()))
+                .filter(p -> event.getInetAddresses().keySet().contains(p.getIp()))
                 .collect(Collectors.toList());
 
         for (PeerAddress peerAddress : toRemoveFromMainPool) {
@@ -254,17 +284,6 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
         if (peerInfo != null) peerInfo.reset();
     }
     // Event Handler:
-    public void onMsgReceived(MsgReceivedEvent event) {
-        DiscoveryPeerInfo peerInfo = peersInfo.get(event.getPeerAddress());
-
-        if (peerInfo != null) {
-            if (event.getBtcMsg().is(AddrMsg.MESSAGE_TYPE))
-                processAddrMsg(peerInfo, ((BitcoinMsg<AddrMsg>) event.getBtcMsg()).getBody());
-            if (event.getBtcMsg().is(GetAddrMsg.MESSAGE_TYPE))
-                processGetAddrMsg(peerInfo, ((BitcoinMsg<GetAddrMsg>)event.getBtcMsg()).getBody());
-        }
-    }
-    // Event Handler:
     public void onResumeConnecting(ResumeConnectingRequest event) {
         this.isAccceptingConnections = true;
     }
@@ -272,16 +291,21 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
     public void onStopConnecting(StopConnectingRequest event) {
         this.isAccceptingConnections = false;
     }
+
+    // Event Handler:
     /**
      * It process the incoming GETADDR Message,a according to the Rules defined in the Bitcoin P2P.
      * The business logic of processing incoming ADDR is implemented as it's described in the Satoshi client:
      * https://en.bitcoin.it/wiki/Satoshi_Client_Node_Discovery#Ongoing_.22addr.22_advertisements
      */
-    private void processGetAddrMsg(DiscoveryPeerInfo peerInfo, GetAddrMsg msg) {
+    private void onGetAddrMsg(GetAddrMsgReceivedEvent event) {
 
+        DiscoveryPeerInfo peerInfo = peersInfo.get(event.getPeerAddress());
+        if (peerInfo == null) return;
+        logger.debug(peerInfo.getPeerAddress().toString() + " :: Processing incoming GET_ADDR...");
         // We check that we have enough of them to send them out:
         if (config.getRelayMinAddresses().isPresent() && (peersInfo.size() > config.getRelayMinAddresses().getAsInt())) {
-            logger.trace(peerInfo.getPeerAddress(), "GETADDR Ignored (not enough Addresses to send");
+            logger.debug(peerInfo.getPeerAddress(), "GETADDR Ignored (not enough Addresses to send");
             return;
         }
 
@@ -310,13 +334,20 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
             super.eventBus.publish(new SendMsgRequest(peerInfo.getPeerAddress(), btcMsg));
         }
     }
+
+    // Event Handler:
     /**
      * It process the incoming ADDR Message, according to the Rules defined in the Bitcoin P2P.
      * The business logic of processing incoming ADDR is implemented as it's described in the Satoshi client:
      * https://en.bitcoin.it/wiki/Satoshi_Client_Node_Discovery#Ongoing_.22addr.22_advertisements
      */
-    private void processAddrMsg(DiscoveryPeerInfo peerInfo, AddrMsg msg) {
+    private void onAddrMsg(AddrMsgReceivedEvent event) {
         try {
+            DiscoveryPeerInfo peerInfo = peersInfo.get(event.getPeerAddress());
+            if (peerInfo == null) return;
+
+            AddrMsg msg = event.getBtcMsg().getBody();
+            logger.debug(peerInfo.getPeerAddress().toString() + " :: Processing incoming ADDR...");
 
             // Should never happen!!
             if (peerInfo == null) {
@@ -355,7 +386,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
             super.eventBus.publish(new ConnectPeersRequest(peersToConnect));
 
 
-            logger.trace(peerInfo.getPeerAddress(),msg.getCount().getValue() + " Addresses received via ADDR. ");
+            logger.debug(peerInfo.getPeerAddress(),msg.getCount().getValue() + " Addresses received via ADDR. ");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -365,7 +396,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
      * It Starts the Discovery P2P, sending a GETADDR Message to this Remote Peer
      */
     private void startDiscovery(DiscoveryPeerInfo peerInfo) {
-        logger.trace(peerInfo.getPeerAddress(), "Starting Node Discovery...");
+        logger.debug(peerInfo.getPeerAddress(), "Starting Node Discovery...");
 
         // We Request to send a GET_ADDR Message
         GetAddrMsg getAddrMsg = GetAddrMsg.builder().build();
