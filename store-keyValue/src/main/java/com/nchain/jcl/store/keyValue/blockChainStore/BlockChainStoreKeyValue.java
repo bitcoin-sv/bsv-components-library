@@ -301,28 +301,11 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             blockChainInfo = _getBlockChainInfo(blockHeader, parentBlockChainInfo, pathIdForNewBlock);
         }
 
-        // We can only connect a block if the header is valid
-        try{
-            //TODO is there better way than this?
-            ChainInfoBean chainInfoBean = new ChainInfoBean(blockHeader);
-            chainInfoBean.setChainWork(blockChainInfo.getChainWork());
-            chainInfoBean.setHeight(blockChainInfo.getHeight());
-            chainInfoBean.makeImmutable();
-
-            //try to validate
-            _validateBlock(chainInfoBean);
-
-        } catch (BlockChainRuleFailureException ex){
-            getLogger().info("rule failure at height: " + blockChainInfo.getHeight() + " message: " +  ex.getMessage());
-
-            //publish invalid block event
-            InvalidBlockEvent event = new InvalidBlockEvent(blockHeader.getPrevBlockHash(), ex.getMessage());
-            getEventBus().publish(event);
-
-            //remove all traces from the block
+        //validate the newly connected block
+        if(!_validateBlock(blockHeader, blockChainInfo)){
+            //remove all traces from the block if it's invalid
             _removeBlock(tr, blockHeader.getHash().toString());
-
-            //nothing else to process
+            // nothing else to process
             return;
         }
 
@@ -903,8 +886,30 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             }
         }
 
-    private void _validateBlock(ChainInfo block) throws BlockChainRuleFailureException {
-         validateBlockChainInfo(block);
+    private boolean _validateBlock(HeaderReadOnly candidateBlockHeader, BlockChainInfo candidateChainInfo) {
+        // We can only connect a block if the header is valid
+        try{
+            ChainInfoBean chainInfoBean = new ChainInfoBean(candidateBlockHeader);
+            chainInfoBean.setChainWork(candidateChainInfo.getChainWork());
+            chainInfoBean.setHeight(candidateChainInfo.getHeight());
+            chainInfoBean.makeImmutable();
+
+            //try to validate
+            validateBlockChainInfo(chainInfoBean);
+
+        } catch (BlockChainRuleFailureException ex){
+            getLogger().info("rule failure at height: " + candidateChainInfo.getHeight() + " message: " +  ex.getMessage());
+
+            //publish invalid block event
+            InvalidBlockEvent event = new InvalidBlockEvent(candidateBlockHeader.getPrevBlockHash(), ex.getMessage());
+            getEventBus().publish(event);
+
+            //nothing else to process
+            return false;
+        }
+
+        return true;
+
     }
 
 }
