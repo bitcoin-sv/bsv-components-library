@@ -1,7 +1,7 @@
 package com.nchain.jcl.tools.config.provided;
 
 
-import com.nchain.jcl.tools.bytes.ByteArrayMemoryConfiguration;
+import com.nchain.jcl.tools.bytes.ByteArrayConfig;
 import com.nchain.jcl.tools.config.RuntimeConfigImpl;
 import com.nchain.jcl.tools.files.FileUtilsBuilder;
 
@@ -15,9 +15,7 @@ import java.time.Duration;
  */
 public final class RuntimeConfigDefault extends RuntimeConfigImpl {
 
-    private static final ByteArrayMemoryConfiguration BYTE_ARRAY_MEMORY_CONFIGURATION = ByteArrayMemoryConfiguration.builder()
-            .byteArraySize(ByteArrayMemoryConfiguration.ARRAY_SIZE_NORMAL)
-            .build();
+    private static final ByteArrayConfig BYTE_ARRAY_MEMORY_CONFIGURATION = new ByteArrayConfig();
 
     private static final int MSG_SIZE_IN_BYTES_FOR_REAL_TIME_PROCESSING = 10_000_000;
 

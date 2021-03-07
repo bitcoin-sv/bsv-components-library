@@ -62,7 +62,7 @@ class BlockDownloadTest extends Specification {
 
             // We set up the configuration:
             BlockDownloaderHandlerConfig blockConfig = config.getBlockDownloaderConfig().toBuilder()
-                .maxBlocksInParallel(3)
+                .maxBlocksInParallel(1)
                 .maxIdleTimeout(Duration.ofSeconds(10))
                 .build()
             // We configure the P2P Service:
@@ -131,7 +131,7 @@ class BlockDownloadTest extends Specification {
             config                     |   block_hashes
             new ProtocolBSVMainConfig()      |   BLOCKS_BSV_MAIN
            //com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder.get(MainNetParams.get()) |   BLOCKS_BSV_MAIN
-           // new ProtocolBSVStnConfig()      |   BLOCKS_BSV_STN
+           //new ProtocolBSVStnConfig()      |   BLOCKS_BSV_STN
            //new ProtocolBTCMainConfig() |   BLOCKS_BTC_MAIN
     }
 

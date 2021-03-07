@@ -34,7 +34,7 @@ public final class AddrMsg extends Message {
     private final ImmutableList<NetAddressMsg> addrList;
 
     /**
-     * Creates the AddrMsg Object.Use the corresponding builder to create the instance.
+     * Creates the AddrMsg Object.Use the corresponding byteArray to create the instance.
      */
     protected AddrMsg( List<NetAddressMsg> addrList) {
         this.addrList = ImmutableList.copyOf(addrList);

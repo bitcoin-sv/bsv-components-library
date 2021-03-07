@@ -35,33 +35,38 @@ public class ByteArrayReaderOptimized extends ByteArrayReader {
     private int bufferDataSize = 0;
     private int bytesConsumed = 0;
 
-    public ByteArrayReaderOptimized(ByteArrayReader reader) {
-        super(reader.builder, null, reader.realTimeProcessingEnabled);
+    public ByteArrayReaderOptimized(ByteArray byteArray) {
+        super(byteArray);
+    }
+
+    public ByteArrayReaderOptimized(ByteArrayReader byteArrayReader) {
+        super(byteArrayReader.byteArray);
+    }
+
+    public ByteArrayReaderOptimized(ByteArrayWriter byteArrayWriter) {
+        super(byteArrayWriter.buffer);
+    }
+
+    public ByteArrayReaderOptimized(byte[] initialData) {
+        super(initialData);
     }
 
     public void refreshBuffer() throws IOException {
         // We extract from the buffer the bytes already consumed
-        //log.trace("Before refreshing buffer. Buffer: " + bytesConsumed + " consumed, " + bufferDataSize + " Total. Builder size: " + builder.size());
-        super.builder.extractBytes(bytesConsumed);
+        //log.trace("Before refreshing buffer. Buffer: " + bytesConsumed + " consumed, " + bufferDataSize + " Total. Builder size: " + byteArray.size());
+        super.byteArray.extract(bytesConsumed);
 
-        // We fill the buffer with content fom the builder
-        byte[] bytesToAddBuffer = super.builder.get((int) Math.min(buffer.length, super.builder.size()));
+        // We fill the buffer with content fom the byteArray
+        byte[] bytesToAddBuffer = super.byteArray.get((int) Math.min(buffer.length, super.byteArray.size()));
         System.arraycopy(bytesToAddBuffer, 0, buffer, 0, bytesToAddBuffer.length);
         bufferDataSize = bytesToAddBuffer.length;
         bytesConsumed = 0;
-        //log.trace("After refreshing buffer. Buffer: " + bytesConsumed + " consumed, " + bufferDataSize + " Total (" + bytesToAddBuffer.length + " bytes added from Builder. Builder size: " + builder.size());
+        //log.trace("After refreshing buffer. Buffer: " + bytesConsumed + " consumed, " + bufferDataSize + " Total (" + bytesToAddBuffer.length + " bytes added from Builder. Builder size: " + byteArray.size());
     }
 
     private void resetBuffer() {
-        bytesConsumed = 0;
         bufferDataSize = 0;
-    }
-
-    @Override
-    public byte[] extract(int length) {
-        resetBuffer();
-        //log.trace("extracting " + length + "bytes from builder...");
-        return builder.extractBytes(length);
+        bytesConsumed = 0;
     }
 
     private void adjustBufferIfNeededForReading(int length) {
@@ -96,12 +101,13 @@ public class ByteArrayReaderOptimized extends ByteArrayReader {
     }
 
     public boolean readBoolean()            { return (read() != 0); }
-    public long size()                      { return builder.size() - bytesConsumed;}
+    public long size()                      { return byteArray.size() - bytesConsumed;}
     public boolean isEmpty()                { return size() == 0;}
-    public void close()                     { builder.clear();}
+    public void closeAndClear()             { byteArray.clear();}
+
     public byte[] getFullContent() {
-        super.builder.extractBytes(bytesConsumed);
-        return builder.getFullContent();
+        super.byteArray.extract(bytesConsumed);
+        return byteArray.get();
     }
 
     @Override
@@ -112,8 +118,9 @@ public class ByteArrayReaderOptimized extends ByteArrayReader {
             System.arraycopy(buffer, bytesConsumed, result, 0, length);
             bytesConsumed += length;
         } else {
-            super.builder.extractBytes(bytesConsumed);
+            super.byteArray.extract(bytesConsumed);
             result = super.read(length);
+            // WE reset the buffe rto Zero
             bufferDataSize = 0;
             bytesConsumed = 0;
             return result;
@@ -121,10 +128,24 @@ public class ByteArrayReaderOptimized extends ByteArrayReader {
         return result;
     }
 
+    @Override
+    public byte[] get(int length) {
+        byte[] result = new byte[length];
+        if ((buffer.length) >= length) {
+            adjustBufferIfNeededForReading(length);
+            System.arraycopy(buffer, bytesConsumed, result, 0, length);
+        } else {
+            result = super.get(length);
+            resetBuffer();
+            return result;
+        }
+        return result;
+    }
+
     public byte[] getFullContentAndClose() {
-        super.builder.extractBytes(bytesConsumed);
-        byte[] result = builder.getFullContent();
-        close();
+        super.byteArray.extract(bytesConsumed);
+        byte[] result = byteArray.get();
+        closeAndClear();
         return result;
     }
 }

@@ -23,7 +23,7 @@ public final class NotFoundMsg extends Message {
 
 
     /**
-     * Creates the InvMessage Object.Use the corresponding builder to create the instance.
+     * Creates the InvMessage Object.Use the corresponding byteArray to create the instance.
      */
     protected NotFoundMsg(VarIntMsg count, List<InventoryVectorMsg> invVectorMsgList) {
         this.count = count;

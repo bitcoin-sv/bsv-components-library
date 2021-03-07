@@ -5,6 +5,7 @@ import javax.annotation.concurrent.GuardedBy;
 import java.util.ArrayList;
 import java.util.List;
 
+
 import static com.google.common.base.Preconditions.checkArgument;
 
 /**
@@ -12,36 +13,65 @@ import static com.google.common.base.Preconditions.checkArgument;
  * Copyright (c) 2018-2020 nChain Ltd
  *
  * This class allows for creating a Byte Array content with unlimited size. It manages an internal structure (a buffer),
- * where each item is a ByteArray Implementation. This items will be a NIO(memory)-based implementation.
+ * a collection where each item is a ByteArray Implementation (byteArrayNIO implementation).
+ *
+ * This class also implements the ByteArray inrterface, so once the content has been fed, it can be used as a
+ * regular ByteArray.
+ *
+ * NOTE: This class is NOT Thread-Safe. At this moment, operformance is the highest concern, so making it Thread-Safe
+ * is on our list but it will taken up only if needed, reason geing: This class is massively used by the Streams open
+ * with each Remorte Peer:
+ *  - The remote peer sends data to us, and that data is ADDED to this class (to the end, it's right side)
+ *  - We read the data, socnuming bytes from the beginning (left side)
+ *
+ *  The two operations above are happening at the same time and at incredible high rate (several thousands per sec). I'm
+ *  afraid that if I add lock management to these oeprations, that will affect performance. In the real scenarios, the
+ *  data is written ont he left and red fromt he right, so the only problme will come if we try to read data is still not
+ *  there, but we always verify that before reading, so there shouldn't be an issue.
  */
-public class ByteArrayBuilder {
-    @GuardedBy("this") private ByteArrayMemoryConfiguration memoryConfig;
+public class ByteArrayBuffer implements ByteArray {
+
+    @GuardedBy("this") private ByteArrayConfig config;
     @GuardedBy("this") private List<ByteArray> buffers = new ArrayList<>();
 
-    public ByteArrayBuilder(){
-        this.memoryConfig = ByteArrayMemoryConfiguration.builder().build();
+    public ByteArrayBuffer(){
+        this.config = new ByteArrayConfig();
     }
 
-    public ByteArrayBuilder(ByteArrayMemoryConfiguration memoryConfig) {
-        this.memoryConfig = memoryConfig;
+    public ByteArrayBuffer(ByteArrayConfig memoryConfig) {
+        this.config = memoryConfig;
     }
 
 
     // Adds a new buffer to the list and returns it
     private synchronized ByteArray addBuffer() {
-        buffers.add(new ByteArrayImpl(memoryConfig.getByteArraySize()));
-
+        buffers.add(new ByteArrayNIO(config.getByteArraySize()));
         return buffers.get(buffers.size() - 1);
     }
 
+    /** Initialization (we do nothing here) */
+    public void init() {}
+
     /** Adds a byte Array to the end of the current data */
-    public synchronized ByteArrayBuilder add(byte[] data) {
+    public synchronized ByteArrayBuffer addBytes(byte[] data) {
+        add(data);
+        return this;
+    }
+
+    /** Adds a single byte to the end of the data */
+    public synchronized ByteArrayBuffer addBytes(ByteArray byteArray) {
+        buffers.add(byteArray);
+        return this;
+    }
+
+    /** Adds a byte Array to the end of the current data */
+    public synchronized void add(byte[] data) {
         int bytesRemaining = data.length;
         if (buffers.size() == 0) addBuffer();
         while (bytesRemaining > 0) {
 
             // The data is added in the last buffer. if the buffer is already full, we create another one and that one
-            // will become the "new" last one. If the last buffer still has free capacity, we add as many bytes as
+            // will become the "new" last one. If the last buffer still has free capacity, we addBytes as many bytes as
             // possible and leave the rest for the next iteration.
 
             ByteArray buffer = buffers.get(buffers.size()-1);
@@ -52,14 +82,11 @@ public class ByteArrayBuilder {
             buffer.add(data, data.length - bytesRemaining, writeLength);
             bytesRemaining -= writeLength;
         }
-        return this;
     }
 
-    /** Adds a single byte to the end of the data */
-    public synchronized ByteArrayBuilder add(ByteArray byteArray) {
-        buffers.add(byteArray);
-
-        return this;
+    /** Adds a byte Array at the specific location */
+    public synchronized void add(byte[] data, int offset, int length) {
+        throw new UnsupportedOperationException("Not supported at the moment");
     }
 
     /**
@@ -67,7 +94,7 @@ public class ByteArrayBuilder {
      * operation, the data size will be reduced in "length" bytes.
      * If we try to extractReader more bytes than stored in the Builder it will throw an Exception
      * */
-    public synchronized ByteArrayReader extractReader(long length, ByteArrayMemoryConfiguration memoryConfig) {
+    public synchronized ByteArrayReader extractReader(long length, ByteArrayConfig memoryConfig) {
         checkArgument(size() >= length,
                 "trying to extractReader too many bytes, current: " + size() + ", requested: " + length);
 
@@ -75,7 +102,7 @@ public class ByteArrayBuilder {
         int byteArraySize = memoryConfig.getByteArraySize();
 
         // We build the result with another Builder:
-        ByteArrayBuilder writeBuilder = new ByteArrayBuilder(memoryConfig);
+        ByteArrayBuffer writeBuilder = new ByteArrayBuffer(memoryConfig);
 
         // For those buffers that need to be removed from this buffer
         List<ByteArray> buffersToRemove = new ArrayList<>();
@@ -85,14 +112,14 @@ public class ByteArrayBuilder {
         while (bytesRemaining > 0) {
             ByteArray buffer = buffers.get(index);
 
-            // We process this Buffer. If the whole Buffer fits into the result, we just add it to the result. Later
+            // We process this Buffer. If the whole Buffer fits into the result, we just addBytes it to the result. Later
             // on, after the loop is over, the place this buffer was taking int he original buffer will be removed.
             // but if this Buffer has MORE info than we need, then we just extract what we need...
             long numBytesToExtractFromThisBuffer = (buffer.size() <= bytesRemaining)
                     ? buffer.size() : bytesRemaining;
 
             if (buffer.size() == numBytesToExtractFromThisBuffer) {
-                writeBuilder.add(buffer);
+                writeBuilder.addBytes(buffer);
                 buffersToRemove.add(buffer);
             } else {
                 // We are only taking part of this buffer. In order not to throw an OutOfMemory error, we extract the
@@ -101,7 +128,7 @@ public class ByteArrayBuilder {
                 while (numBytesLeftToExtract > 0) {
                     int numBytesToExtractNow = (int) Math.min(byteArraySize, numBytesLeftToExtract);
                     byte[] bytesExtracted = buffer.extract(numBytesToExtractNow);
-                    writeBuilder.add(bytesExtracted);
+                    writeBuilder.addBytes(bytesExtracted);
                     numBytesLeftToExtract -= numBytesToExtractNow;
                 } // while...
             }
@@ -116,7 +143,7 @@ public class ByteArrayBuilder {
     }
 
     public ByteArrayReader extractReader(long length) {
-        return this.extractReader(length, memoryConfig);
+        return this.extractReader(length, config);
     }
 
     public synchronized ByteArrayReader extractReader() {
@@ -126,14 +153,13 @@ public class ByteArrayBuilder {
     /**
      * "Extracts" data from the beginning and returns it as a byteArray. After this
      * operation, the data size will be reduced in "length" bytes.
-     * Since we are returning a whole byte[], we control that we are extracting a "safe" number of bytes.
      * If we try to extractReader more bytes than stored in the Builder it will throw an Exception
      * */
-    public synchronized byte[] extractBytes(int length) {
+    public synchronized byte[] extract(int length) {
         checkArgument(size() >= length,
                 "trying to extract too many bytes, current: " + size() + ", requested: " + length);
 
-        ByteArray result = new ByteArrayImpl(length);
+        ByteArray result = new ByteArrayNIO(length);
 
         // For removing empty buffers after the extraction:
         List<ByteArray> buffersToRemove = new ArrayList<>();
@@ -153,7 +179,7 @@ public class ByteArrayBuilder {
             indexBuffer++;
         }
         // We remove those ByteArrays that are now empty after the extraction...
-        buffersToRemove.forEach(b -> b.destroy());
+        buffersToRemove.forEach(b -> b.clear());
         buffers.removeAll(buffersToRemove);
 
         return result.get();
@@ -164,23 +190,35 @@ public class ByteArrayBuilder {
         return buffers.stream().mapToLong(b -> b.size()).sum();
     }
 
+    /** Returns the remaining capacity (if more bytes are added, this number might change */
+    public synchronized long available() {
+        return buffers.stream().mapToLong(b -> b.available()).sum();
+    }
+
+    /** Returns the total capacity */
+    public synchronized long capacity() {
+        return buffers.stream().mapToLong(b -> b.capacity()).sum();
+    }
+
+    /** Indicates if there are no bytes at all */
+    public synchronized boolean isEmpty() { return (size() == 0);}
+
     /**
      * Cleans the data. For the data stored in Memory, it
      * becomes eligible for the Garbage Collector, so it will be eventually cleaned as well.
      */
     public synchronized void clear() {
-        buffers.forEach(b -> b.destroy());
+        buffers.forEach(b -> b.clear());
         buffers.clear();
     }
 
     /**
-     * It returns a piece of data from the builder, but it does NOT consume it. In order not to risk running
-     * OutOfMemory, we check that the max size we are extracting is BYTE_ARRAY_SIZE.
+     * It returns a piece of data from the buffer, but it does NOT consume it.
      * @param length    length of the data
      */
     public synchronized byte[] get(int length) {
         checkArgument(length <= this.size(),
-                " trying to extractReader too much data (not enough in the builder)");
+                " trying to extractReader too much data (not enough in the byteArray)");
 
         byte[] result = new byte[length];
         long bytesRemaining = length;
@@ -197,11 +235,16 @@ public class ByteArrayBuilder {
         return result;
     }
 
+    /** Returns a Byte Array starting at the given position with the given length */
+    public synchronized byte[] get(int offset, int length) {
+        throw new UnsupportedOperationException("Not supported at the moment");
+    }
+
     /**
-     * Returns the Full Content of the Builder.
+     * Returns the Full Content of the Buffer.
      */
-    protected synchronized byte[] getFullContent() {
-        ByteArray result =  new ByteArrayImpl((int) this.size());
+    public synchronized byte[] get() {
+        ByteArray result =  new ByteArrayNIO((int) this.size());
         for (int i = 0; i < buffers.size(); i++) {
             ByteArray bufferItem = buffers.get(i);
             byte[] bufferItemContent = bufferItem.get();
@@ -210,7 +253,7 @@ public class ByteArrayBuilder {
         return result.get();
     }
 
-    public synchronized void updateMemoryConfig(ByteArrayMemoryConfiguration memoryConfig) {
-        this.memoryConfig = memoryConfig;
+    public synchronized void updateConfig(ByteArrayConfig memoryConfig) {
+        this.config = memoryConfig;
     }
 }

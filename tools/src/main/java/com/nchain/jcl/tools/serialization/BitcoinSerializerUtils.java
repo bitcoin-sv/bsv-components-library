@@ -39,13 +39,10 @@ public abstract class BitcoinSerializerUtils {
         if (firstByte < 253){
             result = firstByte;
         } else if (firstByte == 253){
-            byteReader.waitForBytes(2);
             result = (0xFF & byteReader.read()) | ((0xFF & byteReader.read()) << 8);
         } else if (firstByte == 254) {
-            byteReader.waitForBytes(4);
             result = byteReader.readUint32();
         } else {
-            byteReader.waitForBytes(8);
             result = byteReader.readInt64LE();
         }
         return result;

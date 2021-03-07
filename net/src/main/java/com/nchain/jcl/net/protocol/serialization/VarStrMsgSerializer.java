@@ -34,7 +34,6 @@ public class VarStrMsgSerializer implements MessageSerializer<VarStrMsg> {
     }
 
     public  VarStrMsg deserialize(ByteArrayReader byteReader, int length) {
-        byteReader.waitForBytes(length);
         String str = (length == 0) ? "" : byteReader.readString(length, "UTF-8");
 
         return VarStrMsg.builder().str(str).build();
@@ -47,7 +46,6 @@ public class VarStrMsgSerializer implements MessageSerializer<VarStrMsg> {
         VarIntMsg lengthStrMsg = VarIntMsgSerializer.getInstance().deserialize(context, byteReader);
         int length = (int) lengthStrMsg.getValue();
 
-        byteReader.waitForBytes(length);
         // The second part is the String itself:
         String str = (lengthStrMsg.getValue() == 0) ? "" : byteReader.readString(length, "UTF-8");
 

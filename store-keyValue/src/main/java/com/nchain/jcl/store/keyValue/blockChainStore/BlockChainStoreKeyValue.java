@@ -303,11 +303,11 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
 
         // If the Parent is part of the TIPS of the Chains, then it must be removed from it:
         if (parentBlockChainInfo != null && tipsChain.contains(parentBlockChainInfo.getBlockHash())) {
-            _updateTipsChain(tr, null, parentBlockChainInfo.getBlockHash()); // we don't add, just remove
+            _updateTipsChain(tr, null, parentBlockChainInfo.getBlockHash()); // we don't addBytes, just remove
         }
 
         // Now we look into the CHILDREN (Blocks built on top of this Block), and we connect them as well...
-        // If the Block has NOT Children, then this is the Last Block that can be connected, so we add it to the Tips
+        // If the Block has NOT Children, then this is the Last Block that can be connected, so we addBytes it to the Tips
         List<String> children = _getNextBlocks(tr, blockHeader.getHash().toString());
         if (children != null && children.size() > 0) {
             for (String childHashHex : children) {
@@ -315,7 +315,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                 if (childBlock.isPresent()) _connectBlock(tr, childBlock.get(), blockChainInfo);
             }
         } else {
-            _updateTipsChain(tr, blockHeader.getHash().toString(), null); // We add this block to the Tips
+            _updateTipsChain(tr, blockHeader.getHash().toString(), null); // We addBytes this block to the Tips
         }
     }
 

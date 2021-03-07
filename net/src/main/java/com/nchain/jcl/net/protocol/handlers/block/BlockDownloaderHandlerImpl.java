@@ -275,6 +275,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         try {
             lock.lock();
             if (peerInfo.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING)) {
+
                 String blockHash = peerInfo.getCurrentBlockInfo().getHash();
                 int numAttempts = blocksNumDownloadAttempts.get(blockHash);
                 if (numAttempts < config.getMaxDownloadAttempts()) {
@@ -287,6 +288,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                     super.eventBus.publish(new BlockDiscardedEvent(blockHash, BlockDiscardedEvent.DiscardedReason.TIMEOUT));
                 }
             }
+            peerInfo.discard();
             // We activated back the ping/Pong Verifications for this Peer
             super.eventBus.publish(new EnablePingPongRequest(peerInfo.getPeerAddress()));
         } finally {

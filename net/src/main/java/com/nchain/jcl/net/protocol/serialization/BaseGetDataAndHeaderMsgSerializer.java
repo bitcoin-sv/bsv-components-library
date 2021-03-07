@@ -38,7 +38,6 @@ public class BaseGetDataAndHeaderMsgSerializer implements MessageSerializer<Base
 
     @Override
     public BaseGetDataAndHeaderMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
-        byteReader.waitForBytes(4);
         long version = byteReader.readUint32();
         VarIntMsg hashCount = VarIntMsgSerializer.getInstance().deserialize(context,byteReader);
 
@@ -75,7 +74,6 @@ public class BaseGetDataAndHeaderMsgSerializer implements MessageSerializer<Base
     }
 
     protected HashMsg readHashMsg(DeserializerContext context, ByteArrayReader byteReader)  {
-        byteReader.waitForBytes(HashMsg.HASH_LENGTH);
         HashMsg hashMsg =  HashMsg.builder().hash(byteReader.read(HashMsg.HASH_LENGTH)).build();
         return  hashMsg;
     }

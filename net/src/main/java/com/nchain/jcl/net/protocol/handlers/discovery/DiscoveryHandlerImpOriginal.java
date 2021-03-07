@@ -199,15 +199,15 @@ public class DiscoveryHandlerImpOriginal extends HandlerImpl implements Discover
     // Event Handler:
     public void onPeerHandshaked(PeerHandshakedEvent event) {
         // This peer might or not be in the Main pool.
-        // In case it's not, we first try to add it. If we couldn't add it (maybe because the main Pool is
+        // In case it's not, we first try to addBytes it. If we couldn't addBytes it (maybe because the main Pool is
         // already full, we try to replace it for other Peer that is not handshaked
 
         PeerAddress peerAddress = event.getPeerAddress();
-        // We add it to our "historic" of handshaked peers:
+        // We addBytes it to our "historic" of handshaked peers:
         peersHandshaked.add(peerAddress);
 
-        // Now we add this Peer to our Pool. If it's not possible to Add (most probably because the Pool has already
-        // reached the maximum size), we still try to add it, since a handshaked Peer is a high-quality Peer that we
+        // Now we addBytes this Peer to our Pool. If it's not possible to Add (most probably because the Pool has already
+        // reached the maximum size), we still try to addBytes it, since a handshaked Peer is a high-quality Peer that we
         // want to keep. so in that case, we look for another Peer within the Peer we might replace (like a Peer in
         // the pool that is NOT handshaked)
 
@@ -287,7 +287,7 @@ public class DiscoveryHandlerImpOriginal extends HandlerImpl implements Discover
         }
 
         // If we reach this far, we prepare the ADDR Message in reply to this GET_ADDR and send it out:
-        // We only add those Addr which Timestamps is within the last Hour.
+        // We only addBytes those Addr which Timestamps is within the last Hour.
         // List of addresses:
         List<NetAddressMsg> netAddressMsgs = new ArrayList<NetAddressMsg>() ;
 
@@ -347,7 +347,7 @@ public class DiscoveryHandlerImpOriginal extends HandlerImpl implements Discover
                 return;
             }
 
-            // If we reach this far, we add the Addresses to the Main Pool and request a connection Request:
+            // If we reach this far, we addBytes the Addresses to the Main Pool and request a connection Request:
             List<PeerAddress> peersToConnect = new ArrayList<>();
             for (NetAddressMsg netAddressMsg : msg.getAddrList()) {
                 DiscoveryPeerInfo addPeerInfo = new DiscoveryPeerInfo(netAddressMsg.getAddress(), netAddressMsg.getTimestamp());
@@ -420,7 +420,7 @@ public class DiscoveryHandlerImpOriginal extends HandlerImpl implements Discover
         if (config.getMaxAddresses().isPresent() && peersInfo.size() >= config.getMaxAddresses().getAsInt())
             result =  false;
 
-        // Finally, we either add it to the mainPool or not:
+        // Finally, we either addBytes it to the mainPool or not:
         if (result) {
             // We update the Status:
             updateState(1, 0, 0, 0, 0,null);
@@ -428,7 +428,7 @@ public class DiscoveryHandlerImpOriginal extends HandlerImpl implements Discover
             // We perform some changes on the timestamp according to the rules specified in the Satoshi client:
             // https://en.bitcoin.it/wiki/Satoshi_Client_Node_Discovery#Ongoing_.22addr.22_advertisements
             // - If the timestamp is too low or too high, it is set to 5 days ago.
-            // - We subtract 2 hours from the timestamp and add the address.
+            // - We subtract 2 hours from the timestamp and addBytes the address.
             // - If the address has been seen in the last 24 hours and the timestamp is currently over 60 minutes old,
             //   then it is updated to 60 minutes ago
             // - If the address has NOT been seen in the last 24 hours, and the timestamp is currently over 24 hours

@@ -72,7 +72,7 @@ class ProtocolMsgsTest extends Specification {
                 client.REQUESTS.MSGS.send(server.getPeerAddress(), msg).submit()
             }
 
-            // NOTE: Here, we wait a little bit before we close the connection If we don't wait enough, the Socket
+            // NOTE: Here, we wait a little bit before we closeAndClear the connection If we don't wait enough, the Socket
             // between the Client and Server will be closed before the message can be serialized/Deserialized and
             // travel between them
             Thread.sleep(200)

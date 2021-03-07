@@ -43,9 +43,7 @@ public class TxMsgSerializer implements MessageSerializer<TxMsg> {
     @Override
     public TxMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
 
-
         // We deserialize the Tx the usual way...
-        byteReader.waitForBytes(4);
         long version = byteReader.readUint32();
         VarIntMsg txInCount = varIntMsgSerializer.deserialize(context, byteReader);
         int txInCountValue = (int) txInCount.getValue();
@@ -62,7 +60,6 @@ public class TxMsgSerializer implements MessageSerializer<TxMsg> {
         for(int i =0 ; i< txOutCountValue; i++) {
             txOutputMessage.add(txOutputMessageSerializer.deserialize(context, byteReader));
         }
-        byteReader.waitForBytes(4);
         long locktime = byteReader.readUint32();
 
         TxMsg.TxMsgBuilder txBuilder =  TxMsg.builder()

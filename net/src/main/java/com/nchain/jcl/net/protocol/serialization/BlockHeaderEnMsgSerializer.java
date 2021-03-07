@@ -36,7 +36,6 @@ public class BlockHeaderEnMsgSerializer implements MessageSerializer<BlockHeader
     public BlockHeaderEnMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
         int byteToRead = 4 +HashMsg.HASH_LENGTH+ HashMsg.HASH_LENGTH+ BlockHeaderEnMsg.TIMESTAMP_LENGTH+ BlockHeaderEnMsg.NONCE_LENGTH+ BlockHeaderEnMsg.NBITS_LENGTH+ BlockHeaderEnMsg.TX_CNT;
 
-        byteReader.waitForBytes(byteToRead);
         byte[] blockHeaderBytes = byteReader.read(byteToRead);
 
         HashMsg hash =  HashMsg.builder().hash(
@@ -58,10 +57,7 @@ public class BlockHeaderEnMsgSerializer implements MessageSerializer<BlockHeader
         long nonce = headerReader.readUint32();
         long txCount = headerReader.readInt64LE();
 
-        byteReader.waitForBytes(1);
         boolean noMoreHeaders = byteReader.readBoolean();
-
-        byteReader.waitForBytes(1);
         boolean hasCoinbaseData = byteReader.readBoolean();
 
         BlockHeaderEnMsg blockHeaderEnMsg;
@@ -75,7 +71,6 @@ public class BlockHeaderEnMsgSerializer implements MessageSerializer<BlockHeader
             VarIntMsg txLengthValue = VarIntMsgSerializer.getInstance().deserialize(context, byteReader);
             int coinBaseTxLength = (int) txLengthValue.getValue();
 
-            byteReader.waitForBytes(coinBaseTxLength);
             byte[]  coinbaseTxBytes=  byteReader.get(coinBaseTxLength);
 
             //creating a coinbaseTX which is not part of the message ,

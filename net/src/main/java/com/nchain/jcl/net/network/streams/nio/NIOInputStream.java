@@ -151,7 +151,7 @@ public class NIOInputStream extends PeerInputStreamImpl<ByteArrayReader, ByteArr
 
             // We send this data down the Stream:
             ByteArrayReader byteArrayReader = new ByteArrayReader(data);
-            //logger.debug(read + " bytes received : " + HEX.encode(byteArrayReader.getFullContent()));
+            //logger.debug(read + " bytes received : " + HEX.encode(byteArrayReader.get()));
             super.eventBus.publish(new StreamDataEvent<>(byteArrayReader));
             return read;
         } catch (IOException ioe) {

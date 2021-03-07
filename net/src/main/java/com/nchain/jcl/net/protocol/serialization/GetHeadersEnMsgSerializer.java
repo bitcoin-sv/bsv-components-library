@@ -30,7 +30,6 @@ public class GetHeadersEnMsgSerializer implements MessageSerializer<GetHeadersEn
 
     @Override
     public GetHeadersEnMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
-        byteReader.waitForBytes(4);
         long version = byteReader.readUint32();
         HashMsg blockLocatorHash = BaseGetDataAndHeaderMsgSerializer.getInstance().readHashMsg(context, byteReader);
         HashMsg stopHash =BaseGetDataAndHeaderMsgSerializer.getInstance().readHashMsg(context, byteReader);

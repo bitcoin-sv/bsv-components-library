@@ -40,7 +40,6 @@ public class BlockHeaderMsgSerializer implements MessageSerializer<BlockHeaderMs
     @Override
     public BlockHeaderMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
 
-        byteReader.waitForBytes(HEADER_LENGTH);
         byte[] blockHeaderBytes = byteReader.read(HEADER_LENGTH);
 
         HashMsg hash =  HashMsg.builder().hash(

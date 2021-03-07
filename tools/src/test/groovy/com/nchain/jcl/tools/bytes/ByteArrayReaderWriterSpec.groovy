@@ -30,8 +30,7 @@ class ByteArrayReaderWriterSpec extends Specification {
     def "Testing synchronous reading"(int bytesToWrite, int waitByteLen, int delayMs) {
         given:
         ByteArrayWriter writer = new ByteArrayWriter()
-        ByteArrayReader reader = new ByteArrayReader(writer);
-        reader.enableRealTime()
+        ByteArrayReader reader = new ByteArrayReaderRealTime(writer);
 
         String[] data = new String[bytesToWrite];
 
@@ -126,11 +125,11 @@ class ByteArrayReaderWriterSpec extends Specification {
             writer.writeUint32LE(w_uint32)
             writer.writeUint64LE(w_uint64)
 
-            numBuffersWriterAfterWriting = writer.builder.buffers.size()
+            numBuffersWriterAfterWriting = writer.buffer.buffers.size()
 
             // Now we read the data
             ByteArrayReader reader = writer.reader()
-            numBuffersReaderBeforeReading = reader.builder.buffers.size()
+            numBuffersReaderBeforeReading = reader.byteArray.buffers.size()
 
             byte r_aByte = reader.read()
             byte[] r_vector = reader.read(w_vector.length)
@@ -141,8 +140,8 @@ class ByteArrayReaderWriterSpec extends Specification {
             long r_uint32 = reader.readUint32()
             long r_uint64 = reader.readInt64LE()
 
-            numBuffersWriterAfterReading = writer.builder.buffers.size()
-            numBuffersReaderAfterReading = reader.builder.buffers.size()
+            numBuffersWriterAfterReading = writer.buffer.buffers.size()
+            numBuffersReaderAfterReading = reader.byteArray.buffers.size()
 
         then:
             // We check that both sets of data (read wnd writen) are the same
@@ -188,7 +187,7 @@ class ByteArrayReaderWriterSpec extends Specification {
                     try {
                         for (int i = 0 ; i < DATA.length; i++) {
                             writer.writeStr(DATA[i])
-                            println("writing data, buffer size:" + writer.builder.size())
+                            println("writing data, buffer size:" + writer.buffer.size())
                             Thread.sleep(500)
                         }
                     } catch (InterruptedException e) {}}
@@ -200,7 +199,7 @@ class ByteArrayReaderWriterSpec extends Specification {
                             // put the Thread.sleep at the beginning of the loop...
                             Thread.sleep(1000)
                             String value = reader.readString(DATA[i].length(), "UTF-8")
-                            println("reading data ('" + value + "'), buffer size:" + reader.builder.size())
+                            println("reading data ('" + value + "'), buffer size:" + reader.byteArray.size())
                             if (!value.equals(DATA[i])) throw new Exception("Value read is wrong!")
                         }
                         Thread.sleep(1000)

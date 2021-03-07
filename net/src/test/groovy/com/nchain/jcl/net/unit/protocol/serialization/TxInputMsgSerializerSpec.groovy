@@ -12,6 +12,7 @@ import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
 import com.nchain.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayReaderOptimized
+import com.nchain.jcl.tools.bytes.ByteArrayReaderRealTime
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
 import io.bitcoinj.core.Coin
 import io.bitcoinj.core.Sha256Hash
@@ -59,7 +60,7 @@ class TxInputMsgSerializerSpec extends Specification {
             TxInputMsg message
         when:
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_FULL_MSG), byteInterval, delayMs)
-           message = serializer.deserialize(context, new ByteArrayReaderOptimized(byteReader))
+           message = serializer.deserialize(context, new ByteArrayReaderRealTime(byteReader))
         then:
            message.getSequence()  == REF_SEQUENCE
            message.getSignature_script() == REF_SCRIPT_BYTES

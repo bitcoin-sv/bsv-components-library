@@ -36,7 +36,8 @@ public class BlockPeerInfo {
      */
     public enum PeerWorkingState {
         IDLE,                           // Peer doing nothing. Default
-        PROCESSING;
+        PROCESSING,
+        DISCARDED;
     }
 
     /**
@@ -131,6 +132,14 @@ public class BlockPeerInfo {
      */
     public void reset() {
         this.workingState = PeerWorkingState.IDLE;
+        this.currentBlockInfo = null;
+    }
+
+    /**
+     * It discards this Peer, prabably due to a previous error while downloading a Block from it
+     */
+    public void discard() {
+        this.workingState = PeerWorkingState.DISCARDED;
         this.currentBlockInfo = null;
     }
 

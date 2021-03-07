@@ -44,7 +44,7 @@ import java.util.concurrent.locks.ReentrantLock
 class IncomingTxPerformanceTest extends Specification {
 
     // Duration of the test:
-    Duration TEST_DURATION = Duration.ofSeconds(600)
+    Duration TEST_DURATION = Duration.ofSeconds(120)
 
     // Number of Txs processed
     AtomicLong numTxs = new AtomicLong()
@@ -174,7 +174,11 @@ class IncomingTxPerformanceTest extends Specification {
 
             // we assign callbacks to some events:
 
-            p2p.EVENTS.PEERS.HANDSHAKED.forEach({e -> numPeersHandshaked.incrementAndGet() })
+            p2p.EVENTS.PEERS.HANDSHAKED.forEach({e ->
+                println(e)
+                numPeersHandshaked.incrementAndGet()
+            })
+            p2p.EVENTS.PEERS.HANDSHAKED_REJECTED.forEach({e -> println(e)})
             p2p.EVENTS.MSGS.INV.forEach({e -> invProcessor.addEvent(e)})
             p2p.EVENTS.MSGS.TX.forEach({ e -> txProcessor.addEvent(e)})
 

@@ -5,7 +5,7 @@ package com.nchain.jcl.tools.thread;
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  *
- * A builder for instances of {@link TimeoutTask}
+ * A byteArray for instances of {@link TimeoutTask}
  */
 public class TimeoutTaskBuilder {
 

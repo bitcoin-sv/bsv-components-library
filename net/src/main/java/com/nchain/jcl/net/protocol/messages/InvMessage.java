@@ -32,7 +32,7 @@ public class InvMessage extends Message {
     private List<InventoryVectorMsg> invVectorList;
 
     /**
-     * Creates the InvMessage Object.Use the corresponding builder to create the instance.
+     * Creates the InvMessage Object.Use the corresponding byteArray to create the instance.
      */
     protected InvMessage(List<InventoryVectorMsg> invVectorMsgList) {
         this.invVectorList = invVectorMsgList.stream().collect(Collectors.toUnmodifiableList());

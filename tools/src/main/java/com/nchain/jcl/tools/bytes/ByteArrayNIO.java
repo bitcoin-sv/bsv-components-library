@@ -11,10 +11,11 @@ import static com.google.common.base.Preconditions.checkArgument;
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  *
- * This class is the implementation for a NIO ByteArray. The memory is allocated from the Native (off-heap memory).
+ * This class is the implementation for a ByteArray using NIO and DirectBuffer.
+ * The memory is allocated from the Native (off-heap memory).
  *
  */
-public class ByteArrayImpl implements ByteArray {
+public class ByteArrayNIO implements ByteArray {
 
     protected ByteBuffer buffer;
     protected int capacity;
@@ -22,12 +23,19 @@ public class ByteArrayImpl implements ByteArray {
     protected int remaining;
 
 
-    public ByteArrayImpl(int capacity) {
+    public ByteArrayNIO(int capacity) {
         this.capacity = capacity;
         this.buffer = ByteBuffer.allocateDirect(capacity);
         this.dataSize = buffer.position();
         this.remaining = buffer.remaining();
     }
+
+    // The methods are broken down into 2 parts:
+    // The "regular" methods like "addBytes", "get", etc, perform some parameter verification, so these methods are safe.
+    // These methods then invoke the "add_bytes" or "get_bytes" method, which do the real work.
+    // If you are using ByteArrayImpl directly, you should use the "regular" ones. But if this class is wrapped up in
+    // another class that already guarantees the parameters sanity, the "xxx_bytes" can be used directly in order to
+    // increase performance
 
     @GuardedBy("this")
     @Override
@@ -76,16 +84,14 @@ public class ByteArrayImpl implements ByteArray {
     }
 
     @Override
-    public void init() {
-
-    }
+    public void init() {}
 
 
     @GuardedBy("this")
     @Override
-    public void destroy() {
+    public void clear() {
         try {
-            destroy_content();
+            clear_content();
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
         }
@@ -103,6 +109,11 @@ public class ByteArrayImpl implements ByteArray {
         return get(0, (int) size());
     }
 
+    @GuardedBy("this")
+    @Override
+    public byte[] get(int length) {
+        return get(0, length);
+    }
 
     public void add_bytes(byte[] data, int offset, int length) throws IOException {
         buffer.position(dataSize).limit(capacity).put(data, offset, length);
@@ -124,23 +135,13 @@ public class ByteArrayImpl implements ByteArray {
         return result;
     }
 
-    public void destroy_content() throws IOException {
+    public void clear_content() throws IOException {
+        buffer.clear();
         buffer = null;
     }
 
-    public long size()         { return dataSize; }
-
-    public long available()    { return remaining; }
-
-    public long capacity()     { return capacity; }
-
-    public boolean isEmpty()  { return dataSize == 0; }
-
-    public ByteBuffer getBuffer() {
-        return this.buffer;
-    }
-
-    public void setBuffer(ByteBuffer buffer) {
-        this.buffer = buffer;
-    }
+    public long size()          { return dataSize; }
+    public long available()     { return remaining; }
+    public long capacity()      { return capacity; }
+    public boolean isEmpty()    { return dataSize == 0; }
 }

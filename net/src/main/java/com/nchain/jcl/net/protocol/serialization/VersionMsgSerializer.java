@@ -36,7 +36,6 @@ public class VersionMsgSerializer implements MessageSerializer<VersionMsg> {
     public VersionMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
         context.setInsideVersionMsg(true);
 
-        byteReader.waitForBytes(20);
         long version = byteReader.readUint32();
         long services = byteReader.readInt64LE();
         long timestamp = byteReader.readInt64LE();
@@ -44,10 +43,8 @@ public class VersionMsgSerializer implements MessageSerializer<VersionMsg> {
         NetAddressMsg addr_from = NetAddressMsgSerializer.getInstance().deserialize(context, byteReader);
         NetAddressMsg addr_recv = NetAddressMsgSerializer.getInstance().deserialize(context, byteReader);
 
-        byteReader.waitForBytes(8);
         long nonce = byteReader.readInt64LE(); // TODO: We need to know who to process this field
         VarStrMsg user_agent = VarStrMsgSerializer.getinstance().deserialize(context, byteReader);
-        byteReader.waitForBytes(4);
         long start_height = byteReader.readUint32();
         Boolean relay = null;
 
@@ -59,7 +56,6 @@ public class VersionMsgSerializer implements MessageSerializer<VersionMsg> {
         int bytesReadedForThisMessage = 20 + (int) addr_from.getLengthInBytes() + (int) addr_recv.getLengthInBytes() + 8 + 4 + (int) user_agent.getLengthInBytes();
 
         if (bytesReadedForThisMessage <= (context.getMaxBytesToRead() - 1)) {
-            byteReader.waitForBytes(1);
             relay = byteReader.readBoolean();
             bytesReadedForThisMessage++;
         }
@@ -67,7 +63,6 @@ public class VersionMsgSerializer implements MessageSerializer<VersionMsg> {
         // We read the remaining bytes that there might still be there..
         if (bytesReadedForThisMessage < context.getMaxBytesToRead()) {
             int bytesRemaining = (int) (context.getMaxBytesToRead() - bytesReadedForThisMessage);
-            byteReader.waitForBytes(bytesRemaining);
             byteReader.read(bytesRemaining);
         }
 

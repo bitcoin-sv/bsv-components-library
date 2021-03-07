@@ -8,7 +8,7 @@ import com.nchain.jcl.net.protocol.messages.HeaderMsg;
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  *
- * A builder to create instances of {@link BitcoinMsg}
+ * A byteArray to create instances of {@link BitcoinMsg}
  *
  * This Builder is the best option
  *
@@ -21,7 +21,7 @@ public class BitcoinMsgBuilder<M extends Message> {
     /**
      * Constructor.
      * It allows to build instances of {@link BitcoinMsg}.
-     * The Header is automatically created by this builder, and the Body is provided.
+     * The Header is automatically created by this byteArray, and the Body is provided.
      *
      * @param config            P2P Configuration
      * @param bodyMsg           body Msg

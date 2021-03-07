@@ -51,7 +51,7 @@ import com.nchain.jcl.net.protocol.messages.common.Message;
 public final class VersionMsg extends Message {
     // The only field which a variable length in the Version Message is the "getHandshakeUserAgent" field.
     // The rest of the Message has a fixed length of 85 bytes.
-    private static final int FIXED_MESSAGE_LENGTH = 84; // need to add the "getHandshakeUserAgent"  and RELAY length to this.
+    private static final int FIXED_MESSAGE_LENGTH = 84; // need to addBytes the "getHandshakeUserAgent"  and RELAY length to this.
     public static final String MESSAGE_TYPE = "version";
 
     private final long version;
