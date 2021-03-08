@@ -226,7 +226,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
             // A HACK Here: We update the Global State, to reflect we are in DESERIALIZING State:
             this.state = state.toBuilder().processState(DeserializerStreamState.ProcessingBytesState.DESERIALIZING_BODY).build();
 
-            // If some error has been triggered during Deserialization in RT, this will be true:
+            // If some error has been triggered during Deserialization in Real-Time, this will be true:
             AtomicBoolean errorRTDeserialization = new AtomicBoolean();
 
             // If the Deserialization goes well, this will store the State after that.
@@ -412,7 +412,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
 
         // If it's a Big Msg but we are not Allowed to do real-time processing, that's an error...
         if (isABigMessage && !realTimeProcessingEnabled) {
-            buffer.extract((int) bodySize); // We discard the bytes:
+            //buffer.extract((int) bodySize); // We discard the bytes:
             return processError(isThisADedicatedThread,
                     new RuntimeException("Big Message Received (" + currentHeaderMsg.getCommand() + ") but Not allowed to Process"),
                     state);

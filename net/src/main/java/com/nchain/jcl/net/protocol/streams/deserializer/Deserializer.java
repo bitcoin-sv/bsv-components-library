@@ -126,7 +126,6 @@ public class Deserializer {
     public Message deserialize(HeaderMsg headerMsg, DeserializerContext desContext, ByteArrayReader reader) throws Exception {
         Message result = null;
 
-
         // We build the Cache-Key for this Message...
         CacheMsgKey key = new CacheMsgKey(headerMsg, desContext, reader);
 

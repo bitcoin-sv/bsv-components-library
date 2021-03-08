@@ -41,6 +41,8 @@ public class EventFactory {
         else if (body instanceof PartialBlockHeaderMsg) result = new PartialBlockHeaderMsgReceivedEvent(peerAddress, (BitcoinMsg<PartialBlockHeaderMsg>) btcMsg);
         else if (body instanceof PartialBlockTXsMsg)    result = new PartialBlockTxsMsgReceivedEvent(peerAddress, (BitcoinMsg<PartialBlockTXsMsg>) btcMsg);
 
+        else if (body instanceof RawTxMsg)          result = new RawTxMsgReceivedEvent(peerAddress, (BitcoinMsg<RawTxMsg>) btcMsg);
+
         return result;
     }
 

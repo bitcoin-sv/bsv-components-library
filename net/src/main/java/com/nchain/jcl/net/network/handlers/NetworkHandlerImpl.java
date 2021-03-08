@@ -177,7 +177,6 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
                     .filter(p -> !blacklist.contains(p.getIp()))
                     .collect(Collectors.toList());
 
-            //System.out.println("listToAdd:  " + listToAdd.size());
             if (listToAdd.size() > 0) {
                 // Now we check that we are not breaking the limit in the Pending Socket Connections:
                 // If there si no limit, we just include them all. If there is a limit, we only include them up
@@ -351,7 +350,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
      */
     @Override
     public void run() {
-        logger.debug("starting in " + (server_mode? "SERVER" : "CLIENT") + " mode...");
+        logger.info("starting in " + (server_mode? "SERVER" : "CLIENT") + " mode...");
         startConnectionsJobs();
         try {
             while (isRunning()) {
@@ -370,7 +369,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     @Override
     public void stop() {
         try {
-            logger.debug("Stopping...");
+            logger.info("Stopping...");
             // We save the Network Activity...
             saveNetworkActivity();
 
@@ -460,7 +459,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         // We addBytes this connection to the list of active ones (not "in Progress" anymore):
         inProgressConns.remove(keyAttach.peerAddress);
         activeConns.put(keyAttach.peerAddress, stream);
-        logger.trace(keyAttach.peerAddress, "Connection established");
+        logger.info(keyAttach.peerAddress, "Connection established");
 
         // We trigger the callbacks, sending the Stream back to the client:
         eventBus.publish(new PeerConnectedEvent(keyAttach.peerAddress));
@@ -478,7 +477,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
      */
     private void handleConnectionToOpen(PeerAddress peerAddress) {
         try {
-
+            logger.debug(peerAddress, "Connecting...");
             inProgressConns.add(peerAddress);
 
             SocketAddress socketAddress = new InetSocketAddress(peerAddress.getIp(), peerAddress.getPort());
@@ -535,7 +534,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
 
                     // We handle this connection.
                     // In case opening the connection takes too long, we wrap it up in a TimeoutTask...
-                    logger.trace(peerAddress, "Connecting...");
+
                     //System.out.println(" >>>>> CONNECTING TO " + peerAddress.toString() + ", " + Thread.activeCount() + " Threads, " + pendingToOpenConns.size() + " pendingToOpen Conns");
                     TimeoutTask connectPeerTask = TimeoutTaskBuilder.newTask()
                             .execute(() -> handleConnectionToOpen(peerAddress))

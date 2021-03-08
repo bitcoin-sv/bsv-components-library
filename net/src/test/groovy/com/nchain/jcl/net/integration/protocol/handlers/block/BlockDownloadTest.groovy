@@ -5,6 +5,7 @@ import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVStnConfig
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBTCMainConfig
 import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandler
 import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandlerConfig
+import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerConfig
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
@@ -62,7 +63,7 @@ class BlockDownloadTest extends Specification {
 
             // We set up the configuration:
             BlockDownloaderHandlerConfig blockConfig = config.getBlockDownloaderConfig().toBuilder()
-                .maxBlocksInParallel(1)
+                .maxBlocksInParallel(3)
                 .maxIdleTimeout(Duration.ofSeconds(10))
                 .build()
             // We configure the P2P Service:

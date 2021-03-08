@@ -48,7 +48,7 @@ import spock.lang.Specification
  */
 class TxMsgSerializerSpec extends Specification {
 
-    // Whole Message in Hex Format:
+    // Body Message in Hex Format:
     public static final String REF_MSG ="0500000001bad09aa61d4fff3bba3fb8537dedd6db898996303ac2107060e430c16bb2208f010000000c6a0a00000000000000000000050000000105000000000000000c6a0a0000000000000000000005000000"
 
     // TxInput in HEx Format:

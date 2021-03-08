@@ -420,7 +420,7 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
 
         // Check that we have not broken the MAX limit. If we do, we request a disconnection from this Peer
         if (config.getBasicConfig().getMaxPeers().isPresent() && state.getNumCurrentHandshakes() >= config.getBasicConfig().getMaxPeers().getAsInt()) {
-            logger.debug(peerInfo.getPeerAddress(), "Handshake Accepted but not used (already have enough). ");
+            logger.debug(peerInfo.getPeerAddress(), " Handshake Accepted but not used (already have enough). ");
             super.eventBus.publish(new DisconnectPeerRequest(peerInfo.getPeerAddress(), "too many handshakes"));
             return;
         }

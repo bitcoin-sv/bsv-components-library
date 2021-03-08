@@ -10,6 +10,7 @@ import com.nchain.jcl.net.protocol.handlers.discovery.DiscoveryHandlerState;
 import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandlerState;
 import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerState;
 import com.nchain.jcl.net.protocol.handlers.pingPong.PingPongHandlerState;
+import com.nchain.jcl.net.protocol.messages.RawTxMsg;
 import com.nchain.jcl.tools.events.EventBus;
 import com.nchain.jcl.tools.events.EventStreamer;
 
@@ -87,6 +88,9 @@ public class P2PEventStreamer {
         public final EventStreamer<HeadersMsgReceivedEvent>         HEADERS     = new EventStreamer<>(eventBus, HeadersMsgReceivedEvent.class);
         public final EventStreamer<MempoolMsgReceivedEvent>         MEMPOOL     = new EventStreamer<>(eventBus, MempoolMsgReceivedEvent.class);
         public final EventStreamer<GetHeadersEnMsgReceivedEvent>    GETHEADERSEN= new EventStreamer<>(eventBus, GetHeadersEnMsgReceivedEvent.class);
+
+
+        public final EventStreamer<RawTxMsgReceivedEvent>           TX_RAW          = new EventStreamer<>(eventBus, RawTxMsgReceivedEvent.class);
 
 
         public final EventStreamer<MsgSentEvent>                    ALL_SENT        = new EventStreamer<>(eventBus, MsgSentEvent.class);

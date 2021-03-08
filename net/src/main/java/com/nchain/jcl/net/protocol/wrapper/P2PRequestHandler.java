@@ -6,11 +6,7 @@ import com.nchain.jcl.net.network.events.BlacklistPeerRequest;
 import com.nchain.jcl.net.network.events.ConnectPeerRequest;
 import com.nchain.jcl.net.network.events.DisconnectPeerRequest;
 import com.nchain.jcl.net.network.events.PeerDisconnectedEvent.DisconnectedReason;
-import com.nchain.jcl.net.protocol.events.control.DisablePingPongRequest;
-import com.nchain.jcl.net.protocol.events.control.EnablePingPongRequest;
-import com.nchain.jcl.net.protocol.events.control.BlocksDownloadRequest;
-import com.nchain.jcl.net.protocol.events.control.BroadcastMsgRequest;
-import com.nchain.jcl.net.protocol.events.control.SendMsgRequest;
+import com.nchain.jcl.net.protocol.events.control.*;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.tools.events.Event;
 import com.nchain.jcl.tools.events.EventBus;
@@ -144,6 +140,21 @@ public class P2PRequestHandler {
 
         public SendMsgRequest buildRequest() { return new SendMsgRequest(peerAddress, btcMsg); }
     }
+
+    /** A Builder for SendMsgListRequest */
+    public class SendMsgListRequestBuilder extends Request {
+        private PeerAddress peerAddress;
+        private List<BitcoinMsg<?>> btcMsgs;
+
+        public SendMsgListRequestBuilder(PeerAddress peerAddress, List<BitcoinMsg<?>> btcMsgs) {
+            this.peerAddress = peerAddress;
+            this.btcMsgs = btcMsgs;
+        }
+
+        public SendMsgListRequest buildRequest() { return new SendMsgListRequest(peerAddress, btcMsgs); }
+    }
+
+
     /** A Builder for BroadcastMsgRequest */
     public class BroadcastMsgRequestBuilder extends Request {
         private BitcoinMsg<?> btcMsg;
@@ -158,6 +169,9 @@ public class P2PRequestHandler {
     public class MsgsRequestBuilder {
         public SendMsgRequestBuilder send(PeerAddress peerAddress, BitcoinMsg<?> btcMsg) {
             return new SendMsgRequestBuilder(peerAddress, btcMsg);
+        }
+        public SendMsgListRequestBuilder send(PeerAddress peerAddress, List<BitcoinMsg<?>> btcMsgs) {
+            return new SendMsgListRequestBuilder(peerAddress, btcMsgs);
         }
         public BroadcastMsgRequestBuilder broadcast(BitcoinMsg<?> btcMsg) {
             return new BroadcastMsgRequestBuilder(btcMsg);

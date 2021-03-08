@@ -217,12 +217,21 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
 
     private synchronized void processWholeBlockReceived(BlockPeerInfo peerInfo, BitcoinMsg<BlockMsg> blockMesage) {
 
+        // We just received a Block.
         // We publish an specific event for this Lite Block being downloaded:
+
+        // NOTE: Sometimes, remote Peers send BLOCKS to us Even If we did ask for them. In that case, the Downloading
+        // time is ZERO, since we didn´´ ask for it so we cannot measure the downloading time...
+
+        Duration downloadingDuration = (peerInfo != null && peerInfo.getCurrentBlockInfo() != null)
+                ? Duration.between(peerInfo.getCurrentBlockInfo().getStartTimestamp(), Instant.now())
+                : Duration.ZERO;
+
         super.eventBus.publish(
                 new LiteBlockDownloadedEvent(
                     peerInfo.getPeerAddress(),
                     blockMesage,
-                    Duration.between(peerInfo.getCurrentBlockInfo().getStartTimestamp(), Instant.now()))
+                    downloadingDuration)
         );
 
         // We notify the Header has been downloaded:
