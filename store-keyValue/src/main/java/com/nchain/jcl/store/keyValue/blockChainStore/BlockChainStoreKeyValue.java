@@ -6,6 +6,8 @@ import com.nchain.jcl.store.blockChainStore.BlockChainStoreState;
 import com.nchain.jcl.store.blockChainStore.events.ChainForkEvent;
 import com.nchain.jcl.store.blockChainStore.events.ChainPruneEvent;
 import com.nchain.jcl.store.blockChainStore.events.ChainStateEvent;
+import com.nchain.jcl.store.blockChainStore.validation.exception.BlockChainRuleFailureException;
+import com.nchain.jcl.store.blockStore.events.InvalidBlockEvent;
 import com.nchain.jcl.store.keyValue.blockStore.BlockStoreKeyValue;
 import com.nchain.jcl.store.keyValue.common.HashesList;
 import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
@@ -123,6 +125,10 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     default BlockChainInfo  toBlockChainInfo(byte[] bytes)  { return (isBytesOk(bytes)) ? BlockChainInfoSerializer.getInstance().deserialize(bytes) : null;}
     default ChainPathInfo   toChainPathInfo(byte[] bytes)   { return (isBytesOk(bytes)) ? ChainPathInfoSerializer.getInstance().deserialize(bytes) : null;}
 
+    /* function definitions */
+
+    default void validateBlockChainInfo(ChainInfo block) throws BlockChainRuleFailureException {};
+
     /*
      BlockChain Store DB Operations:
      These methods execute the business logic. Most of the time, each one of the methods below map a method of the
@@ -150,8 +156,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         remove(tr, fullKeyForBlockChainInfo(blockHash));
     }
 
-    private BlockChainInfo _saveBlockChainInfo(T tr, HeaderReadOnly block, BlockChainInfo parentBlockChainInfo, int chainPathId) {
-
+    private BlockChainInfo _getBlockChainInfo(HeaderReadOnly block, BlockChainInfo parentBlockChainInfo, int chainPathId){
         // We calculate the Height of the Chain:
         int resultHeight = (parentBlockChainInfo != null)
                 ? parentBlockChainInfo.getHeight() + 1
@@ -164,8 +169,8 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
 
         // We set the value of the ChainWork:
         BigInteger chainWork = (parentBlockChainInfo != null)
-                                ? parentBlockChainInfo.getChainWork().add(block.getWork())
-                                : getConfig().getGenesisBlock().getWork();
+                ? parentBlockChainInfo.getChainWork().add(block.getWork())
+                : getConfig().getGenesisBlock().getWork();
 
         // We build the object and save it:
         BlockChainInfo blockChainInfo = BlockChainInfo.builder()
@@ -176,8 +181,8 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                 .chainPathId(chainPathId)
                 .build();
 
-        _saveBlockChainInfo(tr, blockChainInfo);
         return blockChainInfo;
+
     }
 
 
@@ -265,9 +270,10 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         // Block chain Info that will be inserted for this Block:
         BlockChainInfo blockChainInfo;
 
+
         // Special case for the Genesis Block:
         if (parentBlockChainInfo == null) {
-            blockChainInfo = _saveBlockChainInfo(tr, blockHeader, parentBlockChainInfo, 1);
+            blockChainInfo = _getBlockChainInfo(blockHeader, parentBlockChainInfo, 1);
         } else {
             // Regular scenario, when connecting a Block to an existing Parent:
             //  - If the parent has NO children we just connect the Block and REUSE the parent's PathId
@@ -291,9 +297,20 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                 // We create a new Path Id for the block we are connecting...
                 pathIdForNewBlock =  _createNewChainPath(tr, parentBlockChainInfo.getChainPathId(), blockHeader.getHash().toString()).getId();
             }
-            // We save and connect this block
-            blockChainInfo = _saveBlockChainInfo(tr, blockHeader, parentBlockChainInfo, pathIdForNewBlock);
+            // connect this block
+            blockChainInfo = _getBlockChainInfo(blockHeader, parentBlockChainInfo, pathIdForNewBlock);
         }
+
+        //validate the newly connected block
+        if(!_validateBlock(blockHeader, blockChainInfo)){
+            //remove all traces from the block if it's invalid
+            _removeBlock(tr, blockHeader.getHash().toString());
+            // nothing else to process
+            return;
+        }
+
+        //block is valid, save
+        _saveBlockChainInfo(tr, blockChainInfo);
 
         // We store a Key to link the HEIGHT with its Hash, so we can retrieve it later by its Height in O(1) time...
         _saveBlockHashByHeight(tr, blockChainInfo.getBlockHash(), blockChainInfo.getHeight());
@@ -303,21 +320,26 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
 
         // If the Parent is part of the TIPS of the Chains, then it must be removed from it:
         if (parentBlockChainInfo != null && tipsChain.contains(parentBlockChainInfo.getBlockHash())) {
-            _updateTipsChain(tr, null, parentBlockChainInfo.getBlockHash()); // we don't addBytes, just remove
+            _updateTipsChain(tr, null, parentBlockChainInfo.getBlockHash()); // we don't add, just remove
         }
 
+        //Add this block to the chain tips
+        _updateTipsChain(tr, blockHeader.getHash().toString(), null); // We add this block to the Tips
+
         // Now we look into the CHILDREN (Blocks built on top of this Block), and we connect them as well...
-        // If the Block has NOT Children, then this is the Last Block that can be connected, so we addBytes it to the Tips
+        // If the Block has NOT Children, then this is the Last Block that can be connected, so we add it to the Tips
         List<String> children = _getNextBlocks(tr, blockHeader.getHash().toString());
         if (children != null && children.size() > 0) {
             for (String childHashHex : children) {
                 Optional<HeaderReadOnly> childBlock = getBlock(Sha256Hash.wrap(childHashHex));
-                if (childBlock.isPresent()) _connectBlock(tr, childBlock.get(), blockChainInfo);
+                if (childBlock.isPresent()) {
+                    _connectBlock(tr, childBlock.get(), blockChainInfo);
+                }
             }
-        } else {
-            _updateTipsChain(tr, blockHeader.getHash().toString(), null); // We addBytes this block to the Tips
         }
+
     }
+
 
     private void _disconnectBlock(T tr, String blockHash) {
         // If this block is already connected we remove the Chain Info:
@@ -863,4 +885,31 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                 //getLock().readLock().unlock();
             }
         }
+
+    private boolean _validateBlock(HeaderReadOnly candidateBlockHeader, BlockChainInfo candidateChainInfo) {
+        // We can only connect a block if the header is valid
+        try{
+            ChainInfoBean chainInfoBean = new ChainInfoBean(candidateBlockHeader);
+            chainInfoBean.setChainWork(candidateChainInfo.getChainWork());
+            chainInfoBean.setHeight(candidateChainInfo.getHeight());
+            chainInfoBean.makeImmutable();
+
+            //try to validate
+            validateBlockChainInfo(chainInfoBean);
+
+        } catch (BlockChainRuleFailureException ex){
+            getLogger().info("rule failure at height: " + candidateChainInfo.getHeight() + " message: " +  ex.getMessage());
+
+            //publish invalid block event
+            InvalidBlockEvent event = new InvalidBlockEvent(candidateBlockHeader.getPrevBlockHash(), ex.getMessage());
+            getEventBus().publish(event);
+
+            //nothing else to process
+            return false;
+        }
+
+        return true;
+
+    }
+
 }

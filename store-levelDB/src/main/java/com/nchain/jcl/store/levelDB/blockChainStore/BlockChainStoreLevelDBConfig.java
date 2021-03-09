@@ -1,13 +1,18 @@
 package com.nchain.jcl.store.levelDB.blockChainStore;
 
 
+import com.nchain.jcl.store.blockChainStore.validation.BlockChainStoreRuleConfig;
+import com.nchain.jcl.store.blockChainStore.validation.rules.BlockChainRule;
 import com.nchain.jcl.store.keyValue.blockChainStore.BlockChainStoreKeyValueConfig;
 import com.nchain.jcl.store.levelDB.blockStore.BlockStoreLevelDBConfig;
 import com.nchain.jcl.tools.config.RuntimeConfig;
 import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
+import io.bitcoinj.blockchain.pow.factory.RuleCheckerFactory;
 
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author i.fernandez@nchain.com
@@ -26,6 +31,7 @@ public class BlockChainStoreLevelDBConfig extends BlockStoreLevelDBConfig implem
     private int         forkPrunningHeightDifference = DEFAULT_FORK_HEIGH_DIFF;
     private boolean     forkPrunningIncludeTxs;
     private Duration    orphanPrunningBlockAge = DEFAULT_ORPHAN_AGE;
+    private BlockChainStoreRuleConfig ruleConfig = new BlockChainStoreRuleConfig(Collections.emptyList());
 
     public BlockChainStoreLevelDBConfig(Path workingFolder,
                                         RuntimeConfig runtimeConfig,
@@ -34,18 +40,21 @@ public class BlockChainStoreLevelDBConfig extends BlockStoreLevelDBConfig implem
                                         HeaderReadOnly genesisBlock,
                                         Integer forkPrunningHeightDifference,
                                         boolean forkPrunningIncludeTxs,
-                                        Duration orphanPrunningBlockAge) {
+                                        Duration orphanPrunningBlockAge,
+                                        BlockChainStoreRuleConfig ruleConfig) {
         super(workingFolder, runtimeConfig, transactionSize, networkId);
         this.genesisBlock = genesisBlock;
         if (forkPrunningHeightDifference != null) this.forkPrunningHeightDifference = forkPrunningHeightDifference;
         this.forkPrunningIncludeTxs = forkPrunningIncludeTxs;
         if (orphanPrunningBlockAge != null) this.orphanPrunningBlockAge = orphanPrunningBlockAge;
+        if (ruleConfig != null) this.ruleConfig = ruleConfig;
     }
 
     public HeaderReadOnly getGenesisBlock()         { return this.genesisBlock; }
     public int getForkPrunningHeightDifference()    { return this.forkPrunningHeightDifference; }
     public boolean isForkPrunningIncludeTxs()       { return this.forkPrunningIncludeTxs; }
     public Duration getOrphanPrunningBlockAge()     { return this.orphanPrunningBlockAge; }
+    public List<BlockChainRule> getBlockChainRules() {return this.ruleConfig.getRuleList(); }
 
     public static BlockChainStoreLevelDBConfigBuilder chainBuild() {
         return new BlockChainStoreLevelDBConfigBuilder();
@@ -63,6 +72,7 @@ public class BlockChainStoreLevelDBConfig extends BlockStoreLevelDBConfig implem
         private Integer forkPrunningHeightDifference;
         private boolean forkPrunningIncludeTxs;
         private Duration orphanPrunningBlockAge;
+        private BlockChainStoreRuleConfig ruleConfig;
 
         BlockChainStoreLevelDBConfigBuilder() {
         }
@@ -107,8 +117,13 @@ public class BlockChainStoreLevelDBConfig extends BlockStoreLevelDBConfig implem
             return this;
         }
 
+        public BlockChainStoreLevelDBConfig.BlockChainStoreLevelDBConfigBuilder ruleConfig(BlockChainStoreRuleConfig ruleConfig) {
+            this.ruleConfig = ruleConfig;
+            return this;
+        }
+
         public BlockChainStoreLevelDBConfig build() {
-            return new BlockChainStoreLevelDBConfig(workingFolder, runtimeConfig, transactionSize, networkId, genesisBlock, forkPrunningHeightDifference, forkPrunningIncludeTxs, orphanPrunningBlockAge);
+            return new BlockChainStoreLevelDBConfig(workingFolder, runtimeConfig, transactionSize, networkId, genesisBlock, forkPrunningHeightDifference, forkPrunningIncludeTxs, orphanPrunningBlockAge, ruleConfig);
         }
     }
 }

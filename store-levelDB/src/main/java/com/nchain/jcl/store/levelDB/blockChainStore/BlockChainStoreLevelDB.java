@@ -2,9 +2,13 @@ package com.nchain.jcl.store.levelDB.blockChainStore;
 
 
 import com.nchain.jcl.store.blockChainStore.events.BlockChainStoreStreamer;
+import com.nchain.jcl.store.blockChainStore.validation.exception.BlockChainRuleFailureException;
+import com.nchain.jcl.store.blockChainStore.validation.rules.BlockChainRule;
+import com.nchain.jcl.store.keyValue.blockChainStore.BlockChainInfo;
 import com.nchain.jcl.store.keyValue.blockChainStore.BlockChainStoreKeyValue;
 import com.nchain.jcl.store.levelDB.blockStore.BlockStoreLevelDB;
 import com.nchain.jcl.tools.thread.ThreadUtils;
+import io.bitcoinj.bitcoin.api.extended.ChainInfo;
 import org.slf4j.Logger;
 
 import javax.annotation.Nonnull;
@@ -82,6 +86,15 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
     @Override public byte[] fullKeyForBlockHashByHeight(int height)     {return fullKey(this.fullKeyForBlocks(), keyForBlockByHeight(height));}
 
     @Override public BlockChainStoreStreamer EVENTS()                   { return blockChainStoreStreamer;}
+
+    @Override
+    public void validateBlockChainInfo(ChainInfo block) throws BlockChainRuleFailureException {
+        for(BlockChainRule rule : config.getBlockChainRules()){
+            if(rule.applies(block)){
+                rule.checkRule(block, this); //TODO? if we're passing this then we shouldn't we make it read only, or separate storage from block
+            }
+        }
+    }
 
     @Override
     public void start() {
