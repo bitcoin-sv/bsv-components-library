@@ -1,14 +1,18 @@
 package com.nchain.jcl.net.performance
 
+import com.google.common.hash.HashFunction
+import com.google.common.hash.Hashing
 import com.nchain.jcl.net.network.PeerAddress
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
+import com.nchain.jcl.net.protocol.events.data.RawTxMsgReceivedEvent
 import com.nchain.jcl.net.protocol.events.data.TxMsgReceivedEvent
 import com.nchain.jcl.net.protocol.handlers.discovery.DiscoveryHandler
 import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandlerConfig
 import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerConfig
 import com.nchain.jcl.net.protocol.messages.HashMsg
+import com.nchain.jcl.net.protocol.messages.RawTxMsg
 import com.nchain.jcl.net.protocol.messages.TxInputMsg
 import com.nchain.jcl.net.protocol.messages.TxMsg
 import com.nchain.jcl.net.protocol.messages.TxOutPointMsg
@@ -22,14 +26,12 @@ import com.nchain.jcl.tools.events.EventQueueProcessor
 import com.nchain.jcl.tools.thread.ThreadUtils
 
 import io.bitcoinj.core.Sha256Hash
-
+import io.bitcoinj.core.Utils
 import spock.lang.Specification
 
 import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-
 import java.util.concurrent.atomic.AtomicLong
 
 /**
@@ -43,7 +45,7 @@ class TxBlasterPerformanceTest extends Specification {
     static ProtocolConfig protocolConfig = new ProtocolBSVMainConfig()
 
     // Duration of the test:
-    static Duration TEST_DURATION = Duration.ofSeconds(60)
+    static Duration TEST_DURATION = Duration.ofSeconds(30)
 
     // Number of Txs processed
     static AtomicLong numTxs = new AtomicLong()
@@ -55,13 +57,17 @@ class TxBlasterPerformanceTest extends Specification {
     static ExecutorService executor = ThreadUtils.EVENT_BUS_EXECUTOR_HIGH_PRIORITY
 
     // Number of Tx/sec to Blast in general
-    static int NUM_TX_SEC_GLOBAL = 6000
+    static int NUM_TX_SEC = 4000
 
-    // Number of TXs that each Thread is capable of launching (MAX):
-    static int NUM_TX_SEC_THREAD = 300
+    // Number of TXs sent in each batch
+    static int NUM_TX_BATCH = 100
 
-    // The Tx that the TxBlaster will be sending (We always send the same Tx)
-    static BitcoinMsg<TxMsg> TX_MSG = buildTxMsg(protocolConfig)
+    // Milisecs it takes to send one Batch of Txs (estimate)
+    static int MILLISECS_PROCESSING_BATCH = 300;
+
+    // Maximun Rate (Txs/Sec) sent by each Thread:
+    static int MAX_TX_SEC_THREAD = 200
+
 
     /** Convenience method to generate a Dummy Tx, */
     private static BitcoinMsg<TxMsg> buildTxMsg(ProtocolConfig protocolConfig) {
@@ -72,10 +78,10 @@ class TxBlasterPerformanceTest extends Specification {
                 .index(5)
                 .build()
         TxInputMsg txInputMsg1 = TxInputMsg.builder()
-            .sequence(rand.nextLong())
-            .signature_script(new byte[20])
-            .pre_outpoint(txOutpointMsg)
-            .build()
+                .sequence(rand.nextLong())
+                .signature_script(new byte[20])
+                .pre_outpoint(txOutpointMsg)
+                .build()
         TxInputMsg txInputMsg2 = TxInputMsg.builder()
                 .sequence(rand.nextLong())
                 .signature_script(new byte[20])
@@ -89,13 +95,28 @@ class TxBlasterPerformanceTest extends Specification {
         List<TxOutputMsg> txOutputMsgs = Arrays.asList(txOutputMsg1, txOutputMsg2)
 
         TxMsg txMsg = TxMsg.builder()
-            .lockTime(rand.nextLong())
-            .version(rand.nextLong())
-            .tx_in(txInputMsgs)
-            .tx_out(txOutputMsgs)
-            .build()
+                .lockTime(rand.nextLong())
+                .version(rand.nextLong())
+                .tx_in(txInputMsgs)
+                .tx_out(txOutputMsgs)
+                .build()
 
         BitcoinMsg<TxMsg> result = new BitcoinMsgBuilder<>(protocolConfig.basicConfig, txMsg).build()
+        return result
+    }
+
+    private static BitcoinMsg<RawTxMsg> buildRawTxMsg(ProtocolConfig protocolConfig) {
+        // Body Message in Hex Format:
+        String REF_MSG ="0500000001bad09aa61d4fff3bba3fb8537dedd6db898996303ac2107060e430c16bb2208f010000000c6a0a00000000000000000000050000000105000000000000000c6a0a0000000000000000000005000000"
+
+        // We get the content in byte format and
+        byte[] content = Utils.HEX.decode(REF_MSG)
+        HashFunction hashFunction = Hashing.sha256()
+
+        Sha256Hash txHash =  Sha256Hash.wrapReversed(hashFunction.hashBytes(hashFunction.hashBytes(content).asBytes()).asBytes());
+        RawTxMsg rawTsmg = new RawTxMsg(content, txHash)
+
+        BitcoinMsg<RawTxMsg> result = new BitcoinMsgBuilder<>(protocolConfig.basicConfig, rawTsmg).build()
         return result
     }
 
@@ -109,14 +130,28 @@ class TxBlasterPerformanceTest extends Specification {
         println(" Tx " + txHash + " from " + event.peerAddress + " [ " + numTxs.get() + " txs, " + Thread.activeCount() + " threads ]")
     }
 
-    private void blastTxs(P2P txBlaster, PeerAddress serverAddress, int numTxsSec) {
-        int millisecsToWait = 1000 / numTxsSec;
+    private void processRawTX(RawTxMsgReceivedEvent event) {
+        if (firstTxInstant == null) firstTxInstant = Instant.now()
+        numTxs.incrementAndGet()
+        Sha256Hash txHash = event.btcMsg.body.hash
+        println(" Tx " + txHash + " from " + event.peerAddress + " [ " + numTxs.get() + " txs, " + Thread.activeCount() + " threads ]")
+    }
+
+    private void blastTxs(String threadId, P2P txBlaster, PeerAddress serverAddress, List<BitcoinMsg<?>> msgs, int txSecRate) {
+        int numBatchsToSend = txSecRate / NUM_TX_BATCH
+        int waitingTime = (1000 / numBatchsToSend)
+        int waitingTimelusBuffer = waitingTime - MILLISECS_PROCESSING_BATCH
+        println(">> " + threadId + " :: " + txSecRate + " txs/sec, " + numBatchsToSend + " batches/sec, " + waitingTimelusBuffer + " waiting time (millisecs)")
+
         while (true) {
             try {
                 // We build a TX. We make sure it's different from others so the DeserializaerCache in the server is NOT
                 // used...
-                txBlaster.REQUESTS.MSGS.send(serverAddress, TX_MSG).submit()
-                Thread.sleep(millisecsToWait)
+                //txBlaster.REQUESTS.MSGS.send(serverAddress, TX_MSG).submit()
+                for (int i = 0; i < numBatchsToSend; i++) {
+                    txBlaster.REQUESTS.MSGS.send(serverAddress, msgs).submit()
+                    Thread.sleep(waitingTimelusBuffer)
+                }
             } catch (InterruptedException e) {}
         } // while..
     }
@@ -129,7 +164,10 @@ class TxBlasterPerformanceTest extends Specification {
             // We configure the MessageHandler to DISABLE the Deserializer Cache...
             MessageHandlerConfig messageConfig = protocolConfig.getMessageConfig()
             DeserializerConfig deserializerConfig = messageConfig.deserializerConfig.toBuilder().enabled(false).build()
-            messageConfig = messageConfig.toBuilder().deserializerConfig(deserializerConfig).build()
+            messageConfig = messageConfig.toBuilder()
+                    .deserializerConfig(deserializerConfig)
+                    .rawTxsEnabled(true)
+                    .build()
 
             // We configure the Handshake we get notified of new Txs...
             HandshakeHandlerConfig handshakeConfig = protocolConfig.getHandshakeConfig().toBuilder()
@@ -153,10 +191,12 @@ class TxBlasterPerformanceTest extends Specification {
             // We define 1 Queue where the service will be processing the incoming TX messages...
             EventQueueProcessor txProcessor = new EventQueueProcessor(ThreadUtils.EVENT_BUS_EXECUTOR_HIGH_PRIORITY);
             txProcessor.addProcessor(TxMsgReceivedEvent.class, {e -> processTX(e)})
+            txProcessor.addProcessor(RawTxMsgReceivedEvent.class, {e -> processRawTX(e)})
 
             // we assign callbacks to some events:
             server.EVENTS.PEERS.HANDSHAKED.forEach({e -> println(e)})
             server.EVENTS.MSGS.TX.forEach({ e -> txProcessor.addEvent(e)})
+            server.EVENTS.MSGS.TX_RAW.forEach({ e -> txProcessor.addEvent(e)})
 
             // We build the P2P SERVER:
             P2P txBlaster = new P2PBuilder("txBlaster")
@@ -170,6 +210,10 @@ class TxBlasterPerformanceTest extends Specification {
 
         when:
 
+            // We pre-build a Vector of Txs...
+            List<BitcoinMsg<RawTxMsg>> TXS = new ArrayList<>()
+            for (int i = 0; i < NUM_TX_BATCH; i++) TXS.add(buildRawTxMsg(protocolConfig))
+
             // we start the Event Processing Queues...
             txProcessor.start()
 
@@ -181,18 +225,18 @@ class TxBlasterPerformanceTest extends Specification {
             txBlaster.REQUESTS.PEERS.connect(server.peerAddress).submit()
             Thread.sleep(500)
 
-            // Now we trigger the Threads to baslt te Tx. Depending on the desired number of TX&Sec Global, we trigger more or less
-            int numTxsSecToAssing = NUM_TX_SEC_GLOBAL
-            int numThreads = NUM_TX_SEC_GLOBAL / NUM_TX_SEC_THREAD
-
-            // We craete diffferent Threads, each one will send ts at a specific Rate:
-            while (numTxsSecToAssing > 0) {
-                int rateForThisTread = Math.min(NUM_TX_SEC_THREAD, numTxsSecToAssing)
-                println("launching TxBlasterThread with rate of " + rateForThisTread + " Txs/sec...")
-                executor.submit({ -> blastTxs(txBlaster, server.peerAddress, rateForThisTread)})
-                numTxsSecToAssing -= rateForThisTread;
+            //txBlaster.REQUESTS.MSGS.send(server.peerAddress, TX_RAW_MSG).submit();
+            int numTxsSecLeft = NUM_TX_SEC
+            int currentThread = 0;
+            // We create different Threads, each one will send ts at a specific Rate:
+            while (numTxsSecLeft > 0) {
+                int threadTxSecRate = Math.min(numTxsSecLeft, MAX_TX_SEC_THREAD)
+                String threadName = " thread-blaster-" + currentThread
+                println("launching TxBlasterThread (" + threadTxSecRate + " txs/sec) ...")
+                executor.submit({ -> blastTxs(threadName, txBlaster, server.peerAddress, TXS, threadTxSecRate)})
+                numTxsSecLeft -= threadTxSecRate
+                currentThread++;
             }
-
 
             // we let it running for some time, and then we measure times in order to calculate statistics:
             Thread.sleep(TEST_DURATION.toMillis())

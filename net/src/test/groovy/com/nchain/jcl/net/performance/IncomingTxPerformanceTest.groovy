@@ -6,7 +6,9 @@ import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVStnConfig
 import com.nchain.jcl.net.protocol.events.data.InvMsgReceivedEvent
 import com.nchain.jcl.net.protocol.events.data.MsgReceivedEvent
+import com.nchain.jcl.net.protocol.events.data.RawTxMsgReceivedEvent
 import com.nchain.jcl.net.protocol.events.data.TxMsgReceivedEvent
+import com.nchain.jcl.net.protocol.handlers.discovery.DiscoveryHandler
 import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandlerConfig
 import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerConfig
 import com.nchain.jcl.net.protocol.messages.GetdataMsg
@@ -44,7 +46,7 @@ import java.util.concurrent.locks.ReentrantLock
 class IncomingTxPerformanceTest extends Specification {
 
     // Duration of the test:
-    Duration TEST_DURATION = Duration.ofSeconds(120)
+    Duration TEST_DURATION = Duration.ofSeconds(300)
 
     // Number of Txs processed
     AtomicLong numTxs = new AtomicLong()
@@ -72,14 +74,22 @@ class IncomingTxPerformanceTest extends Specification {
         }
 
         if (netId.equalsIgnoreCase(ProtocolBSVStnConfig.id) || netId.equalsIgnoreCase(STNParams.get().getId())) {
-            p2p.REQUESTS.PEERS.connect("104.155.153.83:9333").submit()
-            p2p.REQUESTS.PEERS.connect("206.189.42.110:9333").submit()
-            p2p.REQUESTS.PEERS.connect("62.171.177.67:9333").submit()
-            p2p.REQUESTS.PEERS.connect("118.243.116.125:9333").submit()
-            p2p.REQUESTS.PEERS.connect("116.202.118.183:9333").submit()
-            p2p.REQUESTS.PEERS.connect("116.202.171.166:9333").submit()
-            p2p.REQUESTS.PEERS.connect("24.234.237.201:9333").submit()
-            p2p.REQUESTS.PEERS.connect("209.97.128.49:9333").submit()
+
+            // Esthon:
+            p2p.REQUESTS.PEERS.connect("104.154.79.59:9333").submit()
+
+            p2p.REQUESTS.PEERS.connect("35.184.152.150:9333").submit()
+            p2p.REQUESTS.PEERS.connect("35.188.22.213:9333").submit()
+            p2p.REQUESTS.PEERS.connect("35.224.150.17:9333").submit()
+            p2p.REQUESTS.PEERS.connect("104.197.96.163:9333").submit()
+            p2p.REQUESTS.PEERS.connect("34.68.205.136:9333").submit()
+            p2p.REQUESTS.PEERS.connect("34.70.95.165:9333").submit()
+            p2p.REQUESTS.PEERS.connect("34.70.152.148:9333").submit()
+            p2p.REQUESTS.PEERS.connect("104.154.79.59:9333").submit()
+            p2p.REQUESTS.PEERS.connect("35.232.247.207:9333").submit()
+
+
+            // whatsOnChain:
             p2p.REQUESTS.PEERS.connect("37.122.249.164:9333").submit()
             p2p.REQUESTS.PEERS.connect("95.217.121.173:9333").submit()
 
@@ -89,14 +99,14 @@ class IncomingTxPerformanceTest extends Specification {
             p2p.REQUESTS.PEERS.connect("178.128.169.224:9333").submit()
             p2p.REQUESTS.PEERS.connect("206.189.42.110:9333").submit()
             p2p.REQUESTS.PEERS.connect("116.202.171.166:9333").submit()
-            p2p.REQUESTS.PEERS.connect("104.155.153.83:9333").submit()
+
 
             p2p.REQUESTS.PEERS.connect("178.62.11.170:9333").submit()
             p2p.REQUESTS.PEERS.connect("34.70.152.148:9333").submit()
             p2p.REQUESTS.PEERS.connect("95.217.121.173:9333").submit()
             p2p.REQUESTS.PEERS.connect("116.202.118.183:9333").submit()
             p2p.REQUESTS.PEERS.connect("139.59.78.14:9333").submit()
-            p2p.REQUESTS.PEERS.connect("104.197.96.163:9333").submit()
+
             p2p.REQUESTS.PEERS.connect("37.122.249.164:9333").submit()
 
             p2p.REQUESTS.PEERS.connect("165.22.127.22:9333").submit()
@@ -105,6 +115,8 @@ class IncomingTxPerformanceTest extends Specification {
             p2p.REQUESTS.PEERS.connect("64.227.40.244:9333").submit()
             p2p.REQUESTS.PEERS.connect("35.184.152.150:9333").submit()
             p2p.REQUESTS.PEERS.connect("212.89.6.129:9333").submit()
+
+
         }
     }
 
@@ -133,6 +145,13 @@ class IncomingTxPerformanceTest extends Specification {
         println(" Tx " + txHash + " from " + event.peerAddress + " [ " + numTxs.get() + " txs, " + Thread.activeCount() + " threads, " + numPeersHandshaked.get() + " peers handshaked ]")
     }
 
+    private void processRawTX(P2P p2p, RawTxMsgReceivedEvent event) {
+        if (firstTxInstant == null) firstTxInstant = Instant.now()
+        numTxs.incrementAndGet()
+        //Sha256Hash txHash = event.btcMsg.body.hash
+        //println(" Tx " + txHash + " from " + event.peerAddress + " [ " + numTxs.get() + " txs, " + Thread.activeCount() + " threads, " + numPeersHandshaked.get() + " peers handshaked ]")
+    }
+
     /**
      * Main TEst.
      */
@@ -142,11 +161,16 @@ class IncomingTxPerformanceTest extends Specification {
             //ProtocolConfig protocolConfig = new ProtocolBSVMainConfig()
             ProtocolConfig protocolConfig = new ProtocolBSVStnConfig()
 
-            // We disable the Deserialize Cache, so we force it to Deserialize all the TX, enve if they are Tx that we
+            // We disable the Deserialize Cache, so we force it to Deserialize all the TX, even if they are Tx that we
             // already processed...
             MessageHandlerConfig messageConfig = protocolConfig.getMessageConfig()
             DeserializerConfig deserializerConfig = messageConfig.deserializerConfig.toBuilder().enabled(false).build()
-            messageConfig = messageConfig.toBuilder().deserializerConfig(deserializerConfig).build()
+
+            // We also activate the "RawTxs" mode
+            messageConfig = messageConfig.toBuilder()
+                    .rawTxsEnabled(true)
+                    .deserializerConfig(deserializerConfig)
+                    .build()
 
             // We configure the Handshake we get notified of new Txs...
             HandshakeHandlerConfig handshakeConfig = protocolConfig.getHandshakeConfig().toBuilder()
@@ -163,6 +187,7 @@ class IncomingTxPerformanceTest extends Specification {
                             .config(messageConfig)
                             .config(handshakeConfig)
                             .config(basicConfig)
+                            .excludeHandler(DiscoveryHandler.HANDLER_ID)
                             .build()
 
 
@@ -171,6 +196,7 @@ class IncomingTxPerformanceTest extends Specification {
             EventQueueProcessor txProcessor = new EventQueueProcessor(ThreadUtils.EVENT_BUS_EXECUTOR_HIGH_PRIORITY);
             invProcessor.addProcessor(InvMsgReceivedEvent.class, {e -> processINV(p2p, e)})
             txProcessor.addProcessor(TxMsgReceivedEvent.class, {e -> processTX(p2p, e)})
+            txProcessor.addProcessor(RawTxMsgReceivedEvent.class, { e -> processRawTX(p2p, e)})
 
             // we assign callbacks to some events:
 
@@ -178,9 +204,17 @@ class IncomingTxPerformanceTest extends Specification {
                 println(e)
                 numPeersHandshaked.incrementAndGet()
             })
+            p2p.EVENTS.PEERS.CONNECTED.forEach({e -> println(e)})
             p2p.EVENTS.PEERS.HANDSHAKED_REJECTED.forEach({e -> println(e)})
-            p2p.EVENTS.MSGS.INV.forEach({e -> invProcessor.addEvent(e)})
-            p2p.EVENTS.MSGS.TX.forEach({ e -> txProcessor.addEvent(e)})
+            p2p.EVENTS.MSGS.INV.forEach({e ->
+                //println("ADDING INV TO PROCESSOR")
+                invProcessor.addEvent(e)
+            })
+            //p2p.EVENTS.MSGS.TX.forEach({ e -> txProcessor.addEvent(e)})
+            p2p.EVENTS.MSGS.TX_RAW.forEach({ e ->
+                //println("ADDING TX TO PROCESSOR")
+                txProcessor.addEvent(e)
+            })
 
         when:
 
