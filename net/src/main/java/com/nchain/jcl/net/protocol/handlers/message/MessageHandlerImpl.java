@@ -13,6 +13,8 @@ import com.nchain.jcl.net.protocol.events.data.MsgSentEvent;
 import com.nchain.jcl.net.protocol.events.control.SendMsgRequest;
 import com.nchain.jcl.net.protocol.messages.TxMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
+import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
+import com.nchain.jcl.net.protocol.messages.common.Message;
 import com.nchain.jcl.net.protocol.serialization.common.MsgSerializersFactory;
 import com.nchain.jcl.net.protocol.streams.MessageStream;
 import com.nchain.jcl.net.protocol.streams.deserializer.Deserializer;
@@ -53,7 +55,6 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
     // An instance of a Deserializer. There is ONLY ONE Deserializer for all the Streams in the System.
     private Deserializer deserializer;
 
-
     /** Constructor */
     public MessageHandlerImpl(String id, RuntimeConfig runtimeConfig, MessageHandlerConfig config) {
         super(id, runtimeConfig);
@@ -70,6 +71,7 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
         super.eventBus.subscribe(NetStartEvent.class, e -> onNetStart((NetStartEvent) e));
         super.eventBus.subscribe(NetStopEvent.class, e -> onNetStop((NetStopEvent) e));
         super.eventBus.subscribe(SendMsgRequest.class, e -> onSendMsgReq((SendMsgRequest) e));
+        super.eventBus.subscribe(SendMsgBodyRequest.class, e -> onSendMsgBodyReq((SendMsgBodyRequest) e));
         super.eventBus.subscribe(SendMsgListRequest.class, e -> onSendMsgListReq((SendMsgListRequest) e));
         super.eventBus.subscribe(BroadcastMsgRequest.class, e -> onBroadcastReq((BroadcastMsgRequest) e));
         super.eventBus.subscribe(PeerNIOStreamConnectedEvent.class, e -> onPeerStreamConnected((PeerNIOStreamConnectedEvent) e));
@@ -80,14 +82,22 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
     private void onNetStart(NetStartEvent event) {
         logger.debug("Starting...");
     }
+
     // Event Handler:
     private void onNetStop(NetStopEvent event) {
         logger.debug("Stop.");
     }
+
     // Event Handler:
     private void onSendMsgReq(SendMsgRequest request) {
         send(request.getPeerAddress(), request.getBtcMsg());
     }
+
+    // Event Handler:
+    private void onSendMsgBodyReq(SendMsgBodyRequest request) {
+        send(request.getPeerAddress(), request.getMsgBody());
+    }
+
     // Event Handler:
     private void onSendMsgListReq(SendMsgListRequest request) {
         PeerAddress peerAddress = request.getPeerAddress();
@@ -97,6 +107,7 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
     private void onBroadcastReq(BroadcastMsgRequest request) {
         broadcast(request.getBtcMsg());
     }
+
     // Event Handler:
     private void onPeerStreamConnected(PeerNIOStreamConnectedEvent event) {
         PeerAddress peerAddress = event.getStream().getPeerAddress();
@@ -181,6 +192,14 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
             // We update the state:
             updateState(0, 1);
         } else logger.trace(peerAddress, " Request to Send Msg Discarded (unknown Peer)");
+    }
+
+    @Override
+    public void send(PeerAddress peerAddress, Message msgBody) {
+        if (peersInfo.containsKey(peerAddress)) {
+            BitcoinMsg<?> btcMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), msgBody).build();
+            send(peerAddress, btcMsg);
+        } else logger.trace(peerAddress, " Request to Send Msg Body Discarded (unknown Peer)");
     }
 
     @Override

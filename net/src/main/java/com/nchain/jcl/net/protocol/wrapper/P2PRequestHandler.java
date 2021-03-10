@@ -8,6 +8,7 @@ import com.nchain.jcl.net.network.events.DisconnectPeerRequest;
 import com.nchain.jcl.net.network.events.PeerDisconnectedEvent.DisconnectedReason;
 import com.nchain.jcl.net.protocol.events.control.*;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
+import com.nchain.jcl.net.protocol.messages.common.Message;
 import com.nchain.jcl.tools.events.Event;
 import com.nchain.jcl.tools.events.EventBus;
 
@@ -137,8 +138,19 @@ public class P2PRequestHandler {
             this.peerAddress = peerAddress;
             this.btcMsg = btcMsg;
         }
-
         public SendMsgRequest buildRequest() { return new SendMsgRequest(peerAddress, btcMsg); }
+    }
+
+    /** A Builder for SendMsgBodyRequest */
+    public class SendMsgBodyRequestBuilder extends Request {
+        private PeerAddress peerAddress;
+        private Message msgBody;
+
+        public SendMsgBodyRequestBuilder(PeerAddress peerAddress, Message msgBody) {
+            this.peerAddress = peerAddress;
+            this.msgBody = msgBody;
+        }
+        public SendMsgBodyRequest buildRequest() { return new SendMsgBodyRequest(peerAddress, msgBody); }
     }
 
     /** A Builder for SendMsgListRequest */
@@ -169,6 +181,9 @@ public class P2PRequestHandler {
     public class MsgsRequestBuilder {
         public SendMsgRequestBuilder send(PeerAddress peerAddress, BitcoinMsg<?> btcMsg) {
             return new SendMsgRequestBuilder(peerAddress, btcMsg);
+        }
+        public SendMsgBodyRequestBuilder send(PeerAddress peerAddress, Message msgBody) {
+            return new SendMsgBodyRequestBuilder(peerAddress, msgBody);
         }
         public SendMsgListRequestBuilder send(PeerAddress peerAddress, List<BitcoinMsg<?>> btcMsgs) {
             return new SendMsgListRequestBuilder(peerAddress, btcMsgs);
