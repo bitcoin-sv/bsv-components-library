@@ -43,7 +43,6 @@ public class RejectMsgSerializer implements MessageSerializer<RejectMsg> {
         builder.message(message);
 
         // "ccode" field:
-        byteReader.waitForBytes(1);
         builder.ccode(RejectMsg.RejectCode.fromCode(byteReader.read()));
 
         // "reason" field:
@@ -55,7 +54,6 @@ public class RejectMsgSerializer implements MessageSerializer<RejectMsg> {
         // In case it's not a hash, well read a generic byte array
 
         if ((message.getStr().equals(RejectMsg.MESSAGE_BLOCK)) || (message.getStr().equals(RejectMsg.MESSAGE_TX))) {
-            byteReader.waitForBytes(32);
             Sha256Hash dataHash = Sha256Hash.wrapReversed(byteReader.read(32));
             builder.dataHash(dataHash);
         } else {
@@ -65,7 +63,6 @@ public class RejectMsgSerializer implements MessageSerializer<RejectMsg> {
             int numBytesToRead = (int) (context.getMaxBytesToRead() - message.getLengthInBytes()
                     - 1 - reason.getLengthInBytes());
 
-            byteReader.waitForBytes(0);
             byte[] data = byteReader.read(numBytesToRead);
             builder.data(data);
         }

@@ -40,7 +40,6 @@ public class InventoryVectorMsgSerializer implements MessageSerializer<Inventory
 
     @Override
     public InventoryVectorMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
-        byteReader.waitForBytes(4);
         InventoryVectorMsg.VectorType type = InventoryVectorMsg.VectorType.fromCode((int) byteReader.readUint32());
         HashMsg hashMsg  = HashMsgSerializer.getInstance().deserialize(context,byteReader);
 
@@ -51,7 +50,7 @@ public class InventoryVectorMsgSerializer implements MessageSerializer<Inventory
     @Override
     public void serialize(SerializerContext context, InventoryVectorMsg message, ByteArrayWriter byteWriter) {
         byteWriter.writeUint32LE(message.getType().getValue());
-        byteWriter.write(Utils.reverseBytes(message.getHashMsg().getHashBytes()));
+        byteWriter.write(message.getHashMsg().getHashBytes());
     }
 
     /**

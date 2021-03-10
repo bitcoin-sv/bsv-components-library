@@ -3,8 +3,8 @@ package com.nchain.jcl.net.protocol.handlers.blacklist;
 
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.events.*;
-import com.nchain.jcl.net.protocol.events.PeerHandshakeRejectedEvent;
-import com.nchain.jcl.net.protocol.events.PingPongFailedEvent;
+import com.nchain.jcl.net.protocol.events.control.PeerHandshakeRejectedEvent;
+import com.nchain.jcl.net.protocol.events.control.PingPongFailedEvent;
 import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.handlers.HandlerImpl;
 import com.nchain.jcl.tools.log.LoggerUtil;
@@ -43,6 +43,7 @@ public class BlacklistHandlerImpl extends HandlerImpl implements BlacklistHandle
     // An executor, to run jobs in parallel:
     private ExecutorService executor;
 
+
     private BlacklistHandlerState state = BlacklistHandlerState.builder().build();
 
     /** Constructor */
@@ -75,7 +76,7 @@ public class BlacklistHandlerImpl extends HandlerImpl implements BlacklistHandle
         super.eventBus.publish(new PeersBlacklistedEvent(hostsToBlacklist));
 
         // We start the Job to look over the Blacklist IPs and whitelist them if needed:
-        executor.submit(this::jobCheckBlacklistForExpiration);
+        executor.submit(this::jobCheckBlacklist);
     }
 
     // Event Handler:
@@ -100,6 +101,7 @@ public class BlacklistHandlerImpl extends HandlerImpl implements BlacklistHandle
     // Event Handler:
     private void onPeerRejected(PeerRejectedEvent event) {
         processHostAndCheckBlacklisting(event.getPeerAddress(), h -> h.addConnRejections());
+
     }
 
     // Event Handler:
@@ -147,18 +149,14 @@ public class BlacklistHandlerImpl extends HandlerImpl implements BlacklistHandle
         logger.trace("Blacklisting " + hostInfo.getIp(), reason);
         hostInfo.blacklist(reason);
         updateState(reason);
-        // We publish the event to the Bus:
-        Map<InetAddress, PeersBlacklistedEvent.BlacklistReason> hosts = new HashMap<>();
-        hosts.put(hostInfo.getIp(), reason);
-        super.eventBus.publish(new PeersBlacklistedEvent(hosts));
     }
 
     /** It whitelists the Host given, making it eligible again for connection */
-    private void whitelist(BlacklistHostInfo hostInfo) {
-        logger.trace("Whitelisting " + hostInfo.getIp() + "...");
-        hostInfo.whitelist();
+    private void whitelist(List<BlacklistHostInfo> hostInfos) {
+        logger.trace("Whitelisting " + hostInfos.size() + " Ips...");
+        hostInfos.forEach(h -> h.whitelist());
         // We publish the event to the Bus:
-        super.eventBus.publish(new PeersWhitelistedEvent(Arrays.asList(hostInfo.getIp())));
+        super.eventBus.publish(new PeersWhitelistedEvent(hostInfos.stream().map(h -> h.getIp()).collect(Collectors.toList())));
     }
 
     /**
@@ -178,8 +176,9 @@ public class BlacklistHandlerImpl extends HandlerImpl implements BlacklistHandle
         BlacklistHostInfo hostInfo = hostsInfo.keySet().contains(ip) ? hostsInfo.get(ip) : new BlacklistHostInfo(ip);
         if (updateExpr != null) updateExpr.accept(hostInfo);
 
-        // We add this Host to the Pool
+        // We addBytes this Host to the Pool
         hostsInfo.put(ip, hostInfo);
+
 
         // We check if this Host should be blacklisted
         if (!hostInfo.isBlacklisted()) {
@@ -210,15 +209,31 @@ public class BlacklistHandlerImpl extends HandlerImpl implements BlacklistHandle
      * This process looks constantly over the Balcklist and check if each individual IP canbe whitelisted
      * again.
      */
-    private void jobCheckBlacklistForExpiration() {
+    private void jobCheckBlacklist() {
         try {
 
             while(true) {
+                // First, we check if any of the Blacklisted Peers can be whitelisted...
                 long numBlacklisted = hostsInfo.values().stream().filter( h -> h.isBlacklisted()).count();
-                hostsInfo.values().stream()
-                        .forEach(h -> {if (h.isBlacklistExpired()) whitelist(h);});
+                List<BlacklistHostInfo> hostsToWhitelist = hostsInfo.values().stream()
+                        .filter(h -> h.isBlacklistExpired())
+                        .collect(Collectors.toList());
+                whitelist(hostsToWhitelist);
                 long numBlacklistedAfter = hostsInfo.values().stream().filter( h -> h.isBlacklisted()).count();
                 logger.debug( "Blacklist reviewed: " + (numBlacklisted - numBlacklistedAfter) + " IPs have been WHITELISTED.");
+
+                // Now we publish those blacklisted peers that have not been published yet:
+                // First we get them...
+                Map<InetAddress, PeersBlacklistedEvent.BlacklistReason> hostsBlacklistedToPublish = new HashMap<>();
+                hostsInfo.values().stream()
+                        .filter(h -> h.isBlacklisted() && !h.isPublished())
+                        .forEach(h -> hostsBlacklistedToPublish.put(h.getIp(), h.getBlacklistReason()));
+                // Now we publish them...
+                super.eventBus.publish(new PeersBlacklistedEvent(hostsBlacklistedToPublish));
+                // And now we update their "published" state
+                hostsBlacklistedToPublish.keySet().forEach(i -> hostsInfo.get(i).publish());
+
+                logger.debug( "Publishing Blacklist of: " + hostsBlacklistedToPublish.size() + " IPs.");
                 Thread.sleep(300000); // 5 minutes
             } // while..
 

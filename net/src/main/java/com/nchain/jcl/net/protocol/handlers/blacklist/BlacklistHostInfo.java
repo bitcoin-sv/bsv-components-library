@@ -28,6 +28,9 @@ public class BlacklistHostInfo implements CSVSerializable {
     private PeersBlacklistedEvent.BlacklistReason blacklistReason;
     private LocalDateTime blacklistTimestamp;
 
+    // This variable indicates if this Blacklisted Peer has been already notitified/published to the rest of the Handlers
+    private boolean published;
+
     // We keep track of the number of times this Host has reached specific scenarios:
     private int numFailedHandshakes;
     private int numFailedPingPongs;
@@ -57,6 +60,8 @@ public class BlacklistHostInfo implements CSVSerializable {
     public void addFailedPingPongs()        { numFailedPingPongs++;}
     public void addConnRejections()         { numConnRejections++;}
     public void addSerializationErrors()    { numSerializationErrors++;}
+    public boolean isPublished()            { return published;}
+    public void publish()                   { this.published = true;}
 
     public void blacklist(PeersBlacklistedEvent.BlacklistReason reason) {
         this.blacklistReason = reason;

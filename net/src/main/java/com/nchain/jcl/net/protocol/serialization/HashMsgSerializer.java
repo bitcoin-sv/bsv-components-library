@@ -32,7 +32,6 @@ public class HashMsgSerializer implements MessageSerializer<HashMsg> {
 
     @Override
     public HashMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
-        byteReader.waitForBytes(HashMsg.HASH_LENGTH);
         byte[] hashValue = byteReader.read(HashMsg.HASH_LENGTH);
         return HashMsg.builder().hash(hashValue).build();
     }

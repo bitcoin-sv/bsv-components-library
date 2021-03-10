@@ -1,7 +1,7 @@
 package com.nchain.jcl.tools.config;
 
 
-import com.nchain.jcl.tools.bytes.ByteArrayMemoryConfiguration;
+import com.nchain.jcl.tools.bytes.ByteArrayConfig;
 import com.nchain.jcl.tools.files.FileUtils;
 
 import java.time.Duration;
@@ -17,7 +17,7 @@ public interface RuntimeConfig {
      * Returns a ByteArrayMemoryConfiguration, which determines the amount of memory that the ByteArrays are using
      * during Serialization/Deserialization.
      */
-    ByteArrayMemoryConfiguration getByteArrayMemoryConfig();
+    ByteArrayConfig getByteArrayMemoryConfig();
 
     /** Returns a number of Bytes. Any Message bigger than that value, is a candidate for Real-Time Deserialization */
     int getMsgSizeInBytesForRealTimeProcessing();

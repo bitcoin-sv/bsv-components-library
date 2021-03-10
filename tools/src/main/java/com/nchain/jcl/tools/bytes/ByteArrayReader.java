@@ -14,69 +14,52 @@ import java.time.Duration;
  * This class allows for reading data out of a ByteArray, and automatically converts the data into useful
  * representations, like unsigned Integers, etc.
  * <p>
- * IMPORTANT: The Reader CONSUMES the data as it reads them, so its not possible to use the same Reader twice.
+ * The data is read from the beginning of the ByteArray (from the left), and once its read the data is consumed
+ * (you can also use the "get()" methoid, which reads but NOT consume the data).
  */
 public class ByteArrayReader {
 
-    protected static final Duration THRESHOLD_WAITING = Duration.ofMillis(5000); // 5 sec
-    protected static final Duration WAITING_INTERVAL = Duration.ofMillis(100);
     private static final Logger log = LoggerFactory.getLogger(ByteArrayReader.class);
 
-    protected ByteArrayBuilder builder;
+    protected ByteArray byteArray;
     protected long bytesReadCount = 0; // Number of bytes read....
-    protected boolean realTimeProcessingEnabled;
-    // Total time this Byte read has been waiting for bytes to arrive...
-    protected Duration waitingTime = Duration.ZERO;
-    protected Duration thresholdWaiting = THRESHOLD_WAITING;
 
+    public ByteArrayReader(ByteArrayReader reader) {
+        this(reader.byteArray);
+    }
 
-    public ByteArrayReader(ByteArrayBuilder builder)    { this(builder, null, false); }
-    public ByteArrayReader(ByteArrayWriter writer)      { this(writer.builder, null, false);}
+    public ByteArrayReader(ByteArrayWriter writer) {
+        this(writer.buffer);
+    }
 
     public ByteArrayReader(byte[] initialData) {
-        this(new ByteArrayBuilder(), initialData, false);
+        this(new ByteArrayBuffer().addBytes(initialData));
     }
 
-    public ByteArrayReader(byte[] initialData, boolean waitingForBytes) {
-        this(new ByteArrayBuilder(), initialData, waitingForBytes);
-    }
-
-    public ByteArrayReader(ByteArrayBuilder builder, byte[] initialData, boolean waitForBytes) {
-        this(builder, initialData, waitForBytes, THRESHOLD_WAITING);
-    }
-
-    public ByteArrayReader(ByteArrayBuilder builder, byte[] initialData, boolean waitForBytes, Duration thresholdWaiting) {
-        this.builder = builder;
-        if (waitForBytes) {
-            enableRealTime(thresholdWaiting);
-        }
-        if (initialData != null) this.builder.add(initialData);
+    public ByteArrayReader(ByteArray byteArray) {
+        this.byteArray = byteArray;
     }
 
     public byte[] read(int length) {
-        byte[] result = builder.extractBytes(length);
+        byte[] result = byteArray.extract(length);
         bytesReadCount += length;
         return result;
     }
 
-    public byte[] extract(int length)       {
-        bytesReadCount += length;
-        return builder.extractBytes(length);
-    }
-    public byte[] get(int length)           { return builder.get(length);}
+    public byte[] get(int length)           { return byteArray.get(length);}
     public long readUint32()                { return Utils.readUint32(read(4), 0); }
     public byte read()                      { return read(1)[0]; }
     public long readInt64LE()               { return Utils.readInt64(read(8), 0); }
     public boolean readBoolean()            { return (read() != 0);}
-    public long size()                      { return builder.size();}
-    public boolean isEmpty()                { return builder.size() == 0;}
-    public void close()                     { builder.clear();}
-    public byte[] getFullContent()          { return builder.getFullContent();}
+    public long size()                      { return byteArray.size();}
+    public boolean isEmpty()                { return byteArray.size() == 0;}
+    public void closeAndClear()             { byteArray.clear();}
+    public byte[] getFullContent()          { return byteArray.get();}
     public long getBytesReadCount()         { return bytesReadCount;}
 
     public byte[] getFullContentAndClose() {
-        byte[] result = builder.getFullContent();
-        close();
+        byte[] result = byteArray.get();
+        closeAndClear();
         bytesReadCount += result.length;
         return result;
     }
@@ -94,42 +77,5 @@ public class ByteArrayReader {
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public void enableRealTime() {
-        enableRealTime(thresholdWaiting);
-    }
-
-    public void enableRealTime(Duration thresholdWaiting) {
-        this.realTimeProcessingEnabled = true;
-        this.thresholdWaiting = thresholdWaiting;
-    }
-
-    public void disableRealTime() {
-        this.realTimeProcessingEnabled = false;
-    }
-
-    /*
-     * Waits for the bytes to be written before returning. This will cause the thread to be blocked.
-     */
-    public void waitForBytes(int length) throws RuntimeException {
-
-        long timeout = System.currentTimeMillis() + thresholdWaiting.toMillis();
-
-
-        while (size() < length) {
-            if (!realTimeProcessingEnabled) throw new RuntimeException("Not enough bytes to read");
-            else if (System.currentTimeMillis() > timeout) {
-                throw new RuntimeException("timed out waiting longer than " + thresholdWaiting.toMillis() + " millisecs for " + length + " bytes");
-            }
-
-            try {
-                //log.trace("waiting for " + (millisecsToWait) + " millisecs to get " + length + " bytes, builder Size: " + builder.size());
-                Thread.sleep(WAITING_INTERVAL.toMillis());
-                waitingTime = waitingTime.plus(WAITING_INTERVAL);
-            } catch (InterruptedException ex) {}
-        }
-        //log.trace("WAit finish, bufferSize: " + builder.size());
-        return;
     }
 }

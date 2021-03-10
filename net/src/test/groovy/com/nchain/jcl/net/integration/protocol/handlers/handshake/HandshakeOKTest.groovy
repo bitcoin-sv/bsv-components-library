@@ -1,10 +1,10 @@
 package com.nchain.jcl.net.integration.protocol.handlers.handshake
 
+
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
-import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
-import com.nchain.jcl.net.protocol.events.MinHandshakedPeersLostEvent
-import com.nchain.jcl.net.protocol.events.MinHandshakedPeersReachedEvent
+import com.nchain.jcl.net.protocol.events.control.MinHandshakedPeersLostEvent
+import com.nchain.jcl.net.protocol.events.control.MinHandshakedPeersReachedEvent
 import com.nchain.jcl.net.protocol.handlers.blacklist.BlacklistHandler
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
@@ -41,6 +41,8 @@ class HandshakeOKTest extends Specification {
             final int MAX_PEERS = 6
 
             // We set the Default Config:
+           // ProtocolConfig config = new ProtocolBSVMainConfig()
+
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams()).toBuilder()
                 .minPeers(MIN_PEERS)
                 .maxPeers(MAX_PEERS)
@@ -67,7 +69,7 @@ class HandshakeOKTest extends Specification {
             AtomicReference<MinHandshakedPeersLostEvent> minHandshakedLostEvent = new AtomicReference<>()
 
             server.EVENTS.PEERS.HANDSHAKED.forEach({ e ->
-                println(" - Peer handshaked: " + e.peerAddress)
+                println(" - Peer handshaked: " + e.peerAddress + ", " + e.versionMsg.user_agent.str)
                 numPeersCurrentlyHandshaked.incrementAndGet()
                 numPeersHandshakes.incrementAndGet()
             })
@@ -96,8 +98,12 @@ class HandshakeOKTest extends Specification {
                 minHandshakedLostEvent.set(e)
             })
 
+            //server.EVENTS.MSGS.ALL.forEach({e -> println(e)})
+            //server.EVENTS.MSGS.ALL_SENT.forEach({e -> println(e)})
+
         when:
             server.startServer()
+
             Thread.sleep(30000) // Raise this number if DNS are poor and takes longer to establish connections
 
             // The Service will start connecting to the Peers and handshaking with them.

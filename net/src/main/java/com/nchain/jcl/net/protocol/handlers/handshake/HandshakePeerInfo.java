@@ -1,7 +1,7 @@
 package com.nchain.jcl.net.protocol.handlers.handshake;
 
 import com.nchain.jcl.net.network.PeerAddress;
-import com.nchain.jcl.net.protocol.events.PeerHandshakeRejectedEvent;
+import com.nchain.jcl.net.protocol.events.control.PeerHandshakeRejectedEvent;
 import com.nchain.jcl.net.protocol.messages.VersionMsg;
 
 

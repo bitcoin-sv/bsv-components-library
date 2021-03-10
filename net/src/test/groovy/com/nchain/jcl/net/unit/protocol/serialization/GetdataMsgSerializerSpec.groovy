@@ -35,12 +35,16 @@ import spock.lang.Specification
  */
 class GetdataMsgSerializerSpec extends Specification {
 
-    private static final String REF_GETDATA_MSG_BODY = "0101000000a69d45e7abc3b8fc363d13b88aaa2f2ec62bf77b6881e8bd7bd1012fd81d802b"
+    // Body Message
+    private static final String REF_GETDATA_MSG_BODY = "01010000002f0a833496c4500bf4af0f11763cfa9658368791dc8cd0a69654de5743b356df"
 
-    public static final byte[] REF_INV_MSG_BITES = Sha256Hash.wrap("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6").getBytes()
-    private static final HashMsg REF_HASH_MSG = HashMsg.builder().hash(REF_INV_MSG_BITES).build()
+    // Hash of the Item inside the GetData:
+    private static final String REF_ITEM_HASH = "2f0a833496c4500bf4af0f11763cfa9658368791dc8cd0a69654de5743b356df"
 
-    private static final String REF_GETDATA_MSG_FULL = "e3e1f3e867657464617461000000000025000000e27152ce0101000000a69d45e7abc3b8fc363d13b88aaa2f2ec62bf77b6881e8bd7bd1012fd81d802b"
+    // Whole Body, including Header:
+    private static final String REF_GETDATA_MSG_FULL = "e3e1f3e8676574646174610000000000250000001d9656c901010000002f0a833496c4500bf4af0f11763cfa9658368791dc8cd0a69654de5743b356df"
+
+
 
     def "testing getDataMessage  BODY De-Serializing"(int byteInterval, int delayMs) {
         given:
@@ -55,7 +59,7 @@ class GetdataMsgSerializerSpec extends Specification {
             inventoryMsg = GetdataMsgSerializer.getInstance().deserialize(context, byteReader)
         then:
             inventoryMsg.getMessageType().equals(GetdataMsg.MESSAGE_TYPE)
-            inventoryMsg.getCount().value.toString().equals("1")
+            inventoryMsg.getCount().value == 1
         where:
             byteInterval | delayMs
                 10       |    15
@@ -69,7 +73,7 @@ class GetdataMsgSerializerSpec extends Specification {
                     .build()
             InventoryVectorMsg inventoryVectorMsg  =  InventoryVectorMsg.builder()
                     .type(InventoryVectorMsg.VectorType.MSG_TX)
-                    .hashMsg(REF_HASH_MSG)
+                    .hashMsg(HashMsg.builder().hash(Utils.HEX.decode(REF_ITEM_HASH)).build())
                     .build()
 
             List<InventoryVectorMsg> msgList = new ArrayList<>();
@@ -100,9 +104,8 @@ class GetdataMsgSerializerSpec extends Specification {
             getDataMsg.getHeader().getMagic().equals(config.getBasicConfig().getMagicPackage())
             getDataMsg.getHeader().getCommand().equals(GetdataMsg.MESSAGE_TYPE)
             List<InventoryVectorMsg> inventoryList = getDataMsg.getBody().getInvVectorList()
-            InventoryVectorMsg inventoryVectorMsg = inventoryList.get(0)
             inventoryList.size() == 1
-            inventoryVectorMsg.getType() == InventoryVectorMsg.VectorType.MSG_TX
+            Sha256Hash.wrap(inventoryList.get(0).hashMsg.hashBytes).toString().equals(REF_ITEM_HASH)
         where:
             byteInterval | delayMs
                 10       |    15
@@ -116,7 +119,7 @@ class GetdataMsgSerializerSpec extends Specification {
                     .build()
             InventoryVectorMsg inventoryVectorMsg  = InventoryVectorMsg.builder()
                     .type(InventoryVectorMsg.VectorType.MSG_TX)
-                    .hashMsg(REF_HASH_MSG)
+                    .hashMsg(HashMsg.builder().hash(Utils.HEX.decode(REF_ITEM_HASH)).build())
                     .build()
             List<InventoryVectorMsg> msgList = new ArrayList<>();
             msgList.add(inventoryVectorMsg);

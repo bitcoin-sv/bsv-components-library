@@ -48,6 +48,7 @@ class ProtocolPingPongOKTest extends Specification {
             P2P server = new P2PBuilder("server")
                     .config(serverConfig)
                     .config(serverPingConfig)
+                    .serverPort(0) // Random Port
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
                     .build()
@@ -93,7 +94,7 @@ class ProtocolPingPongOKTest extends Specification {
             // At this moment, the Ping/Pong protocol must have been triggered at least once...
             server.stop()
             client.stop()
-
+            Thread.sleep(1000) // We make sure the Guava service is down...
         then:
             // We check that the Ping/Pong protocol has been triggered at LEAST ONCE. In order to check it, we verify
             // that both Server and client hae exchange the respective PING and PON messages.

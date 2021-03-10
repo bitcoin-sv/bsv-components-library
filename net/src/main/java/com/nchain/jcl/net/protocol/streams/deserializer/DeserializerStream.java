@@ -15,10 +15,7 @@ import com.nchain.jcl.net.protocol.serialization.common.MsgSerializersFactory;
 import com.nchain.jcl.net.protocol.serialization.largeMsgs.MsgPartDeserializationErrorEvent;
 import com.nchain.jcl.net.protocol.serialization.largeMsgs.MsgPartDeserializedEvent;
 
-import com.nchain.jcl.tools.bytes.ByteArrayBuilder;
-import com.nchain.jcl.tools.bytes.ByteArrayMemoryConfiguration;
-import com.nchain.jcl.tools.bytes.ByteArrayReader;
-import com.nchain.jcl.tools.bytes.ByteArrayWriter;
+import com.nchain.jcl.tools.bytes.*;
 import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.log.LoggerUtil;
 
@@ -79,10 +76,14 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
     // For loggin:
     private LoggerUtil logger;
 
-    // Basic attributes
+    // Configuration:
     private RuntimeConfig runtimeConfig;
     private ProtocolBasicConfig protocolBasicConfig;
-    private ByteArrayBuilder buffer;
+
+    // We use this ByteArrayBuffer to store the incoming bytes:
+    private ByteArrayBuffer buffer;
+
+    // Executor used to trigger real-time processing threads:
     private ExecutorService realTimeExecutor;
 
     // We can only deserialize "Big" messages if this flag is TRUE, otherwise an Error is thrown.
@@ -111,7 +112,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
         this.logger = new LoggerUtil(this.getPeerAddress().toString(), this.getClass());
         this.runtimeConfig = runtimeConfig;
         this.protocolBasicConfig = protocolBasicConfig;
-        this.buffer = new ByteArrayBuilder(runtimeConfig.getByteArrayMemoryConfig());
+        this.buffer = new ByteArrayBuffer(runtimeConfig.getByteArrayMemoryConfig());
         this.realTimeExecutor = Executors.newSingleThreadExecutor();
 
         // We initialize the State:
@@ -141,7 +142,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
      */
     private DeserializerStreamState processOK(boolean isThisADedicatedThread, BitcoinMsg<?> message, DeserializerStreamState state) {
         log(isThisADedicatedThread, message.getBody().getMessageType() + " Deserialized.");
-        //log(isThisADedicatedThread, " Buffer After Deserialization: " + HEX.encode(new ByteArrayReader(buffer).getFullContent()));
+        //log(isThisADedicatedThread, " Buffer After Deserialization: " + HEX.encode(new ByteArrayReader(buffer).get()));
         // We notify the parent about the new Message Deserialized and return:
         super.eventBus.publish(new StreamDataEvent<>(message));
         // We return the updated State:
@@ -164,7 +165,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
 
             // We feed the buffer with the incoming bytes....
             //log.trace("SHARED Thread :: " + dataEvent.getData().size() + " bytes received, " + buffer.size() + " bytes in buffer. " + Thread.activeCount() + " active Threads...");
-            buffer.add(dataEvent.getData().getFullContent());
+            buffer.addBytes(dataEvent.getData().getFullContent());
 
             // We update the State with the new incoming bytes...
             state = state.toBuilder()
@@ -195,7 +196,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
      * @param buffer                 our Buffer of bytes
      * @return                       the state of this class, updated.
      */
-    private DeserializerStreamState deserialize(boolean isThisADedicatedThread, boolean realTime, DeserializerStreamState state, ByteArrayBuilder buffer) {
+    private DeserializerStreamState deserialize(boolean isThisADedicatedThread, boolean realTime, DeserializerStreamState state, ByteArrayBuffer buffer) {
 
         try {
 
@@ -212,8 +213,10 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
                     .protocolBasicConfig(protocolBasicConfig)
                     .maxBytesToRead(headerMsg.getLength())
                     .insideVersionMsg(headerMsg.getCommand().equalsIgnoreCase(VersionMsg.MESSAGE_TYPE))
+                    .calculateHashes(!realTime) // We only pre-calculate Hashes if we are NOT in Real-Timeprocessing
                     .build();
-            ByteArrayReader byteReader = new ByteArrayReader(buffer);
+            ByteArrayReader byteReader = new ByteArrayReaderOptimized(buffer);
+            //ByteArrayReader byteReader = new ByteArrayReader(buffer);
 
             // Here comes the Deserialization: This process is blocking, the only difference between "REAl-TIME" or
             // not is that, in REAL-TIME, the Deserialization can "wait" until the bytes arrive, and the bytes are consumed
@@ -223,7 +226,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
             // A HACK Here: We update the Global State, to reflect we are in DESERIALIZING State:
             this.state = state.toBuilder().processState(DeserializerStreamState.ProcessingBytesState.DESERIALIZING_BODY).build();
 
-            // If some error has been triggered during Deserialization in RT, this will be true:
+            // If some error has been triggered during Deserialization in Real-Time, this will be true:
             AtomicBoolean errorRTDeserialization = new AtomicBoolean();
 
             // If the Deserialization goes well, this will store the State after that.
@@ -273,6 +276,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
                     preSerializer.processBeforeDeserialize(getPeerAddress(), headerMsg, completeMsg);
                 }
                 // The whole message is deserialized
+                //System.out.println("Deserializing regular message, length: " + headerMsg);
                 Message bodyMsg = deserializer.deserialize(headerMsg, desContext, byteReader);
                 BitcoinMsg<?> bitcoinMsg = new BitcoinMsg<>(headerMsg, bodyMsg);
                 // We notify it...
@@ -317,7 +321,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
      * @return                       the state of this class, updated.
      */
 
-    private DeserializerStreamState processSeekingHead(boolean isThisADedicatedThread, DeserializerStreamState state, ByteArrayBuilder buffer) {
+    private DeserializerStreamState processSeekingHead(boolean isThisADedicatedThread, DeserializerStreamState state, ByteArrayBuffer buffer) {
         DeserializerStreamState.DeserializerStreamStateBuilder result = state.toBuilder();
 
         // If we got all the bytes from the Header, we deserialize it, otherwise we just keep waiting...
@@ -334,7 +338,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
                     .insideVersionMsg(false)
                     .build();
             ByteArrayReader byteReader = new ByteArrayReader(buffer);
-            //log(isThisADedicatedThread, "Reading Header : " + HEX.encode(byteReader.getFullContent()));
+            //log(isThisADedicatedThread, "Reading Header : " + HEX.encode(byteReader.get()));
             HeaderMsg headerMsg = HeaderMsgSerializer.getInstance().deserialize(desContext, byteReader);
 
             // Now we need to figure out if this incoming Message is one we need to Deserialize, or just Ignore, and that
@@ -349,8 +353,8 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
 
             // Depending on the Size of the incoming BODY, we upgrade the Buffer or not...
             if (doWeNeedRealTimeProcessing)
-                    buffer.updateMemoryConfig(ByteArrayMemoryConfiguration.builder().byteArraySize(ByteArrayMemoryConfiguration.ARRAY_SIZE_FOR_DOWNLOADING).build());
-            else    buffer.updateMemoryConfig(ByteArrayMemoryConfiguration.builder().byteArraySize(ByteArrayMemoryConfiguration.ARRAY_SIZE_NORMAL).build());
+                    buffer.updateConfig(new ByteArrayConfig(ByteArrayConfig.ARRAY_SIZE_BIG));
+            else    buffer.updateConfig(new ByteArrayConfig(ByteArrayConfig.ARRAY_SIZE_NORMAL));
 
             // We update the State:
             result.currentHeaderMsg(headerMsg)
@@ -383,7 +387,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
      * @param buffer                 our Buffer of bytes
      * @return                       the state of this class, updated.
      */
-    private DeserializerStreamState processSeekingBody(boolean isThisADedicatedThread, DeserializerStreamState state, ByteArrayBuilder buffer) {
+    private DeserializerStreamState processSeekingBody(boolean isThisADedicatedThread, DeserializerStreamState state, ByteArrayBuffer buffer) {
         DeserializerStreamState.DeserializerStreamStateBuilder result = state.toBuilder();
 
 
@@ -404,12 +408,13 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
         boolean allBytesMessageReceived         = (buffer.size() >= currentHeaderMsg.getLength());
 
 
-        //log(isThisADedicatedThread, "Reading Body : " + HEX.encode(new ByteArrayReader(buffer).getFullContent()));
+        //log(isThisADedicatedThread, "Reading Body : " + HEX.encode(new ByteArrayReader(buffer).get()));
 
         // If it's a Big Msg but we are not Allowed to do real-time processing, that's an error...
         if (isABigMessage && !realTimeProcessingEnabled) {
+            //buffer.extract((int) bodySize); // We discard the bytes:
             return processError(isThisADedicatedThread,
-                    new RuntimeException("Big Message Received but Not allowed to Process"),
+                    new RuntimeException("Big Message Received (" + currentHeaderMsg.getCommand() + ") but Not allowed to Process"),
                     state);
         }
 
@@ -450,14 +455,14 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
      * @param buffer                 our Buffer of bytes
      * @return                       the state of this class, updated.
      */
-    private DeserializerStreamState processIgnoringBody(boolean isThisADedicatedThread, DeserializerStreamState state, ByteArrayBuilder buffer) {
+    private DeserializerStreamState processIgnoringBody(boolean isThisADedicatedThread, DeserializerStreamState state, ByteArrayBuffer buffer) {
         DeserializerStreamState.DeserializerStreamStateBuilder result = state.toBuilder();
 
         long remainingBytesToIgnore = state.getReminingBytestoIgnore();
         if (remainingBytesToIgnore > 0) {
             int bytesToRemove = (int) Math.min(remainingBytesToIgnore, buffer.size());
             remainingBytesToIgnore -= bytesToRemove;
-            buffer.extractBytes(bytesToRemove);
+            buffer.extract(bytesToRemove);
             log(isThisADedicatedThread, "Ignoring Body :: Discarding " + bytesToRemove + " bytes, " + remainingBytesToIgnore + " bytes still to discard...");
         }
         result.reminingBytestoIgnore(remainingBytesToIgnore);

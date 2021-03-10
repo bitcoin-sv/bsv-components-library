@@ -26,7 +26,7 @@ public interface KeyValueIterator<I,T> extends Iterator<I> {
      * is running with.
      *
      * For example, some DB-specific implementations of this Iterator might make changes on the current Transaction,
-     * or even close it and open a new one if the Iterator is iterating over a huge number of items, to prevent the
+     * or even closeAndClear it and open a new one if the Iterator is iterating over a huge number of items, to prevent the
      * Transaction to expire. In those cases, it's useful to get a way to obtain a reference to the current Transaction
      * of the iterator, since it might Not be the same as the one used when the Iterator was created in the first place.
      *

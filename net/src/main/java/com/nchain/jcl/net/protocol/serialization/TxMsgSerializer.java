@@ -43,9 +43,7 @@ public class TxMsgSerializer implements MessageSerializer<TxMsg> {
     @Override
     public TxMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
 
-
         // We deserialize the Tx the usual way...
-        byteReader.waitForBytes(4);
         long version = byteReader.readUint32();
         VarIntMsg txInCount = varIntMsgSerializer.deserialize(context, byteReader);
         int txInCountValue = (int) txInCount.getValue();
@@ -62,7 +60,6 @@ public class TxMsgSerializer implements MessageSerializer<TxMsg> {
         for(int i =0 ; i< txOutCountValue; i++) {
             txOutputMessage.add(txOutputMessageSerializer.deserialize(context, byteReader));
         }
-        byteReader.waitForBytes(4);
         long locktime = byteReader.readUint32();
 
         TxMsg.TxMsgBuilder txBuilder =  TxMsg.builder()
@@ -72,7 +69,7 @@ public class TxMsgSerializer implements MessageSerializer<TxMsg> {
                 .lockTime(locktime);
 
 
-        //we don't want to calculate the hash when running within an optimized context
+        // We only calculate the Hash if it¡s specified.
         if (context.isCalculateHashes()) {
             // To calculate the TX Hash, we need to Serialize the TX itself...
             SerializerContext serializerContext = SerializerContext.builder()
@@ -85,6 +82,8 @@ public class TxMsgSerializer implements MessageSerializer<TxMsg> {
             serialize(serializerContext, tx, writer);
 
             byte[] txBytes = writer.reader().getFullContentAndClose();
+            // Since this Hash is stored in a Field that is NOT part of the real message and
+            // its only a convenience field, we are storing it in the human-readable way (reversed)
             HashMsg txHash =  HashMsg.builder().hash(
                     Sha256Hash.wrapReversed(
                             Sha256Hash.twiceOf(txBytes).getBytes()).getBytes())

@@ -9,20 +9,25 @@ import com.nchain.jcl.net.network.handlers.NetworkHandler;
 import com.nchain.jcl.net.network.handlers.NetworkHandlerImpl;
 import com.nchain.jcl.net.protocol.config.ProtocolConfig;
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig;
+import com.nchain.jcl.net.protocol.events.data.MsgReceivedEvent;
 import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandler;
+import com.nchain.jcl.net.protocol.messages.FeeFilterMsg;
+import com.nchain.jcl.net.protocol.messages.InvMessage;
+import com.nchain.jcl.net.protocol.messages.TxMsg;
 import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault;
+import com.nchain.jcl.tools.events.Event;
 import com.nchain.jcl.tools.events.EventBus;
 import com.nchain.jcl.tools.handlers.Handler;
 import com.nchain.jcl.tools.log.LoggerUtil;
 import com.nchain.jcl.tools.thread.ThreadUtils;
 
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 /**
  * @author i.fernandez@nchain.com
@@ -62,6 +67,15 @@ public class P2P {
     // Request Handler:
     public final P2PRequestHandler REQUESTS;
 
+    // Low priority messages:
+    // We use this list to define a Function that will be used in the EventBus to set the priority for each Message.
+    // By default, all Event are HIGH-Priority messages, and the Low-Priority ones are those specified here:
+    Set<Class> lowPriorityMessages = new HashSet<>( Arrays.asList(
+            MsgReceivedEvent.class,
+            InvMessage.class,
+            TxMsg.class,
+            FeeFilterMsg.class));
+
     /** Constructor */
     public P2P(String id, RuntimeConfig runtimeConfig, NetworkConfig networkConfig, ProtocolConfig protocolConfig) {
         try {
@@ -73,11 +87,21 @@ public class P2P {
             this.protocolConfig = protocolConfig;
 
             // We initialize the EventBus...
-            this.eventBus = EventBus.builder().executor(
-                    ThreadUtils.getSingleThreadExecutorService(id + "-EventBus")).build();
+            // First we define the function that will be used to determine the Priority of each Event published to the
+            // Bus:
+            Function<Event, EventBus.ConsumerPriority> eventPriorityChecker = (Event e) -> {
+                return (lowPriorityMessages.contains(e.getClass()))
+                        ? EventBus.ConsumerPriority.NORMAL
+                        : EventBus.ConsumerPriority.HIGH;
+            };
 
-           // this.eventBus = EventBus.builder().executor(
-           //                  ThreadUtils.getSingleThreadExecutorService(id + "-EventBus", 100)).build();
+            // Now we crate the EventBus, specifying 2 executor for LOW and High priority Events:
+            this.eventBus = EventBus.builder()
+                   .executor(ThreadUtils.EVENT_BUS_EXECUTOR)
+                   .executorHighPriority(ThreadUtils.EVENT_BUS_EXECUTOR_HIGH_PRIORITY)
+                   .eventPriorityChecker(eventPriorityChecker)
+                   .build();
+
 
             // Event Streamer:
             EVENTS = new P2PEventStreamer(this.eventBus);
@@ -190,4 +214,5 @@ public class P2P {
     public RuntimeConfig getRuntimeConfig()     { return this.runtimeConfig; }
     public NetworkConfig getNetworkConfig()     { return this.networkConfig; }
     public ProtocolConfig getProtocolConfig()   { return this.protocolConfig; }
+    public EventBus getEventBus()               { return this.eventBus;}
 }

@@ -16,8 +16,9 @@ public class NetworkDefaultConfig extends NetworkConfigImpl {
     private static final int port = 8333;
     private static final OptionalInt maxSocketConnections = OptionalInt.of(1000);
     private static final OptionalInt maxSocketPendingConnections = OptionalInt.of(5000);
-    private static final OptionalInt timeoutSocketConnection = OptionalInt.of(2000);
+    private static final OptionalInt timeoutSocketConnection = OptionalInt.of(500);
     private static final OptionalInt timeoutSocketIdle = OptionalInt.empty();
+    private static final int maxSocketConnectionsOpeningAtSameTime = 5;
     private static final int nioBufferSizeLowerBound = 4096;
     private static final int nioBufferSizeUpperBound = 65536;
     private static final int nioBufferSizeUpgrade = 10_000_000;
@@ -32,6 +33,7 @@ public class NetworkDefaultConfig extends NetworkConfigImpl {
                 maxSocketPendingConnections,
                 timeoutSocketConnection,
                 timeoutSocketIdle,
+                maxSocketConnectionsOpeningAtSameTime,
                 nioBufferSizeLowerBound,
                 nioBufferSizeUpperBound,
                 nioBufferSizeUpgrade,

@@ -35,18 +35,18 @@ public final class PeersBlacklistedEvent extends Event {
         public Optional<Duration> getExpirationTime()               { return this.expirationTime; }
     }
 
-    private final Map<InetAddress, BlacklistReason> inetAddress;
+    private final Map<InetAddress, BlacklistReason> inetAddresses;
 
     public PeersBlacklistedEvent(Map<InetAddress, BlacklistReason> inetAddress) {
-        this.inetAddress = inetAddress;
+        this.inetAddresses = inetAddress;
     }
 
-    public Map<InetAddress, BlacklistReason> getInetAddress() {
-        return this.inetAddress;
+    public Map<InetAddress, BlacklistReason> getInetAddresses() {
+        return this.inetAddresses;
     }
 
     @Override
     public String toString() {
-        return "Event[Peers Blacklisted]: " + inetAddress.size() + " IPs blacklisted";
+        return "Event[Peers Blacklisted]: " + inetAddresses.size() + " IPs blacklisted";
     }
 }

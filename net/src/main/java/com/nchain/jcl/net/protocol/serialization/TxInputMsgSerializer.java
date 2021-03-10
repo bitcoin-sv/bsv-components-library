@@ -40,7 +40,6 @@ public class TxInputMsgSerializer implements MessageSerializer<TxInputMsg> {
 
         int scriptLen = (int) varIntMsgSerializer.deserialize(context, byteReader).getValue();
 
-        byteReader.waitForBytes(scriptLen + 4);
         byte[] sig_script = byteReader.read(scriptLen);
         long sequence = byteReader.readUint32();
 

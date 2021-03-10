@@ -486,10 +486,10 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     }
 
     default void _linkTxToBlock(T tr, String txHash, String blockHash, byte[] blockDirFullKey) {
-        // We add a Key in this Block subfolder for this Tx:
+        // We addBytes a Key in this Block subfolder for this Tx:
         save(tr, fullKeyForBlockTx(tr, blockDirFullKey, txHash), bytes(1L)); // the value is NOT important here...
 
-        // We add a Key in the "TXs" folder
+        // We addBytes a Key in the "TXs" folder
         save(tr, fullKeyForTxBlock(tr, txHash, blockHash), bytes(1L));
 
     }

@@ -2,8 +2,7 @@ package com.nchain.jcl.net.unit.protocol.handlers.discovery
 
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
-import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
-import com.nchain.jcl.net.protocol.events.InitialPeersLoadedEvent
+import com.nchain.jcl.net.protocol.events.control.InitialPeersLoadedEvent
 import com.nchain.jcl.net.protocol.handlers.blacklist.BlacklistHandler
 import com.nchain.jcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig
 import com.nchain.jcl.net.protocol.wrapper.P2P

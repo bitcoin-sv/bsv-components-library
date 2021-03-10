@@ -32,9 +32,8 @@ public class VarIntMsgSerializer implements MessageSerializer<VarIntMsg> {
 
 
     public VarIntMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
-        byteReader.waitForBytes(1);
         long value = BitcoinSerializerUtils.deserializeVarInt(byteReader);
-        // We assign the value to the builder:
+        // We assign the value to the byteArray:
         return VarIntMsg.builder().value(value).build();
     }
 

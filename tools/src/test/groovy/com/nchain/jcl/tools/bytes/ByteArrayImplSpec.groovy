@@ -10,13 +10,13 @@ class ByteArrayImplSpec extends Specification {
     /**
      * We test the content of the Byte Array is correct according to the parameters:
      *
-     * @param bytesAdded    Bytes to add to the ByteArray
+     * @param bytesAdded    Bytes to addBytes to the ByteArray
      * @param toExtract     Number of Bytes to extractReader from the ByteArray
      * @param result        Result expected in the extraction
      */
     def "testing adding and extracting"(int byteArraySize, byte[] bytesAdded, int toExtract, byte[] result) {
         given:
-            ByteArrayImpl byteArray = new ByteArrayImpl(byteArraySize)
+            ByteArrayNIO byteArray = new ByteArrayNIO(byteArraySize)
             byteArray.add(bytesAdded)
 
             byte[] extracted = byteArray.extract(toExtract)
@@ -24,10 +24,10 @@ class ByteArrayImplSpec extends Specification {
             Arrays.equals(extracted, result)
         where:
             byteArraySize                                                                       |   bytesAdded |   toExtract |   result
-            ByteArrayMemoryConfiguration.builder().byteArraySize(1).build().getByteArraySize()  |   []         |   0         |   []
-            ByteArrayMemoryConfiguration.builder().byteArraySize(2).build().getByteArraySize()  |   [1]        |   0         |   []
-            ByteArrayMemoryConfiguration.builder().byteArraySize(3).build().getByteArraySize()  |   [1, 2, 3]  |   2         |   [1, 2]
-            ByteArrayMemoryConfiguration.builder().byteArraySize(10).build().getByteArraySize() |   [1, 2, 3]  |   3         |   [1, 2, 3]
+            1  |   []         |   0         |   []
+            2  |   [1]        |   0         |   []
+            3  |   [1, 2, 3]  |   2         |   [1, 2]
+            10 |   [1, 2, 3]  |   3         |   [1, 2, 3]
     }
 
     /**
@@ -35,11 +35,9 @@ class ByteArrayImplSpec extends Specification {
      */
     def "testing capacity limits"() {
         given:
-            ByteArrayMemoryConfiguration memoryConfig = ByteArrayMemoryConfiguration.builder()
-                .byteArraySize(2)
-                .build()
+            ByteArrayConfig memoryConfig = new ByteArrayConfig(2)
 
-            ByteArray byteArray = new ByteArrayImpl(memoryConfig.getByteArraySize())
+            ByteArray byteArray = new ByteArrayNIO(memoryConfig.getByteArraySize())
         when:
             byteArray.add([1,2] as byte[])
             byteArray.add([3] as byte[])

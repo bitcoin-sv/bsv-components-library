@@ -5,9 +5,11 @@ import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVStnConfig
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBTCMainConfig
 import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandler
 import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandlerConfig
+import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerConfig
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
+import com.nchain.jcl.net.unit.protocol.handlers.wrapper.ProtocolConnectionTest
 import io.bitcoinj.params.MainNetParams
 import org.junit.Test
 import spock.lang.Ignore
@@ -89,14 +91,6 @@ class BlockDownloadTest extends Specification {
                 String hash = e.blockHeaderMsg.hash.toString()
                 Long currentTxs = blockTxs.containsKey(hash)? (blockTxs.get(hash) + e.txsMsg.size()) : e.txsMsg.size()
                 blockTxs.put(hash, currentTxs)
-                //println(Thread.activeCount() + " threads, " + currentTxs + " Txs downloaded...")
-                /*
-                if (blockHeaders.containsKey(hash)) {
-                    Long totalTxs = blockHeaders.deserialize(hash).transactionCount.value
-                    println(" > Block " + hash + ": " + currentTxs + " Txs (of " + totalTxs + ") downloaded...")
-                } else println(" > Block " + hash + ": " + currentTxs + " Txs downloaded...")
-
-                 */
             })
 
 
@@ -112,7 +106,7 @@ class BlockDownloadTest extends Specification {
 
             // We log the Block Download Status:
             p2p.EVENTS.STATE.BLOCKS.forEach( {e -> println(e)})
-            //p2p.EVENTS.STATE.HANDSHAKE.forEach({ e -> println(e)})
+            p2p.EVENTS.STATE.HANDSHAKE.forEach({ e -> println(e)})
 
         when:
             println(" > Testing Block Download in " + config.toString() + "...")
@@ -135,9 +129,10 @@ class BlockDownloadTest extends Specification {
             allBlocksDone
 
         where:
-            config                                                                           |   block_hashes
-           com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder.get(new MainNetParams()) |   BLOCKS_BSV_MAIN
-           // new ProtocolBSVStnConfig()      |   BLOCKS_BSV_STN
+            config                     |   block_hashes
+            new ProtocolBSVMainConfig()      |   BLOCKS_BSV_MAIN
+           //com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder.get(MainNetParams.get()) |   BLOCKS_BSV_MAIN
+           //new ProtocolBSVStnConfig()      |   BLOCKS_BSV_STN
            //new ProtocolBTCMainConfig() |   BLOCKS_BTC_MAIN
     }
 

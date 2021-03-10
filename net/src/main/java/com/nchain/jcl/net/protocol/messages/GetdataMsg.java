@@ -32,7 +32,7 @@ public final class GetdataMsg extends Message {
     private final ImmutableList<InventoryVectorMsg> invVectorList;
 
     /**
-     * Creates the InvMessage Object.Use the corresponding builder to create the instance.
+     * Creates the InvMessage Object.Use the corresponding byteArray to create the instance.
      */
     protected GetdataMsg(List<InventoryVectorMsg> invVectorList) {
         this.invVectorList = ImmutableList.copyOf(invVectorList);

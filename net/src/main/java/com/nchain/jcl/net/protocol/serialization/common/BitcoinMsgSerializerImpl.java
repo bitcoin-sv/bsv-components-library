@@ -91,7 +91,7 @@ public class BitcoinMsgSerializerImpl implements BitcoinMsgSerializer {
         // to build another HeaderMsg taking the original one as a reference:
         HeaderMsg header = bitcoinMessage.getHeader();
         HeaderMsg headerWithChecksum = HeaderMsg.builder().checksum(checksum).command(
-                header.getCommand()).length(header.getLength()).magic(header.getMagic()).build();
+                header.getCommand()).length(bodyBytes.length).magic(header.getMagic()).build();
 
         // We serialize the Header:
         ByteArrayWriter finalWriter = new ByteArrayWriter();

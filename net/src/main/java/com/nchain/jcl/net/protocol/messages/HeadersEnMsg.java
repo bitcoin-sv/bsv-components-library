@@ -31,7 +31,7 @@ public final class HeadersEnMsg extends Message {
     private final List<BlockHeaderEnMsg> blockHeaderEnMsgList;
 
     /**
-     * Creates the HeadersEnMsg Object. Use the corresponding builder to create the instance.
+     * Creates the HeadersEnMsg Object. Use the corresponding byteArray to create the instance.
      *
      * @param blockHeaderEnMsgList
      */

@@ -1,7 +1,7 @@
 package com.nchain.jcl.tools.config;
 
 
-import com.nchain.jcl.tools.bytes.ByteArrayMemoryConfiguration;
+import com.nchain.jcl.tools.bytes.ByteArrayConfig;
 import com.nchain.jcl.tools.files.FileUtils;
 
 import java.time.Duration;
@@ -14,12 +14,12 @@ import java.time.Duration;
  * values by extending classes.
  */
 public class RuntimeConfigImpl implements RuntimeConfig {
-    protected ByteArrayMemoryConfiguration byteArrayMemoryConfig;
+    protected ByteArrayConfig byteArrayMemoryConfig;
     protected int msgSizeInBytesForRealTimeProcessing;
     protected Duration maxWaitingTimeForBytesInRealTime;
     protected FileUtils fileUtils;
 
-    public RuntimeConfigImpl(ByteArrayMemoryConfiguration byteArrayMemoryConfig,
+    public RuntimeConfigImpl(ByteArrayConfig byteArrayMemoryConfig,
                              int msgSizeInBytesForRealTimeProcessing,
                              Duration maxWaitingTimeForBytesInRealTime,
                              FileUtils fileUtils) {
@@ -32,7 +32,7 @@ public class RuntimeConfigImpl implements RuntimeConfig {
     public RuntimeConfigImpl() { }
 
     public static RuntimeConfigImplBuilder builder()                { return new RuntimeConfigImplBuilder(); }
-    public ByteArrayMemoryConfiguration getByteArrayMemoryConfig()  { return this.byteArrayMemoryConfig; }
+    public ByteArrayConfig getByteArrayMemoryConfig()  { return this.byteArrayMemoryConfig; }
     public int getMsgSizeInBytesForRealTimeProcessing()             { return this.msgSizeInBytesForRealTimeProcessing; }
     public Duration getMaxWaitingTimeForBytesInRealTime()           { return this.maxWaitingTimeForBytesInRealTime; }
     public FileUtils getFileUtils()                                 { return this.fileUtils; }
@@ -45,7 +45,7 @@ public class RuntimeConfigImpl implements RuntimeConfig {
      * Builder class
      */
     public static class RuntimeConfigImplBuilder {
-        private ByteArrayMemoryConfiguration byteArrayMemoryConfig;
+        private ByteArrayConfig byteArrayMemoryConfig;
         private int msgSizeInBytesForRealTimeProcessing;
         private Duration maxWaitingTimeForBytesInRealTime;
         private FileUtils fileUtils;
@@ -53,7 +53,7 @@ public class RuntimeConfigImpl implements RuntimeConfig {
         RuntimeConfigImplBuilder() {
         }
 
-        public RuntimeConfigImplBuilder byteArrayMemoryConfig(ByteArrayMemoryConfiguration byteArrayMemoryConfig) {
+        public RuntimeConfigImplBuilder byteArrayMemoryConfig(ByteArrayConfig byteArrayMemoryConfig) {
             this.byteArrayMemoryConfig = byteArrayMemoryConfig;
             return this;
         }

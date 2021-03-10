@@ -21,7 +21,11 @@ import java.util.Map;
  */
 public class MsgSerializersFactory {
 
+    // Regular Message Serializers:
     private static Map<String, MessageSerializer> serializers = new HashMap<>();
+
+    // Raw Message Serializers:
+    private static Map<String, RawMsgSerializer> rawSerializers = new HashMap<>();
 
     private MsgSerializersFactory() {}
 
@@ -61,12 +65,18 @@ public class MsgSerializersFactory {
         serializers.put(GetHeadersEnMsg.MESSAGE_TYPE.toUpperCase(), GetHeadersEnMsgSerializer.getInstance());
         serializers.put(BlockHeaderEnMsg.MESSAGE_TYPE.toUpperCase(), BlockHeaderEnMsgSerializer.getInstance());
         serializers.put(HeadersEnMsg.MESSAGE_TYPE.toUpperCase(), HeadersEnMsgSerializer.getInstance());
+
+        rawSerializers.put(RawTxMsg.MESSAGE_TYPE.toUpperCase(), RawTxMsgSerializer.getInstance());
     }
 
     public static MessageSerializer getSerializer(String command) {
         return serializers.get(command.toUpperCase());
     }
 
+    /** We overwrite a regular Serialzer with a raw Serializer */
+    public static void assignRawSerializer(String command) {
+        serializers.put(command.toUpperCase(), rawSerializers.get(command.toUpperCase()));
+    }
 
     /**
      * It returns an instance of a Deserializer for Large Messages. The Deserializers for Large Messages have STATE

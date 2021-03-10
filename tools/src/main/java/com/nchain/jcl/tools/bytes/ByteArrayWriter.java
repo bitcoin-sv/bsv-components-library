@@ -20,29 +20,28 @@ import java.io.UnsupportedEncodingException;
  */
 public class ByteArrayWriter {
 
-    protected ByteArrayBuilder builder;
+    protected ByteArrayBuffer buffer;
 
     public ByteArrayWriter() {
-        this.builder = new ByteArrayBuilder();
+        this.buffer = new ByteArrayBuffer();
     }
 
-
-    public void write(byte data)            { builder.add(new byte[] {data}); }
-    public void write(byte[] data)          { builder.add(data);}
+    public void write(byte data)            { buffer.addBytes(new byte[] {data}); }
+    public void write(byte[] data)          { buffer.addBytes(data);}
     public void writeUint32LE(long value)   {
         byte[] out = new byte[4];
         Utils.uint32ToByteArrayLE(value, out, 0);
-        builder.add(out);
+        buffer.addBytes(out);
     }
     public void writeUint64LE(long value)   {
         byte[] out = new byte[8];
         Utils.uint64ToByteArrayLE(value, out, 0);
-        builder.add(out);
+        buffer.addBytes(out);
     }
-    public void writeBoolean(boolean value) { builder.add(new byte[] {(byte) (value? 1 : 0)});}
+    public void writeBoolean(boolean value) { buffer.addBytes(new byte[] {(byte) (value? 1 : 0)});}
     public void writeStr(String str)        { writeStr(str, str.length()); }
-    public ByteArrayReader reader()         { return new ByteArrayReader(builder);}
-    public void close()                     { builder.clear();}
+    public ByteArrayReader reader()         { return new ByteArrayReader(buffer);}
+    public void close()                     { buffer.clear();}
 
     public void writeStr(String str, int length) {
         byte[] strBytes = str.getBytes();

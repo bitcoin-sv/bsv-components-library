@@ -98,8 +98,8 @@ public class NIOOutputStream extends PeerOutputStreamImpl<ByteArrayReader, ByteA
     }
 
     public void send(StreamDataEvent<ByteArrayReader> event) {
-        //logger.trace("Sending " + event.getData().size() + " bytes : " + HEX.encode(event.getData().getFullContent()));
-        // We get all the data from this Reader and we add it to the buffer of ByteBuffers.
+        //logger.trace("Sending " + event.getData().size() + " bytes : " + HEX.encode(event.getData().get()));
+        // We get all the data from this Reader and we addBytes it to the buffer of ByteBuffers.
         bytesToWriteRemaining += event.getData().size();
         buffersToWrite.offer(ByteBuffer.wrap(event.getData().getFullContentAndClose())); // TODO: CAREFUL
         notifyChannelWritable();

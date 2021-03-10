@@ -30,7 +30,6 @@ public class GetHeadersEnMsgSerializer implements MessageSerializer<GetHeadersEn
 
     @Override
     public GetHeadersEnMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
-        byteReader.waitForBytes(4);
         long version = byteReader.readUint32();
         HashMsg blockLocatorHash = BaseGetDataAndHeaderMsgSerializer.getInstance().readHashMsg(context, byteReader);
         HashMsg stopHash =BaseGetDataAndHeaderMsgSerializer.getInstance().readHashMsg(context, byteReader);
@@ -46,7 +45,7 @@ public class GetHeadersEnMsgSerializer implements MessageSerializer<GetHeadersEn
     @Override
     public void serialize(SerializerContext context, GetHeadersEnMsg message, ByteArrayWriter byteWriter) {
         byteWriter.writeUint32LE(message.getVersion());
-        byteWriter.write(Utils.reverseBytes(message.getBlockLocatorHash().getHashBytes()));
-        byteWriter.write(Utils.reverseBytes(message.getHashStop().getHashBytes()));
+        byteWriter.write(message.getBlockLocatorHash().getHashBytes());
+        byteWriter.write(message.getHashStop().getHashBytes());
     }
 }

@@ -6,8 +6,9 @@ import com.nchain.jcl.net.network.events.BlacklistPeerRequest;
 import com.nchain.jcl.net.network.events.ConnectPeerRequest;
 import com.nchain.jcl.net.network.events.DisconnectPeerRequest;
 import com.nchain.jcl.net.network.events.PeerDisconnectedEvent.DisconnectedReason;
-import com.nchain.jcl.net.protocol.events.*;
+import com.nchain.jcl.net.protocol.events.control.*;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
+import com.nchain.jcl.net.protocol.messages.common.Message;
 import com.nchain.jcl.tools.events.Event;
 import com.nchain.jcl.tools.events.EventBus;
 
@@ -33,6 +34,7 @@ public class P2PRequestHandler {
     // The same EventBus that is used by the underlying P2P
     private EventBus eventBus;
 
+
     public P2PRequestHandler(EventBus eventBus) {
         this.eventBus = eventBus;
     }
@@ -45,7 +47,7 @@ public class P2PRequestHandler {
         public abstract Event buildRequest();
         // This method publishes the Request to the Bus
         public void submit() {
-            eventBus.publish(buildRequest());
+             eventBus.publish(buildRequest());
         }
     }
 
@@ -136,9 +138,35 @@ public class P2PRequestHandler {
             this.peerAddress = peerAddress;
             this.btcMsg = btcMsg;
         }
-
         public SendMsgRequest buildRequest() { return new SendMsgRequest(peerAddress, btcMsg); }
     }
+
+    /** A Builder for SendMsgBodyRequest */
+    public class SendMsgBodyRequestBuilder extends Request {
+        private PeerAddress peerAddress;
+        private Message msgBody;
+
+        public SendMsgBodyRequestBuilder(PeerAddress peerAddress, Message msgBody) {
+            this.peerAddress = peerAddress;
+            this.msgBody = msgBody;
+        }
+        public SendMsgBodyRequest buildRequest() { return new SendMsgBodyRequest(peerAddress, msgBody); }
+    }
+
+    /** A Builder for SendMsgListRequest */
+    public class SendMsgListRequestBuilder extends Request {
+        private PeerAddress peerAddress;
+        private List<BitcoinMsg<?>> btcMsgs;
+
+        public SendMsgListRequestBuilder(PeerAddress peerAddress, List<BitcoinMsg<?>> btcMsgs) {
+            this.peerAddress = peerAddress;
+            this.btcMsgs = btcMsgs;
+        }
+
+        public SendMsgListRequest buildRequest() { return new SendMsgListRequest(peerAddress, btcMsgs); }
+    }
+
+
     /** A Builder for BroadcastMsgRequest */
     public class BroadcastMsgRequestBuilder extends Request {
         private BitcoinMsg<?> btcMsg;
@@ -153,6 +181,12 @@ public class P2PRequestHandler {
     public class MsgsRequestBuilder {
         public SendMsgRequestBuilder send(PeerAddress peerAddress, BitcoinMsg<?> btcMsg) {
             return new SendMsgRequestBuilder(peerAddress, btcMsg);
+        }
+        public SendMsgBodyRequestBuilder send(PeerAddress peerAddress, Message msgBody) {
+            return new SendMsgBodyRequestBuilder(peerAddress, msgBody);
+        }
+        public SendMsgListRequestBuilder send(PeerAddress peerAddress, List<BitcoinMsg<?>> btcMsgs) {
+            return new SendMsgListRequestBuilder(peerAddress, btcMsgs);
         }
         public BroadcastMsgRequestBuilder broadcast(BitcoinMsg<?> btcMsg) {
             return new BroadcastMsgRequestBuilder(btcMsg);

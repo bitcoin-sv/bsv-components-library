@@ -2,7 +2,7 @@ package com.nchain.jcl.net.wiki;
 
 import com.nchain.jcl.net.protocol.config.ProtocolConfig;
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig;
-import com.nchain.jcl.net.protocol.events.PeerHandshakedEvent;
+import com.nchain.jcl.net.protocol.events.control.PeerHandshakedEvent;
 import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandlerConfig;
 import com.nchain.jcl.net.protocol.messages.InvMessage;
 import com.nchain.jcl.net.protocol.messages.InventoryVectorMsg;

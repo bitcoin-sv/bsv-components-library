@@ -1,11 +1,10 @@
 package com.nchain.jcl.net.unit.protocol.tools;
 
 
-import com.nchain.jcl.net.network.streams.PeerInputStreamImpl;
 import com.nchain.jcl.net.network.streams.StreamCloseEvent;
 import com.nchain.jcl.net.network.streams.StreamDataEvent;
 import com.nchain.jcl.net.unit.network.streams.PeerStreamInOutSimulator;
-import com.nchain.jcl.tools.bytes.ByteArrayBuilder;
+import com.nchain.jcl.tools.bytes.ByteArrayBuffer;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,21 +32,21 @@ public class ByteReaderDelaySource extends PeerStreamInOutSimulator<ByteArrayRea
     // between different batches. If the size of the buffer is less than this, no delay is applied.
     final int bytesBatchsize = 10;
 
-    private ByteArrayBuilder byteArrayBuilder;
+    private ByteArrayBuffer byteArrayBuilder;
     private ExecutorService executorService;
 
     public ByteReaderDelaySource(ExecutorService executor, int bytesPerSec) {
         super(null, executor); // no PeerAddress
         this.bytesPerSec = bytesPerSec;
 
-        this.byteArrayBuilder = new ByteArrayBuilder();
+        this.byteArrayBuilder = new ByteArrayBuffer();
         this.executorService = Executors.newSingleThreadExecutor();
         this.executorService.submit(this::feedBytesWithDelay);
     }
 
     @Override
     public void send(StreamDataEvent<ByteArrayReader> event) {
-        byteArrayBuilder.add(event.getData().getFullContent());
+        byteArrayBuilder.addBytes(event.getData().getFullContent());
     }
 
     @Override
@@ -75,7 +74,7 @@ public class ByteReaderDelaySource extends PeerStreamInOutSimulator<ByteArrayRea
                     Duration delay = Duration.ofMillis(millisecsWholeSend / numBatches);
 
                     int bytesToSend = (int) Math.min(byteArrayBuilder.size(), bytesBatchsize);
-                    ByteArrayReader byteReader = new ByteArrayReader(byteArrayBuilder.extractBytes(bytesToSend));
+                    ByteArrayReader byteReader = new ByteArrayReader(byteArrayBuilder.extract(bytesToSend));
                     super.send(new StreamDataEvent<>(byteReader));
 
                     // Now we wait...

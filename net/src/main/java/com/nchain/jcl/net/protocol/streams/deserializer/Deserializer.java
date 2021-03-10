@@ -13,6 +13,7 @@ import com.nchain.jcl.net.protocol.serialization.largeMsgs.MsgPartDeserializatio
 import com.nchain.jcl.net.protocol.serialization.largeMsgs.MsgPartDeserializedEvent;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.tools.bytes.ByteArrayReaderOptimized;
+import com.nchain.jcl.tools.bytes.ByteArrayReaderRealTime;
 import com.nchain.jcl.tools.config.RuntimeConfig;
 
 import java.util.function.Consumer;
@@ -128,19 +129,23 @@ public class Deserializer {
         // We build the Cache-Key for this Message...
         CacheMsgKey key = new CacheMsgKey(headerMsg, desContext, reader);
 
-        // We only use the Cache if the requested message is "cacheable"...
-        boolean isCacheable = config.getMessagesToCache().contains(headerMsg.getCommand().toUpperCase()) &&
+        // We only use the Cache if the cache is enabled AND the requested message is "cacheable"...
+        boolean isCacheable = config.isEnabled() && config.getMessagesToCache().contains(headerMsg.getCommand().toUpperCase()) &&
                 (headerMsg.getLength() < config.getMaxMsgSizeInBytes());
 
         if (isCacheable) {
             result = cache.getIfPresent(key);
             if (result != null)
-                // we extract and discard the bytes from the pipeline...
-                reader.extract((int) headerMsg.getLength());
+                // we read and discard the bytes from the pipeline...
+                reader.read((int) headerMsg.getLength());
             else
                 result = cache.get(key, () -> deserialize(key));
         }
         else result = deserialize(key);
+
+        // we reset the Reader now that it's done... (needed by the OptimizedReader)
+        if (reader instanceof ByteArrayReaderOptimized)
+            ((ByteArrayReaderOptimized) reader).refreshBuffer();
 
         return result;
     }
@@ -167,8 +172,7 @@ public class Deserializer {
         Message result = null;
 
         // we adjust the Reader, using an version Optimized for Large Messages:
-        reader = new ByteArrayReaderOptimized(reader);
-        reader.enableRealTime(runtimeConfig.getMaxWaitingTimeForBytesInRealTime());
+        reader = new ByteArrayReaderRealTime(reader);
 
         // We set up the callbacks that wil be trigger as the message is deserialized...
 

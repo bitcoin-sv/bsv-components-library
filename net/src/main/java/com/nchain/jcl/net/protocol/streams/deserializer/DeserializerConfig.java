@@ -2,6 +2,7 @@ package com.nchain.jcl.net.protocol.streams.deserializer;
 
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.HeadersMsg;
+import com.nchain.jcl.net.protocol.messages.InvMessage;
 import com.nchain.jcl.net.protocol.messages.TxMsg;
 
 import java.util.Arrays;
@@ -16,6 +17,9 @@ import java.util.Set;
  */
 public final class DeserializerConfig {
 
+    /** If disabled, no chache is used at all */
+    private boolean enabled = true;
+
     /** Maximum Size of the Cache (in Bytes) */
     private Long maxCacheSizeInBytes = 10_000_000L; // 10 MB
 
@@ -29,13 +33,15 @@ public final class DeserializerConfig {
     private static final String[] DEFAULT_MSGS_TO_CACHE = {
             HeadersMsg.MESSAGE_TYPE.toUpperCase(),
             TxMsg.MESSAGE_TYPE.toUpperCase(),
-            BlockHeaderMsg.MESSAGE_TYPE.toUpperCase()
+            BlockHeaderMsg.MESSAGE_TYPE.toUpperCase(),
+            InvMessage.MESSAGE_TYPE.toUpperCase()
     };
 
     /** If the Message is NOT part of this List, then it won't be cached */
     private Set<String> messagesToCache = new HashSet<>(Arrays.asList(DEFAULT_MSGS_TO_CACHE));
 
-    public DeserializerConfig(Long maxCacheSizeInBytes, Long maxMsgSizeInBytes, Boolean generateStats, Set<String> messagesToCache) {
+    public DeserializerConfig(Boolean enabled, Long maxCacheSizeInBytes, Long maxMsgSizeInBytes, Boolean generateStats, Set<String> messagesToCache) {
+        if (enabled != null)                this.enabled = enabled;
         if (maxCacheSizeInBytes != null)    this.maxCacheSizeInBytes = maxCacheSizeInBytes;
         if (maxMsgSizeInBytes != null)      this.maxMsgSizeInBytes = maxMsgSizeInBytes;
         if (generateStats != null)          this.generateStats = generateStats;
@@ -43,6 +49,7 @@ public final class DeserializerConfig {
     }
 
     public static DeserializerConfigBuilder builder()   { return new DeserializerConfigBuilder(); }
+    public boolean isEnabled()                          { return enabled; }
     public Long getMaxCacheSizeInBytes()                { return this.maxCacheSizeInBytes; }
     public Long getMaxMsgSizeInBytes()                  { return this.maxMsgSizeInBytes; }
     public boolean isGenerateStats()                    { return this.generateStats; }
@@ -62,12 +69,18 @@ public final class DeserializerConfig {
      * Builder
      */
     public static class DeserializerConfigBuilder {
+        private Boolean enabled;
         private Long maxCacheSizeInBytes;
         private Long maxMsgSizeInBytes;
         private boolean generateStats;
         private Set<String> messagesToCache;
 
         DeserializerConfigBuilder() { }
+
+        public DeserializerConfig.DeserializerConfigBuilder enabled(boolean enabled) {
+            this.enabled = enabled;
+            return this;
+        }
 
         public DeserializerConfig.DeserializerConfigBuilder maxCacheSizeInBytes(Long maxCacheSizeInBytes) {
             this.maxCacheSizeInBytes = maxCacheSizeInBytes;
@@ -90,7 +103,7 @@ public final class DeserializerConfig {
         }
 
         public DeserializerConfig build() {
-            return new DeserializerConfig(maxCacheSizeInBytes, maxMsgSizeInBytes, generateStats, messagesToCache);
+            return new DeserializerConfig(enabled, maxCacheSizeInBytes, maxMsgSizeInBytes, generateStats, messagesToCache);
         }
     }
 }

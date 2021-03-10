@@ -3,12 +3,10 @@ package com.nchain.jcl.net.unit.protocol.handlers.handshake
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
-import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
-import com.nchain.jcl.net.protocol.events.MinHandshakedPeersLostEvent
-import com.nchain.jcl.net.protocol.events.MinHandshakedPeersReachedEvent
+import com.nchain.jcl.net.protocol.events.control.MinHandshakedPeersLostEvent
+import com.nchain.jcl.net.protocol.events.control.MinHandshakedPeersReachedEvent
 import com.nchain.jcl.net.protocol.handlers.blacklist.BlacklistHandler
 import com.nchain.jcl.net.protocol.handlers.discovery.DiscoveryHandler
-import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandlerConfig
 import com.nchain.jcl.net.protocol.handlers.pingPong.PingPongHandler
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
@@ -96,6 +94,7 @@ class ProtocolHandshakeOKTest extends Specification {
             P2P server = new P2PBuilder("server")
                     .config(protocolConfig)
                     .config(basicConfig)
+                    .serverPort(0) // Random Port
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
@@ -162,12 +161,14 @@ class ProtocolHandshakeOKTest extends Specification {
               client.REQUESTS.PEERS.connect(server.getPeerAddress()).submit()
             }
 
-            Thread.sleep(500)
-            // Now we stop them all CHECK EVENTS HERE:
-            server.stop()
+            Thread.sleep(100)
+            // Now we stop them all
+            println(" >> STOPPING ALL CLIENTS...")
             for (P2P client : clients) {
                 client.stop()
             }
+            Thread.sleep(100)
+            server.stop()
         then:
             numLostEvents.get() == 2
             numReachedEvents.get() == 2

@@ -40,22 +40,17 @@ public class TxOutPointMsgSerializer implements MessageSerializer<TxOutPointMsg>
     public TxOutPointMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
 
         HashMsg hashMsg = hashMsgSerializer.deserialize(context, byteReader);
-        HashMsg reverseHash = HashMsg.builder().hash(reverseBytes(hashMsg)).build();
 
-        byteReader.waitForBytes(4);
         long index = byteReader.readUint32();
-        TxOutPointMsg txOutPointMsg = TxOutPointMsg.builder().hash(reverseHash).index(index).build();
+        TxOutPointMsg txOutPointMsg = TxOutPointMsg.builder().hash(hashMsg).index(index).build();
         return txOutPointMsg;
     }
 
     @Override
     public void serialize(SerializerContext context, TxOutPointMsg message, ByteArrayWriter byteWriter) {
-        byteWriter.write(reverseBytes(message.getHash()));
+        byteWriter.write(message.getHash().getHashBytes());
         byteWriter.writeUint32LE(message.getIndex());
     }
 
-    private byte[] reverseBytes(HashMsg hashMsg) {
-        return Utils.reverseBytes(hashMsg.getHashBytes());
-    }
 
 }

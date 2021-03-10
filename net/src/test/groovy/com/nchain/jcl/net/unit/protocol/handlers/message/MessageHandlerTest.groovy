@@ -7,8 +7,8 @@ import com.nchain.jcl.net.network.handlers.NetworkHandler
 import com.nchain.jcl.net.network.handlers.NetworkHandlerImpl
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
-import com.nchain.jcl.net.protocol.events.MsgReceivedEvent
-import com.nchain.jcl.net.protocol.events.PeerMsgReadyEvent
+import com.nchain.jcl.net.protocol.events.data.MsgReceivedEvent
+import com.nchain.jcl.net.protocol.events.control.PeerMsgReadyEvent
 import com.nchain.jcl.net.protocol.handlers.message.MessageHandler
 import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerConfig
 import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerImpl

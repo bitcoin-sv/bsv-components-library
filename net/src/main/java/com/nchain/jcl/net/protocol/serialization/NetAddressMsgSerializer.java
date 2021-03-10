@@ -46,11 +46,9 @@ public class NetAddressMsgSerializer implements MessageSerializer<NetAddressMsg>
             // if applied, we read the timestamp. 4 bytes
             if  ((!context.isInsideVersionMsg()) &&
                     (context.getProtocolBasicConfig().getProtocolVersion() >= ProtocolVersion.ENABLE_TIMESTAMP_ADDRESS.getBitcoinProtocolVersion())) {
-                byteReader.waitForBytes(4);
+
                 timestamp  = byteReader.readUint32();
             }
-
-            byteReader.waitForBytes(26);
 
             long services = byteReader.readInt64LE();
 

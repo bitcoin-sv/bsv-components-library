@@ -18,6 +18,6 @@ public final class ConnectPeersRequest extends Event {
     public List<PeerAddress> getPeerAddressList()                   { return this.peerAddressList; }
 
     public String toString() {
-        return "ConnectPeersRequest(peerAddressList=" + this.getPeerAddressList() + ")";
+        return "ConnectPeersRequest(" + this.getPeerAddressList().size() + " peers)";
     }
 }

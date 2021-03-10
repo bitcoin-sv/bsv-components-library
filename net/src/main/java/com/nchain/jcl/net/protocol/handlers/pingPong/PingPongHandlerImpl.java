@@ -6,13 +6,19 @@ import com.nchain.jcl.net.network.events.DisconnectPeerRequest;
 import com.nchain.jcl.net.network.events.NetStartEvent;
 import com.nchain.jcl.net.network.events.NetStopEvent;
 import com.nchain.jcl.net.network.events.PeerDisconnectedEvent;
-import com.nchain.jcl.net.protocol.events.*;
+import com.nchain.jcl.net.protocol.events.control.DisablePingPongRequest;
+import com.nchain.jcl.net.protocol.events.control.EnablePingPongRequest;
+import com.nchain.jcl.net.protocol.events.control.PeerHandshakedEvent;
+import com.nchain.jcl.net.protocol.events.control.PingPongFailedEvent;
+import com.nchain.jcl.net.protocol.events.data.MsgReceivedEvent;
+import com.nchain.jcl.net.protocol.events.control.SendMsgRequest;
 import com.nchain.jcl.net.protocol.messages.PingMsg;
 import com.nchain.jcl.net.protocol.messages.PongMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
 import com.nchain.jcl.net.tools.NonceUtils;
 import com.nchain.jcl.tools.config.RuntimeConfig;
+import com.nchain.jcl.tools.events.EventQueueProcessor;
 import com.nchain.jcl.tools.handlers.HandlerImpl;
 import com.nchain.jcl.tools.log.LoggerUtil;
 import com.nchain.jcl.tools.thread.ThreadUtils;
@@ -48,6 +54,9 @@ public class PingPongHandlerImpl extends HandlerImpl implements PingPongHandler 
     // An Executor, to trigger the "handlePingPongJob" in a different Thread:
     private ExecutorService executor;
 
+    // The Events captured by this Handler will  e processed in a separate Thread/s, by an EventQueueProcessor, this
+    // way we won't slow down the rate at which the eVents are published and processed in the Bus
+    private EventQueueProcessor eventQueueProcessor;
 
     /** Constructor */
     public PingPongHandlerImpl(String id, RuntimeConfig runtimeConfig, PingPongHandlerConfig config) {
@@ -55,17 +64,32 @@ public class PingPongHandlerImpl extends HandlerImpl implements PingPongHandler 
         this.config = config;
         this.logger = new LoggerUtil(id, HANDLER_ID, this.getClass());
         this.executor = ThreadUtils.getSingleThreadScheduledExecutorService("PingPong-Handler-Job");
+
+        // We start the EventQueueProcessor. We do not expect many messages (compared to the rest of traffic), so a
+        // single Thread will do...
+        this.eventQueueProcessor = new EventQueueProcessor(ThreadUtils.getSingleThreadScheduledExecutorService("PingPong-EventsConsumers"));
     }
 
     // We register this Handler to LISTEN to these Events:
     private void registerForEvents() {
-        super.eventBus.subscribe(NetStartEvent.class, e -> onStart((NetStartEvent) e));
-        super.eventBus.subscribe(NetStopEvent.class, e -> onStop((NetStopEvent) e));
-        super.eventBus.subscribe(PeerHandshakedEvent.class, e -> onPeerHandshaked((PeerHandshakedEvent) e));
-        super.eventBus.subscribe(PeerDisconnectedEvent.class, e -> onPeerDisconnected((PeerDisconnectedEvent) e));
-        super.eventBus.subscribe(MsgReceivedEvent.class, e -> onMsgReceived((MsgReceivedEvent) e));
-        super.eventBus.subscribe(EnablePingPongRequest.class, e -> onEnablePingPong((EnablePingPongRequest) e));
-        super.eventBus.subscribe(DisablePingPongRequest.class, e -> onDisablePingPong((DisablePingPongRequest) e));
+
+        this.eventQueueProcessor.addProcessor(NetStartEvent.class, e -> onStart((NetStartEvent) e));
+        this.eventQueueProcessor.addProcessor(NetStopEvent.class, e -> onStop((NetStopEvent) e));
+        this.eventQueueProcessor.addProcessor(PeerHandshakedEvent.class, e -> onPeerHandshaked((PeerHandshakedEvent) e));
+        this.eventQueueProcessor.addProcessor(PeerDisconnectedEvent.class, e -> onPeerDisconnected((PeerDisconnectedEvent) e));
+        this.eventQueueProcessor.addProcessor(MsgReceivedEvent.class, e -> onMsgReceived((MsgReceivedEvent) e));
+        this.eventQueueProcessor.addProcessor(EnablePingPongRequest.class, e -> onEnablePingPong((EnablePingPongRequest) e));
+        this.eventQueueProcessor.addProcessor(DisablePingPongRequest.class, e -> onDisablePingPong((DisablePingPongRequest) e));
+
+        super.eventBus.subscribe(NetStartEvent.class, e -> this.eventQueueProcessor.addEvent(e));
+        super.eventBus.subscribe(NetStopEvent.class, e -> this.eventQueueProcessor.addEvent(e));
+        super.eventBus.subscribe(PeerHandshakedEvent.class, e -> this.eventQueueProcessor.addEvent(e));
+        super.eventBus.subscribe(PeerDisconnectedEvent.class, e -> this.eventQueueProcessor.addEvent(e));
+        super.eventBus.subscribe(MsgReceivedEvent.class, e -> this.eventQueueProcessor.addEvent(e));
+        super.eventBus.subscribe(EnablePingPongRequest.class, e -> this.eventQueueProcessor.addEvent(e));
+        super.eventBus.subscribe(DisablePingPongRequest.class, e -> this.eventQueueProcessor.addEvent(e));
+
+        this.eventQueueProcessor.start();
     }
 
     @Override
@@ -94,6 +118,7 @@ public class PingPongHandlerImpl extends HandlerImpl implements PingPongHandler 
     // Event Handler
     public void onStop(NetStopEvent event) {
         this.executor.shutdownNow();
+        this.eventQueueProcessor.stop();
         logger.debug("Stop.");
     }
 
@@ -140,7 +165,7 @@ public class PingPongHandlerImpl extends HandlerImpl implements PingPongHandler 
      * Process an incoming PING Message. We just replied sending a PONG
      */
     private void processPingMsg(BitcoinMsg<PingMsg> pingMsg, PingPongPeerInfo peerInfo) {
-        logger.trace(peerInfo.getPeerAddress(), "PING received, replying with PONG...");
+        logger.debug(peerInfo.getPeerAddress(), "PING received, replying with PONG...");
         PongMsg pongMSg = PongMsg.builder().nonce(pingMsg.getBody().getNonce()).build();
         BitcoinMsg<PongMsg> btcPongMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), pongMSg).build();
         super.eventBus.publish(new SendMsgRequest(peerInfo.getPeerAddress(), btcPongMsg));
@@ -163,7 +188,7 @@ public class PingPongHandlerImpl extends HandlerImpl implements PingPongHandler 
         }
 
         // If we reach this far, the Ping-Pong is CORRECT. We update the state and reset the Peer:
-        logger.trace(peerInfo.getPeerAddress(), " Pong Received within time limit.");
+        logger.debug(peerInfo.getPeerAddress(), " Pong Received within time limit.");
         updateState(1);
         peerInfo.reset();
     }
@@ -173,7 +198,7 @@ public class PingPongHandlerImpl extends HandlerImpl implements PingPongHandler 
      * It sends a Ping to it and updateTimestamp the info we store about this Peer
      */
     private void startPingPong(PingPongPeerInfo peerInfo) {
-        logger.trace(peerInfo.getPeerAddress(), "Starting Ping/Pong...");
+        logger.debug(peerInfo.getPeerAddress(), "Starting Ping/Pong...");
 
         // We send a PING Message to this Peer:
         PingMsg pingMsg = PingMsg.builder().nonce(NonceUtils.newOnce()).build();
@@ -188,7 +213,7 @@ public class PingPongHandlerImpl extends HandlerImpl implements PingPongHandler 
      * It fails the PingPong: Disconnects the Peer and forEach the callbacks to notify about this event
      */
     private void failPingPon(PingPongPeerInfo peerInfo, PingPongFailedEvent.PingPongFailedReason reason) {
-        logger.trace(peerInfo.getPeerAddress(), "Ping/Pong Failed", reason);
+        logger.debug(peerInfo.getPeerAddress(), "Ping/Pong Failed", reason);
         // We request a Disconnection
         super.eventBus.publish(new DisconnectPeerRequest(peerInfo.getPeerAddress()));
         // We remove this Peer
