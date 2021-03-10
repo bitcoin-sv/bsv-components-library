@@ -15,6 +15,7 @@ import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.handlers.HandlerImpl;
 import com.nchain.jcl.tools.log.LoggerUtil;
 import com.nchain.jcl.tools.thread.ThreadUtils;
+import io.bitcoinj.core.Sha256Hash;
 import io.bitcoinj.core.Utils;
 
 import java.time.Duration;
@@ -221,7 +222,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         // We publish an specific event for this Lite Block being downloaded:
 
         // NOTE: Sometimes, remote Peers send BLOCKS to us Even If we did ask for them. In that case, the Downloading
-        // time is ZERO, since we didn´´ ask for it so we cannot measure the downloading time...
+        // time is ZERO, since we didn't ask for it so we cannot measure the downloading time...
 
         Duration downloadingDuration = (peerInfo != null && peerInfo.getCurrentBlockInfo() != null)
                 ? Duration.between(peerInfo.getCurrentBlockInfo().getStartTimestamp(), Instant.now())
@@ -244,8 +245,23 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
     }
 
     private void processDownloadSuccess(BlockPeerInfo peerInfo, BlockHeaderMsg blockHeader, long blockSize) {
-        String blockHash = peerInfo.getCurrentBlockInfo().getHash();
+        // We process the success of this Block being downloaded
+        // This block can be downloaded in two ways:
+        // - The "normal" way: We requested this Blocks to be downloadd, so a Peer was assigned to it, and now the
+        //    whole Block has been received.
+        // - The "unexpected" way: Soe peer has sent this block to us without being asked for it. Maybe even the block
+        //   is also being downloaded by other Peer (to whom we did ask to).
 
+        // In both cases, we process this sucess..
+
+        String blockHash = Sha256Hash.hash(blockHeader.getHash().getHashBytes()).toString();
+
+        // The Duration of the downloading time can be calculated, but if the peer has sent the Block without asking
+        // for it, the downloading time is just ZERO (since we can't keep track)
+
+        Duration downloadingDuration = (peerInfo != null && peerInfo.getCurrentBlockInfo() != null)
+                ? Duration.between(peerInfo.getCurrentBlockInfo().getStartTimestamp(), Instant.now())
+                : Duration.ZERO;
         try {
             lock.lock();
             logger.debug(peerInfo.getPeerAddress(), "Block successfully downloaded", blockHash);
@@ -258,7 +274,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                     new BlockDownloadedEvent(
                             peerInfo.getPeerAddress(),
                             blockHeader,
-                            Duration.between(peerInfo.getCurrentBlockInfo().getStartTimestamp(), Instant.now()),
+                            downloadingDuration,
                             blockSize
                     )
             );
