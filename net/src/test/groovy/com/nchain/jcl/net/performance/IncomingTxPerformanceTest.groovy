@@ -24,6 +24,7 @@ import com.nchain.jcl.tools.events.Event
 import com.nchain.jcl.tools.events.EventQueueProcessor
 import com.nchain.jcl.tools.thread.ThreadUtils
 import io.bitcoinj.core.Sha256Hash
+import io.bitcoinj.core.Utils
 import io.bitcoinj.params.MainNetParams
 import io.bitcoinj.params.Net
 import io.bitcoinj.params.STNParams
@@ -126,7 +127,16 @@ class IncomingTxPerformanceTest extends Specification {
      */
     private void processINV(P2P p2p, InvMsgReceivedEvent event) {
         List<InventoryVectorMsg> newTxsInvItems =  event.btcMsg.body.invVectorList;
-        println(" INV from " + event.peerAddress + "[ " + Thread.activeCount() + " threads, " + newTxsInvItems.size() + " txs, " + numPeersHandshaked.get() + " peers handshaked ]" )
+        long usedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+        long availableMem = Runtime.getRuntime().maxMemory() - usedMem;
+        String memorySummary = String.format("totalMem: %s, maxMem: %s, freeMem: %s, usedMem: %s, availableMem: %s",
+                Utils.humanReadableByteCount(Runtime.getRuntime().totalMemory(), false),
+                Utils.humanReadableByteCount(Runtime.getRuntime().maxMemory(), false),
+                Utils.humanReadableByteCount(Runtime.getRuntime().freeMemory(), false),
+                Utils.humanReadableByteCount(usedMem, false),
+                Utils.humanReadableByteCount(availableMem, false))
+
+        println(" INV (" + newTxsInvItems.size() + " items) [ " + Thread.activeCount() + " threads, " + numPeersHandshaked.get() + " peers] memory : " + memorySummary )
         if (newTxsInvItems.size() > 0) {
             // Now we send a GetData asking for them....
             GetdataMsg getDataMsg = GetdataMsg.builder().invVectorList(newTxsInvItems).build()
