@@ -131,9 +131,15 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
     @Override public byte[] fullKeyForBlocks(Object tr)                                     { return fullKey(DIR_BLOCKCHAIN, config.getNetworkId(), DIR_BLOCKS);}
     @Override public byte[] fullKeyForBlock(Object tr, String blockHash)                    { return fullKey(fullKeyForBlocks(tr), keyForBlock(blockHash)); }
     @Override public byte[] fullKeyForBlockNumTxs(Object tr, String blockHash)              { return fullKey(fullKeyForBlocks(tr), keyForBlockNumTxs(blockHash)); }
-    @Override public byte[] fullKeyForBlockTx(Object tr, String blockHash, String txHash)   { return fullKey(fullKeyForBlocks(tr), keyForBlockDir(blockHash), keyForBlockTx(txHash)); }
-    @Override public byte[] fullKeyForBlockTx(Object tr, byte[] blockDirFullKey,
-                                              String txHash)                                { return fullKey(blockDirFullKey, keyForBlockTx(txHash));}
+    @Override public byte[] fullKeyForBlockTxIndex(Object tr, String blockHash)             { return fullKey(fullKeyForBlocks(), keyForBlockTxIndex(blockHash));}
+
+    @Override public byte[] fullKeyForBlockTx(Object tr, String blockHash, String txHash, long txIndex) {
+        return fullKey(fullKeyForBlocks(tr), keyForBlockDir(blockHash), keyForBlockTx(txHash, txIndex));
+    }
+
+    @Override public byte[] fullKeyForBlockTx(Object tr, byte[] blockDirFullKey, String txHash, long txIndex) {
+        return fullKey(blockDirFullKey, keyForBlockTx(txHash, txIndex));}
+
     @Override public byte[] fullKeyForBlockDir(Object tr, String blockHash)                 { return fullKey(fullKeyForBlocks(tr), keyForBlockDir(blockHash)); }
     @Override public byte[] fullKeyForTxs(Object tr)                                        { return fullKey(DIR_BLOCKCHAIN, config.getNetworkId(), DIR_TXS); }
     @Override public byte[] fullKeyForTx(Object tr, String txHash)                          { return fullKey(fullKeyForTxs(tr), keyForTx(txHash)); }

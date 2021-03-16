@@ -113,6 +113,7 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     String KEY_PREFFIX_TX_PROP       = "tx_p" + KEY_SEPARATOR;        // Property suffix
     String KEY_PREFFIX_TX_LINK       = "tx_link" + KEY_SEPARATOR;     // A Key that represents a reference to a Tx
     String KEY_SUFFIX_BLOCK_NUMTXS   = KEY_SEPARATOR + "numTxs" + KEY_SEPARATOR;      // Property suffix: the number of Txs in a Block
+    String KEY_SUFFIX_BLOCK_TXINDEX  = KEY_SEPARATOR + "txIndex" + KEY_SEPARATOR;     // Property suffix: Last txIndex used for this Block (to preserve Tx ordering)
     String KEY_PREFFIX_TX_BLOCK      = "tx_block_link" + KEY_SEPARATOR;               // Property suffix: The list of blocks this Tx is linked to
 
 
@@ -157,8 +158,9 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     byte[] fullKeyForBlocks(T tr);
     byte[] fullKeyForBlock(T tr, String blockHash);
     byte[] fullKeyForBlockNumTxs(T tr, String blockHash);
-    byte[] fullKeyForBlockTx(T tr, String blockHash, String txHash);
-    byte[] fullKeyForBlockTx(T tr, byte[] blockDirFullKey, String txHash);
+    byte[] fullKeyForBlockTxIndex(T tr, String blockHash);
+    byte[] fullKeyForBlockTx(T tr, String blockHash, String txHash, long txIndex);
+    byte[] fullKeyForBlockTx(T tr, byte[] blockDirFullKey, String txHash, long txIndex);
     byte[] fullKeyForBlockDir(T tr, String blockHash);
     byte[] fullKeyForTxs(T tr);
     byte[] fullKeyForTx(T tr, String txHash);
@@ -202,9 +204,10 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
 
     default String keyForBlock(String blockHash)                    { return KEY_PREFFIX_BLOCK + blockHash + KEY_SEPARATOR; }
     default String keyForBlockNumTxs(String blockHash)              { return KEY_PREFFIX_BLOCK_PROP + blockHash + KEY_SUFFIX_BLOCK_NUMTXS; }
+    default String keyForBlockTxIndex(String blockHash)             { return KEY_PREFFIX_BLOCK_PROP + blockHash + KEY_SUFFIX_BLOCK_TXINDEX; }
     default String keyForTx(String txHash)                          { return KEY_PREFFIX_TX + txHash + KEY_SEPARATOR;}
     default String keyForTxBlock(String txHash, String blockHash)   { return KEY_PREFFIX_TX_BLOCK + txHash + KEY_SEPARATOR + blockHash + KEY_SEPARATOR; }
-    default String keyForBlockTx(String txHash)                     { return KEY_PREFFIX_TX_LINK + txHash + KEY_SEPARATOR; }
+    default String keyForBlockTx(String txHash, long txIndex)       { return KEY_PREFFIX_TX_LINK + txIndex + KEY_SEPARATOR + txHash + KEY_SEPARATOR; }
     default String keyForBlockDir(String blockHash)                 { return blockHash;}
 
     @Override
@@ -259,8 +262,8 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     default HeaderReadOnly  toBlockHeader(byte[] bytes)   { return (isBytesOk(bytes)) ? new HeaderBean(bytes) : null;}
     default Tx              toTx(byte[] bytes)            { return (isBytesOk(bytes)) ? new TxBean(bytes) : null;}
     default HashesList      toHashes(byte[] bytes)        { return (isBytesOk(bytes)) ? HashesListSerializer.getInstance().deserialize(bytes) : null;}
-    default long            toLong(byte[] bytes)          { return (isBytesOk(bytes)) ? Utils.readInt64(bytes, 0) : null;}
-    default int             toInt(byte[] bytes)           { return (isBytesOk(bytes)) ? (int) Utils.readUint32(bytes, 0) : null;}
+    default Long            toLong(byte[] bytes)          { return (isBytesOk(bytes)) ? Utils.readInt64(bytes, 0) : null;}
+    default Integer         toInt(byte[] bytes)           { return (isBytesOk(bytes)) ? (int) Utils.readUint32(bytes, 0) : null;}
     default String          toString(byte[] bytes) {
         if (!isBytesOk(bytes)) return null;
         ByteArrayReader reader = new ByteArrayReader(bytes);
@@ -282,8 +285,11 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
                     keyStr.indexOf(KEY_SEPARATOR)));
         }
         if (keyStr.contains(KEY_PREFFIX_TX_LINK)) {
-            result = Optional.of(keyStr.substring(keyStr.indexOf(KEY_PREFFIX_TX_LINK) + KEY_PREFFIX_TX_LINK.length(),
-                    keyStr.lastIndexOf(KEY_SEPARATOR)));
+            // The Key is like: "tx_link:[txIndex]:[tx_hash]:
+            // We extract the part "[txIndex]:[tx_hash]...
+            String subStr = keyStr.substring(keyStr.indexOf(KEY_PREFFIX_TX_LINK) + KEY_PREFFIX_TX_LINK.length(), keyStr.lastIndexOf(KEY_SEPARATOR));
+            // We extract the "[tx_hash]...
+            result = Optional.of(subStr.substring(subStr.indexOf(KEY_SEPARATOR) + 1));
         }
         if (keyStr.contains(KEY_PREFFIX_TX_BLOCK)) {
             String keyStrAfterSeparator = keyStr.substring(keyStr.indexOf(KEY_PREFFIX_TX_BLOCK) + KEY_PREFFIX_TX_BLOCK.length());
@@ -412,6 +418,7 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     default void _removeBlock(T tr, String blockHash) {
         remove(tr, fullKeyForBlock(tr, blockHash));
         remove(tr, fullKeyForBlockNumTxs(tr, blockHash));
+        remove(tr, fullKeyForBlockTxIndex(tr, blockHash));
     }
 
     default void _removeBlocks(T tr, List<String> blockHashes) {
@@ -432,12 +439,6 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
 
         return result;
     }
-
-    default long _getBlockNumTxs(T tr, String blockHash) {
-        byte[] key = fullKeyForBlockNumTxs(tr, blockHash);
-        return toLong(read(tr, key));
-    }
-
 
     default void _saveTx(T tr, Tx tx) {
         // We store the Whole TX Object
@@ -489,6 +490,13 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
         return result;
     }
 
+    default Long _getBlockNumTxs(T tr, String blockHash) {
+        byte[] key = fullKeyForBlockNumTxs(tr, blockHash);
+        String temp = new String(key);
+        Long numKeys = toLong(read(tr, key));
+        return (numKeys != null) ? numKeys : 0;
+    }
+
     default void _addBlockNumTxs(T tr, String blockHash, long numTxsToAdd) {
         byte[] keyBlockNumTxs = fullKeyForBlockNumTxs(tr, blockHash);
         byte[] numTxsValue = read(tr, keyBlockNumTxs);
@@ -496,47 +504,70 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
         save(tr, keyBlockNumTxs, bytes(numTxsLong));
     }
 
-    default void _linkTxToBlock(T tr, String txHash, String blockHash, byte[] blockDirFullKey) {
-        // We addBytes a Key in this Block subfolder for this Tx:
-        save(tr, fullKeyForBlockTx(tr, blockDirFullKey, txHash), bytes(1L)); // the value is NOT important here...
-
-        // We addBytes a Key in the "TXs" folder
-        save(tr, fullKeyForTxBlock(tr, txHash, blockHash), bytes(1L));
-
+    default long _getTxIndexForBlock(T tr, String blockHash) {
+        byte[] key = fullKeyForBlockTxIndex(tr, blockHash);
+        byte[] value = read(tr, key);
+        long result = (value != null)? toLong(value) : 0;
+        return result;
     }
 
-    default void _linkTxToBlock(T tr, String txHash, String blockHash) {
+    default Optional<Long> _getTxIndexForTxBlock(T tr, String txHash, String blockHash) {
+        byte[] key = fullKeyForTxBlock(tr, txHash, blockHash);
+        byte[] value = read(tr, key);
+        Optional<Long> result = (value != null)? Optional.of(toLong(value)) : Optional.empty();
+        return result;
+    }
+
+    default void _addTxIndexToBlock(T tr, String blockHash, long indexToAdd) {
+        long newValue = _getTxIndexForBlock(tr, blockHash) + indexToAdd;
+        byte[] key = fullKeyForBlockTxIndex(tr, blockHash);
+        save(tr, key, bytes(newValue));
+    }
+
+    default void _linkTxToBlock(T tr, String txHash, String blockHash, byte[] blockDirFullKey, long txIndex) {
+        // We add a Key in this Block subfolder for this Tx:
+        save(tr, fullKeyForBlockTx(tr, blockDirFullKey, txHash, txIndex), bytes(1L)); // the value is NOT important here...
+
+        // We add a Key in the "TXs" folder
+        save(tr, fullKeyForTxBlock(tr, txHash, blockHash), bytes(txIndex));
+    }
+
+    default void _linkTxToBlock(T tr, String txHash, String blockHash, long txIndex) {
         byte[] blockDirFullKey = fullKeyForBlockDir(tr, blockHash);
-        _linkTxToBlock(tr, txHash, blockHash, blockDirFullKey);
-        // There is also a Property where we save the number of Txs belonging to this Block. We update the Value:
-        _addBlockNumTxs(tr, blockHash, 1);
+        _linkTxToBlock(tr, txHash, blockHash, blockDirFullKey, txIndex);
     }
 
-    default void _unlinkTxFromBlock(T tr, String txHash, String blockHash, byte[] blockDirFullKey) {
+    default void _unlinkTxFromBlock(T tr, String txHash, String blockHash, long txIndex) {
+        byte[] blockDirFullKey = fullKeyForBlockDir(tr, blockHash);
+
         // We remove a Key from this Block subfolder:
-        remove(tr, fullKeyForBlockTx(tr, blockDirFullKey, txHash));
+        remove(tr, fullKeyForBlockTx(tr, blockDirFullKey, txHash, txIndex));
 
         // We remove the Key from the "Txs" folder:
         remove(tr, fullKeyForTxBlock(tr, txHash, blockHash));
-    }
 
-    default void _unlinkTxFromBlock(T tr, String txHash, String blockHash) {
-        byte[] blockDirFullKey = fullKeyForBlockDir(tr, blockHash);
-        _unlinkTxFromBlock(tr, txHash, blockHash, blockDirFullKey);
         // There is also a Property where we save the number of Txs belonging to this Block. We update the Value:
         _addBlockNumTxs(tr, blockHash, -1);
     }
 
     default void _unlinkTx(T tr, String txHash) {
+
+        // We get the list of Block Hashes linked to this Tx:
         List<String> blocksLinked = _getBlockHashesLinkedToTx(tr, txHash);
-        blocksLinked.forEach(blockHash -> _unlinkTxFromBlock(tr, txHash, blockHash));
+
+        // For each Block hash, we get the index of this Tx within that Block, and we unlink it:
+        for (String blockHash : blocksLinked) {
+            Optional<Long> txIndex = _getTxIndexForTxBlock(tr, txHash, blockHash);
+            if (txIndex.isPresent())
+                _unlinkTxFromBlock(tr, txHash, blockHash, txIndex.get());
+        }
     }
 
     default void _unlinkBlock(String blockHash) {
         // We locate the Block Subfolder and the Key to start iterating over:
         byte[] keyStart = fullKey(fullKeyForBlockDir(blockHash), null);
 
-        // For each Tx in this Block, we remove the "tx_block" property in the "TXs2 directory:
+        // For each Tx in this Block, we remove the "tx_block" property in the "TXs" directory:
         KeyValueIterator<byte[], T> iterator = getIterator(keyStart, null, null, this::keyFromItem);
         loopOverKeysAndRun(iterator, (tr, key) -> {
             String txHash = extractTxHashFromKey(key).get();
@@ -553,6 +584,16 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     }
 
     default void _removeBlockTxs(String blockHash, Consumer<String> txHashConsumer) {
+
+        // We update now the numTxs and txIndex properties of this block:
+        T transaction = createTransaction();
+        executeInTransaction(transaction, () -> {
+            long numTxs = _getBlockNumTxs(transaction, blockHash);
+            long txIndex = _getTxIndexForBlock(transaction, blockHash);
+            _addBlockNumTxs(transaction, blockHash, -numTxs);
+            _addTxIndexToBlock(transaction, blockHash, -txIndex);
+        });
+
         // We locate the Block Subfolder and the Key to start iterating over:
         byte[] keyStart = fullKey(fullKeyForBlockDir(blockHash), null);
 
@@ -567,6 +608,7 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
 
         // Now we remove the whole Block directory:
         removeBlockDir(blockHash);
+
     }
 
     /* DB High-Level Operations: */
@@ -841,8 +883,16 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
         try {
             getLock().writeLock().lock();
             T tr = createTransaction();
-            executeInTransaction(tr, () ->
-                    _linkTxToBlock(tr, txHash.toString(), blockHash.toString())
+            executeInTransaction(tr, () -> {
+                    // We get the Tx Index for this block:
+                    long txIndex = _getTxIndexForBlock(tr, blockHash.toString());
+                    // we remove link the Tx to the block:
+                     _linkTxToBlock(tr, txHash.toString(), blockHash.toString(), txIndex);
+                     // We update the Tx Index for this block, so the next Tx linked to it will use an (index +1)
+                    _addTxIndexToBlock(tr, blockHash.toString(), 1);
+                    // We update the number of Txs contained in this block:
+                    _addBlockNumTxs(tr, blockHash.toString(), 1);
+                }
             );
         } finally {
             getLock().writeLock().unlock();
@@ -861,12 +911,23 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
             List<List<Sha256Hash>> subLists = Lists.partition(txsHashes, getConfig().getTransactionBatchSize());
             for (List<Sha256Hash> subList : subLists) {
                 T tr = createTransaction();
-                executeInTransaction(tr, () ->
-                        subList.forEach(h -> _linkTxToBlock(tr, h.toString(), blockHash.toString(), blockDirFullKey))
+                executeInTransaction(tr, () -> {
+                        // We get the Tx Index for this Block:
+                        long txIndex = _getTxIndexForBlock(tr, blockHash.toString());
+
+                        // We iterate over the Txs and we link them using a different index each:
+                        for (Sha256Hash txHash : subList) {
+                            _linkTxToBlock(tr, txHash.toString(), blockHash.toString(), blockDirFullKey, txIndex++);
+                        }
+
+                        // we update the number of Txs of this block:
+                        _addBlockNumTxs(tr, blockHash.toString(), subList.size());
+
+                        // We update the TxIndex for this Block:
+                        _addTxIndexToBlock(tr, blockHash.toString(), subList.size());
+                    }
                 );
             }
-            T tr = createTransaction();
-            executeInTransaction(tr, () -> _addBlockNumTxs(tr, blockHash.toString(), txsHashes.size()));
         } finally {
             getLock().writeLock().unlock();
         }
@@ -877,7 +938,13 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
         try {
             getLock().writeLock().lock();
             T tr = createTransaction();
-            executeInTransaction(tr, () -> _unlinkTxFromBlock(tr, txHash.toString(), blockHash.toString()));
+            executeInTransaction(tr, () -> {
+                // We get the Index fo this Tx within this Block:
+                Optional<Long> txIndex = _getTxIndexForTxBlock(tr, txHash.toString(), blockHash.toString());
+                // We unlink it:
+                if (txIndex.isPresent())
+                    _unlinkTxFromBlock(tr, txHash.toString(), blockHash.toString(), txIndex.get());
+            });
         } finally {
             getLock().writeLock().unlock();
         }
@@ -894,12 +961,23 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
             List<List<Sha256Hash>> subLists = Lists.partition(txsHashes, getConfig().getTransactionBatchSize());
             for (List<Sha256Hash> subList : subLists) {
                 T tr = createTransaction();
-                executeInTransaction(tr, () ->
-                        subList.forEach(h -> _unlinkTxFromBlock(tr, h.toString(), blockHash.toString()))
-                );
+                executeInTransaction(tr, () -> {
+                    // We get the Tx Index for this Block:
+                    long txIndex = _getTxIndexForBlock(tr, blockHash.toString());
+
+                    // We iterate over the Txs and we link them using a different index each:
+                    for (Sha256Hash txHash : subList) {
+                        _unlinkTxFromBlock(tr, txHash.toString(), blockHash.toString(), txIndex++);
+                    }
+
+                    // we update the number of Txs of this block:
+                    _addBlockNumTxs(tr, blockHash.toString(), -subList.size());
+
+                    // We update the TxIndex for this Block:
+                    _addTxIndexToBlock(tr, blockHash.toString(), -subList.size());
+
+                    });
             }
-            T tr = createTransaction();
-            executeInTransaction(tr, () -> _addBlockNumTxs(tr, blockHash.toString(), -txsHashes.size()));
         } finally {
             getLock().writeLock().unlock();
         }
@@ -1005,9 +1083,23 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
             for (List<Tx> subList : subLists) {
                 T tr = createTransaction();
                 executeInTransaction(tr, () -> {
+                    // We store the TX...
                     _saveTxs(tr, subList);
-                    subList.forEach(h -> _linkTxToBlock(tr, h.getHash().toString(), blockHash.toString(), blockDirFullKey));
+                    // Now we link them:
+                    // We get the Tx Index for this Block:
+                    long txIndex = _getTxIndexForBlock(tr, blockHash.toString());
+
+                    // We iterate over the Txs and we link them using a different index each:
+                    for (Tx tx : subList) {
+                        _linkTxToBlock(tr, tx.getHashAsString(), blockHash.toString(), blockDirFullKey, txIndex++);
+                    }
+
+                    // we update the number of Txs of this block:
                     _addBlockNumTxs(tr, blockHash.toString(), subList.size());
+
+                    // We update the TxIndex for this Block:
+                    _addTxIndexToBlock(tr, blockHash.toString(), subList.size());
+
                 });
             } // for...
             _triggerTxsStoredEvent(txs);
@@ -1020,23 +1112,27 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     default void removeBlockTxs(Sha256Hash blockHash) {
         try {
             getLock().writeLock().lock();
-            // We remove all The Txs from this Block. the problem is that we need to trigger an TXS_REMOVED Event but the
-            // number of Txs must be huge, so we cannot just trigger a single event with a huge list inside. Instead, we
-            // are keeping track of the number of Txs we remove, and we only trigger an event when we reach the Threshold.
-            // We put all that logic inside a Lambda function that will be passed to the method that removes the Txs...
 
-            List<Sha256Hash> batchTxsRemoved = new ArrayList<>();
-            Consumer<String> txHashConsumer = txHash -> {
-                batchTxsRemoved.add(Sha256Hash.wrap(txHash));
-                if (batchTxsRemoved.size() == MAX_EVENT_ITEMS) {
-                    _triggerTxsRemovedEvent(batchTxsRemoved);
-                    batchTxsRemoved.clear();
-                }
-            };
-            _removeBlockTxs(blockHash.toString(), txHashConsumer);
+            if (containsBlock(blockHash)) {
+                // We remove all The Txs from this Block. the problem is that we need to trigger an TXS_REMOVED Event but the
+                // number of Txs must be huge, so we cannot just trigger a single event with a huge list inside. Instead, we
+                // are keeping track of the number of Txs we remove, and we only trigger an event when we reach the Threshold.
+                // We put all that logic inside a Lambda function that will be passed to the method that removes the Txs...
 
-            // In case there are still Tx that have not been published in an Event...
-            if (batchTxsRemoved.size() > 0) _triggerTxsRemovedEvent(batchTxsRemoved);
+                List<Sha256Hash> batchTxsRemoved = new ArrayList<>();
+                Consumer<String> txHashConsumer = txHash -> {
+                    batchTxsRemoved.add(Sha256Hash.wrap(txHash));
+                    if (batchTxsRemoved.size() == MAX_EVENT_ITEMS) {
+                        _triggerTxsRemovedEvent(batchTxsRemoved);
+                        batchTxsRemoved.clear();
+                    }
+                };
+                _removeBlockTxs(blockHash.toString(), txHashConsumer);
+
+                // In case there are still Tx that have not been published in an Event...
+                if (batchTxsRemoved.size() > 0) _triggerTxsRemovedEvent(batchTxsRemoved);
+            }
+
         } finally {
             getLock().writeLock().unlock();
         }

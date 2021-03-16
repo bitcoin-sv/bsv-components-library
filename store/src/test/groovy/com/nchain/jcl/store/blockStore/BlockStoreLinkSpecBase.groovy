@@ -177,9 +177,10 @@ abstract class BlockStoreLinkSpecBase extends BlockStoreSpecBase {
     }
 
     /**
-     * We test the Iterable returned when we get all the Txs belonging to 1 block
+     * We test the Iterable returned when we get all the Txs belonging to 1 block, and we also check that those Tx are
+     * IN THE SAME ORDER
      */
-    def "testing BlockTXs Iterable"() {
+    def "testing BlockTXs Iterable and Tx Order when Saving"() {
         final int NUM_TXS = 10
         given:
             println(" - Connecting to the DB...")
@@ -200,28 +201,27 @@ abstract class BlockStoreLinkSpecBase extends BlockStoreSpecBase {
             db.saveBlockTxs(block.getHash(), txs)
             txs.forEach({tx -> println(" - tx " + tx.getHash().toString() + " saved and linked.")})
 
-            // Now we are going to extract them using an Iterable, and we make sure that we extract all of them, so
-            // we use a Map to keep track of them;
-            Map<Sha256Hash, Boolean> txsRead = txs
-                .stream()
-                .collect(Collectors.toMap({ tx -> tx.getHash()}, { h -> false}))
-
             // We check the DB Content in the console...
             db.printKeys()
 
             // Now we use the Iterable to loop over the Txs linked to that Block...
             println(" - Getting a Iterable over the Txs linked to the Block " + block.getHash().toString() + "...")
+            boolean orderOK = true;
+            int txReadIndex = 0;
             Iterator<Sha256Hash> txsIt = db.getBlockTxs(block.getHash()).iterator()
             while (txsIt.hasNext()) {
                 Sha256Hash key = txsIt.next();
                 System.out.println(" - Reading Tx from Iterator : " + key.toString());
-                txsRead.put(key, true)
+                Tx txRead = db.getTx(key).get()
+                orderOK &= txs.get(txReadIndex).equals(txRead)
+                txReadIndex++
             }
 
-            boolean ok = txsRead.size() == txs.size() &&
-                txsRead.values().stream().filter({v -> !v}).count() == 0
         then:
-            ok
+            // Order is OK:
+            orderOK
+            // The number of txs returned is correct
+            txReadIndex == txs.size()
         cleanup:
             println(" - Cleanup:")
             db.removeBlockTxs(block.getHash())
@@ -280,6 +280,7 @@ abstract class BlockStoreLinkSpecBase extends BlockStoreSpecBase {
 
             // We check the Txs have been properly linked to the block 1:
             int numTxsLinkedBlock1 = db.getBlockNumTxs(block1.getHash())
+
             boolean txsLinkedBlock1_OK = true
             List<Sha256Hash> txsLinkedBlock1Hashes = new ArrayList()
 
@@ -291,16 +292,11 @@ abstract class BlockStoreLinkSpecBase extends BlockStoreSpecBase {
                 txsLinkedBlock1_OK &= !txsLinkedBlock1Hashes.contains(txHash) && txs.stream().anyMatch({tx -> tx.getHash().equals(txHash)})
                 txsLinkedBlock1Hashes.add(txHash)
             }
-            // And we also check that the number of Txs is correct
-            boolean numTxsLinkedBlock1OK = (numTxsLinkedBlock1 == txs.size())
 
             // We check that the FIRST Tx has been linked to the FIRST and SECOND Blocks:
-            boolean txsLinkedBlock2_OK = true
             int numTxLinkedBlock2 = db.getBlockNumTxs(block2.getHash())
             Iterator<Sha256Hash> txsLinkedBlock2It = db.getBlockTxs(block2.getHash()).iterator()
             Sha256Hash txLinkedBlock2Hash = txsLinkedBlock2It.next()
-
-            txsLinkedBlock2_OK = txLinkedBlock2Hash.equals(sharedTx.getHash()) && (numTxLinkedBlock2 == 1)
 
             // Now we unlink the Shared TX from all its Blocks (block1 and Block 2) and check the result:
             println(" - Unlinking Tx " + sharedTx.getHash().toString() + "...")
@@ -327,8 +323,8 @@ abstract class BlockStoreLinkSpecBase extends BlockStoreSpecBase {
 
         then:
             txsLinkedBlock1_OK
-            numTxsLinkedBlock1OK
-            txsLinkedBlock2_OK
+            numTxsLinkedBlock1 == txs.size()
+            txLinkedBlock2Hash.equals(sharedTx.getHash()) && (numTxLinkedBlock2 == 1)
             numTxsLinkedToBlock1AfterUnlinkingSharedTx == (NUM_TXS - 1)
             numTxsLinkedToBlock2AfterUnlinkingSharedTx == 0
             numBlocksLinkedtoSharedTxAfterUnlinkingSharedTx == 0
@@ -343,4 +339,132 @@ abstract class BlockStoreLinkSpecBase extends BlockStoreSpecBase {
             db.stop()
             println(" - Test Done.")
     }
+
+
+    /**
+     * We check that the Order of Transactons is preserved when we store them and link them to a block.
+     */
+    def "testing BlockTXs Iterable and Tx Order when Linking"() {
+        final int NUM_TXS = 10
+        given:
+            println(" - Connecting to the DB...")
+            BlockStore db = getInstance("BSV-Main", true, false)
+        when:
+            db.start()
+
+            // We create and save a Block
+            HeaderReadOnly block = TestingUtils.buildBlock()
+            println(" - Saving Block " + block.getHash().toString() + "...")
+            db.saveBlock(block)
+
+            // Now we create a list of TXs and we link them to this block:
+            List<Tx> txs = new ArrayList<>()
+            for (int i = 0; i < NUM_TXS; i++) txs.add(TestingUtils.buildTx())
+
+            println(" - Saving " + NUM_TXS + "...")
+            db.saveTxs(txs)
+            txs.forEach({tx -> println(" - tx " + tx.getHash().toString() + " saved.")})
+
+            println(" - Linking " + NUM_TXS + " txs to Block " + block.getHash().toString() + "...")
+            db.saveBlockTxs(block.hash, txs)
+            println(" - " + NUM_TXS + " linked to Block " + block.getHash().toString() + ".")
+
+            // We check the DB Content in the console...
+            db.printKeys()
+
+            // Now we use the Iterable to loop over the Txs linked to that Block...
+            println(" - Getting a Iterable over the Txs linked to the Block " + block.getHash().toString() + "...")
+            boolean orderOK = true;
+            int txReadIndex = 0;
+            Iterator<Sha256Hash> txsIt = db.getBlockTxs(block.getHash()).iterator()
+            while (txsIt.hasNext()) {
+                Sha256Hash key = txsIt.next();
+                System.out.println(" - Reading Tx from Iterator : " + key.toString());
+                Tx txRead = db.getTx(key).get()
+                orderOK &= txs.get(txReadIndex).equals(txRead)
+                txReadIndex++
+            }
+
+        then:
+            // Order is OK:
+            orderOK
+            // The number of txs returned is correct
+            txReadIndex == txs.size()
+        cleanup:
+            println(" - Cleanup:")
+            db.removeBlockTxs(block.getHash())
+            db.removeBlock(block.getHash())
+            db.printKeys()
+            db.clear()
+            db.stop()
+            println(" - Test Done.")
+    }
+
+    /**
+     * We check that the Order of Transactons is preserved when we store them and link them to a block.
+     */
+    def "testing BlockTXs Iterable and Tx Order when Linking/Unlinking"() {
+        given:
+            println(" - Connecting to the DB...")
+            BlockStore db = getInstance("BSV-Main", true, false)
+        when:
+            db.start()
+
+            // We create and save a Block
+            HeaderReadOnly block = TestingUtils.buildBlock()
+            println(" - Saving Block " + block.getHash().toString() + "...")
+            db.saveBlock(block)
+
+            // Now we create a list of TXs and we link them to this block:
+            List<Tx> txs = new ArrayList<>()
+            txs.add(TestingUtils.buildTx());
+            txs.add(TestingUtils.buildTx());
+            txs.add(TestingUtils.buildTx());
+
+            println(" - Saving " + txs.size() + "...")
+            db.saveTxs(txs)
+            txs.forEach({tx -> println(" - tx " + tx.getHash().toString() + " saved.")})
+
+            println(" - Linking " + txs.size() + " txs to Block " + block.getHash().toString() + "...")
+            db.saveBlockTxs(block.hash, txs)
+            println(" - " + txs.size() + " linked to Block " + block.getHash().toString() + ".")
+
+            // We check the DB Content in the console...
+            db.printKeys()
+
+            println(" Unlinking Tx " + txs.get(0).hash + " ...")
+            db.unlinkTxFromBlock(txs.get(0).hash, block.hash)
+            db.printKeys()
+
+            // We check the DB Content in the console...
+            db.printKeys()
+
+            println("Linking back Tx " + txs.get(0).hash + " to Block (now it willl be placed at the end)")
+            db.linkTxToBlock(txs.get(0).hash, block.hash)
+
+            // We check the DB Content in the console...
+            db.printKeys()
+
+            // Now we use the Iterable to loop over the Txs linked to that Block...
+            println(" - Getting a Iterable over the Txs linked to the Block " + block.getHash().toString() + "...")
+            Iterator<Sha256Hash> txsIt = db.getBlockTxs(block.getHash()).iterator()
+            Sha256Hash txHash_0 = txsIt.next()
+            Sha256Hash txHash_1 = txsIt.next()
+            Sha256Hash txHash_2 = txsIt.next()
+
+        then:
+            // Order is OK. The Tx unlkinked and linked back is not at the end...
+            txHash_0.equals(txs.get(1).hash)
+            txHash_1.equals(txs.get(2).hash)
+            txHash_2.equals(txs.get(0).hash)
+        cleanup:
+            println(" - Cleanup:")
+            db.removeBlockTxs(block.getHash())
+            db.removeBlock(block.getHash())
+            db.printKeys()
+            db.clear()
+            db.stop()
+            println(" - Test Done.")
+    }
+
 }

@@ -200,16 +200,21 @@ public class BlockStoreFDB implements BlockStoreKeyValue<KeyValue, Transaction>,
         tr.close();
     }
 
-
     @Override public Logger getLogger()                                                         { return log;}
     @Override public byte[] keyFromItem(KeyValue item)                                          { return item.getKey();}
 
     @Override public byte[] fullKeyForBlocks(Transaction tr )                                    { return blocksDir.getKey();}
     @Override public byte[] fullKeyForBlock(Transaction tr, String blockHash)                    { return fullKey(blocksDir, keyForBlock(blockHash));}
     @Override public byte[] fullKeyForBlockNumTxs(Transaction tr, String blockHash)              { return fullKey(blocksDir, keyForBlockNumTxs(blockHash));}
-    @Override public byte[] fullKeyForBlockTx(Transaction tr, String blockHash, String txHash)   { return fullKey(fullKeyForBlockDir(tr, blockHash), keyForBlockTx(txHash));}
-    @Override public byte[] fullKeyForBlockTx(Transaction tr, byte[] blockDirFullKey,
-                                              String txHash)                                     { return fullKey(blockDirFullKey, keyForBlockTx(txHash));}
+    @Override public byte[] fullKeyForBlockTxIndex(Transaction tr, String blockHash)             { return fullKey(fullKeyForBlocks(), keyForBlockTxIndex(blockHash));}
+
+    @Override public byte[] fullKeyForBlockTx(Transaction tr, String blockHash, String txHash, long txIndex) {
+        return fullKey(fullKeyForBlockDir(tr, blockHash), keyForBlockTx(txHash, txIndex));
+    }
+
+    @Override public byte[] fullKeyForBlockTx(Transaction tr, byte[] blockDirFullKey, String txHash, long txIndex) {
+        return fullKey(blockDirFullKey, keyForBlockTx(txHash, txIndex));}
+
     @Override public byte[] fullKeyForTxs(Transaction tr)                                        { return txsDir.getKey();}
     @Override public byte[] fullKeyForTx(Transaction tr, String txHash)                          { return fullKey(txsDir, keyForTx(txHash));}
     @Override public byte[] fullKeyForTxBlock(Transaction tr, String txHash, String blockHash)   { return fullKey(txsDir, keyForTxBlock(txHash, blockHash));}
