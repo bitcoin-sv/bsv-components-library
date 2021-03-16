@@ -5,39 +5,30 @@ import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVStnConfig
 import com.nchain.jcl.net.protocol.events.data.InvMsgReceivedEvent
-import com.nchain.jcl.net.protocol.events.data.MsgReceivedEvent
 import com.nchain.jcl.net.protocol.events.data.RawTxMsgReceivedEvent
 import com.nchain.jcl.net.protocol.events.data.TxMsgReceivedEvent
 import com.nchain.jcl.net.protocol.handlers.discovery.DiscoveryHandler
 import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandlerConfig
 import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerConfig
 import com.nchain.jcl.net.protocol.messages.GetdataMsg
-import com.nchain.jcl.net.protocol.messages.InvMessage
 import com.nchain.jcl.net.protocol.messages.InventoryVectorMsg
-import com.nchain.jcl.net.protocol.messages.TxMsg
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder
 import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerConfig
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
-import com.nchain.jcl.tools.events.Event
 import com.nchain.jcl.tools.events.EventQueueProcessor
 import com.nchain.jcl.tools.thread.ThreadUtils
 import io.bitcoinj.core.Sha256Hash
 import io.bitcoinj.core.Utils
 import io.bitcoinj.params.MainNetParams
-import io.bitcoinj.params.Net
 import io.bitcoinj.params.STNParams
 import spock.lang.Specification
-
 import java.time.Duration
 import java.time.Instant
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
-import java.util.concurrent.locks.Lock
-import java.util.concurrent.locks.ReentrantLock
+
 
 /**
  * Performance Testing. We use a P2P Service to connect the network, and we process all the INV messages that come

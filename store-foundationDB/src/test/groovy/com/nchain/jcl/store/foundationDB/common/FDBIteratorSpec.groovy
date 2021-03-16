@@ -33,16 +33,14 @@ class FDBIteratorSpec extends IteratorSpecBase {
         Function<Map.Entry<byte[], byte[]>, String> itemBuilder = { key ->
 
 
-            // Each Key returned by this Iterator his a TUPLE, which means that its made of the following components:
-            // [tuple beginning] [TXS DIR Key] [ tuple middle] [TX KEY] [tuple end]
+            // Each Key returned by this Iterator represents a Tx Key, which is made of:
+            // [txDirKey] + [TX_KEY]
+            // [TX_KEY] example: tx:1716126a699c8a76fb6ae591661a22622ea0909ff57eb143fe2f479694b75792
 
-            // We need to return ONLY the [TX KEY part, so we remove the rest:
-            // [tuple beginning] : 1 byte
-            // [tuple middle] : 2 bytes
-            // [tuple end] : 1 byte
+            // We need to return ONLY the [TX_KEY], so we remove the rest:
 
-            int numBytesToRemove = 1 + ((BlockStoreFDB) db).fullKeyForTxs().length + 2 + 1
-            int byteTxKeyPos = 1 + ((BlockStoreFDB) db).fullKeyForTxs().length + 2
+            int numBytesToRemove = ((BlockStoreFDB) db).fullKeyForTxs().length
+            int byteTxKeyPos = numBytesToRemove
             int txKeyLength = key.key.length - numBytesToRemove;
 
             byte[] result = new byte[key.key.length - numBytesToRemove]
@@ -51,8 +49,8 @@ class FDBIteratorSpec extends IteratorSpecBase {
         }
 
         BlockStoreFDB blockStoreFDB = (BlockStoreFDB) db;
-        byte[] keyPreffix = blockStoreFDB.keyStartingWith(blockStoreFDB.fullKey(blockStoreFDB.fullKeyForTxs(), preffix))
-        byte[] keySuffix = (suffix != null) ? blockStoreFDB.keyEndingWith(suffix.getBytes()) : null;
+        byte[] keyPreffix = blockStoreFDB.fullKey(blockStoreFDB.fullKeyForTxs(), preffix)
+        byte[] keySuffix = (suffix != null) ? suffix.getBytes() : null;
 
         FDBSafeIterator.FDBSafeIteratorBuilder<String> itBuilder = FDBSafeIterator.<String>safeBuilder()
             .database(blockStoreFDB.db)

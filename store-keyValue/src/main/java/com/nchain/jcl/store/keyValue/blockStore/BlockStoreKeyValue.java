@@ -22,6 +22,8 @@ import io.bitcoinj.core.Utils;
 import org.slf4j.Logger;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -95,6 +97,9 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     boolean isTriggerTxEvents();
     EventBus getEventBus();
 
+    /** An executor to trigger Async methods: */
+    ExecutorService getExecutor();
+
     /** Definition of the Directory structure: */
     String DIR_BLOCKCHAIN            = "blockchain";
     String DIR_BLOCKS                = "blocks";
@@ -140,6 +145,8 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     byte[]  read(T tr, byte[] key);
     void    removeBlockDir(String blockHash);
 
+    List<Tx> _saveTxsIfNotExist(T tr, List<Tx> txs);
+
     /*
      * Functions to generate FULL Keys. A FULL fullKey can be used to Insert/Read/Remove an item from the DB, and it
      * represents a Whole Path, using the hierarchy described (see class javadoc). They take a "tr" (Transaction)
@@ -158,9 +165,9 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     byte[] fullKeyForTxBlock(T tr, String txHash, String blockHash);
     byte[] fullKeyForBlocks();
     byte[] fullKeyForTxs();
-    byte[] keyStartingWith(byte[] preffix); // Returns a Key that can be used for "startsWith" comparison
     byte[] fullKey(Object ...subKeys);      // Returns a FULL Key that is a concatenation of the subKeys provided
     void printKeys();                       // For logging:
+
 
 
     /**
@@ -270,12 +277,14 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
         if (keyStr.contains(KEY_PREFFIX_TX))
             result = Optional.of(keyStr.substring(keyStr.indexOf(KEY_PREFFIX_TX) + KEY_PREFFIX_TX.length(),
                     keyStr.lastIndexOf(KEY_SEPARATOR)));
-        if (keyStr.contains(KEY_PREFFIX_TX_PROP))
+        if (keyStr.contains(KEY_PREFFIX_TX_PROP)) {
             result = Optional.of(keyStr.substring(keyStr.indexOf(KEY_PREFFIX_TX_PROP) + KEY_PREFFIX_TX_PROP.length(),
-                    keyStr.lastIndexOf(KEY_SEPARATOR)));
-        if (keyStr.contains(KEY_PREFFIX_TX_LINK))
+                    keyStr.indexOf(KEY_SEPARATOR)));
+        }
+        if (keyStr.contains(KEY_PREFFIX_TX_LINK)) {
             result = Optional.of(keyStr.substring(keyStr.indexOf(KEY_PREFFIX_TX_LINK) + KEY_PREFFIX_TX_LINK.length(),
                     keyStr.lastIndexOf(KEY_SEPARATOR)));
+        }
         if (keyStr.contains(KEY_PREFFIX_TX_BLOCK)) {
             String keyStrAfterSeparator = keyStr.substring(keyStr.indexOf(KEY_PREFFIX_TX_BLOCK) + KEY_PREFFIX_TX_BLOCK.length());
             result = Optional.of(keyStr.substring(0, keyStrAfterSeparator.lastIndexOf(KEY_SEPARATOR)));
@@ -292,9 +301,11 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
         if (keyStr.contains(KEY_PREFFIX_BLOCK))
             result = Optional.of(keyStr.substring(keyStr.indexOf(KEY_PREFFIX_BLOCK) + KEY_PREFFIX_BLOCK.length(),
                     keyStr.lastIndexOf(KEY_SEPARATOR)));
-        if (keyStr.contains(KEY_PREFFIX_BLOCK_PROP))
-            result = Optional.of(keyStr.substring(keyStr.indexOf(KEY_PREFFIX_BLOCK_PROP) + KEY_PREFFIX_BLOCK_PROP.length(),
-                    keyStr.lastIndexOf(KEY_SEPARATOR)));
+        if (keyStr.contains(KEY_PREFFIX_BLOCK_PROP)) {
+            String subKey = keyStr.substring(keyStr.indexOf(KEY_PREFFIX_BLOCK_PROP) + KEY_PREFFIX_BLOCK_PROP.length());
+            result = Optional.of(subKey.substring(0, subKey.indexOf(KEY_SEPARATOR)));
+        }
+
         if (keyStr.contains(KEY_PREFFIX_TX_BLOCK)) {
             String keyStrAfterSeparator = keyStr.substring(keyStr.indexOf(KEY_PREFFIX_TX_BLOCK) + KEY_PREFFIX_TX_BLOCK.length());
             result = Optional.of(keyStrAfterSeparator.substring(keyStrAfterSeparator.indexOf(KEY_SEPARATOR) + KEY_SEPARATOR.length(),
@@ -471,7 +482,7 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
 
     default List<String> _getBlockHashesLinkedToTx(T tr, String txHash) {
         List<String> result = new ArrayList<>();
-        byte[] preffix = keyStartingWith(fullKey(fullKeyForTxs(), KEY_PREFFIX_TX_BLOCK  + txHash + KEY_SEPARATOR));
+        byte[] preffix = fullKey(fullKeyForTxs(), KEY_PREFFIX_TX_BLOCK  + txHash + KEY_SEPARATOR);
         String preffixStr = new String(preffix);
         Iterator<String> it = getIterator(tr, preffix, null, null, e -> extractBlockHashFromKey(keyFromItem(e)).get());
         while (it.hasNext()) result.add(it.next());
@@ -658,7 +669,7 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     default long getNumBlocks() {
         try {
             getLock().readLock().lock();
-            byte[] startingWith = keyStartingWith(fullKey(fullKeyForBlocks(), KEY_PREFFIX_BLOCK));
+            byte[] startingWith = fullKey(fullKeyForBlocks(), KEY_PREFFIX_BLOCK);
             return numKeys(startingWith);
         } finally {
             getLock().readLock().unlock();
@@ -783,11 +794,46 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     default long getNumTxs() {
         try {
             getLock().readLock().lock();
-            byte[] startingWith = keyStartingWith(fullKey(fullKeyForTxs(), KEY_PREFFIX_TX));
+            byte[] startingWith = fullKey(fullKeyForTxs(), KEY_PREFFIX_TX);
             return numKeys(startingWith);
         } finally {
             getLock().readLock().unlock();
         }
+    }
+
+    @Override
+    default List<Tx> saveTxsIfNotExist(List<Tx> txs) {
+
+        try {
+            getLock().writeLock().lock();
+            List<Tx> result = new ArrayList<>();
+            /*
+                Any operation performed on a List of Items will need to be split into smaller lists, just to make sure
+                each Transaction is small (some KeyValue vendors have limitations)
+             */
+            List<List<Tx>> subLists = Lists.partition(txs, getConfig().getTransactionBatchSize());
+            for (List<Tx> subList : subLists) {
+                T tr = createTransaction();
+                executeInTransaction(tr, () -> {
+                    List<Tx> partialTxs = _saveTxsIfNotExist(tr, subList);
+                    result.addAll(partialTxs);
+                    }
+                );
+            }
+            return result;
+        } finally {
+            getLock().writeLock().unlock();
+        }
+    }
+
+    @Override
+    default CompletableFuture<List<Tx>> saveTxsIfNotExistAsync(List<Tx> txs) {
+        CompletableFuture<List<Tx>> result = new CompletableFuture<>();
+        getExecutor().submit(() -> {
+            List<Tx> txsInserted = saveTxsIfNotExist(txs);
+            result.complete(txsInserted);
+        });
+        return result;
     }
 
     @Override
@@ -917,7 +963,7 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
             getLock().readLock().lock();
             if (!containsBlock(blockHash)) return null; // Check
 
-            byte[] keyPreffix = keyStartingWith(fullKey(fullKeyForBlockDir(blockHash.toString()), KEY_PREFFIX_TX_LINK));
+            byte[] keyPreffix = fullKey(fullKeyForBlockDir(blockHash.toString()), KEY_PREFFIX_TX_LINK);
             Function<E, Sha256Hash> buildKeyFunction = e -> {
                 byte[] key = keyFromItem(e);
                 return Sha256Hash.wrap(extractTxHashFromKey(key).get());
@@ -1009,8 +1055,8 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
                     .blockA(blockHeaderA.get())
                     .blockB(blockHeaderB.get());
 
-            byte[] keyPreffixA = keyStartingWith(fullKey(fullKeyForBlockDir(blockHashA.toString()), KEY_PREFFIX_TX_LINK));
-            byte[] keyPreffixB = keyStartingWith(fullKey(fullKeyForBlockDir(blockHashB.toString()), KEY_PREFFIX_TX_LINK));
+            byte[] keyPreffixA = fullKey(fullKeyForBlockDir(blockHashA.toString()), KEY_PREFFIX_TX_LINK);
+            byte[] keyPreffixB = fullKey(fullKeyForBlockDir(blockHashB.toString()), KEY_PREFFIX_TX_LINK);
 
             // We create an Iterable for the TXs in common:
             Function<E, Sha256Hash> buildItemBy = e -> Sha256Hash.wrap(extractTxHashFromKey(keyFromItem(e)).get());

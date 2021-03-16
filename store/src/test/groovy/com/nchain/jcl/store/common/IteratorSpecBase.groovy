@@ -55,7 +55,7 @@ abstract class IteratorSpecBase extends BlockStoreSpecBase {
         return true;
     }
 
-    boolean keyEndsWith(byte[] key, String preffix) { return keyEndsWith(key, preffix.getBytes())}
+    boolean keyEndsWith(byte[] key, String suffix) { return keyEndsWith(key, suffix.getBytes())}
 
     /**
      * Convenience method to insert a block and several Txs in the DB and return the list of Tx Hashes inserted

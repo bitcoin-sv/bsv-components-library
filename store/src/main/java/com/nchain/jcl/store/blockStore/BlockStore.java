@@ -8,6 +8,7 @@ import io.bitcoinj.core.Sha256Hash;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author i.fernandez@nchain.com
@@ -105,6 +106,20 @@ public interface BlockStore {
      * If the TX Events are active, this method will trigger a "TxsSavedEvent", containing a list with these Tx hashes
      */
     void saveTxs(List<Tx> txs);
+
+    /**
+     * It saves the Txs given, but ONLY those that do NOT exists in the DB yet. It also returns the ones that have been
+     * inserted.
+     */
+    List<Tx> saveTxsIfNotExist(List<Tx> txs);
+
+    /**
+     * Asynchronous version of saveTxsIfNotExist.
+     * NOTE: Different calls to this Method in parallel could produce false positives (a Tx identified as "nex" when it
+     * is not), sicne the execution of a method might be affected by the execution of a previous one. This might be
+     * mitigated by using an additional layer (cache) to filter out x before yu get here, or any other mechanism.
+     */
+    CompletableFuture<List<Tx>> saveTxsIfNotExistAsync(List<Tx> txs);
 
     /**
      * Tells whether the Db contains the Tx given

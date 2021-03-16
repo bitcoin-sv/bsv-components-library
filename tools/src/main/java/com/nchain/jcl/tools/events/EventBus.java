@@ -110,6 +110,8 @@ public class EventBus {
             }
         }
         else task.run(); // Synchronously
+
+        numEventsPublished.merge(event.getClass(), 1L ,Long::sum);
     }
 
     /** Returns the EVentBus Status (ONLY FOR TESTING/DEBUGGING) */

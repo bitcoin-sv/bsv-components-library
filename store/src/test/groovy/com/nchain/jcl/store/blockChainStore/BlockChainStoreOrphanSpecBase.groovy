@@ -44,10 +44,10 @@ abstract class BlockChainStoreOrphanSpecBase extends BlockChainStoreSpecBase {
             db.saveBlocks(Arrays.asList(block1, block2))
 
             // And now we define 2 more branches: These first branch can be connected to the main chain, but for now
-            // we are NOT going to save the Blocks "[Block3]" and "[Block6]", so wll end up with 3 branches:
+            // we are NOT going to save the Blocks "[Block3]" and "[Block6]", so well end up with 3 branches:
             //  - the previous one starting from GENESIS
             //  - (Block3-MISSING) - [Block4] - [Block5]
-            //  - [Block5] - (Block6-MISSING) - [Block7] - [Block8]
+            //  - [Block5] - (Block6-MISSING) - [Block7]
 
             HeaderReadOnly block3 = TestingUtils.buildBlock(block2.hash.toString())
             HeaderReadOnly block4 = TestingUtils.buildBlock(block3.hash.toString())
@@ -162,8 +162,14 @@ abstract class BlockChainStoreOrphanSpecBase extends BlockChainStoreSpecBase {
             // At this moment, the Automatic Orphan Pruning should have NOT been triggered yet:
             List<Sha256Hash> tipsBeforePrunning = db.getTipsChains()
             List<Sha256Hash> orphansBeforePrunning = new ArrayList<>()
+
+            db.printKeys()
             Iterator<Sha256Hash> orphanBlocksIt = db.getOrphanBlocks().iterator()
-            while (orphanBlocksIt.hasNext()) { orphansBeforePrunning.add(orphanBlocksIt.next())}
+            while (orphanBlocksIt.hasNext()) {
+                Sha256Hash orphanHash = orphanBlocksIt.next()
+                println(" Orphan found: " + orphanHash)
+                orphansBeforePrunning.add(orphanHash)
+            }
 
             // Now we wait a bit, enough for the Automatic Pruning to the triggered.
             Thread.sleep((long)(ORPHAN_PRUNNING_AGE.toMillis() / 2))

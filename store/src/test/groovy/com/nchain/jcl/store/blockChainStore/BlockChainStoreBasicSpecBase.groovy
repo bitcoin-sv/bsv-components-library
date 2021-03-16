@@ -384,8 +384,8 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
             block2ReadByHeightAferRemoval.isEmpty()
         cleanup:
             println(" - Cleanup...")
-            db.clear()
             db.printKeys()
+            db.clear()
             db.stop()
             println(" - Test Done.")
     }

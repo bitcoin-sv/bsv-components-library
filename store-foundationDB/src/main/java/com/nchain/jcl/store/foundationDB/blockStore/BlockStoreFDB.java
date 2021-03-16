@@ -1,14 +1,11 @@
 package com.nchain.jcl.store.foundationDB.blockStore;
 
-import com.apple.foundationdb.Database;
-import com.apple.foundationdb.FDB;
-import com.apple.foundationdb.KeyValue;
-import com.apple.foundationdb.Transaction;
+import com.apple.foundationdb.*;
 import com.apple.foundationdb.directory.DirectoryLayer;
 import com.apple.foundationdb.directory.DirectorySubspace;
-import com.apple.foundationdb.tuple.Tuple;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
+import com.google.common.primitives.Bytes;
 import com.nchain.jcl.store.blockStore.BlockStore;
 import com.nchain.jcl.store.blockStore.events.BlockStoreStreamer;
 import com.nchain.jcl.store.foundationDB.common.FDBIterator;
@@ -17,16 +14,14 @@ import com.nchain.jcl.store.keyValue.blockStore.BlockStoreKeyValue;
 import com.nchain.jcl.store.keyValue.common.KeyValueIterator;
 import com.nchain.jcl.tools.events.EventBus;
 import com.nchain.jcl.tools.thread.ThreadUtils;
+import io.bitcoinj.bitcoin.api.base.Tx;
 import org.slf4j.Logger;
 
 import javax.annotation.Nonnull;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
+
+import java.util.*;
+import java.util.concurrent.*;
+
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiConsumer;
@@ -68,9 +63,12 @@ public class BlockStoreFDB implements BlockStoreKeyValue<KeyValue, Transaction>,
     protected DirectorySubspace txsDir;
 
     // Events Streaming Configuration:
-    protected final ExecutorService executorService;
+    protected final ExecutorService eventBusExecutor;
     protected final EventBus eventBus;
     private final BlockStoreStreamer blockStoreStreamer;
+
+    // Executor to trigger Async Methods:
+    private ExecutorService executor;
 
     public BlockStoreFDB(@Nonnull BlockStoreFDBConfig config,
                          boolean triggerBlockEvents, boolean triggerTxEvents) {
@@ -79,9 +77,13 @@ public class BlockStoreFDB implements BlockStoreKeyValue<KeyValue, Transaction>,
         this.triggerTxEvents = triggerTxEvents;
 
         // Events Configuration:
-        this.executorService = ThreadUtils.getThreadPoolExecutorService("BlockStore-FoundationDB");
-        this.eventBus = EventBus.builder().executor(this.executorService).build();
+        this.eventBusExecutor = ThreadUtils.getThreadPoolExecutorService("BlockStore-FoundationDB");
+        this.eventBus = EventBus.builder().executor(this.eventBusExecutor).build();
         this.blockStoreStreamer = new BlockStoreStreamer(this.eventBus);
+
+        // Executor (to trigger async methods)
+        //this.executor = Executors.newSingleThreadExecutor();
+        this.executor = Executors.newFixedThreadPool(50);
     }
 
     // Convenience method:
@@ -90,6 +92,11 @@ public class BlockStoreFDB implements BlockStoreKeyValue<KeyValue, Transaction>,
         if (obj instanceof byte[])              return ((byte[]) obj);
         if (obj instanceof String)              return ((String) obj).getBytes();
         throw new RuntimeException("Type not convertible to byte[]");
+    }
+
+    @Override
+    public ExecutorService getExecutor() {
+        return this.executor;
     }
 
     /**
@@ -135,50 +142,27 @@ public class BlockStoreFDB implements BlockStoreKeyValue<KeyValue, Transaction>,
             getLock().writeLock().lock();
             log.info("FDB-Store Stopping...");
             this.db.close();
-            this.executorService.shutdownNow();
+            this.eventBusExecutor.shutdownNow();
+            this.executor.shutdownNow();
             log.info("FDB-Store Stopped.");
         } finally {
             getLock().writeLock().unlock();
         }
     }
 
-    @Override public byte[] keyStartingWith(byte[] preffix) {
-        byte[] resultBytes = new byte[preffix.length - 1];
-        System.arraycopy(preffix, 0, resultBytes, 0, preffix.length - 1);
-        return resultBytes;
-    }
-
-    public byte[] keyEndingWith(byte[] suffix) {
-        byte[] resultBytes = new byte[suffix.length + 1];
-        System.arraycopy(suffix, 0, resultBytes, 0, suffix.length);
-        return resultBytes;
-    }
-
     @Override
     public byte[] fullKey(Object ...subKeys) {
         if (subKeys == null) return null;
-        // We only work with the imtes that are not null.
-        int numSubKeysNotNull = 0;
-        for (Object subKey : subKeys) if (subKey != null) numSubKeysNotNull++;
 
-        // First, we convert all the items into a byte[].
-        byte[][] bytesList = new byte[numSubKeysNotNull][];
-        int i = 0;
+        byte[] result = new byte[0];
         for (Object subKey : subKeys) {
-            // We are assuming that each one of the SubLists is a PARTIAL-Key. So it Should NOT Be a TUPLE. But just
-            // in case, we are checking it anyway. So if any of these subLists is a TUPLE, then we just remove the first
-            // and last bytes, which are the ones that make it a TUPLE...
             if (subKey != null) {
                 byte[] bytesFromSubList = castToBytes(subKey);
-                if (bytesFromSubList.length > 2 && bytesFromSubList[0] == 1 && bytesFromSubList[bytesFromSubList.length -1] == 0) {
-                    byte[] bytesFromSubListTrimmed = new byte[bytesFromSubList.length - 2];
-                    System.arraycopy(bytesFromSubList, 1, bytesFromSubListTrimmed, 0, bytesFromSubList.length - 2);
-                    bytesList[i] = bytesFromSubListTrimmed;
-                } else    bytesList[i] = bytesFromSubList;
-                i++;
+                result = Bytes.concat(result, bytesFromSubList);
             }
         }
-        return Tuple.from(bytesList).pack();
+        // Now we build the result:
+        return result;
     }
 
     @Override public void save(Transaction tr, byte[] key, byte[] value) {
@@ -282,6 +266,77 @@ public class BlockStoreFDB implements BlockStoreKeyValue<KeyValue, Transaction>,
                 .build();
     }
 
+
+    @Override
+
+    public List<Tx> _saveTxsIfNotExist(Transaction tr, List<Tx> txs) {
+        List<Tx> result = new ArrayList<>();
+        try {
+            // to check whether the Tx exists in the DB (we use async read):
+            Map<String, CompletableFuture<byte[]>> readFutures = new ConcurrentHashMap<>();
+
+            // to calculate and keep the KEY for each Tx, to do it only once:
+            Map<String, byte[]> txKeys = new ConcurrentHashMap<>();
+
+            // We check if the Txs exists in the DB (we launch the queries, will collect the results later on)
+            for (Tx tx : txs) {
+                String txHash = tx.getHashAsString();
+                byte[] txKey = fullKeyForTx(tr, txHash);
+                txKeys.put(txHash, txKey);
+                readFutures.put(txHash, readAsync(tr, txKey));
+            }
+            // Now we loop over the futures checking the results, and if the Tx does NOT exists we insert it
+            // and add it to the result:
+            for (Tx tx: txs) {
+                String txHash = tx.getHashAsString();
+                byte[] value = readFutures.get(txHash).get();
+                if (value == null) {
+                    save(tr, txKeys.get(txHash), bytes(tx));
+                    result.add(tx);
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return result;
+    }
+    /*
+    public List<Tx> _saveTxsIfNotExist(Transaction tr, List<Tx> txs) {
+        List<Tx> result = new ArrayList<>();
+        try {
+            // to check whether the Tx exists in the DB (we use async read):
+            Map<String, CompletableFuture<byte[]>> readFutures = new ConcurrentHashMap<>();
+
+            List<CompletableFuture<Tx>> readsFutures = new ArrayList<>();
+
+            // We check if the Txs exists in the DB (we launch the queries, will collect the results later on)
+            for (Tx tx : txs) {
+                String txHash = tx.getHashAsString();
+                byte[] txKey = fullKeyForTx(tr, txHash);
+                CompletableFuture readTxFuture =  CompletableFuture
+                        .supplyAsync(() -> readAsync(tr, txKey), this.executor)
+                        .thenApply(keyF -> {
+                            Tx txToInsert = null;
+                            try {
+                                if (keyF.get() == null) {
+                                    save(tr, txKey, bytes(tx));
+                                    txToInsert = tx;
+                                }
+                            } catch (Exception e) {e.printStackTrace();}
+                            return txToInsert;
+                        });
+                readsFutures.add(readTxFuture);
+            }
+            for (CompletableFuture<Tx> readTxF : readsFutures) {
+                Tx tx = readTxF.get();
+                if (tx != null) result.add(tx);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return result;
+    }
+    */
     private void printDir(Transaction tr, DirectorySubspace parentDir, int level, boolean showDirContent) {
 
         String tabulation = Strings.repeat("  ", level); // deeper elements go further to the right when printed
@@ -322,10 +377,15 @@ public class BlockStoreFDB implements BlockStoreKeyValue<KeyValue, Transaction>,
     @Override
     public void clear() {
         db.run(tr -> {
-           // We remove The Blocks and Txs layers
-           blockchainDir.remove(tr).join();
-           // And we init again the Directory Layer structure:
-           initDirectoryStructure();
+            try {
+                // We remove The Blocks and Txs layers
+                if (blockchainDir.exists(tr).get()) blockchainDir.remove(tr).join();
+                // And we init again the Directory Layer structure:
+                initDirectoryStructure();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             return null;
         });
     }

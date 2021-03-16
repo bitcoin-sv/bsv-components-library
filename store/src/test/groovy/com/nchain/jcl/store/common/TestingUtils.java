@@ -82,7 +82,6 @@ public class TestingUtils {
         txOutput.setValue(Coin.valueOf(rand.nextInt(100)));
         outputs.add(txOutput);
         result.setOutputs(outputs);
-
         result.makeImmutable();
         return result;
 
@@ -93,50 +92,4 @@ public class TestingUtils {
         return buildTx(null);
     }
 
-    // To save memory, we only saved Txs in batches of this size:
-    public static final int BATCH_TXS_SIZE = 10_000;
-
-    /**
-     * It saves a Block and a variable number of Txs eparately, and then they linke them together, returning the time the whole operation takes
-     */
-    public static long performanceLinkBlockAndTxs(BlockStore db, HeaderReadOnly block, int numTxs) {
-        Instant beginTime = Instant.now();
-        db.saveBlock(block);
-        System.out.println(" - Block saved.");
-        System.out.println(" - Linking Txs to the Block...");
-        List<Tx> txsToInsert = new ArrayList<>();
-        for (int i = 0; i < numTxs; i++) {
-            txsToInsert.add(TestingUtils.buildTx());
-            if ((txsToInsert.size() == BATCH_TXS_SIZE) || (i == (numTxs -1))) {
-                db.saveTxs(txsToInsert);
-                System.out.println(" - " + txsToInsert.size() + " Txs saved, " + (i + 1) + " in total.");
-                db.linkTxsToBlock(txsToInsert.stream().map(tx -> tx.getHash()).collect(Collectors.toList()), block.getHash());
-                System.out.println(" - " + txsToInsert.size() + " Txs linked to the Block, " + (i + 1) + " in total.");
-                txsToInsert.clear();
-            }
-        } // for...
-        long result = Duration.between(beginTime, Instant.now()).toMillis();
-        return result;
-    }
-
-    /**
-     * It saves a Block and a variable number of Txs and link them together at the same time
-     */
-    public static long performanceSaveBlockAndTxs(BlockStore db, HeaderReadOnly block, int numTxs) {
-        Instant beginTime = Instant.now();
-        db.saveBlock(block);
-        System.out.println(" - Block saved.");
-        System.out.println(" - Linking Txs to the Block...");
-        List<Tx> txsToInsert = new ArrayList<>();
-        for (int i = 0; i < numTxs; i++) {
-            txsToInsert.add(TestingUtils.buildTx());
-            if ((txsToInsert.size() == BATCH_TXS_SIZE) || (i == (numTxs -1))) {
-                db.saveBlockTxs(block.getHash(), txsToInsert);
-                System.out.println(" - " + txsToInsert.size() + " Txs saved and linked to the Block , " + (i + 1) + " in total.");
-                txsToInsert.clear();
-            }
-        } // for...
-        long result = Duration.between(beginTime, Instant.now()).toMillis();
-        return result;
-    }
 }

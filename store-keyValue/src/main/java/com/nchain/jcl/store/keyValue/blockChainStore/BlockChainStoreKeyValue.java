@@ -395,8 +395,10 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         // we save te Block...:
         BlockStoreKeyValue.super._saveBlock(tr, blockHeader);
 
-        // and its relation with its parent
-        _addChildToBlock(tr, parentHashHex, blockHeader.getHash().toString());
+        // and its relation with its parent (ONLY If this is NOT the GENESIS Block)
+        if (!blockHeader.getPrevBlockHash().equals(Sha256Hash.ZERO_HASH)) {
+            _addChildToBlock(tr, parentHashHex, blockHeader.getHash().toString());
+        }
 
         // We search for the ChainInfo of this block, to check if its already connected to the Chain:
         if (_getBlockChainInfo(tr, blockHeader.getHash().toString()) == null) {
@@ -756,17 +758,25 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
 
         // The iterator will loop over that Keys that belong to the "blocks" folder and start with the preffix
         // used for storing blocks:
-        byte[] startingWithKey = keyStartingWith(fullKey(fullKeyForBlocks(), KEY_PREFFIX_BLOCK));
+        byte[] startingWithKey = fullKey(fullKeyForBlocks(), KEY_PREFFIX_BLOCK);
 
         // The keyVerifier Function will check that each Key we loop over is a Valid Key: A Valid Key is a key that
         // references a Block that has NO parent block stored in the DB:
 
         BiPredicate<T, byte[]> keyVerifier = (tr, key) -> {
-            String blockHash = extractBlockHashFromKey(key).get();
-            if (blockHash.equals(getConfig().getGenesisBlock().getHash().toString())) return false;
-            HeaderReadOnly block = _getBlock(tr, blockHash);
-            HeaderReadOnly parent = _getBlock(tr, block.getPrevBlockHash().toString());
-            return (parent == null);
+            boolean result = false;
+            try {
+                String blockHash = extractBlockHashFromKey(key).get();
+                if (blockHash.equals(getConfig().getGenesisBlock().getHash().toString())) return false;
+                HeaderReadOnly block = _getBlock(tr, blockHash);
+                if (block != null) {
+                    HeaderReadOnly parent = _getBlock(tr, block.getPrevBlockHash().toString());
+                    result = (parent == null);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return result;
         };
 
         // The "buildItemBy" is the function used to take a Key and return each Item of the Iterator. The iterator

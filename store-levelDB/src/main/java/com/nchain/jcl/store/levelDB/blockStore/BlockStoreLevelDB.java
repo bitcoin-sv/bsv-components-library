@@ -7,6 +7,7 @@ import com.nchain.jcl.store.keyValue.common.KeyValueIterator;
 import com.nchain.jcl.store.levelDB.common.LevelDBIterator;
 import com.nchain.jcl.tools.events.EventBus;
 import com.nchain.jcl.tools.thread.ThreadUtils;
+import io.bitcoinj.bitcoin.api.base.Tx;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.DBIterator;
 import org.iq80.leveldb.Options;
@@ -18,10 +19,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiPredicate;
@@ -62,6 +62,9 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
     private boolean triggerBlockEvents;
     private boolean triggerTxEvents;
 
+    // Executor to trigger Async Methods:
+    private ExecutorService executor;
+
     // Events Configuration:
     protected final EventBus eventBus;
     private final ExecutorService executorService;
@@ -84,6 +87,9 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
             this.executorService = ThreadUtils.getThreadPoolExecutorService("BlockStore-LevelDB");
             this.eventBus = EventBus.builder().executor(this.executorService).build();
             this.blockStoreStreamer = new BlockStoreStreamer(this.eventBus);
+
+            // Executor (to trigger async methods)
+            this.executor = Executors.newSingleThreadExecutor();
         } catch (IOException ioe) {
             log.error(ioe.getMessage());
             throw new RuntimeException(ioe);
@@ -95,6 +101,11 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
         if (obj instanceof String) return (String) obj;
         if (obj instanceof byte[]) return new String((byte[]) obj);
         throw new RuntimeException("Type not convertible to String");
+    }
+
+    @Override
+    public ExecutorService getExecutor() {
+        return this.executor;
     }
 
     @Override
@@ -127,7 +138,6 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
     @Override public byte[] fullKeyForTxs(Object tr)                                        { return fullKey(DIR_BLOCKCHAIN, config.getNetworkId(), DIR_TXS); }
     @Override public byte[] fullKeyForTx(Object tr, String txHash)                          { return fullKey(fullKeyForTxs(tr), keyForTx(txHash)); }
     @Override public byte[] fullKeyForTxBlock(Object tr, String txHash, String blockHash)   { return fullKey(fullKeyForTxs(tr), keyForTxBlock(txHash, blockHash)); }
-    @Override public byte[] keyStartingWith(byte[] preffix)                                 { return preffix; }
 
     @Override public byte[] fullKeyForBlocks()                                              { return fullKey(DIR_BLOCKCHAIN, config.getNetworkId(), DIR_BLOCKS);}
     @Override public byte[] fullKeyForTxs()                                                 { return fullKey(DIR_BLOCKCHAIN, config.getNetworkId(), DIR_TXS);}
@@ -158,6 +168,20 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
     }
 
     @Override
+    public List<Tx> _saveTxsIfNotExist(Object tr, List<Tx> txs) {
+        List<Tx> result = new ArrayList<>();
+        // We just iterate over the TXs and insert those that does not exist
+        for (Tx tx: txs) {
+            byte[] txBytes = _getTxBytes(tr, tx.getHash().toString());
+            if (txBytes == null || txBytes.length == 0) {
+                _saveTx(tr, tx);
+                result.add(tx);
+            }
+        }
+        return result;
+    }
+
+    @Override
     public void removeBlockDir(String blockHash) {
         byte[] keyPreffix = fullKeyForBlockDir(blockHash);
         Iterator<byte[]> it = getIterator(keyPreffix, null, null, e -> keyFromItem(e));
@@ -180,6 +204,7 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
                 getLock().writeLock().lock();
                 log.info("LevelDB-Store Stopping...");
                 this.executorService.shutdownNow();
+                this.executor.shutdownNow();
                 this.levelDBStore.close();
                 log.info("LevelDB-Store Stopped.");
             } catch (IOException ioe) {
@@ -212,6 +237,8 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
         }
 
     }
+
+
 
     @Override
     public void printKeys() {

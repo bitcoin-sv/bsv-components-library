@@ -176,9 +176,8 @@ public class BlacklistHandlerImpl extends HandlerImpl implements BlacklistHandle
         BlacklistHostInfo hostInfo = hostsInfo.keySet().contains(ip) ? hostsInfo.get(ip) : new BlacklistHostInfo(ip);
         if (updateExpr != null) updateExpr.accept(hostInfo);
 
-        // We addBytes this Host to the Pool
+        // We add this Host to the Pool
         hostsInfo.put(ip, hostInfo);
-
 
         // We check if this Host should be blacklisted
         if (!hostInfo.isBlacklisted()) {

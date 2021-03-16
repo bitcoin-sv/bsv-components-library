@@ -134,7 +134,17 @@ class TxBlasterPerformanceTest extends Specification {
         if (firstTxInstant == null) firstTxInstant = Instant.now()
         numTxs.incrementAndGet()
         Sha256Hash txHash = event.btcMsg.body.hash
-        println(" Tx " + txHash + " from " + event.peerAddress + " [ " + numTxs.get() + " txs, " + Thread.activeCount() + " threads ]")
+
+        long usedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+        long availableMem = Runtime.getRuntime().maxMemory() - usedMem;
+        String memorySummary = String.format("totalMem: %s, maxMem: %s, freeMem: %s, usedMem: %s, availableMem: %s",
+                Utils.humanReadableByteCount(Runtime.getRuntime().totalMemory(), false),
+                Utils.humanReadableByteCount(Runtime.getRuntime().maxMemory(), false),
+                Utils.humanReadableByteCount(Runtime.getRuntime().freeMemory(), false),
+                Utils.humanReadableByteCount(usedMem, false),
+                Utils.humanReadableByteCount(availableMem, false))
+
+        println(" Tx " + txHash + " [ " + numTxs.get() + " txs, " + Thread.activeCount() + " threads ], memory: " + memorySummary)
     }
 
     private void blastTxs(String threadId, P2P txBlaster, PeerAddress serverAddress, List<BitcoinMsg<?>> msgs, int txSecRate) {
