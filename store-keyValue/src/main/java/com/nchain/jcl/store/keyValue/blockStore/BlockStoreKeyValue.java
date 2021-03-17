@@ -458,18 +458,6 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
         return toTx(_getTxBytes(tr, txHash));
     }
 
-    default void _removeTxLinkedtoBlock(T tr, String txHash, String blockHash) {
-        remove(tr, fullKeyForTxBlock(tr, txHash, blockHash));
-        List<String> blockHashes =_getBlockHashesLinkedToTx(tr, txHash);
-        if (blockHashes.isEmpty()) {
-            remove(tr, fullKeyForTx(tr, txHash));
-        }
-    }
-
-    default void _removeTxBasicInfo(T tr, String txHash) {
-        remove(tr, fullKeyForTx(tr, txHash));
-    }
-
     default void _removeTx(T tr, String txHash) {
         remove(tr, fullKeyForTx(tr, txHash));
         List<String> blockHashes =_getBlockHashesLinkedToTx(tr, txHash);
@@ -600,15 +588,19 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
         // For each Tx in this Block, we update its "blocks" property, removing the reference to this Block.
         KeyValueIterator<byte[], T> iterator = getIterator(keyStart, null, null, e -> keyFromItem(e));
         loopOverKeysAndRun(iterator, (tr, key) -> {
-            String txHashTemp = new String(key);
             String txHash = extractTxHashFromKey(key).get();
-            _removeTxLinkedtoBlock(tr, txHash, blockHash);
+            // We remove the "tx_block" Key, where we store the txIndex for this Tx/Block:
+            remove(tr, fullKeyForTxBlock(tr, txHash, blockHash));
+            // We check the blocks linked to this Tx. If there are no more blocks linked, we also remove the Tx itself:
+            List<String> blockHashes =_getBlockHashesLinkedToTx(tr, txHash);
+            if (blockHashes.isEmpty()) {
+                remove(tr, fullKeyForTx(tr, txHash));
+            }
             txHashConsumer.accept(txHash);
         }, null);
 
         // Now we remove the whole Block directory:
         removeBlockDir(blockHash);
-
     }
 
     /* DB High-Level Operations: */

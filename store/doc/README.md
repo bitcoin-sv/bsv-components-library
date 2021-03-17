@@ -138,6 +138,83 @@ System.out.println("Tx Hash: " + txsIt.next());
 }
 ```
 
+### Saving vs Linking a Transaction
+
+Any method with the word "save" in its signature implies that it's saving an entity. But the methods named as 
+*"linkXXX()"* only add a relantionship between entities that are already stores in the DB. So if we use the 
+*linkXXX* methods to link Transactions and Blocks, both must have been stored previously. Some *saveXXX* methods 
+perform the same operation (save + link)in a single unit, like the ``saveBlockTxs(...)`` method.
+
+
+### Order of Transactions
+
+The order of the Transactions within a Block is important. If we get a Block from the network and save it in the repository, 
+we need to recover its Transactions in the same order as they are contained in the block in the first place, otherwise 
+the *merkle Tree* of the Block will be no longer valid. 
+
+The ``saveBlockTxs(...)`` and ``linkTxtoblock()...)`` methods preserve the order, inserting the Tx in the same order as they 
+are stored in the parameter given. But in *JCL-Store* you can also modify these transactions, removing/unlinking Transactions 
+from Ab lock, linking/adding them alter, etc. These operation might be useful when building a new Block. 
+
+In the following examples we can see different scenarios:
+
+The normal scenario is when we just save the Transactions in the block:
+
+```
+BlockHeader blockHeader = ... // we get a Block Header
+// Let's assume we have 3 Transactions A, B and C:
+List<Tx> txs = Arrays.asList(txA, txB, txC);
+
+// We insert them along with the block:
+db.saveBlock(blockHeader)
+db.saveBlockTxs(txs);
+
+// The order stored is: [txA, txB, txC]
+```
+ 
+The previous example is equivalente to this one, where we store the Block Header and Txs separately and link them later on:
+
+```
+BlockHeader blockHeader = ... // we get a Block Header
+// Let's assume we have 3 Transactions A, B and C:
+List<Tx> txs = Arrays.asList(txA, txB, txC);
+
+// We insert them along with the block:
+db.saveBlock(blockHeader)
+db.saveTxs(txs)
+
+// We link them together ( these method only needs the Tx Hashes, since the Txs themselves are alrady stored):
+List<Sha256) txHashes = txs.stream.map(tx -> tx.getHash()).collect(Collectors.toList())
+db.linkTxsToBlock(txHashes, blockHeader.getHash());
+
+// The order stored is: [txA, txB, txC]
+```
+
+The order of the Transactions in the previous example is termined by the order of the Transaction Hashes in the call 
+to ``linkTxsToblock()`` method, so if we change it we have:
+
+
+```
+// We change the order of the Ttransaction Hashes:
+
+List<Sha256) txHashes = Arrays.asList(txB.getHash(), txC.getHash(), txA.getHash())
+db.linkTxsToBlock(txHashes, blockHeader.getHash());
+
+// The order stored is: [txB, txC, txA]
+```
+
+Every time we *link* a Transaction to a Block, it gets "appended" at the end of the Block:
+
+```
+// current content is [ txA, txB, txC ]
+db.unlinkTxFromBlock(txB.getHash(), blockHeader.getHash());
+
+// current content is [ txB, txC ]
+db.unlinkTxFromBlock(txB.getHash(), blockHeader.getHash());
+
+// current content is [ txB, txC, txA ]
+```
+
 ### Streaming of Events
 
 The *BlockStore* interface provides an *endpoint* that can be used to *listen* to *Events* that are triggered when some 
