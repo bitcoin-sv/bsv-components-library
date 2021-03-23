@@ -59,6 +59,7 @@ public final class VarIntMsg extends Message {
         if (value < 253) return 1; // 1 data byte
         if (value <= 0xFFFFL) return 3; // 1 marker + 2 data bytes
         if (value <= 0xFFFFFFFFL) return 5; // 1 marker + 4 data bytes
+        if (value <= 0xFFFFFFFFFFL) return 6; // 1 marker + 5 data bytes
         return 9; // 1 marker + 8 data bytes
     }
 
