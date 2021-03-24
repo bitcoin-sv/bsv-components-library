@@ -75,6 +75,11 @@ public abstract class BlockHeaderMsg extends Message {
     }
 
     @Override
+    public String toString() {
+        return "BlockHeaderMsg(hash=" + this.getHash() + ", version=" + this.getVersion() + ", prevBlockHash=" + this.getPrevBlockHash() + ", merkleRoot=" + this.getMerkleRoot() + ", creationTimestamp=" + this.getCreationTimestamp() + ", difficultyTarget=" + this.getDifficultyTarget() + ", nonce=" + this.getNonce() + ", transactionCount=" + this.getTransactionCount() + ")";
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (obj == null) {
             return false;

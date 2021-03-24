@@ -34,6 +34,7 @@ public final class BasicBlockHeaderMsg extends BlockHeaderMsg {
         return MESSAGE_TYPE;
     }
 
+    @Override
     public String toString() {
         return "BasicBlockHeaderMsg(hash=" + this.getHash() + ", version=" + this.getVersion() + ", prevBlockHash=" + this.getPrevBlockHash() + ", merkleRoot=" + this.getMerkleRoot() + ", creationTimestamp=" + this.getCreationTimestamp() + ", difficultyTarget=" + this.getDifficultyTarget() + ", nonce=" + this.getNonce() + ", transactionCount=" + this.getTransactionCount() + ")";
     }

@@ -47,6 +47,7 @@ public final class CompleteBlockHeaderMsg extends BlockHeaderMsg {
         return MESSAGE_TYPE;
     }
 
+    @Override
     public String toString() {
         return "CompleteBlockHeaderMsg(hash=" + this.getHash() + ", version=" + this.getVersion() + ", prevBlockHash=" + this.getPrevBlockHash() + ", merkleRoot=" + this.getMerkleRoot() + ", creationTimestamp=" + this.getCreationTimestamp() + ", difficultyTarget=" + this.getDifficultyTarget() + ", nonce=" + this.getNonce() + ", transactionCount=" + this.getTransactionCount() + ")";
     }
