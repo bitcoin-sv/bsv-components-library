@@ -1,11 +1,11 @@
 package com.nchain.jcl.net.protocol.serialization.largeMsgs;
 
 
-import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
+import com.nchain.jcl.net.protocol.messages.CompleteBlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.PartialBlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.PartialBlockTXsMsg;
 import com.nchain.jcl.net.protocol.messages.TxMsg;
-import com.nchain.jcl.net.protocol.serialization.BlockHeaderMsgSerializer;
+import com.nchain.jcl.net.protocol.serialization.CompleteBlockHeaderMsgSerializer;
 import com.nchain.jcl.net.protocol.serialization.TxMsgSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
@@ -34,7 +34,7 @@ public class BigBlockDeserializer extends LargeMessageDeserializerImpl {
 
     // Once the Block Header is deserialzed, we keep a reference here, since we include it as well when we
     // deserialze each set of TXs:
-    private BlockHeaderMsg blockHeader;
+    private CompleteBlockHeaderMsg blockHeader;
 
     /** Constructor */
     public BigBlockDeserializer(ExecutorService executor) { super(executor); }
@@ -47,7 +47,7 @@ public class BigBlockDeserializer extends LargeMessageDeserializerImpl {
         try {
             // We first deserialize the Block Header:
             log.trace("Deserializing the Block Header...");
-            blockHeader = BlockHeaderMsgSerializer.getInstance().deserialize(context, byteReader);
+            blockHeader = CompleteBlockHeaderMsgSerializer.getInstance().deserialize(context, byteReader);
             PartialBlockHeaderMsg partialBlockHeader = PartialBlockHeaderMsg.builder().blockHeader(blockHeader).build();
             notifyDeserialization(partialBlockHeader);
 

@@ -1,7 +1,7 @@
 package com.nchain.jcl.net.unit.protocol.serialization
 
 
-import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg
+import com.nchain.jcl.net.protocol.messages.CompleteBlockHeaderMsg
 import com.nchain.jcl.net.protocol.messages.HashMsg
 import com.nchain.jcl.net.protocol.messages.HeaderMsg
 import com.nchain.jcl.net.protocol.messages.HeadersMsg
@@ -42,7 +42,7 @@ class HeadersMsgSerializerSpec extends Specification {
         DeserializerContext deserializerContext = DeserializerContext.builder()
                 .build()
 
-        BlockHeaderMsg blockHeaderMsg = BlockHeaderMsg.builder()
+        CompleteBlockHeaderMsg blockHeaderMsg = CompleteBlockHeaderMsg.builder()
                 .version(70013)
                 .hash(HashMsg.builder().hash(Sha256Hash.wrap("a9f965385ffd6da76dbf8226ca0f061d6e05737fdf34ba6edb9ea1d012666b16").getBytes()).build())
                 .prevBlockHash(HashMsg.builder().hash(Sha256Hash.ZERO_HASH.getBytes()).build())
@@ -65,7 +65,7 @@ class HeadersMsgSerializerSpec extends Specification {
 
     def "testing HeadersMsg throwing Exception "() {
         given:
-            BlockHeaderMsg blockHeaderMsg = BlockHeaderMsg.builder()
+            CompleteBlockHeaderMsg blockHeaderMsg = CompleteBlockHeaderMsg.builder()
                     .version(70013)
                     .hash(HashMsg.builder().hash(Sha256Hash.wrap("a9f965385ffd6da76dbf8226ca0f061d6e05737fdf34ba6edb9ea1d012666b16").getBytes()).build())
                     .prevBlockHash(HashMsg.builder().hash(Sha256Hash.ZERO_HASH.getBytes()).build())
@@ -76,7 +76,7 @@ class HeadersMsgSerializerSpec extends Specification {
                     .transactionCount(1)
                     .build()
 
-            List<BlockHeaderMsg> msgList = new ArrayList<>();
+            List<CompleteBlockHeaderMsg> msgList = new ArrayList<>();
 
         when:
             for (int i = 0; i < HeadersMsg.MAX_ADDRESSES + 1; i++) {

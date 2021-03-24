@@ -2,6 +2,7 @@ package com.nchain.jcl.net.protocol.serialization;
 
 
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
+import com.nchain.jcl.net.protocol.messages.CompleteBlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.HashMsg;
 import com.nchain.jcl.net.protocol.messages.VarIntMsg;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
@@ -14,40 +15,27 @@ import io.bitcoinj.core.Sha256Hash;
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
- *
- * A Serializer for {@link BlockHeaderMsg}
+ * <p>
+ * A Serializer for {@link CompleteBlockHeaderMsg}
  */
-public class BlockHeaderMsgSerializer implements MessageSerializer<BlockHeaderMsg> {
+public abstract class BlockHeaderMsgSerializer<T extends BlockHeaderMsg> implements MessageSerializer<T> {
 
-    private static BlockHeaderMsgSerializer instance;
-    private static final int HEADER_LENGTH = 80; // Block header length (up to the "nonce" field, included)
+    protected static final int HEADER_LENGTH = 80; // Block header length (up to the "nonce" field, included)
 
-
-    private BlockHeaderMsgSerializer() { }
-
-    /**
-     * Returns the instance of this Serializer (Singleton)
-     */
-    public static BlockHeaderMsgSerializer getInstance() {
-        if (instance == null) {
-            synchronized (BlockHeaderMsgSerializer.class) {
-                instance = new BlockHeaderMsgSerializer();
-            }
-        }
-        return instance;
+    protected BlockHeaderMsgSerializer() {
     }
 
     @Override
-    public BlockHeaderMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
+    public T deserialize(DeserializerContext context, ByteArrayReader byteReader) {
 
         byte[] blockHeaderBytes = byteReader.read(HEADER_LENGTH);
 
-        HashMsg hash =  HashMsg.builder().hash(
-                Sha256Hash.wrap(
-                        Sha256Hash.twiceOf(blockHeaderBytes).getBytes()).getBytes())
-                .build();
+        HashMsg hash = HashMsg.builder().hash(
+            Sha256Hash.wrap(
+                Sha256Hash.twiceOf(blockHeaderBytes).getBytes()).getBytes())
+            .build();
 
-       // String blockHashStr = HEX.encode(hash.getHashBytes());
+        // String blockHashStr = HEX.encode(hash.getHashBytes());
 
         // We create a Reader on the Header Bytes, since we need those values again now to serialize the
         // whole Header...
@@ -62,33 +50,28 @@ public class BlockHeaderMsgSerializer implements MessageSerializer<BlockHeaderMs
         long creationTime = headerReader.readUint32();
         long difficultyTarget = headerReader.readUint32();
         long nonce = headerReader.readUint32();
-        VarIntMsg varIntTransactionCount = VarIntMsgSerializer.getInstance().deserialize(context, byteReader);
-        int transactionCount = (int) varIntTransactionCount.getValue();
+
+        VarIntMsg varIntTransactionCount = deserializeTransactionCount(context, byteReader);
 
         // We return the Header
-
-        return BlockHeaderMsg.builder()
-                .hash(hash)
-                .version(version)
-                .prevBlockHash(prevBlockHash)
-                .merkleRoot(merkleRoot)
-                .creationTimestamp(creationTime)
-                .difficultyTarget(difficultyTarget)
-                .nonce(nonce)
-                .transactionCount(transactionCount)
-                .build();
+        return build(hash, version, prevBlockHash, merkleRoot, creationTime, difficultyTarget, nonce, varIntTransactionCount);
 
     }
 
+    protected abstract T build(HashMsg hash, long version, HashMsg prevBlockHash, HashMsg merkleRoot, long creationTimestamp, long difficultyTarget, long nonce, VarIntMsg transactionCount);
+
+    protected abstract VarIntMsg deserializeTransactionCount(DeserializerContext context, ByteArrayReader byteReader);
+
     @Override
-    public void serialize(SerializerContext context, BlockHeaderMsg message, ByteArrayWriter byteWriter) {
+    public void serialize(SerializerContext context, T message, ByteArrayWriter byteWriter) {
         byteWriter.writeUint32LE(message.getVersion());
         byteWriter.write(message.getPrevBlockHash().getHashBytes());
         byteWriter.write(message.getMerkleRoot().getHashBytes());
         byteWriter.writeUint32LE(message.getCreationTimestamp());
         byteWriter.writeUint32LE(message.getDifficultyTarget());
         byteWriter.writeUint32LE(message.getNonce());
-        VarIntMsgSerializer.getInstance().serialize(context, message.getTransactionCount(), byteWriter);
+        serializeTransactionCount(context, message, byteWriter);
     }
 
+    protected abstract void serializeTransactionCount(SerializerContext context, T message, ByteArrayWriter byteWriter);
 }

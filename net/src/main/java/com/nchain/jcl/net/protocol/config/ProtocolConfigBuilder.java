@@ -7,7 +7,7 @@ import com.nchain.jcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig;
 import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandlerConfig;
 import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerConfig;
 import com.nchain.jcl.net.protocol.handlers.pingPong.PingPongHandlerConfig;
-import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
+import com.nchain.jcl.net.protocol.messages.CompleteBlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.HashMsg;
 import io.bitcoinj.core.Sha256Hash;
 import io.bitcoinj.core.Utils;
@@ -98,7 +98,7 @@ public class ProtocolConfigBuilder {
         // (the whole block definition used to be defined in JCL, but now we are leveraging on bitcoinJ for that, so we
         // only used the field defined in bitcoinJ).
 
-        BlockHeaderMsg genesisBlock = BlockHeaderMsg.builder()
+        CompleteBlockHeaderMsg genesisBlock = CompleteBlockHeaderMsg.builder()
                 .creationTimestamp(params.genesisTime())
                 .difficultyTarget(params.genesisDifficulty())
                 .nonce(params.genesisNonce())

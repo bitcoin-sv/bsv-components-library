@@ -15,7 +15,7 @@ import com.nchain.jcl.net.protocol.handlers.message.MessageHandler;
 import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerConfig;
 import com.nchain.jcl.net.protocol.handlers.pingPong.PingPongHandler;
 import com.nchain.jcl.net.protocol.handlers.pingPong.PingPongHandlerConfig;
-import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
+import com.nchain.jcl.net.protocol.messages.CompleteBlockHeaderMsg;
 import com.nchain.jcl.tools.handlers.HandlerConfig;
 
 import java.util.HashMap;
@@ -37,7 +37,7 @@ public class ProtocolConfigImpl implements ProtocolConfig {
     protected NetworkConfig networkConfig = new NetworkDefaultConfig();
 
     // Header of the Genesis Block of this Chain
-    private BlockHeaderMsg genesisBlock;
+    private CompleteBlockHeaderMsg genesisBlock;
 
     // We store some references to each Handler Configuration Builders. They contain already
     // default values for its variables, and others can be overwritten by child-classes
@@ -62,7 +62,7 @@ public class ProtocolConfigImpl implements ProtocolConfig {
                                 Integer minPeers,
                                 Integer maxPeers,
                                 // Genesis block:
-                                BlockHeaderMsg genesisBlock,
+                                CompleteBlockHeaderMsg genesisBlock,
                                 // Handlers Configuration:
                                 ProtocolBasicConfig basicConfig,
                                 NetworkConfig networkConfig,
@@ -137,7 +137,7 @@ public class ProtocolConfigImpl implements ProtocolConfig {
 
     public String getId()                                           { return this.id; }
     public NetworkConfig getNetworkConfig()                         { return this.networkConfig; }
-    public BlockHeaderMsg getGenesisBlock()                         { return this.genesisBlock; }
+    public CompleteBlockHeaderMsg getGenesisBlock()                         { return this.genesisBlock; }
     public ProtocolBasicConfig getBasicConfig()                     { return this.basicConfig; }
     public MessageHandlerConfig getMessageConfig()                  { return this.messageConfig; }
     public HandshakeHandlerConfig getHandshakeConfig()              { return this.handshakeConfig; }
@@ -162,7 +162,7 @@ public class ProtocolConfigImpl implements ProtocolConfig {
         private Integer port;
         private Integer minPeers;
         private Integer maxPeers;
-        private BlockHeaderMsg genesisBlock;
+        private CompleteBlockHeaderMsg genesisBlock;
         private ProtocolBasicConfig basicConfig;
         private NetworkConfig networkConfig;
         private MessageHandlerConfig messageConfig;
@@ -189,7 +189,7 @@ public class ProtocolConfigImpl implements ProtocolConfig {
             return this;
         }
 
-        public ProtocolConfigImpl.ProtocolConfigImplBuilder genesisBlock(BlockHeaderMsg genesisBlock) {
+        public ProtocolConfigImpl.ProtocolConfigImplBuilder genesisBlock(CompleteBlockHeaderMsg genesisBlock) {
             this.genesisBlock = genesisBlock;
             return this;
         }

@@ -1,18 +1,11 @@
 package com.nchain.jcl.net.integration.protocol.handlers.block
 
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
-import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVStnConfig
-import com.nchain.jcl.net.protocol.config.provided.ProtocolBTCMainConfig
 import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandler
 import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandlerConfig
-import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerConfig
-import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg
+import com.nchain.jcl.net.protocol.messages.CompleteBlockHeaderMsg
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
-import com.nchain.jcl.net.unit.protocol.handlers.wrapper.ProtocolConnectionTest
-import io.bitcoinj.params.MainNetParams
-import org.junit.Test
-import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.time.Duration
@@ -75,7 +68,7 @@ class BlockDownloadTest extends Specification {
                 .build()
 
             // We are keeping track of the Blocks being downloaded:
-            Map<String, BlockHeaderMsg> blockHeaders = new ConcurrentHashMap<>()    // Block Headers
+            Map<String, CompleteBlockHeaderMsg> blockHeaders = new ConcurrentHashMap<>()    // Block Headers
             Map<String, Long> blockTxs  = new ConcurrentHashMap<>()                 // number of TXs downloaded for each Block...
             Set<String> blocksDownloaded = new HashSet<>()                          // Blocks fully downloaded
             Set<String> blocksDiscarded = new HashSet<>()                           // Blocks Discarded...

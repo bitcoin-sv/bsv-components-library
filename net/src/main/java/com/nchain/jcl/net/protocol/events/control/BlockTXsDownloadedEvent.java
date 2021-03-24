@@ -1,7 +1,7 @@
 package com.nchain.jcl.net.protocol.events.control;
 
 import com.nchain.jcl.net.network.PeerAddress;
-import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
+import com.nchain.jcl.net.protocol.messages.CompleteBlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.TxMsg;
 import com.nchain.jcl.tools.events.Event;
 
@@ -21,17 +21,17 @@ import java.util.List;
  */
 public final class BlockTXsDownloadedEvent extends Event {
     private final PeerAddress peerAddress;
-    private final BlockHeaderMsg blockHeaderMsg;
+    private final CompleteBlockHeaderMsg blockHeaderMsg;
     private final List<TxMsg> txsMsg;
 
-    public BlockTXsDownloadedEvent(PeerAddress peerAddress, BlockHeaderMsg blockHeaderMsg, List<TxMsg> txsMsg) {
+    public BlockTXsDownloadedEvent(PeerAddress peerAddress, CompleteBlockHeaderMsg blockHeaderMsg, List<TxMsg> txsMsg) {
         this.peerAddress = peerAddress;
         this.blockHeaderMsg = blockHeaderMsg;
         this.txsMsg = txsMsg;
     }
 
     public PeerAddress getPeerAddress()         { return this.peerAddress; }
-    public BlockHeaderMsg getBlockHeaderMsg()   { return this.blockHeaderMsg; }
+    public CompleteBlockHeaderMsg getBlockHeaderMsg()   { return this.blockHeaderMsg; }
     public List<TxMsg> getTxsMsg()              { return this.txsMsg; }
 
     @Override

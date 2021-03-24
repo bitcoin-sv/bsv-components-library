@@ -1,6 +1,6 @@
 package com.nchain.jcl.net.protocol.serialization;
 
-import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
+import com.nchain.jcl.net.protocol.messages.CompleteBlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.CompactBlockMsg;
 import com.nchain.jcl.net.protocol.messages.PrefilledTxMsg;
 import com.nchain.jcl.net.protocol.messages.VarIntMsg;
@@ -33,7 +33,7 @@ public class CompactBlockMsgSerializer implements MessageSerializer<CompactBlock
     @Override
     public CompactBlockMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
         // First we deserialize the Block Header:
-        BlockHeaderMsg blockHeader = BlockHeaderMsgSerializer.getInstance().deserialize(context, byteReader);
+        CompleteBlockHeaderMsg blockHeader = CompleteBlockHeaderMsgSerializer.getInstance().deserialize(context, byteReader);
 
         long nonce = byteReader.readInt64LE();
 
@@ -62,7 +62,7 @@ public class CompactBlockMsgSerializer implements MessageSerializer<CompactBlock
     @Override
     public void serialize(SerializerContext context, CompactBlockMsg message, ByteArrayWriter byteWriter) {
         // write header
-        BlockHeaderMsgSerializer.getInstance().serialize(context, message.getHeader(), byteWriter);
+        CompleteBlockHeaderMsgSerializer.getInstance().serialize(context, message.getHeader(), byteWriter);
 
         // write nonce
         byteWriter.writeUint64LE(message.getNonce());

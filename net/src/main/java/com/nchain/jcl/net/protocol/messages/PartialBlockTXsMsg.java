@@ -12,10 +12,10 @@ import java.util.List;
 public final class PartialBlockTXsMsg extends Message {
 
     public static final String MESSAGE_TYPE = "PartialBlockTxs";
-    private final BlockHeaderMsg blockHeader;
+    private final CompleteBlockHeaderMsg blockHeader;
     private final List<TxMsg> txs;
 
-    public PartialBlockTXsMsg(BlockHeaderMsg blockHeader, List<TxMsg> txs) {
+    public PartialBlockTXsMsg(CompleteBlockHeaderMsg blockHeader, List<TxMsg> txs) {
         this.blockHeader = blockHeader;
         this.txs = txs;
         init();
@@ -33,7 +33,7 @@ public final class PartialBlockTXsMsg extends Message {
 
     @Override
     public String getMessageType()  { return MESSAGE_TYPE; }
-    public BlockHeaderMsg getBlockHeader()  { return this.blockHeader; }
+    public CompleteBlockHeaderMsg getBlockHeader()  { return this.blockHeader; }
     public List<TxMsg> getTxs()             { return this.txs; }
 
     @Override
@@ -64,12 +64,12 @@ public final class PartialBlockTXsMsg extends Message {
      * Builder
      */
     public static class PartialBlockTXsMsgBuilder {
-        private BlockHeaderMsg blockHeader;
+        private CompleteBlockHeaderMsg blockHeader;
         private List<TxMsg> txs;
 
         PartialBlockTXsMsgBuilder() {}
 
-        public PartialBlockTXsMsg.PartialBlockTXsMsgBuilder blockHeader(BlockHeaderMsg blockHeader) {
+        public PartialBlockTXsMsg.PartialBlockTXsMsgBuilder blockHeader(CompleteBlockHeaderMsg blockHeader) {
             this.blockHeader = blockHeader;
             return this;
         }

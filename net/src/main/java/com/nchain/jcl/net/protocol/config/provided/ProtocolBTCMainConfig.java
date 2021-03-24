@@ -3,7 +3,7 @@ package com.nchain.jcl.net.protocol.config.provided;
 import com.nchain.jcl.net.protocol.config.*;
 import com.nchain.jcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig;
 import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandlerConfig;
-import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
+import com.nchain.jcl.net.protocol.messages.CompleteBlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.HashMsg;
 import io.bitcoinj.core.Sha256Hash;
 
@@ -47,7 +47,7 @@ public class ProtocolBTCMainConfig extends ProtocolConfigImpl implements Protoco
 
 
     // Genesis Block for BTC-Main:
-    public static BlockHeaderMsg genesisBlock = BlockHeaderMsg.builder()
+    public static CompleteBlockHeaderMsg genesisBlock = CompleteBlockHeaderMsg.builder()
             .version(1)
             .prevBlockHash(HashMsg.builder().hash(Sha256Hash.ZERO_HASH.getBytes()).build())
             .merkleRoot(HashMsg.builder().hash(Sha256Hash.wrap("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b").getBytes()).build())

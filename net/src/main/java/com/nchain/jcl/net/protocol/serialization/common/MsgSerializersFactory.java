@@ -5,8 +5,6 @@ import com.nchain.jcl.net.protocol.messages.*;
 import com.nchain.jcl.net.protocol.serialization.*;
 import com.nchain.jcl.net.protocol.serialization.largeMsgs.BigBlockDeserializer;
 import com.nchain.jcl.net.protocol.serialization.largeMsgs.LargeMessageDeserializer;
-import com.nchain.jcl.net.protocol.serialization.VarIntMsgSerializer;
-import com.nchain.jcl.net.protocol.serialization.VarStrMsgSerializer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,7 +12,7 @@ import java.util.Map;
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
- *
+ * <p>
  * A registry of all the MessageBuilder and MessageSerializers developed. If you want to use the
  * {@link BitcoinMsgSerializer} to serialize/deserialize a new type of Message, make sure that the
  * Builders and Serializer Classes for that Message are registered here.
@@ -26,8 +24,6 @@ public class MsgSerializersFactory {
 
     // Raw Message Serializers:
     private static Map<String, RawMsgSerializer> rawSerializers = new HashMap<>();
-
-    private MsgSerializersFactory() {}
 
     static {
 
@@ -57,7 +53,8 @@ public class MsgSerializersFactory {
         serializers.put(TxInputMsg.MESSAGE_TYPE.toUpperCase(), TxInputMsgSerializer.getInstance());
         serializers.put(TxMsg.MESSAGE_TYPE.toUpperCase(), TxMsgSerializer.getInstance());
         serializers.put(BlockMsg.MESSAGE_TYPE.toUpperCase(), BlockMsgSerializer.getInstance());
-        serializers.put(BlockHeaderMsg.MESSAGE_TYPE.toUpperCase(), BlockHeaderMsgSerializer.getInstance());
+        serializers.put(CompleteBlockHeaderMsg.MESSAGE_TYPE.toUpperCase(), CompleteBlockHeaderMsgSerializer.getInstance());
+        serializers.put(BasicBlockHeaderMsg.MESSAGE_TYPE.toUpperCase(), BasicBlockHeaderMsgSerializer.getInstance());
         serializers.put(FeeFilterMsg.MESSAGE_TYPE.toUpperCase(), FeeFilterMsgSerializer.getInstance());
         serializers.put(HeadersMsg.MESSAGE_TYPE.toUpperCase(), HeadersMsgSerializer.getInstance());
         serializers.put(MemPoolMsg.MESSAGE_TYPE.toUpperCase(), MemPoolMsgSerializer.getInstance());
@@ -71,11 +68,16 @@ public class MsgSerializersFactory {
         rawSerializers.put(RawTxMsg.MESSAGE_TYPE.toUpperCase(), RawTxMsgSerializer.getInstance());
     }
 
+    private MsgSerializersFactory() {
+    }
+
     public static MessageSerializer getSerializer(String command) {
         return serializers.get(command.toUpperCase());
     }
 
-    /** We overwrite a regular Serialzer with a raw Serializer */
+    /**
+     * We overwrite a regular Serialzer with a raw Serializer
+     */
     public static void assignRawSerializer(String command) {
         serializers.put(command.toUpperCase(), rawSerializers.get(command.toUpperCase()));
     }
@@ -86,7 +88,7 @@ public class MsgSerializersFactory {
      * , so that means that they are NOT singletons. We need to create one new instance every time we need to
      * deserialize a message
      *
-     * @param command   Message Type to Deserialize
+     * @param command Message Type to Deserialize
      */
     public static LargeMessageDeserializer getLargeMsgDeserializer(String command) {
         LargeMessageDeserializer result = null;

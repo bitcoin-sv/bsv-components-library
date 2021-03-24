@@ -10,9 +10,9 @@ import com.nchain.jcl.net.protocol.messages.common.Message;
  */
 public final class PartialBlockHeaderMsg extends Message {
     public static final String MESSAGE_TYPE = "PartialBlockHeader";
-    private final BlockHeaderMsg blockHeader;
+    private final CompleteBlockHeaderMsg blockHeader;
 
-    public PartialBlockHeaderMsg(BlockHeaderMsg blockHeader) {
+    public PartialBlockHeaderMsg(CompleteBlockHeaderMsg blockHeader) {
         this.blockHeader = blockHeader;
         init();
     }
@@ -28,7 +28,7 @@ public final class PartialBlockHeaderMsg extends Message {
     @Override
     protected void validateMessage() {}
 
-    public BlockHeaderMsg getBlockHeader() {
+    public CompleteBlockHeaderMsg getBlockHeader() {
         return this.blockHeader;
     }
 
@@ -59,11 +59,11 @@ public final class PartialBlockHeaderMsg extends Message {
      * Builder
      */
     public static class PartialBlockHeaderMsgBuilder {
-        private BlockHeaderMsg blockHeader;
+        private CompleteBlockHeaderMsg blockHeader;
 
         PartialBlockHeaderMsgBuilder() { }
 
-        public PartialBlockHeaderMsg.PartialBlockHeaderMsgBuilder blockHeader(BlockHeaderMsg blockHeader) {
+        public PartialBlockHeaderMsg.PartialBlockHeaderMsgBuilder blockHeader(CompleteBlockHeaderMsg blockHeader) {
             this.blockHeader = blockHeader;
             return this;
         }

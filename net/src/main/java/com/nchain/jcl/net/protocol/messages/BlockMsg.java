@@ -20,11 +20,11 @@ public final class BlockMsg extends Message {
 
     public static final String MESSAGE_TYPE = "Block";
 
-    private final BlockHeaderMsg blockHeader;
+    private final CompleteBlockHeaderMsg blockHeader;
     private final List<TxMsg>  transactionMsg;
 
     // Constructor (specifying the Block Header and All Txs
-    protected BlockMsg(BlockHeaderMsg blockHeader, List<TxMsg> transactionMsgs) {
+    protected BlockMsg(CompleteBlockHeaderMsg blockHeader, List<TxMsg> transactionMsgs) {
         this.blockHeader = blockHeader;
         this.transactionMsg = transactionMsgs;
         init();
@@ -47,7 +47,7 @@ public final class BlockMsg extends Message {
 
     @Override
     public String getMessageType()          { return MESSAGE_TYPE; }
-    public BlockHeaderMsg getBlockHeader()  { return this.blockHeader; }
+    public CompleteBlockHeaderMsg getBlockHeader()  { return this.blockHeader; }
     public List<TxMsg> getTransactionMsg() { return this.transactionMsg; }
 
     public String toString() {
@@ -77,13 +77,13 @@ public final class BlockMsg extends Message {
      * Builder
      */
     public static class BlockMsgBuilder {
-        private BlockHeaderMsg blockHeader;
+        private CompleteBlockHeaderMsg blockHeader;
         private List<TxMsg> transactionMsgs;
 
         BlockMsgBuilder() {
         }
 
-        public BlockMsg.BlockMsgBuilder blockHeader(BlockHeaderMsg blockHeader) {
+        public BlockMsg.BlockMsgBuilder blockHeader(CompleteBlockHeaderMsg blockHeader) {
             this.blockHeader = blockHeader;
             return this;
         }
