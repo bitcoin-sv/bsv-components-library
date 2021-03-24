@@ -10,12 +10,12 @@ public class CompactBlockMsg extends Message {
 
     public static final String MESSAGE_TYPE = "cmpctblock";
 
-    private final CompleteBlockHeaderMsg header;
+    private final BasicBlockHeaderMsg header;
     private final long nonce;
     private final long[] shortTxIds;
     private final PrefilledTxMsg[] prefilledTransactions;
 
-    public CompactBlockMsg(CompleteBlockHeaderMsg header, long nonce, long[] shortTxIds, PrefilledTxMsg[] prefilledTransactions) {
+    public CompactBlockMsg(BasicBlockHeaderMsg header, long nonce, long[] shortTxIds, PrefilledTxMsg[] prefilledTransactions) {
         this.header = header;
         this.nonce = nonce;
         this.shortTxIds = shortTxIds;
@@ -26,7 +26,7 @@ public class CompactBlockMsg extends Message {
         return new CompactBlockMsgBuilder();
     }
 
-    public CompleteBlockHeaderMsg getHeader() {
+    public BasicBlockHeaderMsg getHeader() {
         return header;
     }
 
@@ -57,12 +57,12 @@ public class CompactBlockMsg extends Message {
     }
 
     public static class CompactBlockMsgBuilder {
-        private CompleteBlockHeaderMsg header;
+        private BasicBlockHeaderMsg header;
         private long nonce;
         private long[] shortTxIds;
         private PrefilledTxMsg[] prefilledTransactions;
 
-        public CompactBlockMsgBuilder header(CompleteBlockHeaderMsg header) {
+        public CompactBlockMsgBuilder header(BasicBlockHeaderMsg header) {
             this.header = header;
             return this;
         }

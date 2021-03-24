@@ -1,6 +1,6 @@
 package com.nchain.jcl.net.protocol.serialization;
 
-import com.nchain.jcl.net.protocol.messages.CompleteBlockHeaderMsg;
+import com.nchain.jcl.net.protocol.messages.BasicBlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.CompactBlockMsg;
 import com.nchain.jcl.net.protocol.messages.PrefilledTxMsg;
 import com.nchain.jcl.net.protocol.messages.VarIntMsg;
@@ -9,7 +9,6 @@ import com.nchain.jcl.net.protocol.serialization.common.MessageSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.tools.bytes.ByteArrayWriter;
-import io.bitcoinj.core.Utils;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -33,7 +32,7 @@ public class CompactBlockMsgSerializer implements MessageSerializer<CompactBlock
     @Override
     public CompactBlockMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
         // First we deserialize the Block Header:
-        CompleteBlockHeaderMsg blockHeader = CompleteBlockHeaderMsgSerializer.getInstance().deserialize(context, byteReader);
+        BasicBlockHeaderMsg blockHeader = BasicBlockHeaderMsgSerializer.getInstance().deserialize(context, byteReader);
 
         long nonce = byteReader.readInt64LE();
 
@@ -41,8 +40,9 @@ public class CompactBlockMsgSerializer implements MessageSerializer<CompactBlock
         var shortIdsLength = VarIntMsgSerializer.getInstance().deserialize(context, byteReader);
         var shortTxIds = new long[(short) shortIdsLength.getValue()];
         for (int i = 0; i < shortTxIds.length; i++) {
-            shortTxIds[i] = Utils.readInt64(byteReader.read(6), 0);
+            shortTxIds[i] = byteReader.readInt48LE();
         }
+
 
         // read number of prefilled transactions and transactions
         var prefilledTxnLength = VarIntMsgSerializer.getInstance().deserialize(context, byteReader);
@@ -59,10 +59,11 @@ public class CompactBlockMsgSerializer implements MessageSerializer<CompactBlock
             .build();
     }
 
+
     @Override
     public void serialize(SerializerContext context, CompactBlockMsg message, ByteArrayWriter byteWriter) {
         // write header
-        CompleteBlockHeaderMsgSerializer.getInstance().serialize(context, message.getHeader(), byteWriter);
+        BasicBlockHeaderMsgSerializer.getInstance().serialize(context, message.getHeader(), byteWriter);
 
         // write nonce
         byteWriter.writeUint64LE(message.getNonce());

@@ -15,14 +15,14 @@ import spock.lang.Specification
 class CompactBlockMsgSpec extends Specification {
     private static final String BLOCK_HEADER_BYTES = "0100000040f11b68435988807d64dff20261f7d9827825fbb37542601fb94d45000000005d0a2717cccfb28565e04baf2708f32068fb80f98765210ce6247b8939ab2012ecd9d24c1844011d00d36105"
 
-    private static final String NONCE = "008DEC1AA4580915".toLowerCase()
+    private static final String NONCE = "8DEC1AA458091500".toLowerCase()
 
-    private static final String NUMBER_OF_SHORT_IDS_BYTES = "01"
+    private static final String NUMBER_OF_SHORT_IDS_BYTES = "03"
 
     private static final List<String> SHORT_TX_IDS = Arrays.asList(
-        "424022032C49".toLowerCase(),
-        "A2C002012E49".toLowerCase(),
-        "328020056A69".toLowerCase()
+        "492C03224042".toLowerCase(), // 72843215973449
+        "492E0102C0A2".toLowerCase(), // 178945551052361
+        "696A05208032".toLowerCase() // 55525874428521
     )
 
     private static final String SHORT_TX_IDS_BYTES = SHORT_TX_IDS.join()
@@ -49,7 +49,11 @@ class CompactBlockMsgSpec extends Specification {
 
         then:
             message.messageType == CompactBlockMsg.MESSAGE_TYPE
-            message.getNonce() == 5921250825923725740
+            message.getNonce() == 5921250825923725
+            message.getShortTxIds().length == 3
+            message.getShortTxIds()[0] == 72843215973449
+            message.getShortTxIds()[1] == 178945551052361
+            message.getShortTxIds()[2] == 55525874428521
 
         where:
             byteInterval | delayMs
