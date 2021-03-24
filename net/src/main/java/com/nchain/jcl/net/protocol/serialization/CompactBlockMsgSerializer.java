@@ -75,12 +75,7 @@ public class CompactBlockMsgSerializer implements MessageSerializer<CompactBlock
         VarIntMsgSerializer.getInstance().serialize(context, shortTxIdsLength, byteWriter);
 
         var buffer = ByteBuffer.allocate(6);
-        Arrays.stream(shortTxIds).forEach(shortTxId -> {
-            buffer.clear();
-            buffer.putLong(shortTxId);
-            buffer.flip();
-            byteWriter.write(buffer.array());
-        });
+        Arrays.stream(shortTxIds).forEach(byteWriter::writeUint48LE);
 
         var prefilledTransactions = message.getPrefilledTransactions();
 
