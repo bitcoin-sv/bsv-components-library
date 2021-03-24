@@ -74,7 +74,6 @@ class SendCompactBlockMsgSpec extends Specification {
                 .version(5921250825923725)
                 .build()
 
-            String messageSerializedBytes
         when:
             ByteArrayWriter hbByteWriter = new ByteArrayWriter()
             serializer.serialize(context, highBandwidthMsg, hbByteWriter)
@@ -85,6 +84,7 @@ class SendCompactBlockMsgSpec extends Specification {
             serializer.serialize(context, lowBandwidthMsg, lbByteWriter)
             String lbBytes = Utils.HEX.encode(lbByteWriter.reader().getFullContent())
             lbByteWriter.reader()
+
         then:
             hbBytes == HIGH_BANDWIDTH_BYTES
             lbBytes == LOW_BANDWIDTH_BYTES
