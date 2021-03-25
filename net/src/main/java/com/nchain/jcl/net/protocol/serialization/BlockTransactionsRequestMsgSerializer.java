@@ -27,7 +27,6 @@ public class BlockTransactionsRequestMsgSerializer implements MessageSerializer<
         return instance;
     }
 
-
     @Override
     public BlockTransactionsRequestMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
         var blockHash = byteReader.read(32);
