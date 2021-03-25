@@ -11,11 +11,11 @@ import java.util.List;
 public class BlockTransactionsRequestMsg extends Message {
     public static final String MESSAGE_TYPE = "getblocktxn";
 
-    private final byte[] blockHash;
+    private final HashMsg blockHash;
     private final VarIntMsg indexesLength;
     private final List<VarIntMsg> indexes;
 
-    public BlockTransactionsRequestMsg(byte[] blockHash, VarIntMsg indexesLength, List<VarIntMsg> indexes) {
+    public BlockTransactionsRequestMsg(HashMsg blockHash, VarIntMsg indexesLength, List<VarIntMsg> indexes) {
         this.blockHash = blockHash;
         this.indexesLength = indexesLength;
         this.indexes = indexes;
@@ -25,7 +25,7 @@ public class BlockTransactionsRequestMsg extends Message {
         return new BlockTransactionsRequestMsgBuilder();
     }
 
-    public byte[] getBlockHash() {
+    public HashMsg getBlockHash() {
         return blockHash;
     }
 
@@ -44,7 +44,7 @@ public class BlockTransactionsRequestMsg extends Message {
 
     @Override
     protected long calculateLength() {
-        return blockHash.length
+        return blockHash.calculateLength()
             + indexesLength.calculateLength()
             + indexes.stream()
             .mapToLong(VarIntMsg::calculateLength)
@@ -57,11 +57,11 @@ public class BlockTransactionsRequestMsg extends Message {
     }
 
     public static class BlockTransactionsRequestMsgBuilder {
-        private byte[] blockHash;
+        private HashMsg blockHash;
         private VarIntMsg indexesLength;
         private List<VarIntMsg> indexes;
 
-        public BlockTransactionsRequestMsgBuilder blockHash(byte[] blockHash) {
+        public BlockTransactionsRequestMsgBuilder blockHash(HashMsg blockHash) {
             this.blockHash = blockHash;
             return this;
         }

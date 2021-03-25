@@ -11,11 +11,11 @@ import java.util.List;
 public class BlockTransactionsMsg extends Message {
     public static final String MESSAGE_TYPE = "blocktxn";
 
-    private final byte[] blockHash;
+    private final HashMsg blockHash;
     private final VarIntMsg transactionsLength;
     private final List<TxMsg> transactions;
 
-    public BlockTransactionsMsg(byte[] blockHash, VarIntMsg transactionsLength, List<TxMsg> transactions) {
+    public BlockTransactionsMsg(HashMsg blockHash, VarIntMsg transactionsLength, List<TxMsg> transactions) {
         this.blockHash = blockHash;
         this.transactionsLength = transactionsLength;
         this.transactions = transactions;
@@ -25,7 +25,7 @@ public class BlockTransactionsMsg extends Message {
         return new BlockTransactionsMsgBuilder();
     }
 
-    public byte[] getBlockHash() {
+    public HashMsg getBlockHash() {
         return blockHash;
     }
 
@@ -44,7 +44,7 @@ public class BlockTransactionsMsg extends Message {
 
     @Override
     protected long calculateLength() {
-        return blockHash.length
+        return blockHash.calculateLength()
             + transactionsLength.calculateLength()
             + transactions.stream()
             .mapToLong(TxMsg::calculateLength)
@@ -56,11 +56,11 @@ public class BlockTransactionsMsg extends Message {
     }
 
     public static class BlockTransactionsMsgBuilder {
-        private byte[] blockHash;
+        private HashMsg blockHash;
         private VarIntMsg transactionsLength;
         private List<TxMsg> transactions;
 
-        public BlockTransactionsMsgBuilder blockHash(byte[] blockHash) {
+        public BlockTransactionsMsgBuilder blockHash(HashMsg blockHash) {
             this.blockHash = blockHash;
             return this;
         }

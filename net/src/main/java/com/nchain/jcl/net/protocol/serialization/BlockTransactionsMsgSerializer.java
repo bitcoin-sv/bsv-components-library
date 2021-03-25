@@ -29,7 +29,7 @@ public class BlockTransactionsMsgSerializer implements MessageSerializer<BlockTr
 
     @Override
     public BlockTransactionsMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
-        var blockHash = byteReader.read(32);
+        var blockHash = HashMsgSerializer.getInstance().deserialize(context, byteReader);
         var transactionLength = VarIntMsgSerializer.getInstance().deserialize(context, byteReader);
 
         List<TxMsg> transactions = new ArrayList<>();
@@ -46,7 +46,7 @@ public class BlockTransactionsMsgSerializer implements MessageSerializer<BlockTr
 
     @Override
     public void serialize(SerializerContext context, BlockTransactionsMsg message, ByteArrayWriter byteWriter) {
-        byteWriter.write(message.getBlockHash());
+        HashMsgSerializer.getInstance().serialize(context, message.getBlockHash(), byteWriter);
         VarIntMsgSerializer.getInstance().serialize(context, message.getTransactionsLength(), byteWriter);
 
         var txMsgSerializer = TxMsgSerializer.getInstance();
