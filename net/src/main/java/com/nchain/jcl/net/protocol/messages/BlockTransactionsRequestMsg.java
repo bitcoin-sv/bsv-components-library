@@ -4,6 +4,10 @@ import com.nchain.jcl.net.protocol.messages.common.Message;
 
 import java.util.List;
 
+/**
+ * @author j.pomer@nchain.com
+ * Copyright (c) 2018-2020 nChain Ltd
+ */
 public class BlockTransactionsRequestMsg extends Message {
     public static final String MESSAGE_TYPE = "getblocktxn";
 
@@ -15,6 +19,10 @@ public class BlockTransactionsRequestMsg extends Message {
         this.blockHash = blockHash;
         this.indexesLength = indexesLength;
         this.indexes = indexes;
+    }
+
+    public static BlockTransactionsRequestMsgBuilder builder() {
+        return new BlockTransactionsRequestMsgBuilder();
     }
 
     public byte[] getBlockHash() {
@@ -36,16 +44,16 @@ public class BlockTransactionsRequestMsg extends Message {
 
     @Override
     protected long calculateLength() {
-        return 0;
+        return blockHash.length
+            + indexesLength.calculateLength()
+            + indexes.stream()
+            .mapToLong(VarIntMsg::calculateLength)
+            .sum();
     }
 
     @Override
     protected void validateMessage() {
 
-    }
-
-    public static BlockTransactionsRequestMsgBuilder builder() {
-        return new BlockTransactionsRequestMsgBuilder();
     }
 
     public static class BlockTransactionsRequestMsgBuilder {

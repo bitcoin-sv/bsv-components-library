@@ -11,6 +11,10 @@ import com.nchain.jcl.tools.bytes.ByteArrayWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author j.pomer@nchain.com
+ * Copyright (c) 2018-2020 nChain Ltd
+ */
 public class BlockTransactionsRequestMsgSerializer implements MessageSerializer<BlockTransactionsRequestMsg> {
     private static BlockTransactionsRequestMsgSerializer instance;
 
