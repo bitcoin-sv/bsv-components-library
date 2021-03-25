@@ -20,10 +20,10 @@ import java.util.Map;
 public class MsgSerializersFactory {
 
     // Regular Message Serializers:
-    private static Map<String, MessageSerializer> serializers = new HashMap<>();
+    private static final Map<String, MessageSerializer> serializers = new HashMap<>();
 
     // Raw Message Serializers:
-    private static Map<String, RawMsgSerializer> rawSerializers = new HashMap<>();
+    private static final Map<String, RawMsgSerializer> rawSerializers = new HashMap<>();
 
     static {
 
@@ -65,6 +65,7 @@ public class MsgSerializersFactory {
         serializers.put(PrefilledTxMsg.MESSAGE_TYPE.toUpperCase(), PrefilledTxMsgSerializer.getInstance());
         serializers.put(CompactBlockMsg.MESSAGE_TYPE.toUpperCase(), CompactBlockMsgSerializer.getInstance());
         serializers.put(SendCompactBlockMsg.MESSAGE_TYPE.toUpperCase(), SendCompactBlockMsgSerializer.getInstance());
+        serializers.put(BlockTransactionsRequestMsg.MESSAGE_TYPE.toUpperCase(), BlockTransactionsRequestMsgSerializer.getInstance());
 
         rawSerializers.put(RawTxMsg.MESSAGE_TYPE.toUpperCase(), RawTxMsgSerializer.getInstance());
     }
