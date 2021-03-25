@@ -2,7 +2,6 @@ package com.nchain.jcl.net.protocol.events.data;
 
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.protocol.messages.BlockTransactionsRequestMsg;
-import com.nchain.jcl.net.protocol.messages.GetHeadersMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 
 /**
@@ -11,8 +10,8 @@ import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
  *
  * An Event triggered when a @{@link BlockTransactionsRequestMsg} Message is received from a Remote Peer.
  */
-public final class BlockTransactionsRequestMsgReceivedEvent extends MsgReceivedEvent<BlockTransactionsRequestMsg> {
-    public BlockTransactionsRequestMsgReceivedEvent(PeerAddress peerAddress, BitcoinMsg<BlockTransactionsRequestMsg> btcMsg) {
+public final class BlockTransactionsMsgReceivedEvent extends MsgReceivedEvent<BlockTransactionsRequestMsg> {
+    public BlockTransactionsMsgReceivedEvent(PeerAddress peerAddress, BitcoinMsg<BlockTransactionsRequestMsg> btcMsg) {
         super(peerAddress, btcMsg);
     }
 }
