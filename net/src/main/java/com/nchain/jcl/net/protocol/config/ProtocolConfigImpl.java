@@ -33,9 +33,6 @@ public class ProtocolConfigImpl implements ProtocolConfig {
 
     protected String id;
 
-    // Network Configuration: default
-    protected NetworkConfig networkConfig = new NetworkDefaultConfig();
-
     // Header of the Genesis Block of this Chain
     private BlockHeaderMsg genesisBlock;
 
@@ -65,7 +62,6 @@ public class ProtocolConfigImpl implements ProtocolConfig {
                                 BlockHeaderMsg genesisBlock,
                                 // Handlers Configuration:
                                 ProtocolBasicConfig basicConfig,
-                                NetworkConfig networkConfig,
                                 MessageHandlerConfig messageConfig,
                                 HandshakeHandlerConfig handshakeConfig,
                                 PingPongHandlerConfig pingPongConfig,
@@ -94,8 +90,6 @@ public class ProtocolConfigImpl implements ProtocolConfig {
         // - If its not specified, we use the default one.
         // - Some of the properties of the Handler Configuration are included for convenience in the BasicConfiguration,
         //   in that case we overwrite them up...
-
-        if (networkConfig != null) this.networkConfig = networkConfig;
 
         this.messageConfig = (messageConfig == null)
                 ? MessageHandlerConfig.builder().basicConfig(this.basicConfig).build()
@@ -136,7 +130,6 @@ public class ProtocolConfigImpl implements ProtocolConfig {
     public String toString() { return getId();}
 
     public String getId()                                           { return this.id; }
-    public NetworkConfig getNetworkConfig()                         { return this.networkConfig; }
     public BlockHeaderMsg getGenesisBlock()                         { return this.genesisBlock; }
     public ProtocolBasicConfig getBasicConfig()                     { return this.basicConfig; }
     public MessageHandlerConfig getMessageConfig()                  { return this.messageConfig; }
@@ -152,7 +145,7 @@ public class ProtocolConfigImpl implements ProtocolConfig {
     }
 
     public ProtocolConfigImplBuilder toBuilder() {
-        return new ProtocolConfigImplBuilder().port(this.port).minPeers(this.minPeers).maxPeers(this.maxPeers).genesisBlock(this.genesisBlock).basicConfig(this.basicConfig).networkConfig(this.networkConfig).messageConfig(this.messageConfig).handshakeConfig(this.handshakeConfig).pingPongConfig(this.pingPongConfig).discoveryConfig(this.discoveryConfig).blacklistConfig(this.blacklistConfig).blockDownloaderConfig(this.blockDownloaderConfig);
+        return new ProtocolConfigImplBuilder().port(this.port).minPeers(this.minPeers).maxPeers(this.maxPeers).genesisBlock(this.genesisBlock).basicConfig(this.basicConfig).messageConfig(this.messageConfig).handshakeConfig(this.handshakeConfig).pingPongConfig(this.pingPongConfig).discoveryConfig(this.discoveryConfig).blacklistConfig(this.blacklistConfig).blockDownloaderConfig(this.blockDownloaderConfig);
     }
 
     /**
@@ -164,7 +157,6 @@ public class ProtocolConfigImpl implements ProtocolConfig {
         private Integer maxPeers;
         private BlockHeaderMsg genesisBlock;
         private ProtocolBasicConfig basicConfig;
-        private NetworkConfig networkConfig;
         private MessageHandlerConfig messageConfig;
         private HandshakeHandlerConfig handshakeConfig;
         private PingPongHandlerConfig pingPongConfig;
@@ -199,11 +191,6 @@ public class ProtocolConfigImpl implements ProtocolConfig {
             return this;
         }
 
-        public ProtocolConfigImpl.ProtocolConfigImplBuilder networkConfig(NetworkConfig networkConfig) {
-            this.networkConfig = networkConfig;
-            return this;
-        }
-
         public ProtocolConfigImpl.ProtocolConfigImplBuilder messageConfig(MessageHandlerConfig messageConfig) {
             this.messageConfig = messageConfig;
             return this;
@@ -235,7 +222,7 @@ public class ProtocolConfigImpl implements ProtocolConfig {
         }
 
         public ProtocolConfigImpl build() {
-            return new ProtocolConfigImpl(port, minPeers, maxPeers, genesisBlock, basicConfig, networkConfig, messageConfig, handshakeConfig, pingPongConfig, discoveryConfig, blacklistConfig, blockDownloaderConfig);
+            return new ProtocolConfigImpl(port, minPeers, maxPeers, genesisBlock, basicConfig, messageConfig, handshakeConfig, pingPongConfig, discoveryConfig, blacklistConfig, blockDownloaderConfig);
         }
     }
 }

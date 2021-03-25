@@ -67,7 +67,6 @@ public class ProtocolBSVMainConfig extends ProtocolConfigImpl implements Protoco
                 null,
                 genesisBlock,
                 basicConfig,
-                null,            // Default Network Config
                 null,           // Default Message Config
                 HandshakeHandlerConfig.builder()
                         .userAgentBlacklist(userAgentBlacklist)

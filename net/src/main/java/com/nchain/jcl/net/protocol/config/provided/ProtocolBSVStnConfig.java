@@ -65,7 +65,6 @@ public class ProtocolBSVStnConfig extends ProtocolConfigImpl implements Protocol
                 null,
                 genesisBlock,
                 basicConfig,
-                null,            // Default Network Config
                 null,           // Default Message Config
                 HandshakeHandlerConfig.builder()
                         .userAgentBlacklist(userAgentBlacklist)
