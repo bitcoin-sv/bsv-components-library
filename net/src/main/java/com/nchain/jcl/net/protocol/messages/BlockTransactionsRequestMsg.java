@@ -19,6 +19,7 @@ public class BlockTransactionsRequestMsg extends Message {
         this.blockHash = blockHash;
         this.indexesLength = indexesLength;
         this.indexes = indexes;
+        init();
     }
 
     public static BlockTransactionsRequestMsgBuilder builder() {

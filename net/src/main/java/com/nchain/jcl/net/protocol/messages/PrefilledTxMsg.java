@@ -17,6 +17,7 @@ public class PrefilledTxMsg extends Message {
     public PrefilledTxMsg(VarIntMsg index, TxMsg transaction) {
         this.index = index;
         this.transaction = transaction;
+        init();
     }
 
     public static PrefilledTransactionMsgBuilder builder() {
