@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.protocol.serialization;
 
 
+import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.CompleteBlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.HashMsg;
 import com.nchain.jcl.net.protocol.messages.VarIntMsg;
@@ -13,7 +14,7 @@ import com.nchain.jcl.tools.bytes.ByteArrayWriter;
  * @author j.pomer@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  */
-public class CompleteBlockHeaderMsgSerializer extends BlockHeaderMsgSerializer<CompleteBlockHeaderMsg> {
+public class CompleteBlockHeaderMsgSerializer extends BlockHeaderMsgSerializer<BlockHeaderMsg> {
     private static CompleteBlockHeaderMsgSerializer instance;
 
     /**
@@ -29,7 +30,7 @@ public class CompleteBlockHeaderMsgSerializer extends BlockHeaderMsgSerializer<C
     }
 
     @Override
-    protected CompleteBlockHeaderMsg build(HashMsg hash, long version, HashMsg prevBlockHash, HashMsg merkleRoot, long creationTimestamp, long difficultyTarget, long nonce, VarIntMsg transactionCount) {
+    protected BlockHeaderMsg build(HashMsg hash, long version, HashMsg prevBlockHash, HashMsg merkleRoot, long creationTimestamp, long difficultyTarget, long nonce, VarIntMsg transactionCount) {
         return CompleteBlockHeaderMsg.builder()
             .hash(hash)
             .version(version)
@@ -48,7 +49,7 @@ public class CompleteBlockHeaderMsgSerializer extends BlockHeaderMsgSerializer<C
     }
 
     @Override
-    protected void serializeTransactionCount(SerializerContext context, CompleteBlockHeaderMsg message, ByteArrayWriter byteWriter) {
+    protected void serializeTransactionCount(SerializerContext context, BlockHeaderMsg message, ByteArrayWriter byteWriter) {
         VarIntMsgSerializer.getInstance().serialize(context, message.getTransactionCount(), byteWriter);
     }
 }

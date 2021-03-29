@@ -1,7 +1,7 @@
 package com.nchain.jcl.net.protocol.serialization;
 
 
-import com.nchain.jcl.net.protocol.messages.CompleteBlockHeaderMsg;
+import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.HeadersMsg;
 import com.nchain.jcl.net.protocol.messages.VarIntMsg;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
@@ -17,16 +17,19 @@ import java.util.List;
 /**
  * @author m.fletcher@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
- *
- *  A Serializer for {@link HeadersMsg} messages
+ * <p>
+ * A Serializer for {@link HeadersMsg} messages
  */
 public class HeadersMsgSerializer implements MessageSerializer<HeadersMsg> {
 
     private static HeadersMsgSerializer instance;
 
-    private HeadersMsgSerializer() { }
+    private HeadersMsgSerializer() {
+    }
 
-    /** Returns an instance of this Serializer (Singleton) */
+    /**
+     * Returns an instance of this Serializer (Singleton)
+     */
     public static HeadersMsgSerializer getInstance() {
         if (instance == null) {
             synchronized (HeadersMsgSerializer.class) {
@@ -38,7 +41,7 @@ public class HeadersMsgSerializer implements MessageSerializer<HeadersMsg> {
 
     @Override
     public HeadersMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
-        List<CompleteBlockHeaderMsg> blockHeaderMsgs = deserializeList(context, byteReader);
+        List<BlockHeaderMsg> blockHeaderMsgs = deserializeList(context, byteReader);
         HeadersMsg headersMsg = HeadersMsg.builder().blockHeaderMsgList(blockHeaderMsgs).build();
 
         return headersMsg;
@@ -51,13 +54,13 @@ public class HeadersMsgSerializer implements MessageSerializer<HeadersMsg> {
      * @param byteReader
      * @return
      */
-    protected List<CompleteBlockHeaderMsg> deserializeList(DeserializerContext context, ByteArrayReader byteReader) {
+    protected List<BlockHeaderMsg> deserializeList(DeserializerContext context, ByteArrayReader byteReader) {
         VarIntMsg count = VarIntMsgSerializer.getInstance().deserialize(context, byteReader);
-        CompleteBlockHeaderMsg blockHeaderMsg;
-        List<CompleteBlockHeaderMsg> blockHeaderMsgs = new ArrayList<>();
+        BlockHeaderMsg blockHeaderMsg;
+        List<BlockHeaderMsg> blockHeaderMsgs = new ArrayList<>();
 
-        CompleteBlockHeaderMsgSerializer blockHeaderMsgSerializer = CompleteBlockHeaderMsgSerializer.getInstance();
-        for(int i =0 ; i < count.getValue(); i++) {
+        var blockHeaderMsgSerializer = CompleteBlockHeaderMsgSerializer.getInstance();
+        for (int i = 0; i < count.getValue(); i++) {
             blockHeaderMsg = blockHeaderMsgSerializer.deserialize(context, byteReader);
             blockHeaderMsgs.add(blockHeaderMsg);
         }
@@ -68,18 +71,19 @@ public class HeadersMsgSerializer implements MessageSerializer<HeadersMsg> {
     @Override
     public void serialize(SerializerContext context, HeadersMsg message, ByteArrayWriter byteWriter) {
         VarIntMsgSerializer.getInstance().serialize(context, message.getCount(), byteWriter);
-        List<CompleteBlockHeaderMsg> blockHeaderMsg = message.getBlockHeaderMsgList();
-        serializeList(context, blockHeaderMsg , byteWriter);
+        List<BlockHeaderMsg> blockHeaderMsg = message.getBlockHeaderMsgList();
+        serializeList(context, blockHeaderMsg, byteWriter);
     }
 
     /**
      * Serialize blockHeadersMsg List
+     *
      * @param context
      * @param blockHeaderMsgList
      * @param byteWriter
      */
-    protected void serializeList(SerializerContext context, List<CompleteBlockHeaderMsg> blockHeaderMsgList, ByteArrayWriter byteWriter) {
-        for (CompleteBlockHeaderMsg blockHeaderMsg:blockHeaderMsgList) {
+    protected void serializeList(SerializerContext context, List<BlockHeaderMsg> blockHeaderMsgList, ByteArrayWriter byteWriter) {
+        for (var blockHeaderMsg : blockHeaderMsgList) {
             CompleteBlockHeaderMsgSerializer.getInstance().serialize(context, blockHeaderMsg, byteWriter);
         }
     }

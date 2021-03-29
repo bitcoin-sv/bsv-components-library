@@ -39,7 +39,7 @@ public class BlockMsgSerializer implements MessageSerializer<BlockMsg> {
     public BlockMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
 
         // First we deserialize the Block Header:
-        CompleteBlockHeaderMsg blockHeader = CompleteBlockHeaderMsgSerializer.getInstance().deserialize(context, byteReader);
+        var blockHeader = CompleteBlockHeaderMsgSerializer.getInstance().deserialize(context, byteReader);
 
         // The transactions are taken from the Block Body...since the Block Header has been already extracted
         // from the "byteReader", the information remaining in there are the Block Transactions...

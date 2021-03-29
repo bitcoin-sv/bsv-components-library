@@ -29,14 +29,14 @@ public final class HeadersMsg extends Message {
 
     private final VarIntMsg count;
 
-    private final List<CompleteBlockHeaderMsg> blockHeaderMsgList;
+    private final List<BlockHeaderMsg> blockHeaderMsgList;
 
     /**
      * Creates the HeadersMsg Object. Use the corresponding byteArray to create the instance.
      *
      * @param blockHeaderMsgList
      */
-    protected HeadersMsg(List<CompleteBlockHeaderMsg> blockHeaderMsgList) {
+    protected HeadersMsg(List<BlockHeaderMsg> blockHeaderMsgList) {
         this.blockHeaderMsgList = blockHeaderMsgList.stream().collect(Collectors.toUnmodifiableList());
         this.count = VarIntMsg.builder().value(blockHeaderMsgList.size()).build();
         init();
@@ -57,7 +57,7 @@ public final class HeadersMsg extends Message {
     @Override
     public String getMessageType()                      { return MESSAGE_TYPE; }
     public VarIntMsg getCount()                         { return this.count; }
-    public List<CompleteBlockHeaderMsg> getBlockHeaderMsgList() { return this.blockHeaderMsgList; }
+    public List<BlockHeaderMsg> getBlockHeaderMsgList() { return this.blockHeaderMsgList; }
 
     @Override
     public int hashCode() {
@@ -87,11 +87,11 @@ public final class HeadersMsg extends Message {
      * Builder
      */
     public static class HeadersMsgBuilder {
-        private List<CompleteBlockHeaderMsg> blockHeaderMsgList;
+        private List<BlockHeaderMsg> blockHeaderMsgList;
 
         HeadersMsgBuilder() {}
 
-        public HeadersMsg.HeadersMsgBuilder blockHeaderMsgList(List<CompleteBlockHeaderMsg> blockHeaderMsgList) {
+        public HeadersMsg.HeadersMsgBuilder blockHeaderMsgList(List<BlockHeaderMsg> blockHeaderMsgList) {
             this.blockHeaderMsgList = blockHeaderMsgList;
             return this;
         }

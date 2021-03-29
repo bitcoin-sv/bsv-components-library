@@ -3,6 +3,7 @@ package com.nchain.jcl.net.protocol.events.control;
 
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.protocol.events.data.MsgReceivedEvent;
+import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.CompleteBlockHeaderMsg;
 import com.nchain.jcl.tools.events.Event;
 
@@ -27,11 +28,11 @@ import java.time.Duration;
  */
 public final class BlockDownloadedEvent extends Event {
     private final PeerAddress peerAddress;
-    private final CompleteBlockHeaderMsg blockHeader;
+    private final BlockHeaderMsg blockHeader;
     private final Duration downloadingTime;
     private final Long blockSize;
 
-    public BlockDownloadedEvent(PeerAddress peerAddress, CompleteBlockHeaderMsg blockHeader, Duration downloadingTime, Long blockSize) {
+    public BlockDownloadedEvent(PeerAddress peerAddress, BlockHeaderMsg blockHeader, Duration downloadingTime, Long blockSize) {
         this.peerAddress = peerAddress;
         this.blockHeader = blockHeader;
         this.downloadingTime = downloadingTime;
@@ -39,7 +40,7 @@ public final class BlockDownloadedEvent extends Event {
     }
 
     public PeerAddress getPeerAddress()     { return this.peerAddress; }
-    public CompleteBlockHeaderMsg getBlockHeader()  { return this.blockHeader; }
+    public BlockHeaderMsg getBlockHeader()  { return this.blockHeader; }
     public Duration getDownloadingTime()    { return this.downloadingTime; }
     public Long getBlockSize()              { return this.blockSize; }
 

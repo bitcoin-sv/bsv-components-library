@@ -1,10 +1,7 @@
 package com.nchain.jcl.net.protocol.serialization.largeMsgs;
 
 
-import com.nchain.jcl.net.protocol.messages.CompleteBlockHeaderMsg;
-import com.nchain.jcl.net.protocol.messages.PartialBlockHeaderMsg;
-import com.nchain.jcl.net.protocol.messages.PartialBlockTXsMsg;
-import com.nchain.jcl.net.protocol.messages.TxMsg;
+import com.nchain.jcl.net.protocol.messages.*;
 import com.nchain.jcl.net.protocol.serialization.CompleteBlockHeaderMsgSerializer;
 import com.nchain.jcl.net.protocol.serialization.TxMsgSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
@@ -34,7 +31,7 @@ public class BigBlockDeserializer extends LargeMessageDeserializerImpl {
 
     // Once the Block Header is deserialzed, we keep a reference here, since we include it as well when we
     // deserialze each set of TXs:
-    private CompleteBlockHeaderMsg blockHeader;
+    private BlockHeaderMsg blockHeader;
 
     /** Constructor */
     public BigBlockDeserializer(ExecutorService executor) { super(executor); }

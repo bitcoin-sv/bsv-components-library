@@ -2,6 +2,7 @@ package com.nchain.jcl.net.protocol.events.control;
 
 
 import com.nchain.jcl.net.network.PeerAddress;
+import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.CompleteBlockHeaderMsg;
 import com.nchain.jcl.tools.events.Event;
 
@@ -15,15 +16,15 @@ import com.nchain.jcl.tools.events.Event;
  */
 public final class BlockHeaderDownloadedEvent extends Event {
     private final PeerAddress peerAddress;
-    private final CompleteBlockHeaderMsg blockHeaderMsg;
+    private final BlockHeaderMsg blockHeaderMsg;
 
-    public BlockHeaderDownloadedEvent(PeerAddress peerAddress, CompleteBlockHeaderMsg blockHeaderMsg) {
+    public BlockHeaderDownloadedEvent(PeerAddress peerAddress, BlockHeaderMsg blockHeaderMsg) {
         this.peerAddress = peerAddress;
         this.blockHeaderMsg = blockHeaderMsg;
     }
 
     public PeerAddress getPeerAddress()         { return this.peerAddress; }
-    public CompleteBlockHeaderMsg getBlockHeaderMsg()   { return this.blockHeaderMsg; }
+    public BlockHeaderMsg getBlockHeaderMsg()   { return this.blockHeaderMsg; }
 
     @Override
     public String toString() {

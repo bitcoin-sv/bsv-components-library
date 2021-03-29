@@ -2,6 +2,7 @@ package com.nchain.jcl.net.protocol.serialization;
 
 
 import com.nchain.jcl.net.protocol.messages.BasicBlockHeaderMsg;
+import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.HashMsg;
 import com.nchain.jcl.net.protocol.messages.VarIntMsg;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
@@ -13,7 +14,7 @@ import com.nchain.jcl.tools.bytes.ByteArrayWriter;
  * @author j.pomer@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  */
-public class BasicBlockHeaderMsgSerializer extends BlockHeaderMsgSerializer<BasicBlockHeaderMsg> {
+public class BasicBlockHeaderMsgSerializer extends BlockHeaderMsgSerializer<BlockHeaderMsg> {
     private static BasicBlockHeaderMsgSerializer instance;
 
     /**
@@ -29,7 +30,7 @@ public class BasicBlockHeaderMsgSerializer extends BlockHeaderMsgSerializer<Basi
     }
 
     @Override
-    protected BasicBlockHeaderMsg build(HashMsg hash, long version, HashMsg prevBlockHash, HashMsg merkleRoot, long creationTimestamp, long difficultyTarget, long nonce, VarIntMsg transactionCount) {
+    protected BlockHeaderMsg build(HashMsg hash, long version, HashMsg prevBlockHash, HashMsg merkleRoot, long creationTimestamp, long difficultyTarget, long nonce, VarIntMsg transactionCount) {
         return BasicBlockHeaderMsg.builder()
             .hash(hash)
             .version(version)
@@ -47,6 +48,6 @@ public class BasicBlockHeaderMsgSerializer extends BlockHeaderMsgSerializer<Basi
     }
 
     @Override
-    protected void serializeTransactionCount(SerializerContext context, BasicBlockHeaderMsg message, ByteArrayWriter byteWriter) {
+    protected void serializeTransactionCount(SerializerContext context, BlockHeaderMsg message, ByteArrayWriter byteWriter) {
     }
 }

@@ -78,7 +78,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
     // we need to keep track of the number of TXs contained in each block. When we detect that all the TXs within
     // a block have been deserialzied, we mark it as finished.
 
-    private Map<String, CompleteBlockHeaderMsg>   bigBlocksHeaders   = new ConcurrentHashMap<>();
+    private Map<String, BlockHeaderMsg>   bigBlocksHeaders   = new ConcurrentHashMap<>();
     private Map<String, Long>             bigBlocksCurrentTxs = new ConcurrentHashMap();
 
 
@@ -203,7 +203,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
 
             PartialBlockTXsMsg partialMsg = (PartialBlockTXsMsg) msg.getBody();
             String hash = partialMsg.getBlockHeader().getHash().toString();
-            CompleteBlockHeaderMsg blockHeader = bigBlocksHeaders.get(hash);
+            BlockHeaderMsg blockHeader = bigBlocksHeaders.get(hash);
             Long numCurrentTxs = bigBlocksCurrentTxs.get(hash) + partialMsg.getTxs().size();
             bigBlocksCurrentTxs.put(hash, numCurrentTxs);
 
@@ -244,7 +244,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         processDownloadSuccess(peerInfo, blockMesage.getBody().getBlockHeader(), blockMesage.getLengthInbytes());
     }
 
-    private void processDownloadSuccess(BlockPeerInfo peerInfo, CompleteBlockHeaderMsg blockHeader, long blockSize) {
+    private void processDownloadSuccess(BlockPeerInfo peerInfo, BlockHeaderMsg blockHeader, long blockSize) {
         // We process the success of this Block being downloaded
         // This block can be downloaded in two ways:
         // - The "normal" way: We requested this Blocks to be downloadd, so a Peer was assigned to it, and now the

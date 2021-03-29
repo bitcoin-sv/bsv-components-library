@@ -20,16 +20,19 @@ public final class BlockMsg extends Message {
 
     public static final String MESSAGE_TYPE = "Block";
 
-    private final CompleteBlockHeaderMsg blockHeader;
-    private final List<TxMsg>  transactionMsg;
+    private final BlockHeaderMsg blockHeader;
+    private final List<TxMsg> transactionMsg;
 
     // Constructor (specifying the Block Header and All Txs
-    protected BlockMsg(CompleteBlockHeaderMsg blockHeader, List<TxMsg> transactionMsgs) {
+    protected BlockMsg(BlockHeaderMsg blockHeader, List<TxMsg> transactionMsgs) {
         this.blockHeader = blockHeader;
         this.transactionMsg = transactionMsgs;
         init();
     }
 
+    public static BlockMsgBuilder builder() {
+        return new BlockMsgBuilder();
+    }
 
     @Override
     protected long calculateLength() {
@@ -42,13 +45,21 @@ public final class BlockMsg extends Message {
     @Override
     protected void validateMessage() {
         checkState(blockHeader.getTransactionCount().getValue() == transactionMsg.size(),
-                "The number of Txs must match the field in the 'txn_count'");
+            "The number of Txs must match the field in the 'txn_count'");
     }
 
     @Override
-    public String getMessageType()          { return MESSAGE_TYPE; }
-    public CompleteBlockHeaderMsg getBlockHeader()  { return this.blockHeader; }
-    public List<TxMsg> getTransactionMsg() { return this.transactionMsg; }
+    public String getMessageType() {
+        return MESSAGE_TYPE;
+    }
+
+    public BlockHeaderMsg getBlockHeader() {
+        return this.blockHeader;
+    }
+
+    public List<TxMsg> getTransactionMsg() {
+        return this.transactionMsg;
+    }
 
     public String toString() {
         return "BlockMsg(blockHeader=" + this.getBlockHeader() + ", transactionMsg=" + this.getTransactionMsg() + ")";
@@ -61,29 +72,31 @@ public final class BlockMsg extends Message {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (obj == null) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
+        if (obj.getClass() != getClass()) {
+            return false;
+        }
         BlockMsg other = (BlockMsg) obj;
         return Objects.equal(this.blockHeader, other.blockHeader)
-                && Objects.equal(this.transactionMsg, other.transactionMsg);
-    }
-
-    public static BlockMsgBuilder builder() {
-        return new BlockMsgBuilder();
+            && Objects.equal(this.transactionMsg, other.transactionMsg);
     }
 
     /**
      * Builder
      */
     public static class BlockMsgBuilder {
-        private CompleteBlockHeaderMsg blockHeader;
+        private BlockHeaderMsg blockHeader;
         private List<TxMsg> transactionMsgs;
 
         BlockMsgBuilder() {
         }
 
-        public BlockMsg.BlockMsgBuilder blockHeader(CompleteBlockHeaderMsg blockHeader) {
+        public BlockMsg.BlockMsgBuilder blockHeader(BlockHeaderMsg blockHeader) {
             this.blockHeader = blockHeader;
             return this;
         }
