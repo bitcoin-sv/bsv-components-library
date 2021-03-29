@@ -12,7 +12,7 @@ import com.nchain.jcl.tools.events.Event;
  * PeerHandshakedEvent, which is triggered when a Peer is connected and the handshake is done, so real
  * communication can be performed.
  */
-public final class PeerConnectedEvent extends Event {
+public final class PeerConnectedEvent extends P2PEvent {
     private final PeerAddress peerAddress;
 
     public PeerConnectedEvent(PeerAddress peerAddress)  { this.peerAddress = peerAddress; }

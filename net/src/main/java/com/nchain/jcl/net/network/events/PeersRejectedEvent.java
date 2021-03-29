@@ -13,7 +13,7 @@ import java.util.List;
  * This class is an aggregation of PeerRejectedEvent. For performance reasons, sometimes its beter to trigger a
  * collection of Events instead of individual events for each Peer.
  */
-public final class PeersRejectedEvent extends Event {
+public final class PeersRejectedEvent extends P2PEvent {
 
     private final List<PeerRejectedEvent> events;
 

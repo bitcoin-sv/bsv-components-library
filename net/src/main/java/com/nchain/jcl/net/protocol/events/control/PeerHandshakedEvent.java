@@ -2,6 +2,7 @@ package com.nchain.jcl.net.protocol.events.control;
 
 
 import com.nchain.jcl.net.network.PeerAddress;
+import com.nchain.jcl.net.network.events.P2PEvent;
 import com.nchain.jcl.net.protocol.messages.VersionMsg;
 import com.nchain.jcl.tools.events.Event;
 
@@ -11,7 +12,7 @@ import com.nchain.jcl.tools.events.Event;
  *
  * An Event triggered when A Peer has been handshaked and it's ready to communicate with.
  */
-public final class PeerHandshakedEvent extends Event {
+public final class PeerHandshakedEvent extends P2PEvent {
     private final PeerAddress peerAddress;
     // Version Msg sent by the remote Peer during the Handshake process:
     private final VersionMsg versionMsg;

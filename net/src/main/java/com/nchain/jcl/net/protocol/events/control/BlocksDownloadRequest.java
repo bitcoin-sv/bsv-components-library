@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.protocol.events.control;
 
 
+import com.nchain.jcl.net.network.events.P2PRequest;
 import com.nchain.jcl.tools.events.Event;
 
 import java.util.List;
@@ -13,7 +14,7 @@ import java.util.List;
  *
  * A Request for Downloading a Block
  */
-public final class BlocksDownloadRequest extends Event {
+public final class BlocksDownloadRequest extends P2PRequest {
     private final List<String> blockHashes;
 
     public BlocksDownloadRequest(List<String> blockHashes) {

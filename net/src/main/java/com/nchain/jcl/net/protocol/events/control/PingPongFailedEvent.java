@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.protocol.events.control;
 
 import com.nchain.jcl.net.network.PeerAddress;
+import com.nchain.jcl.net.network.events.P2PEvent;
 import com.nchain.jcl.tools.events.Event;
 
 /**
@@ -9,7 +10,7 @@ import com.nchain.jcl.tools.events.Event;
  *
  * An Event triggered when a Peer has failed to perform the Ping/Pong P2P
  */
-public final class PingPongFailedEvent extends Event {
+public final class PingPongFailedEvent extends P2PEvent {
 
     /** Stores the different reason why a Ping-Pong might fail */
     public enum PingPongFailedReason {

@@ -2,6 +2,7 @@ package com.nchain.jcl.net.protocol.events.control;
 
 
 import com.nchain.jcl.net.network.PeerAddress;
+import com.nchain.jcl.net.network.events.P2PRequest;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 import com.nchain.jcl.tools.events.Event;
@@ -14,7 +15,7 @@ import com.nchain.jcl.tools.events.Event;
  * Unlike the SendMsgRequest, this Request does not specify the Header of the Message, only the Body. The Header will
  * be automatically created at the moment of sending the mesage...
  */
-public final class SendMsgBodyRequest extends Event {
+public final class SendMsgBodyRequest extends P2PRequest {
     private final PeerAddress peerAddress;
     private final Message msgBody;
 

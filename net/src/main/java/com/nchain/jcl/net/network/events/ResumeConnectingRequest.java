@@ -11,7 +11,7 @@ import com.nchain.jcl.tools.events.Event;
  * This Event is usually triggered when the number of connections has dropped below some
  * defined threshold.
  */
-public final class ResumeConnectingRequest extends Event {
+public final class ResumeConnectingRequest extends P2PRequest {
     public ResumeConnectingRequest() {}
     public String toString() {
         return "ResumeConnectingRequest()";

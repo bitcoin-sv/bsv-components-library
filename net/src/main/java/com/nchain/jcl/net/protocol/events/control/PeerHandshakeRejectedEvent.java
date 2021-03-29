@@ -2,6 +2,7 @@ package com.nchain.jcl.net.protocol.events.control;
 
 
 import com.nchain.jcl.net.network.PeerAddress;
+import com.nchain.jcl.net.network.events.P2PEvent;
 import com.nchain.jcl.net.protocol.messages.VersionMsg;
 import com.nchain.jcl.tools.events.Event;
 
@@ -11,7 +12,7 @@ import com.nchain.jcl.tools.events.Event;
  *
  * An Event triggered when the Handshake with a Remote Peer has been rejected.
  */
-public final class PeerHandshakeRejectedEvent extends Event {
+public final class PeerHandshakeRejectedEvent extends P2PEvent {
 
     /**
      * Definition of the possible reasons why a Handshake might be rejected

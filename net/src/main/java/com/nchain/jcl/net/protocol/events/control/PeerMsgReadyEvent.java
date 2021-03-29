@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.protocol.events.control;
 
 
+import com.nchain.jcl.net.network.events.P2PEvent;
 import com.nchain.jcl.net.protocol.streams.MessageStream;
 import com.nchain.jcl.tools.events.Event;
 
@@ -11,7 +12,7 @@ import com.nchain.jcl.tools.events.Event;
  * An Event triggered when a Peer is connected, and the connection is wrapped up in a Message Stream, which
  * will take care of Serializing and Deserializing the Messages coming through it.
  */
-public final class PeerMsgReadyEvent extends Event {
+public final class PeerMsgReadyEvent extends P2PEvent {
     private final MessageStream stream;
 
     public PeerMsgReadyEvent(MessageStream stream) {

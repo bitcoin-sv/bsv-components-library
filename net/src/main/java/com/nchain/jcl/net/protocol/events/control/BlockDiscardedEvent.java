@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.protocol.events.control;
 
 
+import com.nchain.jcl.net.network.events.P2PEvent;
 import com.nchain.jcl.tools.events.Event;
 
 /**
@@ -13,7 +14,7 @@ import com.nchain.jcl.tools.events.Event;
  * provides info about the Block (Hash) and the reason why the Block has been discarded
  * A Block discarded might be attempted again after some time, depending on configuration.
  */
-public final class BlockDiscardedEvent extends Event {
+public final class BlockDiscardedEvent extends P2PEvent {
 
     /** Definition of possible reasons why a block might be Discarded during Downloaded */
     public enum DiscardedReason {

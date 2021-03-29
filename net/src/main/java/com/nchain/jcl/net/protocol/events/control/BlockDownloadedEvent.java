@@ -2,6 +2,7 @@ package com.nchain.jcl.net.protocol.events.control;
 
 
 import com.nchain.jcl.net.network.PeerAddress;
+import com.nchain.jcl.net.network.events.P2PEvent;
 import com.nchain.jcl.net.protocol.events.data.MsgReceivedEvent;
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
 import com.nchain.jcl.tools.events.Event;
@@ -25,7 +26,7 @@ import java.time.Duration;
  * @see MsgReceivedEvent (when the Msg is of type PartialBlockHeaderMSg or PartialBlockTXsMsg)
  *
  */
-public final class BlockDownloadedEvent extends Event {
+public final class BlockDownloadedEvent extends P2PEvent {
     private final PeerAddress peerAddress;
     private final BlockHeaderMsg blockHeader;
     private final Duration downloadingTime;

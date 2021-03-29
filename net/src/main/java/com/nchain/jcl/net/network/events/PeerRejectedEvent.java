@@ -10,7 +10,7 @@ import com.nchain.jcl.tools.events.Event;
  * An Event Triggered when a connection to a Peer has been Rejected. So the connectin never took place in
  * the first place.
  */
-public final class PeerRejectedEvent extends Event {
+public final class PeerRejectedEvent extends P2PEvent {
 
     /** Different Reasons why the conneciton has been rejected */
     public enum RejectedReason {

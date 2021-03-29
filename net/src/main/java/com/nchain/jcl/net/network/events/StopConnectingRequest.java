@@ -10,7 +10,7 @@ import com.nchain.jcl.tools.events.Event;
  * An Event that represents a Request to Stop Connecting to more Peers in the Network.
  * This Request is usually triggered when we reach the minimum number of desired connections.
  */
-public final class StopConnectingRequest extends Event {
+public final class StopConnectingRequest extends P2PRequest {
     public StopConnectingRequest() {}
     public String toString() {
         return "StopConnectingRequest()";

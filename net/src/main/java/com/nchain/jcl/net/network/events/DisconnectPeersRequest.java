@@ -14,7 +14,7 @@ import java.util.List;
  * - We can just disconnect from List of Peers (normal way)
  * - We can just request to disconnect from ALL the current connected peers EXCEPT the ones provided by another list.
  */
-public final class DisconnectPeersRequest extends Event {
+public final class DisconnectPeersRequest extends P2PRequest {
     private final List<PeerAddress> peersToDisconnect;
     private final List<PeerAddress> peersToKeep;
     private final PeerDisconnectedEvent.DisconnectedReason reason;

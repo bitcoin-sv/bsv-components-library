@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.protocol.events.control;
 
 
+import com.nchain.jcl.net.network.events.P2PEvent;
 import com.nchain.jcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig;
 import com.nchain.jcl.tools.events.Event;
 
@@ -13,7 +14,7 @@ import com.nchain.jcl.tools.events.Event;
  * An Event triggered when the Discovery Handler loads the initial Set of Peers that is used to start the
  * connection process to the P2P Network.
  */
-public final class InitialPeersLoadedEvent extends Event {
+public final class InitialPeersLoadedEvent extends P2PEvent {
     private final int numPeersLoaded;
     private final DiscoveryHandlerConfig.DiscoveryMethod discoveryMethod;
 

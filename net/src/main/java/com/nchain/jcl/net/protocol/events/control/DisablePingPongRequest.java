@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.protocol.events.control;
 
 import com.nchain.jcl.net.network.PeerAddress;
+import com.nchain.jcl.net.network.events.P2PRequest;
 import com.nchain.jcl.tools.events.Event;
 
 /**
@@ -11,7 +12,7 @@ import com.nchain.jcl.tools.events.Event;
  *
  * A Request to Disable the Ping/Pong protocol for a Particular Peer
  */
-public final class DisablePingPongRequest extends Event {
+public final class DisablePingPongRequest extends P2PRequest {
     private final PeerAddress peerAddress;
 
     public DisablePingPongRequest(PeerAddress peerAddress) {
