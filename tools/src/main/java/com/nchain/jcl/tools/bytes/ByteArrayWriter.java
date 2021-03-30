@@ -26,15 +26,6 @@ public class ByteArrayWriter {
         this.buffer = new ByteArrayBuffer();
     }
 
-    private static void uint48ToByteArrayLE(long val, byte[] out, int offset) {
-        out[offset] = (byte) ((int) (255L & val));
-        out[offset + 1] = (byte) ((int) (255L & val >> 8));
-        out[offset + 2] = (byte) ((int) (255L & val >> 16));
-        out[offset + 3] = (byte) ((int) (255L & val >> 24));
-        out[offset + 4] = (byte) ((int) (255L & val >> 32));
-        out[offset + 5] = (byte) ((int) (255L & val >> 40));
-    }
-
     public void write(byte data) {
         buffer.addBytes(new byte[]{data});
     }
@@ -49,15 +40,15 @@ public class ByteArrayWriter {
         buffer.addBytes(out);
     }
 
-    public void writeUint64LE(long value) {
-        byte[] out = new byte[8];
-        Utils.uint64ToByteArrayLE(value, out, 0);
+    public void writeUint48LE(long value) {
+        byte[] out = new byte[6];
+        Utils.uint48ToByteArrayLE(value, out, 0);
         buffer.addBytes(out);
     }
 
-    public void writeUint48LE(long value) {
-        byte[] out = new byte[6];
-        uint48ToByteArrayLE(value, out, 0);
+    public void writeUint64LE(long value) {
+        byte[] out = new byte[8];
+        Utils.uint64ToByteArrayLE(value, out, 0);
         buffer.addBytes(out);
     }
 

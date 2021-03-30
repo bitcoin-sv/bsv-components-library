@@ -46,17 +46,17 @@ public class ByteArrayReader {
         return result;
     }
 
-    public byte[] get(int length)           { return byteArray.get(length);}
+    public byte[] get(int length)           { return byteArray.get(length); }
     public long readUint32()                { return Utils.readUint32(read(4), 0); }
     public byte read()                      { return read(1)[0]; }
     public long readInt64LE()               { return Utils.readInt64(read(8), 0); }
-    public long readInt48LE()               { return readInt48(read(6), 0); }
-    public boolean readBoolean()            { return (read() != 0);}
-    public long size()                      { return byteArray.size();}
-    public boolean isEmpty()                { return byteArray.size() == 0;}
-    public void closeAndClear()             { byteArray.clear();}
-    public byte[] getFullContent()          { return byteArray.get();}
-    public long getBytesReadCount()         { return bytesReadCount;}
+    public long readInt48LE()               { return Utils.readInt48(read(6), 0); }
+    public boolean readBoolean()            { return (read() != 0); }
+    public long size()                      { return byteArray.size(); }
+    public boolean isEmpty()                { return byteArray.size() == 0; }
+    public void closeAndClear()             { byteArray.clear(); }
+    public byte[] getFullContent()          { return byteArray.get(); }
+    public long getBytesReadCount()         { return bytesReadCount; }
 
     public byte[] getFullContentAndClose() {
         byte[] result = byteArray.get();
@@ -78,9 +78,5 @@ public class ByteArrayReader {
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private static long readInt48(byte[] bytes, int offset) {
-        return (long)bytes[offset] & 255L | ((long)bytes[offset + 1] & 255L) << 8 | ((long)bytes[offset + 2] & 255L) << 16 | ((long)bytes[offset + 3] & 255L) << 24 | ((long)bytes[offset + 4] & 255L) << 32 | ((long)bytes[offset + 5] & 255L) << 40;
     }
 }
