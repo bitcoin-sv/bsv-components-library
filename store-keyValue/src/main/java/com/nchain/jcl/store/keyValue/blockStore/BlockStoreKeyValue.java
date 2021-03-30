@@ -406,13 +406,22 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
          - They do NOT create new DB Transaction, instead they need to reuse one passed as a parameter.
      */
 
-    default void _saveBlock(T tr, HeaderReadOnly blockHeader) {
+    default boolean _saveBlock(T tr, HeaderReadOnly blockHeader){
         String blockHash = blockHeader.getHash().toString();
         save(tr, fullKeyForBlock(tr, blockHash), bytes(blockHeader));
+
+        return true;
     }
 
-    default void _saveBlocks(T tr, List<HeaderReadOnly> blockHeaders) {
-        blockHeaders.forEach(b -> _saveBlock(tr, b));
+    default List<HeaderReadOnly> _saveBlocks(T tr, List<HeaderReadOnly> blockHeaders) {
+        List<HeaderReadOnly> savedBlocks = new ArrayList<>();
+        blockHeaders.forEach(b -> {
+            if (_saveBlock(tr, b)) {
+                savedBlocks.add(b);
+            }
+        });
+
+        return savedBlocks;
     }
 
     default void _removeBlock(T tr, String blockHash) {
@@ -630,9 +639,12 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
             List<List<HeaderReadOnly>> subLists = Lists.partition(blockHeaders, getConfig().getTransactionBatchSize());
             for (List<HeaderReadOnly> subList : subLists) {
                 T tr = createTransaction();
-                executeInTransaction(tr, () -> _saveBlocks(tr, subList));
+                executeInTransaction(tr, () -> {
+                    List<HeaderReadOnly> savedBlocks = _saveBlocks(tr, subList);
+                    _triggerBlocksStoredEvent(savedBlocks);
+                });
             }
-            _triggerBlocksStoredEvent(blockHeaders);
+
         } finally {
             getLock().writeLock().unlock();
         }
