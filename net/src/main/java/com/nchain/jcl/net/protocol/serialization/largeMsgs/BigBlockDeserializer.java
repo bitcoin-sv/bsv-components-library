@@ -2,7 +2,7 @@ package com.nchain.jcl.net.protocol.serialization.largeMsgs;
 
 
 import com.nchain.jcl.net.protocol.messages.*;
-import com.nchain.jcl.net.protocol.serialization.CompleteBlockHeaderMsgSerializer;
+import com.nchain.jcl.net.protocol.serialization.BlockHeaderMsgSerializer;
 import com.nchain.jcl.net.protocol.serialization.TxMsgSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
@@ -44,7 +44,7 @@ public class BigBlockDeserializer extends LargeMessageDeserializerImpl {
         try {
             // We first deserialize the Block Header:
             log.trace("Deserializing the Block Header...");
-            blockHeader = CompleteBlockHeaderMsgSerializer.getInstance().deserialize(context, byteReader);
+            blockHeader = BlockHeaderMsgSerializer.getInstance().deserialize(context, byteReader);
             PartialBlockHeaderMsg partialBlockHeader = PartialBlockHeaderMsg.builder().blockHeader(blockHeader).build();
             notifyDeserialization(partialBlockHeader);
 

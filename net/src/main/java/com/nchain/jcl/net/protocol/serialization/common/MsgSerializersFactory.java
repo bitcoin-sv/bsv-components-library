@@ -53,8 +53,8 @@ public class MsgSerializersFactory {
         serializers.put(TxInputMsg.MESSAGE_TYPE.toUpperCase(), TxInputMsgSerializer.getInstance());
         serializers.put(TxMsg.MESSAGE_TYPE.toUpperCase(), TxMsgSerializer.getInstance());
         serializers.put(BlockMsg.MESSAGE_TYPE.toUpperCase(), BlockMsgSerializer.getInstance());
-        serializers.put(CompleteBlockHeaderMsg.MESSAGE_TYPE.toUpperCase(), CompleteBlockHeaderMsgSerializer.getInstance());
-        serializers.put(BasicBlockHeaderMsg.MESSAGE_TYPE.toUpperCase(), BasicBlockHeaderMsgSerializer.getInstance());
+        serializers.put(CompactBlockHeaderMsg.MESSAGE_TYPE.toUpperCase(), CompactBlockHeaderMsgSerializer.getInstance());
+        serializers.put(BlockHeaderMsg.MESSAGE_TYPE.toUpperCase(), BlockHeaderMsgSerializer.getInstance());
         serializers.put(FeeFilterMsg.MESSAGE_TYPE.toUpperCase(), FeeFilterMsgSerializer.getInstance());
         serializers.put(HeadersMsg.MESSAGE_TYPE.toUpperCase(), HeadersMsgSerializer.getInstance());
         serializers.put(MemPoolMsg.MESSAGE_TYPE.toUpperCase(), MemPoolMsgSerializer.getInstance());

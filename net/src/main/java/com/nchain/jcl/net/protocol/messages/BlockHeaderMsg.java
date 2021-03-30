@@ -2,10 +2,6 @@ package com.nchain.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
 import com.nchain.jcl.net.protocol.messages.common.Message;
-import io.bitcoinj.bitcoin.api.base.AbstractBlock;
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
-import io.bitcoinj.bitcoin.bean.base.HeaderBean;
-import io.bitcoinj.core.Sha256Hash;
 
 import static java.util.Optional.ofNullable;
 
@@ -16,7 +12,9 @@ import static java.util.Optional.ofNullable;
  * The Block Header represents the Header of information wihtint a Block.
  * It's also used in the HEADERS and GETHEADERS packages.
  */
-public abstract class BlockHeaderMsg extends Message {
+public final class BlockHeaderMsg extends Message {
+
+    public static final String MESSAGE_TYPE = "BlockHeader";
 
     public static final int TIMESTAMP_LENGTH = 4;
 
@@ -35,7 +33,7 @@ public abstract class BlockHeaderMsg extends Message {
     protected final long creationTimestamp;
     protected final long difficultyTarget;
     protected final long nonce;
-    protected final VarIntMsg transactionCount;
+    private final VarIntMsg transactionCount;
 
     public BlockHeaderMsg(HashMsg hash, long version, HashMsg prevBlockHash, HashMsg merkleRoot, long creationTimestamp, long difficultyTarget, long nonce, VarIntMsg transactionCount) {
         this.hash = hash;
@@ -49,29 +47,24 @@ public abstract class BlockHeaderMsg extends Message {
         init();
     }
 
+    public static BlockHeaderMsgBuilder builder() {
+        return new BlockHeaderMsgBuilder();
+    }
+
+    @Override
+    public String getMessageType() {
+        return MESSAGE_TYPE;
+    }
+
     @Override
     protected long calculateLength() {
         return 4 + prevBlockHash.getLengthInBytes() + merkleRoot.getLengthInBytes() +
-            TIMESTAMP_LENGTH + TIMESTAMP_LENGTH + NONCE_LENGTH + transactionCount.getLengthInBytes();
+            TIMESTAMP_LENGTH + TIMESTAMP_LENGTH + NONCE_LENGTH + transactionCount.calculateLength();
     }
 
     @Override
     protected void validateMessage() {
-    }
 
-    /**
-     * Returns a Domain Class
-     */
-    public HeaderReadOnly toBean() {
-        HeaderBean result = new HeaderBean((AbstractBlock) null);
-        result.setTime(this.creationTimestamp);
-        result.setDifficultyTarget(this.difficultyTarget);
-        result.setNonce(this.nonce);
-        result.setPrevBlockHash(Sha256Hash.wrap(this.prevBlockHash.getHashBytes()));
-        result.setVersion(this.version);
-        result.setMerkleRoot(Sha256Hash.wrap(this.merkleRoot.getHashBytes()));
-        result.setHash(Sha256Hash.wrap(this.hash.getHashBytes()));
-        return result;
     }
 
     @Override
@@ -79,17 +72,52 @@ public abstract class BlockHeaderMsg extends Message {
         return "BlockHeaderMsg(hash=" + this.getHash() + ", version=" + this.getVersion() + ", prevBlockHash=" + this.getPrevBlockHash() + ", merkleRoot=" + this.getMerkleRoot() + ", creationTimestamp=" + this.getCreationTimestamp() + ", difficultyTarget=" + this.getDifficultyTarget() + ", nonce=" + this.getNonce() + ", transactionCount=" + this.getTransactionCount() + ")";
     }
 
+    public HashMsg getHash() {
+        return hash;
+    }
+
+    public long getVersion() {
+        return version;
+    }
+
+    public HashMsg getPrevBlockHash() {
+        return prevBlockHash;
+    }
+
+    public HashMsg getMerkleRoot() {
+        return merkleRoot;
+    }
+
+    public long getCreationTimestamp() {
+        return creationTimestamp;
+    }
+
+    public long getDifficultyTarget() {
+        return difficultyTarget;
+    }
+
+    public long getNonce() {
+        return nonce;
+    }
+
+    public VarIntMsg getTransactionCount() {
+        return transactionCount;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (obj == null) {
             return false;
         }
+
         if (obj == this) {
             return true;
         }
+
         if (obj.getClass() != getClass()) {
             return false;
         }
+
         BlockHeaderMsg other = (BlockHeaderMsg) obj;
 
         return Objects.equal(this.hash, other.hash)
@@ -102,40 +130,65 @@ public abstract class BlockHeaderMsg extends Message {
             && Objects.equal(this.transactionCount, other.transactionCount);
     }
 
-    public HashMsg getHash() {
-        return this.hash;
-    }
+    /**
+     * Builder
+     */
+    public static class BlockHeaderMsgBuilder {
+        protected HashMsg hash;
+        protected long version;
+        protected HashMsg prevBlockHash;
+        protected HashMsg merkleRoot;
+        protected long creationTimestamp;
+        protected long difficultyTarget;
+        protected long nonce;
+        private VarIntMsg transactionCount;
 
-    public long getVersion() {
-        return this.version;
-    }
+        public BlockHeaderMsgBuilder hash(HashMsg hash) {
+            this.hash = hash;
+            return this;
+        }
 
-    public HashMsg getPrevBlockHash() {
-        return this.prevBlockHash;
-    }
+        public BlockHeaderMsgBuilder version(long version) {
+            this.version = version;
+            return this;
+        }
 
-    public HashMsg getMerkleRoot() {
-        return this.merkleRoot;
-    }
+        public BlockHeaderMsgBuilder prevBlockHash(HashMsg prevBlockHash) {
+            this.prevBlockHash = prevBlockHash;
+            return this;
+        }
 
-    public long getCreationTimestamp() {
-        return this.creationTimestamp;
-    }
+        public BlockHeaderMsgBuilder merkleRoot(HashMsg merkleRoot) {
+            this.merkleRoot = merkleRoot;
+            return this;
+        }
 
-    public long getDifficultyTarget() {
-        return this.difficultyTarget;
-    }
+        public BlockHeaderMsgBuilder creationTimestamp(long creationTimestamp) {
+            this.creationTimestamp = creationTimestamp;
+            return this;
+        }
 
-    public long getNonce() {
-        return this.nonce;
-    }
+        public BlockHeaderMsgBuilder difficultyTarget(long difficultyTarget) {
+            this.difficultyTarget = difficultyTarget;
+            return this;
+        }
 
-    public VarIntMsg getTransactionCount() {
-        return this.transactionCount;
-    }
+        public BlockHeaderMsgBuilder nonce(long nonce) {
+            this.nonce = nonce;
+            return this;
+        }
 
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(hash, version, prevBlockHash, merkleRoot, creationTimestamp, difficultyTarget, nonce, transactionCount);
+        public BlockHeaderMsgBuilder transactionCount(long transactionCount) {
+            return transactionCount(VarIntMsg.builder().value(transactionCount).build());
+        }
+
+        public BlockHeaderMsgBuilder transactionCount(VarIntMsg transactionCount) {
+            this.transactionCount = transactionCount;
+            return this;
+        }
+
+        public BlockHeaderMsg build() {
+            return new BlockHeaderMsg(hash, version, prevBlockHash, merkleRoot, creationTimestamp, difficultyTarget, nonce, transactionCount);
+        }
     }
 }

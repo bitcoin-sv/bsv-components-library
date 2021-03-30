@@ -1,7 +1,7 @@
 package com.nchain.jcl.net.protocol.handlers.block;
 
 import com.nchain.jcl.net.network.PeerAddress;
-import com.nchain.jcl.net.protocol.messages.CompleteBlockHeaderMsg;
+import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.BlockMsg;
 import com.nchain.jcl.net.protocol.messages.HeaderMsg;
 import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStream;
@@ -45,7 +45,7 @@ public class BlockPeerInfo {
      */
     public class BlockProgressInfo {
         protected String hash;
-        protected CompleteBlockHeaderMsg blockHeaderMsg;
+        protected BlockHeaderMsg blockHeaderMsg;
         protected PeerAddress peerAddress; // a bit redundant, but it's ok
         protected boolean corrupted;
         protected Long bytesTotal;
@@ -79,7 +79,7 @@ public class BlockPeerInfo {
         }
 
         public String getHash()                         { return this.hash; }
-        public CompleteBlockHeaderMsg getBlockHeaderMsg()       { return this.blockHeaderMsg; }
+        public BlockHeaderMsg getBlockHeaderMsg()       { return this.blockHeaderMsg; }
         public PeerAddress getPeerAddress()             { return this.peerAddress; }
         public boolean isCorrupted()                    { return this.corrupted; }
         public Long getBytesTotal()                     { return this.bytesTotal; }

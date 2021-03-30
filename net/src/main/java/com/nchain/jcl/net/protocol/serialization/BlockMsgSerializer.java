@@ -1,7 +1,6 @@
 package com.nchain.jcl.net.protocol.serialization;
 
 
-import com.nchain.jcl.net.protocol.messages.CompleteBlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.BlockMsg;
 import com.nchain.jcl.net.protocol.messages.TxMsg;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
@@ -39,7 +38,7 @@ public class BlockMsgSerializer implements MessageSerializer<BlockMsg> {
     public BlockMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
 
         // First we deserialize the Block Header:
-        var blockHeader = CompleteBlockHeaderMsgSerializer.getInstance().deserialize(context, byteReader);
+        var blockHeader = BlockHeaderMsgSerializer.getInstance().deserialize(context, byteReader);
 
         // The transactions are taken from the Block Body...since the Block Header has been already extracted
         // from the "byteReader", the information remaining in there are the Block Transactions...
@@ -67,7 +66,7 @@ public class BlockMsgSerializer implements MessageSerializer<BlockMsg> {
 
     @Override
     public void serialize(SerializerContext context, BlockMsg blockMsg, ByteArrayWriter byteWriter) {
-        CompleteBlockHeaderMsgSerializer.getInstance().serialize(context, blockMsg.getBlockHeader(), byteWriter);
+        BlockHeaderMsgSerializer.getInstance().serialize(context, blockMsg.getBlockHeader(), byteWriter);
         for (TxMsg transactionMsg : blockMsg.getTransactionMsg()) {
             TxMsgSerializer.getInstance().serialize(context, transactionMsg, byteWriter);
         }

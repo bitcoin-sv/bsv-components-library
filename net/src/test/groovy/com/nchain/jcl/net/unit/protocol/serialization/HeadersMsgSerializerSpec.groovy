@@ -1,7 +1,7 @@
 package com.nchain.jcl.net.unit.protocol.serialization
 
 
-import com.nchain.jcl.net.protocol.messages.CompleteBlockHeaderMsg
+import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg
 import com.nchain.jcl.net.protocol.messages.HashMsg
 import com.nchain.jcl.net.protocol.messages.HeaderMsg
 import com.nchain.jcl.net.protocol.messages.HeadersMsg
@@ -36,13 +36,13 @@ class HeadersMsgSerializerSpec extends Specification {
     def "testing HeadersMsg Serializing and Deserializing"() {
         given:
 
-        SerializerContext serializerContext = SerializerContext.builder()
+            SerializerContext serializerContext = SerializerContext.builder()
                 .build()
 
-        DeserializerContext deserializerContext = DeserializerContext.builder()
+            DeserializerContext deserializerContext = DeserializerContext.builder()
                 .build()
 
-        CompleteBlockHeaderMsg blockHeaderMsg = CompleteBlockHeaderMsg.builder()
+            BlockHeaderMsg blockHeaderMsg = BlockHeaderMsg.builder()
                 .version(70013)
                 .hash(HashMsg.builder().hash(Sha256Hash.wrap("a9f965385ffd6da76dbf8226ca0f061d6e05737fdf34ba6edb9ea1d012666b16").getBytes()).build())
                 .prevBlockHash(HashMsg.builder().hash(Sha256Hash.ZERO_HASH.getBytes()).build())
@@ -65,18 +65,18 @@ class HeadersMsgSerializerSpec extends Specification {
 
     def "testing HeadersMsg throwing Exception "() {
         given:
-            CompleteBlockHeaderMsg blockHeaderMsg = CompleteBlockHeaderMsg.builder()
-                    .version(70013)
-                    .hash(HashMsg.builder().hash(Sha256Hash.wrap("a9f965385ffd6da76dbf8226ca0f061d6e05737fdf34ba6edb9ea1d012666b16").getBytes()).build())
-                    .prevBlockHash(HashMsg.builder().hash(Sha256Hash.ZERO_HASH.getBytes()).build())
-                    .merkleRoot(HashMsg.builder().hash(Sha256Hash.ZERO_HASH.getBytes()).build())
-                    .difficultyTarget(1)
-                    .creationTimestamp(0)
-                    .nonce(1)
-                    .transactionCount(1)
-                    .build()
+            BlockHeaderMsg blockHeaderMsg = BlockHeaderMsg.builder()
+                .version(70013)
+                .hash(HashMsg.builder().hash(Sha256Hash.wrap("a9f965385ffd6da76dbf8226ca0f061d6e05737fdf34ba6edb9ea1d012666b16").getBytes()).build())
+                .prevBlockHash(HashMsg.builder().hash(Sha256Hash.ZERO_HASH.getBytes()).build())
+                .merkleRoot(HashMsg.builder().hash(Sha256Hash.ZERO_HASH.getBytes()).build())
+                .difficultyTarget(1)
+                .creationTimestamp(0)
+                .nonce(1)
+                .transactionCount(1)
+                .build()
 
-            List<CompleteBlockHeaderMsg> msgList = new ArrayList<>();
+            List<BlockHeaderMsg> msgList = new ArrayList<>();
 
         when:
             for (int i = 0; i < HeadersMsg.MAX_ADDRESSES + 1; i++) {
@@ -90,15 +90,14 @@ class HeadersMsgSerializerSpec extends Specification {
 
     }
 
-
     def "testing HeadersMsg COMPLETE Serializing and Deserializing"() {
         given:
 
             SerializerContext serializerContext = SerializerContext.builder()
-                    .build()
+                .build()
 
             DeserializerContext deserializerContext = DeserializerContext.builder()
-                    .build()
+                .build()
 
             ByteArrayWriter byteArrayWriter = new ByteArrayWriter()
             byteArrayWriter.write(Utils.HEX.decode(VALID_HEADER))
@@ -106,11 +105,11 @@ class HeadersMsgSerializerSpec extends Specification {
             HeadersMsg headersMsg = HeadersMsgSerializer.getInstance().deserialize(deserializerContext, byteArrayWriter.reader())
 
             HeaderMsg headerMsg = HeaderMsg.builder()
-                    .checksum(714299174)
-                    .command(HeadersMsg.MESSAGE_TYPE)
-                    .length((int)headersMsg.getLengthInBytes())
-                    .magic(1)
-                    .build();
+                .checksum(714299174)
+                .command(HeadersMsg.MESSAGE_TYPE)
+                .length((int) headersMsg.getLengthInBytes())
+                .magic(1)
+                .build();
 
             BitcoinMsg<HeadersMsg> headersBitcoinMsg = new BitcoinMsg<HeadersMsg>(headerMsg, headersMsg);
 

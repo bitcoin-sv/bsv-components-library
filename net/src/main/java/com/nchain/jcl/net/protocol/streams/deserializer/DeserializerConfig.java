@@ -1,6 +1,6 @@
 package com.nchain.jcl.net.protocol.streams.deserializer;
 
-import com.nchain.jcl.net.protocol.messages.CompleteBlockHeaderMsg;
+import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.HeadersMsg;
 import com.nchain.jcl.net.protocol.messages.InvMessage;
 import com.nchain.jcl.net.protocol.messages.TxMsg;
@@ -33,7 +33,7 @@ public final class DeserializerConfig {
     private static final String[] DEFAULT_MSGS_TO_CACHE = {
             HeadersMsg.MESSAGE_TYPE.toUpperCase(),
             TxMsg.MESSAGE_TYPE.toUpperCase(),
-            CompleteBlockHeaderMsg.MESSAGE_TYPE.toUpperCase(),
+            BlockHeaderMsg.MESSAGE_TYPE.toUpperCase(),
             InvMessage.MESSAGE_TYPE.toUpperCase()
     };
 

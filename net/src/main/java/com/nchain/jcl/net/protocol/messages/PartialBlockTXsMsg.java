@@ -21,9 +21,13 @@ public final class PartialBlockTXsMsg extends Message {
         init();
     }
 
+    public static PartialBlockTXsMsgBuilder builder() {
+        return new PartialBlockTXsMsgBuilder();
+    }
+
     @Override
     protected long calculateLength() {
-         return blockHeader.getLengthInBytes() + txs.stream().mapToLong(tx -> tx.getLengthInBytes()).sum();
+        return blockHeader.getLengthInBytes() + txs.stream().mapToLong(tx -> tx.getLengthInBytes()).sum();
     }
 
     @Override
@@ -32,9 +36,17 @@ public final class PartialBlockTXsMsg extends Message {
     }
 
     @Override
-    public String getMessageType()  { return MESSAGE_TYPE; }
-    public BlockHeaderMsg getBlockHeader()  { return this.blockHeader; }
-    public List<TxMsg> getTxs()             { return this.txs; }
+    public String getMessageType() {
+        return MESSAGE_TYPE;
+    }
+
+    public BlockHeaderMsg getBlockHeader() {
+        return this.blockHeader;
+    }
+
+    public List<TxMsg> getTxs() {
+        return this.txs;
+    }
 
     @Override
     public String toString() {
@@ -48,16 +60,18 @@ public final class PartialBlockTXsMsg extends Message {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (obj == null) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
+        if (obj.getClass() != getClass()) {
+            return false;
+        }
         PartialBlockTXsMsg other = (PartialBlockTXsMsg) obj;
         return Objects.equal(this.blockHeader, other.blockHeader)
-                && Objects.equal(this.txs, other.txs);
-    }
-
-    public static PartialBlockTXsMsgBuilder builder() {
-        return new PartialBlockTXsMsgBuilder();
+            && Objects.equal(this.txs, other.txs);
     }
 
     /**
@@ -67,7 +81,8 @@ public final class PartialBlockTXsMsg extends Message {
         private BlockHeaderMsg blockHeader;
         private List<TxMsg> txs;
 
-        PartialBlockTXsMsgBuilder() {}
+        PartialBlockTXsMsgBuilder() {
+        }
 
         public PartialBlockTXsMsg.PartialBlockTXsMsgBuilder blockHeader(BlockHeaderMsg blockHeader) {
             this.blockHeader = blockHeader;

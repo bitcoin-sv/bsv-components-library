@@ -79,9 +79,9 @@ class DeserializerSpec extends Specification {
         Convenience method that creates a new HEADERS Message containn a list of BlockHeaders
      */
     private BitcoinMsg<HeadersMsg> buildHeadersMsg(ProtocolBasicConfig protocolBasicConfig, int numHeaders) {
-        List<CompleteBlockHeaderMsg> headersList = new ArrayList<>()
+        List<BlockHeaderMsg> headersList = new ArrayList<>()
         for (int i = 0; i < numHeaders; i++) {
-            CompleteBlockHeaderMsg headerMsg = CompleteBlockHeaderMsg.builder()
+            BlockHeaderMsg headerMsg = BlockHeaderMsg.builder()
                 .nonce(i)
                 .version(i)
                 .difficultyTarget(i)

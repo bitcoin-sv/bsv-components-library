@@ -59,7 +59,7 @@ public class HeadersMsgSerializer implements MessageSerializer<HeadersMsg> {
         BlockHeaderMsg blockHeaderMsg;
         List<BlockHeaderMsg> blockHeaderMsgs = new ArrayList<>();
 
-        var blockHeaderMsgSerializer = CompleteBlockHeaderMsgSerializer.getInstance();
+        var blockHeaderMsgSerializer = BlockHeaderMsgSerializer.getInstance();
         for (int i = 0; i < count.getValue(); i++) {
             blockHeaderMsg = blockHeaderMsgSerializer.deserialize(context, byteReader);
             blockHeaderMsgs.add(blockHeaderMsg);
@@ -84,7 +84,7 @@ public class HeadersMsgSerializer implements MessageSerializer<HeadersMsg> {
      */
     protected void serializeList(SerializerContext context, List<BlockHeaderMsg> blockHeaderMsgList, ByteArrayWriter byteWriter) {
         for (var blockHeaderMsg : blockHeaderMsgList) {
-            CompleteBlockHeaderMsgSerializer.getInstance().serialize(context, blockHeaderMsg, byteWriter);
+            BlockHeaderMsgSerializer.getInstance().serialize(context, blockHeaderMsg, byteWriter);
         }
     }
 }

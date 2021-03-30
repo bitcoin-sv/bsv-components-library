@@ -2,10 +2,10 @@ package com.nchain.jcl.net.unit.protocol.serialization
 
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
-import com.nchain.jcl.net.protocol.messages.*
+import com.nchain.jcl.net.protocol.messages.CompactBlockHeaderMsg
+import com.nchain.jcl.net.protocol.messages.CompactBlockMsg
+import com.nchain.jcl.net.protocol.messages.HashMsg
 import com.nchain.jcl.net.protocol.serialization.CompactBlockMsgSerializer
-import com.nchain.jcl.net.protocol.serialization.TxInputMsgSerializer
-import com.nchain.jcl.net.protocol.serialization.TxOutputMsgSerializer
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
 import com.nchain.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
@@ -54,7 +54,7 @@ class CompactBlockMsgSpec extends Specification {
         then:
             message.messageType == CompactBlockMsg.MESSAGE_TYPE
             message.getNonce() == 5921250825923725
-            message.getShortTxIds().length == 3
+            message.getShortTxIds().size() == 3
             message.getShortTxIds()[0] == 72843215973449
             message.getShortTxIds()[1] == 178945551052361
             message.getShortTxIds()[2] == 55525874428521
@@ -73,7 +73,7 @@ class CompactBlockMsgSpec extends Specification {
 
             CompactBlockMsgSerializer serializer = CompactBlockMsgSerializer.getInstance()
 
-            BasicBlockHeaderMsg blockHeaderMsg = BasicBlockHeaderMsg.builder()
+            CompactBlockHeaderMsg blockHeaderMsg = CompactBlockHeaderMsg.builder()
                 .hash(HashMsg.builder().hash(Utils.HEX.decode("2f6428543c10f8b30e76f9519b597259e4839e0c91ed278a7eee27f8c014a525")).build())
                 .version(1)
                 .prevBlockHash(HashMsg.builder().hash(Utils.HEX.decode("40f11b68435988807d64dff20261f7d9827825fbb37542601fb94d4500000000")).build())
@@ -83,16 +83,17 @@ class CompactBlockMsgSpec extends Specification {
                 .nonce(90297088)
                 .build()
 
-            long[] shortTxIds = new long[3]
-            shortTxIds[0] = 72843215973449;
-            shortTxIds[1] = 178945551052361;
-            shortTxIds[2] = 55525874428521;
+            List<Long> shortTxIds = Arrays.asList(
+                72843215973449,
+                178945551052361,
+                55525874428521
+            )
 
             CompactBlockMsg compactBlockMsg = CompactBlockMsg.builder()
                 .header(blockHeaderMsg)
                 .nonce(5921250825923725)
                 .shortTxIds(shortTxIds)
-                .prefilledTransactions(new PrefilledTxMsg[0])
+                .prefilledTransactions(Collections.emptyList())
                 .build()
 
             String messageSerializedBytes

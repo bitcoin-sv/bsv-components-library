@@ -31,7 +31,7 @@ public class CompactBlockMsgSerializer implements MessageSerializer<CompactBlock
     @Override
     public CompactBlockMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
         // First we deserialize the Block Header:
-        var blockHeader = BasicBlockHeaderMsgSerializer.getInstance().deserialize(context, byteReader);
+        var blockHeader = CompactBlockHeaderMsgSerializer.getInstance().deserialize(context, byteReader);
 
         long nonce = byteReader.readInt64LE();
 
@@ -62,7 +62,7 @@ public class CompactBlockMsgSerializer implements MessageSerializer<CompactBlock
     @Override
     public void serialize(SerializerContext context, CompactBlockMsg message, ByteArrayWriter byteWriter) {
         // write header
-        BasicBlockHeaderMsgSerializer.getInstance().serialize(context, message.getHeader(), byteWriter);
+        CompactBlockHeaderMsgSerializer.getInstance().serialize(context, message.getHeader(), byteWriter);
 
         // write nonce
         byteWriter.writeUint64LE(message.getNonce());
