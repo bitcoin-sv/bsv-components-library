@@ -459,7 +459,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         // We addBytes this connection to the list of active ones (not "in Progress" anymore):
         inProgressConns.remove(keyAttach.peerAddress);
         activeConns.put(keyAttach.peerAddress, stream);
-        logger.info(keyAttach.peerAddress, "Connection established");
+        logger.debug(keyAttach.peerAddress, "Connection established");
 
         // We trigger the callbacks, sending the Stream back to the client:
         eventBus.publish(new PeerConnectedEvent(keyAttach.peerAddress));
