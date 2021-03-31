@@ -359,14 +359,16 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
     /**
      * This methods checks the number of current Handshakes, and triggers different events depending on that, ONLY if
      * a MINIMUM Set of Handshaked Peers have been defined in the Configuration
-     * - If we reached the
-     * @param checkForMinPeersLost
+     *
+     * @param checkForMinPeersLost if TRUE, the method only cares of the MinPeersLostEvent event, otherwise it only
+     *                             cares for the minPeersReachedEventSent event
      */
     private synchronized void checkIfTriggerMinPeersEvent(boolean checkForMinPeersLost) {
 
         if (checkForMinPeersLost && config.getBasicConfig().getMinPeers().isPresent()
                 && state.getNumCurrentHandshakes() < config.getBasicConfig().getMinPeers().getAsInt()
-                && !minPeersLostEventSent) {
+                && !minPeersLostEventSent
+                && minPeersReachedEventSent) {
             super.eventBus.publish(new MinHandshakedPeersLostEvent(state.getNumCurrentHandshakes()));
             minPeersLostEventSent = true;
             minPeersReachedEventSent = false;
