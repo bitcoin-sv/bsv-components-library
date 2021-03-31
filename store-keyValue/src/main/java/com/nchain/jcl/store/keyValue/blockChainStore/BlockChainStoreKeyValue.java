@@ -264,7 +264,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         _saveChainTips(tr, tipsToSave);
     }
 
-    private void _connectBlock(T tr, HeaderReadOnly blockHeader, BlockChainInfo parentBlockChainInfo) {
+    private void _connectBlock(T tr, HeaderReadOnly blockHeader, BlockChainInfo parentBlockChainInfo) throws BlockChainRuleFailureException {
 
         getLogger().trace("Connecting Block " + blockHeader.getHash().toString() + " ...");
         // Block chain Info that will be inserted for this Block:
@@ -301,12 +301,13 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             blockChainInfo = _getBlockChainInfo(blockHeader, parentBlockChainInfo, pathIdForNewBlock);
         }
 
-        //validate the newly connected block
-        if(!_validateBlock(blockHeader, blockChainInfo)){
+        try{
+            _validateBlock(blockHeader, blockChainInfo);
+        } catch (BlockChainRuleFailureException ex) {
             //remove all traces from the block if it's invalid
             _removeBlock(tr, blockHeader.getHash().toString());
             // nothing else to process
-            return;
+            throw ex;
         }
 
         //block is valid, save
@@ -370,7 +371,11 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
 
         // Now we insert (and connect) the Genesis Block:
         _saveBlock(tr, genesisBlock);
-        _connectBlock(tr, genesisBlock, null); // No parent for this block
+        try {
+            _connectBlock(tr, genesisBlock, null); // No parent for this block
+        } catch (BlockChainRuleFailureException e) {
+            e.printStackTrace();
+        }
     }
 
     default void _publishState() {
@@ -389,7 +394,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
 
 
     @Override
-    default void _saveBlock(T tr, HeaderReadOnly blockHeader) {
+    default boolean _saveBlock(T tr, HeaderReadOnly blockHeader) {
         String parentHashHex = blockHeader.getPrevBlockHash().toString();
 
         // we save te Block...:
@@ -405,7 +410,12 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             // If the Parent exists and it's also Connected, we connect this one too:
             BlockChainInfo parentChainInfo =  _getBlockChainInfo(tr, parentHashHex);
             if (parentChainInfo != null) {
-                _connectBlock(tr, blockHeader, parentChainInfo);
+                try {
+                    _connectBlock(tr, blockHeader, parentChainInfo);
+                } catch (BlockChainRuleFailureException e) {
+                    //Block was invalid when we connected, and removed so it has not been saved
+                    return false;
+                }
 
                 // If this is a fork, we trigger a Fork Event:
                 List<String> parentChilds = _getNextBlocks(tr, blockHeader.getPrevBlockHash().toString());
@@ -415,6 +425,8 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                 }
             }
         }
+
+        return true;
     }
 
     @Override
@@ -896,30 +908,14 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             }
         }
 
-    private boolean _validateBlock(HeaderReadOnly candidateBlockHeader, BlockChainInfo candidateChainInfo) {
-        // We can only connect a block if the header is valid
-        try{
-            ChainInfoBean chainInfoBean = new ChainInfoBean(candidateBlockHeader);
-            chainInfoBean.setChainWork(candidateChainInfo.getChainWork());
-            chainInfoBean.setHeight(candidateChainInfo.getHeight());
-            chainInfoBean.makeImmutable();
+    private void _validateBlock(HeaderReadOnly candidateBlockHeader, BlockChainInfo candidateChainInfo) throws BlockChainRuleFailureException {
 
-            //try to validate
-            validateBlockChainInfo(chainInfoBean);
+       ChainInfoBean chainInfoBean = new ChainInfoBean(candidateBlockHeader);
+       chainInfoBean.setChainWork(candidateChainInfo.getChainWork());
+       chainInfoBean.setHeight(candidateChainInfo.getHeight());
+       chainInfoBean.makeImmutable();
 
-        } catch (BlockChainRuleFailureException ex){
-            getLogger().info("rule failure at height: " + candidateChainInfo.getHeight() + " message: " +  ex.getMessage());
-
-            //publish invalid block event
-            InvalidBlockEvent event = new InvalidBlockEvent(candidateBlockHeader.getPrevBlockHash(), ex.getMessage());
-            getEventBus().publish(event);
-
-            //nothing else to process
-            return false;
-        }
-
-        return true;
-
+       validateBlockChainInfo(chainInfoBean);
     }
 
 }
