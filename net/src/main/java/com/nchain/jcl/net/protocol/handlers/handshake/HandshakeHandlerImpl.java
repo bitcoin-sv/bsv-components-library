@@ -361,7 +361,7 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
      * a MINIMUM Set of Handshaked Peers have been defined in the Configuration
      *
      * @param checkForMinPeersLost if TRUE, the method only cares of the MinPeersLostEvent event, otherwise it only
-     *                             cares for the minPeersReachedEventSent event
+     *                             cares for the minPeersReachedEventSent event.
      */
     private synchronized void checkIfTriggerMinPeersEvent(boolean checkForMinPeersLost) {
 
