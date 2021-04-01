@@ -2,9 +2,8 @@ package com.nchain.jcl.net.protocol.messages;
 
 
 import com.google.common.base.Objects;
-import com.nchain.jcl.net.protocol.messages.common.Message;
 import io.bitcoinj.core.Sha256Hash;
-import org.checkerframework.checker.nullness.qual.Raw;
+
 
 /**
  * @author i.fernandez@nchain.com

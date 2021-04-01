@@ -3,7 +3,8 @@ package com.nchain.jcl.store.foundationDB.blockStore;
 import com.nchain.jcl.store.keyValue.blockStore.BlockStoreKeyValueConfig;
 import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault;
-import org.checkerframework.checker.nullness.qual.NonNull;
+
+import javax.annotation.Nonnull;
 
 /**
  * @author i.fernandez@nchain.com
@@ -56,7 +57,7 @@ public class BlockStoreFDBConfig implements BlockStoreKeyValueConfig {
     public BlockStoreFDBConfig(RuntimeConfig runtimeConfig,
                                String clusterFile,
                                Integer apiVersion,
-                               @NonNull String networkId,
+                               @Nonnull String networkId,
                                Integer transactionBatchSize) {
         this.runtimeConfig = (runtimeConfig != null) ? runtimeConfig: new RuntimeConfigDefault();
         this.clusterFile = clusterFile;
@@ -82,7 +83,7 @@ public class BlockStoreFDBConfig implements BlockStoreKeyValueConfig {
         private RuntimeConfig runtimeConfig;
         private String clusterFile;
         private Integer apiVersion;
-        private @NonNull String networkId;
+        private @Nonnull String networkId;
         private Integer transactionBatchSize;
 
         BlockStoreFDBConfigBuilder() {
@@ -103,7 +104,7 @@ public class BlockStoreFDBConfig implements BlockStoreKeyValueConfig {
             return this;
         }
 
-        public BlockStoreFDBConfig.BlockStoreFDBConfigBuilder networkId(@NonNull String networkId) {
+        public BlockStoreFDBConfig.BlockStoreFDBConfigBuilder networkId(@Nonnull String networkId) {
             this.networkId = networkId;
             return this;
         }
