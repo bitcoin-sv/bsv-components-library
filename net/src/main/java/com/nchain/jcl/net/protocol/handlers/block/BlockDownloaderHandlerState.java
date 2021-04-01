@@ -3,6 +3,7 @@ package com.nchain.jcl.net.protocol.handlers.block;
 
 import com.nchain.jcl.tools.handlers.HandlerState;
 
+import java.text.DecimalFormat;
 import java.util.List;
 
 /**
@@ -16,13 +17,13 @@ public final class BlockDownloaderHandlerState extends HandlerState {
     private final List<String> pendingBlocks;
     private final List<String> downloadedBlocks;
     private final List<String> discardedBlocks;
-    private final List<BlockPeerInfo.BlockProgressInfo> blocksProgress;
+    private final List<BlockPeerInfo> peersInfo;
 
-    public BlockDownloaderHandlerState(List<String> pendingBlocks, List<String> downloadedBlocks, List<String> discardedBlocks, List<BlockPeerInfo.BlockProgressInfo> blocksProgress) {
+    public BlockDownloaderHandlerState(List<String> pendingBlocks, List<String> downloadedBlocks, List<String> discardedBlocks, List<BlockPeerInfo> peersInfo) {
         this.pendingBlocks = pendingBlocks;
         this.downloadedBlocks = downloadedBlocks;
         this.discardedBlocks = discardedBlocks;
-        this.blocksProgress = blocksProgress;
+        this.peersInfo = peersInfo;
     }
 
     public static BlockDownloaderHandlerStateBuilder builder() {
@@ -36,19 +37,35 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         result.append(downloadedBlocks.size() + " downloaded, ");
         result.append(discardedBlocks.size() + " discarded, ");
         result.append(pendingBlocks.size() + " pending, ");
-        result.append(blocksProgress.size() + " in progress");
+
+        long peersDownloading = peersInfo.stream()
+                .filter(p -> p.getWorkingState() == BlockPeerInfo.PeerWorkingState.PROCESSING)
+                .count();
+        result.append(peersDownloading + " peers downloading Blocks");
         result.append("\n");
-        blocksProgress.forEach(b -> result.append(b.toString()).append("\n"));
+
+        // We print this Peer download Speed:
+        DecimalFormat speedFormat = new DecimalFormat("#0.0");
+        peersInfo.stream()
+                .filter(p -> p.getWorkingState() == BlockPeerInfo.PeerWorkingState.PROCESSING)
+                .forEach(p -> {
+                    Integer peerSpeed = p.getDownloadSpeed();
+                    String speedStr = (peerSpeed == null || p.getCurrentBlockInfo().bytesDownloaded == null)
+                            ? "¿?"
+                            : speedFormat.format((double) peerSpeed / 1_000);
+                    result.append(p.getCurrentBlockInfo().toString()).append(" [ " + speedStr + " KB/sec ]").append("\n");
+                });
+
         return result.toString();
     }
 
     public List<String> getPendingBlocks()                              { return this.pendingBlocks; }
     public List<String> getDownloadedBlocks()                           { return this.downloadedBlocks; }
     public List<String> getDiscardedBlocks()                            { return this.discardedBlocks; }
-    public List<BlockPeerInfo.BlockProgressInfo> getBlocksProgress()    { return this.blocksProgress; }
+    public List<BlockPeerInfo> getPeersInfo()                           { return this.peersInfo; }
 
     public BlockDownloaderHandlerStateBuilder toBuilder() {
-        return new BlockDownloaderHandlerStateBuilder().pendingBlocks(this.pendingBlocks).downloadedBlocks(this.downloadedBlocks).discardedBlocks(this.discardedBlocks).blocksProgress(this.blocksProgress);
+        return new BlockDownloaderHandlerStateBuilder().pendingBlocks(this.pendingBlocks).downloadedBlocks(this.downloadedBlocks).discardedBlocks(this.discardedBlocks).peersInfo(this.peersInfo);
     }
 
     /**
@@ -58,7 +75,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         private List<String> pendingBlocks;
         private List<String> downloadedBlocks;
         private List<String> discardedBlocks;
-        private List<BlockPeerInfo.BlockProgressInfo> blocksProgress;
+        private List<BlockPeerInfo> peersInfo;
 
         BlockDownloaderHandlerStateBuilder() {
         }
@@ -78,13 +95,13 @@ public final class BlockDownloaderHandlerState extends HandlerState {
             return this;
         }
 
-        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder blocksProgress(List<BlockPeerInfo.BlockProgressInfo> blocksProgress) {
-            this.blocksProgress = blocksProgress;
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder peersInfo(List<BlockPeerInfo> peersInfo) {
+            this.peersInfo = peersInfo;
             return this;
         }
 
         public BlockDownloaderHandlerState build() {
-            return new BlockDownloaderHandlerState(pendingBlocks, downloadedBlocks, discardedBlocks, blocksProgress);
+            return new BlockDownloaderHandlerState(pendingBlocks, downloadedBlocks, discardedBlocks, peersInfo);
         }
     }
 }

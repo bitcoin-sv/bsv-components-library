@@ -56,6 +56,9 @@ public class BigBlockDeserializer extends LargeMessageDeserializerImpl {
             long numTxs = blockHeader.getTransactionCount().getValue();
             List<TxMsg> txList = new ArrayList<>();
 
+            // Order of each batch of Txs within the Block
+            long txsOrderNumber = 0;
+
             // We keep track of some statistics:
             int totalTxsSize = 0;
             Instant deserializingTime = Instant.now();
@@ -72,6 +75,7 @@ public class BigBlockDeserializer extends LargeMessageDeserializerImpl {
                     PartialBlockTXsMsg partialBlockTXs = PartialBlockTXsMsg.builder()
                             .blockHeader(blockHeader)
                             .txs(txList)
+                            .txsOrdersNumber(txsOrderNumber)
                             .build();
                     txList = new ArrayList<>();
                     notifyDeserialization(partialBlockTXs);
@@ -79,6 +83,7 @@ public class BigBlockDeserializer extends LargeMessageDeserializerImpl {
                     // We reset the counters for logging...
                     totalTxsSize = 0;
                     deserializingTime = Instant.now();
+                    txsOrderNumber++;
                 }
             } // for...
             // In case we still have some TXs without being notified, we do it now...
@@ -86,6 +91,7 @@ public class BigBlockDeserializer extends LargeMessageDeserializerImpl {
                 notifyDeserialization(PartialBlockTXsMsg.builder()
                         .blockHeader(blockHeader)
                         .txs(txList)
+                        .txsOrdersNumber(txsOrderNumber)
                         .build());
 
         } catch (Exception e) {

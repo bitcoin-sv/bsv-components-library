@@ -108,11 +108,10 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                 .pendingBlocks(this.blocksPending.stream().collect(Collectors.toList()))
                 .downloadedBlocks(this.blocksDownloaded)
                 .discardedBlocks(this.blocksDiscarded.keySet().stream().collect(Collectors.toList()))
-                .blocksProgress(this.peersInfo.values().stream()
+                .peersInfo(this.peersInfo.values().stream()
                         .filter( p -> p.getCurrentBlockInfo() != null)
                         .filter( p -> p.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING))
                         .filter(p -> p.getConnectionState().equals(BlockPeerInfo.PeerConnectionState.HANDSHAKED))
-                        .map(p -> p.getCurrentBlockInfo())
                         .collect(Collectors.toList()))
                 .build();
     }
@@ -124,9 +123,14 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
 
     @Override
     public void download(List<String> blockHashes) {
-        logger.debug("Adding " + blockHashes.size() + " blocks to download: ");
-        blockHashes.forEach(b -> logger.debug(" Block " + b));
-        blocksPending.addAll(blockHashes);
+        try {
+            lock.lock();
+            logger.debug("Adding " + blockHashes.size() + " blocks to download: ");
+            blockHashes.forEach(b -> logger.debug(" Block " + b));
+            blocksPending.addAll(blockHashes);
+        } finally {
+            lock.unlock();
+        }
     }
 
     // Event Handler:
@@ -135,37 +139,54 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         executor.submit(this::jobProcessCheckDownloadingProcess);
 
     }
+
     // Event Handler:
     public void onNetStop(NetStopEvent event) {
         if (this.executor != null) executor.shutdownNow();
         logger.debug("Stop.");
     }
+
     // Event Handler:
     public void onPeerMsgReady(PeerMsgReadyEvent event) {
-        // If the Peer is already in our Pool, that means it's been used before, so we just reset it, otherwise
-        // we create a new one...
-        PeerAddress peerAddress = event.getStream().getPeerAddress();
-        BlockPeerInfo peerInfo = peersInfo.get(peerAddress);
+        try {
+            lock.lock();
+            // If the Peer is already in our Pool, that means it's been used before, so we just reset it, otherwise
+            // we create a new one...
+            PeerAddress peerAddress = event.getStream().getPeerAddress();
+            BlockPeerInfo peerInfo = peersInfo.get(peerAddress);
 
-        if (peerInfo == null) peerInfo = new BlockPeerInfo(peerAddress, (DeserializerStream) event.getStream().input());
-        else                  peerInfo.connect((DeserializerStream)event.getStream().input());
+            if (peerInfo == null) peerInfo = new BlockPeerInfo(peerAddress, (DeserializerStream) event.getStream().input());
+            else                  peerInfo.connect((DeserializerStream)event.getStream().input());
 
-        peersInfo.put(peerAddress, peerInfo);
+            peersInfo.put(peerAddress, peerInfo);
+        } finally {
+            lock.unlock();
+        }
     }
     // Event Handler:
     public void onPeerHandshaked(PeerHandshakedEvent event) {
-        BlockPeerInfo peerInfo = peersInfo.get(event.getPeerAddress());
-        peerInfo.handshake();
+        try {
+            lock.lock();
+            BlockPeerInfo peerInfo = peersInfo.get(event.getPeerAddress());
+            peerInfo.handshake();
+        } finally {
+            lock.unlock();
+        }
     }
     // Event Handler:
     public void onPeerDisconnected(PeerDisconnectedEvent event) {
-        BlockPeerInfo peerInfo = peersInfo.get(event.getPeerAddress());
-        if (peerInfo != null) {
-            logger.trace(peerInfo.getPeerAddress(),  "Peer Disconnected", peerInfo.toString());
-            // If this Peer was in the middle of downloading a block, we process the failiure...
-            if (peerInfo.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING))
-                processDownloadFailiure(peerInfo);
-            peerInfo.disconnect();
+        try {
+            lock.lock();
+            BlockPeerInfo peerInfo = peersInfo.get(event.getPeerAddress());
+            if (peerInfo != null) {
+                logger.trace(peerInfo.getPeerAddress(),  "Peer Disconnected", peerInfo.toString());
+                // If this Peer was in the middle of downloading a block, we process the failiure...
+                if (peerInfo.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING))
+                    processDownloadFailiure(peerInfo);
+                peerInfo.disconnect();
+            }
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -430,7 +451,13 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
 
 
                 // Now we remove the Peers we decided need to be removed:
-                for (PeerAddress peerAddress : peersToRemove) peersInfo.remove(peerAddress);
+                if (peersToRemove != null && !peersToRemove.isEmpty()) {
+                    try {
+                        lock.lock();
+                        for (PeerAddress peerAddress : peersToRemove) peersInfo.remove(peerAddress);
+                    } finally { lock.unlock();}
+                }
+
 
                 // Now we loop over the discarded Blocks, to check if any of them can be tried again:
                 List<String> blocksToReTry = new ArrayList<>();
