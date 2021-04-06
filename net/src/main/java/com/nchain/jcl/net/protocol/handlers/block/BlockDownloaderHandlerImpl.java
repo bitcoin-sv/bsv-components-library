@@ -109,8 +109,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                 .downloadedBlocks(this.blocksDownloaded)
                 .discardedBlocks(this.blocksDiscarded.keySet().stream().collect(Collectors.toList()))
                 .peersInfo(this.peersInfo.values().stream()
-                        .filter( p -> p.getCurrentBlockInfo() != null)
-                        .filter( p -> p.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING))
+                        //.filter( p -> p.getCurrentBlockInfo() != null)
+                        //.filter( p -> p.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING))
                         .filter(p -> p.getConnectionState().equals(BlockPeerInfo.PeerConnectionState.HANDSHAKED))
                         .collect(Collectors.toList()))
                 .build();
@@ -208,36 +208,42 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         processPartialBlockReceived(peersInfo.get(event.getPeerAddress()), event.getBtcMsg());
     }
 
-    private synchronized void processPartialBlockReceived(BlockPeerInfo peerInfo, BitcoinMsg<?> msg) {
+    private void processPartialBlockReceived(BlockPeerInfo peerInfo, BitcoinMsg<?> msg) {
 
-        if (msg.is(PartialBlockHeaderMsg.MESSAGE_TYPE)) {
+        try {
+            lock.lock();
+            if (msg.is(PartialBlockHeaderMsg.MESSAGE_TYPE)) {
 
-            PartialBlockHeaderMsg partialMsg = (PartialBlockHeaderMsg) msg.getBody();
-            String hash = partialMsg.getBlockHeader().getHash().toString();
-            bigBlocksHeaders.put(hash, partialMsg.getBlockHeader());
-            bigBlocksCurrentTxs.put(hash, 0L);
+                PartialBlockHeaderMsg partialMsg = (PartialBlockHeaderMsg) msg.getBody();
+                String hash = partialMsg.getBlockHeader().getHash().toString();
+                bigBlocksHeaders.put(hash, partialMsg.getBlockHeader());
+                bigBlocksCurrentTxs.put(hash, 0L);
 
-            // We notify it:
-            super.eventBus.publish(new BlockHeaderDownloadedEvent(peerInfo.getPeerAddress(), partialMsg.getBlockHeader()));
+                // We notify it:
+                super.eventBus.publish(new BlockHeaderDownloadedEvent(peerInfo.getPeerAddress(), partialMsg.getBlockHeader()));
 
-        } else if (msg.is(PartialBlockTXsMsg.MESSAGE_TYPE)) {
+            } else if (msg.is(PartialBlockTXsMsg.MESSAGE_TYPE)) {
 
-            PartialBlockTXsMsg partialMsg = (PartialBlockTXsMsg) msg.getBody();
-            String hash = partialMsg.getBlockHeader().getHash().toString();
-            BlockHeaderMsg blockHeader = bigBlocksHeaders.get(hash);
-            Long numCurrentTxs = bigBlocksCurrentTxs.get(hash) + partialMsg.getTxs().size();
-            bigBlocksCurrentTxs.put(hash, numCurrentTxs);
+                PartialBlockTXsMsg partialMsg = (PartialBlockTXsMsg) msg.getBody();
+                String hash = partialMsg.getBlockHeader().getHash().toString();
+                BlockHeaderMsg blockHeader = bigBlocksHeaders.get(hash);
+                Long numCurrentTxs = bigBlocksCurrentTxs.get(hash) + partialMsg.getTxs().size();
+                bigBlocksCurrentTxs.put(hash, numCurrentTxs);
 
-            // We notify it:
-            super.eventBus.publish(new BlockTXsDownloadedEvent(peerInfo.getPeerAddress(), partialMsg.getBlockHeader(), partialMsg.getTxs()));
+                // We notify it:
+                super.eventBus.publish(new BlockTXsDownloadedEvent(peerInfo.getPeerAddress(), partialMsg.getBlockHeader(), partialMsg.getTxs(), partialMsg.getTxsOrderNumber().getValue()));
 
-            // Now we check if we've reached the total of TXs yet...
-            if (numCurrentTxs.equals(blockHeader.getTransactionCount().getValue()))
-                processDownloadSuccess(peerInfo, blockHeader, peerInfo.getCurrentBlockInfo().bytesTotal);
+                // Now we check if we've reached the total of TXs yet...
+                if (numCurrentTxs.equals(blockHeader.getTransactionCount().getValue()))
+                    processDownloadSuccess(peerInfo, blockHeader, peerInfo.getCurrentBlockInfo().bytesTotal);
+            }
+        } finally {
+            lock.unlock();
         }
+
     }
 
-    private synchronized void processWholeBlockReceived(BlockPeerInfo peerInfo, BitcoinMsg<BlockMsg> blockMesage) {
+    private void processWholeBlockReceived(BlockPeerInfo peerInfo, BitcoinMsg<BlockMsg> blockMesage) {
 
         // We just received a Block.
         // We publish an specific event for this Lite Block being downloaded:
@@ -245,24 +251,29 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         // NOTE: Sometimes, remote Peers send BLOCKS to us Even If we did ask for them. In that case, the Downloading
         // time is ZERO, since we didn't ask for it so we cannot measure the downloading time...
 
-        Duration downloadingDuration = (peerInfo != null && peerInfo.getCurrentBlockInfo() != null)
-                ? Duration.between(peerInfo.getCurrentBlockInfo().getStartTimestamp(), Instant.now())
-                : Duration.ZERO;
+        try {
+            lock.lock();
+            Duration downloadingDuration = (peerInfo != null && peerInfo.getCurrentBlockInfo() != null)
+                    ? Duration.between(peerInfo.getCurrentBlockInfo().getStartTimestamp(), Instant.now())
+                    : Duration.ZERO;
 
-        super.eventBus.publish(
-                new LiteBlockDownloadedEvent(
-                    peerInfo.getPeerAddress(),
-                    blockMesage,
-                    downloadingDuration)
-        );
+            super.eventBus.publish(
+                    new LiteBlockDownloadedEvent(
+                            peerInfo.getPeerAddress(),
+                            blockMesage,
+                            downloadingDuration)
+            );
 
-        // We notify the Header has been downloaded:
-        super.eventBus.publish(new BlockHeaderDownloadedEvent(peerInfo.getPeerAddress(), blockMesage.getBody().getBlockHeader()));
+            // We notify the Header has been downloaded:
+            super.eventBus.publish(new BlockHeaderDownloadedEvent(peerInfo.getPeerAddress(), blockMesage.getBody().getBlockHeader()));
 
-        // We notify the tXs has been downloaded:
-        super.eventBus.publish(new BlockTXsDownloadedEvent(peerInfo.getPeerAddress(), blockMesage.getBody().getBlockHeader(), blockMesage.getBody().getTransactionMsg()));
+            // We notify the tXs has been downloaded:
+            super.eventBus.publish(new BlockTXsDownloadedEvent(peerInfo.getPeerAddress(), blockMesage.getBody().getBlockHeader(), blockMesage.getBody().getTransactionMsg(), 0));
 
-        processDownloadSuccess(peerInfo, blockMesage.getBody().getBlockHeader(), blockMesage.getLengthInbytes());
+            processDownloadSuccess(peerInfo, blockMesage.getBody().getBlockHeader(), blockMesage.getLengthInbytes());
+        } finally {
+            lock.unlock();
+        }
     }
 
     private void processDownloadSuccess(BlockPeerInfo peerInfo, BlockHeaderMsg blockHeader, long blockSize) {
@@ -273,18 +284,21 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         // - The "unexpected" way: Soe peer has sent this block to us without being asked for it. Maybe even the block
         //   is also being downloaded by other Peer (to whom we did ask to).
 
-        // In both cases, we process this sucess..
 
-        String blockHash = Sha256Hash.hash(blockHeader.getHash().getHashBytes()).toString();
-
-        // The Duration of the downloading time can be calculated, but if the peer has sent the Block without asking
-        // for it, the downloading time is just ZERO (since we can't keep track)
-
-        Duration downloadingDuration = (peerInfo != null && peerInfo.getCurrentBlockInfo() != null)
-                ? Duration.between(peerInfo.getCurrentBlockInfo().getStartTimestamp(), Instant.now())
-                : Duration.ZERO;
         try {
             lock.lock();
+
+            // In both cases, we process this sucess..
+
+            String blockHash = Sha256Hash.hash(blockHeader.getHash().getHashBytes()).toString();
+
+            // The Duration of the downloading time can be calculated, but if the peer has sent the Block without asking
+            // for it, the downloading time is just ZERO (since we can't keep track)
+
+            Duration downloadingDuration = (peerInfo != null && peerInfo.getCurrentBlockInfo() != null)
+                    ? Duration.between(peerInfo.getCurrentBlockInfo().getStartTimestamp(), Instant.now())
+                    : Duration.ZERO;
+
             logger.debug(peerInfo.getPeerAddress(), "Block successfully downloaded", blockHash);
 
             // We activated back the ping/Pong Verifications for this Peer
@@ -342,7 +356,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         }
     }
 
-    private synchronized void startDownloading(BlockPeerInfo peerInfo, String blockHash) {
+    private void startDownloading(BlockPeerInfo peerInfo, String blockHash) {
         logger.debug(peerInfo.getPeerAddress(), "Starting downloading Block " + blockHash);
         // We start the Dowbloading process with this Peer:
         // - WE update the Peer Info
@@ -402,7 +416,12 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                     if (!peerConnState.equals(BlockPeerInfo.PeerConnectionState.HANDSHAKED)) continue;
 
                     // we update the Progress of this Peer:
-                    peerInfo.updateBytesProgress();
+                    try {
+                        lock.lock();
+                        peerInfo.updateBytesProgress();
+                    } finally {
+                        lock.unlock();
+                    }
 
                     switch (peerWorkingState) {
                         case IDLE: {
@@ -420,6 +439,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                                         startDownloading(peerInfo, hash);
                                     }
                                 }
+                            } catch (Exception ex) {
+                              ex.printStackTrace();
                             } finally {
                                 lock.unlock();
                             }
@@ -455,9 +476,10 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                     try {
                         lock.lock();
                         for (PeerAddress peerAddress : peersToRemove) peersInfo.remove(peerAddress);
+                    } catch (Exception ex) {
+                      ex.printStackTrace();
                     } finally { lock.unlock();}
                 }
-
 
                 // Now we loop over the discarded Blocks, to check if any of them can be tried again:
                 List<String> blocksToReTry = new ArrayList<>();
@@ -472,6 +494,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                             blocksDiscarded.remove(hashToRetry);
                             blocksPending.add(hashToRetry);
                         }
+                    } catch (Exception ex) {
+                      ex.printStackTrace();
                     } finally {
                         lock.unlock();
                     }
@@ -480,7 +504,9 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                 Thread.sleep(100); // to avoid tight loops...
             } // while true...
         } catch (Exception e) {
-            //e.printStackTrace(); // Most probably, it fails due to the main service being stopped...
+            e.printStackTrace(); // Most probably, it fails due to the main service being stopped...
+        } catch (Throwable th) {
+            th.printStackTrace(); // Most probably, it fails due to the main service being stopped...
         }
     }
 

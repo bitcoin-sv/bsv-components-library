@@ -36,9 +36,10 @@ public final class PartialBlockTXsMsg extends Message {
     }
 
     @Override
-    public String getMessageType()  { return MESSAGE_TYPE; }
+    public String getMessageType()          { return MESSAGE_TYPE; }
     public BlockHeaderMsg getBlockHeader()  { return this.blockHeader; }
     public List<TxMsg> getTxs()             { return this.txs; }
+    public VarIntMsg getTxsOrderNumber()    { return this.txsOrderNumber;}
 
     @Override
     public String toString() {

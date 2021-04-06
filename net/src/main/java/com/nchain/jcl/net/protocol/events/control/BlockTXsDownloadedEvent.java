@@ -24,19 +24,22 @@ public final class BlockTXsDownloadedEvent extends P2PEvent {
     private final PeerAddress peerAddress;
     private final BlockHeaderMsg blockHeaderMsg;
     private final List<TxMsg> txsMsg;
+    private final long numOrder;
 
-    public BlockTXsDownloadedEvent(PeerAddress peerAddress, BlockHeaderMsg blockHeaderMsg, List<TxMsg> txsMsg) {
+    public BlockTXsDownloadedEvent(PeerAddress peerAddress, BlockHeaderMsg blockHeaderMsg, List<TxMsg> txsMsg, long numOrder) {
         this.peerAddress = peerAddress;
         this.blockHeaderMsg = blockHeaderMsg;
         this.txsMsg = txsMsg;
+        this.numOrder = numOrder;
     }
 
     public PeerAddress getPeerAddress()         { return this.peerAddress; }
     public BlockHeaderMsg getBlockHeaderMsg()   { return this.blockHeaderMsg; }
     public List<TxMsg> getTxsMsg()              { return this.txsMsg; }
+    public long getNumOrder()                   { return this.numOrder;}
 
     @Override
     public String toString() {
-        return "BlockTXsDownloadedEvent(peerAddress=" + this.getPeerAddress() + ", blockHeaderMsg=" + this.getBlockHeaderMsg() + ", txsMsg=" + this.getTxsMsg() + ")";
+        return "BlockTXsDownloadedEvent(peerAddress=" + this.getPeerAddress() + ", blockHeaderMsg=" + this.getBlockHeaderMsg() + ", txsMsg=" + this.getTxsMsg() + ", numOrder=" + this.numOrder + ")";
     }
 }
