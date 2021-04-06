@@ -74,6 +74,7 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
         super.eventBus.subscribe(SendMsgBodyRequest.class, e -> onSendMsgBodyReq((SendMsgBodyRequest) e));
         super.eventBus.subscribe(SendMsgListRequest.class, e -> onSendMsgListReq((SendMsgListRequest) e));
         super.eventBus.subscribe(BroadcastMsgRequest.class, e -> onBroadcastReq((BroadcastMsgRequest) e));
+        super.eventBus.subscribe(BroadcastMsgBodyRequest.class, e -> onBroadcastReq((BroadcastMsgBodyRequest) e));
         super.eventBus.subscribe(PeerNIOStreamConnectedEvent.class, e -> onPeerStreamConnected((PeerNIOStreamConnectedEvent) e));
         super.eventBus.subscribe(PeerDisconnectedEvent.class, e -> onPeerDisconnected((PeerDisconnectedEvent) e));
     }
@@ -106,6 +107,11 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
     // Event Handler:
     private void onBroadcastReq(BroadcastMsgRequest request) {
         broadcast(request.getBtcMsg());
+    }
+
+    // Event Handler:
+    private void onBroadcastReq(BroadcastMsgBodyRequest request) {
+        broadcast(request.getMsgBody());
     }
 
     // Event Handler:
@@ -205,6 +211,13 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
     @Override
     public void broadcast(BitcoinMsg<?> btcMessage) {
         peersInfo.values().forEach(p -> p.getStream().output().send(new StreamDataEvent<>(btcMessage)));
+        updateState(0, peersInfo.size());
+    }
+
+    @Override
+    public void broadcast(Message msgBody) {
+        BitcoinMsg<?> btcMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), msgBody).build();
+        peersInfo.values().forEach(p -> p.getStream().output().send(new StreamDataEvent<>(btcMsg)));
         updateState(0, peersInfo.size());
     }
 
