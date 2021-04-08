@@ -11,9 +11,11 @@ import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandlerState;
 import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerState;
 import com.nchain.jcl.net.protocol.handlers.pingPong.PingPongHandlerState;
 import com.nchain.jcl.net.protocol.messages.RawTxMsg;
+import com.nchain.jcl.tools.events.Event;
 import com.nchain.jcl.tools.events.EventBus;
 import com.nchain.jcl.tools.events.EventStreamer;
 
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 /**
@@ -39,6 +41,7 @@ public class P2PEventStreamer {
         public final EventStreamer<NetStartEvent> START   = new EventStreamer<>(eventBus, NetStartEvent.class);
         public final EventStreamer<NetStopEvent>  STOP    = new EventStreamer<>(eventBus, NetStopEvent.class);
     }
+
     /**
      * A Convenience class that provides EventStreamers for Events related to Peers.
      * Some Streamer are already defined as final instances, so they can be used already to subscribe to specific
@@ -145,16 +148,36 @@ public class P2PEventStreamer {
         public final EventStreamer<BlockTXsDownloadedEvent>     BLOCK_TXS_DOWNLOADED    = new EventStreamer<>(eventBus, BlockTXsDownloadedEvent.class);
     }
 
+    /**
+     * A convenience class that provides Event Stramers for ANY Event
+     */
+    public class GenericEventStreamer {
+        private EventBus eventBus;
+        public GenericEventStreamer(EventBus eventBus) {
+            this.eventBus = eventBus;
+        }
+        public void forEach(Class<? extends P2PEvent> eventClass, Consumer<? extends P2PEvent> eventHandler) {
+            eventBus.subscribe(eventClass, eventHandler);
+        }
+    }
+
     // Definition of the different built-in EventStreamer classes:
+    private final GenericEventStreamer  GENERIC;
     public final GeneralEventStreamer   GENERAL;
     public final PeersEventStreamer     PEERS;
     public final MsgsEventStreamer      MSGS;
     public final StateEventStreamer     STATE;
     public final BlockEventStreamer     BLOCKS ;
 
+    /** It allows to subscribe to any Event specified as a parameter */
+    public void forEach(Class<? extends P2PEvent> eventClass, Consumer<? extends P2PEvent> eventHandler) {
+        GENERIC.forEach(eventClass, eventHandler);
+    }
+
     /** Constructor */
     public P2PEventStreamer(EventBus eventBus) {
         this.eventBus   = eventBus;
+        this.GENERIC    = new GenericEventStreamer(eventBus);
         this.GENERAL    = new GeneralEventStreamer();
         this.PEERS      = new PeersEventStreamer();
         this.MSGS       = new MsgsEventStreamer();
