@@ -31,17 +31,20 @@ public class InitialPeersFinderSeed implements InitialPeersFinder {
     @Override
     public List<PeerAddress> findPeers() {
         Set<PeerAddress> result = new HashSet<>();
-        for (String dns : this.config.getDns()) {
-            try {
-                InetAddress[] inetAddresses = InetAddress.getAllByName(dns);
-                for (InetAddress inetAddress : inetAddresses) {
-                    PeerAddress peerAddress = PeerAddress.fromIp(inetAddress.getHostAddress() + ":" + config.getBasicConfig().getPort());
-                    if (peerAddress != null) result.add(peerAddress);
+        if (this.config.getDns() != null) {
+            for (String dns : this.config.getDns()) {
+                try {
+                    InetAddress[] inetAddresses = InetAddress.getAllByName(dns);
+                    for (InetAddress inetAddress : inetAddresses) {
+                        PeerAddress peerAddress = PeerAddress.fromIp(inetAddress.getHostAddress() + ":" + config.getBasicConfig().getPort());
+                        if (peerAddress != null) result.add(peerAddress);
+                    }
+                } catch (UnknownHostException e) {
+                    continue;
                 }
-            } catch (UnknownHostException e) {
-                continue;
             }
-        }
+        } else log.warn("No DNS defined for this Network Configuration!. No Network communication will be possible.");
+
         return result.stream().collect(Collectors.toList());
     }
 }
