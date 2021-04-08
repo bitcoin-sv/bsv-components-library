@@ -27,8 +27,8 @@ public final class DeserializerConfig {
      */
     private Long maxCacheSizeInBytes = 10_000_000L; // 10 MB
 
-    /** Maximum Size of the Cache (in number of Messags cached) */
-    private Long maxCacheSizeInNumMsgs = 500L;
+    /** Maximum Size of the Cache (in number of Messages cached) */
+    private Long maxCacheSizeInNumMsgs = 50L;
 
     /** Only messages Smaller than this Value will be cached: */
     private Long maxMsgSizeInBytes = 500_000L; // 10KB
