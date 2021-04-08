@@ -83,10 +83,18 @@ public class Deserializer {
         this.config = config;
 
         // Guava Cache Configuration:
+        CacheBuilder cacheBuilder = CacheBuilder.newBuilder();
+        /*
+         OLD CONFIGURATION BASED ON WEIGHT
         Weigher<CacheMsgKey, Message> weigher = (k, v) -> (int) k.headerMsg.getLength();
-        CacheBuilder cacheBuilder = CacheBuilder.newBuilder()
+        cacheBuilder
                 .maximumWeight(config.getMaxCacheSizeInBytes())
                 .weigher(weigher);
+
+         */
+        // Configuration Based on NUM MESSAGES:
+        cacheBuilder.maximumSize(config.getMaxCacheSizeInNumMsgs());
+
         if (config.isGenerateStats()) cacheBuilder.recordStats();
         this.cache = cacheBuilder.<CacheMsgKey, Message>build();
     }
@@ -197,5 +205,10 @@ public class Deserializer {
                 .hitRatio(cacheStats.hitRate())
                 .build();
         return result;
+    }
+
+    /** Returns the currentCache size... */
+    public Long getCacheSize() {
+        return this.cache.size();
     }
 }
