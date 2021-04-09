@@ -46,14 +46,14 @@ public interface BlockStore {
      * operations are expected, this method might affect highly the performance. In that case you should use the
      * "saveBlocks()" method instead.
      */
-    void saveBlock(HeaderReadOnly blockHeader);
+    List<HeaderReadOnly> saveBlock(HeaderReadOnly blockHeader);
 
     /**
      * Saves the list of Blocks given.
      * If the Block Events are enabled, this method will trigger a "BlocksSavedEvent" containing a list with the
      * hashes of the Blocks saved.
      */
-    void saveBlocks(List<HeaderReadOnly> blockHeaders);
+    List<HeaderReadOnly> saveBlocks(List<HeaderReadOnly> blockHeaders);
 
     /**
      * Tells whether the Db contains the Block given

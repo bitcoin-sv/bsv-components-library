@@ -19,10 +19,7 @@ import io.bitcoinj.core.Sha256Hash;
 import java.math.BigInteger;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
@@ -264,7 +261,8 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         _saveChainTips(tr, tipsToSave);
     }
 
-    private void _connectBlock(T tr, HeaderReadOnly blockHeader, BlockChainInfo parentBlockChainInfo) throws BlockChainRuleFailureException {
+    private List<HeaderReadOnly> _connectBlock(T tr, HeaderReadOnly blockHeader, BlockChainInfo parentBlockChainInfo) throws BlockChainRuleFailureException {
+        List<HeaderReadOnly> blocksConnected = new ArrayList<>();
 
         getLogger().trace("Connecting Block " + blockHeader.getHash().toString() + " ...");
         // Block chain Info that will be inserted for this Block:
@@ -324,6 +322,9 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             _updateTipsChain(tr, null, parentBlockChainInfo.getBlockHash()); // we don't add, just remove
         }
 
+        //We want to return this block as it's been connected
+        blocksConnected.add(blockHeader);
+
         //Add this block to the chain tips
         _updateTipsChain(tr, blockHeader.getHash().toString(), null); // We add this block to the Tips
 
@@ -334,11 +335,16 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             for (String childHashHex : children) {
                 Optional<HeaderReadOnly> childBlock = getBlock(Sha256Hash.wrap(childHashHex));
                 if (childBlock.isPresent()) {
-                    _connectBlock(tr, childBlock.get(), blockChainInfo);
+                    try {
+                        blocksConnected.addAll(_connectBlock(tr, childBlock.get(), blockChainInfo));
+                    } catch (BlockChainRuleFailureException ex) {
+                        //child could not be connected, ignore as it has been deleted when _connectBlock is called
+                    }
                 }
             }
         }
 
+        return blocksConnected;
     }
 
 
@@ -394,11 +400,17 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
 
 
     @Override
-    default boolean _saveBlock(T tr, HeaderReadOnly blockHeader) {
+    default List<HeaderReadOnly> _saveBlock(T tr, HeaderReadOnly blockHeader) {
         String parentHashHex = blockHeader.getPrevBlockHash().toString();
 
-        // we save te Block...:
-        BlockStoreKeyValue.super._saveBlock(tr, blockHeader);
+        //We want to return a list of blocks that are saved AND connected in the BlockChainStore
+        List<HeaderReadOnly> blocksSaved = new ArrayList<>();
+
+        // we save the Block...:
+        if(BlockStoreKeyValue.super._saveBlock(tr, blockHeader).isEmpty()){
+            //block already saved, return empty list
+            return blocksSaved;
+        }
 
         // and its relation with its parent (ONLY If this is NOT the GENESIS Block)
         if (!blockHeader.getPrevBlockHash().equals(Sha256Hash.ZERO_HASH)) {
@@ -411,10 +423,11 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             BlockChainInfo parentChainInfo =  _getBlockChainInfo(tr, parentHashHex);
             if (parentChainInfo != null) {
                 try {
-                    _connectBlock(tr, blockHeader, parentChainInfo);
+                    //Add
+                    blocksSaved.addAll(_connectBlock(tr, blockHeader, parentChainInfo));
                 } catch (BlockChainRuleFailureException e) {
-                    //Block was invalid when we connected, and removed so it has not been saved
-                    return false;
+                    //The block we saved above cannot be connected yet. It will be returned later when the parent is connected
+                    blocksSaved.remove(blockHeader);
                 }
 
                 // If this is a fork, we trigger a Fork Event:
@@ -426,7 +439,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             }
         }
 
-        return true;
+        return blocksSaved;
     }
 
     @Override

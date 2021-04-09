@@ -119,7 +119,7 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
         return result.toString().getBytes();
     }
 
-    @Override public void   save(Object tr, byte[] key, byte[] value)                       { levelDBStore.put(key, value); }
+    @Override public void   save(Object tr, byte[] key, byte[] value){levelDBStore.put(key, value);}
     @Override public void   remove(Object tr, byte[] key)                                   { levelDBStore.delete(key); }
     @Override public byte[] read(Object tr, byte[] key)                                     { return levelDBStore.get(key); }
     @Override public Object createTransaction()                                             { return null;}
