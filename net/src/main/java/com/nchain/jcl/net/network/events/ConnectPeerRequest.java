@@ -9,7 +9,7 @@ import com.nchain.jcl.tools.events.Event;
  *
  * An Event that represents a Request to Connect to one specific Peer.
  */
-public final class ConnectPeerRequest extends Event {
+public final class ConnectPeerRequest extends P2PRequest {
     private final PeerAddress peerAddres;
 
     public ConnectPeerRequest(PeerAddress peerAddres)   { this.peerAddres = peerAddres; }

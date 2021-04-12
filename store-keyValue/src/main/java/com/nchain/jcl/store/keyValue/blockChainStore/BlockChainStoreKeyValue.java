@@ -19,10 +19,7 @@ import io.bitcoinj.core.Sha256Hash;
 import java.math.BigInteger;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
@@ -264,7 +261,8 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         _saveChainTips(tr, tipsToSave);
     }
 
-    private void _connectBlock(T tr, HeaderReadOnly blockHeader, BlockChainInfo parentBlockChainInfo) {
+    private List<HeaderReadOnly> _connectBlock(T tr, HeaderReadOnly blockHeader, BlockChainInfo parentBlockChainInfo) throws BlockChainRuleFailureException {
+        List<HeaderReadOnly> blocksConnected = new ArrayList<>();
 
         getLogger().trace("Connecting Block " + blockHeader.getHash().toString() + " ...");
         // Block chain Info that will be inserted for this Block:
@@ -301,12 +299,13 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             blockChainInfo = _getBlockChainInfo(blockHeader, parentBlockChainInfo, pathIdForNewBlock);
         }
 
-        //validate the newly connected block
-        if(!_validateBlock(blockHeader, blockChainInfo)){
+        try{
+            _validateBlock(blockHeader, blockChainInfo);
+        } catch (BlockChainRuleFailureException ex) {
             //remove all traces from the block if it's invalid
             _removeBlock(tr, blockHeader.getHash().toString());
             // nothing else to process
-            return;
+            throw ex;
         }
 
         //block is valid, save
@@ -323,6 +322,9 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             _updateTipsChain(tr, null, parentBlockChainInfo.getBlockHash()); // we don't add, just remove
         }
 
+        //We want to return this block as it's been connected
+        blocksConnected.add(blockHeader);
+
         //Add this block to the chain tips
         _updateTipsChain(tr, blockHeader.getHash().toString(), null); // We add this block to the Tips
 
@@ -333,11 +335,16 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             for (String childHashHex : children) {
                 Optional<HeaderReadOnly> childBlock = getBlock(Sha256Hash.wrap(childHashHex));
                 if (childBlock.isPresent()) {
-                    _connectBlock(tr, childBlock.get(), blockChainInfo);
+                    try {
+                        blocksConnected.addAll(_connectBlock(tr, childBlock.get(), blockChainInfo));
+                    } catch (BlockChainRuleFailureException ex) {
+                        //child could not be connected, ignore as it has been deleted when _connectBlock is called
+                    }
                 }
             }
         }
 
+        return blocksConnected;
     }
 
 
@@ -370,7 +377,11 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
 
         // Now we insert (and connect) the Genesis Block:
         _saveBlock(tr, genesisBlock);
-        _connectBlock(tr, genesisBlock, null); // No parent for this block
+        try {
+            _connectBlock(tr, genesisBlock, null); // No parent for this block
+        } catch (BlockChainRuleFailureException e) {
+            e.printStackTrace();
+        }
     }
 
     default void _publishState() {
@@ -389,11 +400,17 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
 
 
     @Override
-    default void _saveBlock(T tr, HeaderReadOnly blockHeader) {
+    default List<HeaderReadOnly> _saveBlock(T tr, HeaderReadOnly blockHeader) {
         String parentHashHex = blockHeader.getPrevBlockHash().toString();
 
-        // we save te Block...:
-        BlockStoreKeyValue.super._saveBlock(tr, blockHeader);
+        //We want to return a list of blocks that are saved AND connected in the BlockChainStore
+        List<HeaderReadOnly> blocksSaved = new ArrayList<>();
+
+        // we save the Block...:
+        if(BlockStoreKeyValue.super._saveBlock(tr, blockHeader).isEmpty()){
+            //block already saved, return empty list
+            return blocksSaved;
+        }
 
         // and its relation with its parent (ONLY If this is NOT the GENESIS Block)
         if (!blockHeader.getPrevBlockHash().equals(Sha256Hash.ZERO_HASH)) {
@@ -405,7 +422,13 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             // If the Parent exists and it's also Connected, we connect this one too:
             BlockChainInfo parentChainInfo =  _getBlockChainInfo(tr, parentHashHex);
             if (parentChainInfo != null) {
-                _connectBlock(tr, blockHeader, parentChainInfo);
+                try {
+                    //Add
+                    blocksSaved.addAll(_connectBlock(tr, blockHeader, parentChainInfo));
+                } catch (BlockChainRuleFailureException e) {
+                    //The block we saved above cannot be connected yet. It will be returned later when the parent is connected
+                    blocksSaved.remove(blockHeader);
+                }
 
                 // If this is a fork, we trigger a Fork Event:
                 List<String> parentChilds = _getNextBlocks(tr, blockHeader.getPrevBlockHash().toString());
@@ -415,6 +438,8 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                 }
             }
         }
+
+        return blocksSaved;
     }
 
     @Override
@@ -896,30 +921,14 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             }
         }
 
-    private boolean _validateBlock(HeaderReadOnly candidateBlockHeader, BlockChainInfo candidateChainInfo) {
-        // We can only connect a block if the header is valid
-        try{
-            ChainInfoBean chainInfoBean = new ChainInfoBean(candidateBlockHeader);
-            chainInfoBean.setChainWork(candidateChainInfo.getChainWork());
-            chainInfoBean.setHeight(candidateChainInfo.getHeight());
-            chainInfoBean.makeImmutable();
+    private void _validateBlock(HeaderReadOnly candidateBlockHeader, BlockChainInfo candidateChainInfo) throws BlockChainRuleFailureException {
 
-            //try to validate
-            validateBlockChainInfo(chainInfoBean);
+       ChainInfoBean chainInfoBean = new ChainInfoBean(candidateBlockHeader);
+       chainInfoBean.setChainWork(candidateChainInfo.getChainWork());
+       chainInfoBean.setHeight(candidateChainInfo.getHeight());
+       chainInfoBean.makeImmutable();
 
-        } catch (BlockChainRuleFailureException ex){
-            getLogger().info("rule failure at height: " + candidateChainInfo.getHeight() + " message: " +  ex.getMessage());
-
-            //publish invalid block event
-            InvalidBlockEvent event = new InvalidBlockEvent(candidateBlockHeader.getPrevBlockHash(), ex.getMessage());
-            getEventBus().publish(event);
-
-            //nothing else to process
-            return false;
-        }
-
-        return true;
-
+       validateBlockChainInfo(chainInfoBean);
     }
 
 }

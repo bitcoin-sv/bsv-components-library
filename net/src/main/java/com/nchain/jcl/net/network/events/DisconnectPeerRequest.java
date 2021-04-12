@@ -9,7 +9,7 @@ import com.nchain.jcl.tools.events.Event;
  *
  * An Event that represents a Request to Disconnect from one Peer. It also might include a Reason for that.
  */
-public final class DisconnectPeerRequest extends Event {
+public final class DisconnectPeerRequest extends P2PRequest {
 
     private final PeerAddress peerAddress;
     private final PeerDisconnectedEvent.DisconnectedReason reason;

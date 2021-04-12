@@ -2,6 +2,7 @@ package com.nchain.jcl.net.protocol.events.control;
 
 
 import com.nchain.jcl.net.network.PeerAddress;
+import com.nchain.jcl.net.network.events.P2PEvent;
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
 import com.nchain.jcl.tools.events.Event;
 
@@ -13,7 +14,7 @@ import com.nchain.jcl.tools.events.Event;
  *
  * An Event triggered when a Block Header has been downloaded.
  */
-public final class BlockHeaderDownloadedEvent extends Event {
+public final class BlockHeaderDownloadedEvent extends P2PEvent {
     private final PeerAddress peerAddress;
     private final BlockHeaderMsg blockHeaderMsg;
 

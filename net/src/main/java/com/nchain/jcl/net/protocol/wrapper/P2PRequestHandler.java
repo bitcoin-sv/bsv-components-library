@@ -175,6 +175,14 @@ public class P2PRequestHandler {
         public BroadcastMsgRequest buildRequest()               { return new BroadcastMsgRequest(btcMsg); }
     }
 
+    /** A Builder for BroadcastMsgBodyRequest */
+    public class BroadcastMsgBodyRequestBuilder extends Request {
+        private Message msgBody;
+
+        public BroadcastMsgBodyRequestBuilder(Message msgBody)  { this.msgBody = msgBody; }
+        public BroadcastMsgBodyRequest buildRequest()           { return new BroadcastMsgBodyRequest(msgBody); }
+    }
+
     /**
      * A convenience Class for Requests related to Message Operations
      */
@@ -190,6 +198,9 @@ public class P2PRequestHandler {
         }
         public BroadcastMsgRequestBuilder broadcast(BitcoinMsg<?> btcMsg) {
             return new BroadcastMsgRequestBuilder(btcMsg);
+        }
+        public BroadcastMsgBodyRequestBuilder broadcast(Message msgBody) {
+            return new BroadcastMsgBodyRequestBuilder(msgBody);
         }
     }
 

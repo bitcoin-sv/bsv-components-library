@@ -141,7 +141,7 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
         Low-Level DB Operations: Basic CRUD operations, plus a specific method to remove a whole Block Directory
      */
 
-    void    save(T tr, byte[] key, byte[] value);
+    void save(T tr, byte[] key, byte[] value);
     void    remove(T tr, byte[] key);
     byte[]  read(T tr, byte[] key);
     void    removeBlockDir(String blockHash);
@@ -406,13 +406,28 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
          - They do NOT create new DB Transaction, instead they need to reuse one passed as a parameter.
      */
 
-    default void _saveBlock(T tr, HeaderReadOnly blockHeader) {
+    default List<HeaderReadOnly> _saveBlock(T tr, HeaderReadOnly blockHeader){
+        ArrayList<HeaderReadOnly> savedBlocks = new ArrayList<>();
         String blockHash = blockHeader.getHash().toString();
-        save(tr, fullKeyForBlock(tr, blockHash), bytes(blockHeader));
+
+        if(!isBytesOk(_getBlockBytes(tr, blockHash))) {
+            save(tr, fullKeyForBlock(tr, blockHash), bytes(blockHeader));
+            savedBlocks.add(blockHeader);
+        }
+
+        return savedBlocks;
     }
 
-    default void _saveBlocks(T tr, List<HeaderReadOnly> blockHeaders) {
-        blockHeaders.forEach(b -> _saveBlock(tr, b));
+    default List<HeaderReadOnly> _saveBlocks(T tr, List<HeaderReadOnly> blockHeaders) {
+        List<HeaderReadOnly> savedBlocks = new ArrayList<>();
+        blockHeaders.forEach(b -> {
+            List<HeaderReadOnly> blocksSaved = _saveBlock(tr, b);
+            if (!blocksSaved.isEmpty()) {
+                savedBlocks.addAll(blocksSaved);
+            }
+        });
+
+        return savedBlocks;
     }
 
     default void _removeBlock(T tr, String blockHash) {
@@ -606,23 +621,32 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     /* DB High-Level Operations: */
 
     @Override
-    default void saveBlock(HeaderReadOnly blockHeader) {
+    default List<HeaderReadOnly> saveBlock(HeaderReadOnly blockHeader) {
         try {
             getLock().writeLock().lock();
+
+            AtomicReference<List<HeaderReadOnly>> atomicArray = new AtomicReference(new ArrayList<>());
+
             T tr = createTransaction();
             executeInTransaction(tr, () -> {
-                _saveBlock(tr, blockHeader);
-                _triggerBlocksStoredEvent(Arrays.asList(blockHeader));
+                atomicArray.set(_saveBlock(tr, blockHeader));
+                _triggerBlocksStoredEvent(atomicArray.get());
             });
+
+            return atomicArray.get();
+
         } finally {
             getLock().writeLock().unlock();
         }
     }
 
     @Override
-    default void saveBlocks(List<HeaderReadOnly> blockHeaders) {
+    default List<HeaderReadOnly> saveBlocks(List<HeaderReadOnly> blockHeaders) {
+
         try {
             getLock().writeLock().lock();
+
+            AtomicReference<List<HeaderReadOnly>> atomicArray = new AtomicReference(new ArrayList<>());
             /*
                 Any operation performed on a List of Items will need to be split into smaller lists, just to make sure
                 each Transaction is small (some KeyValue vendors have limitations)
@@ -630,12 +654,18 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
             List<List<HeaderReadOnly>> subLists = Lists.partition(blockHeaders, getConfig().getTransactionBatchSize());
             for (List<HeaderReadOnly> subList : subLists) {
                 T tr = createTransaction();
-                executeInTransaction(tr, () -> _saveBlocks(tr, subList));
+                executeInTransaction(tr, () -> {
+                    atomicArray.set(_saveBlocks(tr, subList));
+                    _triggerBlocksStoredEvent(atomicArray.get());
+                });
             }
-            _triggerBlocksStoredEvent(blockHeaders);
+
+            return atomicArray.get();
+
         } finally {
             getLock().writeLock().unlock();
         }
+
     }
 
     @Override

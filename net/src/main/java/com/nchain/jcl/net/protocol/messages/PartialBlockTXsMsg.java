@@ -14,11 +14,18 @@ public final class PartialBlockTXsMsg extends Message {
     public static final String MESSAGE_TYPE = "PartialBlockTxs";
     private final BlockHeaderMsg blockHeader;
     private final List<TxMsg> txs;
+    // This field stores the order of this Batch of Txs within the Block (zero-based)
+    private final VarIntMsg txsOrderNumber;
 
-    public PartialBlockTXsMsg(BlockHeaderMsg blockHeader, List<TxMsg> txs) {
+    public PartialBlockTXsMsg(BlockHeaderMsg blockHeader, List<TxMsg> txs, VarIntMsg txsOrderNumber) {
         this.blockHeader = blockHeader;
         this.txs = txs;
+        this.txsOrderNumber = txsOrderNumber;
         init();
+    }
+
+    public static PartialBlockTXsMsgBuilder builder() {
+        return new PartialBlockTXsMsgBuilder();
     }
 
     public static PartialBlockTXsMsgBuilder builder() {
@@ -27,21 +34,25 @@ public final class PartialBlockTXsMsg extends Message {
 
     @Override
     protected long calculateLength() {
-        return blockHeader.getLengthInBytes() + txs.stream().mapToLong(tx -> tx.getLengthInBytes()).sum();
+        return blockHeader.getLengthInBytes() + txs.stream().mapToLong(tx -> tx.getLengthInBytes()).sum() + txsOrderNumber.getLengthInBytes();
     }
 
     @Override
     protected void validateMessage() {
         if (txs == null || txs.size() == 0) throw new RuntimeException("The List of TXs is empty or null");
+        if (txsOrderNumber.getValue() < 0) throw new RuntimeException("the txs Order Number must be >= 0");
     }
 
-    @Override
     public String getMessageType() {
         return MESSAGE_TYPE;
     }
 
     public BlockHeaderMsg getBlockHeader() {
         return this.blockHeader;
+    }
+
+    public VarIntMsg getTxsOrderNumber() {
+        return this.txsOrderNumber;
     }
 
     public List<TxMsg> getTxs() {
@@ -71,7 +82,8 @@ public final class PartialBlockTXsMsg extends Message {
         }
         PartialBlockTXsMsg other = (PartialBlockTXsMsg) obj;
         return Objects.equal(this.blockHeader, other.blockHeader)
-            && Objects.equal(this.txs, other.txs);
+            && Objects.equal(this.txs, other.txs)
+            && Objects.equal(this.txsOrderNumber, other.txsOrderNumber);
     }
 
     /**
@@ -80,6 +92,7 @@ public final class PartialBlockTXsMsg extends Message {
     public static class PartialBlockTXsMsgBuilder {
         private BlockHeaderMsg blockHeader;
         private List<TxMsg> txs;
+        private VarIntMsg txsOrderNumber;
 
         PartialBlockTXsMsgBuilder() {
         }
@@ -94,8 +107,13 @@ public final class PartialBlockTXsMsg extends Message {
             return this;
         }
 
+        public PartialBlockTXsMsg.PartialBlockTXsMsgBuilder txsOrdersNumber(long orderNumber) {
+            this.txsOrderNumber = VarIntMsg.builder().value(orderNumber).build();
+            return this;
+        }
+
         public PartialBlockTXsMsg build() {
-            return new PartialBlockTXsMsg(blockHeader, txs);
+            return new PartialBlockTXsMsg(blockHeader, txs, txsOrderNumber);
         }
     }
 }

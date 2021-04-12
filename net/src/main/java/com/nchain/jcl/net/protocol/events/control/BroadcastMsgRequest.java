@@ -1,5 +1,6 @@
 package com.nchain.jcl.net.protocol.events.control;
 
+import com.nchain.jcl.net.network.events.P2PRequest;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.tools.events.Event;
 
@@ -11,7 +12,7 @@ import com.nchain.jcl.tools.events.Event;
  *
  * An Event representing a Request to broadcast a Message to all the Peers we are connected to.
  */
-public final class BroadcastMsgRequest extends Event {
+public final class BroadcastMsgRequest extends P2PRequest {
     private final BitcoinMsg<?> btcMsg;
 
     public BroadcastMsgRequest(BitcoinMsg<?> btcMsg) {

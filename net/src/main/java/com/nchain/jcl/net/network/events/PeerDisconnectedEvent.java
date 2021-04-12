@@ -9,7 +9,7 @@ import com.nchain.jcl.tools.events.Event;
  *
  * An Event triggered when a Peer is disconnected.
  */
-public final class PeerDisconnectedEvent extends Event {
+public final class PeerDisconnectedEvent extends P2PEvent {
 
     /** Definition of Reason why a Peer has been disconnected */
     public enum DisconnectedReason {

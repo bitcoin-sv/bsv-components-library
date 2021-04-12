@@ -16,7 +16,7 @@ import java.util.Optional;
  * It also provides information about the REASON why it's been blacklisted, which also contains
  * the expirationTime (the date after which this Peer is whitelisted and can be used again).
  */
-public final class PeersBlacklistedEvent extends Event {
+public final class PeersBlacklistedEvent extends P2PEvent {
 
     /**
      * Definition of all the Reasons why a Peer can be blacklisted

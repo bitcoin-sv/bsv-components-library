@@ -11,7 +11,7 @@ import java.util.List;
  *
  * An Event that represents a Request to Connect to a List of Peers.
  */
-public final class ConnectPeersRequest extends Event {
+public final class ConnectPeersRequest extends P2PRequest {
     private final List<PeerAddress> peerAddressList;
 
     public ConnectPeersRequest(List<PeerAddress> peerAddressList)   { this.peerAddressList = peerAddressList; }

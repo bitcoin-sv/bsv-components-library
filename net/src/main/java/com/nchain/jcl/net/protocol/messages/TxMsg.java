@@ -3,9 +3,18 @@ package com.nchain.jcl.net.protocol.messages;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.nchain.jcl.net.protocol.messages.common.Message;
+import io.bitcoinj.bitcoin.api.base.*;
+import io.bitcoinj.bitcoin.bean.base.TxBean;
+import io.bitcoinj.bitcoin.bean.base.TxInputBean;
+import io.bitcoinj.bitcoin.bean.base.TxOutPointBean;
+import io.bitcoinj.bitcoin.bean.base.TxOutputBean;
+import io.bitcoinj.core.Coin;
+import io.bitcoinj.core.Sha256Hash;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 /**
  * @author m.jose@nchain.com
@@ -135,6 +144,41 @@ public class TxMsg extends Message {
             result.append(tx_out.get(i) + "\n");
         }
         return result.toString();
+    }
+
+    /** Returns a Domain Class */
+    public Tx toBean() {
+        Tx result = new TxBean((AbstractBlock) null);
+
+        result.setVersion(this.version);
+        result.setLockTime(this.lockTime);
+        List<TxInput> inputs = new ArrayList<>();
+
+        for (TxInputMsg txInputMsg : tx_in) {
+            TxInput txInput = new TxInputBean(result);
+            txInput.setSequenceNumber(txInputMsg.getSequence());
+            txInput.setScriptBytes(txInputMsg.getSignature_script());
+            TxOutPoint outpoint = new TxOutPointBean(txInput);
+            outpoint.setIndex(txInputMsg.getPre_outpoint().getIndex());
+            outpoint.setHash(Sha256Hash.wrap(txInputMsg.getPre_outpoint().getHash().getHashBytes()));
+            txInput.setOutpoint(outpoint);;
+            inputs.add(txInput);
+        }
+
+        result.setInputs(inputs);
+
+        List<TxOutput> outputs = new ArrayList<>();
+
+        for (TxOutputMsg txOutputMsg: tx_out) {
+            TxOutput txOutput = new TxOutputBean(result);
+            txOutput.setScriptBytes(txOutputMsg.getPk_script());
+            txOutput.setValue(Coin.valueOf(txOutputMsg.getTxValue()));
+            outputs.add(txOutput);
+        }
+
+        result.setOutputs(outputs);
+        result.makeImmutable();
+        return result;
     }
 
     public static TxMsgBuilder builder() {

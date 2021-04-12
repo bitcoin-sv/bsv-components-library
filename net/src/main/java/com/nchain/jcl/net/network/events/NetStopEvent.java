@@ -9,5 +9,5 @@ import com.nchain.jcl.tools.events.Event;
  *
  * An Event triggered when the Network Activity Stops
  */
-public class NetStopEvent extends Event {
+public class NetStopEvent extends P2PEvent {
 }

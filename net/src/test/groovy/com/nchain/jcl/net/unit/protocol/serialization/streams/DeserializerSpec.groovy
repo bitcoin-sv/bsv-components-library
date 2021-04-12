@@ -35,7 +35,6 @@ class DeserializerSpec extends Specification {
         Message deserilize(DeserializerContext desContext, HeaderMsg headerMSg, ByteArrayReader reader);
     }
 
-
     /*
         Convenience method that takes a Message (freshly created supposedly), and return the same Message after setting
         the value of the "checksum" value in the Header.
@@ -58,12 +57,13 @@ class DeserializerSpec extends Specification {
     /*
         Convenience method that creates a new VERSION Message.
      */
-    private BitcoinMsg<VersionMsg> buildVersionMsg(ProtocolBasicConfig protocolBasicConfig) {
+    private BitcoinMsg<VersionMsg> buildVersionMsg(ProtocolBasicConfig protocolBasicConfig, boolean allEqual) {
+        int startHeight = (allEqual)? 1 : new Random().nextInt()
         VersionMsg versionMsg = VersionMsg.builder()
                 .version(1)
                 .nonce(2)
-                .services(3)
-                .start_height(4)
+                .services(1)
+                .start_height(startHeight)
                 .relay(true)
                 .addr_from(NetAddressMsg.builder().address(PeerAddress.localhost(80)).services(90).build())
                 .addr_recv(NetAddressMsg.builder().address(PeerAddress.localhost(81)).services(91).build())
@@ -78,14 +78,15 @@ class DeserializerSpec extends Specification {
     /*
         Convenience method that creates a new HEADERS Message containn a list of BlockHeaders
      */
-    private BitcoinMsg<HeadersMsg> buildHeadersMsg(ProtocolBasicConfig protocolBasicConfig, int numHeaders) {
+    private BitcoinMsg<HeadersMsg> buildHeadersMsg(ProtocolBasicConfig protocolBasicConfig, int numHeaders, boolean allEqual) {
         List<BlockHeaderMsg> headersList = new ArrayList<>()
         for (int i = 0; i < numHeaders; i++) {
+            int difficultyTarget = (allEqual) ? 1 : new Random().nextInt()
             BlockHeaderMsg headerMsg = BlockHeaderMsg.builder()
                 .nonce(i)
                 .version(i)
-                .difficultyTarget(i)
-                .transactionCount(i)
+                .difficultyTarget(difficultyTarget)
+                .transactionCount(1)
                 .prevBlockHash(HashMsg.builder().hash(new byte[32]).build())
                 .merkleRoot(HashMsg.builder().hash(new byte[32]).build())
                 .build()
@@ -184,7 +185,7 @@ class DeserializerSpec extends Specification {
 
             // This is the list of "dummy" messages coming down the wire:
             List<BitcoinMsg> msgsFromP2P = new ArrayList<>()
-            for (int i = 0; i < NUM_MSGS; i++) msgsFromP2P.add(buildHeadersMsg(protocolConfig, 1000))
+            for (int i = 0; i < NUM_MSGS; i++) msgsFromP2P.add(buildHeadersMsg(protocolConfig, 1000, true))
 
             // We initialize the Cache, enabling stats generation...
             RuntimeConfig runtimeConfig = new RuntimeConfigDefault()
@@ -198,8 +199,7 @@ class DeserializerSpec extends Specification {
             // Messages from the Reader, but this time using the Cache, and we return them...
             List<BitcoinMsg> messagesFromCache = deserializeWithCache(protocolConfig, reader, cache)
 
-            // Now we check that the Messages searched are EQUALS to the BODIES of the Original Messages, adn the stats:
-
+            // Now we check that the Messages searched are EQUALS to the BODIES of the Original Messages, and the stats:
             DeserializerState cacheState = cache.getState()
 
         then:
@@ -222,7 +222,7 @@ class DeserializerSpec extends Specification {
 
             // This is the list of "dummy" messages coming down the wire:
             List<BitcoinMsg> msgsFromP2P = new ArrayList<>()
-            for (int i = 0; i < NUM_MSGS; i++) msgsFromP2P.add(buildHeadersMsg(protocolConfig, 1000))
+            for (int i = 0; i < NUM_MSGS; i++) msgsFromP2P.add(buildHeadersMsg(protocolConfig, 1000, true))
 
             // We initialize the Cache, enabling stats generation...
             RuntimeConfig runtimeConfig = new RuntimeConfigDefault()
@@ -251,5 +251,55 @@ class DeserializerSpec extends Specification {
         then:
             // The time WITH Cache should be SHORTER...
             withCacheTime.compareTo(withoutCacheTime) < 0
+    }
+
+    /**
+     * We test that the Cache keeps an stable size, so the eviction poicy works
+     */
+    def "testing Cache Eviction policy"() {
+
+        // Number of Loops we deserialize the list of messages.
+        int NUM_LOOPS = 5
+        // Number of Messages to deserialie in each Loop
+        int NUM_MSGS = 1000
+
+        // Maximum Size (in bytes= for the Cache. THIS VALUE MUST BE IN A WAY SO THAT THE CACHE GETS FILL DURING
+        // THE FIRST LOOP
+        int MAX_CACHE_SIZE_IN_NUM_MSGS = 500
+
+        given:
+            // we simulate Messages coming from the BSV Network...
+            ProtocolBasicConfig protocolConfig = new ProtocolBSVMainConfig().basicConfig
+
+            // This is the list of "dummy" messages coming down the wire:
+            List<BitcoinMsg> msgsFromP2P = new ArrayList<>()
+            for (int i = 0; i < NUM_MSGS; i++) msgsFromP2P.add(buildVersionMsg(protocolConfig, false))
+
+            long totalMsgsSize = msgsFromP2P.stream().mapToLong({ m -> m.header.length}).sum()
+
+            println("Each message size: " + msgsFromP2P.get(0).header.length + " bytes")
+            println("Total length of all messages " + totalMsgsSize + " bytes")
+
+            // We initialize the Cache, including eviction strategy...
+            DeserializerConfig cacheConfig = DeserializerConfig.builder()
+                .messagesToCache(new HashSet<String>() {{add(VersionMsg.MESSAGE_TYPE.toUpperCase())}})
+                .maxCacheSizeInNumMsgs(MAX_CACHE_SIZE_IN_NUM_MSGS)
+                .generateStats(true)
+                .build()
+
+            RuntimeConfig runtimeConfig = new RuntimeConfigDefault()
+            Deserializer cache = new Deserializer(runtimeConfig, cacheConfig)
+
+        when:
+            int cacheSize = 0
+
+            for (int i = 0; i < NUM_LOOPS; i++) {
+                ByteArrayReader reader = serializeMessages(msgsFromP2P)
+                deserializeWithCache(protocolConfig, reader, cache)
+                cacheSize = cache.getCacheSize()
+                println("Iteration # " + i + ", Cache Size: " + cacheSize)
+            }
+        then:
+            cacheSize <= MAX_CACHE_SIZE_IN_NUM_MSGS
     }
 }

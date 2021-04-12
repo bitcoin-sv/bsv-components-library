@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.protocol.events.control;
 
 
+import com.nchain.jcl.net.network.events.P2PEvent;
 import com.nchain.jcl.tools.events.Event;
 
 /**
@@ -12,7 +13,7 @@ import com.nchain.jcl.tools.events.Event;
  * An Event triggered when the Maximun number of Pers Handshaked has been reached, as specified in the P2P
  * Configuration.
  */
-public final class MaxHandshakedPeersReachedEvent extends Event {
+public final class MaxHandshakedPeersReachedEvent extends P2PEvent {
     private final int numPeers;
 
     public MaxHandshakedPeersReachedEvent(int numPeers) {

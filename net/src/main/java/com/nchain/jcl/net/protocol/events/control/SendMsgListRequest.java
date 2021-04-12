@@ -2,6 +2,7 @@ package com.nchain.jcl.net.protocol.events.control;
 
 
 import com.nchain.jcl.net.network.PeerAddress;
+import com.nchain.jcl.net.network.events.P2PRequest;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.tools.events.Event;
 
@@ -13,7 +14,7 @@ import java.util.List;
  *
  * An Event representing a Request to send a List of Messages to an specific Peer
  */
-public final class SendMsgListRequest extends Event {
+public final class SendMsgListRequest extends P2PRequest {
     private final PeerAddress peerAddress;
     private final List<BitcoinMsg<?>> btcMsgs;
 

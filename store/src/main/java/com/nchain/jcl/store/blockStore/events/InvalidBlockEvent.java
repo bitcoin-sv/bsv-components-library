@@ -26,6 +26,6 @@ public final class InvalidBlockEvent extends BlockStoreEvent {
 
     @Override
     public String toString() {
-        return "BlocksSavedEvent(blockHash=" + this.getBlockHash() + ", " + "reason= " + reason + ")";
+        return "InvalidBlockEvent(blockHash=" + this.getBlockHash() + ", " + "reason= " + reason + ")";
     }
 }

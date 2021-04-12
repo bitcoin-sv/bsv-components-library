@@ -16,6 +16,7 @@ import com.nchain.jcl.tools.bytes.ByteArrayReaderOptimized;
 import com.nchain.jcl.tools.bytes.ByteArrayReaderRealTime;
 import com.nchain.jcl.tools.config.RuntimeConfig;
 
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 
@@ -83,10 +84,16 @@ public class Deserializer {
         this.config = config;
 
         // Guava Cache Configuration:
-        Weigher<CacheMsgKey, Message> weigher = (k, v) -> (int) k.headerMsg.getLength();
-        CacheBuilder cacheBuilder = CacheBuilder.newBuilder()
-                .maximumWeight(config.getMaxCacheSizeInBytes())
-                .weigher(weigher);
+        // NOTE: The Configuration based on the totalSizeInBytes has been removed, since its not accurate (the
+        // size is measured based on the serialized version of messages, but the java classes take way more space)
+        CacheBuilder cacheBuilder = CacheBuilder.newBuilder();
+
+        // Maximum Cache size based on number of messages stored:
+        cacheBuilder.maximumSize(config.getMaxCacheSizeInNumMsgs());
+
+        // A message gets removed after some time idle:
+        cacheBuilder.expireAfterAccess(config.getExpirationTime().toMillis(), TimeUnit.MILLISECONDS);
+
         if (config.isGenerateStats()) cacheBuilder.recordStats();
         this.cache = cacheBuilder.<CacheMsgKey, Message>build();
     }
@@ -197,5 +204,15 @@ public class Deserializer {
                 .hitRatio(cacheStats.hitRate())
                 .build();
         return result;
+    }
+
+    /** Returns the currentCache size... */
+    public Long getCacheSize() {
+        return this.cache.size();
+    }
+
+    /** It empties the Cache */
+    public void cleanUp() {
+        cache.cleanUp();
     }
 }

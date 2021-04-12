@@ -9,7 +9,7 @@ import com.nchain.jcl.tools.events.Event;
  *
  * An Event Triggered when the Network Activity Starts
  */
-public final class NetStartEvent extends Event {
+public final class NetStartEvent extends P2PEvent {
     // Local Address of our Process:
     private final PeerAddress localAddress;
 

@@ -2,6 +2,7 @@ package com.nchain.jcl.net.protocol.events.control;
 
 
 import com.nchain.jcl.net.network.PeerAddress;
+import com.nchain.jcl.net.network.events.P2PEvent;
 import com.nchain.jcl.net.protocol.messages.BlockMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.tools.events.Event;
@@ -24,7 +25,7 @@ import java.time.Duration;
  *
  * @see BlockDownloadedEvent
  */
-public final class LiteBlockDownloadedEvent extends Event {
+public final class LiteBlockDownloadedEvent extends P2PEvent {
     private final PeerAddress peerAddress;
     private final BitcoinMsg<BlockMsg> block; // Whole Downloaded Block.
     private final Duration downloadingTime;

@@ -30,4 +30,7 @@ public interface MessageHandler extends Handler {
 
     /** Broadcasts a Message to all connected Peers */
     void broadcast(BitcoinMsg<?> btcMessage);
+
+    /** Broadcasts a Message to all connected Peers */
+    void broadcast(Message msgBody);
 }

@@ -12,7 +12,7 @@ import com.nchain.jcl.tools.events.Event;
  * NOTE: This is a LOW-LEVEL Event, only meant to be used by other classes in this library, not by the client, since
  * it controls how the information flows between the Library and the remote Peer.
  */
-public final class PeerNIOStreamConnectedEvent extends Event {
+public final class PeerNIOStreamConnectedEvent extends P2PEvent {
     private final NIOStream stream;
 
     public PeerNIOStreamConnectedEvent(NIOStream stream)    { this.stream = stream; }

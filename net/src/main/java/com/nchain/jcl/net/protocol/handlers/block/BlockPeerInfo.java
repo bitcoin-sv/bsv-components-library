@@ -22,9 +22,9 @@ import java.util.Comparator;
 public class BlockPeerInfo {
 
     /**
-     * Definition of the differetn States a Peer is regarding its connection. When a Peer is disconnected, its
+     * Definition of the different States a Peer is regarding its connection. When a Peer is disconnected, its
      * info is NOT removed, instead its kept so we can "remember" some parameters about it like the download speed.
-     * So we keep information about Peers even though they are disconnected, so we need this state to differentiate
+     * So we keep information about Peers even though they are disconnected, and we need this state to differentiate
      * them from the active ones.
      */
     enum PeerConnectionState {
@@ -63,7 +63,7 @@ public class BlockPeerInfo {
 
         @Override
         public String toString() {
-            StringBuffer result = new StringBuffer("Block status: ");
+            StringBuffer result = new StringBuffer();
             result.append("Hash: " + hash + ", ");
             result.append(" Peer: " + peerAddress + ",");
             if (corrupted) result.append("CORRUPTED");
@@ -74,6 +74,7 @@ public class BlockPeerInfo {
                 String progressStr = (bytesTotal == null) ? "¿? %" : (int) (bytesDownloaded * 100 / bytesTotal) + " %";
                 result.append("progress: " + progressStr);
                 result.append(" [" + bytesDownStr + " / " + bytesTotalStr + "]");
+                //result.append(" >> raw: bytesDownloaded: " + bytesDownloaded + " , bytesTotal: " + bytesTotal);
             }
             return result.toString();
         }
@@ -87,6 +88,7 @@ public class BlockPeerInfo {
         public Boolean getRealTimeProcessing()          { return this.realTimeProcessing; }
         public Instant getStartTimestamp()              { return this.startTimestamp; }
         public Instant getLastBytesReceivedTimestamp()  { return this.lastBytesReceivedTimestamp; }
+
     }
 
     // A comparator that orders the Peers by Speed (high speed first)
@@ -130,7 +132,7 @@ public class BlockPeerInfo {
      * another Block previously, so every time we reset it, we reset the properties related to the current
      * download, but some other "global" variabels are kept, like the download Speed
      */
-    public void reset() {
+    protected void reset() {
         this.workingState = PeerWorkingState.IDLE;
         this.currentBlockInfo = null;
     }
@@ -138,29 +140,29 @@ public class BlockPeerInfo {
     /**
      * It discards this Peer, prabably due to a previous error while downloading a Block from it
      */
-    public void discard() {
+    protected void discard() {
         this.workingState = PeerWorkingState.DISCARDED;
         this.currentBlockInfo = null;
     }
 
     /** It updates the Peer to reflect that it's just connected */
-    public void connect(DeserializerStream stream) {
+    protected void connect(DeserializerStream stream) {
         reset();
         this.stream = stream;
     }
 
     /** It updates the Peer to reflect that the Peer has just handshaked*/
-    public void handshake() {
+    protected void handshake() {
         this.connectionState = PeerConnectionState.HANDSHAKED;
     }
 
     /** It updates the Peer to reflect that the Peer has just disconnected */
-    public void disconnect() {
+    protected void disconnect() {
         this.connectionState = PeerConnectionState.DISCONNECTED;
     }
 
-    /** It updates the Peer to reflect that it's just arted to download this block */
-    public void startDownloading(String blockHash) {
+    /** It updates the Peer to reflect that it's just started to download this block */
+    protected void startDownloading(String blockHash) {
         reset();
         this.currentBlockInfo = new BlockProgressInfo(blockHash, this.peerAddress);
         this.workingState = PeerWorkingState.PROCESSING;
@@ -170,7 +172,7 @@ public class BlockPeerInfo {
      * It triggers and update of the BytesDownloaded and the BytesTotal values of this class, taking that
      * information from the underlying NIOInputStream that the DeserializerStream is connected to
      */
-    public synchronized void updateBytesProgress() {
+    protected synchronized void updateBytesProgress() {
         // We only update the state if this Peer has actually started the downloading process...
         if (currentBlockInfo != null) {
             DeserializerStreamState streamState = stream.getState();
@@ -178,9 +180,19 @@ public class BlockPeerInfo {
             // We only do the update if the current Msg being downloaded by this Peer is a BLOCK
             if (currentHeaderMsg != null && currentHeaderMsg.getCommand().equalsIgnoreCase(BlockMsg.MESSAGE_TYPE)) {
 
-                // We set the Total Bytes, if its not been set yet:
-                if (currentBlockInfo.bytesTotal == null)
+                // We set the Total Bytes. This is a bit tricky:
+                // When a Peer starts the downloading of a block, "bytesTotal" is reset to ZERO. then, and while
+                // the peer is downloading the block, this method is called on a frequency basis in order to update
+                // the downloading State. At that moment, we update "bytesTotal" with the new value that is stored
+                // the STATE of the Stream connected to this Peer. But the Stream might not have started downloading the
+                // new Block yet, so the Header stored in its state is still referencing the old Block. So we only
+                // update "bytesTotal" if the Stream is SEEKING a BODY, which means that the Stream has already parsed
+                // the new Header...
+
+               if (stream.getState().getProcessState() == DeserializerStreamState.ProcessingBytesState.SEEIKING_BODY ||
+                    stream.getState().getProcessState() == DeserializerStreamState.ProcessingBytesState.DESERIALIZING_BODY) {
                     currentBlockInfo.bytesTotal = currentHeaderMsg.getLength();
+                }
 
                 // If the Deserializer stream is in CORRUPTED State (after throwing some error), we do nothing...
                 if (!currentBlockInfo.isCorrupted()) {
@@ -190,7 +202,7 @@ public class BlockPeerInfo {
                         return;
                     }
 
-                    // We update the bytes that have been downloaded, adn the total Bytes:
+                    // We update the bytes that have been downloaded, and the total Bytes:
                     Long bytesDownloaded = streamState.getCurrentMsgBytesReceived();
 
                     // If these numbers are different from the previous already stored, then that means that this Peer is actually
@@ -212,15 +224,15 @@ public class BlockPeerInfo {
     }
 
 
-    // The following methods indicates if some threshodls have been broken...
-    public boolean isIdleTimeoutBroken(Duration timeout) {
+    // The following methods indicates if some thresholds have been broken...
+    protected boolean isIdleTimeoutBroken(Duration timeout) {
         if (currentBlockInfo == null) return false;
         if (currentBlockInfo.lastBytesReceivedTimestamp == null) return false;
         return (Duration.between(currentBlockInfo.lastBytesReceivedTimestamp,
                 Instant.now()).compareTo(timeout) > 0);
     }
 
-    public boolean isDownloadTimeoutBroken(Duration timeout) {
+    protected boolean isDownloadTimeoutBroken(Duration timeout) {
         if (currentBlockInfo == null) return false;
         return (Duration.between(currentBlockInfo.startTimestamp, Instant.now())
                 .compareTo(timeout) > 0);

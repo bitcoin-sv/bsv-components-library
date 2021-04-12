@@ -12,7 +12,7 @@ import com.nchain.jcl.tools.events.Event;
  *
  * A Request to Blacklist a Peer
  */
-public final class BlacklistPeerRequest extends Event {
+public final class BlacklistPeerRequest extends P2PRequest {
     // NOTE: We do NOT Specify a REASON, since this Request will be triggered by the Client, so its up to the Client
     // to know and keep track of that.
     private final PeerAddress peerAddress;

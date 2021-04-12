@@ -8,7 +8,7 @@ import static java.util.Optional.ofNullable;
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
- * <p>
+ *
  * The Block Header represents the Header of information wihtint a Block.
  * It's also used in the HEADERS and GETHEADERS packages.
  */
@@ -65,6 +65,17 @@ public final class BlockHeaderMsg extends Message {
     @Override
     protected void validateMessage() {
 
+    /** Returns a Domain Class. It alos reverses the PrevBlockHash and merkle tree into human-readable format */
+    public HeaderReadOnly toBean() {
+        HeaderBean result = new HeaderBean((AbstractBlock) null);
+        result.setTime(this.creationTimestamp);
+        result.setDifficultyTarget(this.difficultyTarget);
+        result.setNonce(this.nonce);
+        result.setPrevBlockHash(Sha256Hash.wrapReversed(this.prevBlockHash.getHashBytes()));
+        result.setVersion(this.version);
+        result.setMerkleRoot(Sha256Hash.wrapReversed(this.merkleRoot.getHashBytes()));
+        result.setHash(Sha256Hash.wrapReversed(this.hash.getHashBytes()));
+        return result;
     }
 
     @Override

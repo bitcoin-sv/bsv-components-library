@@ -12,7 +12,7 @@ import java.util.List;
  *
  * An event triggered when a set of IP Addresses has been whitelisted (back to business again)
  */
-public final class PeersWhitelistedEvent extends Event {
+public final class PeersWhitelistedEvent extends P2PEvent {
     private final List<InetAddress> inetAddresses;
 
     public PeersWhitelistedEvent(List<InetAddress> inetAddresses) {

@@ -2,6 +2,7 @@ package com.nchain.jcl.net.protocol.events.control;
 
 
 import com.nchain.jcl.net.network.PeerAddress;
+import com.nchain.jcl.net.network.events.P2PRequest;
 import com.nchain.jcl.tools.events.Event;
 
 /**
@@ -12,7 +13,7 @@ import com.nchain.jcl.tools.events.Event;
  *
  * A Request to Enable the Ping/Pong protocol for a particular Peer
  */
-public final class EnablePingPongRequest extends Event {
+public final class EnablePingPongRequest extends P2PRequest {
     private final PeerAddress peerAddress;
 
     public EnablePingPongRequest(PeerAddress peerAddress) {

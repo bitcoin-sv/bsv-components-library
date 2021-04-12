@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.protocol.events.control;
 
 import com.nchain.jcl.net.network.PeerAddress;
+import com.nchain.jcl.net.network.events.P2PEvent;
 import com.nchain.jcl.net.protocol.messages.VersionMsg;
 import com.nchain.jcl.tools.events.Event;
 
@@ -10,7 +11,7 @@ import com.nchain.jcl.tools.events.Event;
  *
  * An Event triggered when a Peer that was currently handshaked, disconnects
  */
-public final class PeerHandshakedDisconnectedEvent extends Event {
+public final class PeerHandshakedDisconnectedEvent extends P2PEvent {
     private final PeerAddress peerAddress;
     private final VersionMsg versionMsg;
 
