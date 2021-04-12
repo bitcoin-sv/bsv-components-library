@@ -28,10 +28,6 @@ public final class PartialBlockTXsMsg extends Message {
         return new PartialBlockTXsMsgBuilder();
     }
 
-    public static PartialBlockTXsMsgBuilder builder() {
-        return new PartialBlockTXsMsgBuilder();
-    }
-
     @Override
     protected long calculateLength() {
         return blockHeader.getLengthInBytes() + txs.stream().mapToLong(tx -> tx.getLengthInBytes()).sum() + txsOrderNumber.getLengthInBytes();
