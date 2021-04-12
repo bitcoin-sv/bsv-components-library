@@ -46,16 +46,17 @@ public class ByteArrayReader {
         return result;
     }
 
-    public byte[] get(int length)           { return byteArray.get(length);}
+    public byte[] get(int length)           { return byteArray.get(length); }
     public long readUint32()                { return Utils.readUint32(read(4), 0); }
     public byte read()                      { return read(1)[0]; }
     public long readInt64LE()               { return Utils.readInt64(read(8), 0); }
-    public boolean readBoolean()            { return (read() != 0);}
-    public long size()                      { return byteArray.size();}
-    public boolean isEmpty()                { return byteArray.size() == 0;}
-    public void closeAndClear()             { byteArray.clear();}
-    public byte[] getFullContent()          { return byteArray.get();}
-    public long getBytesReadCount()         { return bytesReadCount;}
+    public long readInt48LE()               { return Utils.readInt48(read(6), 0); }
+    public boolean readBoolean()            { return (read() != 0); }
+    public long size()                      { return byteArray.size(); }
+    public boolean isEmpty()                { return byteArray.size() == 0; }
+    public void closeAndClear()             { byteArray.clear(); }
+    public byte[] getFullContent()          { return byteArray.get(); }
+    public long getBytesReadCount()         { return bytesReadCount; }
 
     public byte[] getFullContentAndClose() {
         byte[] result = byteArray.get();

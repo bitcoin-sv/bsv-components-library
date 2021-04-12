@@ -2,15 +2,7 @@ package com.nchain.jcl.net.unit.protocol.serialization
 
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
-import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
-import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg
-import com.nchain.jcl.net.protocol.messages.BlockMsg
-import com.nchain.jcl.net.protocol.messages.HashMsg
-import com.nchain.jcl.net.protocol.messages.TxMsg
-import com.nchain.jcl.net.protocol.messages.TxInputMsg
-import com.nchain.jcl.net.protocol.messages.TxOutPointMsg
-import com.nchain.jcl.net.protocol.messages.TxOutputMsg
-import com.nchain.jcl.net.protocol.messages.VersionMsg
+import com.nchain.jcl.net.protocol.messages.*
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder
 import com.nchain.jcl.net.protocol.serialization.BlockMsgSerializer
@@ -59,14 +51,13 @@ class BlockMsgSerializerSpec extends Specification {
     public static final byte[] TR2_PK_SCRIPT_TWO = Utils.HEX.decode("ef01911c9efec6799d1ee5f7c6fb072d9669da80")
 
 
-
     def "testing blockMessage BlockMsgSerializer Deserialize"(int byteInterval, int delayMs) {
         given:
 
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             DeserializerContext context = DeserializerContext.builder()
-                    .protocolBasicConfig(config.getBasicConfig())
-                    .build()
+                .protocolBasicConfig(config.getBasicConfig())
+                .build()
             BlockMsgSerializer serializer = BlockMsgSerializer.getInstance()
             BlockMsg blockMsg
 
@@ -92,7 +83,7 @@ class BlockMsgSerializerSpec extends Specification {
             blockMsg.messageType == BlockMsg.MESSAGE_TYPE
         where:
             byteInterval | delayMs
-                10       |    15
+            10           | 15
     }
 
     def "testing blockMessage BitcoinMsgSerializer Deserialize"(int byteInterval, int delayMs) {
@@ -126,7 +117,7 @@ class BlockMsgSerializerSpec extends Specification {
             blockMsgBody.getBody().messageType == BlockMsg.MESSAGE_TYPE
         where:
             byteInterval | delayMs
-                10       |    15
+            10           | 15
     }
 
     def "testing blockMessage BlockMsgSerializer Serializing"() {
@@ -144,14 +135,14 @@ class BlockMsgSerializerSpec extends Specification {
             transactionMsgList.add(transactionMsg2)
 
             BlockHeaderMsg blockHeader = BlockHeaderMsg.builder()
-                    .version(1)
-                    .prevBlockHash(HashMsg.builder().hash(PREV_BLOCK_HASH).build())
-                    .merkleRoot(HashMsg.builder().hash(MERKLE_ROOT).build())
-                    .creationTimestamp(1288886764)
-                    .difficultyTarget(486622232)
-                    .nonce(90297088)
-                    .transactionCount(transactionMsgList.size())
-                    .build();
+                .version(1)
+                .prevBlockHash(HashMsg.builder().hash(PREV_BLOCK_HASH).build())
+                .merkleRoot(HashMsg.builder().hash(MERKLE_ROOT).build())
+                .creationTimestamp(1288886764)
+                .difficultyTarget(486622232)
+                .nonce(90297088)
+                .transactionCount(transactionMsgList.size())
+                .build();
             BlockMsg blockMsg = BlockMsg.builder()
                 .blockHeader(blockHeader)
                 .transactionMsgs(transactionMsgList).build()
@@ -168,12 +159,13 @@ class BlockMsgSerializerSpec extends Specification {
     }
 
 
-    @Ignore   def "testing blockMessage BitcoinMsgSerializer Serializing"() {
+    @Ignore
+    def "testing blockMessage BitcoinMsgSerializer Serializing"() {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             SerializerContext context = SerializerContext.builder()
-                    .protocolconfig(config)
-                    .build()
+                .protocolconfig(config)
+                .build()
 
             List<TxMsg> transactionMsgList = new ArrayList<>()
             TxMsg transactionMsg1 = makeCoinbaseTransaction()
@@ -182,13 +174,13 @@ class BlockMsgSerializerSpec extends Specification {
             transactionMsgList.add(transactionMsg1)
             transactionMsgList.add(transactionMsg2)
             BlockMsg blockMsg = BlockMsg.builder()
-                    .version(1)
-                    .prevBlockHash(HashMsg.builder().hash(PREV_BLOCK_HASH).build())
-                    .merkleRoot(HashMsg.builder().hash(MERKLE_ROOT).build())
-                    .creationTimestamp(1288886764)
-                    .difficultyTarget(486622232)
-                    .nonce(90297088)
-                    .transactionMsgs(transactionMsgList).build()
+                .version(1)
+                .prevBlockHash(HashMsg.builder().hash(PREV_BLOCK_HASH).build())
+                .merkleRoot(HashMsg.builder().hash(MERKLE_ROOT).build())
+                .creationTimestamp(1288886764)
+                .difficultyTarget(486622232)
+                .nonce(90297088)
+                .transactionMsgs(transactionMsgList).build()
 
             BitcoinMsg<VersionMsg> bitcoinVersionMsg = new BitcoinMsgBuilder<>(config, blockMsg).build()
             BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
@@ -198,7 +190,7 @@ class BlockMsgSerializerSpec extends Specification {
 
             byte[] msgBytes = bitcoinSerializer.serialize(context, bitcoinVersionMsg, BlockMsg.MESSAGE_TYPE)
             String msgDeserializeVal = HEX.encode(msgBytes)
-            then:
+        then:
             msgDeserializeVal.equals(REF_MSG_FULL)
     }
 
@@ -212,9 +204,9 @@ class BlockMsgSerializerSpec extends Specification {
 
         HashMsg hash = HashMsg.builder().hash(Utils.HEX.decode("90c0deee7f4b5190176a5bb2879805728fa72a0b57bc40745d3ef7c352a918aa")).build();
         TxOutPointMsg txOutPointMsg = TxOutPointMsg.builder().index(0).hash(hash).build()
-        TxInputMsg txInputMessage= TxInputMsg.builder().pre_outpoint(txOutPointMsg)
-                .sequence(4294967295)
-                .signature_script(
+        TxInputMsg txInputMessage = TxInputMsg.builder().pre_outpoint(txOutPointMsg)
+            .sequence(4294967295)
+            .signature_script(
                 Utils.HEX.decode("04ac44bdf511477465cb70fef1d06b9241e74d26047ccbdfa641ec9a0115ad35594cbb58a61a6fd56893a405bcffbf6555995ddedc7e6cd4e5ceb83a37e1cf8f98")).build()
 
 
@@ -232,11 +224,11 @@ class BlockMsgSerializerSpec extends Specification {
         txOutputMsgList.add(txOutputMessageOne)
 
         HashMsg hash = HashMsg.builder().hash(Utils.HEX.decode("0000000000000000000000000000000000000000000000000000000000000000")).build();
-        TxOutPointMsg txOutPointMsg =TxOutPointMsg.builder().index(26).hash(hash).build()
+        TxOutPointMsg txOutPointMsg = TxOutPointMsg.builder().index(26).hash(hash).build()
 
-        TxInputMsg txInputMessage =TxInputMsg.builder().pre_outpoint(txOutPointMsg)
-                .sequence(4294967295)
-                .signature_script(Utils.HEX.decode("041844011d0142")).build()
+        TxInputMsg txInputMessage = TxInputMsg.builder().pre_outpoint(txOutPointMsg)
+            .sequence(4294967295)
+            .signature_script(Utils.HEX.decode("041844011d0142")).build()
         List<TxInputMsg> txInputs = new ArrayList<>()
         txInputs.add(txInputMessage)
 

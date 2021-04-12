@@ -1,7 +1,6 @@
 package com.nchain.jcl.net.protocol.serialization;
 
 
-import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.PartialBlockHeaderMsg;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.net.protocol.serialization.common.MessageSerializer;
@@ -30,7 +29,7 @@ public class PartialBlockHeaderMsgSerializer implements MessageSerializer<Partia
 
     @Override
     public PartialBlockHeaderMsg deserialize(DeserializerContext context, ByteArrayReader reader) {
-        BlockHeaderMsg blockHeader = BlockHeaderMsgSerializer.getInstance().deserialize(context, reader);
+        var blockHeader = BlockHeaderMsgSerializer.getInstance().deserialize(context, reader);
         return PartialBlockHeaderMsg.builder().blockHeader(blockHeader).build();
     }
 

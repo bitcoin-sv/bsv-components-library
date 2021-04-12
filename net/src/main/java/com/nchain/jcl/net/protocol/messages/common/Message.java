@@ -38,7 +38,7 @@ public abstract class Message {
          lengthInBytes = length;
     }
 
-    // initalize the message length and validate its values
+    // initialize the message length and validate its values
     public void init() {
         validateMessage();
         long length = calculateLength();
