@@ -95,7 +95,7 @@ public class P2PEventStreamer {
         public final EventStreamer<GetHeadersEnMsgReceivedEvent>                GETHEADERSEN    = new EventStreamer<>(eventBus, GetHeadersEnMsgReceivedEvent.class);
 
 
-        public final EventStreamer<RawTxMsgReceivedEvent>           TX_RAW          = new EventStreamer<>(eventBus, RawTxMsgReceivedEvent.class);
+        public final EventStreamer<RawTxMsgReceivedEvent>                   TX_RAW          = new EventStreamer<>(eventBus, RawTxMsgReceivedEvent.class);
 
 
         public final EventStreamer<MsgSentEvent>                            ALL_SENT            = new EventStreamer<>(eventBus, MsgSentEvent.class);
@@ -104,8 +104,8 @@ public class P2PEventStreamer {
         public final EventStreamer<AddrMsgSentEvent>                        ADDR_SENT           = new EventStreamer<>(eventBus, AddrMsgSentEvent.class);
         public final EventStreamer<BlockMsgSentEvent>                       BLOCK_SENT          = new EventStreamer<>(eventBus, BlockMsgSentEvent.class);
         public final EventStreamer<CompactBlockMsgSentEvent>                CMPCTBLOCK_SENT     = new EventStreamer<>(eventBus, CompactBlockMsgSentEvent.class);
-        public final EventStreamer<BlockTransactionsRequestMsgSentEvent>    GETBLOCKTXN_SENT    = new EventStreamer<>(eventBus, BlockTransactionsRequestMsgSentEvent.class);
-        public final EventStreamer<BlockTransactionsMsgSentEvent>           BLOCKTXN_SENT       = new EventStreamer<>(eventBus, BlockTransactionsMsgSentEvent.class);
+        public final EventStreamer<GetBlockTxnMsgSentEvent>                 GETBLOCKTXN_SENT    = new EventStreamer<>(eventBus, GetBlockTxnMsgSentEvent.class);
+        public final EventStreamer<BlockTxnMsgSentEvent>                    BLOCKTXN_SENT       = new EventStreamer<>(eventBus, BlockTxnMsgSentEvent.class);
         public final EventStreamer<SendCompactBlockMsgSentEvent>            SENDCMPCTBLOCK_SENT = new EventStreamer<>(eventBus, SendCompactBlockMsgSentEvent.class);
         public final EventStreamer<FeeMsgSentEvent>                         FEE_SENT            = new EventStreamer<>(eventBus, FeeMsgSentEvent.class);
         public final EventStreamer<GetAddrMsgSentEvent>                     GETADDR_SENT        = new EventStreamer<>(eventBus, GetAddrMsgSentEvent.class);

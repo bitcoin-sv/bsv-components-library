@@ -11,8 +11,8 @@ import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
  * An Event triggered when a @{@link GetBlockTxnMsg} Message is sent to a remote Peer.
  * </p>
  */
-public final class BlockTransactionsRequestMsgSentEvent extends MsgSentEvent<GetBlockTxnMsg> {
-    public BlockTransactionsRequestMsgSentEvent(PeerAddress peerAddress, BitcoinMsg<GetBlockTxnMsg> btcMsg) {
+public final class GetBlockTxnMsgSentEvent extends MsgSentEvent<GetBlockTxnMsg> {
+    public GetBlockTxnMsgSentEvent(PeerAddress peerAddress, BitcoinMsg<GetBlockTxnMsg> btcMsg) {
         super(peerAddress, btcMsg);
     }
 }
