@@ -155,8 +155,17 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
             PeerAddress peerAddress = event.getStream().getPeerAddress();
             BlockPeerInfo peerInfo = peersInfo.get(peerAddress);
 
-            if (peerInfo == null) peerInfo = new BlockPeerInfo(peerAddress, (DeserializerStream) event.getStream().input());
-            else                  peerInfo.connect((DeserializerStream)event.getStream().input());
+            if (peerInfo == null) {
+                peerInfo = new BlockPeerInfo(peerAddress, (DeserializerStream) event.getStream().input());
+            } else {
+                // The Peer is in our Pool. 2 Options:
+                //  - it might be a previous Peer that disconnected in the past, and connected again.
+                //  - it must be a Peer that we are using already, but this Event has come in the wrong order, the peer
+                //    might even be downloading a block already...
+                if (!peerInfo.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING)) {
+                    peerInfo.connect((DeserializerStream)event.getStream().input());
+                }
+            }
 
             peersInfo.put(peerAddress, peerInfo);
         } finally {
@@ -279,16 +288,15 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
     private void processDownloadSuccess(BlockPeerInfo peerInfo, BlockHeaderMsg blockHeader, long blockSize) {
         // We process the success of this Block being downloaded
         // This block can be downloaded in two ways:
-        // - The "normal" way: We requested this Blocks to be downloadd, so a Peer was assigned to it, and now the
+        // - The "normal" way: We requested this Blocks to be download, so a Peer was assigned to it, and now the
         //    whole Block has been received.
-        // - The "unexpected" way: Soe peer has sent this block to us without being asked for it. Maybe even the block
+        // - The "unexpected" way: Some peer has sent this block to us without being asked for it. Maybe even the block
         //   is also being downloaded by other Peer (to whom we did ask to).
-
 
         try {
             lock.lock();
 
-            // In both cases, we process this sucess..
+            // In both cases, we process this success...
 
             String blockHash = Sha256Hash.hash(blockHeader.getHash().getHashBytes()).toString();
 

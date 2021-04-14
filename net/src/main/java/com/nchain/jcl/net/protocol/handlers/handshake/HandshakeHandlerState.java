@@ -21,12 +21,14 @@ import java.math.BigInteger;
  */
 public final class HandshakeHandlerState extends HandlerState {
     private  int numCurrentHandshakes = 0;
+    private  int numHandshakesInProgress = 0;
     private  BigInteger numHandshakesFailed = BigInteger.ZERO;
     private  boolean moreConnsRequested = true;
     private  boolean stopConnsRequested;
 
-    HandshakeHandlerState(int numCurrentHandshakes, BigInteger numHandshakesFailed, Boolean moreConnsRequested, Boolean stopConnsRequested) {
+    HandshakeHandlerState(int numCurrentHandshakes, int numHandshakesInProgress, BigInteger numHandshakesFailed, Boolean moreConnsRequested, Boolean stopConnsRequested) {
         this.numCurrentHandshakes = numCurrentHandshakes;
+        this.numHandshakesInProgress = numHandshakesInProgress;
         if (numHandshakesFailed != null)    this.numHandshakesFailed = numHandshakesFailed;
         if (moreConnsRequested != null)     this.moreConnsRequested = moreConnsRequested;
         if (stopConnsRequested != null)     this.stopConnsRequested = stopConnsRequested;
@@ -38,6 +40,7 @@ public final class HandshakeHandlerState extends HandlerState {
 
         result.append("Handshake Handler State: ");
         result.append(numCurrentHandshakes + " current Handshakes, ");
+        result.append(numHandshakesInProgress + " in progress, ");
         result.append(numHandshakesFailed + " failed. ");
         if (moreConnsRequested) result.append(" More Connections requested");
         if (stopConnsRequested) result.append(" Stop Connections requested");
@@ -46,6 +49,7 @@ public final class HandshakeHandlerState extends HandlerState {
     }
 
     public int getNumCurrentHandshakes()        { return this.numCurrentHandshakes; }
+    public int getNumHandshakesInProgress()     { return this.numHandshakesInProgress;}
     public BigInteger getNumHandshakesFailed()  { return this.numHandshakesFailed; }
     public boolean isMoreConnsRequested()       { return this.moreConnsRequested; }
     public boolean isStopConnsRequested()       { return this.stopConnsRequested; }
@@ -63,6 +67,7 @@ public final class HandshakeHandlerState extends HandlerState {
      */
     public static class HandshakeHandlerStateBuilder {
         private int numCurrentHandshakes;
+        private  int numHandshakesInProgress;
         private BigInteger numHandshakesFailed;
         private Boolean moreConnsRequested;
         private Boolean stopConnsRequested;
@@ -71,6 +76,11 @@ public final class HandshakeHandlerState extends HandlerState {
 
         public HandshakeHandlerState.HandshakeHandlerStateBuilder numCurrentHandshakes(int numCurrentHandshakes) {
             this.numCurrentHandshakes = numCurrentHandshakes;
+            return this;
+        }
+
+        public HandshakeHandlerState.HandshakeHandlerStateBuilder numHandshakesInProgress(int numHandshakesInProgress) {
+            this.numHandshakesInProgress = numHandshakesInProgress;
             return this;
         }
 
@@ -90,7 +100,7 @@ public final class HandshakeHandlerState extends HandlerState {
         }
 
         public HandshakeHandlerState build() {
-            return new HandshakeHandlerState(numCurrentHandshakes, numHandshakesFailed, moreConnsRequested, stopConnsRequested);
+            return new HandshakeHandlerState(numCurrentHandshakes, numHandshakesInProgress, numHandshakesFailed, moreConnsRequested, stopConnsRequested);
         }
     }
 }

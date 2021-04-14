@@ -45,12 +45,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         result.append(discardedBlocks.size() + " discarded, ");
         result.append(pendingBlocks.size() + " pending, ");
         result.append(peersInfo.size() + " peers, ");
-
-        long numPeersWorking = peersInfo.stream()
-                .filter( p -> p.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING))
-                .count();
-
-        result.append(numPeersWorking + " peers downloading Blocks, ");
+        result.append(getNumPeersDownloading() + " peers downloading Blocks, ");
         result.append("\n");
 
         // We print this Peer download Speed:
@@ -63,7 +58,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
 
                     // We print the download Speed info:
                     Integer peerSpeed = p.getDownloadSpeed();
-                    String speedStr = (peerSpeed == null || p.getCurrentBlockInfo().bytesDownloaded == null)
+                    String speedStr = (peerSpeed == null || p.getCurrentBlockInfo() == null || p.getCurrentBlockInfo().bytesDownloaded == null)
                             ? "¿?"
                             : speedFormat.format((double) peerSpeed / 1_000);
 
@@ -84,6 +79,13 @@ public final class BlockDownloaderHandlerState extends HandlerState {
     public List<String> getDownloadedBlocks()                           { return this.downloadedBlocks; }
     public List<String> getDiscardedBlocks()                            { return this.discardedBlocks; }
     public List<BlockPeerInfo> getPeersInfo()                           { return this.peersInfo; }
+
+    public long getNumPeersDownloading() {
+        if (peersInfo == null) return 0;
+        return peersInfo.stream()
+                .filter( p -> p.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING))
+                .count();
+    }
 
     public BlockDownloaderHandlerStateBuilder toBuilder() {
         return new BlockDownloaderHandlerStateBuilder().pendingBlocks(this.pendingBlocks).downloadedBlocks(this.downloadedBlocks).discardedBlocks(this.discardedBlocks).peersInfo(this.peersInfo);

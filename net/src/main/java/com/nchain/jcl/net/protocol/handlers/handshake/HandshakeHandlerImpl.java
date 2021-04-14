@@ -133,12 +133,14 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
 
                 // If the Peer is currently handshaked, we update the status and trigger an specific event:
                 if (peerInfo.isHandshakeAccepted() ) {
-                    updateStatus(-1, false,false, 0);
                     super.eventBus.publish(new PeerHandshakedDisconnectedEvent(peerInfo.getPeerAddress(), peerInfo.getVersionMsgReceived()));
                 }
 
                 // We remove if from our Pool:
                 this.peersInfo.remove(event.getPeerAddress());
+
+                // We update the State:
+                updateStatus(false,false);
 
                 checkIfTriggerMinPeersEvent(true);
                 checkIfWeNeedMoreHandshakes();
@@ -288,13 +290,21 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
     }
 
 
-    private synchronized void updateStatus(int addNumberHandhsakes,
-                                           boolean requestToResumeConns,
-                                           boolean requestToStopConns,
-                                           int addNumberHandhsakesFailed) {
+    private synchronized void updateStatus(boolean requestToResumeConns,
+                                           boolean requestToStopConns) {
         HandshakeHandlerState.HandshakeHandlerStateBuilder stateBuilder = this.state.toBuilder();
-        stateBuilder.numCurrentHandshakes(state.getNumCurrentHandshakes() + addNumberHandhsakes);
-        stateBuilder.numHandshakesFailed(state.getNumHandshakesFailed().add(BigInteger.valueOf(addNumberHandhsakesFailed)));
+        int numCurrentHandshakes = (int) this.peersInfo.values().stream()
+                .filter(p -> p.isHandshakeAccepted())
+                .count();
+        int numHandshakesInProgress =  (int) this.peersInfo.values().stream()
+                .filter(p -> ((p.isVersionMsgReceived() || p.isVersionMsgSent()) && !p.isHandshakeAccepted() && !p.isHandshakeRejected()))
+                .count();
+        BigInteger numHandshakesFailed = BigInteger.valueOf(this.peersInfo.values().stream()
+                .filter(p -> p.isHandshakeRejected())
+                .count());
+        stateBuilder.numCurrentHandshakes(numCurrentHandshakes);
+        stateBuilder.numHandshakesInProgress(numHandshakesInProgress);
+        stateBuilder.numHandshakesFailed(numHandshakesFailed);
         if (requestToResumeConns) {
             stateBuilder.moreConnsRequested(true);
             stateBuilder.stopConnsRequested(false);
@@ -332,7 +342,7 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
                 if (!doWeHaveEnoughHandshakes() && !state.isMoreConnsRequested()) {
                     logger.debug("Requesting to Resume Connections...");
                     super.eventBus.publish(new ResumeConnectingRequest());
-                    updateStatus(0, true, false, 0);
+                    updateStatus( true, false);
                 }
 
                 if (doWeHaveEnoughHandshakes() && !state.isStopConnsRequested()) {
@@ -348,7 +358,7 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
                             .map(p -> p.getPeerAddress())
                             .collect(Collectors.toList());
                     super.eventBus.publish(DisconnectPeersRequest.builder().peersToKeep(peerToKeep).build());
-                    updateStatus(0, false, true, 0);
+                    updateStatus( false, true);
                 }
             }
         } finally {
@@ -427,12 +437,11 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
             return;
         }
 
-        // We update the State:
-        updateStatus(1, false, false, 0);
-
         // If we reach this far, we accept the handshake:
-
         peerInfo.acceptHandshake();
+
+        // We update the State:
+        updateStatus(false, false);
         logger.debug(peerInfo.getPeerAddress(), "Handshake Accepted (" + state.getNumCurrentHandshakes() + " in total)");
 
         // We trigger the event:
@@ -447,10 +456,11 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
      */
     private void rejectHandshake(HandshakePeerInfo peerInfo, PeerHandshakeRejectedEvent.HandshakedRejectedReason reason, String detail) {
 
+        peerInfo.rejectHandshake();
         logger.debug(peerInfo.getPeerAddress(), " Rejecting Handshake", reason, detail);
 
         // We update the state:
-        updateStatus(0,false, false, 1);
+        updateStatus(false, false);
 
         // We notify the event:
         super.eventBus.publish(
