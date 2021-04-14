@@ -1,6 +1,6 @@
 package com.nchain.jcl.net.protocol.serialization;
 
-import com.nchain.jcl.net.protocol.messages.BlockTransactionsMsg;
+import com.nchain.jcl.net.protocol.messages.BlockTxnMsg;
 import com.nchain.jcl.net.protocol.messages.TxMsg;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.net.protocol.serialization.common.MessageSerializer;
@@ -15,7 +15,7 @@ import java.util.List;
  * @author j.pomer@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  */
-public class BlockTransactionsMsgSerializer implements MessageSerializer<BlockTransactionsMsg> {
+public class BlockTransactionsMsgSerializer implements MessageSerializer<BlockTxnMsg> {
     private static BlockTransactionsMsgSerializer instance;
 
     public static BlockTransactionsMsgSerializer getInstance() {
@@ -28,7 +28,7 @@ public class BlockTransactionsMsgSerializer implements MessageSerializer<BlockTr
     }
 
     @Override
-    public BlockTransactionsMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
+    public BlockTxnMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
         var blockHash = HashMsgSerializer.getInstance().deserialize(context, byteReader);
         var transactionLength = VarIntMsgSerializer.getInstance().deserialize(context, byteReader);
 
@@ -37,7 +37,7 @@ public class BlockTransactionsMsgSerializer implements MessageSerializer<BlockTr
             transactions.add(TxMsgSerializer.getInstance().deserialize(context, byteReader));
         }
 
-        return BlockTransactionsMsg.builder()
+        return BlockTxnMsg.builder()
             .blockHash(blockHash)
             .transactionsLength(transactionLength)
             .transactions(transactions)
@@ -45,7 +45,7 @@ public class BlockTransactionsMsgSerializer implements MessageSerializer<BlockTr
     }
 
     @Override
-    public void serialize(SerializerContext context, BlockTransactionsMsg message, ByteArrayWriter byteWriter) {
+    public void serialize(SerializerContext context, BlockTxnMsg message, ByteArrayWriter byteWriter) {
         HashMsgSerializer.getInstance().serialize(context, message.getBlockHash(), byteWriter);
         VarIntMsgSerializer.getInstance().serialize(context, message.getTransactionsLength(), byteWriter);
 

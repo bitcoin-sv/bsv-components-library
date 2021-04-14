@@ -10,9 +10,6 @@ import com.nchain.jcl.net.protocol.handlers.discovery.DiscoveryHandlerState;
 import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandlerState;
 import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerState;
 import com.nchain.jcl.net.protocol.handlers.pingPong.PingPongHandlerState;
-import com.nchain.jcl.net.protocol.messages.BlockTransactionsRequestMsg;
-import com.nchain.jcl.net.protocol.messages.RawTxMsg;
-import com.nchain.jcl.tools.events.Event;
 import com.nchain.jcl.tools.events.EventBus;
 import com.nchain.jcl.tools.events.EventStreamer;
 
@@ -80,8 +77,8 @@ public class P2PEventStreamer {
         public final EventStreamer<BlockMsgReceivedEvent>                       BLOCK           = new EventStreamer<>(eventBus, BlockMsgReceivedEvent.class);
         public final EventStreamer<CompactBlockMsgReceivedEvent>                CMPCTBLOCK      = new EventStreamer<>(eventBus, CompactBlockMsgReceivedEvent.class);
         public final EventStreamer<SendCompactBlockMsgReceivedEvent>            SENDCMPCTBLOCK  = new EventStreamer<>(eventBus, SendCompactBlockMsgReceivedEvent.class);
-        public final EventStreamer<BlockTransactionsRequestMsgReceivedEvent>    GETBLOCKTXN     = new EventStreamer<>(eventBus, BlockTransactionsRequestMsgReceivedEvent.class);
-        public final EventStreamer<BlockTransactionsMsgReceivedEvent>           BLOCKTXN        = new EventStreamer<>(eventBus, BlockTransactionsMsgReceivedEvent.class);
+        public final EventStreamer<GetBlockTxnMsgReceivedEvent>                 GETBLOCKTXN     = new EventStreamer<>(eventBus, GetBlockTxnMsgReceivedEvent.class);
+        public final EventStreamer<BlockTxnMsgReceivedEvent>                    BLOCKTXN        = new EventStreamer<>(eventBus, BlockTxnMsgReceivedEvent.class);
         public final EventStreamer<FeeMsgReceivedEvent>                         FEE             = new EventStreamer<>(eventBus, FeeMsgReceivedEvent.class);
         public final EventStreamer<GetAddrMsgReceivedEvent>                     GETADDR         = new EventStreamer<>(eventBus, GetAddrMsgReceivedEvent.class);
         public final EventStreamer<GetDataMsgReceivedEvent>                     GETDATA         = new EventStreamer<>(eventBus, GetDataMsgReceivedEvent.class);

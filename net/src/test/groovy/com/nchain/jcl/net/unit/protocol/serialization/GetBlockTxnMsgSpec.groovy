@@ -2,7 +2,7 @@ package com.nchain.jcl.net.unit.protocol.serialization
 
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
-import com.nchain.jcl.net.protocol.messages.BlockTransactionsRequestMsg
+import com.nchain.jcl.net.protocol.messages.GetBlockTxnMsg
 import com.nchain.jcl.net.protocol.messages.HashMsg
 import com.nchain.jcl.net.protocol.messages.VarIntMsg
 import com.nchain.jcl.net.protocol.serialization.BlockTransactionsRequestMsgSerializer
@@ -16,7 +16,7 @@ import io.bitcoinj.params.MainNetParams
 import io.bitcoinj.params.Net
 import spock.lang.Specification
 
-class BlockTransactionsRequestMsgSpec extends Specification {
+class GetBlockTxnMsgSpec extends Specification {
     private static final String BLOCK_HASH = "40f11b68435988807d64dff20261f7d9827825fbb37542601fb94d4500000000"
 
     private static final String NUMBER_OF_INDEXES = "02"
@@ -38,14 +38,14 @@ class BlockTransactionsRequestMsgSpec extends Specification {
             byte[] bytes = Utils.HEX.decode(MESSAGE_BYTES)
 
             BlockTransactionsRequestMsgSerializer serializer = BlockTransactionsRequestMsgSerializer.getInstance()
-            BlockTransactionsRequestMsg message
+            GetBlockTxnMsg message
 
         when:
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(bytes, byteInterval, delayMs)
             message = serializer.deserialize(context, byteReader)
 
         then:
-            message.messageType == BlockTransactionsRequestMsg.MESSAGE_TYPE
+            message.messageType == GetBlockTxnMsg.MESSAGE_TYPE
             message.getIndexesLength().getValue() == 2
             message.getIndexes().get(0).getValue() == 16
             message.getIndexes().get(1).getValue() == 162
@@ -64,7 +64,7 @@ class BlockTransactionsRequestMsgSpec extends Specification {
 
             BlockTransactionsRequestMsgSerializer serializer = BlockTransactionsRequestMsgSerializer.getInstance()
 
-            BlockTransactionsRequestMsg blockHeaderMsg = BlockTransactionsRequestMsg.builder()
+            GetBlockTxnMsg blockHeaderMsg = GetBlockTxnMsg.builder()
                 .blockHash(
                     HashMsg.builder()
                         .hash(Utils.HEX.decode(BLOCK_HASH))

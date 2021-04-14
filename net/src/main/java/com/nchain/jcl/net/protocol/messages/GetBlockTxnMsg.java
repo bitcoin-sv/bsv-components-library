@@ -8,14 +8,14 @@ import java.util.List;
  * @author j.pomer@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  */
-public class BlockTransactionsRequestMsg extends Message {
+public class GetBlockTxnMsg extends Message {
     public static final String MESSAGE_TYPE = "getblocktxn";
 
     private final HashMsg blockHash;
     private final VarIntMsg indexesLength;
     private final List<VarIntMsg> indexes;
 
-    public BlockTransactionsRequestMsg(HashMsg blockHash, VarIntMsg indexesLength, List<VarIntMsg> indexes) {
+    public GetBlockTxnMsg(HashMsg blockHash, VarIntMsg indexesLength, List<VarIntMsg> indexes) {
         this.blockHash = blockHash;
         this.indexesLength = indexesLength;
         this.indexes = indexes;
@@ -77,8 +77,8 @@ public class BlockTransactionsRequestMsg extends Message {
             return this;
         }
 
-        public BlockTransactionsRequestMsg build() {
-            return new BlockTransactionsRequestMsg(blockHash, indexesLength, indexes);
+        public GetBlockTxnMsg build() {
+            return new GetBlockTxnMsg(blockHash, indexesLength, indexes);
         }
     }
 }
