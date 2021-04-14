@@ -16,6 +16,7 @@ public class NetworkConfigImpl extends HandlerConfig implements NetworkConfig {
     private OptionalInt maxSocketConnections;
     private OptionalInt maxSocketPendingConnections;
     private OptionalInt timeoutSocketConnection;
+    private OptionalInt timeoutSocketRemoteConfirmation;
     private OptionalInt timeoutSocketIdle;
     private int maxSocketConnectionsOpeningAtSameTime;
     private int nioBufferSizeLowerBound;
@@ -28,6 +29,7 @@ public class NetworkConfigImpl extends HandlerConfig implements NetworkConfig {
                              OptionalInt maxSocketConnections,
                              OptionalInt maxSocketPendingConnections,
                              OptionalInt timeoutSocketConnection,
+                             OptionalInt timeoutSocketRemoteConfirmation,
                              OptionalInt timeoutSocketIdle,
                              int maxSocketConnectionsOpeningAtSameTime,
                              int nioBufferSizeLowerBound,
@@ -39,6 +41,7 @@ public class NetworkConfigImpl extends HandlerConfig implements NetworkConfig {
         this.maxSocketConnections = maxSocketConnections;
         this.maxSocketPendingConnections = maxSocketPendingConnections;
         this.timeoutSocketConnection = timeoutSocketConnection;
+        this.timeoutSocketRemoteConfirmation = timeoutSocketRemoteConfirmation;
         this.timeoutSocketIdle = timeoutSocketIdle;
         this.maxSocketConnectionsOpeningAtSameTime = maxSocketConnectionsOpeningAtSameTime;
         this.nioBufferSizeLowerBound = nioBufferSizeLowerBound;
@@ -54,6 +57,7 @@ public class NetworkConfigImpl extends HandlerConfig implements NetworkConfig {
     public OptionalInt getMaxSocketConnections()            { return this.maxSocketConnections; }
     public OptionalInt getMaxSocketPendingConnections()     { return this.maxSocketPendingConnections; }
     public OptionalInt getTimeoutSocketConnection()         { return this.timeoutSocketConnection; }
+    public OptionalInt getTimeoutSocketRemoteConfirmation() { return this.timeoutSocketRemoteConfirmation;}
     public OptionalInt getTimeoutSocketIdle()               { return this.timeoutSocketIdle; }
     public int getMaxSocketConnectionsOpeningAtSameTime()   { return this.maxSocketConnectionsOpeningAtSameTime; }
     public int getNioBufferSizeLowerBound()                 { return this.nioBufferSizeLowerBound; }
@@ -83,6 +87,7 @@ public class NetworkConfigImpl extends HandlerConfig implements NetworkConfig {
         private OptionalInt maxSocketConnections;
         private OptionalInt maxSocketPendingConnections;
         private OptionalInt timeoutSocketConnection;
+        private OptionalInt timeoutSocketRemoteConfirmation;
         private OptionalInt timeoutSocketIdle;
         private int maxSocketConnectionsOpeningAtSameTime;
         private int nioBufferSizeLowerBound;
@@ -110,6 +115,11 @@ public class NetworkConfigImpl extends HandlerConfig implements NetworkConfig {
 
         public NetworkConfigImpl.NetworkConfigImplBuilder timeoutSocketConnection(OptionalInt timeoutSocketConnection) {
             this.timeoutSocketConnection = timeoutSocketConnection;
+            return this;
+        }
+
+        public NetworkConfigImpl.NetworkConfigImplBuilder timeoutSocketRemoteConfirmation(OptionalInt timeoutSocketRemoteConfirmation) {
+            this.timeoutSocketRemoteConfirmation = timeoutSocketRemoteConfirmation;
             return this;
         }
 
@@ -154,6 +164,7 @@ public class NetworkConfigImpl extends HandlerConfig implements NetworkConfig {
                     maxSocketConnections,
                     maxSocketPendingConnections,
                     timeoutSocketConnection,
+                    timeoutSocketRemoteConfirmation,
                     timeoutSocketIdle,
                     maxSocketConnectionsOpeningAtSameTime,
                     nioBufferSizeLowerBound,

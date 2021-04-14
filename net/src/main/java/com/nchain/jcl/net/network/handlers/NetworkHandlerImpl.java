@@ -31,6 +31,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -74,12 +78,30 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         public KeyConnectionAttach(PeerAddress peerAddress) { this.peerAddress = peerAddress;}
     }
 
+    /**
+     * Inner class that represents a connection that is in progress: We managed to connect to the remote Peer, but we
+     * have not received a Confirmation from their end to establish the connection
+     */
+    class InProgressConn {
+        PeerAddress peerAddress;
+        long connTimestamp; // timestamp when the connection was triggered from our end
+        public InProgressConn(PeerAddress peerAddress) {
+            this.peerAddress = peerAddress;
+            this.connTimestamp = System.currentTimeMillis();
+        }
+        public boolean hasExpired(long refTimestamp) {
+            return ((System.currentTimeMillis() - connTimestamp) > refTimestamp);
+        }
+    }
 
     // Basic Attributes:
     protected String id;
     protected RuntimeConfig runtimeConfig;
     protected NetworkConfig config;
     protected Selector selector;
+
+    // Main Lock, to preserve Thread safety and our mental sanity:
+    private ReadWriteLock lock = new ReentrantReadWriteLock();
 
     // For logging:
     private LoggerUtil logger;
@@ -99,7 +121,6 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     // An executor Service, to trigger jobs in MultiThread...
     ExecutorService jobExecutor = ThreadUtils.getThreadPoolExecutorService(HANDLER_ID + "-");
 
-
     // General State:
     private NetworkHandlerState state;
 
@@ -111,7 +132,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     // blacklist:       List of Peers blacklisted
 
     private Map<PeerAddress, NIOStream> activeConns = new ConcurrentHashMap<>();
-    private Set<PeerAddress> inProgressConns = ConcurrentHashMap.newKeySet();
+    private Map<PeerAddress, InProgressConn> inProgressConns = new ConcurrentHashMap<>();
     private BlockingQueue<PeerAddress> pendingToOpenConns = new LinkedBlockingQueue<>();
     private BlockingQueue<PeerAddress> pendingToCloseConns = new LinkedBlockingQueue<>();
     private Set<InetAddress> blacklist = ConcurrentHashMap.newKeySet();
@@ -146,14 +167,21 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
 
     @Override
     public NetworkHandlerState getState() {
-        return NetworkHandlerState.builder()
-                .numActiveConns(this.activeConns.size())
-                .numInProgressConns(this.inProgressConns.size())
-                .numPendingToCloseConns(this.pendingToCloseConns.size())
-                .numPendingToOpenConns(this.pendingToOpenConns.size())
-                .keep_connecting(this.keep_connecting)
-                .server_mode(this.server_mode)
-                .build();
+        NetworkHandlerState result = null;
+        try {
+            lock.readLock().lock();
+            result = NetworkHandlerState.builder()
+                    .numActiveConns(this.activeConns.size())
+                    .numInProgressConns(this.inProgressConns.size())
+                    .numPendingToCloseConns(this.pendingToCloseConns.size())
+                    .numPendingToOpenConns(this.pendingToOpenConns.size())
+                    .keep_connecting(this.keep_connecting)
+                    .server_mode(this.server_mode)
+                    .build();
+        } finally {
+            lock.readLock().unlock();
+        }
+        return result;
     }
 
     @Override
@@ -164,38 +192,40 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
 
     @Override
     public synchronized void connect(List<PeerAddress> peerAddresses) {
+        //System.out.println("Connecting t0 " + peerAddresses.size() + " peers...");
         if (peerAddresses == null) return;
-
-
         if (super.isRunning()) {
-            // First we remove the Peers we are already connected to, or in process to...
-            List<PeerAddress> listToAdd = peerAddresses.stream()
-                    .filter(p -> !inProgressConns.contains(p))
-                    .filter(p -> !activeConns.containsKey(p))
-                    .filter(p -> !pendingToOpenConns.contains(p))
-                    .filter(p -> !pendingToCloseConns.contains(p))
-                    .filter(p -> !blacklist.contains(p.getIp()))
-                    .collect(Collectors.toList());
+            try {
+                lock.writeLock().lock();
+                // First we remove the Peers we are already connected to, or in process to...
+                List<PeerAddress> listToAdd = peerAddresses.stream()
+                        .filter(p -> !inProgressConns.containsKey(p))
+                        .filter(p -> !activeConns.containsKey(p))
+                        .filter(p -> !pendingToOpenConns.contains(p))
+                        .filter(p -> !pendingToCloseConns.contains(p))
+                        .filter(p -> !blacklist.contains(p.getIp()))
+                        .collect(Collectors.toList());
 
-            if (listToAdd.size() > 0) {
-                // Now we check that we are not breaking the limit in the Pending Socket Connections:
-                // If there si no limit, we just include them all. If there is a limit, we only include them up
-                // to the limit.
+                if (listToAdd.size() > 0) {
+                    // Now we check that we are not breaking the limit in the Pending Socket Connections:
+                    // If there si no limit, we just include them all. If there is a limit, we only include them up
+                    // to the limit.
 
-                List<PeerAddress> finalListToAdd = listToAdd;
+                    List<PeerAddress> finalListToAdd = listToAdd;
 
-                if (config.getMaxSocketPendingConnections().isPresent()) {
-                    int limit = config.getMaxSocketPendingConnections().getAsInt();
-                    int numItemsToAdd = Math.min(finalListToAdd.size(), limit - pendingToOpenConns.size());
-                    if (numItemsToAdd > 0)
-                        finalListToAdd = listToAdd.subList(0, numItemsToAdd);
-                    else finalListToAdd = new ArrayList<>(); // empty List
-                }
-
-                pendingToOpenConns.addAll(finalListToAdd);
-
-                selector.wakeup();
-            } // if...
+                    if (config.getMaxSocketPendingConnections().isPresent()) {
+                        int limit = config.getMaxSocketPendingConnections().getAsInt();
+                        int numItemsToAdd = Math.min(finalListToAdd.size(), limit - pendingToOpenConns.size());
+                        if (numItemsToAdd > 0)
+                            finalListToAdd = listToAdd.subList(0, numItemsToAdd);
+                        else finalListToAdd = new ArrayList<>(); // empty List
+                    }
+                    pendingToOpenConns.addAll(finalListToAdd);
+                    selector.wakeup();
+                } // if...
+            } finally {
+                lock.writeLock().unlock();
+            }
         }
     }
 
@@ -211,24 +241,34 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         if (peerAddresses == null) return;
 
         if (super.isRunning()) {
-            List<PeerAddress> newList = peerAddresses.stream()
-                    .filter(p -> !pendingToCloseConns.contains(p))
-                    .filter(p -> (activeConns.containsKey(p) || pendingToOpenConns.contains(p)))
-                    .collect(Collectors.toList());
-            if (newList.size() > 0) {
-                logger.trace( "Registering " + newList.size() + " Peers for Disconnection...");
-                pendingToCloseConns.addAll(newList);
-                pendingToOpenConns.removeAll(newList);
-                selector.wakeup();
+            try {
+                lock.writeLock().lock();
+                List<PeerAddress> newList = peerAddresses.stream()
+                        .filter(p -> !pendingToCloseConns.contains(p))
+                        .filter(p -> (activeConns.containsKey(p) || pendingToOpenConns.contains(p)))
+                        .collect(Collectors.toList());
+                if (newList.size() > 0) {
+                    logger.trace( "Registering " + newList.size() + " Peers for Disconnection...");
+                    pendingToCloseConns.addAll(newList);
+                    pendingToOpenConns.removeAll(newList);
+                    selector.wakeup();
+                }
+            } finally {
+                lock.writeLock().unlock();
             }
         }
     }
 
     @Override
     public void disconnectAllExcept(List<PeerAddress> peerAddresses) {
-        Predicate<PeerAddress> notToRemove = p -> !peerAddresses.contains(p);
-        List<PeerAddress> activePeersToRemove = activeConns.keySet().stream().filter(notToRemove).collect(Collectors.toList());
-        disconnect(activePeersToRemove);
+        try {
+            lock.writeLock().lock();
+            Predicate<PeerAddress> notToRemove = p -> !peerAddresses.contains(p);
+            List<PeerAddress> activePeersToRemove = activeConns.keySet().stream().filter(notToRemove).collect(Collectors.toList());
+            disconnect(activePeersToRemove);
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
     public void blacklist(InetAddress ipAddress, PeersBlacklistedEvent.BlacklistReason reason) {
@@ -238,23 +278,32 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     }
 
     public void blacklist(Map<InetAddress, PeersBlacklistedEvent.BlacklistReason> ipAddresses) {
-
         if (ipAddresses == null) return;
+        try {
+            lock.writeLock().lock();
 
-        // First, we addBytes the IpAddress to the Blacklist, to keep a reference to them.
-        blacklist.addAll(ipAddresses.keySet());
+            // First, we addBytes the IpAddress to the Blacklist, to keep a reference to them.
+            blacklist.addAll(ipAddresses.keySet());
 
-        // Then, we disconnect all the current Peers already connected to any of those addresses...
-        List<PeerAddress> peersToDisconnect = this.activeConns.keySet().stream()
-                .filter(p -> ipAddresses.keySet().contains(p.getIp()))
-                .collect(Collectors.toList());
+            // Then, we disconnect all the current Peers already connected to any of those addresses...
+            List<PeerAddress> peersToDisconnect = this.activeConns.keySet().stream()
+                    .filter(p -> ipAddresses.keySet().contains(p.getIp()))
+                    .collect(Collectors.toList());
 
-        this.disconnect(peersToDisconnect);
+            this.disconnect(peersToDisconnect);
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
     public void whitelist(List<InetAddress> ipAddresses) {
         if (ipAddresses == null) return;
-        blacklist.removeAll(ipAddresses);
+        try {
+            lock.writeLock().lock();
+            blacklist.removeAll(ipAddresses);
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
     public void init() {
@@ -400,11 +449,11 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
 
         // Saving In progress Connections:
         filePath = Paths.get(fileUtils.getRootPath().toString(), NET_FOLDER, FILE_IN_PROGRESS_CONN);
-        fileUtils.writeCSV(filePath, this.inProgressConns);
+        fileUtils.writeCSV(filePath, this.inProgressConns.keySet());
 
         // Saving pending To open connections:
         filePath = Paths.get(fileUtils.getRootPath().toString(), NET_FOLDER, FILE_PENDING_OPEN_CONN);
-        fileUtils.writeCSV(filePath, this.inProgressConns);
+        fileUtils.writeCSV(filePath, this.inProgressConns.keySet());
 
         // Saving rejected Connections:
         filePath = Paths.get(fileUtils.getRootPath().toString(), NET_FOLDER, FILE_FAILED_CONN);
@@ -415,6 +464,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     private void startConnectionsJobs() {
         jobExecutor.submit(this::handlePendingToOpenConnections);
         jobExecutor.submit(this::handlePendingToCloseConnections);
+        jobExecutor.submit(this::handleInProgressConnections);
     }
 
     /** Stops the processing of pending Connections (running in a separate Thread) */
@@ -429,12 +479,20 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     private void processConnectionFailed(PeerAddress peerAddress,
                                          PeerRejectedEvent.RejectedReason reason,
                                          String detail) {
-        logger.trace(peerAddress, reason.name(), detail);
-        failedConns.add(peerAddress);
-        inProgressConns.remove(peerAddress);
-        blacklist(peerAddress.getIp(), PeersBlacklistedEvent.BlacklistReason.CONNECTION_REJECTED);
-        // We publish the event
-        eventBus.publish(new PeerRejectedEvent(peerAddress, reason, detail));
+        logger.trace(peerAddress, "Processing connection Failed :: " + reason + " : " + detail);
+        try {
+            lock.writeLock().lock();
+
+            logger.trace(peerAddress, reason.name(), detail);
+            failedConns.add(peerAddress);
+            inProgressConns.remove(peerAddress);
+            blacklist(peerAddress.getIp(), PeersBlacklistedEvent.BlacklistReason.CONNECTION_REJECTED);
+
+            // We publish the event
+            eventBus.publish(new PeerRejectedEvent(peerAddress, reason, detail));
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
     /**
@@ -444,29 +502,35 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
      */
     protected void startPeerConnection(SelectionKey key) throws IOException {
 
-        KeyConnectionAttach keyAttach = (KeyConnectionAttach) key.attachment();
+        try {
+            lock.writeLock().lock();
 
-        // We create the NIOStream and link it to this key (as attachment):
-        NIOStream stream = new NIOStream(
-                keyAttach.peerAddress,
-                ThreadUtils.PEER_STREAM_EXECUTOR,
-                this.runtimeConfig,
-                this.config,
-                key);
-        stream.init();
-        keyAttach.stream = stream;
+            KeyConnectionAttach keyAttach = (KeyConnectionAttach) key.attachment();
 
-        // We addBytes this connection to the list of active ones (not "in Progress" anymore):
-        inProgressConns.remove(keyAttach.peerAddress);
-        activeConns.put(keyAttach.peerAddress, stream);
-        logger.debug(keyAttach.peerAddress, "Connection established");
+            // We create the NIOStream and link it to this key (as attachment):
+            NIOStream stream = new NIOStream(
+                    keyAttach.peerAddress,
+                    ThreadUtils.PEER_STREAM_EXECUTOR,
+                    this.runtimeConfig,
+                    this.config,
+                    key);
+            stream.init();
+            keyAttach.stream = stream;
 
-        // We trigger the callbacks, sending the Stream back to the client:
-        eventBus.publish(new PeerConnectedEvent(keyAttach.peerAddress));
-        eventBus.publish(new PeerNIOStreamConnectedEvent(stream));
+            // We addBytes this connection to the list of active ones (not "in Progress" anymore):
+            inProgressConns.remove(keyAttach.peerAddress);
+            activeConns.put(keyAttach.peerAddress, stream);
+            logger.debug(keyAttach.peerAddress, "Connection established.");
 
-        // From now moving forward, this key is ready to READ data:
-        key.interestOps((key.interestOps() | SelectionKey.OP_READ) & ~SelectionKey.OP_CONNECT);
+            // We trigger the callbacks, sending the Stream back to the client:
+            eventBus.publish(new PeerConnectedEvent(keyAttach.peerAddress));
+            eventBus.publish(new PeerNIOStreamConnectedEvent(stream));
+
+            // From now moving forward, this key is ready to READ data:
+            key.interestOps((key.interestOps() | SelectionKey.OP_READ) & ~SelectionKey.OP_CONNECT);
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
     /**
@@ -477,8 +541,9 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
      */
     private void handleConnectionToOpen(PeerAddress peerAddress) {
         try {
-            logger.debug(peerAddress, "Connecting...");
-            inProgressConns.add(peerAddress);
+            lock.writeLock().lock();
+            logger.trace(peerAddress, "Connecting...");
+            inProgressConns.put(peerAddress, new InProgressConn(peerAddress));
 
             SocketAddress socketAddress = new InetSocketAddress(peerAddress.getIp(), peerAddress.getPort());
             SocketChannel socketChannel = SocketChannel.open();
@@ -492,12 +557,20 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
             key.attach(new KeyConnectionAttach(peerAddress));
 
 
-            if (isConnected) startPeerConnection(key);
+            if (isConnected) {
+                logger.trace(peerAddress, "Connected, establishing connection...");
+                startPeerConnection(key);
+
+            } else {
+                logger.trace(peerAddress, "Connected, waiting for remote confirmation...");
+            }
             this.selector.wakeup();
 
         } catch (Exception e) {
             //e.printStackTrace();
             processConnectionFailed(peerAddress, PeerRejectedEvent.RejectedReason.INTERNAL_ERROR, e.getMessage());
+        } finally {
+            lock.writeLock().unlock();
         }
     }
 
@@ -515,37 +588,36 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
 
                 // Second loop level: We loop over the pending Connections...
                 while (true) {
-
                     // Basic checks before getting a Peer from the Pool:
-                    // If any of these checks fail, we break the loop (we don't process any more peers)
-                    if (!this.selector.isOpen()) break;
-                    if (!keep_connecting) break;
-                    if (inProgressConns.size() > config.getMaxSocketConnectionsOpeningAtSameTime()) break;
-                    if ((limitNumConns.isPresent()) && (inProgressConns.size() + activeConns.size() >= limitNumConns.getAsInt())) break;
+                        // If any of these checks fail, we break the loop (we don't process any more peers)
+                        if (!this.selector.isOpen()) break;
+                        if (!keep_connecting) break;
+                        if (inProgressConns.size() > config.getMaxSocketConnectionsOpeningAtSameTime()) break;
+                        if ((limitNumConns.isPresent()) && (inProgressConns.size() + activeConns.size() >= limitNumConns.getAsInt())) break;
 
-                    // Basic checks after obtaining the Peer from the Pool:
-                    // If any of these checks fail, we just skip to the next Peer
-                    PeerAddress peerAddress = this.pendingToOpenConns.take();
+                        // Basic checks after obtaining the Peer from the Pool:
+                        // If any of these checks fail, we just skip to the next Peer
+                        PeerAddress peerAddress = this.pendingToOpenConns.take();
+                        if (peerAddress == null) continue;
 
-                    if (peerAddress == null) continue;
-                    if (activeConns.containsKey(peerAddress)) continue;
-                    if (inProgressConns.contains(peerAddress)) continue;
-                    if (blacklist.contains(peerAddress.getIp())) continue;
+                        // We handle this connection.
+                        // In case opening the connection takes too long, we wrap it up in a TimeoutTask...
 
-                    // We handle this connection.
-                    // In case opening the connection takes too long, we wrap it up in a TimeoutTask...
+                        //System.out.println(" >>>>> CONNECTING TO " + peerAddress.toString() + ", " + Thread.activeCount() + " Threads, " + pendingToOpenConns.size() + " pendingToOpen Conns");
+                        TimeoutTask connectPeerTask = TimeoutTaskBuilder.newTask()
+                                .execute(() -> handleConnectionToOpen(peerAddress))
+                                .waitFor(config.getTimeoutSocketConnection().getAsInt())
+                                .ifTimeoutThenExecute(() -> {
+                                            processConnectionFailed(peerAddress, PeerRejectedEvent.RejectedReason.TIMEOUT,"connection timeout");
+                                            //System.out.println("<<<<< CONNECTION TIMEOUT " + peerAddress.toString() + ", " + Thread.activeCount() + " Threads");
+                                        }
+                                )
+                                .build();
+                        connectPeerTask.execute();
 
-                    //System.out.println(" >>>>> CONNECTING TO " + peerAddress.toString() + ", " + Thread.activeCount() + " Threads, " + pendingToOpenConns.size() + " pendingToOpen Conns");
-                    TimeoutTask connectPeerTask = TimeoutTaskBuilder.newTask()
-                            .execute(() -> handleConnectionToOpen(peerAddress))
-                            .waitFor(config.getTimeoutSocketConnection().getAsInt())
-                            .ifTimeoutThenExecute(() -> {
-                                processConnectionFailed(peerAddress, PeerRejectedEvent.RejectedReason.TIMEOUT,"connection timeout");
-                                //System.out.println("<<<<< CONNECTION TIMEOUT " + peerAddress.toString() + ", " + Thread.activeCount() + " Threads");
-                            }
-                            )
-                            .build();
-                    connectPeerTask.execute();
+                        if (activeConns.containsKey(peerAddress)) continue;
+                        if (inProgressConns.containsKey(peerAddress)) continue;
+                        if (blacklist.contains(peerAddress.getIp())) continue;
                 } // while...
 
                 // In case there are NO more connections pending to Open, We wait until the Queue of Pending
@@ -563,7 +635,44 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     }
 
     /**
-     * It handles the connections pending to reader.
+     * It handles the in-progress connections. these connections are already open from our end, but we are just waiting
+     * for the remote Peer to confirm (through a CONNECT Key in the KeySelector). This method loops over all these
+     * connections and remove those ones that are expired based on our config (timeoutSocketRemoteConfirmation)
+     * NOTE: An expired and remove connection from there might still confirm later on, sending a CONNECT signal to us. In
+     * that case, the connection is still accepted and inserted into the "active" conns.
+     */
+    private void handleInProgressConnections() {
+        try {
+            // First loop level: This job keeps on forever...
+            // We keep a temporary list where we keep a reference to those In-Progress Connections that need to be removed
+            // because they have expired...
+            List<PeerAddress> inProgressConnsToRemove = new ArrayList<>();
+            while (true) {
+                // Second loop level: We loop over the InProgress Connections...
+                for (PeerAddress peerAddress : this.inProgressConns.keySet()) {
+                    InProgressConn inProgressConn = this.inProgressConns.get(peerAddress);
+                    if (inProgressConn.hasExpired(this.config.getTimeoutSocketRemoteConfirmation().getAsInt())) {
+                        inProgressConnsToRemove.add(peerAddress);
+                    }
+                } // for...
+                // we remove the expired connections...
+                if (!inProgressConnsToRemove.isEmpty()) {
+                    logger.debug("Removing " + inProgressConnsToRemove.size() + " in-progress expired connections");
+                    try {
+                        lock.writeLock().lock();
+                        inProgressConnsToRemove.forEach(p -> inProgressConns.remove(p));
+                    } finally { lock.writeLock().unlock(); }
+                    inProgressConnsToRemove.clear();
+                }
+                Thread.sleep(1000); // avoid tight loops
+            } // while...
+        } catch (InterruptedException ie) {
+            ie.printStackTrace();
+            throw new RuntimeException(ie);
+        }
+    }
+    /**
+     * It handles the connections pending to close.
      */
     private void handlePendingToCloseConnections() {
 
@@ -621,6 +730,8 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     private void closeKey(SelectionKey key, PeerDisconnectedEvent.DisconnectedReason reason) {
         KeyConnectionAttach keyConnection = (KeyConnectionAttach) key.attachment();
         try {
+            lock.writeLock().lock();
+
             // First we cancel the Key, so no more data will come through this channel. Then, we closeAndClear the
             // the stream by invoking the "onClose" method...
             //key.interestOps(0);
@@ -648,6 +759,8 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         } catch (Exception e) {
             e.printStackTrace();
             logger.error(e, "Error closing a Key");
+        } finally {
+            lock.writeLock().unlock();
         }
     }
 
@@ -680,22 +793,22 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
                 return;
             }
             if (key.isConnectable()) {
-                logger.trace( "Handling Connectable Key " + key + "...");
+                //logger.trace( "Handling Connectable Key " + key + "...");
                 handleConnect(key);
                 return;
             }
             if (key.isReadable()) {
-                logger.trace( "Handling Readable Key " + key + "...");
+                //logger.trace( "Handling Readable Key " + key + "...");
                 handleRead(key);
                 return;
             }
             if (key.isWritable()) {
-                logger.trace( "Handling Writable Key " + key + "...");
+                //logger.trace( "Handling Writable Key " + key + "...");
                 handleWrite(key);
                 return;
             }
             if ((server_mode) && (key.isAcceptable())) {
-                logger.trace("Handling Acceptable Key " + key + "...");
+                //logger.trace("Handling Acceptable Key " + key + "...");
                 handleAccept(key);
                 return;
             }
@@ -710,33 +823,40 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
      * It handles a CONNECT key, that is a confirmation that a connection to a remote Peer is successful.
      */
     protected void handleConnect(SelectionKey key) throws IOException {
-        KeyConnectionAttach keyConnection = (KeyConnectionAttach) key.attachment();
-
-        // Whatever happens, we remove this Peer form the "inProgress" Connections:
-        if (key.attachment() != null) inProgressConns.remove(keyConnection.peerAddress);
-
-        // Check:
-        // we accept the connection, unless this Peer is already register for disconnection, or the Handler
-        // does not accept new connections anymore, or we've reached the Maximum Connections limit already:
-
-        OptionalInt limitNumConns = config.getMaxSocketConnections();
-        if (pendingToCloseConns.contains(keyConnection.peerAddress) ||
-                (!keep_connecting) ||
-                ((limitNumConns.isPresent()) && (inProgressConns.size() + activeConns.size() >= limitNumConns.getAsInt()))) {
-            closeKey(key, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL);
-            return;
-        }
-
-        // If we reach this far, we accept the connection:
         try {
+            lock.writeLock().lock();
+            KeyConnectionAttach keyConnection = (KeyConnectionAttach) key.attachment();
+
+            // Whatever happens, we remove this Peer form the "inProgress" Connections:
+            if (key.attachment() != null) {
+                inProgressConns.remove(keyConnection.peerAddress);
+            }
+
+            // Check:
+            // we accept the connection, unless this Peer is already register for disconnection, or the Handler
+            // does not accept new connections anymore, or we've reached the Maximum Connections limit already:
+
+            OptionalInt limitNumConns = config.getMaxSocketConnections();
+            if (pendingToCloseConns.contains(keyConnection.peerAddress) ||
+                    (!keep_connecting) ||
+                    ((limitNumConns.isPresent()) && (inProgressConns.size() + activeConns.size() >= limitNumConns.getAsInt()))) {
+                closeKey(key, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL);
+                return;
+            }
+
+            // If we reach this far, we accept the connection:
             SocketChannel socketChannel = (SocketChannel) key.channel();
             if (socketChannel.finishConnect()) {
-                startPeerConnection(key);
+                 startPeerConnection(key);
             } else closeKey(key, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL);
+
         } catch (ConnectException e) {
-            processConnectionFailed(keyConnection.peerAddress, PeerRejectedEvent.RejectedReason.INTERNAL_ERROR, e.getMessage());
+            processConnectionFailed(((KeyConnectionAttach) key.attachment()).peerAddress, PeerRejectedEvent.RejectedReason.INTERNAL_ERROR, e.getMessage());
             //throw e;
+        } finally {
+            lock.writeLock().unlock();
         }
+
     }
 
     /**
@@ -749,7 +869,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         //handlerLogger.log(Level.TRACE, "read key...");
         KeyConnectionAttach keyConnection = (KeyConnectionAttach) key.attachment();
         int numBytesRead = ((NIOInputStream)keyConnection.stream.input()).readFromSocket();
-        logger.trace(numBytesRead + " read from " + ((NIOInputStream) keyConnection.stream.input()).getPeerAddress().toString());
+        //logger.trace(numBytesRead + " read from " + ((NIOInputStream) keyConnection.stream.input()).getPeerAddress().toString());
         if (numBytesRead == -1) {
             logger.trace(keyConnection.peerAddress, "Connection closed by the Remote Peer.");
             this.closeKey(key, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_REMOTE);
@@ -770,7 +890,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         // We write the data to the Peer (through the Stream wrapped out around it) and we run the callbacks:
         KeyConnectionAttach keyConnection = (KeyConnectionAttach) key.attachment();
         int numBytesWrite = ((NIOOutputStream) keyConnection.stream.output()).writeToSocket();
-        logger.trace(numBytesWrite + " written to " + ((NIOOutputStream) keyConnection.stream.output()).getPeerAddress().toString());
+        //logger.trace(numBytesWrite + " written to " + ((NIOOutputStream) keyConnection.stream.output()).getPeerAddress().toString());
     }
 
     /**

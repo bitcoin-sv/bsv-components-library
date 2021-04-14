@@ -20,8 +20,11 @@ public interface NetworkConfig {
     /** Maximum connection waiting to be opened */
     OptionalInt getMaxSocketPendingConnections();
 
-    /** Maximum number of millisecs that it can tacke a Socket to connect */
+    /** Maximum number of millisecs that it can wait for a Socket to connect to a Remote port*/
     OptionalInt getTimeoutSocketConnection();
+
+    /** Maximum number of millisecs that it can wait for a Remote Socket to confirm the connection */
+    OptionalInt getTimeoutSocketRemoteConfirmation();
 
     /** Maximum number of millisecs to wait for an idle Socket before the connection is closed */
     OptionalInt getTimeoutSocketIdle();
