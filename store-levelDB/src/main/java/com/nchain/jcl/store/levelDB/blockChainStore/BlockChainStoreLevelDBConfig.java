@@ -8,6 +8,7 @@ import com.nchain.jcl.store.levelDB.blockStore.BlockStoreLevelDBConfig;
 import com.nchain.jcl.tools.config.RuntimeConfig;
 import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
 import io.bitcoinj.blockchain.pow.factory.RuleCheckerFactory;
+import org.slf4j.Logger;
 
 import java.nio.file.Path;
 import java.time.Duration;
@@ -22,6 +23,7 @@ import java.util.List;
  */
 public class BlockChainStoreLevelDBConfig extends BlockStoreLevelDBConfig implements BlockChainStoreKeyValueConfig {
 
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(BlockChainStoreLevelDBConfig.class);
     // Default: The Height difference a Fork must have compared tot he main chain to be eligible for prunning
     private static int DEFAULT_FORK_HEIGH_DIFF = 2;
     // Default: The Age of an Orphan Block to be eligible for prunning
@@ -47,6 +49,11 @@ public class BlockChainStoreLevelDBConfig extends BlockStoreLevelDBConfig implem
         if (forkPrunningHeightDifference != null) this.forkPrunningHeightDifference = forkPrunningHeightDifference;
         this.forkPrunningIncludeTxs = forkPrunningIncludeTxs;
         if (orphanPrunningBlockAge != null) this.orphanPrunningBlockAge = orphanPrunningBlockAge;
+
+        if(ruleConfig.getRuleList().size() == 0){
+            log.warn("BlockchainStore has been configured without any block validation rules");
+        }
+
         if (ruleConfig != null) this.ruleConfig = ruleConfig;
     }
 
