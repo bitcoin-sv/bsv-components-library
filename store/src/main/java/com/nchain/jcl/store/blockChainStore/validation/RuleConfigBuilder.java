@@ -95,7 +95,7 @@ public class RuleConfigBuilder {
                 break;
 
             default:
-                throw new UnsupportedOperationException();
+                blockChainStoreRuleConfig = BlockChainStoreRuleConfig.builder().build();
 
         }
 
