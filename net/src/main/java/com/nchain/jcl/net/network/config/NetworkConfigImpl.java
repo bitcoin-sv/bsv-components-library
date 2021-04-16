@@ -71,6 +71,7 @@ public class NetworkConfigImpl extends HandlerConfig implements NetworkConfig {
                 .maxSocketConnections(this.maxSocketConnections)
                 .maxSocketPendingConnections(this.maxSocketPendingConnections)
                 .timeoutSocketConnection(this.timeoutSocketConnection)
+                .timeoutSocketRemoteConfirmation(this.timeoutSocketRemoteConfirmation)
                 .timeoutSocketIdle(this.timeoutSocketIdle)
                 .nioBufferSizeLowerBound(this.nioBufferSizeLowerBound)
                 .nioBufferSizeUpperBound(this.nioBufferSizeUpperBound)

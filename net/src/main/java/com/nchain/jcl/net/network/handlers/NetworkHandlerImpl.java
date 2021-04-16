@@ -649,26 +649,31 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
             List<PeerAddress> inProgressConnsToRemove = new ArrayList<>();
             while (true) {
                 // Second loop level: We loop over the InProgress Connections...
-                for (PeerAddress peerAddress : this.inProgressConns.keySet()) {
-                    InProgressConn inProgressConn = this.inProgressConns.get(peerAddress);
-                    if (inProgressConn.hasExpired(this.config.getTimeoutSocketRemoteConfirmation().getAsInt())) {
-                        inProgressConnsToRemove.add(peerAddress);
-                    }
-                } // for...
-                // we remove the expired connections...
-                if (!inProgressConnsToRemove.isEmpty()) {
-                    logger.debug("Removing " + inProgressConnsToRemove.size() + " in-progress expired connections");
-                    try {
-                        lock.writeLock().lock();
+                try {
+                    lock.writeLock().lock();
+                    for (PeerAddress peerAddress : this.inProgressConns.keySet()) {
+                        InProgressConn inProgressConn = this.inProgressConns.get(peerAddress);
+                        if (inProgressConn.hasExpired(this.config.getTimeoutSocketRemoteConfirmation().getAsInt())) {
+                            inProgressConnsToRemove.add(peerAddress);
+                        }
+                    } // for...
+                    // we remove the expired connections...
+                    if (!inProgressConnsToRemove.isEmpty()) {
+                        logger.debug("Removing " + inProgressConnsToRemove.size() + " in-progress expired connections");
                         inProgressConnsToRemove.forEach(p -> inProgressConns.remove(p));
-                    } finally { lock.writeLock().unlock(); }
-                    inProgressConnsToRemove.clear();
+                        inProgressConnsToRemove.clear();
+                    }
+                } finally {
+                    lock.writeLock().unlock();
                 }
                 Thread.sleep(1000); // avoid tight loops
             } // while...
         } catch (InterruptedException ie) {
             ie.printStackTrace();
             throw new RuntimeException(ie);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
     /**
