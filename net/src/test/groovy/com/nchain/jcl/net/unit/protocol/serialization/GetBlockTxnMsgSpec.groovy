@@ -5,7 +5,7 @@ import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
 import com.nchain.jcl.net.protocol.messages.GetBlockTxnMsg
 import com.nchain.jcl.net.protocol.messages.HashMsg
 import com.nchain.jcl.net.protocol.messages.VarIntMsg
-import com.nchain.jcl.net.protocol.serialization.BlockTransactionsRequestMsgSerializer
+import com.nchain.jcl.net.protocol.serialization.GetBlockTxnMsgSerializer
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
 import com.nchain.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
@@ -37,7 +37,7 @@ class GetBlockTxnMsgSpec extends Specification {
 
             byte[] bytes = Utils.HEX.decode(MESSAGE_BYTES)
 
-            BlockTransactionsRequestMsgSerializer serializer = BlockTransactionsRequestMsgSerializer.getInstance()
+            GetBlockTxnMsgSerializer serializer = GetBlockTxnMsgSerializer.getInstance()
             GetBlockTxnMsg message
 
         when:
@@ -62,7 +62,7 @@ class GetBlockTxnMsgSpec extends Specification {
                 .protocolBasicConfig(config.getBasicConfig())
                 .build()
 
-            BlockTransactionsRequestMsgSerializer serializer = BlockTransactionsRequestMsgSerializer.getInstance()
+            GetBlockTxnMsgSerializer serializer = GetBlockTxnMsgSerializer.getInstance()
 
             GetBlockTxnMsg blockHeaderMsg = GetBlockTxnMsg.builder()
                 .blockHash(

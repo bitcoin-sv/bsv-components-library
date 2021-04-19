@@ -15,13 +15,13 @@ import java.util.List;
  * @author j.pomer@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  */
-public class BlockTransactionsRequestMsgSerializer implements MessageSerializer<GetBlockTxnMsg> {
-    private static BlockTransactionsRequestMsgSerializer instance;
+public class GetBlockTxnMsgSerializer implements MessageSerializer<GetBlockTxnMsg> {
+    private static GetBlockTxnMsgSerializer instance;
 
-    public static BlockTransactionsRequestMsgSerializer getInstance() {
+    public static GetBlockTxnMsgSerializer getInstance() {
         if (instance == null) {
-            synchronized (BlockTransactionsRequestMsgSerializer.class) {
-                instance = new BlockTransactionsRequestMsgSerializer();
+            synchronized (GetBlockTxnMsgSerializer.class) {
+                instance = new GetBlockTxnMsgSerializer();
             }
         }
         return instance;
