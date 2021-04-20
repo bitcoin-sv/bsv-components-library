@@ -2,6 +2,7 @@ package com.nchain.jcl.net.protocol.wrapper;
 
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.config.NetworkConfig;
+import com.nchain.jcl.net.network.config.NetworkConfigImpl;
 import com.nchain.jcl.net.network.config.provided.NetworkDefaultConfig;
 import com.nchain.jcl.net.network.handlers.NetworkHandlerImpl;
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig;
@@ -101,8 +102,12 @@ public class P2PBuilder {
 
     public P2PBuilder config (ProtocolBasicConfig basicConfig) {
         checkState(this.protocolConfig != null, "a global Configuration must be specified first");
+        // we set the Protocol Basic Config and we inject it into the general ProtocolConfig...
         this.basicConfig = basicConfig;
         this.protocolConfig = ((ProtocolConfigImpl) protocolConfig).toBuilder().basicConfig(basicConfig).build();
+
+        // We also overwrite the port number on the Network Config:
+        this.networkConfig = ((NetworkConfigImpl) this.networkConfig).toBuilder().port(basicConfig.getPort()).build();
         return this;
     }
 
