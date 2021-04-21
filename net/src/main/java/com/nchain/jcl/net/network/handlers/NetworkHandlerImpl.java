@@ -31,6 +31,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -138,6 +139,10 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     private Set<InetAddress> blacklist = ConcurrentHashMap.newKeySet();
     private Set<PeerAddress> failedConns = ConcurrentHashMap.newKeySet();
 
+    // Other useful counters:
+    private AtomicLong numConnsFailed = new AtomicLong();
+    private AtomicLong numConnsInProgressExpired = new AtomicLong();
+
     // Files to store info after the handler has stopped:
     private static final String FILE_ACTIVE_CONN            = "networkHandler-activeConnections.csv";
     private static final String FILE_IN_PROGRESS_CONN       = "networkHandler-inProgressConnections.csv";
@@ -177,6 +182,8 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
                     .numPendingToOpenConns(this.pendingToOpenConns.size())
                     .keep_connecting(this.keep_connecting)
                     .server_mode(this.server_mode)
+                    .numConnsFailed(this.numConnsFailed.get())
+                    .numInProgressConnsExpired(this.numConnsInProgressExpired.get())
                     .build();
         } finally {
             lock.readLock().unlock();
@@ -486,6 +493,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
             logger.trace(peerAddress, reason.name(), detail);
             failedConns.add(peerAddress);
             inProgressConns.remove(peerAddress);
+            numConnsFailed.incrementAndGet();
             blacklist(peerAddress.getIp(), PeersBlacklistedEvent.BlacklistReason.CONNECTION_REJECTED);
 
             // We publish the event
@@ -660,6 +668,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
                     // we remove the expired connections...
                     if (!inProgressConnsToRemove.isEmpty()) {
                         logger.debug("Removing " + inProgressConnsToRemove.size() + " in-progress expired connections");
+                        numConnsInProgressExpired.addAndGet(inProgressConnsToRemove.size());
                         inProgressConnsToRemove.forEach(p -> inProgressConns.remove(p));
                         inProgressConnsToRemove.clear();
                     }
