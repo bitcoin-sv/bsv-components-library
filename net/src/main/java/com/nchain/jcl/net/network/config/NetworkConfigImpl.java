@@ -70,6 +70,7 @@ public class NetworkConfigImpl extends HandlerConfig implements NetworkConfig {
                 .port(this.port)
                 .maxSocketConnections(this.maxSocketConnections)
                 .maxSocketPendingConnections(this.maxSocketPendingConnections)
+                .maxSocketConnectionsOpeningAtSameTime(this.maxSocketConnectionsOpeningAtSameTime)
                 .timeoutSocketConnection(this.timeoutSocketConnection)
                 .timeoutSocketRemoteConfirmation(this.timeoutSocketRemoteConfirmation)
                 .timeoutSocketIdle(this.timeoutSocketIdle)
