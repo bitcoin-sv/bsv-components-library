@@ -21,9 +21,7 @@ import io.bitcoinj.core.Utils;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -67,7 +65,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
 
     // Structures to keep track of the download process:
     private Map<String, Integer>    blocksNumDownloadAttempts = new ConcurrentHashMap<>();
-    private Set<String>             blocksPending = ConcurrentHashMap.newKeySet();
+    private Deque<String>           blocksPending = new ConcurrentLinkedDeque<>();
     private List<String>            blocksDownloaded = new CopyOnWriteArrayList<>();
     private Map<String, Instant>    blocksDiscarded = new ConcurrentHashMap<>();
 
@@ -126,8 +124,10 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         try {
             lock.lock();
             logger.debug("Adding " + blockHashes.size() + " blocks to download: ");
-            blockHashes.forEach(b -> logger.debug(" Block " + b));
-            blocksPending.addAll(blockHashes);
+            blockHashes.forEach(b -> {
+                logger.debug(" Block " + b);
+                blocksPending.offer(b);
+            });
         } finally {
             lock.unlock();
         }
@@ -348,7 +348,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                 int numAttempts = blocksNumDownloadAttempts.get(blockHash);
                 if (numAttempts < config.getMaxDownloadAttempts()) {
                     logger.debug("Download failure for " + blockHash + " :: back to the pending Pool...");
-                    blocksPending.add(blockHash);
+                    blocksPending.offerFirst(blockHash); // we add it to the FRONT of the Queue
                 } else {
                     logger.debug("Download failure for " + blockHash, numAttempts + " attempts (max " + config.getMaxDownloadAttempts() + ")", "discarding Block...");
                     blocksDiscarded.put(blockHash, Instant.now());
@@ -442,7 +442,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                                             .filter( p -> p.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING))
                                             .count();
                                     if (numPeersWorking < config.getMaxBlocksInParallel()) {
-                                        String hash = blocksPending.stream().findFirst().get();
+                                        String hash = blocksPending.poll();
                                         logger.trace("Putting peer " + peerInfo.getPeerAddress() + " to download " + hash + "...");
                                         startDownloading(peerInfo, hash);
                                     }
@@ -500,7 +500,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                         lock.lock();
                         for (String hashToRetry : blocksToReTry) {
                             blocksDiscarded.remove(hashToRetry);
-                            blocksPending.add(hashToRetry);
+                            blocksPending.offerFirst(hashToRetry); // blocks to retry have preference...
                         }
                     } catch (Exception ex) {
                       ex.printStackTrace();
