@@ -74,7 +74,7 @@ class ChainDownloadTest extends Specification {
             NetworkConfig networkConfig = new NetworkDefaultConfig().toBuilder()
                 .maxSocketConnectionsOpeningAtSameTime(100)
                 .timeoutSocketConnection(OptionalInt.of(100))       // 100 millisecs
-            .timeoutSocketRemoteConfirmation(OptionalInt.of(1000))  // 1 sec
+                .timeoutSocketRemoteConfirmation(OptionalInt.of(1000))  // 1 sec
                 .build()
 
             // Basic Config:
@@ -96,7 +96,7 @@ class ChainDownloadTest extends Specification {
                     .config(basicConfig)
                     .config(blockConfig)
                     .publishState(BlockDownloaderHandler.HANDLER_ID, Duration.ofMillis(500))
-                   // .publishState(NetworkHandler.HANDLER_ID, Duration.ofMillis(500))
+                    .publishState(NetworkHandler.HANDLER_ID, Duration.ofMillis(500))
                     .publishState(HandshakeHandler.HANDLER_ID, Duration.ofMillis(500))
                     .build()
 
