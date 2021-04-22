@@ -18,6 +18,7 @@ public class SendCompactBlockMsg extends Message {
     public SendCompactBlockMsg(boolean highBandwidthRelaying, long version) {
         this.highBandwidthRelaying = highBandwidthRelaying;
         this.version = version;
+        init();
     }
 
     public static SendCompactBlockMsgBuilder builder() {
@@ -63,5 +64,11 @@ public class SendCompactBlockMsg extends Message {
         public SendCompactBlockMsg build() {
             return new SendCompactBlockMsg(highBandwidthRelaying, version);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "SendCompactBlockMsg(highBandwidthRelaying=" + isHighBandwidthRelaying() +
+            ", version=" + getVersion() + ")";
     }
 }

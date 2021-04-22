@@ -12,6 +12,9 @@ public class CompactBlockMsg extends Message {
 
     public static final String MESSAGE_TYPE = "cmpctblock";
 
+    private static final long NONCE_BYTES = 8;
+    private static final long HOST_TX_ID_BYTES = 6;
+
     private final CompactBlockHeaderMsg header;
     private final long nonce;
     private final List<Long> shortTxIds;
@@ -22,6 +25,7 @@ public class CompactBlockMsg extends Message {
         this.nonce = nonce;
         this.shortTxIds = shortTxIds;
         this.prefilledTransactions = prefilledTransactions;
+        init();
     }
 
     public static CompactBlockMsgBuilder builder() {
@@ -51,7 +55,12 @@ public class CompactBlockMsg extends Message {
 
     @Override
     protected long calculateLength() {
-        return 0;
+        return header.calculateLength()
+            + NONCE_BYTES
+            + VarIntMsg.builder().value(shortTxIds.size()).build().calculateLength()
+            + HOST_TX_ID_BYTES * shortTxIds.size()
+            + VarIntMsg.builder().value(prefilledTransactions.size()).build().calculateLength()
+            + prefilledTransactions.stream().mapToLong(PrefilledTxMsg::calculateLength).sum();
     }
 
     @Override

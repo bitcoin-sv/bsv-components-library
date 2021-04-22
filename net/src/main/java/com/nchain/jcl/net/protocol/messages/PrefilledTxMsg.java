@@ -39,7 +39,7 @@ public class PrefilledTxMsg extends Message {
 
     @Override
     protected long calculateLength() {
-        return 0;
+        return index.calculateLength() + transaction.calculateLength();
     }
 
     @Override
