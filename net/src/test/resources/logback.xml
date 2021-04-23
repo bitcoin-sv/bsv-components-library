@@ -24,6 +24,21 @@
         <appender-ref ref="STDOUT" />
     </logger>
 
+    <logger name="com.nchain.jcl.net.protocol.streams.deserializer" additivity="false">
+        <level value="TRACE" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <logger name="com.nchain.jcl.net.protocol.streams.serializer" additivity="false">
+        <level value="TRACE" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <logger name="com.nchain.jcl.net.protocol.handlers.message.MessageHandlerImpl" additivity="false">
+        <level value="TRACE" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+
     <logger name="com.nchain.jcl.net.protocol.discovery" additivity="false">
         <level value="TRACE" />
         <appender-ref ref="STDOUT" />
