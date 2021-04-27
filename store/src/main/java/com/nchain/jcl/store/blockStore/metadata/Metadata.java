@@ -9,6 +9,8 @@ package com.nchain.jcl.store.blockStore.metadata;
  * by using the Key for the Blocks or Tx it's been linked to.
  */
 public interface Metadata {
+    /** Serializes the content of the Class into a Array of Bytes */
     byte[] serialize();
+    /** It parses the data fromm a Byte Array, deserializes it and loads/populates the content of the Class */
     void load(byte[] data);
 }

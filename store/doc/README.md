@@ -312,37 +312,69 @@ In the example above, this method will return a list containing the *Hashes* of 
 
 > Note that in this example, the Transaction *B* and *C* might NOT be stored yet in the DB, since the Transactions might come in different order when you receive them from the network.
 
-### Expanding the Model
 
-> NOTE: This feature is not implemented yet. Coming soon...
+### Saving Metadata
 
-All the previous operations allows to save, retrieve and update *Blocks* ad *Transactions*. But in some scenarios it might be usefl to store *more* information about them, for example:
+All the previous operations allows to save, retrieve and update *Blocks* and/or *Transactions*. But in some scenarios it might be usefl to store *more* information about them, for example:
 
 * A flag indicating if a *Transaction* is validated
 * A field indicating the number of *Peers* that have boadcast a specific *Block* or *Transaction*
-* A field indicating a *custom* metric based on *custom* caluclations made on a *Block*
+* A field indicating a *custom* metric based on *custom* calculations made on a *Block*
 * etc
 
-The *BlockStore* Module allows to *add* individual *fields* and *attach* them to either *Transactions* or *Blocks* in runtime. You just need to specify the *Name* for that field and its *Type* during the Configuration, and then you can use that field to assing the value. 
-For example, in the following example, we are using a "validated" field (boolean) which specify wheter a *Transaction* has been validated, and a "validationError" field (String) that stores 
-the specific validation error it the validation has failed:
+The *BlockStore* Module allows to define *Metadata* and attach it to a Block. Since the specific *Metadata* 
+to store for each block might be completely different depending on the application or needs of the user, the definition 
+of the *Metadata* is up to the user, adn once it's done *JCL* only needs to be "informed" of that so it can use it in 
+conjunction with the rest of operations with Blocks.
+
+A *Metadata* is a JAva class that needs to fulfill 2 criteria:
+ * It must have a default Constructor (no parameters). But it can contain others if needed.)
+ * It must implement the *Metadata* interface.
+
+
+The *Metadata* interface only specifies 2 methods which are used for Serialization/Deserialization:
 
 ```
-// Assignning custom fields on saving:
-Tx tx = ...                    // we got a Tx from somewhere
-List<Tx> txs = ...             // we got a List of Txs from somewhere
-db.saveTx(Tx, true);			 // Transaction validated
-db.saveTxs(txs, false)			 // Transactions NOT validated
+public interface Metadata {
+    /** Serializes the content of the Class into a Array of Bytes */
+    byte[] serialize();
+    /** It parses the data fromm a Byte Array, deserializes it and loads/populates the content of the Class */
+    void load(byte[] data);
+}
+```
 
-// Retrieving fields:
-Sha256Hash txHash = ...
-boolean isTxValidated = (Boolean) db.getTxField(txHash)
+*JCL* has already ou-of-the-box some Utiity *Metadata* Classes that can be used. For example, the 
+class ``com.nchain.jcl.store.blockStore.metadata.provided.BlockValidationMD``, which contains useful information that
+can be used to track the progress of downloading/Validating a Block from the P2P Network.
+
+The next ste it to *inform* *JCL* that the ``BlockValidationMD`` class will be used as a *Metadata* for blocks (and 
+even thought this is more related to a specific implementation, we are shoding here a piece of code of the *LevelDB* 
+configuration process):
+
+```
+BlockStore db = BlockStoreLevelDB.builder()
+                ...
+                .blockMetadataClass(BlockValidatorMD.class) // HERE
+                .build()
 
 ```
 
-The same approach cen be applied to *Blocks* as well.
+After starting the DB, we can now make use of the new methods available for working with *Metadata*:
 
+```
+    /** Retrieves the metadata attached to the block given, if any */
+    Optional<Metadata> getBlockMetadata(Sha256Hash blockHash);
 
+    /** It saves some Metadata linked to a Block */
+    void saveBlockMetadata(Sha256Hash blockHash, Metadata metadata);
+
+    /** It removes metadata linked to a Block */
+    void removeBlockMetadata(Sha256Hash blockHash);
+```
+
+The methods above are straightforward. Basically allows us to access/save/remove *metadata* that we can 
+reference by the *Hash* of a Block. Other operations are done transparently, like removing the *Metadata* of a 
+Block when the block itself is removed.
 
 
 ### Reference
