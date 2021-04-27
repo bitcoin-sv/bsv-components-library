@@ -17,9 +17,7 @@ import java.util.stream.Collectors
  * Testing class for Performance We are NOT testing functionality here, just making measurements of the time it
  * takes for some operations to perform.
  */
-abstract class BlockStorePerformanceSpec extends Specification {
-
-    abstract BlockStore getInstance(String netID, boolean triggerBlockEvents, boolean triggerTxEvents);
+abstract class BlockStorePerformanceSpecBase extends BlockStoreSpecBase {
 
     @Ignore // time-consuming
     def "Testing Saving Block and Txs and link them later on "() {

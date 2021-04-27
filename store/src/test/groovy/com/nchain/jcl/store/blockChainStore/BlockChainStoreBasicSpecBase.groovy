@@ -30,7 +30,12 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
 
         when:
             db.start()
-            //TestingUtils.clearDB(db.db)
+
+            // We clean the DB:
+            db.clear()
+            // We check the DB Content in the console...
+            println("Content of DB Right BEFORE the Test:")
+            db.printKeys()
 
             // We insert a chain of Blocks, connected to each other
             List<HeaderReadOnly> blocks = new ArrayList<>();
@@ -111,9 +116,16 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
 
         when:
             db.start()
+
+            // We clean the DB:
+            db.clear()
+            // We check the DB Content in the console...
+            println("Content of DB Right BEFORE the Test:")
+            db.printKeys()
+
             // Right after starting the DB from an empty state, the only Block in the DB should be the genesis block,
             // which is also part of the Tip...
-            db.printKeys()
+
             List<Sha256Hash> tipsChain = db.getTipsChains()
             ChainInfo tipChainInfo = db.getBlockChainInfo(tipsChain.get(0)).get()
             boolean beforeInserting = (tipsChain.size() == 1) && tipsChain.contains(genesisBlock.getHash()) &&
@@ -250,6 +262,12 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
         when:
             db.start()
 
+            // We clean the DB:
+            db.clear()
+            // We check the DB Content in the console...
+            println("Content of DB Right BEFORE the Test:")
+            db.printKeys()
+
             // We wait a bit and we check the state, it should show just one Block (genesis)
             Thread.sleep(200)
             println(" - Last State published: num Blocks: " + lastState.get().state.numBlocks)
@@ -314,7 +332,10 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
         when:
             db.start()
 
+            // We clean the DB:
+            db.clear()
             // We check the DB Content in the console...
+            println("Content of DB Right BEFORE the Test:")
             db.printKeys()
 
             // We create a block, and we insert it several times...
@@ -353,6 +374,13 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
 
         when:
             db.start()
+
+            // We clean the DB:
+            db.clear()
+            // We check the DB Content in the console...
+            println("Content of DB Right BEFORE the Test:")
+            db.printKeys()
+
             // We store a chain of 3 Blocks, all connected:
             HeaderReadOnly block1 = TestingUtils.buildBlock(genesisBlock.hash.toString())
             HeaderReadOnly block2 = TestingUtils.buildBlock(block1.hash.toString())

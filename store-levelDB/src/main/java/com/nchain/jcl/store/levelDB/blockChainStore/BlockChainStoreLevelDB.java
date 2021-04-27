@@ -4,6 +4,7 @@ package com.nchain.jcl.store.levelDB.blockChainStore;
 import com.nchain.jcl.store.blockChainStore.events.BlockChainStoreStreamer;
 import com.nchain.jcl.store.blockChainStore.validation.exception.BlockChainRuleFailureException;
 import com.nchain.jcl.store.blockChainStore.validation.rules.BlockChainRule;
+import com.nchain.jcl.store.blockStore.metadata.Metadata;
 import com.nchain.jcl.store.keyValue.blockChainStore.BlockChainInfo;
 import com.nchain.jcl.store.keyValue.blockChainStore.BlockChainStoreKeyValue;
 import com.nchain.jcl.store.levelDB.blockStore.BlockStoreLevelDB;
@@ -52,13 +53,14 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
     public BlockChainStoreLevelDB(@Nonnull BlockChainStoreLevelDBConfig config,
                                   boolean triggerBlockEvents,
                                   boolean triggerTxEvents,
+                                  Class<? extends Metadata> blockMetadataClass,
                                   Duration statePublishFrequency,
                                   Boolean enableAutomaticForkPrunning,
                                   Duration forkPrunningFrequency,
                                   Boolean enableAutomaticOrphanPrunning,
                                   Duration orphanPrunningFrequency) {
 
-        super(config, triggerBlockEvents, triggerTxEvents);
+        super(config, triggerBlockEvents, triggerTxEvents, blockMetadataClass);
         this.config = config;
 
         this.enableAutomaticForkPrunning = (enableAutomaticForkPrunning != null) ? enableAutomaticForkPrunning : false;
@@ -164,6 +166,8 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
         private BlockChainStoreLevelDBConfig config;
         private boolean triggerBlockEvents;
         private boolean triggerTxEvents;
+        private Class<? extends Metadata> blockMetadataClass;
+
         private Duration statePublishFrequency;
         private Boolean enableAutomaticForkPrunning;
         private Duration forkPrunningFrequency;
@@ -185,6 +189,11 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
 
         public BlockChainStoreLevelDB.BlockChainStoreLevelDBBuilder triggerTxEvents(boolean triggerTxEvents) {
             this.triggerTxEvents = triggerTxEvents;
+            return this;
+        }
+
+        public BlockChainStoreLevelDB.BlockChainStoreLevelDBBuilder blockMetadataClass(Class<? extends Metadata> blockMetadataClass) {
+            this.blockMetadataClass = blockMetadataClass;
             return this;
         }
 
@@ -214,7 +223,7 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
         }
 
         public BlockChainStoreLevelDB build() {
-            return new BlockChainStoreLevelDB(config, triggerBlockEvents, triggerTxEvents, statePublishFrequency, enableAutomaticForkPrunning, forkPrunningFrequency, enableAutomaticOrphanPrunning, orphanPrunningFrequency);
+            return new BlockChainStoreLevelDB(config, triggerBlockEvents, triggerTxEvents, blockMetadataClass, statePublishFrequency, enableAutomaticForkPrunning, forkPrunningFrequency, enableAutomaticOrphanPrunning, orphanPrunningFrequency);
         }
     }
 }

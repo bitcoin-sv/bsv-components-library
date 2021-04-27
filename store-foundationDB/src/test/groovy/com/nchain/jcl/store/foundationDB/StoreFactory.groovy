@@ -2,6 +2,7 @@ package com.nchain.jcl.store.foundationDB
 
 import com.nchain.jcl.store.blockChainStore.BlockChainStore
 import com.nchain.jcl.store.blockStore.BlockStore
+import com.nchain.jcl.store.blockStore.metadata.Metadata
 import com.nchain.jcl.store.foundationDB.blockChainStore.BlockChainStoreFDB
 import com.nchain.jcl.store.foundationDB.blockChainStore.BlockChainStoreFDBConfig
 import com.nchain.jcl.store.foundationDB.blockStore.BlockStoreFDB
@@ -22,6 +23,11 @@ class StoreFactory {
     }
     /** It creates an instance of the BlockStore interface */
     static BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents) {
+        return getInstance(netId, triggerBlockEvents, triggerTxEvents)
+    }
+
+    /** It creates an instance of the BlockStore interface, including block Metadata */
+    static BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents, Class<? extends Metadata> blockMetadataClass) {
         BlockStoreFDBConfig config = BlockStoreFDBConfig.builder()
                 .networkId(netId)
                 .clusterFile(getClusterFile())
@@ -30,6 +36,7 @@ class StoreFactory {
                 .config(config)
                 .triggerBlockEvents(triggerBlockEvents)
                 .triggerTxEvents(triggerTxEvents)
+                .blockMetadataClass(blockMetadataClass)
                 .build()
         return blockStore
     }

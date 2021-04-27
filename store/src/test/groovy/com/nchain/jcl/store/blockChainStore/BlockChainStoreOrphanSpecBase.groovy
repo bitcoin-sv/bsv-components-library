@@ -36,6 +36,13 @@ abstract class BlockChainStoreOrphanSpecBase extends BlockChainStoreSpecBase {
 
         when:
             db.start()
+
+            // We clean the DB:
+            db.clear()
+            // We check the DB Content in the console...
+            println("Content of DB Right BEFORE the Test:")
+            db.printKeys()
+
             // We define a chain of Blocks:
             // [GENESIS] - [Block1] - [Block2]
 
@@ -120,6 +127,13 @@ abstract class BlockChainStoreOrphanSpecBase extends BlockChainStoreSpecBase {
 
         when:
             db.start()
+
+            // We clean the DB:
+            db.clear()
+            // We check the DB Content in the console...
+            println("Content of DB Right BEFORE the Test:")
+            db.printKeys()
+
             // We define a chain of Blocks, and we addBytes Orphans at the end, with a delay between them, so the Automatic
             // Orphan pruning process removes them at different times:
 

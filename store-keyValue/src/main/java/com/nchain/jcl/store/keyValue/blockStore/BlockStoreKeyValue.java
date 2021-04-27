@@ -6,6 +6,7 @@ import com.google.common.collect.Lists;
 import com.nchain.jcl.store.blockStore.BlockStore;
 import com.nchain.jcl.store.blockStore.BlocksCompareResult;
 import com.nchain.jcl.store.blockStore.events.*;
+import com.nchain.jcl.store.blockStore.metadata.Metadata;
 import com.nchain.jcl.store.keyValue.common.HashesList;
 import com.nchain.jcl.store.keyValue.common.HashesListSerializer;
 import com.nchain.jcl.store.keyValue.common.KeyValueIterator;
@@ -104,6 +105,7 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     String DIR_BLOCKCHAIN            = "blockchain";
     String DIR_BLOCKS                = "blocks";
     String DIR_TXS                   = "txs";
+    String DIR_METADATA              = "metadata";
 
     /** preffixes/suffixes used in Keys: */
     String KEY_SEPARATOR             = ":";
@@ -115,6 +117,8 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     String KEY_SUFFIX_BLOCK_NUMTXS   = KEY_SEPARATOR + "numTxs" + KEY_SEPARATOR;      // Property suffix: the number of Txs in a Block
     String KEY_SUFFIX_BLOCK_TXINDEX  = KEY_SEPARATOR + "txIndex" + KEY_SEPARATOR;     // Property suffix: Last txIndex used for this Block (to preserve Tx ordering)
     String KEY_PREFFIX_TX_BLOCK      = "tx_block_link" + KEY_SEPARATOR;               // Property suffix: The list of blocks this Tx is linked to
+
+    String KEY_PREFFIX_BLOCK_META    = "block_m" + KEY_SEPARATOR;    // Metadata linked to a Block
 
 
     /** This method returns a Lock that can be used to make sure Thread-safety is in place */
@@ -162,6 +166,11 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     byte[] fullKeyForBlockTx(T tr, String blockHash, String txHash, long txIndex);
     byte[] fullKeyForBlockTx(T tr, byte[] blockDirFullKey, String txHash, long txIndex);
     byte[] fullKeyForBlockDir(T tr, String blockHash);
+    byte[] fullKeyForBlocksMetadata(T tr);
+
+    Class<? extends Metadata> getMetadataClassForBlocks();
+    byte[] fullKeyForBlockMetadata(T tr, String blockHash);
+
     byte[] fullKeyForTxs(T tr);
     byte[] fullKeyForTx(T tr, String txHash);
     byte[] fullKeyForTxBlock(T tr, String txHash, String blockHash);
@@ -209,6 +218,8 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     default String keyForTxBlock(String txHash, String blockHash)   { return KEY_PREFFIX_TX_BLOCK + txHash + KEY_SEPARATOR + blockHash + KEY_SEPARATOR; }
     default String keyForBlockTx(String txHash, long txIndex)       { return KEY_PREFFIX_TX_LINK + txIndex + KEY_SEPARATOR + txHash + KEY_SEPARATOR; }
     default String keyForBlockDir(String blockHash)                 { return blockHash;}
+
+    default String keyForBlockMetadata(String blockHash)            { return KEY_PREFFIX_BLOCK_META + blockHash + KEY_SEPARATOR + getMetadataClassForBlocks().getSimpleName();}
 
     @Override
     default long getNumKeys(String preffix)                         { return numKeys(preffix.getBytes()); }
@@ -434,6 +445,11 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
         remove(tr, fullKeyForBlock(tr, blockHash));
         remove(tr, fullKeyForBlockNumTxs(tr, blockHash));
         remove(tr, fullKeyForBlockTxIndex(tr, blockHash));
+
+        // IF a metadata class has been defined, we remove it too
+        if (getMetadataClassForBlocks() != null) {
+            _removeBlockMetadata(tr, blockHash);
+        }
     }
 
     default void _removeBlocks(T tr, List<String> blockHashes) {
@@ -453,6 +469,40 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
         if (result == null ) return null;
 
         return result;
+    }
+
+    private Metadata _getBlockMetadata(T tr, String blockHash) {
+        try {
+            Metadata result = null;
+            byte[] key = fullKeyForBlockMetadata(tr, blockHash);
+            byte[] value = read(tr, key);
+            if (value != null) {
+                result = (Metadata) getMetadataClassForBlocks().getConstructor().newInstance();
+                result.load(value);
+            }
+            return result;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void _saveBlockMetadata(T tr, String blockHash, Metadata metadata) {
+        try {
+            byte[] key = fullKeyForBlockMetadata(tr, blockHash);
+            byte[] value = metadata.serialize();
+            save(tr, key, value);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void _removeBlockMetadata(T tr, String blockHash) {
+        try {
+            byte[] key = fullKeyForBlockMetadata(tr, blockHash);
+            remove(tr, key);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     default void _saveTx(T tr, Tx tx) {
@@ -737,6 +787,48 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
             return numKeys(startingWith);
         } finally {
             getLock().readLock().unlock();
+        }
+    }
+
+    @Override
+    default Optional<Metadata> getBlockMetadata(Sha256Hash blockHash) {
+        AtomicReference<Metadata> result = new AtomicReference<>();
+        try {
+            getLock().readLock().lock();
+            T tr = createTransaction();
+            executeInTransaction(tr, () -> {
+                Metadata metadata = _getBlockMetadata(tr, blockHash.toString());
+                result.set(metadata);
+            });
+        } finally {
+            getLock().readLock().unlock();
+        }
+        return Optional.ofNullable(result.get());
+    }
+
+    @Override
+    default void saveBlockMetadata(Sha256Hash blockHash, Metadata metadata) {
+        try {
+            getLock().writeLock().lock();
+            T tr = createTransaction();
+            executeInTransaction(tr, () -> {
+                _saveBlockMetadata(tr, blockHash.toString(), metadata);
+            });
+        } finally {
+            getLock().writeLock().unlock();
+        }
+    }
+
+    @Override
+    default void removeBlockMetadata(Sha256Hash blockHash) {
+        try {
+            getLock().writeLock().lock();
+            T tr = createTransaction();
+            executeInTransaction(tr, () -> {
+                _removeBlockMetadata(tr, blockHash.toString());
+            });
+        } finally {
+            getLock().writeLock().unlock();
         }
     }
 

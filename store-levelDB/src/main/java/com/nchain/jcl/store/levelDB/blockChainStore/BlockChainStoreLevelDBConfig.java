@@ -50,7 +50,7 @@ public class BlockChainStoreLevelDBConfig extends BlockStoreLevelDBConfig implem
         this.forkPrunningIncludeTxs = forkPrunningIncludeTxs;
         if (orphanPrunningBlockAge != null) this.orphanPrunningBlockAge = orphanPrunningBlockAge;
 
-        if(ruleConfig.getRuleList().size() == 0){
+        if (ruleConfig == null || ruleConfig.getRuleList() == null || ruleConfig.getRuleList().size() == 0){
             log.warn("BlockchainStore has been configured without any block validation rules");
         }
 
