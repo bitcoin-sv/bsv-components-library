@@ -92,7 +92,7 @@ public interface BlockStore {
     long getNumBlocks();
 
 
-    // Block Metadata Operation:
+    // Block Metadata Operations:
 
     /** Retrieves the metadata attached to the block given, if any */
     Optional<Metadata> getBlockMetadata(Sha256Hash blockHash);

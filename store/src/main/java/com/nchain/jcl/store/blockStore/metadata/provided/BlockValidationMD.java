@@ -35,9 +35,13 @@ public class BlockValidationMD implements Metadata {
         this.validated = validated;
     }
 
-    public long getNumTxs() { return this.numTxs; }
-    public boolean isDownloaded() { return this.downloaded;}
-    public boolean isValidated() {return this.validated;}
+    public long getNumTxs()                         { return this.numTxs; }
+    public boolean isDownloaded()                   { return this.downloaded;}
+    public boolean isValidated()                    { return this.validated;}
+
+    public void setNumTxs(long numTxs)              { this.numTxs = numTxs; }
+    public void setDownloaded(boolean downloaded)   { this.downloaded = downloaded; }
+    public void setValidated(boolean validated)     { this.validated = validated; }
 
     @Override
     public boolean equals(Object obj) {
