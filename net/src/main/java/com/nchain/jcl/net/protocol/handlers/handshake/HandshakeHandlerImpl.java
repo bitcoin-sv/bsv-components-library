@@ -132,8 +132,11 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
             if (peerInfo != null) {
 
                 // If the Peer is currently handshaked, we update the status and trigger an specific event:
-                if (peerInfo.isHandshakeAccepted() ) {
+                if (peerInfo.isHandshakeAccepted()) {
+                    logger.debug(peerInfo.getPeerAddress(), " Handshaked Peer disconnected : " + event.getReason().toString());
                     super.eventBus.publish(new PeerHandshakedDisconnectedEvent(peerInfo.getPeerAddress(), peerInfo.getVersionMsgReceived()));
+                } else {
+                    logger.debug(peerInfo.getPeerAddress(), "Not Handshaked Peer Disconnected : " + event.getReason().toString());
                 }
 
                 // We remove if from our Pool:
