@@ -155,13 +155,19 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
         try {
             lock.lock();
             PeerAddress peerAddress = event.getStream().getPeerAddress();
-            HandshakePeerInfo peerInfo = new HandshakePeerInfo(peerAddress);
-            peersInfo.put(peerAddress, peerInfo);
 
-            // If we still need Handshakes, we start the process with this Peer:
-            if (!doWeHaveEnoughHandshakes()) startHandshake(peerInfo);
+            // For some strange reasons, sometimes this event is triggered several times, so in order to
+            // prevent from starting the same handshake twice, we check if there is already a handshake in progress
+            // with this Peer...
+            if (peersInfo.get(peerAddress) == null) {
+                HandshakePeerInfo peerInfo = new HandshakePeerInfo(peerAddress);
+                peersInfo.put(peerAddress, peerInfo);
 
-            checkIfWeNeedMoreHandshakes();
+                // If we still need Handshakes, we start the process with this Peer:
+                if (!doWeHaveEnoughHandshakes()) startHandshake(peerInfo);
+
+                checkIfWeNeedMoreHandshakes();
+            }
         } finally {
             lock.unlock();
         }
