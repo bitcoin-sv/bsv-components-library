@@ -23,6 +23,8 @@ import com.nchain.jcl.tools.handlers.HandlerImpl;
 import com.nchain.jcl.tools.log.LoggerUtil;
 import com.nchain.jcl.tools.thread.ThreadUtils;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -243,17 +245,16 @@ public class PingPongHandlerImpl extends HandlerImpl implements PingPongHandler 
                     //logger.trace("Checking pending ping for " + peerInfo.getPeerAddress() + "...");
                     if (!peerInfo.isPingPongDisabled()) {
                         boolean pingSent = peerInfo.getTimePingSent() != null;
-                        long now = System.currentTimeMillis();
-
+                        Instant now = Instant.now();
                         // If we have sent a PING, we check that the time we've been waiting for
                         // the response is still within limits:
-                        if (pingSent && (now - peerInfo.getTimePingSent()) > config.getResponseTimeout()) {
+                        if (pingSent && Duration.between(peerInfo.getTimePingSent(), now).compareTo(config.getResponseTimeout()) > 0) {
                             failPingPon(peerInfo, PingPongFailedEvent.PingPongFailedReason.TIMEOUT);
                             continue;
                         }
 
                         // If we haven't sent a PING yet, we check if it's time to send it:
-                        if (!pingSent && (now - peerInfo.getTimeLastActivity()) > config.getInactivityTimeout()) {
+                        if (!pingSent && (Duration.between(peerInfo.getTimeLastActivity(), now).compareTo(config.getInactivityTimeout()) > 0)) {
                             this.startPingPong(peerInfo);
                             continue;
                         }

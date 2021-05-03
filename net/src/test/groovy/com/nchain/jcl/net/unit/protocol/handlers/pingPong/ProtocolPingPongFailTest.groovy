@@ -45,8 +45,8 @@ class ProtocolPingPongFailTest extends Specification {
 
             PingPongHandlerConfig serverPingConfig = serverConfig.getPingPongConfig()
                 .toBuilder()
-                .inactivityTimeout(inactivityTimeout.toMillis())
-                .responseTimeout(responseTimeout.toMillis())
+                .inactivityTimeout(inactivityTimeout)
+                .responseTimeout(responseTimeout)
                 .build()
 
             // We disable the Handlers we dont need for this Test:

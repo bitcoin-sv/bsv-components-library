@@ -22,7 +22,7 @@ class ProtocolPingPongOKTest extends Specification {
 
     /**
      * We test that the Ping/Pong protocol is working fine. "Working fine" means that the Ping/Pong protocol is
-     * actually triggered (PING and PON messages are exchanged) bewen 2 peers when they¡ve been inactive for some
+     * actually triggered (PING and PONG messages are exchanged) between 2 peers when they¡ve been inactive for some
      * period of time.
      */
     def "Testing Ping-Pong OK"() {
@@ -41,7 +41,7 @@ class ProtocolPingPongOKTest extends Specification {
 
             PingPongHandlerConfig serverPingConfig = serverConfig.getPingPongConfig()
                     .toBuilder()
-                    .inactivityTimeout(inactivityTimeout.toMillis())
+                    .inactivityTimeout(inactivityTimeout)
                     .build()
 
             // We disable the Handlers we dont need for this Test:
@@ -58,7 +58,7 @@ class ProtocolPingPongOKTest extends Specification {
 
             PingPongHandlerConfig clientPingConfig = clientConfig.getPingPongConfig()
                     .toBuilder()
-                    .inactivityTimeout(inactivityTimeout.toMillis())
+                    .inactivityTimeout(inactivityTimeout)
                     .build()
             // We disable the Handlers we dont need for this Test:
             P2P client = new P2PBuilder("client")
@@ -90,7 +90,9 @@ class ProtocolPingPongOKTest extends Specification {
             Thread.sleep(100)
             // We connect both together. This will trigger the HANDSHAKE protocol automatically.
             client.REQUESTS.PEERS.connect(server.getPeerAddress()).submit()
+            println("We wait for " + waitingTime.toMillis() + " milliseconds...")
             Thread.sleep(waitingTime.toMillis())
+            println("Waiting finished. Pings should have been triggered by now...");
             // At this moment, the Ping/Pong protocol must have been triggered at least once...
             server.stop()
             client.stop()
