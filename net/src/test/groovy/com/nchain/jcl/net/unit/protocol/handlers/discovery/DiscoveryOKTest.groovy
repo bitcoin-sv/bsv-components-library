@@ -78,6 +78,7 @@ class DiscoveryOKTest extends Specification {
             P2P server = new P2PBuilder("testing")
                     .config(config)
                     .config(discoveryConfig)
+                    .serverPort(0) // Random Port
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
                     .build()
 
