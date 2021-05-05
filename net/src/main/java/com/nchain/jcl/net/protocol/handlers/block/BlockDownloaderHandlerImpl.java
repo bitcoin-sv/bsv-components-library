@@ -190,8 +190,9 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
             if (peerInfo != null) {
                 logger.trace(peerInfo.getPeerAddress(),  "Peer Disconnected", peerInfo.toString());
                 // If this Peer was in the middle of downloading a block, we process the failiure...
-                if (peerInfo.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING))
-                    processDownloadFailiure(peerInfo);
+                if (peerInfo.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING)) {
+                    processDownloadFailiure(peerInfo, false);
+                }
                 peerInfo.disconnect();
             }
         } finally {
@@ -298,7 +299,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
 
             // In both cases, we process this success...
 
-            String blockHash = Sha256Hash.hash(blockHeader.getHash().getHashBytes()).toString();
+            String blockHash = Utils.HEX.encode(Utils.reverseBytes(blockHeader.getHash().getHashBytes())).toString();
 
             // The Duration of the downloading time can be calculated, but if the peer has sent the Block without asking
             // for it, the downloading time is just ZERO (since we can't keep track)
@@ -338,7 +339,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
     // failed for any reason (timeout, peer disconnected...). So now, depending on configuration, we give up on this
     // block or we can try again to download it with another Peer...
 
-    private void processDownloadFailiure(BlockPeerInfo peerInfo) {
+    private void processDownloadFailiure(BlockPeerInfo peerInfo, boolean toDiscardPeer) {
         if (peerInfo == null) return;
         try {
             lock.lock();
@@ -356,9 +357,11 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                     super.eventBus.publish(new BlockDiscardedEvent(blockHash, BlockDiscardedEvent.DiscardedReason.TIMEOUT));
                 }
             }
-            peerInfo.discard();
-            // We activated back the ping/Pong Verifications for this Peer
-            super.eventBus.publish(new EnablePingPongRequest(peerInfo.getPeerAddress()));
+            if (toDiscardPeer) {
+                // We discard and activate back the ping/Pong Verifications for this Peer
+                peerInfo.discard();
+                super.eventBus.publish(new EnablePingPongRequest(peerInfo.getPeerAddress()));
+            }
         } finally {
             lock.unlock();
         }
@@ -407,10 +410,6 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                 Collections.sort(peersOrdered, BlockPeerInfo.SPEED_COMPARATOR);
                 Iterator<BlockPeerInfo> it = peersOrdered.iterator();
 
-                // After each execution, we might discover Peers that need to be removed, so we keep a reference to
-                // those here, to remove them afterwards:
-                Set<PeerAddress> peersToRemove = new HashSet<>();
-
                 // We process each Peer...
                 while (it.hasNext()) {
 
@@ -456,10 +455,12 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                         }
 
                         case PROCESSING:{
-                            //logger.trace("> State: ", peerInfo.getPeerAddress(), peerInfo.toString());
+                            // We check the timeouts. If the peer has broken some of these timeouts, we discard it:
+                            boolean toDiscard = false;
                             String msgFailure = null;
                             if (peerInfo.isIdleTimeoutBroken(config.getMaxIdleTimeout())) {
                                 msgFailure = "Idle Time expired";
+                                toDiscard = true;
                             }
                             if (peerInfo.isDownloadTimeoutBroken(config.getMaxDownloadTimeout())) {
                                 msgFailure = "Downloading Time expired";
@@ -469,8 +470,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                             }
                             if (msgFailure != null) {
                                 logger.debug(peerAddress.toString(), "Download Failiure", peerInfo.getCurrentBlockInfo().hash, msgFailure);
-                                processDownloadFailiure(peerInfo);
-                                peersToRemove.add(peerAddress);
+                                processDownloadFailiure(peerInfo, toDiscard);
                             }
                             break;
                         }
@@ -478,16 +478,6 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
 
                 } // while it.next (each PeerInfo...
 
-
-                // Now we remove the Peers we decided need to be removed:
-                if (peersToRemove != null && !peersToRemove.isEmpty()) {
-                    try {
-                        lock.lock();
-                        for (PeerAddress peerAddress : peersToRemove) peersInfo.remove(peerAddress);
-                    } catch (Exception ex) {
-                      ex.printStackTrace();
-                    } finally { lock.unlock();}
-                }
 
                 // Now we loop over the discarded Blocks, to check if any of them can be tried again:
                 List<String> blocksToReTry = new ArrayList<>();
