@@ -352,7 +352,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
             // successfully downloaded right before calling this method:
             String blockHash = peerInfo.getCurrentBlockInfo().getHash();
 
-            if (blocksNumDownloadAttempts.containsKey(blockHash)) {
+            if (!blocksNumDownloadAttempts.containsKey(blockHash)) {
                 logger.debug("Download almost failed for " + blockHash + "...");
                 return;
             }
