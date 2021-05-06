@@ -343,9 +343,21 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         if (peerInfo == null) return;
         try {
             lock.lock();
-            if (peerInfo.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING)) {
+            // There is an edge scenario, in which the job that checks the download progress detects that this peer has
+            // broken a timeout so this peer is marked for failiure, but right AFTER is marked for validation but BEFORE
+            // this method is called, the peer could actually finish the download SUCCESSFULLY. We check that scenario
+            // now...
 
-                String blockHash = peerInfo.getCurrentBlockInfo().getHash();
+            // if the number of attempts for this Block doe snot exist, that means that this block has been
+            // successfully downloaded right before calling this method:
+            String blockHash = peerInfo.getCurrentBlockInfo().getHash();
+
+            if (blocksNumDownloadAttempts.containsKey(blockHash)) {
+                logger.debug("Download almost failed for " + blockHash + "...");
+                return;
+            }
+
+            if (peerInfo.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING)) {
                 int numAttempts = blocksNumDownloadAttempts.get(blockHash);
                 if (numAttempts < config.getMaxDownloadAttempts()) {
                     logger.debug("Download failure for " + blockHash + " :: back to the pending Pool...");
@@ -492,11 +504,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                             blocksDiscarded.remove(hashToRetry);
                             blocksPending.offerFirst(hashToRetry); // blocks to retry have preference...
                         }
-                    } catch (Exception ex) {
-                      ex.printStackTrace();
-                    } finally {
-                        lock.unlock();
-                    }
+                    } catch (Exception ex) { ex.printStackTrace();
+                    } finally { lock.unlock(); }
                 }
 
                 Thread.sleep(100); // to avoid tight loops...
