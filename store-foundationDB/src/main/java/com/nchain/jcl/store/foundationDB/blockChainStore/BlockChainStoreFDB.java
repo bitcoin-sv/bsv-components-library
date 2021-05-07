@@ -3,6 +3,7 @@ package com.nchain.jcl.store.foundationDB.blockChainStore;
 import com.apple.foundationdb.KeyValue;
 import com.apple.foundationdb.Transaction;
 import com.nchain.jcl.store.blockChainStore.events.BlockChainStoreStreamer;
+import com.nchain.jcl.store.blockStore.metadata.Metadata;
 import com.nchain.jcl.store.foundationDB.blockStore.BlockStoreFDB;
 import com.nchain.jcl.store.keyValue.blockChainStore.BlockChainStoreKeyValue;
 import com.nchain.jcl.tools.thread.ThreadUtils;
@@ -43,12 +44,15 @@ public class BlockChainStoreFDB extends BlockStoreFDB implements BlockChainStore
 
     public BlockChainStoreFDB(@Nonnull BlockChainStoreFDBConfig config,
                               boolean triggerBlockEvents,
-                              boolean triggerTxEvents, Duration statePublishFrequency,
+                              boolean triggerTxEvents,
+                              Class<? extends Metadata> blockMetadataClass,
+                              Duration statePublishFrequency,
                               Boolean enableAutomaticForkPrunning,
                               Duration forkPrunningFrequency,
                               Boolean enableAutomaticOrphanPrunning,
                               Duration orphanPrunningFrequency) {
-        super(config, triggerBlockEvents, triggerTxEvents);
+
+        super(config, triggerBlockEvents, triggerTxEvents, blockMetadataClass);
         this.config = config;
 
         this.enableAutomaticForkPrunning = (enableAutomaticForkPrunning != null) ? enableAutomaticForkPrunning : false;
@@ -141,6 +145,7 @@ public class BlockChainStoreFDB extends BlockStoreFDB implements BlockChainStore
         private @Nonnull BlockChainStoreFDBConfig config;
         private boolean triggerBlockEvents;
         private boolean triggerTxEvents;
+        private Class<? extends Metadata> blockMetadataClass;
         private Duration statePublishFrequency;
         private Boolean enableAutomaticForkPrunning;
         private Duration forkPrunningFrequency;
@@ -162,6 +167,11 @@ public class BlockChainStoreFDB extends BlockStoreFDB implements BlockChainStore
 
         public BlockChainStoreFDB.BlockChainStoreFDBBuilder triggerTxEvents(boolean triggerTxEvents) {
             this.triggerTxEvents = triggerTxEvents;
+            return this;
+        }
+
+        public BlockChainStoreFDB.BlockChainStoreFDBBuilder blockMetadataClass(Class<? extends Metadata> blockMetadataClass) {
+            this.blockMetadataClass = blockMetadataClass;
             return this;
         }
 
@@ -191,7 +201,7 @@ public class BlockChainStoreFDB extends BlockStoreFDB implements BlockChainStore
         }
 
         public BlockChainStoreFDB build() {
-            return new BlockChainStoreFDB(config, triggerBlockEvents, triggerTxEvents, statePublishFrequency, enableAutomaticForkPrunning, forkPrunningFrequency, enableAutomaticOrphanPrunning, orphanPrunningFrequency);
+            return new BlockChainStoreFDB(config, triggerBlockEvents, triggerTxEvents, blockMetadataClass, statePublishFrequency, enableAutomaticForkPrunning, forkPrunningFrequency, enableAutomaticOrphanPrunning, orphanPrunningFrequency);
         }
     }
 }

@@ -3,6 +3,7 @@ package com.nchain.jcl.store.levelDB
 
 import com.nchain.jcl.store.blockChainStore.BlockChainStore
 import com.nchain.jcl.store.blockStore.BlockStore
+import com.nchain.jcl.store.blockStore.metadata.Metadata
 import com.nchain.jcl.store.levelDB.blockChainStore.BlockChainStoreLevelDB
 import com.nchain.jcl.store.levelDB.blockChainStore.BlockChainStoreLevelDBConfig
 import com.nchain.jcl.store.levelDB.blockStore.BlockStoreLevelDB
@@ -27,6 +28,11 @@ class StoreFactory {
 
     /** It creates an instance of the BlockStore interface */
     static BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents) {
+        return getInstance(netId, triggerBlockEvents, triggerTxEvents, null);
+    }
+
+    /** It creates an instance of the BlockStore interface, including metadata class for Blocks */
+    static BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents, Class<? extends Metadata> blockMetadataClass) {
         Path dbPath = Path.of(buildWorkingFolder())
         BlockStoreLevelDBConfig dbConfig = BlockStoreLevelDBConfig.builder()
                 .workingFolder(dbPath)
@@ -36,10 +42,10 @@ class StoreFactory {
                 .config(dbConfig)
                 .triggerBlockEvents(triggerBlockEvents)
                 .triggerTxEvents(triggerTxEvents)
+                .blockMetadataClass(blockMetadataClass)
                 .build()
         return db
     }
-
 
     /** It creates an Instance of te BlockChainStore interface */
     static BlockChainStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents,

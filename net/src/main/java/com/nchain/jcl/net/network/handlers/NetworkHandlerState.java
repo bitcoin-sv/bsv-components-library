@@ -15,17 +15,23 @@ public final class NetworkHandlerState extends HandlerState {
     private final int numInProgressConns;
     private final int numPendingToOpenConns;
     private final int numPendingToCloseConns;
+    private final long numConnsFailed;
+    private final long numInProgressConnsExpired;
+
     private final boolean server_mode;
     private final boolean keep_connecting;
 
     NetworkHandlerState(int numActiveConns, int numInProgressConns, int numPendingToOpenConns, int numPendingToCloseConns,
-                        boolean server_mode, boolean keep_connecting) {
+                        boolean server_mode, boolean keep_connecting,
+                        long numConnsFailed, long numInProgressConnsExpired) {
         this.numActiveConns = numActiveConns;
         this.numInProgressConns = numInProgressConns;
         this.numPendingToOpenConns = numPendingToOpenConns;
         this.numPendingToCloseConns = numPendingToCloseConns;
         this.server_mode = server_mode;
         this.keep_connecting = keep_connecting;
+        this.numConnsFailed = numConnsFailed;
+        this.numInProgressConnsExpired = numInProgressConnsExpired;
     }
 
 
@@ -37,7 +43,9 @@ public final class NetworkHandlerState extends HandlerState {
         result.append(numActiveConns).append(" active, ");
         result.append(numInProgressConns).append(" in progress, ");
         result.append(numPendingToOpenConns).append( " pending to Open, ");
-        result.append(numPendingToCloseConns).append(" pending to Close");
+        result.append(numPendingToCloseConns).append(" pending to Close, ");
+        result.append(numConnsFailed).append(" failed, ");
+        result.append(numInProgressConnsExpired).append(" in-progress expired, ");
         result.append(": ").append((server_mode)? "Running in Server Mode" : "Running in Client Mode");
         result.append(": ").append((keep_connecting)? "connecting": "connections stable");
         return result.toString();
@@ -54,7 +62,15 @@ public final class NetworkHandlerState extends HandlerState {
         return new NetworkHandlerStateBuilder();
     }
     public NetworkHandlerStateBuilder toBuilder() {
-        return new NetworkHandlerStateBuilder().numActiveConns(this.numActiveConns).numInProgressConns(this.numInProgressConns).numPendingToOpenConns(this.numPendingToOpenConns).numPendingToCloseConns(this.numPendingToCloseConns).server_mode(this.server_mode).keep_connecting(this.keep_connecting);
+        return new NetworkHandlerStateBuilder()
+                .numActiveConns(this.numActiveConns)
+                .numInProgressConns(this.numInProgressConns)
+                .numPendingToOpenConns(this.numPendingToOpenConns)
+                .numPendingToCloseConns(this.numPendingToCloseConns)
+                .server_mode(this.server_mode)
+                .keep_connecting(this.keep_connecting)
+                .numConnsFailed(this.numConnsFailed)
+                .numInProgressConnsExpired(this.numInProgressConnsExpired);
     }
 
     /**
@@ -65,6 +81,8 @@ public final class NetworkHandlerState extends HandlerState {
         private int numInProgressConns;
         private int numPendingToOpenConns;
         private int numPendingToCloseConns;
+        private long numConnsFailed;
+        private long numInProgressConnsExpired;
         private boolean server_mode;
         private boolean keep_connecting;
 
@@ -90,6 +108,16 @@ public final class NetworkHandlerState extends HandlerState {
             return this;
         }
 
+        public NetworkHandlerState.NetworkHandlerStateBuilder numConnsFailed(long numConnsFailed) {
+            this.numConnsFailed = numConnsFailed;
+            return this;
+        }
+
+        public NetworkHandlerState.NetworkHandlerStateBuilder numInProgressConnsExpired(long numInProgressConnsExpired) {
+            this.numInProgressConnsExpired = numInProgressConnsExpired;
+            return this;
+        }
+
         public NetworkHandlerState.NetworkHandlerStateBuilder server_mode(boolean server_mode) {
             this.server_mode = server_mode;
             return this;
@@ -101,7 +129,8 @@ public final class NetworkHandlerState extends HandlerState {
         }
 
         public NetworkHandlerState build() {
-            return new NetworkHandlerState(numActiveConns, numInProgressConns, numPendingToOpenConns, numPendingToCloseConns, server_mode, keep_connecting);
+            return new NetworkHandlerState(numActiveConns, numInProgressConns, numPendingToOpenConns, numPendingToCloseConns, server_mode, keep_connecting,
+                    numConnsFailed, numInProgressConnsExpired);
         }
     }
 }

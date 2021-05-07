@@ -43,6 +43,12 @@ abstract class BlockChainForkSpecBase extends BlockChainStoreSpecBase {
         when:
             db.start()
 
+            // We clean the DB:
+            db.clear()
+            // We check the DB Content in the console...
+            println("Content of DB Right BEFORE the Test:")
+            db.printKeys()
+
             // We insert the main Chain: [genesis] -> 1 -> 2 -> 3 -> 4
 
             HeaderReadOnly block_1 = TestingUtils.buildBlock(genesisBlock.getHash().toString())
@@ -139,9 +145,9 @@ abstract class BlockChainForkSpecBase extends BlockChainStoreSpecBase {
             db.removeBlocks(Arrays.asList(genesisBlock.getHash(), block_1.getHash(), block_2.getHash(),
                     block_3.getHash(), block_4.getHash(), block_3B.getHash(), block_4B.getHash()))
             db.removeTipsChains()
+            db.clear()
             // We check the DB Content in the console...
             db.printKeys()
-            db.clear()
             db.stop()
             println(" - Test Done.")
     }
@@ -160,6 +166,12 @@ abstract class BlockChainForkSpecBase extends BlockChainStoreSpecBase {
 
         when:
             db.start()
+
+            // We clean the DB:
+            db.clear()
+            // We check the DB Content in the console...
+            println("Content of DB Right BEFORE the Test:")
+            db.printKeys()
 
             // We insert the main Chain: [genesis] -> ...100 blocks
             Sha256Hash parentBlockHash = genesisBlock.hash
@@ -203,12 +215,11 @@ abstract class BlockChainForkSpecBase extends BlockChainStoreSpecBase {
             tipsAfterPrunning.size() == 1
             numBlocksEnd == 1 // GENESIS
 
-
         cleanup:
             println(" - Cleanup...")
+            db.clear()
             // We check the DB Content in the console...
             db.printKeys()
-            db.clear()
             db.stop()
             println(" - Test Done.")
     }
@@ -242,9 +253,12 @@ abstract class BlockChainForkSpecBase extends BlockChainStoreSpecBase {
         when:
             db.start()
 
+            // We clean the DB:
+            db.clear()
             // We check the DB Content in the console...
-            println("Initial state of the DB:")
+            println("Content of DB Right BEFORE the Test:")
             db.printKeys()
+
             // We insert the main Chain: [genesis] -> 1 -> 2 -> 3 -> 4
 
             HeaderReadOnly block_1 = TestingUtils.buildBlock(genesisBlock.getHash().toString())

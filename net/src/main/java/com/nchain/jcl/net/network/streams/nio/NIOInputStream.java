@@ -162,8 +162,13 @@ public class NIOInputStream extends PeerInputStreamImpl<ByteArrayReader, ByteArr
 
     @Override
     public void close(StreamCloseEvent event) {
-        super.close(event);
-        key.cancel();
+        try {
+            super.close(event);
+            key.cancel();
+            this.socketChannel.close();
+        } catch (IOException ioe) {
+            logger.error(ioe.getMessage(), ioe);
+        }
     }
 
     public  List<StreamDataEvent<ByteArrayReader>> transform(StreamDataEvent<ByteArrayReader> dataEvent) {

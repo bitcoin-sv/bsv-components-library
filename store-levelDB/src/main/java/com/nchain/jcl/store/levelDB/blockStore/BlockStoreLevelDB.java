@@ -2,6 +2,7 @@ package com.nchain.jcl.store.levelDB.blockStore;
 
 
 import com.nchain.jcl.store.blockStore.events.BlockStoreStreamer;
+import com.nchain.jcl.store.blockStore.metadata.Metadata;
 import com.nchain.jcl.store.keyValue.blockStore.BlockStoreKeyValue;
 import com.nchain.jcl.store.keyValue.common.KeyValueIterator;
 import com.nchain.jcl.store.levelDB.common.LevelDBIterator;
@@ -70,13 +71,18 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
     private final ExecutorService executorService;
     private final BlockStoreStreamer blockStoreStreamer;
 
+    // MetadataClass linked to Blocks;
+    private Class<? extends Metadata> blockMetadataClass;
+
     public BlockStoreLevelDB(@Nonnull BlockStoreLevelDBConfig  config,
                              boolean triggerBlockEvents,
-                             boolean triggerTxEvents) throws RuntimeException {
+                             boolean triggerTxEvents,
+                             Class<? extends Metadata> blockMetadataClass) throws RuntimeException {
         try {
             this.config = config;
             this.triggerBlockEvents = triggerBlockEvents;
             this.triggerTxEvents = triggerTxEvents;
+            this.blockMetadataClass = blockMetadataClass;
 
             // LevelDB engine configuration:
             Options options = new Options();
@@ -141,6 +147,9 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
         return fullKey(blockDirFullKey, keyForBlockTx(txHash, txIndex));}
 
     @Override public byte[] fullKeyForBlockDir(Object tr, String blockHash)                 { return fullKey(fullKeyForBlocks(tr), keyForBlockDir(blockHash)); }
+    @Override public byte[] fullKeyForBlocksMetadata(Object tr)                             { return fullKey(fullKeyForBlocks(tr), DIR_METADATA);}
+    @Override public byte[] fullKeyForBlockMetadata(Object tr, String blockHash)            { return fullKey(fullKeyForBlocksMetadata(tr), keyForBlockMetadata(blockHash));}
+
     @Override public byte[] fullKeyForTxs(Object tr)                                        { return fullKey(DIR_BLOCKCHAIN, config.getNetworkId(), DIR_TXS); }
     @Override public byte[] fullKeyForTx(Object tr, String txHash)                          { return fullKey(fullKeyForTxs(tr), keyForTx(txHash)); }
     @Override public byte[] fullKeyForTxBlock(Object tr, String txHash, String blockHash)   { return fullKey(fullKeyForTxs(tr), keyForTxBlock(txHash, blockHash)); }
@@ -149,6 +158,7 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
     @Override public byte[] fullKeyForTxs()                                                 { return fullKey(DIR_BLOCKCHAIN, config.getNetworkId(), DIR_TXS);}
     @Override public BlockStoreStreamer EVENTS()                                            { return this.blockStoreStreamer; }
 
+    @Override public Class<? extends Metadata>  getMetadataClassForBlocks()                 { return this.blockMetadataClass; }
 
     @Override
     public <T> KeyValueIterator<T, Object> getIterator(byte[] startingWith,
@@ -271,6 +281,7 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
         private @Nonnull BlockStoreLevelDBConfig config;
         private boolean triggerBlockEvents;
         private boolean triggerTxEvents;
+        private Class<? extends Metadata> blockMetadataClass;
 
         BlockStoreLevelDBBuilder() {
         }
@@ -290,8 +301,13 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
             return this;
         }
 
+        public BlockStoreLevelDB.BlockStoreLevelDBBuilder blockMetadataClass(Class<? extends Metadata> blockMetadataClass) {
+            this.blockMetadataClass = blockMetadataClass;
+            return this;
+        }
+
         public BlockStoreLevelDB build() throws RuntimeException {
-            return new BlockStoreLevelDB(config, triggerBlockEvents, triggerTxEvents);
+            return new BlockStoreLevelDB(config, triggerBlockEvents, triggerTxEvents, blockMetadataClass);
         }
     }
 }

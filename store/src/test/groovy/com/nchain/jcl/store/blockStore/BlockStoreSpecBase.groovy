@@ -1,6 +1,7 @@
 package com.nchain.jcl.store.blockStore
 
 import com.nchain.jcl.store.blockStore.BlockStore
+import com.nchain.jcl.store.blockStore.metadata.Metadata
 import spock.lang.Specification
 
 /**
@@ -18,6 +19,12 @@ import spock.lang.Specification
  * will be defined in this JCL-Sotre Module.
  */
 abstract class BlockStoreSpecBase extends Specification {
+
     /** Returns a concrete implementation of the BlockStore interface. This is implementation-specific */
-    abstract BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents);
+    BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents) {
+        return getInstance(netId, triggerBlockEvents, triggerTxEvents, null);
+    }
+
+    /** Returns a concrete implementation of the BlockStore interface. This is implementation-specific */
+    abstract BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents, Class<? extends Metadata> blockMetadataClass);
 }

@@ -84,6 +84,33 @@ txs.forEach(tx -> db.save(tx)); // WARNING: IMPACT ON PERFORMANCE
 db.saveTxs(txs);				// PERFORMANCE OK
 ```
 
+### Setting up Metadata
+
+It' also possible to define *Metadata* that can be attached to a *Block*. In order to do that, we need to define 
+first the *Metadata* Class we'll use to store the data, and then *inform* JCL to use it: 
+
+```
+// Metadata that can be attached to a Block
+public class BlockCustomMetadata impements Metadata {
+    ...
+}
+
+// We set up the BlockStore, informing of the previous class:
+RuntimeConfig runtimeConfig = new RuntimeConfigDefault();
+BlockStoreLevelDBConfig dbConfig = BlockStoreLevelDBConfig.builder()
+                    .config(runtimeConfig)
+                    .build()
+BlockStore db = BlockStoreLevelDB.builder()
+                    .config(dbConfig)
+                    ...
+                    .blockMetadataClass(BlockCustomMetadata.class)
+                    .build()                 
+```
+
+After setting up *BlockStore* we can make use of the new methods available for working with *Metadata*
+
+> See [JCL-Store doc](../../doc/README.md) for more details
+
 
 ## BlockChainStore Setup:
 

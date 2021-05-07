@@ -3,6 +3,7 @@ package com.nchain.jcl.store.levelDB.blockStore
 import com.nchain.jcl.store.blockStore.BlockStore
 import com.nchain.jcl.store.blockStore.BlockStoreBlocksSpecBase
 import com.nchain.jcl.store.blockStore.BlockStoreClearDBSpecBase
+import com.nchain.jcl.store.blockStore.metadata.Metadata
 import com.nchain.jcl.store.levelDB.StoreFactory
 
 /**
@@ -11,7 +12,7 @@ import com.nchain.jcl.store.levelDB.StoreFactory
  */
 class BlockStoreClearDBSpec extends BlockStoreClearDBSpecBase {
     @Override
-    BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents) {
-        return StoreFactory.getInstance(netId, triggerBlockEvents, triggerTxEvents)
+    BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents, Class<? extends Metadata> blockMetadataClass) {
+        return StoreFactory.getInstance(netId, triggerBlockEvents, triggerTxEvents, blockMetadataClass)
     }
 }

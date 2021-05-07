@@ -33,6 +33,12 @@ abstract class BlockChainTipsSpecBase extends BlockChainStoreSpecBase {
         when:
             db.start()
 
+            // We clean the DB:
+            db.clear()
+            // We check the DB Content in the console...
+            println("Content of DB Right BEFORE the Test:")
+            db.printKeys()
+
             // We create a tree like this:
             // - [genesis] - [A] - [B] - [D]
             //                  \- [C] - [E]
@@ -141,6 +147,12 @@ abstract class BlockChainTipsSpecBase extends BlockChainStoreSpecBase {
 
         when:
             db.start()
+
+            // We clean the DB:
+            db.clear()
+            // We check the DB Content in the console...
+            println("Content of DB Right BEFORE the Test:")
+            db.printKeys()
 
             // We create first a tree like this:
             // - [genesis] - [A] - [B] - [C]

@@ -1,6 +1,7 @@
 package com.nchain.jcl.store.foundationDB.common
 
 import com.nchain.jcl.store.blockStore.BlockStore
+import com.nchain.jcl.store.blockStore.metadata.Metadata
 import com.nchain.jcl.store.common.IteratorSpecBase
 import com.nchain.jcl.store.foundationDB.FDBTestUtils
 import com.nchain.jcl.store.foundationDB.blockStore.BlockStoreFDB
@@ -20,8 +21,8 @@ class FDBIteratorSpec extends IteratorSpecBase {
     def cleanupSpec()   { FDBTestUtils.checkFDBAfter()}
 
     @Override
-    BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents) {
-        return StoreFactory.getInstance(netId, triggerBlockEvents, triggerTxEvents)
+    BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents, Class<? extends Metadata> blockMetadataClass) {
+        return StoreFactory.getInstance(netId, triggerBlockEvents, triggerTxEvents, blockMetadataClass)
     }
 
     @Override

@@ -69,6 +69,12 @@ abstract class BlockChainMultiThreadSpecBase extends BlockChainStoreSpecBase {
 
         when:
             db.start()
+            // We clean the DB:
+            db.clear()
+            // We check the DB Content in the console...
+            println("Content of DB Right BEFORE the Test:")
+            db.printKeys()
+
             executor.submit(writeProcess)
             executor.submit(readProcess)
             executor.awaitTermination(testDuration.toMillis() * 2, TimeUnit.MILLISECONDS)

@@ -192,7 +192,7 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
             Event event = EventFactory.buildOutcomingEvent(peerAddress, btcMessage);
             super.eventBus.publish(event);
 
-            // we also publish a more "general" event, valid ofr any outcoming message
+            // we also publish a more "general" event, valid for any outcoming message
             super.eventBus.publish(new MsgSentEvent<>(peerAddress, btcMessage));
 
             // We update the state:

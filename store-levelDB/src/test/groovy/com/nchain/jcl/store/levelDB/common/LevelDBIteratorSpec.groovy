@@ -1,6 +1,7 @@
 package com.nchain.jcl.store.levelDB.common
 
 import com.nchain.jcl.store.blockStore.BlockStore
+import com.nchain.jcl.store.blockStore.metadata.Metadata
 import com.nchain.jcl.store.common.IteratorSpecBase
 import com.nchain.jcl.store.levelDB.blockStore.BlockStoreLevelDB
 import com.nchain.jcl.store.levelDB.StoreFactory
@@ -14,7 +15,7 @@ import java.util.function.Function
 class LevelDBIteratorSpec extends IteratorSpecBase {
 
     @Override
-    BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents) {
+    BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents, Class<? extends Metadata> blockMetadataClass) {
         return StoreFactory.getInstance(netId, triggerBlockEvents, triggerTxEvents)
     }
 

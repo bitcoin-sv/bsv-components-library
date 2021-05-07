@@ -19,7 +19,7 @@ public class NetworkDefaultConfig extends NetworkConfigImpl {
     private static final OptionalInt timeoutSocketConnection = OptionalInt.of(500);
     private static final OptionalInt timeoutSocketRemoteConfirmation = OptionalInt.of(500);
     private static final OptionalInt timeoutSocketIdle = OptionalInt.empty();
-    private static final int maxSocketConnectionsOpeningAtSameTime = 5;
+    private static final int maxSocketConnectionsOpeningAtSameTime = 50;
     private static final int nioBufferSizeLowerBound = 4096;
     private static final int nioBufferSizeUpperBound = 65536;
     private static final int nioBufferSizeUpgrade = 10_000_000;

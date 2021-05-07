@@ -2,6 +2,7 @@ package com.nchain.jcl.store.blockStore;
 
 
 import com.nchain.jcl.store.blockStore.events.BlockStoreStreamer;
+import com.nchain.jcl.store.blockStore.metadata.Metadata;
 import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
 import io.bitcoinj.bitcoin.api.base.Tx;
 import io.bitcoinj.core.Sha256Hash;
@@ -89,6 +90,18 @@ public interface BlockStore {
      * Returns the total number of Blocks stored in the DB
      */
     long getNumBlocks();
+
+
+    // Block Metadata Operations:
+
+    /** Retrieves the metadata attached to the block given, if any */
+    Optional<Metadata> getBlockMetadata(Sha256Hash blockHash);
+
+    /** It saves some Metadata linked to a Block */
+    void saveBlockMetadata(Sha256Hash blockHash, Metadata metadata);
+
+    /** It removes metadata linked to a Block */
+    void removeBlockMetadata(Sha256Hash blockHash);
 
     // Tx Storage Operations:
 

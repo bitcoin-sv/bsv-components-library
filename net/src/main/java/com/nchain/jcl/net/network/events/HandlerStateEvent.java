@@ -10,7 +10,7 @@ import com.nchain.jcl.tools.handlers.HandlerState;
  *
  * An Event triggered when a Handler publishes its current State.
  */
-public final class HandlerStateEvent extends Event {
+public final class HandlerStateEvent extends P2PEvent {
     private final HandlerState state;
 
     public HandlerStateEvent(HandlerState state)    { this.state = state; }

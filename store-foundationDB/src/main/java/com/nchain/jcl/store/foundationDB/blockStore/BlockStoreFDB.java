@@ -8,6 +8,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.primitives.Bytes;
 import com.nchain.jcl.store.blockStore.BlockStore;
 import com.nchain.jcl.store.blockStore.events.BlockStoreStreamer;
+import com.nchain.jcl.store.blockStore.metadata.Metadata;
 import com.nchain.jcl.store.foundationDB.common.FDBIterator;
 import com.nchain.jcl.store.foundationDB.common.FDBSafeIterator;
 import com.nchain.jcl.store.keyValue.blockStore.BlockStoreKeyValue;
@@ -60,6 +61,7 @@ public class BlockStoreFDB implements BlockStoreKeyValue<KeyValue, Transaction>,
     protected DirectorySubspace netDir;
     protected DirectorySubspace blockchainDir;
     protected DirectorySubspace blocksDir;
+    protected DirectorySubspace blocksMetadataDir;
     protected DirectorySubspace txsDir;
 
     // Events Streaming Configuration:
@@ -70,11 +72,17 @@ public class BlockStoreFDB implements BlockStoreKeyValue<KeyValue, Transaction>,
     // Executor to trigger Async Methods:
     private ExecutorService executor;
 
+    // MetadataClass linked to Blocks;
+    private Class<? extends Metadata> blockMetadataClass;
+
     public BlockStoreFDB(@Nonnull BlockStoreFDBConfig config,
-                         boolean triggerBlockEvents, boolean triggerTxEvents) {
+                         boolean triggerBlockEvents,
+                         boolean triggerTxEvents,
+                         Class<? extends Metadata> blockMetadataClass) {
         this.config = config;
         this.triggerBlockEvents = triggerBlockEvents;
         this.triggerTxEvents = triggerTxEvents;
+        this.blockMetadataClass = blockMetadataClass;
 
         // Events Configuration:
         this.eventBusExecutor = ThreadUtils.getThreadPoolExecutorService("BlockStore-FoundationDB");
@@ -122,10 +130,11 @@ public class BlockStoreFDB implements BlockStoreKeyValue<KeyValue, Transaction>,
     protected void initDirectoryStructure() {
         dirLayer = new DirectoryLayer();
         db.run( tr -> {
-            blockchainDir    = dirLayer.createOrOpen(tr, Arrays.asList(DIR_BLOCKCHAIN)).join();
-            netDir           = blockchainDir.createOrOpen(tr, Arrays.asList(config.getNetworkId())).join();
-            blocksDir        = netDir.createOrOpen(tr, Arrays.asList(DIR_BLOCKS)).join();
-            txsDir           = netDir.createOrOpen(tr, Arrays.asList(DIR_TXS)).join();
+            blockchainDir     = dirLayer.createOrOpen(tr, Arrays.asList(DIR_BLOCKCHAIN)).join();
+            netDir            = blockchainDir.createOrOpen(tr, Arrays.asList(config.getNetworkId())).join();
+            blocksDir         = netDir.createOrOpen(tr, Arrays.asList(DIR_BLOCKS)).join();
+            blocksMetadataDir = blocksDir.createOrOpen(tr, Arrays.asList(DIR_METADATA)).join();
+            txsDir            = netDir.createOrOpen(tr, Arrays.asList(DIR_TXS)).join();
 
             // We print out the DB Structure and general info about the configuration:
             log.info("JCL-Store Configuration:");
@@ -220,7 +229,6 @@ public class BlockStoreFDB implements BlockStoreKeyValue<KeyValue, Transaction>,
     @Override public byte[] fullKeyForTxBlock(Transaction tr, String txHash, String blockHash)   { return fullKey(txsDir, keyForTxBlock(txHash, blockHash));}
 
     @Override public byte[] fullKeyForBlockDir(Transaction tr, String blockHash) {
-
         try {
             DirectorySubspace blockDir = blocksDir.createOrOpen(tr, Arrays.asList(blockHash)).get();
             byte[] result = blockDir.getKey();
@@ -230,9 +238,13 @@ public class BlockStoreFDB implements BlockStoreKeyValue<KeyValue, Transaction>,
         }
     }
 
-    @Override public byte[] fullKeyForBlocks()          { return blocksDir.getKey();}
-    @Override public byte[] fullKeyForTxs()             { return txsDir.getKey();}
-    @Override public BlockStoreStreamer EVENTS()        { return this.blockStoreStreamer; }
+    @Override public byte[] fullKeyForBlocksMetadata(Transaction tr)                            { return blocksMetadataDir.getKey(); }
+    @Override public byte[] fullKeyForBlockMetadata(Transaction tr, String blockHash)           { return fullKey(fullKeyForBlocksMetadata(tr), keyForBlockMetadata(blockHash)); }
+    @Override public byte[] fullKeyForBlocks()                                                  { return blocksDir.getKey();}
+    @Override public byte[] fullKeyForTxs()                                                     { return txsDir.getKey();}
+    @Override public BlockStoreStreamer EVENTS()                                                { return this.blockStoreStreamer; }
+
+    @Override public Class<? extends Metadata>  getMetadataClassForBlocks()                     { return this.blockMetadataClass; }
 
     @Override
     public void removeBlockDir(String blockHash) {
@@ -305,43 +317,7 @@ public class BlockStoreFDB implements BlockStoreKeyValue<KeyValue, Transaction>,
         }
         return result;
     }
-    /*
-    public List<Tx> _saveTxsIfNotExist(Transaction tr, List<Tx> txs) {
-        List<Tx> result = new ArrayList<>();
-        try {
-            // to check whether the Tx exists in the DB (we use async read):
-            Map<String, CompletableFuture<byte[]>> readFutures = new ConcurrentHashMap<>();
 
-            List<CompletableFuture<Tx>> readsFutures = new ArrayList<>();
-
-            // We check if the Txs exists in the DB (we launch the queries, will collect the results later on)
-            for (Tx tx : txs) {
-                String txHash = tx.getHashAsString();
-                byte[] txKey = fullKeyForTx(tr, txHash);
-                CompletableFuture readTxFuture =  CompletableFuture
-                        .supplyAsync(() -> readAsync(tr, txKey), this.executor)
-                        .thenApply(keyF -> {
-                            Tx txToInsert = null;
-                            try {
-                                if (keyF.get() == null) {
-                                    save(tr, txKey, bytes(tx));
-                                    txToInsert = tx;
-                                }
-                            } catch (Exception e) {e.printStackTrace();}
-                            return txToInsert;
-                        });
-                readsFutures.add(readTxFuture);
-            }
-            for (CompletableFuture<Tx> readTxF : readsFutures) {
-                Tx tx = readTxF.get();
-                if (tx != null) result.add(tx);
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        return result;
-    }
-    */
     private void printDir(Transaction tr, DirectorySubspace parentDir, int level, boolean showDirContent) {
 
         String tabulation = Strings.repeat("  ", level); // deeper elements go further to the right when printed
@@ -385,14 +361,13 @@ public class BlockStoreFDB implements BlockStoreKeyValue<KeyValue, Transaction>,
             try {
                 // We remove The Blocks and Txs layers
                 if (blockchainDir.exists(tr).get()) blockchainDir.remove(tr).join();
-                // And we init again the Directory Layer structure:
-                initDirectoryStructure();
-
             } catch (Exception e) {
                 e.printStackTrace();
             }
             return null;
         });
+        // And we init again the Directory Layer structure:
+        initDirectoryStructure();
     }
 
     @Override
@@ -425,6 +400,7 @@ public class BlockStoreFDB implements BlockStoreKeyValue<KeyValue, Transaction>,
         private @Nonnull BlockStoreFDBConfig config;
         private boolean triggerBlockEvents;
         private boolean triggerTxEvents;
+        private Class<? extends Metadata> blockMetadataClass;
 
         BlockStoreFDBBuilder() {
         }
@@ -444,8 +420,13 @@ public class BlockStoreFDB implements BlockStoreKeyValue<KeyValue, Transaction>,
             return this;
         }
 
+        public BlockStoreFDB.BlockStoreFDBBuilder blockMetadataClass(Class<? extends Metadata> blockMetadataClass) {
+            this.blockMetadataClass = blockMetadataClass;
+            return this;
+        }
+
         public BlockStoreFDB build() {
-            return new BlockStoreFDB(config, triggerBlockEvents, triggerTxEvents);
+            return new BlockStoreFDB(config, triggerBlockEvents, triggerTxEvents, blockMetadataClass);
         }
     }
 }

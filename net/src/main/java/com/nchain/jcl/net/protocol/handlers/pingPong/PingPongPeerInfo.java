@@ -3,6 +3,8 @@ package com.nchain.jcl.net.protocol.handlers.pingPong;
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.protocol.messages.PingMsg;
 
+import java.time.Instant;
+
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
@@ -13,8 +15,8 @@ import com.nchain.jcl.net.protocol.messages.PingMsg;
 
 public class PingPongPeerInfo {
     private PeerAddress peerAddress;
-    private Long timeLastActivity;
-    private Long timePingSent;
+    private Instant timeLastActivity;
+    private Instant timePingSent;
     private Long noncePingSent;
 
     // If enabled, the Ping/Pong protocol will be disabled for this Peer: The incoming PING/PONG
@@ -24,7 +26,7 @@ public class PingPongPeerInfo {
     /** Constructor */
     public PingPongPeerInfo(PeerAddress peerAddress) {
         this.peerAddress = peerAddress;
-        this.timeLastActivity = System.currentTimeMillis();
+        this.timeLastActivity = Instant.now();
     }
 
     /** It resets the info, so it can be used in a new Ping-Pong P2P */
@@ -34,11 +36,11 @@ public class PingPongPeerInfo {
     }
     /** It resets the time for the last Activity to NOW */
     public synchronized void updateActivity() {
-        timeLastActivity = System.currentTimeMillis();
+        timeLastActivity = Instant.now();
     }
 
     public synchronized void updatePingStarted(PingMsg pingMsg) {
-        timePingSent = System.currentTimeMillis();
+        timePingSent = Instant.now();
         noncePingSent = pingMsg.getNonce();
     }
 
@@ -53,9 +55,9 @@ public class PingPongPeerInfo {
         reset();
     }
 
-    public PeerAddress getPeerAddress() { return this.peerAddress; }
-    public Long getTimeLastActivity()   { return this.timeLastActivity; }
-    public Long getTimePingSent()       { return this.timePingSent; }
-    public Long getNoncePingSent()      { return this.noncePingSent; }
-    public boolean isPingPongDisabled() { return this.pingPongDisabled; }
+    public PeerAddress getPeerAddress()     { return this.peerAddress; }
+    public Instant getTimeLastActivity()    { return this.timeLastActivity; }
+    public Instant getTimePingSent()        { return this.timePingSent; }
+    public Long getNoncePingSent()          { return this.noncePingSent; }
+    public boolean isPingPongDisabled()     { return this.pingPongDisabled; }
 }
