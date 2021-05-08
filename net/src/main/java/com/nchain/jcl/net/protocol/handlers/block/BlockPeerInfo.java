@@ -145,6 +145,14 @@ public class BlockPeerInfo {
         this.currentBlockInfo = null;
     }
 
+    /**
+     * It sets this peer to IDLE State
+     */
+    protected void setIdle() {
+        this.workingState = PeerWorkingState.IDLE;
+        this.currentBlockInfo = null;
+    }
+
     /** It updates the Peer to reflect that it's just connected */
     protected void connect(DeserializerStream stream) {
         reset();
