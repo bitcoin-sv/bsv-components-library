@@ -82,7 +82,7 @@ public final class BlockHeaderMsg extends Message {
         result.setPrevBlockHash(Sha256Hash.wrapReversed(this.prevBlockHash.getHashBytes()));
         result.setVersion(this.version);
         result.setMerkleRoot(Sha256Hash.wrapReversed(this.merkleRoot.getHashBytes()));
-        result.setHash(Sha256Hash.wrapReversed(this.hash.getHashBytes()));
+        //result.setHash(Sha256Hash.wrapReversed(this.hash.getHashBytes()));
 
         return result;
     }
