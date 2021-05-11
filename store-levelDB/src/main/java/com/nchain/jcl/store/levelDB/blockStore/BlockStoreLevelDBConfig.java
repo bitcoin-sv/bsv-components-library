@@ -6,6 +6,7 @@ import com.nchain.jcl.tools.config.RuntimeConfig;
 
 import javax.annotation.Nonnull;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * @author i.fernandez@nchain.com
@@ -15,6 +16,13 @@ import java.nio.file.Path;
  */
 
 public class BlockStoreLevelDBConfig implements BlockStoreKeyValueConfig {
+
+    // Working Folder where the LevelDB files will be stored. Its an inner folder inside the working folder defined
+    // by the RuntimeConfiguration
+    private static final String LEVELDB_FOLDER = "store";
+
+    // Default DB id:
+    private static final String DEFAULT_DB = "level-db";
 
     // Transaction BATCH Default Size
     private static final int TRANSACTION_BATCH_SIZE = 5000;
@@ -35,12 +43,20 @@ public class BlockStoreLevelDBConfig implements BlockStoreKeyValueConfig {
      */
     private String networkId;
 
-    public BlockStoreLevelDBConfig(Path workingFolder,
-                                   RuntimeConfig runtimeConfig,
-                                   Integer transactionBatchSize,
-                                   @Nonnull String networkId) {
+    public BlockStoreLevelDBConfig( String id,
+                                    Path workingFolder,
+                                    RuntimeConfig runtimeConfig,
+                                    Integer transactionBatchSize,
+                                    @Nonnull String networkId) {
         this.runtimeConfig = runtimeConfig;
-        this.workingFolder = (workingFolder != null)? workingFolder : runtimeConfig.getFileUtils().getRootPath();
+        // The working folder for this BD will be built based on a combination of different parameters:
+        // The working folder has priority. If not specified, we use runtime Working folder, with a suffix that might
+        // be a default one or the "id" parameter.
+        this.workingFolder = (workingFolder != null)
+                ? workingFolder
+                : (id != null)
+                    ? Paths.get(runtimeConfig.getFileUtils().getRootPath().toString(), LEVELDB_FOLDER, id)
+                    : Paths.get(runtimeConfig.getFileUtils().getRootPath().toString(), LEVELDB_FOLDER, DEFAULT_DB);
         this.transactionBatchSize = (transactionBatchSize != null) ? transactionBatchSize : TRANSACTION_BATCH_SIZE;
         this.networkId = networkId;
     }
@@ -62,12 +78,18 @@ public class BlockStoreLevelDBConfig implements BlockStoreKeyValueConfig {
      * Builder
      */
     public static class BlockStoreLevelDBConfigBuilder {
+        private String id;
         private Path workingFolder;
         private RuntimeConfig runtimeConfig;
         private Integer transactionBatchSize;
         private @Nonnull String networkId;
 
         BlockStoreLevelDBConfigBuilder() {
+        }
+
+        public BlockStoreLevelDBConfig.BlockStoreLevelDBConfigBuilder id(String id) {
+            this.id = id;
+            return this;
         }
 
         public BlockStoreLevelDBConfig.BlockStoreLevelDBConfigBuilder workingFolder(Path workingFolder) {
@@ -91,7 +113,7 @@ public class BlockStoreLevelDBConfig implements BlockStoreKeyValueConfig {
         }
 
         public BlockStoreLevelDBConfig build() {
-            return new BlockStoreLevelDBConfig(workingFolder, runtimeConfig, transactionBatchSize, networkId);
+            return new BlockStoreLevelDBConfig(id, workingFolder, runtimeConfig, transactionBatchSize, networkId);
         }
     }
 }

@@ -44,9 +44,7 @@ import static org.iq80.leveldb.impl.Iq80DBFactory.factory;
  */
 public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], byte[]>, Object> {
 
-    // Working Folder where the LevelDB files will be stored. Its an inner folder inside the working folder defined
-    // by the RuntimeConfiguration
-    private static final String LEVELDB_FOLDER = "store/levelDB";
+
 
     // A separator for full keys, made from composing smaller sub-keys:
     public static final String KEY_SEPARATOR = "\\";
@@ -84,9 +82,10 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
             this.triggerTxEvents = triggerTxEvents;
             this.blockMetadataClass = blockMetadataClass;
 
-            // LevelDB engine configuration:
+            // LevelDB engine configuration. We define the Path where the LevelDB Db will be stored:
             Options options = new Options();
-            Path levelDBPath = Paths.get(config.getWorkingFolder().toString(), LEVELDB_FOLDER);
+
+            Path levelDBPath = config.getWorkingFolder();
             levelDBStore = factory.open(levelDBPath.toFile(), options);
 
             // Events Configuration:
@@ -211,7 +210,7 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
     public void start() {
         log.info("JCL-Store Configuration:");
         log.info(" - LevelDB Implementation");
-        log.info(" - working dir: " + Paths.get(config.getWorkingFolder().toString(), LEVELDB_FOLDER).toAbsolutePath());
+        log.info(" - working dir: " + config.getWorkingFolder().toAbsolutePath());
     }
 
     @Override
@@ -238,7 +237,7 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
         try {
             getLock().writeLock().lock();
             levelDBStore.close();
-            Path levelDBPath = Paths.get(config.getWorkingFolder().toString(), LEVELDB_FOLDER);
+            Path levelDBPath = config.getWorkingFolder();
             Files.walk(levelDBPath)
                     .sorted(Comparator.reverseOrder())
                     .map(Path::toFile)
