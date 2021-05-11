@@ -92,11 +92,11 @@ public class ProtocolConfigBuilder {
                 .build();
 
         // We build the Block Header for the Genesis Block:
-        // NOTE: This Genesis BlockHeader is needed t check in some cases that we are in the right Chain. Basically,
+        // NOTE: This Genesis BlockHeader is needed to check in some cases that we are in the right Chain. Basically,
         // only the Hash is important. For other fields, we populate them as long as the values can be extracted from
         // the NetworkParams class in bitcoinJ. If they can NOT be extracted from it, we use dummy values
         // (the whole block definition used to be defined in JCL, but now we are leveraging on bitcoinJ for that, so we
-        // only used the field defined in bitcoinJ).
+        // only used the fields defined in bitcoinJ).
 
         BlockHeaderMsg genesisBlock = BlockHeaderMsg.builder()
                 .creationTimestamp(params.genesisTime())
