@@ -7,6 +7,7 @@ import java.text.DecimalFormat;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.Lock;
 
 /**
@@ -28,6 +29,9 @@ public final class BlockDownloaderHandlerState extends HandlerState {
     // Number of total download re-attemps since the beginning:
     private final long totalReattempts;
 
+    // Map with the current attempts per block:
+    private Map<String, Integer> blocksNumDownloadAttempts;
+
     // percentage of "busy": If 100, then the Block downloader is downloading all the possible blocks simultaneously,
     // based con configuration. If 50, only half of the blocks that could be are being downloaded, etc.
     // This parameter is NOT a snapshot, but more like an accumulative aggregation: Its the average between the
@@ -39,12 +43,14 @@ public final class BlockDownloaderHandlerState extends HandlerState {
                                        List<String> discardedBlocks,
                                        List<BlockPeerInfo> peersInfo,
                                        long totalReattempts,
+                                       Map<String, Integer> blocksNumDownloadAttempts,
                                        int busyPercentage) {
         this.pendingBlocks = pendingBlocks;
         this.downloadedBlocks = downloadedBlocks;
         this.discardedBlocks = discardedBlocks;
         this.peersInfo = peersInfo;
         this.totalReattempts = totalReattempts;
+        this.blocksNumDownloadAttempts = blocksNumDownloadAttempts;
         this.busyPercentage = busyPercentage;
     }
 
@@ -97,6 +103,8 @@ public final class BlockDownloaderHandlerState extends HandlerState {
     public List<String> getDiscardedBlocks()    { return this.discardedBlocks; }
     public List<BlockPeerInfo> getPeersInfo()   { return this.peersInfo; }
     public long getTotalReattempts()            { return this.totalReattempts;}
+    public Map<String, Integer> getBlocksNumDownloadAttempts()
+                                                { return this.blocksNumDownloadAttempts; }
     public int getBusyPercentage()              { return this.busyPercentage;}
 
     public long getNumPeersDownloading() {
@@ -119,6 +127,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         private List<String> discardedBlocks;
         private List<BlockPeerInfo> peersInfo;
         private long totalReattempts;
+        private Map<String, Integer> blocksNumDownloadAttempts;
         private int busyPercentage;
 
         BlockDownloaderHandlerStateBuilder() {
@@ -149,13 +158,18 @@ public final class BlockDownloaderHandlerState extends HandlerState {
             return this;
         }
 
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder blocksNumDownloadAttempts(Map<String, Integer> blocksNumDownloadAttempts) {
+            this.blocksNumDownloadAttempts = blocksNumDownloadAttempts;
+            return this;
+        }
+
         public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder busyPercentage(int busyPercentage) {
             this.busyPercentage = busyPercentage;
             return this;
         }
 
         public BlockDownloaderHandlerState build() {
-            return new BlockDownloaderHandlerState(pendingBlocks, downloadedBlocks, discardedBlocks, peersInfo, totalReattempts, busyPercentage);
+            return new BlockDownloaderHandlerState(pendingBlocks, downloadedBlocks, discardedBlocks, peersInfo, totalReattempts, blocksNumDownloadAttempts, busyPercentage);
         }
     }
 }
