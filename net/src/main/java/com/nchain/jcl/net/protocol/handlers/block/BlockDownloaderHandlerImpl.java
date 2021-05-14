@@ -133,6 +133,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                         .filter(p -> p.getConnectionState().equals(BlockPeerInfo.PeerConnectionState.HANDSHAKED))
                         .collect(Collectors.toList()))
                 .totalReattempts(this.totalReattempts.get())
+                .blocksNumDownloadAttempts(this.blocksNumDownloadAttempts)
                 .busyPercentage(percentage)
                 .build();
     }

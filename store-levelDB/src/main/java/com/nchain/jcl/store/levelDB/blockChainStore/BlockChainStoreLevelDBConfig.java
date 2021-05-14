@@ -35,7 +35,8 @@ public class BlockChainStoreLevelDBConfig extends BlockStoreLevelDBConfig implem
     private Duration    orphanPrunningBlockAge = DEFAULT_ORPHAN_AGE;
     private BlockChainStoreRuleConfig ruleConfig = new BlockChainStoreRuleConfig(Collections.emptyList());
 
-    public BlockChainStoreLevelDBConfig(Path workingFolder,
+    public BlockChainStoreLevelDBConfig(String id,
+                                        Path workingFolder,
                                         RuntimeConfig runtimeConfig,
                                         Integer transactionSize,
                                         String networkId,
@@ -44,7 +45,7 @@ public class BlockChainStoreLevelDBConfig extends BlockStoreLevelDBConfig implem
                                         boolean forkPrunningIncludeTxs,
                                         Duration orphanPrunningBlockAge,
                                         BlockChainStoreRuleConfig ruleConfig) {
-        super(workingFolder, runtimeConfig, transactionSize, networkId);
+        super(id, workingFolder, runtimeConfig, transactionSize, networkId);
         this.genesisBlock = genesisBlock;
         if (forkPrunningHeightDifference != null) this.forkPrunningHeightDifference = forkPrunningHeightDifference;
         this.forkPrunningIncludeTxs = forkPrunningIncludeTxs;
@@ -71,6 +72,7 @@ public class BlockChainStoreLevelDBConfig extends BlockStoreLevelDBConfig implem
      * Builder
      */
     public static class BlockChainStoreLevelDBConfigBuilder {
+        private String id;
         private Path workingFolder;
         private RuntimeConfig runtimeConfig;
         private Integer transactionSize;
@@ -82,6 +84,11 @@ public class BlockChainStoreLevelDBConfig extends BlockStoreLevelDBConfig implem
         private BlockChainStoreRuleConfig ruleConfig;
 
         BlockChainStoreLevelDBConfigBuilder() {
+        }
+
+        public BlockChainStoreLevelDBConfig.BlockChainStoreLevelDBConfigBuilder id(String id) {
+            this.id = id;
+            return this;
         }
 
         public BlockChainStoreLevelDBConfig.BlockChainStoreLevelDBConfigBuilder workingFolder(Path workingFolder) {
@@ -130,7 +137,7 @@ public class BlockChainStoreLevelDBConfig extends BlockStoreLevelDBConfig implem
         }
 
         public BlockChainStoreLevelDBConfig build() {
-            return new BlockChainStoreLevelDBConfig(workingFolder, runtimeConfig, transactionSize, networkId, genesisBlock, forkPrunningHeightDifference, forkPrunningIncludeTxs, orphanPrunningBlockAge, ruleConfig);
+            return new BlockChainStoreLevelDBConfig(id, workingFolder, runtimeConfig, transactionSize, networkId, genesisBlock, forkPrunningHeightDifference, forkPrunningIncludeTxs, orphanPrunningBlockAge, ruleConfig);
         }
     }
 }
