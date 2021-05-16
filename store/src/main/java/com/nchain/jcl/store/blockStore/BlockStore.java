@@ -7,6 +7,7 @@ import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
 import io.bitcoinj.bitcoin.api.base.Tx;
 import io.bitcoinj.core.Sha256Hash;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -65,6 +66,11 @@ public interface BlockStore {
      * Retrieves the Block specified by the Hash given
      */
     Optional<HeaderReadOnly> getBlock(Sha256Hash blockHash);
+
+    /**
+     * Returns an Iterator over all the blocks in the DB
+     */
+    Iterator<Sha256Hash> getBlocksIterator();
 
     /**
      * Removes the block with the HASH given.

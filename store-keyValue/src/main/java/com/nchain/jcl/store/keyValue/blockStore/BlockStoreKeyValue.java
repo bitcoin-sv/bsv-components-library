@@ -715,7 +715,6 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
         } finally {
             getLock().writeLock().unlock();
         }
-
     }
 
     @Override
@@ -742,6 +741,23 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
         } finally {
             getLock().readLock().unlock();
         }
+    }
+
+    @Override
+    default Iterator<Sha256Hash> getBlocksIterator() {
+        byte[] keyPreffix = fullKey(fullKeyForBlocks(), KEY_PREFFIX_BLOCK);
+        // The "buildItemBy" is the function used to take a Key and return each Item of the Iterator. The iterator
+        // will returns a series of BlockHeader, so this function will build a Block Hash out of a Key:
+
+        Function<E, Sha256Hash> buildItemBy = (E item) -> {
+            byte[] key = keyFromItem(item);
+            String blockHash = extractBlockHashFromKey(key).get();
+            return Sha256Hash.wrap(blockHash);
+        };
+
+        // With everything set up, we create our Iterator and return it wrapped up in an Iterable:
+        Iterator<Sha256Hash> iterator = getIterator(keyPreffix, null, null, buildItemBy);
+        return iterator;
     }
 
     @Override
