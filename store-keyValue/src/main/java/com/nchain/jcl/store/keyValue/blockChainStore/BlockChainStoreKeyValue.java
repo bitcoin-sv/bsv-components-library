@@ -718,13 +718,13 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
 
                 byte[] value = read(tr, fullKeyForBlockChainInfo(blockHash.toString()));
                 BlockChainInfo blockChainInfo = toBlockChainInfo(value);
-
-                ChainInfoBean chainInfoResult = new ChainInfoBean(block);
-                chainInfoResult.setChainWork(blockChainInfo.getChainWork());
-                chainInfoResult.setHeight(blockChainInfo.getHeight());
-                chainInfoResult.makeImmutable();
-                result.set(chainInfoResult);
-
+                if (blockChainInfo != null) {
+                    ChainInfoBean chainInfoResult = new ChainInfoBean(block);
+                    chainInfoResult.setChainWork(blockChainInfo.getChainWork());
+                    chainInfoResult.setHeight(blockChainInfo.getHeight());
+                    chainInfoResult.makeImmutable();
+                    result.set(chainInfoResult);
+                }
             });
             return Optional.ofNullable(result.get());
         } finally {

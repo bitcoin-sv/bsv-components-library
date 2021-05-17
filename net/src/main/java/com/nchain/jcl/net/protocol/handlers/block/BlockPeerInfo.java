@@ -177,7 +177,7 @@ public class BlockPeerInfo {
     }
 
     /**
-     * It triggers and update of the BytesDownloaded and the BytesTotal values of this class, taking that
+     * It triggers and update the value of the BytesDownloaded and the BytesTotal values of this class, taking that
      * information from the underlying NIOInputStream that the DeserializerStream is connected to
      */
     protected synchronized void updateBytesProgress() {
@@ -191,7 +191,7 @@ public class BlockPeerInfo {
                 // We set the Total Bytes. This is a bit tricky:
                 // When a Peer starts the downloading of a block, "bytesTotal" is reset to ZERO. then, and while
                 // the peer is downloading the block, this method is called on a frequency basis in order to update
-                // the downloading State. At that moment, we update "bytesTotal" with the new value that is stored
+                // the downloading State. At that moment, we update "bytesTotal" with the new value that is stored in
                 // the STATE of the Stream connected to this Peer. But the Stream might not have started downloading the
                 // new Block yet, so the Header stored in its state is still referencing the old Block. So we only
                 // update "bytesTotal" if the Stream is SEEKING a BODY, which means that the Stream has already parsed

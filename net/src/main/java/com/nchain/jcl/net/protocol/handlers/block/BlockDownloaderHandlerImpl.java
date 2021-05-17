@@ -456,17 +456,17 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                 // We process each Peer...
                 while (it.hasNext()) {
 
-                    BlockPeerInfo peerInfo = it.next();
-
-                    PeerAddress peerAddress = peerInfo.getPeerAddress();
-                    BlockPeerInfo.PeerWorkingState peerWorkingState = peerInfo.getWorkingState();
-                    BlockPeerInfo.PeerConnectionState peerConnState = peerInfo.getConnectionState();
-
-                    // If the Peer is NOT HANDSHAKED, we skip it...
-                    if (!peerConnState.equals(BlockPeerInfo.PeerConnectionState.HANDSHAKED)) continue;
-
                     try {
                         lock.lock();
+
+                        BlockPeerInfo peerInfo = it.next();
+                        PeerAddress peerAddress = peerInfo.getPeerAddress();
+                        BlockPeerInfo.PeerWorkingState peerWorkingState = peerInfo.getWorkingState();
+                        BlockPeerInfo.PeerConnectionState peerConnState = peerInfo.getConnectionState();
+
+                        // If the Peer is NOT HANDSHAKED, we skip it...
+                        if (!peerConnState.equals(BlockPeerInfo.PeerConnectionState.HANDSHAKED)) continue;
+
                         // we update the Progress of this Peer:
                         peerInfo.updateBytesProgress();
 
@@ -517,11 +517,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                         lock.unlock();
                     }
 
-
-
-
                 } // while it.next (each PeerInfo...
-
 
                 // Now we loop over the discarded Blocks, to check if any of them can be tried again:
                 List<String> blocksToReTry = new ArrayList<>();
