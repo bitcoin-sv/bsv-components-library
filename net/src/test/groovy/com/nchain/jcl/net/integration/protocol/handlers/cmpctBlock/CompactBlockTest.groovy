@@ -10,7 +10,7 @@ import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
 import io.bitcoinj.core.Utils
 import io.bitcoinj.params.MainNetParams
 import io.bitcoinj.params.Net
-import org.junit.Ignore
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicBoolean
