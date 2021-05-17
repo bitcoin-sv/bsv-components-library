@@ -10,6 +10,7 @@ import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
 import io.bitcoinj.core.Utils
 import io.bitcoinj.params.MainNetParams
 import io.bitcoinj.params.Net
+import org.junit.Ignore
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicBoolean
@@ -21,6 +22,7 @@ import java.util.concurrent.atomic.AtomicReference
  */
 class CompactBlockTest extends Specification {
 
+    @Ignore
     def "Testing get compact block low bandwidth mode"() {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
@@ -50,17 +52,26 @@ class CompactBlockTest extends Specification {
                 numOfHandshakes.set(numOfHandshakes.get() + 1)
                 println(" - Peer connected: " + e.peerAddress + " - " + e.versionMsg.version)
 
+                /**
+                 * request peer to send us headers instead of inv messages
+                 */
                 SendHeadersMsg sendHeadersMsg = SendHeadersMsg.builder()
                     .build()
                 p2p.REQUESTS.MSGS.send(e.peerAddress, sendHeadersMsg).submit()
 
+                /**
+                 * send sendCmpct so we tell peer we want to get cmpctBlocks
+                 * bandwidth mode is high so we get cmpctBlock directly without annunciation
+                 */
                 SendCompactBlockMsg msg = SendCompactBlockMsg.builder()
                     .highBandwidthRelaying(false)
                     .version(1)
                     .build()
                 p2p.REQUESTS.MSGS.send(e.peerAddress, msg).submit()
 
-
+                /**
+                 * we send out headers so we tell other node we are at the tip of the chain
+                 */
                 if (lastBlock.get() != null) {
                     CompactBlockHeaderMsg header = lastBlock.getHeader()
 
@@ -83,6 +94,9 @@ class CompactBlockTest extends Specification {
                 }
             })
 
+            /**
+             * this is called only for the first new block where we are waiting to be synced with the tip
+             */
             p2p.EVENTS.MSGS.INV.forEach({ e ->
                 println("INV message received")
 
@@ -99,6 +113,9 @@ class CompactBlockTest extends Specification {
 
                         invBlocksReceived.add(hashString)
 
+                        /**
+                         * we request cmpctBlock of first
+                         */
                         GetdataMsg msg = GetdataMsg.builder()
                             .invVectorList(List.of(
                                 InventoryVectorMsg.builder()
@@ -124,10 +141,9 @@ class CompactBlockTest extends Specification {
                 peers.add(e.getPeerAddress())
             })
 
-            p2p.EVENTS.MSGS.GETHEADERS_SENT.forEach({ e ->
-                println("GETHEADERS message sent")
-            })
-
+            /**
+             * this is called when we get the second block after other peers know we are at the tip of the chain
+             */
             p2p.EVENTS.MSGS.HEADERS.forEach({ e ->
                 println("HEADERS message received")
 
@@ -149,18 +165,6 @@ class CompactBlockTest extends Specification {
                 }
             })
 
-            p2p.EVENTS.MSGS.HEADERS_SENT.forEach({ e ->
-                println("HEADERS message sent")
-            })
-
-            p2p.EVENTS.MSGS.SENDHEADERS.forEach({ e ->
-                println("SENDHEADERS message received")
-            })
-
-            p2p.EVENTS.MSGS.SENDHEADERS_SENT.forEach({ e ->
-                println("SENDHEADERS message sent")
-            })
-
             p2p.EVENTS.MSGS.CMPCTBLOCK.forEach({ e ->
                 println("CMPCTBLOCK message received")
 
@@ -168,12 +172,18 @@ class CompactBlockTest extends Specification {
                 CompactBlockHeaderMsg header = msg.getHeader()
                 String hashString = Utils.HEX.encode(header.getHash().getHashBytes())
 
+                /**
+                 * when we get fist inv message of new block we store it so we can tell other peers we are at the tip of the chain
+                 */
                 if (lastBlock.get() == null) {
                     lastBlock.set(msg)
                 }
 
                 blocksReceived.add(hashString)
 
+                /**
+                 * we notify other nodes we got new block
+                 */
                 HeadersMsg headersMsg = HeadersMsg.builder()
                     .blockHeaderMsgList(List.of(
                         BlockHeaderMsg.builder()
@@ -217,25 +227,15 @@ class CompactBlockTest extends Specification {
                 }
             })
 
-            p2p.EVENTS.MSGS.GETDATA_SENT.forEach({ e ->
-                println("GETDATA message sent")
-            })
-
-            p2p.EVENTS.MSGS.GETBLOCKTXN_SENT.forEach({ e ->
-                println("GETBLOCKTXN message sent")
-            })
-
-            p2p.EVENTS.MSGS.GETBLOCKTXN.forEach({ e ->
-                println("GETBLOCKTXN message received")
-            })
-
             p2p.EVENTS.MSGS.BLOCKTXN.forEach({ e ->
                 println("BLOCKTXN message received")
-                gotMissingTransactions.set(true)
-            })
 
-            p2p.EVENTS.MSGS.BLOCKTXN_SENT.forEach({ e ->
-                println("BLOCKTXN message sent")
+                /**
+                 * check if we got 5 requested transactions from the first block
+                 */
+                if (e.getBtcMsg().getBody().transactions.size() == 5) {
+                    gotMissingTransactions.set(true)
+                }
             })
 
         when:
@@ -258,6 +258,7 @@ class CompactBlockTest extends Specification {
             gotMissingTransactions.get()
     }
 
+    @Ignore
     def "Testing get compact block high bandwidth mode"() {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
@@ -286,20 +287,29 @@ class CompactBlockTest extends Specification {
                 numOfHandshakes.set(numOfHandshakes.get() + 1)
                 println(" - Peer connected: " + e.peerAddress + " - " + e.versionMsg.version)
 
+                /**
+                 * request peer to send us headers instead of inv messages
+                 */
                 SendHeadersMsg sendHeadersMsg = SendHeadersMsg.builder()
                     .build()
                 p2p.REQUESTS.MSGS.send(e.peerAddress, sendHeadersMsg).submit()
 
+                /**
+                 * send sendCmpct so we tell peer we want to get cmpctBlocks
+                 * bandwidth mode is high so we get cmpctBlock directly without annunciation
+                 */
                 SendCompactBlockMsg msg = SendCompactBlockMsg.builder()
                     .highBandwidthRelaying(true)
                     .version(1)
                     .build()
                 p2p.REQUESTS.MSGS.send(e.peerAddress, msg).submit()
 
-
                 if (lastBlock.get() != null) {
                     CompactBlockHeaderMsg header = lastBlock.getHeader()
 
+                    /**
+                     * we send out headers so we tell other node we are at the tip of the chain
+                     */
                     HeadersMsg headersMsg = HeadersMsg.builder()
                         .blockHeaderMsgList(List.of(
                             BlockHeaderMsg.builder()
@@ -319,6 +329,9 @@ class CompactBlockTest extends Specification {
                 }
             })
 
+            /**
+             * this is called only for the first new block where we are waiting to be synced with the tip
+             */
             p2p.EVENTS.MSGS.INV.forEach({ e ->
                 println("INV message received")
 
@@ -335,6 +348,9 @@ class CompactBlockTest extends Specification {
 
                         invBlocksReceived.add(hashString)
 
+                        /**
+                         * we request cmpctBlock of first
+                         */
                         GetdataMsg msg = GetdataMsg.builder()
                             .invVectorList(List.of(
                                 InventoryVectorMsg.builder()
@@ -371,12 +387,18 @@ class CompactBlockTest extends Specification {
                 CompactBlockHeaderMsg header = msg.getHeader()
                 String hashString = Utils.HEX.encode(header.getHash().getHashBytes())
 
+                /**
+                 * when we get fist inv message of new block we store it so we can tell other peers we are at the tip of the chain
+                 */
                 if (lastBlock.get() == null) {
                     lastBlock.set(msg)
                 }
 
                 blocksReceived.add(hashString)
 
+                /**
+                 * we notify other nodes we got new block
+                 */
                 HeadersMsg headersMsg = HeadersMsg.builder()
                     .blockHeaderMsgList(List.of(
                         BlockHeaderMsg.builder()
@@ -396,6 +418,9 @@ class CompactBlockTest extends Specification {
                     p2p.REQUESTS.MSGS.send(peer, headersMsg).submit()
                 }
 
+                /**
+                 * we request first 5 transactions from the block
+                 */
                 GetBlockTxnMsg getBlockTxnMsg = GetBlockTxnMsg.builder()
                     .blockHash(header.getHash())
                     .indexesLength(VarIntMsg.builder().value(5).build())
@@ -422,7 +447,13 @@ class CompactBlockTest extends Specification {
 
             p2p.EVENTS.MSGS.BLOCKTXN.forEach({ e ->
                 println("BLOCKTXN message received")
-                gotMissingTransactions.set(true)
+
+                /**
+                 * check if we got 5 requested transactions from the first block
+                 */
+                if (e.getBtcMsg().getBody().transactions.size() == 5) {
+                    gotMissingTransactions.set(true)
+                }
             })
 
         when:
