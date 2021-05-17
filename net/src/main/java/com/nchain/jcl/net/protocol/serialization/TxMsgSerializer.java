@@ -49,7 +49,7 @@ public class TxMsgSerializer implements MessageSerializer<TxMsg> {
         int txInCountValue = (int) txInCount.getValue();
         List<TxInputMsg> txInputMessage = new ArrayList<>();
 
-        for(int i =0 ; i< txInCountValue; i++) {
+        for(int i = 0; i< txInCountValue; i++) {
             txInputMessage.add(txInputMessageSerializer.deserialize(context,byteReader));
         }
 
@@ -57,7 +57,7 @@ public class TxMsgSerializer implements MessageSerializer<TxMsg> {
         int txOutCountValue = (int) txOutCount.getValue();
         List<TxOutputMsg> txOutputMessage = new ArrayList<>();
 
-        for(int i =0 ; i< txOutCountValue; i++) {
+        for(int i = 0; i< txOutCountValue; i++) {
             txOutputMessage.add(txOutputMessageSerializer.deserialize(context, byteReader));
         }
         long locktime = byteReader.readUint32();
