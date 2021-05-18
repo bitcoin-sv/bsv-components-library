@@ -76,7 +76,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
     // The Big Blocks will be Downloaded and Deserialized in Real Time, and we'll get notified every time a
     // block Header or a set of Txs are deserialized. So in order to know WHEN a Bock has been fully serialzied,
     // we need to keep track of the number of TXs contained in each block. When we detect that all the TXs within
-    // a block have been deserialzied, we mark it as finished.
+    // a block have been deserialized, we mark it as finished.
 
     private Map<String, BlockHeaderMsg>   bigBlocksHeaders   = new ConcurrentHashMap<>();
     private Map<String, Long>             bigBlocksCurrentTxs = new ConcurrentHashMap();
@@ -226,20 +226,35 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
 
     // Event Handler:
     public void onBlockMsgReceived(BlockMsgReceivedEvent event) {
-        if (!peersInfo.containsKey(event.getPeerAddress())) return;
+        try {
+            lock.lock();
+            if (!peersInfo.containsKey(event.getPeerAddress())) return;
             processWholeBlockReceived(peersInfo.get(event.getPeerAddress()), (BitcoinMsg<BlockMsg>) event.getBtcMsg());
+        } finally {
+            lock.unlock();
+        }
     }
 
     // Event Handler:
     public void onPartialBlockHeaderMsgReceived(PartialBlockHeaderMsgReceivedEvent event) {
-        if (!peersInfo.containsKey(event.getPeerAddress())) return;
-         processPartialBlockReceived(peersInfo.get(event.getPeerAddress()), event.getBtcMsg());
+        try {
+            lock.lock();
+            if (!peersInfo.containsKey(event.getPeerAddress())) return;
+            processPartialBlockReceived(peersInfo.get(event.getPeerAddress()), event.getBtcMsg());
+        } finally {
+            lock.unlock();
+        }
     }
 
     // Event Handler:
     public void onPartialBlockTxsMsgReceived(PartialBlockTxsMsgReceivedEvent event) {
-        if (!peersInfo.containsKey(event.getPeerAddress())) return;
-        processPartialBlockReceived(peersInfo.get(event.getPeerAddress()), event.getBtcMsg());
+        try {
+            lock.lock();
+            if (!peersInfo.containsKey(event.getPeerAddress())) return;
+            processPartialBlockReceived(peersInfo.get(event.getPeerAddress()), event.getBtcMsg());
+        } finally {
+            lock.unlock();
+        }
     }
 
     private void processPartialBlockReceived(BlockPeerInfo peerInfo, BitcoinMsg<?> msg) {
@@ -267,9 +282,19 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                 // We notify it:
                 super.eventBus.publish(new BlockTXsDownloadedEvent(peerInfo.getPeerAddress(), partialMsg.getBlockHeader(), partialMsg.getTxs(), partialMsg.getTxsOrderNumber().getValue()));
 
-                // Now we check if we've reached the total of TXs yet...
-                if (numCurrentTxs.equals(blockHeader.getTransactionCount().getValue()))
-                    processDownloadSuccess(peerInfo, blockHeader, peerInfo.getCurrentBlockInfo().bytesTotal);
+                // Now we check if we've reached the total of TXs yet:
+
+
+                if (numCurrentTxs.equals(blockHeader.getTransactionCount().getValue())) {
+                    // Due to the Multi-Thread nature of the EventBus, it might happen that when a Peer disconnects right
+                    // after sending the last batch of Tx, the events do NOt come in the right order: the "Disconnect" event
+                    // might come BEFORE the last "PartialTxsReceived". In that case, when receiving this Batch of Txs, the
+                    //  peer might already be disconnected. In that case, we loos the info about the Amount of Bytes received
+                    // for this Block.
+                    // TODO: Can we store the Block Size elsewhere so we can return it???
+                    Long blockSize = (peerInfo.getCurrentBlockInfo() != null) ? peerInfo.getCurrentBlockInfo().bytesTotal : null;
+                    processDownloadSuccess(peerInfo, blockHeader, blockSize);
+                }
             }
         } finally {
             lock.unlock();
@@ -310,7 +335,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         }
     }
 
-    private void processDownloadSuccess(BlockPeerInfo peerInfo, BlockHeaderMsg blockHeader, long blockSize) {
+    private void processDownloadSuccess(BlockPeerInfo peerInfo, BlockHeaderMsg blockHeader, Long blockSize) {
         // We process the success of this Block being downloaded
         // This block can be downloaded in two ways:
         // - The "normal" way: We requested this Blocks to be download, so a Peer was assigned to it, and now the
