@@ -316,6 +316,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                 bigBlocksHeaders.put(hash, partialMsg.getBlockHeader());
                 bigBlocksCurrentTxs.put(hash, 0L);
 
+                registerBlockHistory(hash, "Header downloaded from " + peerInfo.getPeerAddress());
+
                 // We notify it:
                 super.eventBus.publish(new BlockHeaderDownloadedEvent(peerInfo.getPeerAddress(), partialMsg.getBlockHeader()));
 
@@ -326,6 +328,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                 BlockHeaderMsg blockHeader = bigBlocksHeaders.get(hash);
                 Long numCurrentTxs = bigBlocksCurrentTxs.get(hash) + partialMsg.getTxs().size();
                 bigBlocksCurrentTxs.put(hash, numCurrentTxs);
+
+                registerBlockHistory(hash, partialMsg.getTxs().size() +  "Txs downloaded from " + peerInfo.getPeerAddress() + ", (" + numCurrentTxs + " Txs so far)");
 
                 // We notify it:
                 super.eventBus.publish(new BlockTXsDownloadedEvent(peerInfo.getPeerAddress(), partialMsg.getBlockHeader(), partialMsg.getTxs(), partialMsg.getTxsOrderNumber().getValue()));
@@ -360,6 +364,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
 
         try {
             lock.lock();
+
+            String blockHash = Utils.HEX.encode(Utils.reverseBytes(blockMesage.getBody().getBlockHeader().getHash().getHashBytes())).toString();
             Duration downloadingDuration = (peerInfo != null && peerInfo.getCurrentBlockInfo() != null)
                     ? Duration.between(peerInfo.getCurrentBlockInfo().getStartTimestamp(), Instant.now())
                     : Duration.ZERO;
@@ -377,6 +383,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
             // We notify the tXs has been downloaded:
             super.eventBus.publish(new BlockTXsDownloadedEvent(peerInfo.getPeerAddress(), blockMesage.getBody().getBlockHeader(), blockMesage.getBody().getTransactionMsg(), 0));
 
+            registerBlockHistory(blockHash, "Whole Block downloaded from " + peerInfo.getPeerAddress());
             processDownloadSuccess(peerInfo, blockMesage.getBody().getBlockHeader(), blockMesage.getLengthInbytes());
         } finally {
             lock.unlock();
@@ -448,6 +455,12 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
             if (peerInfo.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING)) {
                 // This peer is not downloading anymore...
                 peerInfo.setIdle();
+
+                // HORRIBLE HOOK THAT SHOULD NEVER HAPPEN!!!
+                if (!blocksNumDownloadAttempts.containsKey(blockHash)) {
+                    logger.warm("Weird Scenario for " + peerInfo.getPeerAddress() + " :: num attempts for block " + blockHash + " not found!");
+                    return;
+                }
 
                 int numAttempts = blocksNumDownloadAttempts.get(blockHash);
                 if (numAttempts < config.getMaxDownloadAttempts()) {
