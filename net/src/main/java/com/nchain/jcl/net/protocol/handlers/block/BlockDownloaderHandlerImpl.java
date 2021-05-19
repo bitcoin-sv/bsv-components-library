@@ -517,7 +517,6 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
     private void jobProcessCheckDownloadingProcess() {
         try {
             while (true) {
-                //logger.trace("> Checking Download process and peers...");
                 // On each execution of this Job, we loop over the list of Peers and process them one by one, checking
                 // their workingState. We process the Peers ordered by Speed (high Speed first)
 
@@ -525,88 +524,79 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                 Collections.sort(peersOrdered, BlockPeerInfo.SPEED_COMPARATOR);
                 Iterator<BlockPeerInfo> it = peersOrdered.iterator();
 
-                // We process each Peer...
-                while (it.hasNext()) {
+                try {
+                    lock.lock();
+                    // We process each Peer...
+                    while (it.hasNext()) {
+                       BlockPeerInfo peerInfo = it.next();
+                       PeerAddress peerAddress = peerInfo.getPeerAddress();
+                       BlockPeerInfo.PeerWorkingState peerWorkingState = peerInfo.getWorkingState();
+                       BlockPeerInfo.PeerConnectionState peerConnState = peerInfo.getConnectionState();
 
-                    try {
-                        lock.lock();
+                       // If the Peer is NOT HANDSHAKED, we skip it...
+                       if (!peerConnState.equals(BlockPeerInfo.PeerConnectionState.HANDSHAKED)) continue;
 
-                        BlockPeerInfo peerInfo = it.next();
-                        PeerAddress peerAddress = peerInfo.getPeerAddress();
-                        BlockPeerInfo.PeerWorkingState peerWorkingState = peerInfo.getWorkingState();
-                        BlockPeerInfo.PeerConnectionState peerConnState = peerInfo.getConnectionState();
+                       // we update the Progress of this Peer:
+                       peerInfo.updateBytesProgress();
 
-                        // If the Peer is NOT HANDSHAKED, we skip it...
-                        if (!peerConnState.equals(BlockPeerInfo.PeerConnectionState.HANDSHAKED)) continue;
+                       // We manage it based on its state:
+                       switch (peerWorkingState) {
+                          case IDLE: {
+                              // This peer is idle. If according to config we can download more Blocks, we assign one
+                              // to it, if there is any...
 
-                        // we update the Progress of this Peer:
-                        peerInfo.updateBytesProgress();
+                              if (blocksPending.size() > 0) {
+                                  long numPeersWorking = peersInfo.values().stream()
+                                          .filter(p -> p.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING))
+                                          .count();
+                                  if (numPeersWorking < config.getMaxBlocksInParallel()) {
+                                      String hash = blocksPending.poll();
+                                      logger.trace("Putting peer " + peerInfo.getPeerAddress() + " to download " + hash + "...");
+                                      startDownloading(peerInfo, hash);
+                                  }
+                              }
+                              break;
+                          }
 
-                        // We manage it based on its state:
-                        switch (peerWorkingState) {
-                            case IDLE: {
-                                // This peer is idle. If according to config we can download more Blocks, we assign one
-                                // to it, if there is any...
+                          case PROCESSING: {
+                              // We check the timeouts. If the peer has broken some of these timeouts, we discard it:
 
-                                if (blocksPending.size() > 0) {
-                                    long numPeersWorking = peersInfo.values().stream()
-                                            .filter( p -> p.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING))
-                                            .count();
-                                    if (numPeersWorking < config.getMaxBlocksInParallel()) {
-                                        String hash = blocksPending.poll();
-                                        logger.trace("Putting peer " + peerInfo.getPeerAddress() + " to download " + hash + "...");
-                                        startDownloading(peerInfo, hash);
-                                    }
-                                }
-                                break;
-                            }
+                              boolean toDiscard = false;
+                              String msgFailure = null;
+                              if (peerInfo.isIdleTimeoutBroken(config.getMaxIdleTimeout())) {
+                                  msgFailure = "Idle Time expired";
+                                  toDiscard = true;
+                              }
+                              if (peerInfo.isDownloadTimeoutBroken(config.getMaxDownloadTimeout())) {
+                                  msgFailure = "Downloading Time expired";
+                              }
+                              if (peerInfo.getConnectionState().equals(BlockPeerInfo.PeerConnectionState.DISCONNECTED)) {
+                                  msgFailure = "Peer Closed while downloading";
+                              }
+                              if (msgFailure != null) {
+                                  logger.debug(peerAddress.toString(), "Download Failure", peerInfo.getCurrentBlockInfo().hash, msgFailure);
+                                  registerBlockHistory(peerInfo.getCurrentBlockInfo().hash, "Download issue detected : " + msgFailure);
+                                  processDownloadFailiure(peerInfo, toDiscard);
+                              }
+                              break;
+                          }
+                       } // Switch...
+                    } // white it. next...
 
-                            case PROCESSING: {
-                                // We check the timeouts. If the peer has broken some of these timeouts, we discard it:
+                    // Now we loop over the discarded Blocks, to check if any of them can be tried again:
+                    List<String> blocksToReTry = new ArrayList<>();
+                    for (String hashDiscarded: blocksDiscarded.keySet())
+                        if (Duration.between(blocksDiscarded.get(hashDiscarded), Instant.now())
+                                .compareTo(config.getRetryDiscardedBlocksTimeout()) > 0) blocksToReTry.add(hashDiscarded);
 
-                                boolean toDiscard = false;
-                                String msgFailure = null;
-                                if (peerInfo.isIdleTimeoutBroken(config.getMaxIdleTimeout())) {
-                                    msgFailure = "Idle Time expired";
-                                    toDiscard = true;
-                                }
-                                if (peerInfo.isDownloadTimeoutBroken(config.getMaxDownloadTimeout())) {
-                                    msgFailure = "Downloading Time expired";
-                                }
-                                if (peerInfo.getConnectionState().equals(BlockPeerInfo.PeerConnectionState.DISCONNECTED)) {
-                                    msgFailure = "Peer Closed while downloading";
-                                }
-                                if (msgFailure != null) {
-                                    logger.debug(peerAddress.toString(), "Download Failure", peerInfo.getCurrentBlockInfo().hash, msgFailure);
-                                    registerBlockHistory(peerInfo.getCurrentBlockInfo().hash, "Download issue detected : " + msgFailure);
-                                    processDownloadFailiure(peerInfo, toDiscard);
-                                }
-
-                                break;
-                            }
-                        } // Switch...
-
-                    } finally {
-                        lock.unlock();
-                    }
-
-                } // while it.next (each PeerInfo...
-
-                // Now we loop over the discarded Blocks, to check if any of them can be tried again:
-                List<String> blocksToReTry = new ArrayList<>();
-                for (String hashDiscarded: blocksDiscarded.keySet())
-                    if (Duration.between(blocksDiscarded.get(hashDiscarded), Instant.now())
-                            .compareTo(config.getRetryDiscardedBlocksTimeout()) > 0) blocksToReTry.add(hashDiscarded);
-
-                if (blocksToReTry.size() > 0) {
-                    try {
-                        lock.lock();
+                    if (blocksToReTry.size() > 0) {
                         for (String hashToRetry : blocksToReTry) {
-                            blocksDiscarded.remove(hashToRetry);
-                            blocksPending.offerFirst(hashToRetry); // blocks to retry have preference...
-                        }
-                    } catch (Exception ex) { ex.printStackTrace();
-                    } finally { lock.unlock(); }
+                              blocksDiscarded.remove(hashToRetry);
+                              blocksPending.offerFirst(hashToRetry); // blocks to retry have preference...
+                          }
+                      }
+                } finally {
+                    lock.unlock();
                 }
 
                 Thread.sleep(100); // to avoid tight loops...
