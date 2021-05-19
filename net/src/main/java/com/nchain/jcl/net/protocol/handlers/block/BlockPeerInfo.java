@@ -71,7 +71,7 @@ public class BlockPeerInfo {
                 DecimalFormat format = new DecimalFormat("#0.0");
                 String bytesTotalStr = (bytesTotal == null) ? "¿? MB " : format.format((double) bytesTotal / 1_000_000) + " MB";
                 String bytesDownStr =  (bytesDownloaded == null) ? "¿? MB " : format.format((double) bytesDownloaded / 1_000_000) + " MB";
-                String progressStr = (bytesTotal == null) ? "¿? %" : (int) (bytesDownloaded * 100 / bytesTotal) + " %";
+                String progressStr = (getProgressPercentage() == null)? "¿? %" : (getProgressPercentage() + " %");
                 result.append("progress: " + progressStr);
                 result.append(" [" + bytesDownStr + " / " + bytesTotalStr + "]");
                 //result.append(" >> raw: bytesDownloaded: " + bytesDownloaded + " , bytesTotal: " + bytesTotal);
@@ -88,6 +88,10 @@ public class BlockPeerInfo {
         public Boolean getRealTimeProcessing()          { return this.realTimeProcessing; }
         public Instant getStartTimestamp()              { return this.startTimestamp; }
         public Instant getLastBytesReceivedTimestamp()  { return this.lastBytesReceivedTimestamp; }
+        public Integer getProgressPercentage() {
+            Integer result = (bytesTotal == null) ? null : (int)  (bytesDownloaded * 100 / bytesTotal);
+            return result;
+        }
 
     }
 

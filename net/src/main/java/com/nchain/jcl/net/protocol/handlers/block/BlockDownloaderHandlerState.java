@@ -8,6 +8,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 
 /**
@@ -112,6 +113,15 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         return peersInfo.stream()
                 .filter( p -> p.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING))
                 .count();
+    }
+
+    public Optional<BlockPeerInfo> getPeerInfo(String blockHash) {
+        if (this.peersInfo == null ) { return Optional.empty();}
+
+        return this.peersInfo.stream()
+                .filter(p -> p.getCurrentBlockInfo() != null)
+                .filter(p -> p.getCurrentBlockInfo().getHash().equals(blockHash))
+                .findFirst();
     }
 
     public BlockDownloaderHandlerStateBuilder toBuilder() {
