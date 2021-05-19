@@ -24,6 +24,9 @@ public final class BlockDownloaderHandlerState extends HandlerState {
     private final List<String> downloadedBlocks;
     private final List<String> discardedBlocks;
 
+    // Blocks download History:
+    private final Map<String, List<BlockDownloaderHandlerImpl.BlockDownloadHistoryItem>> blocksHistory;
+
     // Complete info of all the Peers, but only those who are hanshaked at the moment (they might be idle or not)
     private final List<BlockPeerInfo> peersInfo;
 
@@ -42,6 +45,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
     public BlockDownloaderHandlerState(List<String> pendingBlocks,
                                        List<String> downloadedBlocks,
                                        List<String> discardedBlocks,
+                                       Map<String, List<BlockDownloaderHandlerImpl.BlockDownloadHistoryItem>> blocksHistory,
                                        List<BlockPeerInfo> peersInfo,
                                        long totalReattempts,
                                        Map<String, Integer> blocksNumDownloadAttempts,
@@ -49,6 +53,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         this.pendingBlocks = pendingBlocks;
         this.downloadedBlocks = downloadedBlocks;
         this.discardedBlocks = discardedBlocks;
+        this.blocksHistory = blocksHistory;
         this.peersInfo = peersInfo;
         this.totalReattempts = totalReattempts;
         this.blocksNumDownloadAttempts = blocksNumDownloadAttempts;
@@ -104,9 +109,11 @@ public final class BlockDownloaderHandlerState extends HandlerState {
     public List<String> getDiscardedBlocks()    { return this.discardedBlocks; }
     public List<BlockPeerInfo> getPeersInfo()   { return this.peersInfo; }
     public long getTotalReattempts()            { return this.totalReattempts;}
+    public int getBusyPercentage()              { return this.busyPercentage;}
     public Map<String, Integer> getBlocksNumDownloadAttempts()
                                                 { return this.blocksNumDownloadAttempts; }
-    public int getBusyPercentage()              { return this.busyPercentage;}
+    public Map<String, List<BlockDownloaderHandlerImpl.BlockDownloadHistoryItem>> getBlocksHistory()
+                                                { return this.blocksHistory;}
 
     public long getNumPeersDownloading() {
         if (peersInfo == null) return 0;
@@ -135,6 +142,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         private List<String> pendingBlocks;
         private List<String> downloadedBlocks;
         private List<String> discardedBlocks;
+        private Map<String, List<BlockDownloaderHandlerImpl.BlockDownloadHistoryItem>> blocksHistory;
         private List<BlockPeerInfo> peersInfo;
         private long totalReattempts;
         private Map<String, Integer> blocksNumDownloadAttempts;
@@ -155,6 +163,11 @@ public final class BlockDownloaderHandlerState extends HandlerState {
 
         public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder discardedBlocks(List<String> discardedBlocks) {
             this.discardedBlocks = discardedBlocks;
+            return this;
+        }
+
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder blocksHistory(Map<String, List<BlockDownloaderHandlerImpl.BlockDownloadHistoryItem>> blocksHistory) {
+            this.blocksHistory = blocksHistory;
             return this;
         }
 
@@ -179,7 +192,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         }
 
         public BlockDownloaderHandlerState build() {
-            return new BlockDownloaderHandlerState(pendingBlocks, downloadedBlocks, discardedBlocks, peersInfo, totalReattempts, blocksNumDownloadAttempts, busyPercentage);
+            return new BlockDownloaderHandlerState(pendingBlocks, downloadedBlocks, discardedBlocks, blocksHistory, peersInfo, totalReattempts, blocksNumDownloadAttempts, busyPercentage);
         }
     }
 }
