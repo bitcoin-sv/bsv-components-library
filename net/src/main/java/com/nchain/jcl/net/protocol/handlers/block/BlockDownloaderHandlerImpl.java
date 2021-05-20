@@ -73,7 +73,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
     }
     // Blocks Download History:
     private Map<String, List<BlockDownloadHistoryItem>> blocksHistory = new ConcurrentHashMap<>();
-    private boolean removeBlockHistoryAfterDownload = true;
+    private boolean removeBlockHistoryAfterDownload = false;
 
     private LoggerUtil logger;
     private BlockDownloaderHandlerConfig config;
