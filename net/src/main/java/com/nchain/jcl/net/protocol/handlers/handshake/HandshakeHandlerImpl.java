@@ -22,9 +22,7 @@ import com.nchain.jcl.tools.log.LoggerUtil;
 import com.nchain.jcl.tools.thread.ThreadUtils;
 
 import java.math.BigInteger;
-import java.util.List;
-import java.util.Map;
-import java.util.OptionalInt;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -60,6 +58,7 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
     // also drops below the minimum...
     boolean minPeersReachedEventSent = false;
     boolean minPeersLostEventSent = false;
+    boolean maxPeersReachedEventSent = false;
 
     private Lock lock = new ReentrantLock();
 
@@ -143,9 +142,9 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
                 this.peersInfo.remove(event.getPeerAddress());
 
                 // We update the State:
-                updateStatus(false,false);
+                updateStatus(false,false, peerInfo.getPeerAddress());
 
-                checkIfTriggerMinPeersEvent(true);
+                checkIfTriggerPeersEvent(true);
                 checkIfWeNeedMoreHandshakes();
             } // if (peerInfo != null)...
         } finally {
@@ -300,7 +299,8 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
 
 
     private synchronized void updateStatus(boolean requestToResumeConns,
-                                           boolean requestToStopConns) {
+                                           boolean requestToStopConns,
+                                           PeerAddress anotherPeerHandshakedLost) {
         HandshakeHandlerState.HandshakeHandlerStateBuilder stateBuilder = this.state.toBuilder();
         int numCurrentHandshakes = (int) this.peersInfo.values().stream()
                 .filter(p -> p.isHandshakeAccepted())
@@ -323,9 +323,19 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
             stateBuilder.stopConnsRequested(true);
             stateBuilder.moreConnsRequested(false);
         }
+
+        if (anotherPeerHandshakedLost != null) {
+            Set<PeerAddress> peersHandshakedLost = this.state.getPeersHandshakedLost();
+            peersHandshakedLost.add(anotherPeerHandshakedLost);
+            stateBuilder.peersHandshakedLost(peersHandshakedLost);
+        }
+
         this.state = stateBuilder.build();
     }
 
+    private synchronized void updateStatus(boolean requestToResumeConns, boolean requestToStopConns) {
+        updateStatus(requestToResumeConns, requestToStopConns, null);
+    }
 
     /**
      * Indicates whether we already have enough Handshakes. This is only TRUE when we've already reached the MAX defined
@@ -376,13 +386,46 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
     }
 
     /**
-     * This methods checks the number of current Handshakes, and triggers different events depending on that, ONLY if
-     * a MINIMUM Set of Handshaked Peers have been defined in the Configuration
-     *
-     * @param checkForMinPeersLost if TRUE, the method only cares of the MinPeersLostEvent event, otherwise it only
-     *                             cares for the minPeersReachedEventSent event.
+     * This methods checks the number of current Handshakes, and triggers different events depending on that:
      */
-    private synchronized void checkIfTriggerMinPeersEvent(boolean checkForMinPeersLost) {
+    private synchronized void checkIfTriggerPeersEvent(boolean connectionsDecreasing) {
+
+        // We check if we need to trigger an event about the minPeers being Reached or Lost:
+
+        if (config.getBasicConfig().getMinPeers().isPresent()) {
+            // minHandshakedPeersLost
+            if (state.getNumCurrentHandshakes() < config.getBasicConfig().getMinPeers().getAsInt()
+                    && !minPeersLostEventSent
+                    && connectionsDecreasing) {
+                super.eventBus.publish(new MinHandshakedPeersLostEvent(state.getNumCurrentHandshakes()));
+                minPeersLostEventSent = true;
+                minPeersReachedEventSent = false;
+                maxPeersReachedEventSent = false;
+            }
+            // minHandshakedPeersReached
+            if (state.getNumCurrentHandshakes() >=config.getBasicConfig().getMinPeers().getAsInt()
+                    && !minPeersReachedEventSent
+                    && !connectionsDecreasing) {
+                super.eventBus.publish(new MinHandshakedPeersReachedEvent(state.getNumCurrentHandshakes()));
+                minPeersReachedEventSent = true;
+                minPeersLostEventSent = false;
+            }
+        }
+
+        // We check if we need to trigger an event about the maxPeers being Reached or Lost:
+
+        if (config.getBasicConfig().getMaxPeers().isPresent()) {
+
+            // maxHandshakedPeersReached
+            if (state.getNumCurrentHandshakes() >=config.getBasicConfig().getMaxPeers().getAsInt()
+                    && !maxPeersReachedEventSent
+                    && !connectionsDecreasing) {
+                super.eventBus.publish(new MaxHandshakedPeersReachedEvent(state.getNumCurrentHandshakes()));
+                maxPeersReachedEventSent = true;
+            }
+        }
+
+        /*
 
         if (checkForMinPeersLost && config.getBasicConfig().getMinPeers().isPresent()
                 && state.getNumCurrentHandshakes() < config.getBasicConfig().getMinPeers().getAsInt()
@@ -400,6 +443,8 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
             minPeersReachedEventSent = true;
             minPeersLostEventSent = false;
         }
+
+         */
     }
 
     /**
@@ -456,7 +501,7 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
         // We trigger the event:
         super.eventBus.publish(new PeerHandshakedEvent(peerInfo.getPeerAddress(), peerInfo.getVersionMsgReceived()));
 
-        checkIfTriggerMinPeersEvent(false);
+        checkIfTriggerPeersEvent(false);
         checkIfWeNeedMoreHandshakes();
     }
 

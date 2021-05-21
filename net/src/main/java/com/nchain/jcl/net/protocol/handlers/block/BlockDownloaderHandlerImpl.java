@@ -15,7 +15,6 @@ import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.handlers.HandlerImpl;
 import com.nchain.jcl.tools.log.LoggerUtil;
 import com.nchain.jcl.tools.thread.ThreadUtils;
-import io.bitcoinj.core.Sha256Hash;
 import io.bitcoinj.core.Utils;
 
 import java.time.Duration;
@@ -57,8 +56,18 @@ import java.util.stream.Collectors;
 public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDownloaderHandler {
 
     /**
-     * This class stores an item in the history of a Block download process. Each item is an oepration performed on
-     * a block that we want to keep track of...
+     * States this handler can be into. RUNNING is the normal mode. In PAUSED mode, no new blocks will be downloaded,
+     * but the ones that were in the middle of downloading when the state changed, will still finish.
+     */
+    public enum DonwloadingState { RUNNING, PAUSED }
+
+    // Handler Download State:
+    private DonwloadingState downloadingState;
+
+    /**
+     * This class stores an item in the history of a Block download process. Each item is an operation performed on
+     * a block that we want to keep track of. This handler stores a history of every block, and its also part of
+     * this handler STATE. The history of each block by default is removed after the block is downloaded.
      */
     public class BlockDownloadHistoryItem {
         private Instant timestamp;
@@ -73,8 +82,9 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
     }
     // Blocks Download History:
     private Map<String, List<BlockDownloadHistoryItem>> blocksHistory = new ConcurrentHashMap<>();
-    private boolean removeBlockHistoryAfterDownload = false;
+    private boolean removeBlockHistoryAfterDownload = true;
 
+    // Basic Config:
     private LoggerUtil logger;
     private BlockDownloaderHandlerConfig config;
 
@@ -110,6 +120,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         this.config = config;
         this.logger = new LoggerUtil(id, HANDLER_ID, this.getClass());
         this.executor = ThreadUtils.getSingleThreadExecutorService(id + "-Job");
+        this.downloadingState = DonwloadingState.RUNNING;
     }
 
     private void registerForEvents() {
@@ -122,6 +133,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         super.eventBus.subscribe(PartialBlockHeaderMsgReceivedEvent.class, e -> this.onPartialBlockHeaderMsgReceived((PartialBlockHeaderMsgReceivedEvent) e));
         super.eventBus.subscribe(PartialBlockTxsMsgReceivedEvent.class, e -> this.onPartialBlockTxsMsgReceived((PartialBlockTxsMsgReceivedEvent) e));
         super.eventBus.subscribe(BlocksDownloadRequest.class, e -> this.download(((BlocksDownloadRequest) e).getBlockHashes()));
+        super.eventBus.subscribe(MaxHandshakedPeersReachedEvent.class, e -> this.resume());
+        super.eventBus.subscribe(MinHandshakedPeersLostEvent.class, e -> this.pause());
     }
 
     // This method calculates the percentage of Thread occupation.
@@ -163,6 +176,11 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         }
     }
 
+    // State-related methods:
+    private void pause()        { this.downloadingState = DonwloadingState.PAUSED; }
+    private void resume()       { this.downloadingState = DonwloadingState.RUNNING; }
+    private boolean isRunning() { return this.downloadingState.equals(DonwloadingState.RUNNING); }
+
     @Override
     public BlockDownloaderHandlerState getState() {
         // We get the percentage and we reset it right after that:
@@ -170,6 +188,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         this.busyPercentage.set(0);
 
         return BlockDownloaderHandlerState.builder()
+                .downloadingState(this.downloadingState)
                 .pendingBlocks(this.blocksPending.stream().collect(Collectors.toList()))
                 .downloadedBlocks(this.blocksDownloaded)
                 .discardedBlocks(this.blocksDiscarded.keySet().stream().collect(Collectors.toList()))
@@ -556,18 +575,20 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                        switch (peerWorkingState) {
                           case IDLE: {
                               // This peer is idle. If according to config we can download more Blocks, we assign one
-                              // to it, if there is any...
-
-                              if (blocksPending.size() > 0) {
-                                  long numPeersWorking = peersInfo.values().stream()
-                                          .filter(p -> p.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING))
-                                          .count();
-                                  if (numPeersWorking < config.getMaxBlocksInParallel()) {
-                                      String hash = blocksPending.poll();
-                                      logger.trace("Putting peer " + peerInfo.getPeerAddress() + " to download " + hash + "...");
-                                      startDownloading(peerInfo, hash);
+                              // to it, if there is any... Only of the handler is RUNNING
+                              if (isRunning()) {
+                                  if (blocksPending.size() > 0) {
+                                      long numPeersWorking = peersInfo.values().stream()
+                                              .filter(p -> p.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING))
+                                              .count();
+                                      if (numPeersWorking < config.getMaxBlocksInParallel()) {
+                                          String hash = blocksPending.poll();
+                                          logger.trace("Putting peer " + peerInfo.getPeerAddress() + " to download " + hash + "...");
+                                          startDownloading(peerInfo, hash);
+                                      }
                                   }
                               }
+
                               break;
                           }
 
@@ -588,7 +609,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                               }
                               if (msgFailure != null) {
                                   logger.debug(peerAddress.toString(), "Download Failure", peerInfo.getCurrentBlockInfo().hash, msgFailure);
-                                  registerBlockHistory(peerInfo.getCurrentBlockInfo().hash, "Download issue detected : " + msgFailure);
+                                  registerBlockHistory(peerInfo.getCurrentBlockInfo().hash, "Download issue detected from " + peerInfo.getPeerAddress() + " : " + msgFailure);
                                   processDownloadFailiure(peerInfo, toDiscard);
                               }
                               break;

@@ -1,5 +1,7 @@
 package com.nchain.jcl.net.integration.protocol.handlers.block
 
+import com.nchain.jcl.net.network.config.NetworkConfig
+import com.nchain.jcl.net.network.config.provided.NetworkDefaultConfig
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandler
@@ -78,6 +80,11 @@ class BlockDownloadTest extends Specification {
             // The longest Timeout we'll wait for to run the test:
             Duration TIMEOUT = Duration.ofMinutes(5)
 
+            // Network Config:
+            NetworkConfig networkConfig = new NetworkDefaultConfig().toBuilder()
+                .maxSocketConnectionsOpeningAtSameTime(50)
+                .build();
+
             // Basic Config:
             ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
                 .minPeers(OptionalInt.of(10))
@@ -92,11 +99,11 @@ class BlockDownloadTest extends Specification {
 
             // We configure the P2P Service:
             P2P p2p = new P2PBuilder("testing")
+                .config(networkConfig)
                 .config(config)
                 .config(basicConfig)
                 .config(blockConfig)
-                .publishState(BlockDownloaderHandler.HANDLER_ID, Duration.ofMillis(500))
-                //.publishState(HandshakeHandler.HANDLER_ID, Duration.ofMillis(200))
+                .publishStates(Duration.ofMillis(500))
                 .build()
 
             // We are keeping track of the Blocks being downloaded:
@@ -107,7 +114,10 @@ class BlockDownloadTest extends Specification {
 
             // We capture the state when we reach the min Peers, so we do not start the download until this moment:
             AtomicBoolean connReady = new AtomicBoolean(false);
-            p2p.EVENTS.PEERS.HANDSHAKED_MIN_REACHED.forEach({e -> connReady.set(true)})
+            p2p.EVENTS.PEERS.HANDSHAKED_MAX_REACHED.forEach({e ->
+                println("MAx Number of Peers reached.")
+                connReady.set(true)
+            })
 
             // Every time a Header is downloaded, we store it...
             p2p.EVENTS.BLOCKS.BLOCK_HEADER_DOWNLOADED.forEach({ e ->
@@ -134,15 +144,17 @@ class BlockDownloadTest extends Specification {
                 println(" > Block " + e.hash + " discarded : " + e.reason)
             })
 
-            // We log the Block Download Status:
+            // We log some Status:
+            p2p.EVENTS.STATE.NETWORK.forEach( {e -> println(e)})
             p2p.EVENTS.STATE.BLOCKS.forEach( {e -> println(e)})
             p2p.EVENTS.STATE.HANDSHAKE.forEach({ e -> println(e)})
+
 
         when:
             println(" > Testing Block Download in " + config.toString() + "...")
             // WE start the Service and request to download the Blocks...
             p2p.start()
-            // we wait until we reach the minimum number of Peers:
+            // we wait until we reach the MAXIMUN number of Peers:
             while (!connReady.get()) Thread.sleep(100)
 
             println("Connection Ready...")

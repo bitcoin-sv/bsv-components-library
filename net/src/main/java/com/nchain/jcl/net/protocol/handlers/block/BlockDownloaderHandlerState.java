@@ -19,6 +19,9 @@ import java.util.concurrent.locks.Lock;
  */
 public final class BlockDownloaderHandlerState extends HandlerState {
 
+    // Downloading State:
+    private final BlockDownloaderHandlerImpl.DonwloadingState downloadingState;
+
     // List of blocks in different States:
     private final List<String> pendingBlocks;
     private final List<String> downloadedBlocks;
@@ -42,14 +45,16 @@ public final class BlockDownloaderHandlerState extends HandlerState {
     // current value and the previous one...
     private final int busyPercentage;
 
-    public BlockDownloaderHandlerState(List<String> pendingBlocks,
-                                       List<String> downloadedBlocks,
-                                       List<String> discardedBlocks,
-                                       Map<String, List<BlockDownloaderHandlerImpl.BlockDownloadHistoryItem>> blocksHistory,
-                                       List<BlockPeerInfo> peersInfo,
-                                       long totalReattempts,
-                                       Map<String, Integer> blocksNumDownloadAttempts,
-                                       int busyPercentage) {
+    public BlockDownloaderHandlerState( BlockDownloaderHandlerImpl.DonwloadingState downloadingState,
+                                        List<String> pendingBlocks,
+                                        List<String> downloadedBlocks,
+                                        List<String> discardedBlocks,
+                                        Map<String, List<BlockDownloaderHandlerImpl.BlockDownloadHistoryItem>> blocksHistory,
+                                        List<BlockPeerInfo> peersInfo,
+                                        long totalReattempts,
+                                        Map<String, Integer> blocksNumDownloadAttempts,
+                                        int busyPercentage) {
+        this.downloadingState = downloadingState;
         this.pendingBlocks = pendingBlocks;
         this.downloadedBlocks = downloadedBlocks;
         this.discardedBlocks = discardedBlocks;
@@ -75,6 +80,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         result.append(getNumPeersDownloading() + " peers downloading Blocks, ");
         result.append(totalReattempts + " re-attempts, ");
         result.append(busyPercentage + "% busy");
+        result.append(" [ " + downloadingState + " ] ");
         result.append("\n");
 
         // We print this Peer download Speed:
@@ -89,7 +95,9 @@ public final class BlockDownloaderHandlerState extends HandlerState {
                     Integer peerSpeed = p.getDownloadSpeed();
                     String speedStr = (peerSpeed == null || p.getCurrentBlockInfo() == null || p.getCurrentBlockInfo().bytesDownloaded == null)
                             ? "¿?"
-                            : speedFormat.format((double) peerSpeed / 1_000);
+                            : (peerSpeed == Integer.MAX_VALUE)
+                                ? "undefined"
+                                : speedFormat.format((double) peerSpeed / 1_000);
 
                     result.append(" [ " + speedStr + " KB/sec ]");
                     // We print this Peer time info:
@@ -99,11 +107,11 @@ public final class BlockDownloaderHandlerState extends HandlerState {
                     result.append("\n");
                 });
 
-
-
         return result.toString();
     }
 
+    public BlockDownloaderHandlerImpl.DonwloadingState getDownloadingState()
+                                                { return this.downloadingState; }
     public List<String> getPendingBlocks()      { return this.pendingBlocks; }
     public List<String> getDownloadedBlocks()   { return this.downloadedBlocks; }
     public List<String> getDiscardedBlocks()    { return this.discardedBlocks; }
@@ -139,6 +147,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
      * Builder
      */
     public static class BlockDownloaderHandlerStateBuilder {
+        private BlockDownloaderHandlerImpl.DonwloadingState downloadingState;
         private List<String> pendingBlocks;
         private List<String> downloadedBlocks;
         private List<String> discardedBlocks;
@@ -149,6 +158,11 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         private int busyPercentage;
 
         BlockDownloaderHandlerStateBuilder() {
+        }
+
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder downloadingState(BlockDownloaderHandlerImpl.DonwloadingState downloadingState) {
+            this.downloadingState = downloadingState;
+            return this;
         }
 
         public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder pendingBlocks(List<String> pendingBlocks) {
@@ -192,7 +206,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         }
 
         public BlockDownloaderHandlerState build() {
-            return new BlockDownloaderHandlerState(pendingBlocks, downloadedBlocks, discardedBlocks, blocksHistory, peersInfo, totalReattempts, blocksNumDownloadAttempts, busyPercentage);
+            return new BlockDownloaderHandlerState(downloadingState, pendingBlocks, downloadedBlocks, discardedBlocks, blocksHistory, peersInfo, totalReattempts, blocksNumDownloadAttempts, busyPercentage);
         }
     }
 }
