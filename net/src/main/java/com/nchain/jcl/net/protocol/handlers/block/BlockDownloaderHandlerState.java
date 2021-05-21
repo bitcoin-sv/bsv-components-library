@@ -118,6 +118,8 @@ public final class BlockDownloaderHandlerState extends HandlerState {
     public List<BlockPeerInfo> getPeersInfo()   { return this.peersInfo; }
     public long getTotalReattempts()            { return this.totalReattempts;}
     public int getBusyPercentage()              { return this.busyPercentage;}
+    public boolean isRunning()                  { return this.downloadingState.equals(BlockDownloaderHandlerImpl.DonwloadingState.RUNNING);}
+    public boolean isPaused()                   { return this.downloadingState.equals(BlockDownloaderHandlerImpl.DonwloadingState.PAUSED);}
     public Map<String, Integer> getBlocksNumDownloadAttempts()
                                                 { return this.blocksNumDownloadAttempts; }
     public Map<String, List<BlockDownloaderHandlerImpl.BlockDownloadHistoryItem>> getBlocksHistory()
