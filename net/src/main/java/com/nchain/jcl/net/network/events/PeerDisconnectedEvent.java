@@ -13,9 +13,10 @@ public final class PeerDisconnectedEvent extends P2PEvent {
 
     /** Definition of Reason why a Peer has been disconnected */
     public enum DisconnectedReason {
-        UNDEFINED,
-        DISCONNECTED_BY_LOCAL,
-        DISCONNECTED_BY_REMOTE
+        UNDEFINED,                              // undefined in general
+        DISCONNECTED_BY_LOCAL,                  // generic reason for getting disconnected by Local (JCL)
+        DISCONNECTED_BY_LOCAL_LAZY_DOWNLOAD,    // Remote block doesn't respond to block download requests
+        DISCONNECTED_BY_REMOTE                  // generic reason for getting disconnected by the Remote Peer
     }
 
     private final PeerAddress peerAddress;

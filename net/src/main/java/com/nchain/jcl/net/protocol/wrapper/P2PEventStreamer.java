@@ -57,6 +57,7 @@ public class P2PEventStreamer {
         public final EventStreamer<PeerHandshakedDisconnectedEvent> HANDSHAKED_DISCONNECTED     = new EventStreamer<>(eventBus, PeerHandshakedDisconnectedEvent.class);
         public final EventStreamer<PeerHandshakeRejectedEvent>      HANDSHAKED_REJECTED         = new EventStreamer<>(eventBus, PeerHandshakeRejectedEvent.class);
         public final EventStreamer<MinHandshakedPeersReachedEvent>  HANDSHAKED_MIN_REACHED      = new EventStreamer<>(eventBus, MinHandshakedPeersReachedEvent.class);
+        public final EventStreamer<MaxHandshakedPeersReachedEvent>  HANDSHAKED_MAX_REACHED      = new EventStreamer<>(eventBus, MaxHandshakedPeersReachedEvent.class);
         public final EventStreamer<MinHandshakedPeersLostEvent>     HANDSHAKED_MIN_LOST         = new EventStreamer<>(eventBus, MinHandshakedPeersLostEvent.class);
         public final EventStreamer<InitialPeersLoadedEvent>         INITIAL_PEERS_LOADED        = new EventStreamer<>(eventBus, InitialPeersLoadedEvent.class);
         public final EventStreamer<PeerRejectedEvent>               PEER_REJECTED               = new EventStreamer<>(eventBus, PeerRejectedEvent.class);

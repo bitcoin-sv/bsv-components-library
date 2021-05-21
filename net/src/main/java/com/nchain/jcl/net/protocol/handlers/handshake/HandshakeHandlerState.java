@@ -1,9 +1,14 @@
 package com.nchain.jcl.net.protocol.handlers.handshake;
 
 
+import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.tools.handlers.HandlerState;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author i.fernandez@nchain.com
@@ -26,12 +31,19 @@ public final class HandshakeHandlerState extends HandlerState {
     private  boolean moreConnsRequested = true;
     private  boolean stopConnsRequested;
 
-    HandshakeHandlerState(int numCurrentHandshakes, int numHandshakesInProgress, BigInteger numHandshakesFailed, Boolean moreConnsRequested, Boolean stopConnsRequested) {
+    // Peers that were correctly handshaked but dropped the connection:
+    private Set<PeerAddress> peersHandshakedLost = new HashSet<>();
+
+    HandshakeHandlerState(int numCurrentHandshakes, int numHandshakesInProgress,
+                          BigInteger numHandshakesFailed,
+                          Boolean moreConnsRequested, Boolean stopConnsRequested,
+                          Set<PeerAddress> peersHandshakedLost) {
         this.numCurrentHandshakes = numCurrentHandshakes;
         this.numHandshakesInProgress = numHandshakesInProgress;
         if (numHandshakesFailed != null)    this.numHandshakesFailed = numHandshakesFailed;
         if (moreConnsRequested != null)     this.moreConnsRequested = moreConnsRequested;
         if (stopConnsRequested != null)     this.stopConnsRequested = stopConnsRequested;
+        this.peersHandshakedLost = peersHandshakedLost;
     }
 
     @Override
@@ -42,17 +54,18 @@ public final class HandshakeHandlerState extends HandlerState {
         result.append(numCurrentHandshakes + " current Handshakes, ");
         result.append(numHandshakesInProgress + " in progress, ");
         result.append(numHandshakesFailed + " failed. ");
+        result.append(peersHandshakedLost.size() + " lost.");
         if (moreConnsRequested) result.append(" More Connections requested");
         if (stopConnsRequested) result.append(" Stop Connections requested");
-
         return result.toString();
     }
 
-    public int getNumCurrentHandshakes()        { return this.numCurrentHandshakes; }
-    public int getNumHandshakesInProgress()     { return this.numHandshakesInProgress;}
-    public BigInteger getNumHandshakesFailed()  { return this.numHandshakesFailed; }
-    public boolean isMoreConnsRequested()       { return this.moreConnsRequested; }
-    public boolean isStopConnsRequested()       { return this.stopConnsRequested; }
+    public int getNumCurrentHandshakes()                { return this.numCurrentHandshakes; }
+    public int getNumHandshakesInProgress()             { return this.numHandshakesInProgress;}
+    public BigInteger getNumHandshakesFailed()          { return this.numHandshakesFailed; }
+    public boolean isMoreConnsRequested()               { return this.moreConnsRequested; }
+    public boolean isStopConnsRequested()               { return this.stopConnsRequested; }
+    public Set<PeerAddress> getPeersHandshakedLost()    { return this.peersHandshakedLost;}
 
     public HandshakeHandlerStateBuilder toBuilder() {
         return new HandshakeHandlerStateBuilder().numCurrentHandshakes(this.numCurrentHandshakes).numHandshakesFailed(this.numHandshakesFailed).moreConnsRequested(this.moreConnsRequested).stopConnsRequested(this.stopConnsRequested);
@@ -71,6 +84,7 @@ public final class HandshakeHandlerState extends HandlerState {
         private BigInteger numHandshakesFailed;
         private Boolean moreConnsRequested;
         private Boolean stopConnsRequested;
+        private Set<PeerAddress> peersHandshakedLost = new HashSet<>();
 
         HandshakeHandlerStateBuilder() {}
 
@@ -99,8 +113,13 @@ public final class HandshakeHandlerState extends HandlerState {
             return this;
         }
 
+        public HandshakeHandlerState.HandshakeHandlerStateBuilder peersHandshakedLost(Set<PeerAddress> peersHandshakedLost) {
+            this.peersHandshakedLost = peersHandshakedLost;
+            return this;
+        }
+
         public HandshakeHandlerState build() {
-            return new HandshakeHandlerState(numCurrentHandshakes, numHandshakesInProgress, numHandshakesFailed, moreConnsRequested, stopConnsRequested);
+            return new HandshakeHandlerState(numCurrentHandshakes, numHandshakesInProgress, numHandshakesFailed, moreConnsRequested, stopConnsRequested, peersHandshakedLost);
         }
     }
 }

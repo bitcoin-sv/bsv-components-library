@@ -617,7 +617,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
                         // We handle this connection:
                         // In case opening the connection takes too long, we wrap it up in a TimeoutTask...
 
-                        logger.trace(peerAddress, "handling connection To open. Still pendingToOpen in Queue: " + this.pendingToOpenConns.size());
+                        logger.trace(peerAddress, "handling connection To open. inProgress: " + this.inProgressConns.size() + " Still pendingToOpen in Queue: " + this.pendingToOpenConns.size());
                         TimeoutTask connectPeerTask = TimeoutTaskBuilder.newTask()
                                 .execute(() -> handleConnectionToOpen(peerAddress))
                                 .waitFor(config.getTimeoutSocketConnection().getAsInt())
@@ -630,7 +630,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
                         connectPeerTask.execute();
 
                         // We wait a little bit between connections:
-                    Thread.sleep(100);
+                    Thread.sleep(50);
                 } // while...
 
                 // In case there are NO more connections pending to Open, We wait until the Queue of Pending
