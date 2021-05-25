@@ -15,6 +15,7 @@ import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.handlers.HandlerImpl;
 import com.nchain.jcl.tools.log.LoggerUtil;
 import com.nchain.jcl.tools.thread.ThreadUtils;
+import io.bitcoinj.core.Sha256Hash;
 import io.bitcoinj.core.Utils;
 
 import java.time.Duration;
@@ -39,7 +40,7 @@ import java.util.stream.Collectors;
  *   the property "msgSizeInBytesForRealTimeProcessing" in the Runtime Configuration). In this mode, the Block
  *   content (bytes) is downloaded first, an then it's deserialized. The whole Block is notified as a Java Object.
  *
- * - A "real time" way: When the Block is BIG. In thi case, the Whole block is deserialized at the same time as the
+ * - A "real time" way: When the Block is BIG. In this case, the Whole block is deserialized at the same time as the
  *   bytes arrive down the wire, and its not deserialized into a Java Object, instead different notifications are
  *   triggered when different parts of the Block are deserialized.
  *
@@ -96,6 +97,9 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
 
     Lock lock = new ReentrantLock();
 
+    // We keep a reference to the List of blocks downloaded:
+    private Set<String>  liteBlocksDownloaded = ConcurrentHashMap.newKeySet();
+
     // The Big Blocks will be Downloaded and Deserialized in Real Time, and we'll get notified every time a
     // block Header or a set of Txs are deserialized. So in order to know WHEN a Bock has been fully serialzied,
     // we need to keep track of the number of TXs contained in each block. When we detect that all the TXs within
@@ -125,8 +129,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         super.eventBus.subscribe(PeerHandshakedEvent.class, e -> this.onPeerHandshaked((PeerHandshakedEvent) e));
         super.eventBus.subscribe(PeerDisconnectedEvent.class, e -> this.onPeerDisconnected((PeerDisconnectedEvent) e));
         super.eventBus.subscribe(BlockMsgReceivedEvent.class, e -> this.onBlockMsgReceived((BlockMsgReceivedEvent) e));
-        super.eventBus.subscribe(PartialBlockHeaderMsgReceivedEvent.class, e -> this.onPartialBlockHeaderMsgReceived((PartialBlockHeaderMsgReceivedEvent) e));
-        super.eventBus.subscribe(PartialBlockTxsMsgReceivedEvent.class, e -> this.onPartialBlockTxsMsgReceived((PartialBlockTxsMsgReceivedEvent) e));
+        super.eventBus.subscribe(BlockHeaderDownloadedEvent.class, e -> this.onPartialBlockHeaderMsgReceived((BlockHeaderDownloadedEvent) e));
+        super.eventBus.subscribe(BlockTXsDownloadedEvent.class, e -> this.onPartialBlockTxsMsgReceived((BlockTXsDownloadedEvent) e));
         super.eventBus.subscribe(BlocksDownloadRequest.class, e -> this.download(((BlocksDownloadRequest) e).getBlockHashes()));
         super.eventBus.subscribe(MaxHandshakedPeersReachedEvent.class, e -> this.resume());
         super.eventBus.subscribe(MinHandshakedPeersLostEvent.class, e -> this.pause());
@@ -272,7 +276,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
     }
 
     // Event Handler:
-    public void onPartialBlockHeaderMsgReceived(PartialBlockHeaderMsgReceivedEvent event) {
+    public void onPartialBlockHeaderMsgReceived(BlockHeaderDownloadedEvent event) {
         try {
             lock.lock();
             if (!peersInfo.containsKey(event.getPeerAddress())) return;
@@ -283,7 +287,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
     }
 
     // Event Handler:
-    public void onPartialBlockTxsMsgReceived(PartialBlockTxsMsgReceivedEvent event) {
+    public void onPartialBlockTxsMsgReceived(BlockTXsDownloadedEvent event) {
         try {
             lock.lock();
             if (!peersInfo.containsKey(event.getPeerAddress())) return;
@@ -298,51 +302,52 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         try {
             lock.lock();
 
+            // When a BIG Block is coming, its broken down in Partial batches and each Part will trigger and event that
+            // will be captured by this method.
+            // When a LITE Block is coming, it will br process as a whole, but in order to follow the same approach for
+            // both LITE and Big BLocks, a "PartialHeader" and "PartialTxs" events are triggered. This way the client of
+            // this library will receive the same type of events regardless of the block being BIG or LITE.
+            // The problem is that the "partial" events triggered from here for LITE Blocks will ALSo be captured here
+            /// in this method creating an infinite loop.
+            // So we just discard those messages related to Lite blocks:
+
+            String blockHash = (msg.is(PartialBlockHeaderMsg.MESSAGE_TYPE))
+                    ? Utils.HEX.encode(Utils.reverseBytes(((PartialBlockHeaderMsg) msg.getBody()).getBlockHeader().getHash().getHashBytes())).toString()
+                    : Utils.HEX.encode(Utils.reverseBytes(((PartialBlockTXsMsg) msg.getBody()).getBlockHeader().getHash().getHashBytes())).toString();
+
+            // If this Event is triggered by this own class, we discard it (infinite loop)
+            if (liteBlocksDownloaded.contains(blockHash)) {
+                return;
+            }
+
             if (msg.is(PartialBlockHeaderMsg.MESSAGE_TYPE)) {
-
+                // We update the info about the Header this block:
                 PartialBlockHeaderMsg partialMsg = (PartialBlockHeaderMsg) msg.getBody();
-                String hash = Utils.HEX.encode(Utils.reverseBytes(partialMsg.getBlockHeader().getHash().getHashBytes())).toString();
-
-                // We update the info about the Header and the Txs of this block:
-                bigBlocksHeaders.put(hash, partialMsg.getBlockHeader());
-                Long numCurrentTxs = bigBlocksCurrentTxs.containsKey(hash) ? bigBlocksCurrentTxs.get(hash) : 0L;
-                bigBlocksCurrentTxs.put(hash, numCurrentTxs);
-                blocksLastActivity.put(hash, Instant.now());
-                blocksDownloadHistory.register(hash, peerInfo.getPeerAddress(), "Header downloaded");
-
-                // We notify it:
-                super.eventBus.publish(new BlockHeaderDownloadedEvent(peerInfo.getPeerAddress(), partialMsg.getBlockHeader()));
+                bigBlocksHeaders.put(blockHash, partialMsg.getBlockHeader());
+                blocksLastActivity.put(blockHash, Instant.now());
+                blocksDownloadHistory.register(blockHash, peerInfo.getPeerAddress(), "Header downloaded");
 
             } else if (msg.is(PartialBlockTXsMsg.MESSAGE_TYPE)) {
-
+                // We update the info about the Txs of this block:
                 PartialBlockTXsMsg partialMsg = (PartialBlockTXsMsg) msg.getBody();
-                String hash = Utils.HEX.encode(Utils.reverseBytes(partialMsg.getBlockHeader().getHash().getHashBytes())).toString();
+                bigBlocksCurrentTxs.merge(blockHash, (long) partialMsg.getTxs().size(), (o, n) -> o + partialMsg.getTxs().size());
+                blocksLastActivity.put(blockHash, Instant.now());
+                blocksDownloadHistory.register(blockHash, peerInfo.getPeerAddress(), partialMsg.getTxs().size() + " Txs downloaded, (" + bigBlocksCurrentTxs.get(blockHash) + " Txs so far)");
+            }
 
-                // We update the info about the Header and the Txs of this block:
-                BlockHeaderMsg blockHeader = bigBlocksHeaders.get(hash);
-                Long numCurrentTxs = bigBlocksCurrentTxs.containsKey(hash)
-                        ? bigBlocksCurrentTxs.get(hash) + partialMsg.getTxs().size()
-                        : partialMsg.getTxs().size();
-                bigBlocksCurrentTxs.put(hash, numCurrentTxs);
-                blocksLastActivity.put(hash, Instant.now());
-
-                blocksDownloadHistory.register(hash, peerInfo.getPeerAddress(), partialMsg.getTxs().size() + " Txs downloaded, (" + numCurrentTxs + " Txs so far)");
-
-                // We notify it:
-                super.eventBus.publish(new BlockTXsDownloadedEvent(peerInfo.getPeerAddress(), partialMsg.getBlockHeader(), partialMsg.getTxs(), partialMsg.getTxsOrderNumber().getValue()));
-
-                // Now we check if we've reached the total of TXs yet:
-
-                if (numCurrentTxs.equals(blockHeader.getTransactionCount().getValue())) {
-                    // Due to the Multi-Thread nature of the EventBus, it might happen that when a Peer disconnects right
-                    // after sending the last batch of Tx, the events do NOt come in the right order: the "Disconnect" event
-                    // might come BEFORE the last "PartialTxsReceived". In that case, when receiving this Batch of Txs, the
-                    //  peer might already be disconnected. In that case, we loos the info about the Amount of Bytes received
-                    // for this Block.
-                    // TODO: Can we store the Block Size elsewhere so we can return it???
-                    Long blockSize = (peerInfo.getCurrentBlockInfo() != null) ? peerInfo.getCurrentBlockInfo().bytesTotal : null;
-                    processDownloadSuccess(peerInfo, blockHeader, blockSize);
-                }
+            // Now we check if we've reached the total of TXs, so the Download is complete:
+            Long numCurrentTxs = bigBlocksCurrentTxs.get(blockHash);
+            BlockHeaderMsg blockHeader = bigBlocksHeaders.get(blockHash);
+            if (numCurrentTxs != null && blockHeader != null && numCurrentTxs.equals(blockHeader.getTransactionCount().getValue())) {
+                System.out.println("Partial for " + blockHash + " :: comparing " + numCurrentTxs + " / " + blockHeader.getTransactionCount().getValue());
+                // Due to the Multi-Thread nature of the EventBus, it might happen that when a Peer disconnects right
+                // after sending the last batch of Tx, the events do NOt come in the right order: the "Disconnect" event
+                // might come BEFORE the last "PartialTxsReceived". In that case, when receiving this Batch of Txs, the
+                //  peer might already be disconnected. In that case, we loos the info about the Amount of Bytes received
+                // for this Block.
+                // TODO: Can we store the Block Size elsewhere so we can return it???
+                Long blockSize = (peerInfo.getCurrentBlockInfo() != null) ? peerInfo.getCurrentBlockInfo().bytesTotal : null;
+                processDownloadSuccess(peerInfo, blockHeader, blockSize);
             }
         } finally {
             lock.unlock();
@@ -353,7 +358,6 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
 
         // We just received a Block.
         // We publish an specific event for this Lite Block being downloaded:
-
         // NOTE: Sometimes, remote Peers send BLOCKS to us Even If we did ask for them. In that case, the Downloading
         // time is ZERO, since we didn't ask for it so we cannot measure the downloading time...
 
@@ -372,11 +376,25 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                             downloadingDuration)
             );
 
-            // We notify the Header has been downloaded:
-            super.eventBus.publish(new BlockHeaderDownloadedEvent(peerInfo.getPeerAddress(), blockMesage.getBody().getBlockHeader()));
+            // We register it:
+            liteBlocksDownloaded.add(blockHash);
 
-            // We notify the tXs has been downloaded:
-            super.eventBus.publish(new BlockTXsDownloadedEvent(peerInfo.getPeerAddress(), blockMesage.getBody().getBlockHeader(), blockMesage.getBody().getTransactionMsg(), 0));
+            // Now, in order to follow the same approach for both Big blocks and Regular Blocks, we also trigger the
+            // "HeaderDownloaded" and "TxsDownloaded" Events for this Block:
+
+            // We notify the Header has been downloaded:
+            PartialBlockHeaderMsg partialHeaderMsg = PartialBlockHeaderMsg.builder().blockHeader(blockMesage.getBody().getBlockHeader()).build();
+            BitcoinMsg<PartialBlockHeaderMsg> partialHeaderBtcMsg =  new BitcoinMsgBuilder<>(config.getBasicConfig(), partialHeaderMsg).build();
+            super.eventBus.publish(new BlockHeaderDownloadedEvent(peerInfo.getPeerAddress(), partialHeaderBtcMsg));
+
+            // We notify the txs has been downloaded:
+            PartialBlockTXsMsg partialBlockTxsMsg = PartialBlockTXsMsg.builder()
+                    .blockHeader(blockMesage.getBody().getBlockHeader())
+                    .txs(blockMesage.getBody().getTransactionMsg())
+                    .txsOrdersNumber(0)
+                    .build();
+            BitcoinMsg<PartialBlockTXsMsg> partialBlockTxsBtcMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), partialBlockTxsMsg).build();
+            super.eventBus.publish(new BlockTXsDownloadedEvent(peerInfo.getPeerAddress(),partialBlockTxsBtcMsg));
 
             blocksLastActivity.put(blockHash, Instant.now());
             blocksDownloadHistory.register(blockHash, peerInfo.getPeerAddress(), "Whole block downloaded");

@@ -9,6 +9,7 @@ import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandlerConfig
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
+import io.bitcoinj.core.Utils
 import spock.lang.Specification
 
 import java.time.Duration
@@ -121,14 +122,14 @@ class BlockDownloadTest extends Specification {
 
             // Every time a Header is downloaded, we store it...
             p2p.EVENTS.BLOCKS.BLOCK_HEADER_DOWNLOADED.forEach({ e ->
-                String hash = e.blockHeaderMsg.hash.toString()
-                blockHeaders.put(hash, e.blockHeaderMsg)
+                String hash = Utils.HEX.encode(e.getBtcMsg().body.getBlockHeader().getHash().getHashBytes())
+                blockHeaders.put(hash, e.getBtcMsg().getHeader())
             })
 
             // Every time a set of TXs is downloaded, we increase the counter of Txs for this block:
             p2p.EVENTS.BLOCKS.BLOCK_TXS_DOWNLOADED.forEach({e ->
-                String hash = e.blockHeaderMsg.hash.toString()
-                Long currentTxs = blockTxs.containsKey(hash)? (blockTxs.get(hash) + e.txsMsg.size()) : e.txsMsg.size()
+                String hash = Utils.HEX.encode(e.getBtcMsg().body.getBlockHeader().getHash().getHashBytes())
+                Long currentTxs = blockTxs.containsKey(hash)? (blockTxs.get(hash) + e.getBtcMsg().body.getTxs().size()) : e.getBtcMsg().body.getTxs().size()
                 blockTxs.put(hash, currentTxs)
             })
 

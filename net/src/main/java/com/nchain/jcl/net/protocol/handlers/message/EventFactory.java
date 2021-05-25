@@ -1,6 +1,8 @@
 package com.nchain.jcl.net.protocol.handlers.message;
 
 import com.nchain.jcl.net.network.PeerAddress;
+import com.nchain.jcl.net.protocol.events.data.BlockHeaderDownloadedEvent;
+import com.nchain.jcl.net.protocol.events.data.BlockTXsDownloadedEvent;
 import com.nchain.jcl.net.protocol.events.data.*;
 import com.nchain.jcl.net.protocol.messages.*;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
@@ -38,9 +40,8 @@ public class EventFactory {
         else if (body instanceof HeadersMsg)        result = new HeadersMsgReceivedEvent(peerAddress, (BitcoinMsg<HeadersMsg>) btcMsg);
         else if (body instanceof MemPoolMsg)        result = new MempoolMsgReceivedEvent(peerAddress, (BitcoinMsg<MemPoolMsg>) btcMsg);
         else if (body instanceof GetHeadersEnMsg)   result = new GetHeadersEnMsgReceivedEvent(peerAddress, (BitcoinMsg<GetHeadersEnMsg>) btcMsg);
-        else if (body instanceof PartialBlockHeaderMsg) result = new PartialBlockHeaderMsgReceivedEvent(peerAddress, (BitcoinMsg<PartialBlockHeaderMsg>) btcMsg);
-        else if (body instanceof PartialBlockTXsMsg)    result = new PartialBlockTxsMsgReceivedEvent(peerAddress, (BitcoinMsg<PartialBlockTXsMsg>) btcMsg);
-
+        else if (body instanceof PartialBlockHeaderMsg) result = new BlockHeaderDownloadedEvent(peerAddress, (BitcoinMsg<PartialBlockHeaderMsg>) btcMsg);
+        else if (body instanceof PartialBlockTXsMsg)    result = new BlockTXsDownloadedEvent(peerAddress, (BitcoinMsg<PartialBlockTXsMsg>) btcMsg);
         else if (body instanceof RawTxMsg)          result = new RawTxMsgReceivedEvent(peerAddress, (BitcoinMsg<RawTxMsg>) btcMsg);
 
         return result;
