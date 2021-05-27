@@ -636,7 +636,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
                         Thread.sleep(100);
                 } // while...
 
-                System.out.println(" >>>>> TRYING " + numConnectionsTried + " CONNECTIONS");
+
                 // In case there are NO more connections pending to Open, We wait until the Queue of Pending
                 // connection has some content, or we are allowed to keep making  connections..
                 while (pendingToOpenConns.size() == 0 || !this.keep_connecting) Thread.sleep(1000);
