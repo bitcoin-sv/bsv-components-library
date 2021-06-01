@@ -3,6 +3,8 @@ package com.nchain.jcl.net.protocol.handlers.block;
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.tools.thread.ThreadUtils;
 import io.bitcoinj.core.Sha256Hash;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -22,6 +24,8 @@ import java.util.stream.Collectors;
  * field empty
  */
 public class BlocksDownloadHistory {
+
+    private Logger logger = LoggerFactory.getLogger(BlocksDownloadHistory.class);
 
     /** Represents an Historic Item. A block History is made up of several of this objects, ordered by timesamp */
     public class HistoricItem {
@@ -153,7 +157,7 @@ public class BlocksDownloadHistory {
                     // We remove its history and also form the markForDeletion Map:
                     hashesToClean.forEach(this::remove);
                     hashesToClean.forEach(hash -> blocksMarkedForDeletion.remove(hash));
-                    System.out.println(" >>>> " + hashesToClean.size() + " HISTORY ENTRIES REMOVED");
+                    logger.trace(hashesToClean.size() + " Blocks history removed");
                 }
                 Thread.sleep(10_000);
             }
