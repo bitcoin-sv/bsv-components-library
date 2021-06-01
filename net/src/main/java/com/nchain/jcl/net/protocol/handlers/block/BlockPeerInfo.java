@@ -88,6 +88,7 @@ public class BlockPeerInfo {
         public Boolean getRealTimeProcessing()          { return this.realTimeProcessing; }
         public Instant getStartTimestamp()              { return this.startTimestamp; }
         public Instant getLastBytesReceivedTimestamp()  { return this.lastBytesReceivedTimestamp; }
+
         public Integer getProgressPercentage() {
             Integer result = (bytesTotal == null) ? null : (int)  (bytesDownloaded * 100 / bytesTotal);
             return result;
@@ -130,6 +131,13 @@ public class BlockPeerInfo {
     public DeserializerStream getStream()           { return this.stream; }
     public BlockProgressInfo getCurrentBlockInfo()  { return this.currentBlockInfo; }
 
+    public boolean isConnected()                    { return this.connectionState.equals(PeerConnectionState.CONNECTED);}
+    public boolean isHandshaked()                   { return this.connectionState.equals(PeerConnectionState.HANDSHAKED);}
+    public boolean isDisconnected()                 { return this.connectionState.equals(PeerConnectionState.DISCONNECTED);}
+
+    public boolean isIdle()                         { return this.workingState.equals(PeerWorkingState.IDLE);}
+    public boolean isProcessing()                   { return this.workingState.equals(PeerWorkingState.PROCESSING);}
+    public boolean isDiscarded()                    { return this.workingState.equals(PeerWorkingState.DISCARDED);}
 
     /**
      * It resets the peer, to make it ready to download a new Block. This Peer might have been used to downloadad
@@ -165,11 +173,13 @@ public class BlockPeerInfo {
 
     /** It updates the Peer to reflect that the Peer has just handshaked*/
     protected void handshake() {
+        reset();
         this.connectionState = PeerConnectionState.HANDSHAKED;
     }
 
     /** It updates the Peer to reflect that the Peer has just disconnected */
     protected void disconnect() {
+        reset();
         this.connectionState = PeerConnectionState.DISCONNECTED;
     }
 

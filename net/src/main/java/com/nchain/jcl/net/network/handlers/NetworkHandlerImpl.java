@@ -595,6 +595,9 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
                 // cannot be higher than this value.
                 OptionalInt limitNumConns = config.getMaxSocketConnections();
 
+                // We keep track of how many connections we are trying on each iteration...
+                int numConnectionsTried = 0;
+
                 // Second loop level: We loop over the pending Connections...
                 while (true) {
                         // Basic checks before getting a Peer from the Pool:
@@ -628,10 +631,11 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
                                 )
                                 .build();
                         connectPeerTask.execute();
-
+                        numConnectionsTried++;
                         // We wait a little bit between connections:
-                    Thread.sleep(50);
+                        Thread.sleep(100);
                 } // while...
+
 
                 // In case there are NO more connections pending to Open, We wait until the Queue of Pending
                 // connection has some content, or we are allowed to keep making  connections..
@@ -681,7 +685,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
                 } finally {
                     lock.writeLock().unlock();
                 }
-                Thread.sleep(1000); // avoid tight loops
+                Thread.sleep(2000); // avoid tight loops
             } // while...
         } catch (InterruptedException ie) {
             ie.printStackTrace();

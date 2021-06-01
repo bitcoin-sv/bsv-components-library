@@ -45,7 +45,6 @@ public class BigBlockDeserializer extends LargeMessageDeserializerImpl {
             // We first deserialize the Block Header:
             log.trace("Deserializing the Block Header...");
             blockHeader = BlockHeaderMsgSerializer.getInstance().deserialize(context, byteReader);
-
             PartialBlockHeaderMsg partialBlockHeader = PartialBlockHeaderMsg.builder().blockHeader(blockHeader).build();
             notifyDeserialization(partialBlockHeader);
 

@@ -28,7 +28,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
     private final List<String> discardedBlocks;
 
     // Blocks download History:
-    private final Map<String, List<BlockDownloaderHandlerImpl.BlockDownloadHistoryItem>> blocksHistory;
+    private final Map<String, List<BlocksDownloadHistory.HistoricItem>> blocksHistory;
 
     // Complete info of all the Peers, but only those who are hanshaked at the moment (they might be idle or not)
     private final List<BlockPeerInfo> peersInfo;
@@ -49,7 +49,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
                                         List<String> pendingBlocks,
                                         List<String> downloadedBlocks,
                                         List<String> discardedBlocks,
-                                        Map<String, List<BlockDownloaderHandlerImpl.BlockDownloadHistoryItem>> blocksHistory,
+                                        Map<String, List<BlocksDownloadHistory.HistoricItem>> blocksHistory,
                                         List<BlockPeerInfo> peersInfo,
                                         long totalReattempts,
                                         Map<String, Integer> blocksNumDownloadAttempts,
@@ -122,7 +122,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
     public boolean isPaused()                   { return this.downloadingState.equals(BlockDownloaderHandlerImpl.DonwloadingState.PAUSED);}
     public Map<String, Integer> getBlocksNumDownloadAttempts()
                                                 { return this.blocksNumDownloadAttempts; }
-    public Map<String, List<BlockDownloaderHandlerImpl.BlockDownloadHistoryItem>> getBlocksHistory()
+    public Map<String, List<BlocksDownloadHistory.HistoricItem>> getBlocksHistory()
                                                 { return this.blocksHistory;}
 
     public long getNumPeersDownloading() {
@@ -153,7 +153,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         private List<String> pendingBlocks;
         private List<String> downloadedBlocks;
         private List<String> discardedBlocks;
-        private Map<String, List<BlockDownloaderHandlerImpl.BlockDownloadHistoryItem>> blocksHistory;
+        private Map<String, List<BlocksDownloadHistory.HistoricItem>> blocksHistory;
         private List<BlockPeerInfo> peersInfo;
         private long totalReattempts;
         private Map<String, Integer> blocksNumDownloadAttempts;
@@ -182,7 +182,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
             return this;
         }
 
-        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder blocksHistory(Map<String, List<BlockDownloaderHandlerImpl.BlockDownloadHistoryItem>> blocksHistory) {
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder blocksHistory(Map<String, List<BlocksDownloadHistory.HistoricItem>> blocksHistory) {
             this.blocksHistory = blocksHistory;
             return this;
         }

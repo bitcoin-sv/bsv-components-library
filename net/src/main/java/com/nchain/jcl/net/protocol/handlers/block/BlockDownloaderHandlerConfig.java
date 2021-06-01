@@ -39,13 +39,23 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
     /** Maximum Blocks to download at the same time */
     private int maxBlocksInParallel = DEFAULT_MAX_DOWNLOADS_IN_PARALLEL;
 
-    public BlockDownloaderHandlerConfig(ProtocolBasicConfig basicConfig, Duration maxDownloadTimeout, Duration maxIdleTimeout, Duration retryDiscardedBlocksTimeout, Integer maxDownloadAttempts, Integer maxBlocksInParallel) {
+    /** If true, the download history of each block will be erased after the block is successfully download */
+    private boolean removeBlockHistoryAfterDownload = true;
+
+    public BlockDownloaderHandlerConfig(ProtocolBasicConfig basicConfig,
+                                        Duration maxDownloadTimeout,
+                                        Duration maxIdleTimeout,
+                                        Duration retryDiscardedBlocksTimeout,
+                                        Integer maxDownloadAttempts,
+                                        Integer maxBlocksInParallel,
+                                        boolean removeBlockHistoryAfterDownload) {
         this.basicConfig = basicConfig;
         if (maxDownloadTimeout != null)             this.maxDownloadTimeout = maxDownloadTimeout;
         if (maxIdleTimeout != null)                 this.maxIdleTimeout = maxIdleTimeout;
         if (retryDiscardedBlocksTimeout != null)    this.retryDiscardedBlocksTimeout = retryDiscardedBlocksTimeout;
         if (maxDownloadAttempts != null)            this.maxDownloadAttempts = maxDownloadAttempts;
         if (maxBlocksInParallel != null)            this.maxBlocksInParallel = maxBlocksInParallel;
+        this.removeBlockHistoryAfterDownload = removeBlockHistoryAfterDownload;
     }
 
     public BlockDownloaderHandlerConfig() {}
@@ -56,9 +66,17 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
     public Duration getRetryDiscardedBlocksTimeout()    { return this.retryDiscardedBlocksTimeout; }
     public int getMaxDownloadAttempts()                 { return this.maxDownloadAttempts; }
     public int getMaxBlocksInParallel()                 { return this.maxBlocksInParallel; }
+    public boolean isRemoveBlockHistoryAfterDownload()  { return this.removeBlockHistoryAfterDownload; }
 
     public BlockDownloaderHandlerConfigBuilder toBuilder() {
-        return new BlockDownloaderHandlerConfigBuilder().basicConfig(this.basicConfig).maxDownloadTimeout(this.maxDownloadTimeout).maxIdleTimeout(this.maxIdleTimeout).retryDiscardedBlocksTimeout(this.retryDiscardedBlocksTimeout).maxDownloadAttempts(this.maxDownloadAttempts).maxBlocksInParallel(this.maxBlocksInParallel);
+        return new BlockDownloaderHandlerConfigBuilder()
+                .basicConfig(this.basicConfig)
+                .maxDownloadTimeout(this.maxDownloadTimeout)
+                .maxIdleTimeout(this.maxIdleTimeout)
+                .retryDiscardedBlocksTimeout(this.retryDiscardedBlocksTimeout)
+                .maxDownloadAttempts(this.maxDownloadAttempts)
+                .maxBlocksInParallel(this.maxBlocksInParallel)
+                .removeBlockHistoryAfterDownload(this.removeBlockHistoryAfterDownload);
     }
 
     public static BlockDownloaderHandlerConfigBuilder builder() {
@@ -75,6 +93,7 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
         private Duration retryDiscardedBlocksTimeout;
         private Integer maxDownloadAttempts;
         private Integer maxBlocksInParallel;
+        private boolean removeBlockHistoryAfterDownload = true;
 
         BlockDownloaderHandlerConfigBuilder() { }
 
@@ -108,8 +127,13 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
             return this;
         }
 
+        public BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder removeBlockHistoryAfterDownload(boolean removeBlockHistoryAfterDownload) {
+            this.removeBlockHistoryAfterDownload = removeBlockHistoryAfterDownload;
+            return this;
+        }
+
         public BlockDownloaderHandlerConfig build() {
-            return new BlockDownloaderHandlerConfig(basicConfig, maxDownloadTimeout, maxIdleTimeout, retryDiscardedBlocksTimeout, maxDownloadAttempts, maxBlocksInParallel);
+            return new BlockDownloaderHandlerConfig(basicConfig, maxDownloadTimeout, maxIdleTimeout, retryDiscardedBlocksTimeout, maxDownloadAttempts, maxBlocksInParallel, removeBlockHistoryAfterDownload);
         }
     }
 }

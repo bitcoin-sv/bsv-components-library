@@ -159,7 +159,7 @@ public class Deserializer {
 
     /**
      * Deserializes and returns the Next BIG Message form the pipeline. Since the message is supposed to be large, no
-     * Cahce is used here, and this method will use directly a "LargeMessageDeserializer". According to how the large
+     * Cache is used here, and this method will use directly a "LargeMessageDeserializer". According to how the large
      * messages deserialization works, the message is returned in different "batches", populated and sent back to the
      * "client" by calling the callbacks fed into this method.
      *

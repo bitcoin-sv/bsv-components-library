@@ -407,10 +407,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         List<HeaderReadOnly> blocksSaved = new ArrayList<>();
 
         // we save the Block...:
-        if(BlockStoreKeyValue.super._saveBlock(tr, blockHeader).isEmpty()){
-            //block already saved, return empty list
-            return blocksSaved;
-        }
+       BlockStoreKeyValue.super._saveBlock(tr, blockHeader);
 
         // and its relation with its parent (ONLY If this is NOT the GENESIS Block)
         if (!blockHeader.getPrevBlockHash().equals(Sha256Hash.ZERO_HASH)) {
@@ -875,7 +872,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     default void _automaticForkPrunning() {
             try {
                 getLock().writeLock().lock();
-                getLogger().info("Automatic Fork Pruning initiating...");
+                getLogger().debug("Automatic Fork Pruning initiating...");
                 // We only prune if there is more than one chain:
                 List<Sha256Hash> tipsChain = getTipsChains();
                 if (tipsChain != null && (tipsChain.size() > 1)) {
@@ -887,7 +884,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                             .collect(Collectors.toList());
                     tipsToPrune.forEach(c -> prune(c, getConfig().isForkPrunningIncludeTxs()));
                 }
-                getLogger().info("Automatic Fork Pruning finished.");
+                getLogger().debug("Automatic Fork Pruning finished.");
             } finally {
                 getLock().writeLock().unlock();
             }
@@ -896,7 +893,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     default void _automaticOrphanPrunning() {
             try {
                 //getLock().readLock().lock();
-                getLogger().info("Automatic Orphan Pruning initiating...");
+                getLogger().debug("Automatic Orphan Pruning initiating...");
                 int numBlocksRemoved = 0;
                 // we get the list of Orphans, and we remove them if they are old" enough:
                 Iterator<Sha256Hash> orphansIt = getOrphanBlocks().iterator();
@@ -911,11 +908,11 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                             //getLogger().info("Automatic Orphan Pruning:: Prunning Block " + blockHash.toString() + "...");
                             removeBlock(blockHash);
                             numBlocksRemoved++;
-                            getLogger().info("Automatic Orphan Pruning:: Block pruned." + blockHash.toString());
+                            getLogger().debug("Automatic Orphan Pruning:: Block pruned." + blockHash.toString());
                         }
                     }
                 } // while...
-                getLogger().info("Automatic Orphan Prunning finished. " + numBlocksRemoved + " orphan Blocks Removed");
+                getLogger().debug("Automatic Orphan Prunning finished. " + numBlocksRemoved + " orphan Blocks Removed");
             } finally {
                 //getLock().readLock().unlock();
             }

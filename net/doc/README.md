@@ -1090,7 +1090,7 @@ An Event triggered when a Block Header has been downloaded, whcihi happends whil
  This Event is accesible by: ``[P2Pservice].EVENTS.BLOCKS.BLOCK_HEADER_DOWNLOADED``
  
  The Event class passed as paremeter to the *forEach* method is an instance of
-``com.nchain.jcl.net.protocol.events.control.BlockHeaderDownloadedEvent``
+``com.nchain.jcl.net.protocol.events.data.BlockHeaderDownloadedEvent``
 
 
 ### BlockTXsDownloadedEvent
@@ -1100,7 +1100,7 @@ An Event triggered when a Set of TXs from a Block has been downloaded. If aBlock
  This Event is accesible by: ``[P2Pservice].EVENTS.BLOCKS.BLOCK_TXS_DOWNLOADED``
  
  The Event class passed as paremeter to the *forEach* method is an instance of
-``com.nchain.jcl.net.protocol.events.control.BlockTXsDownloadedEvent``
+``com.nchain.jcl.net.protocol.events.data.BlockTXsDownloadedEvent``
 
 
 
