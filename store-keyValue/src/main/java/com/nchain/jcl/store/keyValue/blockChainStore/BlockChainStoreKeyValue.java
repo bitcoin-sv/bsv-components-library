@@ -407,10 +407,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         List<HeaderReadOnly> blocksSaved = new ArrayList<>();
 
         // we save the Block...:
-        if(BlockStoreKeyValue.super._saveBlock(tr, blockHeader).isEmpty()){
-            //block already saved, return empty list
-            return blocksSaved;
-        }
+       BlockStoreKeyValue.super._saveBlock(tr, blockHeader);
 
         // and its relation with its parent (ONLY If this is NOT the GENESIS Block)
         if (!blockHeader.getPrevBlockHash().equals(Sha256Hash.ZERO_HASH)) {
