@@ -90,6 +90,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
     private Map<String, Instant>    blocksDiscarded = new ConcurrentHashMap<>();
     private Set<String>             blocksFailedDuringDownload = ConcurrentHashMap.newKeySet();
 
+
     // If the block download fails for any reason while downloading a block,we process that as a FAILED.
     // But since the order of events is not guaranteed, it might be possible that the
     // block download is still going on, but the "disconnection" event has just arrived before it should have.
@@ -98,7 +99,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
     // So we keep track of the last activity timestamp for any block, and the threshold mentioned before:
 
     private Map<String, Instant>    blocksLastActivity = new ConcurrentHashMap<>();
-    private Duration blockInactivyAfterFailTimeout = Duration.ofSeconds(5);
+    private Duration blockInactivyFailTimeout = Duration.ofMinutes(1);
 
     Lock lock = new ReentrantLock();
 
@@ -291,6 +292,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         try {
             lock.lock();
             if (!peersInfo.containsKey(event.getPeerAddress())) return;
+            if (!peersInfo.get(event.getPeerAddress()).isProcessing()) return;
             processWholeBlockReceived(peersInfo.get(event.getPeerAddress()), (BitcoinMsg<BlockMsg>) event.getBtcMsg());
         } finally {
             lock.unlock();
@@ -302,6 +304,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         try {
             lock.lock();
             if (!peersInfo.containsKey(event.getPeerAddress())) return;
+            if (!peersInfo.get(event.getPeerAddress()).isProcessing()) return;
             processPartialBlockReceived(peersInfo.get(event.getPeerAddress()), event.getBtcMsg());
         } finally {
             lock.unlock();
@@ -313,6 +316,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         try {
             lock.lock();
             if (!peersInfo.containsKey(event.getPeerAddress())) return;
+            if (!peersInfo.get(event.getPeerAddress()).isProcessing()) return;
             processPartialBlockReceived(peersInfo.get(event.getPeerAddress()), event.getBtcMsg());
         } finally {
             lock.unlock();
@@ -616,7 +620,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                                   logger.debug(peerAddress.toString(), "Download Failure", peerInfo.getCurrentBlockInfo().hash, msgFailure);
                                   blocksDownloadHistory.register(peerInfo.getCurrentBlockInfo().hash, peerInfo.getPeerAddress(), "Download Issue detected : " + msgFailure);
                                   blocksFailedDuringDownload.add(peerInfo.getCurrentBlockInfo().hash);
-                                  // We discard this Peer and also sen a request to Disconnect from it:
+                                  // We discard this Peer and also send a request to Disconnect from it:
                                   peerInfo.discard();
                                   super.eventBus.publish(new PeerDisconnectedEvent(peerInfo.getPeerAddress(), PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL_LAZY_DOWNLOAD));
                               }
@@ -633,7 +637,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                     List<String> blocksFailed = this.blocksFailedDuringDownload.stream().collect(Collectors.toList());
                     for (String blockHash: blocksFailed) {
                         Duration timePassedSinceLastActivity = Duration.between(blocksLastActivity.get(blockHash), Instant.now());
-                        if (timePassedSinceLastActivity.compareTo(config.getMaxIdleTimeout()) > 0) {
+                        if (timePassedSinceLastActivity.compareTo(blockInactivyFailTimeout) > 0) {
                             processDownloadFailiure(blockHash); // This block has definitely failed:
                         }
                     }
