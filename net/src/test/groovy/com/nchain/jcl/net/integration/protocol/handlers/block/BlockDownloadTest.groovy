@@ -26,11 +26,8 @@ class BlockDownloadTest extends Specification {
     // Several real Block HASHES to download from different Networks:
 
 
-    private static final List<String> BLOCKS_BSV_MAIN = Arrays.asList(
-            "000000000000000000834c38576c266e18c6ce4f0e41c0ed3c29be7936a06743" // 18MB
-    )
 
-    /*
+
     private static final List<String> BLOCKS_BSV_MAIN = Arrays.asList(
             "0000000000000000027abeb2a2348dac5f953676f6b68a6ed5d92458a1c12cab", // 0.6MB
             "000000000000000000dd6c89655ca27fd2555247232a5ced8376f5bda0d26ec4", // 12MB
@@ -56,7 +53,7 @@ class BlockDownloadTest extends Specification {
             "00000000000000000b0f7d16e33e66b64bf94bb5c6543f3b680ce9d7162fef21", // 1.7MB
             "0000000000000000061757aed9f19d4e6a94ad5f309d1cc53f4303298cbf033f", // 2.2MB
     )
-     */
+
     private static final List<String> BLOCKS_BSV_STN = Arrays.asList(
             //"00000000041a389a73cfdc312f06eb1ea187b86a227b5cca5002d30ccb55e6e9", // 450MB
             //"000000000c3c309a1597f0626abaa4fa32ca0085851eceeaf56c3288be800752", // 380MB
