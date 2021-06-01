@@ -10,15 +10,19 @@ import com.nchain.jcl.net.protocol.messages.common.Message;
  */
 public final class PartialBlockHeaderMsg extends Message {
     public static final String MESSAGE_TYPE = "PartialBlockHeader";
-    private final BlockHeaderMsg blockHeader;
+    private final BlockHeaderMsg blockHeader;   // Block Header
+    private final VarIntMsg blockSizeInBytes;   // Total Size of the Original Block
 
-    public PartialBlockHeaderMsg(BlockHeaderMsg blockHeader) {
+    public PartialBlockHeaderMsg(BlockHeaderMsg blockHeader, VarIntMsg blockSizeInBytes) {
         this.blockHeader = blockHeader;
+        this.blockSizeInBytes = blockSizeInBytes;
         init();
     }
 
     @Override
-    protected long calculateLength() { return blockHeader.calculateLength(); }
+    protected long calculateLength() {
+        return blockHeader.calculateLength() + blockSizeInBytes.calculateLength();
+    }
 
     @Override
     public String getMessageType() {
@@ -31,10 +35,11 @@ public final class PartialBlockHeaderMsg extends Message {
     public BlockHeaderMsg getBlockHeader() {
         return this.blockHeader;
     }
+    public VarIntMsg getBlockSizeInbytes() { return this.blockSizeInBytes;}
 
     @Override
     public String toString() {
-        return "PartialBlockHeaderMsg(blockHeader=" + this.getBlockHeader() + ")";
+        return "PartialBlockHeaderMsg(blockHeader=" + this.getBlockHeader() + ", blockSizeInBytes = " + this.getBlockSizeInbytes() + ")";
     }
 
     @Override
@@ -60,6 +65,7 @@ public final class PartialBlockHeaderMsg extends Message {
      */
     public static class PartialBlockHeaderMsgBuilder {
         private BlockHeaderMsg blockHeader;
+        private VarIntMsg blockSizeInBytes;
 
         PartialBlockHeaderMsgBuilder() { }
 
@@ -68,8 +74,13 @@ public final class PartialBlockHeaderMsg extends Message {
             return this;
         }
 
+        public PartialBlockHeaderMsg.PartialBlockHeaderMsgBuilder blockSizeInBytes(long blockSizeInBytes) {
+            this.blockSizeInBytes = VarIntMsg.builder().value(blockSizeInBytes).build();
+            return this;
+        }
+
         public PartialBlockHeaderMsg build() {
-            return new PartialBlockHeaderMsg(blockHeader);
+            return new PartialBlockHeaderMsg(blockHeader, blockSizeInBytes);
         }
     }
 }

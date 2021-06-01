@@ -1,14 +1,15 @@
 package com.nchain.jcl.net.protocol.handlers.block;
 
 import com.nchain.jcl.net.network.PeerAddress;
+import com.nchain.jcl.tools.thread.ThreadUtils;
 import io.bitcoinj.core.Sha256Hash;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
 
 /**
  * @author i.fernandez@nchain.com
@@ -51,8 +52,23 @@ public class BlocksDownloadHistory {
     // Blocks Download History
     private Map<String, List<HistoricItem>> history = new ConcurrentHashMap<>();
 
+    // A Set storing which Blocks are ok to delete after the timeout has expired (this only applies for
+    // the automatic deletion by the cron job)
+    private Set<String> blocksMarkedForDeletion =  ConcurrentHashMap.newKeySet();
+
+    // Configuration to clean entries in the DB after a timeout is configured:
+    private Duration DEFAULT_TIMEOUT = Duration.ofMinutes(10);
+    private Duration cleaningTimeout;
+    private ExecutorService executor;
+
     /** Constructor */
-    public BlocksDownloadHistory() {}
+    public BlocksDownloadHistory() {
+        this.executor = ThreadUtils.getSingleThreadExecutorService("jclBlocksDownloadHistory");
+    }
+
+    public void setCleaningTimeout(Duration cleaningTimeout) {
+        this.cleaningTimeout = cleaningTimeout;
+    }
 
     /** It registers a item/s in a Block history */
     public synchronized void register(String blockHashHex, PeerAddress peerAddress, String ...historyItems) {
@@ -62,19 +78,29 @@ public class BlocksDownloadHistory {
             }
             history.put(blockHashHex, items);
     }
-    /** It registers a item/s in a Block history */
+    /**
+     * It registers a item/s in a Block history
+     */
     public synchronized  void register(String blockHash, String ...historyItems) {
         register(blockHash, null, historyItems);
     }
 
-    /** Removes the whole history of a block */
+    /**
+     * Removes the whole history of a block
+     */
     public synchronized void remove(String blockHash) {
         history.remove(blockHash);
     }
 
-    /** returns the history of the block given */
-    public List<HistoricItem> getBlockHistory(Sha256Hash blockHash) {
-        return history.get(blockHash);
+    /**
+     * Marks a Block for deletion. When the timeout for this Block history expired, it will be removed
+     */
+    public synchronized void markForDeletion(String blockHash) { blocksMarkedForDeletion.add(blockHash);}
+    /**
+     * returns the history of the block given
+     */
+    public Optional<List<HistoricItem>> getBlockHistory(Sha256Hash blockHash) {
+        return history.containsKey(blockHash)? Optional.of(history.get(blockHash)) : Optional.empty();
     }
 
     /** returns the history of ALL the blocks */
@@ -82,11 +108,58 @@ public class BlocksDownloadHistory {
         return history;
     }
 
-    /** Returns the time passed since ther's been activity for this block */
+    /**
+     * Returns the time passed since there's been activity for this block
+     */
     public Duration getTimeSinceLastActivity(String blockHash) {
         Duration result = history.containsKey(blockHash)
                 ? Duration.between(history.get(blockHash).get(history.get(blockHash).size() - 1).timestamp, Instant.now())
                 : Duration.ZERO;
         return result;
     }
+
+    /**
+     * Returns the timestamp of the last activity recorded for this block
+     */
+    public Optional<Instant> getLastActivity(String blockHash) {
+        List<HistoricItem> blockHistory = history.get(blockHash);
+        Optional<Instant> result = (blockHistory != null)
+                ? Optional.of(blockHistory.get(blockHistory.size() - 1).getTimestamp())
+                : Optional.empty();
+        return result;
+    }
+
+    public void start() {
+        this.executor.submit(this::cleanHistoryJob);
+    }
+    public void stop() {
+        this.executor.shutdownNow();
+    }
+
+    /**
+     * Runs periodically and removes those entries that have expired and are marked for deletion
+     */
+    public void cleanHistoryJob() {
+        try {
+            while (true) {
+                synchronized (this.getClass()) {
+                    List<String> hashesToClean = history.entrySet().stream()
+                            .map(e -> e.getKey())
+                            .filter(hash ->
+                                    (getLastActivity(hash).isPresent()
+                                        && Duration.between(getLastActivity(hash).get(), Instant.now()).compareTo(cleaningTimeout) > 0)
+                                        && (blocksMarkedForDeletion.contains(hash)))
+                            .collect(Collectors.toList());
+                    // We remove its history and also form the markForDeletion Map:
+                    hashesToClean.forEach(this::remove);
+                    hashesToClean.forEach(hash -> blocksMarkedForDeletion.remove(hash));
+                    System.out.println(" >>>> " + hashesToClean.size() + " HISTORY ENTRIES REMOVED");
+                }
+                Thread.sleep(10_000);
+            }
+        } catch (Exception e) {
+            // Probably its just the system shutting down...
+        }
+    }
+
 }

@@ -30,7 +30,10 @@ public class PartialBlockHeaderMsgSerializer implements MessageSerializer<Partia
     @Override
     public PartialBlockHeaderMsg deserialize(DeserializerContext context, ByteArrayReader reader) {
         var blockHeader = BlockHeaderMsgSerializer.getInstance().deserialize(context, reader);
-        return PartialBlockHeaderMsg.builder().blockHeader(blockHeader).build();
+        return PartialBlockHeaderMsg.builder()
+                .blockHeader(blockHeader)
+                .blockSizeInBytes(context.getMaxBytesToRead())
+                .build();
     }
 
     @Override

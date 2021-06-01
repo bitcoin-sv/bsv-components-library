@@ -120,7 +120,9 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     private EventBus eventBus;
 
     // An executor Service, to trigger jobs in MultiThread...
-    ExecutorService jobExecutor = ThreadUtils.getThreadPoolExecutorService(HANDLER_ID + "-");
+    ExecutorService jobExecutor = ThreadUtils.getThreadPoolExecutorService("JclNetworkHandler");
+    // An executor for triggering new Connections to remote Peers:
+    ExecutorService newConnsExecutor = ThreadUtils.getCachedThreadExecutorService("jclNetworkHandlerRemoteConn", 20);
 
     // General State:
     private NetworkHandlerState state;
@@ -142,6 +144,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     // Other useful counters:
     private AtomicLong numConnsFailed = new AtomicLong();
     private AtomicLong numConnsInProgressExpired = new AtomicLong();
+    private int numConnsTried;  // reset after calling getState()
 
     // Files to store info after the handler has stopped:
     private static final String FILE_ACTIVE_CONN            = "networkHandler-activeConnections.csv";
@@ -184,7 +187,9 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
                     .server_mode(this.server_mode)
                     .numConnsFailed(this.numConnsFailed.get())
                     .numInProgressConnsExpired(this.numConnsInProgressExpired.get())
+                    .numConnsTried(this.numConnsTried)
                     .build();
+            numConnsTried = 0; // aggregate value that is reset between calls to getState()
         } finally {
             lock.readLock().unlock();
         }
@@ -551,6 +556,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     private void handleConnectionToOpen(PeerAddress peerAddress) {
         try {
             lock.writeLock().lock();
+            numConnsTried++;
             logger.trace(peerAddress, "Connecting...");
             inProgressConns.put(peerAddress, new InProgressConn(peerAddress));
 
@@ -622,6 +628,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
 
                         logger.trace(peerAddress, "handling connection To open. inProgress: " + this.inProgressConns.size() + " Still pendingToOpen in Queue: " + this.pendingToOpenConns.size());
                         TimeoutTask connectPeerTask = TimeoutTaskBuilder.newTask()
+                                .threadsHandledBy(newConnsExecutor)
                                 .execute(() -> handleConnectionToOpen(peerAddress))
                                 .waitFor(config.getTimeoutSocketConnection().getAsInt())
                                 .ifTimeoutThenExecute(() -> {
@@ -636,7 +643,6 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
                         Thread.sleep(100);
                 } // while...
 
-                System.out.println(" >>>>> TRYING " + numConnectionsTried + " CONNECTIONS");
                 // In case there are NO more connections pending to Open, We wait until the Queue of Pending
                 // connection has some content, or we are allowed to keep making  connections..
                 while (pendingToOpenConns.size() == 0 || !this.keep_connecting) Thread.sleep(1000);

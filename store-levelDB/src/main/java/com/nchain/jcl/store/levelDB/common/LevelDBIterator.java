@@ -43,6 +43,7 @@ public class LevelDBIterator<I> extends KeyValueIteratorImpl<I, Object, Map.Entr
             iterator.seek(super.keyPreffix);
         } catch (Exception e) {
             // This mit happens sometimes, when trying to use the Iterator when the Db is closing...
+            e.printStackTrace();
             throw new RuntimeException("Error Initializing LevelDB Iterator");
         }
     }

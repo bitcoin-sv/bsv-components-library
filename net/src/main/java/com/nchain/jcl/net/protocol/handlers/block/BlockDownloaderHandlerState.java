@@ -45,6 +45,11 @@ public final class BlockDownloaderHandlerState extends HandlerState {
     // current value and the previous one...
     private final int busyPercentage;
 
+    // If FALSE, then the download process is not allowed at the moment in order to prevent bandwith:
+    private final boolean bandwidthRestricted;
+
+    private final long blocksDownloadingSize;
+
     public BlockDownloaderHandlerState( BlockDownloaderHandlerImpl.DonwloadingState downloadingState,
                                         List<String> pendingBlocks,
                                         List<String> downloadedBlocks,
@@ -53,7 +58,9 @@ public final class BlockDownloaderHandlerState extends HandlerState {
                                         List<BlockPeerInfo> peersInfo,
                                         long totalReattempts,
                                         Map<String, Integer> blocksNumDownloadAttempts,
-                                        int busyPercentage) {
+                                        int busyPercentage,
+                                        boolean bandwidthRestricted,
+                                        long blocksDownloadingSize) {
         this.downloadingState = downloadingState;
         this.pendingBlocks = pendingBlocks;
         this.downloadedBlocks = downloadedBlocks;
@@ -63,6 +70,8 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         this.totalReattempts = totalReattempts;
         this.blocksNumDownloadAttempts = blocksNumDownloadAttempts;
         this.busyPercentage = busyPercentage;
+        this.bandwidthRestricted = bandwidthRestricted;
+        this.blocksDownloadingSize = blocksDownloadingSize;
     }
 
     public static BlockDownloaderHandlerStateBuilder builder() {
@@ -81,6 +90,9 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         result.append(totalReattempts + " re-attempts, ");
         result.append(busyPercentage + "% busy");
         result.append(" [ " + downloadingState + " ] ");
+        if (bandwidthRestricted) {
+            result.append("(bandwidth restricted)");
+        }
         result.append("\n");
 
         // We print this Peer download Speed:
@@ -125,6 +137,9 @@ public final class BlockDownloaderHandlerState extends HandlerState {
     public Map<String, List<BlocksDownloadHistory.HistoricItem>> getBlocksHistory()
                                                 { return this.blocksHistory;}
 
+    public boolean isBandwidthRestricted()      { return bandwidthRestricted; }
+    public long getBlocksDownloadingSize()      { return blocksDownloadingSize;}
+
     public long getNumPeersDownloading() {
         if (peersInfo == null) return 0;
         return peersInfo.stream()
@@ -142,7 +157,13 @@ public final class BlockDownloaderHandlerState extends HandlerState {
     }
 
     public BlockDownloaderHandlerStateBuilder toBuilder() {
-        return new BlockDownloaderHandlerStateBuilder().pendingBlocks(this.pendingBlocks).downloadedBlocks(this.downloadedBlocks).discardedBlocks(this.discardedBlocks).peersInfo(this.peersInfo);
+        return new BlockDownloaderHandlerStateBuilder()
+                .pendingBlocks(this.pendingBlocks)
+                .downloadedBlocks(this.downloadedBlocks)
+                .discardedBlocks(this.discardedBlocks)
+                .peersInfo(this.peersInfo)
+                .bandwidthRestricted(this.bandwidthRestricted)
+                .blocksDownloadingSize(this.blocksDownloadingSize);
     }
 
     /**
@@ -158,6 +179,8 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         private long totalReattempts;
         private Map<String, Integer> blocksNumDownloadAttempts;
         private int busyPercentage;
+        private boolean bandwidthRestricted;
+        private long blocksDownloadingSize;
 
         BlockDownloaderHandlerStateBuilder() {
         }
@@ -207,8 +230,18 @@ public final class BlockDownloaderHandlerState extends HandlerState {
             return this;
         }
 
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder bandwidthRestricted(boolean bandwidthRestricted) {
+            this.bandwidthRestricted = bandwidthRestricted;
+            return this;
+        }
+
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder blocksDownloadingSize(long blocksDownloadingSize) {
+            this.blocksDownloadingSize = blocksDownloadingSize;
+            return this;
+        }
+
         public BlockDownloaderHandlerState build() {
-            return new BlockDownloaderHandlerState(downloadingState, pendingBlocks, downloadedBlocks, discardedBlocks, blocksHistory, peersInfo, totalReattempts, blocksNumDownloadAttempts, busyPercentage);
+            return new BlockDownloaderHandlerState(downloadingState, pendingBlocks, downloadedBlocks, discardedBlocks, blocksHistory, peersInfo, totalReattempts, blocksNumDownloadAttempts, busyPercentage, bandwidthRestricted, blocksDownloadingSize);
         }
     }
 }

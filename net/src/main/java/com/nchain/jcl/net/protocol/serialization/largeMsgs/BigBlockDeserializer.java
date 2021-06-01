@@ -26,7 +26,7 @@ import java.util.concurrent.ExecutorService;
 public class BigBlockDeserializer extends LargeMessageDeserializerImpl {
 
     // The TX are Deserialized and notified in batches:
-    private static final int TX_BATCH = 10000;
+    private static final int TX_BATCH = 10_000;
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(BigBlockDeserializer.class);
 
     // Once the Block Header is deserialzed, we keep a reference here, since we include it as well when we
@@ -45,7 +45,10 @@ public class BigBlockDeserializer extends LargeMessageDeserializerImpl {
             // We first deserialize the Block Header:
             log.trace("Deserializing the Block Header...");
             blockHeader = BlockHeaderMsgSerializer.getInstance().deserialize(context, byteReader);
-            PartialBlockHeaderMsg partialBlockHeader = PartialBlockHeaderMsg.builder().blockHeader(blockHeader).build();
+            PartialBlockHeaderMsg partialBlockHeader = PartialBlockHeaderMsg.builder()
+                    .blockHeader(blockHeader)
+                    .blockSizeInBytes(context.getMaxBytesToRead())
+                    .build();
             notifyDeserialization(partialBlockHeader);
 
             // Now we Deserialize the Txs, in batches..

@@ -1,5 +1,7 @@
 package com.nchain.jcl.tools.thread;
 
+import java.util.concurrent.ExecutorService;
+
 /**
  *
  * @author i.fernandez@nchain.com
@@ -8,13 +10,19 @@ package com.nchain.jcl.tools.thread;
  * A byteArray for instances of {@link TimeoutTask}
  */
 public class TimeoutTaskBuilder {
-
+    private ExecutorService executorService;
     private Runnable task;
     private Runnable timeoutTask;
     private int timeoutMillisecs;
 
     // Constructor
     private TimeoutTaskBuilder() {}
+
+    /** Specified the ExecutorService used to ta handle Threads for this Task */
+    public TimeoutTaskBuilder threadsHandledBy(ExecutorService executorService) {
+        this.executorService = executorService;
+        return this;
+    }
 
     /** Specifies the main Task to execute */
     public TimeoutTaskBuilder execute(Runnable task) {
@@ -36,7 +44,7 @@ public class TimeoutTaskBuilder {
 
     /** Returns an instance of {@link TimeoutTask} */
     public TimeoutTask build() {
-        return new TimeoutTask(task, timeoutTask, timeoutMillisecs);
+        return new TimeoutTask(executorService, task, timeoutTask, timeoutMillisecs);
     }
 
     /** Creates a new Builder */

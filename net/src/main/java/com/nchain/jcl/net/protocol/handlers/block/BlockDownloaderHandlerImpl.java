@@ -65,6 +65,11 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
     // Handler Download State:
     private DonwloadingState downloadingState;
 
+    // If this is FALSE, it means that at this very moment no MORE downloads are allowed, until some blocks are finish
+    private boolean moreDownloadsAllowed = true;
+    // If TRUE, we reached the max MB to download at a given time
+    private boolean bandwidthRestricted = false;
+
     // We keep track of the Block Download History:
     private BlocksDownloadHistory blocksDownloadHistory;
 
@@ -105,8 +110,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
     // we need to keep track of the number of TXs contained in each block. When we detect that all the TXs within
     // a block have been deserialized, we mark it as finished.
 
-    private Map<String, BlockHeaderMsg>   bigBlocksHeaders   = new ConcurrentHashMap<>();
-    private Map<String, Long>             bigBlocksCurrentTxs = new ConcurrentHashMap();
+    private Map<String, PartialBlockHeaderMsg>   bigBlocksHeaders   = new ConcurrentHashMap<>();
+    private Map<String, Long>                    bigBlocksCurrentTxs = new ConcurrentHashMap();
 
     // We keep track of some indicators:
     private AtomicLong totalReattempts = new AtomicLong();
@@ -117,9 +122,10 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         super(id, runtimeConfig);
         this.config = config;
         this.logger = new LoggerUtil(id, HANDLER_ID, this.getClass());
-        this.executor = ThreadUtils.getSingleThreadExecutorService(id + "-Job");
+        this.executor = ThreadUtils.getSingleThreadExecutorService("JclBlockDownloaderHandler");
         this.downloadingState = DonwloadingState.RUNNING;
         this.blocksDownloadHistory = new BlocksDownloadHistory();
+        this.blocksDownloadHistory.setCleaningTimeout(config.getBlockHistoryTimeout());
     }
 
     private void registerForEvents() {
@@ -136,13 +142,23 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         super.eventBus.subscribe(MinHandshakedPeersLostEvent.class, e -> this.pause());
     }
 
+    // Returns the total size (in bytes) of all the blocks being downloaded at this moment
+    public long getCurrentDownloadingBlocksSize() {
+        return this.bigBlocksHeaders.values().stream().mapToLong(h -> h.getBlockSizeInbytes().getValue()).sum();
+    }
+
+    // Returns the number of Peers currently downloading blocks:
+    public int getCurrentPeersDownloading() {
+        return (int) peersInfo.values().stream()
+                .filter(p -> p.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING))
+                .count();
+    }
+
     // This method calculates the percentage of Thread occupation.
     // This value is an accumulative one, and it resets every time the "getState()" method is called.
     // It compares the number of blocks being downloaded to the maximum allowed.
     private int getUpdatedBusyPercentage() {
-        int numBlocksInProgress = (int) this.peersInfo.values().stream()
-                .filter(p -> p.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING))
-                .count();
+        int numBlocksInProgress = getCurrentPeersDownloading();
         int percentage = (int) (numBlocksInProgress * 100) / config.getMaxBlocksInParallel();
         int result = Math.max(this.busyPercentage.get(), percentage);
         return result;
@@ -159,6 +175,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         int percentage = getUpdatedBusyPercentage();
         this.busyPercentage.set(0);
 
+        long blocksDownloadingSize = this.bigBlocksHeaders.values().stream().mapToLong(h -> h.getBlockSizeInbytes().getValue()).sum();
+
         return BlockDownloaderHandlerState.builder()
                 .downloadingState(this.downloadingState)
                 .pendingBlocks(this.blocksPending.stream().collect(Collectors.toList()))
@@ -173,6 +191,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                 .totalReattempts(this.totalReattempts.get())
                 .blocksNumDownloadAttempts(this.blocksNumDownloadAttempts)
                 .busyPercentage(percentage)
+                .bandwidthRestricted(this.bandwidthRestricted)
+                .blocksDownloadingSize(blocksDownloadingSize)
                 .build();
     }
 
@@ -198,12 +218,14 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
     // Event Handler:
     public void onNetStart(NetStartEvent event) {
         logger.debug("Starting...");
+        this.blocksDownloadHistory.start();
         executor.submit(this::jobProcessCheckDownloadingProcess);
 
     }
 
     // Event Handler:
     public void onNetStop(NetStopEvent event) {
+        this.blocksDownloadHistory.stop();
         if (this.executor != null) executor.shutdownNow();
         logger.debug("Stop.");
     }
@@ -323,7 +345,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
             if (msg.is(PartialBlockHeaderMsg.MESSAGE_TYPE)) {
                 // We update the info about the Header this block:
                 PartialBlockHeaderMsg partialMsg = (PartialBlockHeaderMsg) msg.getBody();
-                bigBlocksHeaders.put(blockHash, partialMsg.getBlockHeader());
+                bigBlocksHeaders.put(blockHash, partialMsg);
                 blocksLastActivity.put(blockHash, Instant.now());
                 blocksDownloadHistory.register(blockHash, peerInfo.getPeerAddress(), "Header downloaded");
 
@@ -337,17 +359,9 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
 
             // Now we check if we've reached the total of TXs, so the Download is complete:
             Long numCurrentTxs = bigBlocksCurrentTxs.get(blockHash);
-            BlockHeaderMsg blockHeader = bigBlocksHeaders.get(blockHash);
-            if (numCurrentTxs != null && blockHeader != null && numCurrentTxs.equals(blockHeader.getTransactionCount().getValue())) {
-                System.out.println("Partial for " + blockHash + " :: comparing " + numCurrentTxs + " / " + blockHeader.getTransactionCount().getValue());
-                // Due to the Multi-Thread nature of the EventBus, it might happen that when a Peer disconnects right
-                // after sending the last batch of Tx, the events do NOt come in the right order: the "Disconnect" event
-                // might come BEFORE the last "PartialTxsReceived". In that case, when receiving this Batch of Txs, the
-                //  peer might already be disconnected. In that case, we loos the info about the Amount of Bytes received
-                // for this Block.
-                // TODO: Can we store the Block Size elsewhere so we can return it???
-                Long blockSize = (peerInfo.getCurrentBlockInfo() != null) ? peerInfo.getCurrentBlockInfo().bytesTotal : null;
-                processDownloadSuccess(peerInfo, blockHeader, blockSize);
+            PartialBlockHeaderMsg blockHeader = bigBlocksHeaders.get(blockHash);
+            if (numCurrentTxs != null && blockHeader != null && numCurrentTxs.equals(blockHeader.getBlockHeader().getTransactionCount().getValue())) {
+                processDownloadSuccess(peerInfo, blockHeader.getBlockHeader(), blockHeader.getBlockSizeInbytes().getValue());
             }
         } finally {
             lock.unlock();
@@ -383,7 +397,10 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
             // "HeaderDownloaded" and "TxsDownloaded" Events for this Block:
 
             // We notify the Header has been downloaded:
-            PartialBlockHeaderMsg partialHeaderMsg = PartialBlockHeaderMsg.builder().blockHeader(blockMesage.getBody().getBlockHeader()).build();
+            PartialBlockHeaderMsg partialHeaderMsg = PartialBlockHeaderMsg.builder()
+                    .blockHeader(blockMesage.getBody().getBlockHeader())
+                    .blockSizeInBytes(blockMesage.getHeader().getLengthInBytes())
+                    .build();
             BitcoinMsg<PartialBlockHeaderMsg> partialHeaderBtcMsg =  new BitcoinMsgBuilder<>(config.getBasicConfig(), partialHeaderMsg).build();
             super.eventBus.publish(new BlockHeaderDownloadedEvent(peerInfo.getPeerAddress(), partialHeaderBtcMsg));
 
@@ -398,6 +415,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
 
             blocksLastActivity.put(blockHash, Instant.now());
             blocksDownloadHistory.register(blockHash, peerInfo.getPeerAddress(), "Whole block downloaded");
+            blocksDownloadHistory.markForDeletion(blockHash);
             processDownloadSuccess(peerInfo, blockMesage.getBody().getBlockHeader(), blockMesage.getLengthInbytes());
         } finally {
             lock.unlock();
@@ -428,9 +446,12 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
 
             // Log and record history:
             logger.debug(peerInfo.getPeerAddress(), "Block successfully downloaded", blockHash);
+
+            // We register the history and mark it for deletion, since its been processed successfully.
             blocksDownloadHistory.register(blockHash, peerInfo.getPeerAddress(), "Block successfully downloaded");
+            blocksDownloadHistory.markForDeletion(blockHash);
             if (config.isRemoveBlockHistoryAfterDownload()) {
-                blocksDownloadHistory.remove(blockHash);
+                blocksDownloadHistory.remove(blockHash);    // immediate deletion
             }
 
             // We activated back the ping/Pong Verifications for this Peer
@@ -454,6 +475,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
             blocksNumDownloadAttempts.remove(blockHash);
             blocksFailedDuringDownload.remove(blockHash);
             bigBlocksHeaders.remove(blockHash);
+            bigBlocksCurrentTxs.remove(blockHash);
         } finally {
             lock.unlock();
         }
@@ -464,7 +486,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
             lock.lock();
 
             // if the number of attempts tried for this block is no longer stored, that means that the block has been
-            // succcesfully downloaded after tall...
+            // succcesfully downloaded after all...
             if (!blocksNumDownloadAttempts.containsKey(blockHash)) {
                 blocksFailedDuringDownload.remove(blockHash);
                 return;
@@ -474,17 +496,20 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
             if (numAttempts < config.getMaxDownloadAttempts()) {
                 logger.debug("Download failure for " + blockHash + " :: back to the pending Pool...");
                 blocksDownloadHistory.register(blockHash, "back to the pending Pool");
-                blocksFailedDuringDownload.remove(blockHash);
                 blocksPending.offerFirst(blockHash);        // we add it to the FRONT of the Queue
                 this.totalReattempts.incrementAndGet();     // keep track of total re-attempts
             } else {
                 logger.debug("Download failure for " + blockHash, numAttempts + " attempts (max " + config.getMaxDownloadAttempts() + ")", "discarding Block...");
                 blocksDownloadHistory.register(blockHash,   "block discarded (max attempts broken)");
-                blocksFailedDuringDownload.remove(blockHash);
                 blocksDiscarded.put(blockHash, Instant.now());
                 // We publish the event:
                 super.eventBus.publish(new BlockDiscardedEvent(blockHash, BlockDiscardedEvent.DiscardedReason.TIMEOUT));
             }
+
+            bigBlocksHeaders.remove(blockHash);
+            bigBlocksCurrentTxs.remove(blockHash);
+            blocksFailedDuringDownload.remove(blockHash);
+
         } finally {
             lock.unlock();
         }
@@ -547,6 +572,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                     // We look over all the Peers, and we assign new Blocks to download to them, we update the
                     // download progress, or we detect if some timeouts have been triggered...
 
+                    // We order the peers by download Speed, the fastest go first:
                     List<BlockPeerInfo> peersOrdered =  peersInfo.values().stream().collect(Collectors.toList());
                     Collections.sort(peersOrdered, BlockPeerInfo.SPEED_COMPARATOR);
                     Iterator<BlockPeerInfo> it = peersOrdered.iterator();
@@ -566,14 +592,16 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                        // We manage it based on its state:
                        switch (peerWorkingState) {
                           case IDLE: {
-                              // If we can download more Blocks, we assign one to it
-                              if (isRunning() && (blocksPending.size() > 0)) {
-                                  long numPeersWorking = peersInfo.values().stream()
-                                          .filter(p -> p.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING))
-                                          .count();
-                                  if (numPeersWorking < config.getMaxBlocksInParallel()) {
+                              // SANITY CHECK: WE check if more downloads are allowed:
+                              int numPeersWorking = getCurrentPeersDownloading();
+                              long totalMBbeingDownloaded = getCurrentDownloadingBlocksSize() / 1_000_000; // convert to MB
+                              this.bandwidthRestricted = totalMBbeingDownloaded >= config.getMaxMBinParallel();
+                              this.moreDownloadsAllowed = (numPeersWorking == 0)
+                                      || ((numPeersWorking < config.getMaxBlocksInParallel()) && !bandwidthRestricted);
+
+                              // If we can download more Blocks, we assign one to it...
+                              if (isRunning() && moreDownloadsAllowed && (blocksPending.size() > 0)) {
                                       startDownloading(peerInfo, blocksPending.poll());
-                                  }
                               }
                               break;
                           }
@@ -605,7 +633,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                     List<String> blocksFailed = this.blocksFailedDuringDownload.stream().collect(Collectors.toList());
                     for (String blockHash: blocksFailed) {
                         Duration timePassedSinceLastActivity = Duration.between(blocksLastActivity.get(blockHash), Instant.now());
-                        if (timePassedSinceLastActivity.compareTo(this.blockInactivyAfterFailTimeout) > 0) {
+                        if (timePassedSinceLastActivity.compareTo(config.getMaxIdleTimeout()) > 0) {
                             processDownloadFailiure(blockHash); // This block has definitely failed:
                         }
                     }
