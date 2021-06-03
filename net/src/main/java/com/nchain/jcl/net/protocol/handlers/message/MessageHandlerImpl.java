@@ -83,6 +83,8 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
         super.eventBus.subscribe(BroadcastMsgBodyRequest.class, e -> onBroadcastReq((BroadcastMsgBodyRequest) e));
         super.eventBus.subscribe(PeerNIOStreamConnectedEvent.class, e -> onPeerStreamConnected((PeerNIOStreamConnectedEvent) e));
         super.eventBus.subscribe(PeerDisconnectedEvent.class, e -> onPeerDisconnected((PeerDisconnectedEvent) e));
+        super.eventBus.subscribe(EnablePeerBigMessagesRequest.class, e -> onEnablePeerBigMessages((EnablePeerBigMessagesRequest) e));
+        super.eventBus.subscribe(DisablePeerBigMessagesRequest.class, e -> onDisablePeerBigMessages((DisablePeerBigMessagesRequest) e));
     }
 
     // Event Handler:
@@ -182,6 +184,22 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
         // We request a Disconnection from this Peer...
         logger.trace(peerAddress, "Error detected in Stream, requesting disconnection... ");
         super.eventBus.publish(new DisconnectPeerRequest(peerAddress));
+    }
+
+    // Event Handler:
+    private void onEnablePeerBigMessages(EnablePeerBigMessagesRequest event) {
+        MessagePeerInfo messagePeerInfo = this.peersInfo.get(event.getPeerAddress());
+        if (messagePeerInfo != null) {
+            ((DeserializerStream) messagePeerInfo.getStream().input()).upgradeBufferSize();
+        }
+    }
+
+    // Event Handler:
+    private void onDisablePeerBigMessages(DisablePeerBigMessagesRequest event) {
+        MessagePeerInfo messagePeerInfo = this.peersInfo.get(event.getPeerAddress());
+        if (messagePeerInfo != null) {
+            ((DeserializerStream) messagePeerInfo.getStream().input()).resetBufferSize();
+        }
     }
 
     @Override

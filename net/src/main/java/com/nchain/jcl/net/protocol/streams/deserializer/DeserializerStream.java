@@ -122,6 +122,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
 
         // We initialize the Deserializer
         this.deserializer = deserializer;
+
     }
 
     /**

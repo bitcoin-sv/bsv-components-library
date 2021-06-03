@@ -2,9 +2,7 @@ package com.nchain.jcl.net.protocol.wrapper;
 
 
 import com.nchain.jcl.net.network.PeerAddress;
-import com.nchain.jcl.net.network.events.BlacklistPeerRequest;
-import com.nchain.jcl.net.network.events.ConnectPeerRequest;
-import com.nchain.jcl.net.network.events.DisconnectPeerRequest;
+import com.nchain.jcl.net.network.events.*;
 import com.nchain.jcl.net.network.events.PeerDisconnectedEvent.DisconnectedReason;
 import com.nchain.jcl.net.protocol.events.control.*;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
@@ -40,9 +38,9 @@ public class P2PRequestHandler {
     }
 
     /**
-     * A base class for a Request. Any Request will extend this class.
+     * A base class for a Request Builder. Any Request Builder will extend this class.
      */
-    abstract class Request {
+    abstract class RequestBuilder {
         // Any subclass must return an specific Request class in this method
         public abstract Event buildRequest();
         // This method publishes the Request to the Bus
@@ -52,7 +50,7 @@ public class P2PRequestHandler {
     }
 
     /** A Builder for ConnectPeerRequest */
-    public class ConnectPeerRequestBuilder extends Request {
+    public class ConnectPeerRequestBuilder extends RequestBuilder {
         private PeerAddress peerAddress;
 
         public ConnectPeerRequestBuilder(PeerAddress peerAddress)   { this.peerAddress = peerAddress; }
@@ -60,7 +58,7 @@ public class P2PRequestHandler {
     }
 
     /** A Builder for DisconnectPeerRequest */
-   public  class DisconnectPeerRequestBuilder extends Request {
+   public  class DisconnectPeerRequestBuilder extends RequestBuilder {
         private PeerAddress peerAddress;
         private DisconnectedReason reason;
 
@@ -72,7 +70,7 @@ public class P2PRequestHandler {
     }
 
     /** A Builder for EnablePingPongRequest */
-    public class EnablePingPongRequestBuilder extends Request {
+    public class EnablePingPongRequestBuilder extends RequestBuilder {
         private PeerAddress peerAddress;
 
         public EnablePingPongRequestBuilder(PeerAddress peerAddress) { this.peerAddress = peerAddress; }
@@ -80,7 +78,7 @@ public class P2PRequestHandler {
     }
 
     /** A Builder for DisablePingPongRequest */
-    public class DisablePingPongRequestBuilder extends Request {
+    public class DisablePingPongRequestBuilder extends RequestBuilder {
         private PeerAddress peerAddress;
 
         public DisablePingPongRequestBuilder(PeerAddress peerAddress)   { this.peerAddress = peerAddress; }
@@ -88,11 +86,27 @@ public class P2PRequestHandler {
     }
 
     /** A Builder for BlacklistPeerRequest */
-    public class BlacklistPeerRequestBuilder extends Request {
+    public class BlacklistPeerRequestBuilder extends RequestBuilder {
         private PeerAddress peerAddress;
 
         public BlacklistPeerRequestBuilder(PeerAddress peerAddress) { this.peerAddress = peerAddress; }
         public BlacklistPeerRequest buildRequest()                  { return new BlacklistPeerRequest(peerAddress);}
+    }
+
+    /** A builder for EnablePeerForBigMessagesRequest */
+    public class EnablePeerBigMessagesRequestBuilder extends RequestBuilder {
+        private PeerAddress peerAddress;
+
+        public EnablePeerBigMessagesRequestBuilder(PeerAddress peerAddress)  { this.peerAddress = peerAddress;}
+        public EnablePeerBigMessagesRequest buildRequest()                   { return new EnablePeerBigMessagesRequest(peerAddress);}
+    }
+
+    /** A builder for DisablePeerForBigMessagesRequest */
+    public class DisablePeerBigMessagesRequestBuilder extends RequestBuilder {
+        private PeerAddress peerAddress;
+
+        public DisablePeerBigMessagesRequestBuilder(PeerAddress peerAddress)  { this.peerAddress = peerAddress;}
+        public DisablePeerBigMessagesRequest buildRequest()                   { return new DisablePeerBigMessagesRequest(peerAddress);}
     }
 
     /**
@@ -127,10 +141,16 @@ public class P2PRequestHandler {
         public BlacklistPeerRequestBuilder blacklist(PeerAddress peerAddress) {
             return new BlacklistPeerRequestBuilder(peerAddress);
         }
+        public EnablePeerBigMessagesRequestBuilder enableBigMessages(PeerAddress peerAddress) {
+            return new EnablePeerBigMessagesRequestBuilder(peerAddress);
+        }
+        public DisablePeerBigMessagesRequestBuilder disableBigMessages(PeerAddress peerAddress) {
+            return new DisablePeerBigMessagesRequestBuilder(peerAddress);
+        }
     }
 
     /** A Builder for SendMsgRequest */
-    public class SendMsgRequestBuilder extends Request {
+    public class SendMsgRequestBuilder extends RequestBuilder {
         private PeerAddress peerAddress;
         private BitcoinMsg<?> btcMsg;
 
@@ -142,7 +162,7 @@ public class P2PRequestHandler {
     }
 
     /** A Builder for SendMsgBodyRequest */
-    public class SendMsgBodyRequestBuilder extends Request {
+    public class SendMsgBodyRequestBuilder extends RequestBuilder {
         private PeerAddress peerAddress;
         private Message msgBody;
 
@@ -154,7 +174,7 @@ public class P2PRequestHandler {
     }
 
     /** A Builder for SendMsgListRequest */
-    public class SendMsgListRequestBuilder extends Request {
+    public class SendMsgListRequestBuilder extends RequestBuilder {
         private PeerAddress peerAddress;
         private List<BitcoinMsg<?>> btcMsgs;
 
@@ -168,7 +188,7 @@ public class P2PRequestHandler {
 
 
     /** A Builder for BroadcastMsgRequest */
-    public class BroadcastMsgRequestBuilder extends Request {
+    public class BroadcastMsgRequestBuilder extends RequestBuilder {
         private BitcoinMsg<?> btcMsg;
 
         public BroadcastMsgRequestBuilder(BitcoinMsg<?> btcMsg) { this.btcMsg = btcMsg; }
@@ -176,7 +196,7 @@ public class P2PRequestHandler {
     }
 
     /** A Builder for BroadcastMsgBodyRequest */
-    public class BroadcastMsgBodyRequestBuilder extends Request {
+    public class BroadcastMsgBodyRequestBuilder extends RequestBuilder {
         private Message msgBody;
 
         public BroadcastMsgBodyRequestBuilder(Message msgBody)  { this.msgBody = msgBody; }
@@ -207,7 +227,7 @@ public class P2PRequestHandler {
     /**
      * A convenience Class for Requests related to Blocks Downloading
      */
-    public class BlockDownloadRequestBuilder extends Request {
+    public class BlockDownloadRequestBuilder extends RequestBuilder {
         private List<String> blockHash;
 
         public BlockDownloadRequestBuilder(List<String> blockHash)  { this.blockHash = blockHash; }
