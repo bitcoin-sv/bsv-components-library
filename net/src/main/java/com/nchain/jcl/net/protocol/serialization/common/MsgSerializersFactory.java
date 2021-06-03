@@ -4,6 +4,7 @@ package com.nchain.jcl.net.protocol.serialization.common;
 import com.nchain.jcl.net.protocol.messages.*;
 import com.nchain.jcl.net.protocol.serialization.*;
 import com.nchain.jcl.net.protocol.serialization.largeMsgs.BigBlockDeserializer;
+import com.nchain.jcl.net.protocol.serialization.largeMsgs.BigBlockTxnDeserializer;
 import com.nchain.jcl.net.protocol.serialization.largeMsgs.LargeMessageDeserializer;
 
 import java.util.HashMap;
@@ -99,6 +100,7 @@ public class MsgSerializersFactory {
         // One comparation per each Large Deserializer:
 
         if (command.equalsIgnoreCase(BlockMsg.MESSAGE_TYPE)) result = new BigBlockDeserializer();
+        else if(command.equalsIgnoreCase(BlockTxnMsg.MESSAGE_TYPE)) result = new BigBlockTxnDeserializer();
 
         return result;
     }

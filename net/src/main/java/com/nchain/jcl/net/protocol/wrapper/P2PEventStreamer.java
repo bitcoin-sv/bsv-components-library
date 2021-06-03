@@ -71,29 +71,30 @@ public class P2PEventStreamer {
      */
     public class MsgsEventStreamer {
 
-        public final EventStreamer<MsgReceivedEvent>                            ALL             = new EventStreamer<>(eventBus, MsgReceivedEvent.class);
-        public final EventStreamer<VersionMsgReceivedEvent>                     VERSION         = new EventStreamer<>(eventBus, VersionMsgReceivedEvent.class);
-        public final EventStreamer<VersionAckMsgReceivedEvent>                  VERSIONACK      = new EventStreamer<>(eventBus, VersionAckMsgReceivedEvent.class);
-        public final EventStreamer<AddrMsgReceivedEvent>                        ADDR            = new EventStreamer<>(eventBus, AddrMsgReceivedEvent.class);
-        public final EventStreamer<BlockMsgReceivedEvent>                       BLOCK           = new EventStreamer<>(eventBus, BlockMsgReceivedEvent.class);
-        public final EventStreamer<CompactBlockMsgReceivedEvent>                CMPCTBLOCK      = new EventStreamer<>(eventBus, CompactBlockMsgReceivedEvent.class);
-        public final EventStreamer<SendCompactBlockMsgReceivedEvent>            SENDCMPCT       = new EventStreamer<>(eventBus, SendCompactBlockMsgReceivedEvent.class);
-        public final EventStreamer<GetBlockTxnMsgReceivedEvent>                 GETBLOCKTXN     = new EventStreamer<>(eventBus, GetBlockTxnMsgReceivedEvent.class);
-        public final EventStreamer<BlockTxnMsgReceivedEvent>                    BLOCKTXN        = new EventStreamer<>(eventBus, BlockTxnMsgReceivedEvent.class);
-        public final EventStreamer<FeeMsgReceivedEvent>                         FEE             = new EventStreamer<>(eventBus, FeeMsgReceivedEvent.class);
-        public final EventStreamer<GetAddrMsgReceivedEvent>                     GETADDR         = new EventStreamer<>(eventBus, GetAddrMsgReceivedEvent.class);
-        public final EventStreamer<GetDataMsgReceivedEvent>                     GETDATA         = new EventStreamer<>(eventBus, GetDataMsgReceivedEvent.class);
-        public final EventStreamer<InvMsgReceivedEvent>                         INV             = new EventStreamer<>(eventBus, InvMsgReceivedEvent.class);
-        public final EventStreamer<NotFoundMsgReceivedEvent>                    NOTFOUND        = new EventStreamer<>(eventBus, NotFoundMsgReceivedEvent.class);
-        public final EventStreamer<PingMsgReceivedEvent>                        PING            = new EventStreamer<>(eventBus, PingMsgReceivedEvent.class);
-        public final EventStreamer<PongMsgReceivedEvent>                        PONG            = new EventStreamer<>(eventBus, PongMsgReceivedEvent.class);
-        public final EventStreamer<RejectMsgReceivedEvent>                      REJECT          = new EventStreamer<>(eventBus, RejectMsgReceivedEvent.class);
-        public final EventStreamer<TxMsgReceivedEvent>                          TX              = new EventStreamer<>(eventBus, TxMsgReceivedEvent.class);
-        public final EventStreamer<GetHeadersMsgReceivedEvent>                  GETHEADERS      = new EventStreamer<>(eventBus, GetHeadersMsgReceivedEvent.class);
-        public final EventStreamer<SendHeadersMsgReceivedEvent>                 SENDHEADERS     = new EventStreamer<>(eventBus, SendHeadersMsgReceivedEvent.class);
-        public final EventStreamer<HeadersMsgReceivedEvent>                     HEADERS         = new EventStreamer<>(eventBus, HeadersMsgReceivedEvent.class);
-        public final EventStreamer<MempoolMsgReceivedEvent>                     MEMPOOL         = new EventStreamer<>(eventBus, MempoolMsgReceivedEvent.class);
-        public final EventStreamer<GetHeadersEnMsgReceivedEvent>                GETHEADERSEN    = new EventStreamer<>(eventBus, GetHeadersEnMsgReceivedEvent.class);
+        public final EventStreamer<MsgReceivedEvent>                            ALL                 = new EventStreamer<>(eventBus, MsgReceivedEvent.class);
+        public final EventStreamer<VersionMsgReceivedEvent>                     VERSION             = new EventStreamer<>(eventBus, VersionMsgReceivedEvent.class);
+        public final EventStreamer<VersionAckMsgReceivedEvent>                  VERSIONACK          = new EventStreamer<>(eventBus, VersionAckMsgReceivedEvent.class);
+        public final EventStreamer<AddrMsgReceivedEvent>                        ADDR                = new EventStreamer<>(eventBus, AddrMsgReceivedEvent.class);
+        public final EventStreamer<BlockMsgReceivedEvent>                       BLOCK               = new EventStreamer<>(eventBus, BlockMsgReceivedEvent.class);
+        public final EventStreamer<CompactBlockMsgReceivedEvent>                CMPCTBLOCK          = new EventStreamer<>(eventBus, CompactBlockMsgReceivedEvent.class);
+        public final EventStreamer<SendCompactBlockMsgReceivedEvent>            SENDCMPCT           = new EventStreamer<>(eventBus, SendCompactBlockMsgReceivedEvent.class);
+        public final EventStreamer<GetBlockTxnMsgReceivedEvent>                 GETBLOCKTXN         = new EventStreamer<>(eventBus, GetBlockTxnMsgReceivedEvent.class);
+        public final EventStreamer<BlockTxnMsgReceivedEvent>                    BLOCKTXN            = new EventStreamer<>(eventBus, BlockTxnMsgReceivedEvent.class);
+        public final EventStreamer<FeeMsgReceivedEvent>                         FEE                 = new EventStreamer<>(eventBus, FeeMsgReceivedEvent.class);
+        public final EventStreamer<GetAddrMsgReceivedEvent>                     GETADDR             = new EventStreamer<>(eventBus, GetAddrMsgReceivedEvent.class);
+        public final EventStreamer<GetDataMsgReceivedEvent>                     GETDATA             = new EventStreamer<>(eventBus, GetDataMsgReceivedEvent.class);
+        public final EventStreamer<InvMsgReceivedEvent>                         INV                 = new EventStreamer<>(eventBus, InvMsgReceivedEvent.class);
+        public final EventStreamer<NotFoundMsgReceivedEvent>                    NOTFOUND            = new EventStreamer<>(eventBus, NotFoundMsgReceivedEvent.class);
+        public final EventStreamer<PingMsgReceivedEvent>                        PING                = new EventStreamer<>(eventBus, PingMsgReceivedEvent.class);
+        public final EventStreamer<PongMsgReceivedEvent>                        PONG                = new EventStreamer<>(eventBus, PongMsgReceivedEvent.class);
+        public final EventStreamer<RejectMsgReceivedEvent>                      REJECT              = new EventStreamer<>(eventBus, RejectMsgReceivedEvent.class);
+        public final EventStreamer<TxMsgReceivedEvent>                          TX                  = new EventStreamer<>(eventBus, TxMsgReceivedEvent.class);
+        public final EventStreamer<GetHeadersMsgReceivedEvent>                  GETHEADERS          = new EventStreamer<>(eventBus, GetHeadersMsgReceivedEvent.class);
+        public final EventStreamer<SendHeadersMsgReceivedEvent>                 SENDHEADERS         = new EventStreamer<>(eventBus, SendHeadersMsgReceivedEvent.class);
+        public final EventStreamer<HeadersMsgReceivedEvent>                     HEADERS             = new EventStreamer<>(eventBus, HeadersMsgReceivedEvent.class);
+        public final EventStreamer<MempoolMsgReceivedEvent>                     MEMPOOL             = new EventStreamer<>(eventBus, MempoolMsgReceivedEvent.class);
+        public final EventStreamer<GetHeadersEnMsgReceivedEvent>                GETHEADERSEN        = new EventStreamer<>(eventBus, GetHeadersEnMsgReceivedEvent.class);
+        public final EventStreamer<PartialBlockTxnDownloadedEvent>              PARTIAL_BLOCKTXN    = new EventStreamer<>(eventBus, PartialBlockTxnDownloadedEvent.class);
 
 
         public final EventStreamer<RawTxMsgReceivedEvent>                   TX_RAW          = new EventStreamer<>(eventBus, RawTxMsgReceivedEvent.class);
