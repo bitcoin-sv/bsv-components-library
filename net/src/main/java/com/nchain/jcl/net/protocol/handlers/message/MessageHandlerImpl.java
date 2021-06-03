@@ -28,6 +28,7 @@ import com.nchain.jcl.tools.thread.ThreadUtils;
 import java.math.BigInteger;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 
 /**
  * @author i.fernandez@nchain.com
@@ -55,6 +56,9 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
     // An instance of a Deserializer. There is ONLY ONE Deserializer for all the Streams in the System.
     private Deserializer deserializer;
 
+    // A Executor Service to manage dedicated Connections with dedicated Threads:
+    private ExecutorService dedicateConnsExecutor;
+
     /** Constructor */
     public MessageHandlerImpl(String id, RuntimeConfig runtimeConfig, MessageHandlerConfig config) {
         super(id, runtimeConfig);
@@ -64,6 +68,8 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
 
         // In case the TxRawEnabled is TRUE, we update the MsgSerializersFactory:
         if (config.isRawTxsEnabled()) MsgSerializersFactory.assignRawSerializer(TxMsg.MESSAGE_TYPE);
+
+        this.dedicateConnsExecutor = ThreadUtils.getCachedThreadExecutorService( "JclDeserializer", config.getMaxNumberDedicatedConnections());
     }
 
     // We register this Handler to LISTEN to these Events:
@@ -77,6 +83,8 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
         super.eventBus.subscribe(BroadcastMsgBodyRequest.class, e -> onBroadcastReq((BroadcastMsgBodyRequest) e));
         super.eventBus.subscribe(PeerNIOStreamConnectedEvent.class, e -> onPeerStreamConnected((PeerNIOStreamConnectedEvent) e));
         super.eventBus.subscribe(PeerDisconnectedEvent.class, e -> onPeerDisconnected((PeerDisconnectedEvent) e));
+        super.eventBus.subscribe(EnablePeerBigMessagesRequest.class, e -> onEnablePeerBigMessages((EnablePeerBigMessagesRequest) e));
+        super.eventBus.subscribe(DisablePeerBigMessagesRequest.class, e -> onDisablePeerBigMessages((DisablePeerBigMessagesRequest) e));
     }
 
     // Event Handler:
@@ -121,7 +129,8 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
                 super.runtimeConfig,
                 config.getBasicConfig(),
                 this.deserializer,
-                event.getStream());
+                event.getStream(),
+                this.dedicateConnsExecutor);
         msgStream.init();
         // We listen to the Deserializer Events
         msgStream.input().onData(e -> onStreamMsgReceived(peerAddress, e.getData()));
@@ -175,6 +184,22 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
         // We request a Disconnection from this Peer...
         logger.trace(peerAddress, "Error detected in Stream, requesting disconnection... ");
         super.eventBus.publish(new DisconnectPeerRequest(peerAddress));
+    }
+
+    // Event Handler:
+    private void onEnablePeerBigMessages(EnablePeerBigMessagesRequest event) {
+        MessagePeerInfo messagePeerInfo = this.peersInfo.get(event.getPeerAddress());
+        if (messagePeerInfo != null) {
+            ((DeserializerStream) messagePeerInfo.getStream().input()).upgradeBufferSize();
+        }
+    }
+
+    // Event Handler:
+    private void onDisablePeerBigMessages(DisablePeerBigMessagesRequest event) {
+        MessagePeerInfo messagePeerInfo = this.peersInfo.get(event.getPeerAddress());
+        if (messagePeerInfo != null) {
+            ((DeserializerStream) messagePeerInfo.getStream().input()).resetBufferSize();
+        }
     }
 
     @Override

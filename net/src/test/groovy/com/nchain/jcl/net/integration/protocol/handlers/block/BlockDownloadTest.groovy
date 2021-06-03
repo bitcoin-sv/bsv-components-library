@@ -4,11 +4,12 @@ import com.nchain.jcl.net.network.config.NetworkConfig
 import com.nchain.jcl.net.network.config.provided.NetworkDefaultConfig
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
-import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandler
 import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandlerConfig
+import com.nchain.jcl.net.protocol.handlers.block.BlocksDownloadHistory
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
+import com.nchain.jcl.tools.thread.ThreadUtils
 import io.bitcoinj.core.Utils
 import spock.lang.Specification
 
@@ -23,6 +24,9 @@ import java.util.concurrent.atomic.AtomicBoolean
 class BlockDownloadTest extends Specification {
 
     // Several real Block HASHES to download from different Networks:
+
+
+
 
     private static final List<String> BLOCKS_BSV_MAIN = Arrays.asList(
             "0000000000000000027abeb2a2348dac5f953676f6b68a6ed5d92458a1c12cab", // 0.6MB
@@ -48,9 +52,8 @@ class BlockDownloadTest extends Specification {
             "00000000000000000b53ca866c42c077d95b3d735df593229fd19f49352f5f80", // 10KB
             "00000000000000000b0f7d16e33e66b64bf94bb5c6543f3b680ce9d7162fef21", // 1.7MB
             "0000000000000000061757aed9f19d4e6a94ad5f309d1cc53f4303298cbf033f", // 2.2MB
-
-
     )
+
     private static final List<String> BLOCKS_BSV_STN = Arrays.asList(
             //"00000000041a389a73cfdc312f06eb1ea187b86a227b5cca5002d30ccb55e6e9", // 450MB
             //"000000000c3c309a1597f0626abaa4fa32ca0085851eceeaf56c3288be800752", // 380MB
@@ -79,7 +82,7 @@ class BlockDownloadTest extends Specification {
     def "Testing Block Downloading"() {
         given:
             // The longest Timeout we'll wait for to run the test:
-            Duration TIMEOUT = Duration.ofMinutes(5)
+            Duration TIMEOUT = Duration.ofMinutes(3)
 
             // Network Config:
             NetworkConfig networkConfig = new NetworkDefaultConfig().toBuilder()
@@ -94,8 +97,10 @@ class BlockDownloadTest extends Specification {
 
             // We set up the Download configuration:
             BlockDownloaderHandlerConfig blockConfig = config.getBlockDownloaderConfig().toBuilder()
-                .maxBlocksInParallel(10)
+                .maxBlocksInParallel(3)
                 .maxIdleTimeout(Duration.ofSeconds(10))
+                .removeBlockHistoryAfterDownload(false)
+                .removeBlockHistoryAfter(Duration.ofSeconds(10))
                 .build()
 
             // We configure the P2P Service:
@@ -113,6 +118,9 @@ class BlockDownloadTest extends Specification {
             Set<String> blocksDownloaded = new HashSet<>()                          // Blocks fully downloaded
             Set<String> blocksDiscarded = new HashSet<>()                           // Blocks Discarded...
 
+            // We keep track of the History of each Block:
+            Map<String, List<BlocksDownloadHistory>> blocksHistory = new ConcurrentHashMap<>()
+
             // We capture the state when we reach the min Peers, so we do not start the download until this moment:
             AtomicBoolean connReady = new AtomicBoolean(false);
             p2p.EVENTS.PEERS.HANDSHAKED_MAX_REACHED.forEach({e ->
@@ -122,20 +130,21 @@ class BlockDownloadTest extends Specification {
 
             // Every time a Header is downloaded, we store it...
             p2p.EVENTS.BLOCKS.BLOCK_HEADER_DOWNLOADED.forEach({ e ->
-                String hash = Utils.HEX.encode(e.getBtcMsg().body.getBlockHeader().getHash().getHashBytes())
+                String hash = Utils.HEX.encode(Utils.reverseBytes(e.getBtcMsg().body.getBlockHeader().getHash().getHashBytes()))
                 blockHeaders.put(hash, e.getBtcMsg().getHeader())
             })
 
             // Every time a set of TXs is downloaded, we increase the counter of Txs for this block:
             p2p.EVENTS.BLOCKS.BLOCK_TXS_DOWNLOADED.forEach({e ->
-                String hash = Utils.HEX.encode(e.getBtcMsg().body.getBlockHeader().getHash().getHashBytes())
+                String hash = Utils.HEX.encode(Utils.reverseBytes(e.getBtcMsg().body.getBlockHeader().getHash().getHashBytes()))
                 Long currentTxs = blockTxs.containsKey(hash)? (blockTxs.get(hash) + e.getBtcMsg().body.getTxs().size()) : e.getBtcMsg().body.getTxs().size()
                 blockTxs.put(hash, currentTxs)
             })
 
             // Blocks fully downloaded
             p2p.EVENTS.BLOCKS.BLOCK_DOWNLOADED.forEach({ e ->
-                blocksDownloaded.add(e.blockHeader.hash.toString())
+                String hash = Utils.HEX.encode(Utils.reverseBytes(e.getBlockHeader().getHash().getHashBytes()))
+                blocksDownloaded.add(hash)
                 println(" > Block " + e.blockHeader.hash.toString() + "(" + e.getBlockSize() + " bytes) Downloaded.")
             })
 
@@ -146,10 +155,13 @@ class BlockDownloadTest extends Specification {
             })
 
             // We log some Status:
-            p2p.EVENTS.STATE.NETWORK.forEach( {e -> println(e)})
-            p2p.EVENTS.STATE.BLOCKS.forEach( {e -> println(e)})
+            p2p.EVENTS.STATE.NETWORK.forEach( {e ->
+                println(e.toString() + ": " + ThreadUtils.getThreadsInfo())
+            })
             p2p.EVENTS.STATE.HANDSHAKE.forEach({ e -> println(e)})
-
+            p2p.EVENTS.STATE.BLOCKS.forEach( {e ->
+                println(e)
+            })
 
         when:
             println(" > Testing Block Download in " + config.toString() + "...")
@@ -174,6 +186,21 @@ class BlockDownloadTest extends Specification {
             Duration testDuration = Duration.between(startTime, Instant.now())
             println("It took " + testDuration.toSeconds() + " seconds to finish the Test.")
             if (timeoutBroken) println("Test Timeout BROKEN!")
+
+            Thread.sleep(1000)
+
+            // Then, if some blocks has NOT been downloaded, we shot its history:
+            block_hashes.stream()
+                .filter({hash -> !blocksDownloaded.contains(hash)})
+                .forEach({ hash ->
+                    println("> BLOCK " + hash + " HAS NOT BEEN DOWNLOADED. HISTORY:")
+                    List<BlocksDownloadHistory.HistoricItem> blockHistory = blocksHistory.get(hash);
+                    if (blocksHistory != null) {
+                        blockHistory.forEach({i -> println("  -> " + i)})
+                    } else println(" > No History recorded (might not even have started downloaded)")
+
+                })
+
         then:
             allBlocksDone
 

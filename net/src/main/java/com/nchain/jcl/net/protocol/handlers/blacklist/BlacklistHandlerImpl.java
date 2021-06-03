@@ -51,7 +51,7 @@ public class BlacklistHandlerImpl extends HandlerImpl implements BlacklistHandle
         super(id, runtimeConfig);
         this.config = config;
         this.logger = new LoggerUtil(id, HANDLER_ID, this.getClass());
-        this.executor = ThreadUtils.getSingleThreadExecutorService("Blacklist-Handler-Whitelist");
+        this.executor = ThreadUtils.getSingleThreadExecutorService("JclBlacklistHandler-Whitelist");
     }
 
     public void registerForEvents() {

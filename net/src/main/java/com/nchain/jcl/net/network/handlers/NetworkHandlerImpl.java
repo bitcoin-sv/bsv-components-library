@@ -120,7 +120,9 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     private EventBus eventBus;
 
     // An executor Service, to trigger jobs in MultiThread...
-    ExecutorService jobExecutor = ThreadUtils.getThreadPoolExecutorService(HANDLER_ID + "-");
+    ExecutorService jobExecutor = ThreadUtils.getThreadPoolExecutorService("JclNetworkHandler");
+    // An executor for triggering new Connections to remote Peers:
+    ExecutorService newConnsExecutor = ThreadUtils.getCachedThreadExecutorService("jclNetworkHandlerRemoteConn", 20);
 
     // General State:
     private NetworkHandlerState state;
@@ -142,6 +144,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     // Other useful counters:
     private AtomicLong numConnsFailed = new AtomicLong();
     private AtomicLong numConnsInProgressExpired = new AtomicLong();
+    private int numConnsTried;  // reset after calling getState()
 
     // Files to store info after the handler has stopped:
     private static final String FILE_ACTIVE_CONN            = "networkHandler-activeConnections.csv";
@@ -184,7 +187,9 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
                     .server_mode(this.server_mode)
                     .numConnsFailed(this.numConnsFailed.get())
                     .numInProgressConnsExpired(this.numConnsInProgressExpired.get())
+                    .numConnsTried(this.numConnsTried)
                     .build();
+            numConnsTried = 0; // aggregate value that is reset between calls to getState()
         } finally {
             lock.readLock().unlock();
         }
@@ -551,6 +556,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     private void handleConnectionToOpen(PeerAddress peerAddress) {
         try {
             lock.writeLock().lock();
+            numConnsTried++;
             logger.trace(peerAddress, "Connecting...");
             inProgressConns.put(peerAddress, new InProgressConn(peerAddress));
 
@@ -600,42 +606,42 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
 
                 // Second loop level: We loop over the pending Connections...
                 while (true) {
-                        // Basic checks before getting a Peer from the Pool:
-                        // If any of these checks fail, we break the loop (we don't process any more peers)
-                        if (!this.selector.isOpen()) break;
-                        if (!keep_connecting) break;
-                        if (inProgressConns.size() > config.getMaxSocketConnectionsOpeningAtSameTime()) break;
-                        if ((limitNumConns.isPresent()) && (inProgressConns.size() + activeConns.size() >= limitNumConns.getAsInt())) break;
+                    // Basic checks before getting a Peer from the Pool:
+                    // If any of these checks fail, we break the loop (we don't process any more peers)
+                    if (!this.selector.isOpen()) break;
+                    if (!keep_connecting) break;
+                    if (inProgressConns.size() > config.getMaxSocketConnectionsOpeningAtSameTime()) break;
+                    if ((limitNumConns.isPresent()) && (inProgressConns.size() + activeConns.size() >= limitNumConns.getAsInt())) break;
 
 
-                        PeerAddress peerAddress = this.pendingToOpenConns.take();
-                        if (peerAddress == null) continue;
+                    PeerAddress peerAddress = this.pendingToOpenConns.take();
+                    if (peerAddress == null) continue;
 
-                        // Basic checks after obtaining the Peer from the Pool:
-                        // If any of these checks fail, we just skip to the next Peer
-                        if (activeConns.containsKey(peerAddress)) continue;
-                        if (inProgressConns.containsKey(peerAddress)) continue;
-                        if (blacklist.contains(peerAddress.getIp())) continue;
+                    // Basic checks after obtaining the Peer from the Pool:
+                    // If any of these checks fail, we just skip to the next Peer
+                    if (activeConns.containsKey(peerAddress)) continue;
+                    if (inProgressConns.containsKey(peerAddress)) continue;
+                    if (blacklist.contains(peerAddress.getIp())) continue;
 
-                        // We handle this connection:
-                        // In case opening the connection takes too long, we wrap it up in a TimeoutTask...
+                    // We handle this connection:
+                    // In case opening the connection takes too long, we wrap it up in a TimeoutTask...
 
-                        logger.trace(peerAddress, "handling connection To open. inProgress: " + this.inProgressConns.size() + " Still pendingToOpen in Queue: " + this.pendingToOpenConns.size());
-                        TimeoutTask connectPeerTask = TimeoutTaskBuilder.newTask()
-                                .execute(() -> handleConnectionToOpen(peerAddress))
-                                .waitFor(config.getTimeoutSocketConnection().getAsInt())
-                                .ifTimeoutThenExecute(() -> {
-                                            processConnectionFailed(peerAddress, PeerRejectedEvent.RejectedReason.TIMEOUT,"connection timeout");
-                                            //System.out.println("<<<<< CONNECTION TIMEOUT " + peerAddress.toString() + ", " + Thread.activeCount() + " Threads");
-                                        }
-                                )
-                                .build();
-                        connectPeerTask.execute();
-                        numConnectionsTried++;
-                        // We wait a little bit between connections:
-                        Thread.sleep(100);
+                    logger.trace(peerAddress, "handling connection To open. inProgress: " + this.inProgressConns.size() + " Still pendingToOpen in Queue: " + this.pendingToOpenConns.size());
+                    TimeoutTask connectPeerTask = TimeoutTaskBuilder.newTask()
+                            .threadsHandledBy(newConnsExecutor)
+                            .execute(() -> handleConnectionToOpen(peerAddress))
+                            .waitFor(config.getTimeoutSocketConnection().getAsInt())
+                            .ifTimeoutThenExecute(() -> {
+                                        processConnectionFailed(peerAddress, PeerRejectedEvent.RejectedReason.TIMEOUT,"connection timeout");
+                                        //System.out.println("<<<<< CONNECTION TIMEOUT " + peerAddress.toString() + ", " + Thread.activeCount() + " Threads");
+                                    }
+                            )
+                            .build();
+                    connectPeerTask.execute();
+                    numConnectionsTried++;
+                    // We wait a little bit between connections:
+                    Thread.sleep(100);
                 } // while...
-
 
                 // In case there are NO more connections pending to Open, We wait until the Queue of Pending
                 // connection has some content, or we are allowed to keep making  connections..
@@ -811,7 +817,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
      */
     protected void handleKey(SelectionKey key) throws IOException {
         try {
-        //logger.trace("Key : " + key);
+            //logger.trace("Key : " + key);
             if (!key.isValid()) {
                 handleInvalidKey(key);
                 return;
@@ -871,7 +877,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
             // If we reach this far, we accept the connection:
             SocketChannel socketChannel = (SocketChannel) key.channel();
             if (socketChannel.finishConnect()) {
-                 startPeerConnection(key);
+                startPeerConnection(key);
             } else closeKey(key, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL);
 
         } catch (ConnectException e) {

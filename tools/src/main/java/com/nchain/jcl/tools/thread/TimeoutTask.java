@@ -17,6 +17,9 @@ public class TimeoutTask {
 
     private Logger logger = LoggerFactory.getLogger(TimeoutTask.class);
 
+    // Executor used to trigger new Connections to RemotePeers
+    ExecutorService executor;
+
     // Timeout Threshold
     int timeoutMillisecs;
     // Task to run (happy path)
@@ -25,7 +28,8 @@ public class TimeoutTask {
     Runnable timeoutTask;
 
     // Constructor
-    protected TimeoutTask(Runnable task, Runnable timeoutTask, int timeoutMillisecs) {
+    protected TimeoutTask(ExecutorService executor, Runnable task, Runnable timeoutTask, int timeoutMillisecs) {
+        this.executor = executor;
         this.task = task;
         this.timeoutTask = timeoutTask;
         this.timeoutMillisecs = timeoutMillisecs;
@@ -40,8 +44,7 @@ public class TimeoutTask {
         try {
             // We reuse an EXECUTOR already defined, so we do NOT shut it down afterwards, so it's still
             // available for other tasks in the future:
-            ExecutorService service = ThreadUtils.SYSTEM_EXECUTOR;
-            Future<?> taskResult = service.submit(task);
+            Future<?> taskResult = executor.submit(task);
             taskResult.get(timeoutMillisecs, TimeUnit.MILLISECONDS);
         } catch (TimeoutException te) {
             // Timeout triggered. So we run the timeoutTask, if any...

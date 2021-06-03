@@ -75,7 +75,7 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
 
         // We start the EventQueueProcessor. We do not expect many messages (compared to the rest of traffic), so a
         // single Thread will do...
-        this.eventQueueProcessor = new EventQueueProcessor(ThreadUtils.getSingleThreadScheduledExecutorService("Handshake-EventsConsumers"));
+        this.eventQueueProcessor = new EventQueueProcessor(ThreadUtils.getSingleThreadScheduledExecutorService("JclHandshakeHandler-EventsConsumers"));
     }
 
     // We register this Handler to LISTEN to these Events:

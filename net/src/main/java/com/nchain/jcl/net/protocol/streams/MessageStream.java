@@ -35,21 +35,24 @@ public class MessageStream extends PeerStreamImpl<BitcoinMsg<?>, ByteArrayReader
     private ProtocolBasicConfig protocolBasicConfig;
     private Deserializer deserializer;
     private PeerStream streamOrigin;
+    private ExecutorService dedicatedConnectionsExecutor;
 
-    public MessageStream(ExecutorService executor,
+    public MessageStream(ExecutorService eventBusExecutor,
                          RuntimeConfig runtimeConfig,
                          ProtocolBasicConfig protocolBasicConfig,
                          Deserializer deserializer,
-                         PeerStream<ByteArrayReader> streamOrigin) {
-        super(executor, streamOrigin);
+                         PeerStream<ByteArrayReader> streamOrigin,
+                         ExecutorService dedicatedConnectionsExecutor) {
+        super(eventBusExecutor, streamOrigin);
         this.runtimeConfig = runtimeConfig;
         this.protocolBasicConfig = protocolBasicConfig;
         this.deserializer = deserializer;
         this.streamOrigin = streamOrigin;
+        this.dedicatedConnectionsExecutor = dedicatedConnectionsExecutor;
     }
     @Override
     public DeserializerStream buildInputStream() {
-        return new DeserializerStream(super.executor, streamOrigin.input(), runtimeConfig, protocolBasicConfig, deserializer);
+        return new DeserializerStream(super.executor, streamOrigin.input(), runtimeConfig, protocolBasicConfig, deserializer, dedicatedConnectionsExecutor);
     }
     @Override
     public SerializerStream buildOutputStream() {

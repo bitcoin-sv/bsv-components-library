@@ -172,7 +172,12 @@ public class P2PBuilder {
 
             // Message Handler...
             MessageHandlerConfig messageConfig =  (MessageHandlerConfig) handlerConfigs.get(MessageHandler.HANDLER_ID);
-            messageConfig = messageConfig.toBuilder().basicConfig(this.basicConfig).build();
+
+            // NOTE: The "maxNumberDedicatedConnections" in the MessageHandler is very related to the
+            // "maxBlocksInParallel" property of the BlockDownloaderHandler Config, so we assign its value...
+            BlockDownloaderHandlerConfig blockConfigTmp = (BlockDownloaderHandlerConfig) handlerConfigs.get(BlockDownloaderHandler.HANDLER_ID);
+            messageConfig = messageConfig.toBuilder().basicConfig(this.basicConfig).maxNumberDedicatedConnections(blockConfigTmp.getMaxBlocksInParallel()) .build();
+
             Handler messageHandler = new MessageHandlerImpl(id, runtimeConfig, messageConfig);
             result.put(messageHandler.getId(), messageHandler);
 

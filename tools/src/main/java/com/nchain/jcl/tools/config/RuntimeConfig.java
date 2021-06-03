@@ -30,4 +30,5 @@ public interface RuntimeConfig {
 
     /** File Utils used to read/write info in disk */
     FileUtils getFileUtils();
+
 }

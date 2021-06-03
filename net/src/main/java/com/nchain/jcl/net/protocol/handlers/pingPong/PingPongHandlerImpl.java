@@ -65,11 +65,11 @@ public class PingPongHandlerImpl extends HandlerImpl implements PingPongHandler 
         super(id, runtimeConfig);
         this.config = config;
         this.logger = new LoggerUtil(id, HANDLER_ID, this.getClass());
-        this.executor = ThreadUtils.getSingleThreadScheduledExecutorService("PingPong-Handler-Job");
+        this.executor = ThreadUtils.getSingleThreadScheduledExecutorService("JclPingPongHandler");
 
         // We start the EventQueueProcessor. We do not expect many messages (compared to the rest of traffic), so a
         // single Thread will do...
-        this.eventQueueProcessor = new EventQueueProcessor(ThreadUtils.getSingleThreadScheduledExecutorService("PingPong-EventsConsumers"));
+        this.eventQueueProcessor = new EventQueueProcessor(ThreadUtils.getSingleThreadScheduledExecutorService("JclPingPongHandler-EventsConsumers"));
     }
 
     // We register this Handler to LISTEN to these Events:

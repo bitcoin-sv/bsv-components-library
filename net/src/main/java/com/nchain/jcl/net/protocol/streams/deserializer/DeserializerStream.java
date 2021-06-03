@@ -22,7 +22,6 @@ import com.nchain.jcl.tools.log.LoggerUtil;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -83,8 +82,8 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
     // We use this ByteArrayBuffer to store the incoming bytes:
     private ByteArrayBuffer buffer;
 
-    // Executor used to trigger real-time processing threads:
-    private ExecutorService realTimeExecutor;
+    // Executor used to trigger real-time deserializers for big Messages:
+    private ExecutorService bigMsgsDeserializersExecutor;
 
     // We can only deserialize "Big" messages if this flag is TRUE, otherwise an Error is thrown.
     // Doing Real-Time processing implies launching a new Thread, so it should be done carefully. So to do it, we
@@ -105,21 +104,25 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
     private static Deserializer deserializer;
 
     /** Constructor */
-    public DeserializerStream(ExecutorService executor, PeerInputStream<ByteArrayReader> source,
-                              RuntimeConfig runtimeConfig, ProtocolBasicConfig protocolBasicConfig,
-                              Deserializer deserializer) {
-        super(executor, source);
+    public DeserializerStream(ExecutorService eventBusExecutor,
+                              PeerInputStream<ByteArrayReader> source,
+                              RuntimeConfig runtimeConfig,
+                              ProtocolBasicConfig protocolBasicConfig,
+                              Deserializer deserializer,
+                              ExecutorService bigMsgsDeserializersExecutor) {
+        super(eventBusExecutor, source);
         this.logger = new LoggerUtil(this.getPeerAddress().toString(), this.getClass());
         this.runtimeConfig = runtimeConfig;
         this.protocolBasicConfig = protocolBasicConfig;
         this.buffer = new ByteArrayBuffer(runtimeConfig.getByteArrayMemoryConfig());
-        this.realTimeExecutor = Executors.newSingleThreadExecutor();
+        this.bigMsgsDeserializersExecutor = bigMsgsDeserializersExecutor;
 
         // We initialize the State:
         this.state = DeserializerStreamState.builder().build();
 
         // We initialize the Deserializer
         this.deserializer = deserializer;
+
     }
 
     /**
@@ -396,7 +399,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
         // - The Message is "big": The ony way to process a "Big" Message is by using "Real-Time" Deserialization. So we
         //   apply this logic:
         //      - If we are in the SHARED Thread, then we launch a DEDICATED Thread, which will take care of processing
-        //        the bytes. Right after that we end and this SHARED Thread will do nothing in the future but only
+        //        the bytes. Right after that we finish, and this SHARED Thread will do nothing in the future but only
         //        receiving new bytes and feeding them into the buffer.
         //      - If we already are in the DEDICATED Thread, we need to process it in Real-Time.
 
@@ -437,7 +440,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
                 DeserializerStreamState threadState = state.toBuilder()
                         .treadState(DeserializerStreamState.ThreadState.DEDICATED_THREAD)
                         .build();
-                realTimeExecutor.submit(() -> this.processBytes(true, threadState));
+                bigMsgsDeserializersExecutor.submit(() -> this.processBytes(true, threadState));
                 result.treadState(DeserializerStreamState.ThreadState.DEDICATED_THREAD);
                 result.workToDoInBuffer(false);
             }
@@ -515,6 +518,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
 
             if (isThisADedicatedThread) {
                 log(isThisADedicatedThread, "Thread finished.");
+                //System.out.println(" >>>>> FINISHING DESERIALIZER THREAD FOR " + this.peerAddress + "...");
                 this.state = state.toBuilder().treadState(DeserializerStreamState.ThreadState.SHARED_THREAD).build();
             }
 

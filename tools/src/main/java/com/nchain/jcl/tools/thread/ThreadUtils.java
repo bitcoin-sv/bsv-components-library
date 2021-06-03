@@ -1,9 +1,17 @@
 package com.nchain.jcl.tools.thread;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Ordering;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
+import java.util.stream.Collectors;
 
 /**
  * @author i.fernandez@nchain.com
@@ -23,7 +31,7 @@ public class ThreadUtils {
             Thread thread = new Thread(r);
             thread.setPriority(Thread.MAX_PRIORITY);
             thread.setDaemon(true);
-            thread.setName("Network Streams Thread");
+            thread.setName("JclNetworkStreams");
             return thread;
         }
     }
@@ -37,7 +45,7 @@ public class ThreadUtils {
             Thread thread = new Thread(r);
             thread.setPriority(Thread.NORM_PRIORITY);
             thread.setDaemon(true);
-            thread.setName("EventBus Thread");
+            thread.setName("JclEventBus");
             return thread;
         }
     }
@@ -47,7 +55,7 @@ public class ThreadUtils {
             Thread thread = new Thread(r);
             thread.setPriority(Thread.MAX_PRIORITY);
             thread.setDaemon(true);
-            thread.setName("EventBus Thread");
+            thread.setName("JclEventBus");
             return thread;
         }
     }
@@ -69,7 +77,7 @@ public class ThreadUtils {
                 Thread thread = new Thread(r);
                 thread.setPriority(priority);
                 thread.setDaemon(daemon);
-                thread.setName(name + thread.getId());
+                thread.setName(name + ":" + thread.getId());
                 return thread;
             }
         };
@@ -81,7 +89,7 @@ public class ThreadUtils {
     }
     // Convenience method to create a Thread Pool Executor Service
     public static ExecutorService getSingleThreadExecutorService(String threadName) {
-        return Executors.newCachedThreadPool(getThreadFactory(threadName, Thread.MAX_PRIORITY, true));
+        return Executors.newSingleThreadScheduledExecutor(getThreadFactory(threadName, Thread.MAX_PRIORITY, true));
     }
     // Convenience method to create a Scheduled Executor Service
     public static ScheduledExecutorService getScheduledExecutorService(String threadName) {
@@ -90,7 +98,7 @@ public class ThreadUtils {
     public static ScheduledExecutorService getScheduledExecutorService(String threadName, int maxThreads) {
         return Executors.newScheduledThreadPool(maxThreads, (getThreadFactory(threadName, Thread.MAX_PRIORITY, true)));
     }
-    public static ExecutorService getSingleThreadExecutorService(String threadName, int maxThreads) {
+    public static ExecutorService getCachedThreadExecutorService(String threadName, int maxThreads) {
         return Executors.newFixedThreadPool(maxThreads, getThreadFactory(threadName, Thread.MAX_PRIORITY, true));
     }
 
@@ -105,4 +113,46 @@ public class ThreadUtils {
      */
     // TODO: Another Factory needed for this?
     public static ExecutorService SYSTEM_EXECUTOR = Executors.newSingleThreadExecutor(getThreadFactory("PeerConnectionExecutor", Thread.MAX_PRIORITY, true));
+
+
+    public static String getThreadsInfo() {
+        // First we get the roo threadGroup
+        ThreadGroup threadGroup = Thread.currentThread().getThreadGroup();
+        while (threadGroup.getParent() != null) {
+            threadGroup = threadGroup.getParent();
+        }
+        // Now we loop over all the threads belonging to this group and we group them by Name:
+        String[] separators = new String[] {"-", " ", ":"};
+        Map<String, Integer> numThreadsByPreffixMap = new HashMap<>();
+        Thread[] threads = new Thread[500];
+        int numThreads = threadGroup.enumerate(threads);
+        for (int i = 0; i < numThreads; i++) {
+            String threadName = threads[i].getName();
+            String threadNamePreffix = threadName;
+            for (String separator : separators) {
+                if (threadName.indexOf(separator) > 0) {
+                    threadNamePreffix = threadName.substring(0, threadName.indexOf(separator));
+                    break;
+                }
+            }
+            numThreadsByPreffixMap.merge(threadNamePreffix, 1, (o, n) -> o + 1);
+        } // for...
+
+        // Now we order them by number of Threads...using Guava
+        Ordering<Map.Entry<String, Integer>> byMapValues = new Ordering<Map.Entry<String, Integer>>() {
+            @Override
+            public int compare(Map.Entry<String, Integer> left, Map.Entry<String, Integer> right) {
+                return left.getValue().compareTo(right.getValue());
+            }
+        };
+        List<Map.Entry<String,Integer>> numThreadsByPreffixList = Lists.newArrayList(numThreadsByPreffixMap.entrySet());
+        Collections.sort(numThreadsByPreffixList, byMapValues.reverse());
+
+        String result = numThreadsByPreffixList.stream()
+                .filter(e -> e.getKey().startsWith("Jcl"))
+                .map(e -> e.getKey() + ":" + e.getValue() + ", ")
+                .limit(30)
+                .collect(Collectors.joining());
+        return Thread.activeCount() + " Threads. High-load distribution: " + result;
+    }
 }
