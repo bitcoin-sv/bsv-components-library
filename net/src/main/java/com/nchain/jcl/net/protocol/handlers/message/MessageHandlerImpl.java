@@ -11,6 +11,7 @@ import com.nchain.jcl.net.protocol.events.control.BroadcastMsgRequest;
 import com.nchain.jcl.net.protocol.events.data.MsgReceivedEvent;
 import com.nchain.jcl.net.protocol.events.data.MsgSentEvent;
 import com.nchain.jcl.net.protocol.events.control.SendMsgRequest;
+import com.nchain.jcl.net.protocol.messages.BlockMsg;
 import com.nchain.jcl.net.protocol.messages.TxMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
@@ -66,8 +67,11 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
         this.logger = new LoggerUtil(id, HANDLER_ID, this.getClass());
         this.deserializer = Deserializer.getInstance(runtimeConfig, config.getDeserializerConfig());
 
-        // In case the TxRawEnabled is TRUE, we update the MsgSerializersFactory:
-        if (config.isRawTxsEnabled()) MsgSerializersFactory.assignRawSerializer(TxMsg.MESSAGE_TYPE);
+        // In case the TxRawEnabled is TRUE, we update the MsgSerializersFactory, overriding some serializers
+        // with their RAW Versions:
+        if (config.isRawTxsEnabled()) {
+            MsgSerializersFactory.enableRawSerializers();
+        }
 
         this.dedicateConnsExecutor = ThreadUtils.getCachedThreadExecutorService( "JclDeserializer", config.getMaxNumberDedicatedConnections());
     }

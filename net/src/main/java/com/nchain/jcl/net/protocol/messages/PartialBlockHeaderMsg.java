@@ -74,8 +74,10 @@ public final class PartialBlockHeaderMsg extends Message {
             return this;
         }
 
-        public PartialBlockHeaderMsg.PartialBlockHeaderMsgBuilder blockSizeInBytes(long blockSizeInBytes) {
-            this.blockSizeInBytes = VarIntMsg.builder().value(blockSizeInBytes).build();
+        public PartialBlockHeaderMsg.PartialBlockHeaderMsgBuilder blockSizeInBytes(Long blockSizeInBytes) {
+            if (blockSizeInBytes != null) {
+                this.blockSizeInBytes = VarIntMsg.builder().value(blockSizeInBytes).build();
+            }
             return this;
         }
 

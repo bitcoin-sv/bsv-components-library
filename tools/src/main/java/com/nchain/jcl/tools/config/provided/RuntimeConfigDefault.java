@@ -19,8 +19,6 @@ public final class RuntimeConfigDefault extends RuntimeConfigImpl {
 
     private static final int MSG_SIZE_IN_BYTES_FOR_REAL_TIME_PROCESSING = 10_000_000;
 
-    private static final Duration MAX_WAITING_TIME_FOR_BYTES_IN_REAL_TIME = Duration.ofMillis(15000);
-
     /** Constructor */
     public RuntimeConfigDefault() {
         super();
@@ -36,7 +34,7 @@ public final class RuntimeConfigDefault extends RuntimeConfigImpl {
     private void init(ClassLoader classLoader) {
         super.byteArrayMemoryConfig = BYTE_ARRAY_MEMORY_CONFIGURATION;
         super.msgSizeInBytesForRealTimeProcessing = MSG_SIZE_IN_BYTES_FOR_REAL_TIME_PROCESSING;
-        super.maxWaitingTimeForBytesInRealTime = MAX_WAITING_TIME_FOR_BYTES_IN_REAL_TIME;
+
         try {
             FileUtilsBuilder fileUtilsBuilder = new FileUtilsBuilder().useTempFolder();
             if (classLoader != null) {

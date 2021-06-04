@@ -1,8 +1,9 @@
-package com.nchain.jcl.net.protocol.events.control;
+package com.nchain.jcl.net.protocol.events.data;
 
 
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.events.P2PEvent;
+import com.nchain.jcl.net.protocol.events.control.BlockDownloadedEvent;
 import com.nchain.jcl.net.protocol.messages.BlockMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.tools.events.Event;

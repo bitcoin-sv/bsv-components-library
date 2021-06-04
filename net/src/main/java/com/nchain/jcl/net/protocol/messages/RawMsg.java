@@ -8,10 +8,11 @@ import com.nchain.jcl.net.protocol.messages.common.Message;
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  *
- * A Raw MEsage is a message which is NOT Deserialized/Serialized, that means that its content is the same as the
- * raw content sent to the wire, which is a byte Array.
- *
- * further extensions of this class might add custom fields.
+ * A Raw Mesage is a message which is NOT Deserialized/Serialized, either completely or partially.
+ * Messagfes extending this class can use it to store the whole content in raw format. But sometimes, its useful to
+ * deserialize some information, so it can be parsed, in that case, an extending class can add its own fields, and
+ * decide if its gooing ot use the "content" field here to store the WHOLE message, or only those parts that are
+ * not deserialized.
  *
  */
 public abstract class RawMsg extends Message {
@@ -20,7 +21,6 @@ public abstract class RawMsg extends Message {
 
     public RawMsg(byte[] content) {
         this.content = content;
-        init();
     }
 
     @Override
@@ -31,6 +31,7 @@ public abstract class RawMsg extends Message {
     public byte[] getContent() {
         return this.content;
     }
+
     @Override
     public boolean equals(Object obj) {
         if (obj == null) { return false; }

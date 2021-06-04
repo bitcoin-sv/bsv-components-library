@@ -6,9 +6,12 @@ import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandlerConfig
 import com.nchain.jcl.net.protocol.handlers.block.BlocksDownloadHistory
+import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerConfig
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
+import com.nchain.jcl.tools.config.RuntimeConfig
+import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault
 import com.nchain.jcl.tools.thread.ThreadUtils
 import io.bitcoinj.core.Utils
 import spock.lang.Specification
@@ -24,8 +27,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 class BlockDownloadTest extends Specification {
 
     // Several real Block HASHES to download from different Networks:
-
-
 
 
     private static final List<String> BLOCKS_BSV_MAIN = Arrays.asList(
@@ -53,6 +54,8 @@ class BlockDownloadTest extends Specification {
             "00000000000000000b0f7d16e33e66b64bf94bb5c6543f3b680ce9d7162fef21", // 1.7MB
             "0000000000000000061757aed9f19d4e6a94ad5f309d1cc53f4303298cbf033f", // 2.2MB
     )
+
+
 
     private static final List<String> BLOCKS_BSV_STN = Arrays.asList(
             //"00000000041a389a73cfdc312f06eb1ea187b86a227b5cca5002d30ccb55e6e9", // 450MB
@@ -84,6 +87,11 @@ class BlockDownloadTest extends Specification {
             // The longest Timeout we'll wait for to run the test:
             Duration TIMEOUT = Duration.ofMinutes(3)
 
+            // Runtime Config:
+            RuntimeConfig runtimeConfig = new RuntimeConfigDefault().toBuilder()
+                .msgSizeInBytesForRealTimeProcessing(5_000_000)
+                .build()
+
             // Network Config:
             NetworkConfig networkConfig = new NetworkDefaultConfig().toBuilder()
                 .maxSocketConnectionsOpeningAtSameTime(50)
@@ -95,6 +103,11 @@ class BlockDownloadTest extends Specification {
                 .maxPeers(OptionalInt.of(15))
                 .build()
 
+            // Serialization Config:
+            MessageHandlerConfig messageConfig = config.getMessageConfig().toBuilder()
+                .rawTxsEnabled(false)
+                .build();
+
             // We set up the Download configuration:
             BlockDownloaderHandlerConfig blockConfig = config.getBlockDownloaderConfig().toBuilder()
                 .maxBlocksInParallel(3)
@@ -105,9 +118,11 @@ class BlockDownloadTest extends Specification {
 
             // We configure the P2P Service:
             P2P p2p = new P2PBuilder("testing")
+                .config(runtimeConfig)
                 .config(networkConfig)
                 .config(config)
                 .config(basicConfig)
+                .config(messageConfig)
                 .config(blockConfig)
                 .publishStates(Duration.ofMillis(500))
                 .build()
@@ -115,6 +130,7 @@ class BlockDownloadTest extends Specification {
             // We are keeping track of the Blocks being downloaded:
             Map<String, BlockHeaderMsg> blockHeaders = new ConcurrentHashMap<>()    // Block Headers
             Map<String, Long> blockTxs  = new ConcurrentHashMap<>()                 // number of TXs downloaded for each Block...
+            Map<String, Long> blockTxsBytes = new ConcurrentHashMap<>()             // number of BYTES of Txs downloaded for each Block...
             Set<String> blocksDownloaded = new HashSet<>()                          // Blocks fully downloaded
             Set<String> blocksDiscarded = new HashSet<>()                           // Blocks Discarded...
 
@@ -124,7 +140,7 @@ class BlockDownloadTest extends Specification {
             // We capture the state when we reach the min Peers, so we do not start the download until this moment:
             AtomicBoolean connReady = new AtomicBoolean(false);
             p2p.EVENTS.PEERS.HANDSHAKED_MAX_REACHED.forEach({e ->
-                println("MAx Number of Peers reached.")
+                println("Max Number of Peers reached.")
                 connReady.set(true)
             })
 
@@ -139,6 +155,14 @@ class BlockDownloadTest extends Specification {
                 String hash = Utils.HEX.encode(Utils.reverseBytes(e.getBtcMsg().body.getBlockHeader().getHash().getHashBytes()))
                 Long currentTxs = blockTxs.containsKey(hash)? (blockTxs.get(hash) + e.getBtcMsg().body.getTxs().size()) : e.getBtcMsg().body.getTxs().size()
                 blockTxs.put(hash, currentTxs)
+            })
+
+            // Every time a set of TXs is downloaded, we increase the counter of Txs for this block:
+            p2p.EVENTS.BLOCKS.BLOCK_RAW_TXS_DOWNLOADED.forEach({e ->
+                String hash = Utils.HEX.encode(Utils.reverseBytes(e.getBtcMsg().body.getBlockHeader().getHash().getHashBytes()))
+                Long currentTxsBytes = blockTxsBytes.containsKey(hash)? (blockTxsBytes.get(hash) + e.getBtcMsg().body.getTxs().length) : e.getBtcMsg().body.getTxs().length
+                println(currentTxsBytes + " bytes of Txs downloaded of the block " + hash + " from " + e.getPeerAddress());
+                blockTxs.put(hash, currentTxsBytes)
             })
 
             // Blocks fully downloaded
@@ -167,6 +191,7 @@ class BlockDownloadTest extends Specification {
             println(" > Testing Block Download in " + config.toString() + "...")
             // WE start the Service and request to download the Blocks...
             p2p.start()
+            p2p.REQUESTS.PEERS.connect("104.248.245.82/104.248.245.82:8333").submit();
             // we wait until we reach the MAXIMUN number of Peers:
             while (!connReady.get()) Thread.sleep(100)
 
@@ -177,13 +202,17 @@ class BlockDownloadTest extends Specification {
             Instant startTime = Instant.now()
             boolean allBlocksDone = false
             boolean timeoutBroken = false;
+            Duration testDuration = null
             while (!allBlocksDone && !timeoutBroken) {
                 Thread.sleep(500)
                 allBlocksDone = (blocksDownloaded.size() + blocksDiscarded.size()) == block_hashes.size()
                 timeoutBroken = Duration.between(startTime, Instant.now()).compareTo(TIMEOUT) > 0
+
+                if (allBlocksDone) {
+                    testDuration = Duration.between(startTime, Instant.now())
+                }
             }
             p2p.stop()
-            Duration testDuration = Duration.between(startTime, Instant.now())
             println("It took " + testDuration.toSeconds() + " seconds to finish the Test.")
             if (timeoutBroken) println("Test Timeout BROKEN!")
 

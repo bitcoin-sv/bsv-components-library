@@ -22,7 +22,7 @@ public final class MessageHandlerConfig extends HandlerConfig {
     /** If set, this object will be invoked BEFORE the DESERIALIZATION takes place */
     private final MessagePreSerializer preSerializer;
 
-    /** Deserializer Cache Config: if TRue, run-time statistics about the Cache are generated (only for testing)*/
+    /** Deserializer Cache Config: */
     private DeserializerConfig deserializerConfig = DeserializerConfig.builder().build();
 
     /** If TRUE, then the TXs are read from the wire in raw format, without Deserialization */

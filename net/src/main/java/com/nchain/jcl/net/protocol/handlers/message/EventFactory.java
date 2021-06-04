@@ -42,7 +42,9 @@ public class EventFactory {
         else if (body instanceof GetHeadersEnMsg)   result = new GetHeadersEnMsgReceivedEvent(peerAddress, (BitcoinMsg<GetHeadersEnMsg>) btcMsg);
         else if (body instanceof PartialBlockHeaderMsg) result = new BlockHeaderDownloadedEvent(peerAddress, (BitcoinMsg<PartialBlockHeaderMsg>) btcMsg);
         else if (body instanceof PartialBlockTXsMsg)    result = new BlockTXsDownloadedEvent(peerAddress, (BitcoinMsg<PartialBlockTXsMsg>) btcMsg);
+        else if (body instanceof PartialBlockRawTXsMsg) result = new BlockRawTXsDownloadedEvent(peerAddress, (BitcoinMsg<PartialBlockRawTXsMsg>) btcMsg);
         else if (body instanceof RawTxMsg)          result = new RawTxMsgReceivedEvent(peerAddress, (BitcoinMsg<RawTxMsg>) btcMsg);
+        else if (body instanceof RawBlockMsg)       result = new RawBlockMsgReceivedEvent(peerAddress, (BitcoinMsg<RawBlockMsg>) btcMsg);
 
         return result;
     }

@@ -38,14 +38,16 @@ class DeserializerMsgsStreamSpec extends Specification {
             // We configure the Threshold for a Message to be considered "Big":
             RuntimeConfig runtimeConfig = new RuntimeConfigDefault().toBuilder()
                     .msgSizeInBytesForRealTimeProcessing(bigMsgsThreshold)
-                    .maxWaitingTimeForBytesInRealTime(Duration.ofMillis(1000))
                     .build()
 
             // We set the protocol configuration (the network does not matter now, so we choose BSV for example)
             ProtocolConfig protocolConfig = new ProtocolBSVMainConfig()
 
             // The executor to manage the events:
-            ExecutorService executor = Executors.newSingleThreadExecutor()
+            ExecutorService eventBusExecutor = Executors.newSingleThreadExecutor()
+
+            // The executor to propagate the Partial Messages in dedicated connections::
+            ExecutorService dedicatedConnsExecutor = Executors.newSingleThreadExecutor()
 
             // The source used to send Bytes to our Stream. This specific implementation will addBytes artificial
             // Delays to the data, to simulate real network activity:
@@ -55,7 +57,7 @@ class DeserializerMsgsStreamSpec extends Specification {
             AtomicInteger numMessages = new AtomicInteger()
             AtomicInteger numErrors = new AtomicInteger()
             Deserializer deserialer = Deserializer.getInstance(runtimeConfig, DeserializerConfig.builder().build())
-            DeserializerStream stream = new DeserializerStream(executor, delaySource, runtimeConfig, protocolConfig.getBasicConfig(), deserialer)
+            DeserializerStream stream = new DeserializerStream(eventBusExecutor, delaySource, runtimeConfig, protocolConfig.getBasicConfig(), deserialer, dedicatedConnsExecutor)
             stream.onData({e ->
                 println( e.getData().getBody().getClass().simpleName + " received")
                 numMessages.incrementAndGet()

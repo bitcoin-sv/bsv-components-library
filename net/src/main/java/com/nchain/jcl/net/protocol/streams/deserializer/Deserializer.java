@@ -3,7 +3,6 @@ package com.nchain.jcl.net.protocol.streams.deserializer;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheStats;
-import com.google.common.cache.Weigher;
 import com.nchain.jcl.net.protocol.messages.HeaderMsg;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
@@ -92,7 +91,7 @@ public class Deserializer {
         cacheBuilder.maximumSize(config.getMaxCacheSizeInNumMsgs());
 
         // A message gets removed after some time idle:
-        cacheBuilder.expireAfterAccess(config.getExpirationTime().toMillis(), TimeUnit.MILLISECONDS);
+        cacheBuilder.expireAfterAccess(config.getCacheExpirationTime().toMillis(), TimeUnit.MILLISECONDS);
 
         if (config.isGenerateStats()) cacheBuilder.recordStats();
         this.cache = cacheBuilder.<CacheMsgKey, Message>build();
@@ -137,8 +136,8 @@ public class Deserializer {
         CacheMsgKey key = new CacheMsgKey(headerMsg, desContext, reader);
 
         // We only use the Cache if the cache is enabled AND the requested message is "cacheable"...
-        boolean isCacheable = config.isEnabled() && config.getMessagesToCache().contains(headerMsg.getCommand().toUpperCase()) &&
-                (headerMsg.getLength() < config.getMaxMsgSizeInBytes());
+        boolean isCacheable = config.isCacheEnabled() && config.getMessagesToCache().contains(headerMsg.getCommand().toUpperCase()) &&
+                (headerMsg.getLength() < config.getCacheMaxMsgSizeInBytes());
 
         if (isCacheable) {
             result = cache.getIfPresent(key);
@@ -183,7 +182,9 @@ public class Deserializer {
 
         // We set up the callbacks that wil be trigger as the message is deserialized...
 
-        LargeMessageDeserializer largeMsgDeserializer =  MsgSerializersFactory.getLargeMsgDeserializer(headerMsg.getCommand());
+        LargeMessageDeserializer largeMsgDeserializer =  MsgSerializersFactory.getLargeMsgDeserializer(
+                headerMsg.getCommand(),
+                config.getMinBytesPerSecForLargeMessages());
         largeMsgDeserializer.onError(onErrorHandler);
         largeMsgDeserializer.onDeserialized(onPartDeserializedHandler);
 

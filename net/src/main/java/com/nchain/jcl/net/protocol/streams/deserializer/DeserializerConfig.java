@@ -2,8 +2,8 @@ package com.nchain.jcl.net.protocol.streams.deserializer;
 
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.HeadersMsg;
-import com.nchain.jcl.net.protocol.messages.InvMessage;
 import com.nchain.jcl.net.protocol.messages.TxMsg;
+import com.nchain.jcl.tools.bytes.ByteArrayReaderRealTime;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -18,8 +18,11 @@ import java.util.Set;
  */
 public final class DeserializerConfig {
 
-    /** If disabled, no chache is used at all */
-    private boolean enabled = true;
+    /** Indicates the minimum speed of the bytes coming from the remote Peer */
+    private int minBytesPerSecForLargeMessages = ByteArrayReaderRealTime.DEFAULT_SPEED_BYTES_PER_SECOND;
+
+    /** If disabled, no cache is used at all */
+    private boolean cacheEnabled = true;
 
     /** Maximum Size of the Cache (in Bytes) */
     /**
@@ -32,10 +35,10 @@ public final class DeserializerConfig {
     private Long maxCacheSizeInNumMsgs = 50L;
 
     /** If an Item is idle for longer than this, it gets cleared from the cache */
-    private Duration expirationTime = Duration.ofMinutes(10);
+    private Duration cacheExpirationTime = Duration.ofMinutes(10);
 
     /** Only messages Smaller than this Value will be cached: */
-    private Long maxMsgSizeInBytes = 500_000L; // 10KB
+    private Long cacheMaxMsgSizeInBytes = 500_000L; // 10KB
 
     /** If TRUE; statistics of the Cache are generating in real-time */
     private boolean generateStats = false;
@@ -50,57 +53,74 @@ public final class DeserializerConfig {
     /** If the Message is NOT part of this List, then it won't be cached */
     private Set<String> messagesToCache = new HashSet<>(Arrays.asList(DEFAULT_MSGS_TO_CACHE));
 
-    public DeserializerConfig(Boolean enabled,
+    public DeserializerConfig(Integer minBytesPerSecForLargeMessages,
+                              Boolean cacheEnabled,
                               Long maxCacheSizeInBytes,
                               Long maxCacheSizeInNumMsgs,
                               Duration expirationTime,
                               Long maxMsgSizeInBytes,
                               Boolean generateStats,
                               Set<String> messagesToCache) {
-        if (enabled != null)                this.enabled = enabled;
-        if (maxCacheSizeInBytes != null)    this.maxCacheSizeInBytes = maxCacheSizeInBytes;
-        if (maxCacheSizeInNumMsgs != null)  this.maxCacheSizeInNumMsgs = maxCacheSizeInNumMsgs;
-        if (expirationTime != null)         this.expirationTime = expirationTime;
-        if (maxMsgSizeInBytes != null)      this.maxMsgSizeInBytes = maxMsgSizeInBytes;
-        if (generateStats != null)          this.generateStats = generateStats;
-        if (messagesToCache != null)        this.messagesToCache = messagesToCache;
+        if (minBytesPerSecForLargeMessages != null) this.minBytesPerSecForLargeMessages = minBytesPerSecForLargeMessages;
+        if (cacheEnabled != null)                   this.cacheEnabled = cacheEnabled;
+        if (maxCacheSizeInBytes != null)            this.maxCacheSizeInBytes = maxCacheSizeInBytes;
+        if (maxCacheSizeInNumMsgs != null)          this.maxCacheSizeInNumMsgs = maxCacheSizeInNumMsgs;
+        if (expirationTime != null)                 this.cacheExpirationTime = expirationTime;
+        if (maxMsgSizeInBytes != null)              this.cacheMaxMsgSizeInBytes = maxMsgSizeInBytes;
+        if (generateStats != null)                  this.generateStats = generateStats;
+        if (messagesToCache != null)                this.messagesToCache = messagesToCache;
     }
 
     public static DeserializerConfigBuilder builder()   { return new DeserializerConfigBuilder(); }
-    public boolean isEnabled()                          { return enabled; }
+    public int getMinBytesPerSecForLargeMessages()      { return this.minBytesPerSecForLargeMessages;}
+    public boolean isCacheEnabled()                     { return cacheEnabled; }
     public Long getMaxCacheSizeInNumMsgs()              { return this.maxCacheSizeInNumMsgs;}
     public Long getMaxCacheSizeInBytes()                { return this.maxCacheSizeInBytes; }
-    public Duration getExpirationTime()                 { return this.expirationTime; }
-    public Long getMaxMsgSizeInBytes()                  { return this.maxMsgSizeInBytes; }
+    public Duration getCacheExpirationTime()            { return this.cacheExpirationTime; }
+    public Long getCacheMaxMsgSizeInBytes()             { return this.cacheMaxMsgSizeInBytes; }
     public boolean isGenerateStats()                    { return this.generateStats; }
     public Set<String> getMessagesToCache()             { return this.messagesToCache; }
 
 
     @Override
     public String toString() {
-        return "DeserializerConfig(maxCacheSizeInBytes=" + this.maxCacheSizeInBytes + ", maxMsgSizeInBytes=" + this.maxMsgSizeInBytes + ", generateStats=" + this.generateStats + ", messagesToCache=" + this.messagesToCache + ")";
+        return "DeserializerConfig(minBytesPerSecForLargeMessages=" + minBytesPerSecForLargeMessages + ", maxCacheSizeInBytes=" + this.maxCacheSizeInBytes + ", maxMsgSizeInBytes=" + this.cacheMaxMsgSizeInBytes + ", generateStats=" + this.generateStats + ", messagesToCache=" + this.messagesToCache + ")";
     }
 
     public DeserializerConfigBuilder toBuilder() {
-        return new DeserializerConfigBuilder().maxCacheSizeInBytes(this.maxCacheSizeInBytes).maxMsgSizeInBytes(this.maxMsgSizeInBytes).generateStats(this.generateStats).messagesToCache(this.messagesToCache);
+        return new DeserializerConfigBuilder()
+                .minBytesPerSecForLargeMessages(this.minBytesPerSecForLargeMessages)
+                .cacheEnabled(this.cacheEnabled)
+                .maxCacheSizeInNumMsgs(this.maxCacheSizeInNumMsgs)
+                .maxCacheSizeInBytes(this.maxCacheSizeInBytes)
+                .maxMsgSizeInBytes(this.cacheMaxMsgSizeInBytes)
+                .cacheExpirationTime(this.cacheExpirationTime)
+                .generateStats(this.generateStats)
+                .messagesToCache(this.messagesToCache);
     }
 
     /**
      * Builder
      */
     public static class DeserializerConfigBuilder {
-        private Boolean enabled;
+        private Integer minBytesPerSecForLargeMessages;
+        private Boolean cacheEnabled;
         private Long maxCacheSizeInBytes;
         private Long maxCacheSizeInNumMsgs;
-        private Duration expirationTime;
+        private Duration cacheExpirationTime;
         private Long maxMsgSizeInBytes;
         private boolean generateStats;
         private Set<String> messagesToCache;
 
         DeserializerConfigBuilder() { }
 
-        public DeserializerConfig.DeserializerConfigBuilder enabled(boolean enabled) {
-            this.enabled = enabled;
+        public DeserializerConfig.DeserializerConfigBuilder minBytesPerSecForLargeMessages(int minBytesPerSecForLargeMessages) {
+            this.minBytesPerSecForLargeMessages = minBytesPerSecForLargeMessages;
+            return this;
+        }
+
+        public DeserializerConfig.DeserializerConfigBuilder cacheEnabled(boolean cacheEnabled) {
+            this.cacheEnabled = cacheEnabled;
             return this;
         }
 
@@ -109,8 +129,8 @@ public final class DeserializerConfig {
             return this;
         }
 
-        public DeserializerConfig.DeserializerConfigBuilder expirationTime(Duration expirationTime) {
-            this.expirationTime = expirationTime;
+        public DeserializerConfig.DeserializerConfigBuilder cacheExpirationTime(Duration cacheExpirationTime) {
+            this.cacheExpirationTime = cacheExpirationTime;
             return this;
         }
 
@@ -135,10 +155,12 @@ public final class DeserializerConfig {
         }
 
         public DeserializerConfig build() {
-            return new DeserializerConfig(enabled,
+            return new DeserializerConfig(
+                    minBytesPerSecForLargeMessages,
+                    cacheEnabled,
                     maxCacheSizeInBytes,
                     maxCacheSizeInNumMsgs,
-                    expirationTime,
+                    cacheExpirationTime,
                     maxMsgSizeInBytes,
                     generateStats,
                     messagesToCache);
