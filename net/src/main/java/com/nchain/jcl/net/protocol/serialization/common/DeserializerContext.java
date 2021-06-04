@@ -31,11 +31,15 @@ public final class DeserializerContext {
     // Deserialization, but you still need to be careful not to read more bytes than needed from the source.
     private Long maxBytesToRead;
 
-    public DeserializerContext(boolean calculateHashes, ProtocolBasicConfig protocolBasicConfig, boolean insideVersionMsg, Long maxBytesToRead) {
+    // Override default batch size
+    private Integer batchSize;
+
+    public DeserializerContext(boolean calculateHashes, ProtocolBasicConfig protocolBasicConfig, boolean insideVersionMsg, Long maxBytesToRead, Integer batchSize) {
         this.calculateHashes = calculateHashes;
         this.protocolBasicConfig = protocolBasicConfig;
         this.insideVersionMsg = insideVersionMsg;
         this.maxBytesToRead = maxBytesToRead;
+        this.batchSize = batchSize;
     }
 
 
@@ -43,6 +47,7 @@ public final class DeserializerContext {
     public ProtocolBasicConfig getProtocolBasicConfig() { return this.protocolBasicConfig; }
     public boolean isInsideVersionMsg()                 { return this.insideVersionMsg; }
     public Long getMaxBytesToRead()                     { return this.maxBytesToRead; }
+    public Integer getBatchSize()                       { return this.batchSize; }
 
     public void setCalculateHashes(boolean calculateHashes)                     { this.calculateHashes = calculateHashes; }
     public void setProtocolBasicConfig(ProtocolBasicConfig protocolBasicConfig) { this.protocolBasicConfig = protocolBasicConfig; }
@@ -65,6 +70,7 @@ public final class DeserializerContext {
         private ProtocolBasicConfig protocolBasicConfig;
         private boolean insideVersionMsg;
         private Long maxBytesToRead;
+        private Integer batchSize;
 
         DeserializerContextBuilder() { }
 
@@ -88,8 +94,13 @@ public final class DeserializerContext {
             return this;
         }
 
+        public DeserializerContext.DeserializerContextBuilder batchSize(Integer batchSize) {
+            this.batchSize = batchSize;
+            return this;
+        }
+
         public DeserializerContext build() {
-            return new DeserializerContext(calculateHashes, protocolBasicConfig, insideVersionMsg, maxBytesToRead);
+            return new DeserializerContext(calculateHashes, protocolBasicConfig, insideVersionMsg, maxBytesToRead, batchSize);
         }
     }
 }
