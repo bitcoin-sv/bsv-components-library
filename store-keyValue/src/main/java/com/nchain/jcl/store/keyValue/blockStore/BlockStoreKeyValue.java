@@ -275,13 +275,13 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     default HashesList      toHashes(byte[] bytes)        { return (isBytesOk(bytes)) ? HashesListSerializer.getInstance().deserialize(bytes) : null;}
     default Long            toLong(byte[] bytes)          { return (isBytesOk(bytes)) ? Utils.readInt64(bytes, 0) : null;}
     default Integer         toInt(byte[] bytes)           { return (isBytesOk(bytes)) ? (int) Utils.readUint32(bytes, 0) : null;}
+
     default String          toString(byte[] bytes) {
         if (!isBytesOk(bytes)) return null;
         ByteArrayReader reader = new ByteArrayReader(bytes);
         String result = BitcoinSerializerUtils.deserializeVarStr(reader);
         return result;
     }
-
 
     /* Given a Key, it extracts the Tx Hash from it as long as the fullKey contains a Tx_hash, otherwise it returns null */
     default Optional<String> extractTxHashFromKey(byte[] key) {

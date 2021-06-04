@@ -2,6 +2,7 @@ package com.nchain.jcl.store.keyValue.common;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,11 +35,16 @@ public final class HashesList implements Serializable {
     public static class HashesListBuilder {
         private List<String> hashes;
 
-        HashesListBuilder() {
+        public HashesListBuilder() {
         }
 
         public HashesList.HashesListBuilder hashes(List<String> hashes) {
             this.hashes = hashes;
+            return this;
+        }
+        public HashesList.HashesListBuilder hash(String hash) {
+            this.hashes =new ArrayList<>();
+            this.hashes.add(hash);
             return this;
         }
 

@@ -5,7 +5,6 @@ import com.nchain.jcl.store.blockChainStore.events.BlockChainStoreStreamer;
 import com.nchain.jcl.store.blockChainStore.validation.exception.BlockChainRuleFailureException;
 import com.nchain.jcl.store.blockChainStore.validation.rules.BlockChainRule;
 import com.nchain.jcl.store.blockStore.metadata.Metadata;
-import com.nchain.jcl.store.keyValue.blockChainStore.BlockChainInfo;
 import com.nchain.jcl.store.keyValue.blockChainStore.BlockChainStoreKeyValue;
 import com.nchain.jcl.store.levelDB.blockStore.BlockStoreLevelDB;
 import com.nchain.jcl.tools.thread.ThreadUtils;
@@ -85,7 +84,7 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
     @Override public byte[] fullKeyForChainTips()                       { return fullKey(this.fullKeyForBlocks(), keyForChainTips());}
     @Override public byte[] fullKeyForChainPathsLast()                  { return fullKey(this.fullKeyForBlocks(), keyForChainPathsLast());}
     @Override public byte[] fullKeyForChainPath(int branchId)           { return fullKey(this.fullKeyForBlocks(), keyForChainPath(branchId));}
-    @Override public byte[] fullKeyForBlockHashByHeight(int height)     {return fullKey(this.fullKeyForBlocks(), keyForBlockByHeight(height));}
+    @Override public byte[] fullKeyForBlockHashesByHeight(int height)     {return fullKey(this.fullKeyForBlocks(), keyForBlocksByHeight(height));}
 
     @Override public BlockChainStoreStreamer EVENTS()                   { return blockChainStoreStreamer;}
 
