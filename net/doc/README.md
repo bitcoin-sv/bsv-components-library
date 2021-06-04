@@ -1074,7 +1074,7 @@ to be put into memory without risking running out of it.
  This Event is accesible by: ``[P2Pservice].EVENTS.BLOCKS.LITE_BOCK_DOWNLOADED``
  
  The Event class passed as paremeter to the *forEach* method is an instance of
-``com.nchain.jcl.net.protocol.events.control.LiteBlockDownloadedEvent``
+``com.nchain.jcl.net.protocol.events.data.LiteBlockDownloadedEvent``
 
 
 > NOTE:
