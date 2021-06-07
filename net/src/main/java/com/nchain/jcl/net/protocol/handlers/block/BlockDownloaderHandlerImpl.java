@@ -157,7 +157,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
 
     // Returns the total size (in bytes) of all the blocks being downloaded at this moment
     public long getCurrentDownloadingBlocksSize() {
-        return this.bigBlocksHeaders.values().stream().mapToLong(h -> h.getBlockSizeInbytes().getValue()).sum();
+        return this.bigBlocksHeaders.values().stream().mapToLong(h -> h.getTxsSizeInbytes().getValue()).sum();
     }
 
     // Returns the number of Peers currently downloading blocks:
@@ -188,7 +188,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         int percentage = getUpdatedBusyPercentage();
         this.busyPercentage.set(0);
 
-        long blocksDownloadingSize = this.bigBlocksHeaders.values().stream().mapToLong(h -> h.getBlockSizeInbytes().getValue()).sum();
+        long blocksDownloadingSize = this.bigBlocksHeaders.values().stream().mapToLong(h -> h.getTxsSizeInbytes().getValue()).sum();
 
         return BlockDownloaderHandlerState.builder()
                 .downloadingState(this.downloadingState)
@@ -362,8 +362,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
             if (this.bigBlocksCurrentTxs.containsKey(blockHash)) {
                 result = this.bigBlocksCurrentTxs.get(blockHash).equals(partialHeaderMsg.getBlockHeader().getTransactionCount().getValue());
             } else if (this.bigBlocksCurrentBytes.containsKey(blockHash)) {
-                long sizeTxsInBytesToSearch = partialHeaderMsg.getBlockSizeInbytes().getValue() - partialHeaderMsg.getBlockHeader().getLengthInBytes();
-                result = this.bigBlocksCurrentBytes.get(blockHash).equals(sizeTxsInBytesToSearch);
+                result = this.bigBlocksCurrentBytes.get(blockHash).equals(partialHeaderMsg.getTxsSizeInbytes().getValue());
             }
         }
         return result;
@@ -412,14 +411,14 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                 PartialBlockRawTXsMsg partialRawMsg = (PartialBlockRawTXsMsg) msg.getBody();
                 bigBlocksCurrentBytes.merge(blockHash, (long) partialRawMsg.getTxs().length, (o, n) -> o + partialRawMsg.getTxs().length);
                 blocksLastActivity.put(blockHash, Instant.now());
-                blocksDownloadHistory.register(blockHash, peerInfo.getPeerAddress(), partialRawMsg.getTxs().length + " bytes of Txs downloaded, (" + bigBlocksCurrentTxs.get(blockHash) + " Txs so far)");
+                blocksDownloadHistory.register(blockHash, peerInfo.getPeerAddress(), partialRawMsg.getTxs().length + " bytes of Txs downloaded, (" + bigBlocksCurrentBytes.get(blockHash) + " Txs so far)");
             }
 
             // Now we check if we've reached the total of TXs, so the Download is complete:
             // This verification is
             if (isDownloadComplete(blockHash)) {
                 PartialBlockHeaderMsg blockHeader = bigBlocksHeaders.get(blockHash);
-                processDownloadSuccess(peerInfo, blockHeader.getBlockHeader(), blockHeader.getBlockSizeInbytes().getValue());
+                processDownloadSuccess(peerInfo, blockHeader.getBlockHeader(), blockHeader.getTxsSizeInbytes().getValue());
             }
 
         } finally {
@@ -452,7 +451,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
             // We notify the Header has been downloaded:
             PartialBlockHeaderMsg partialHeaderMsg = PartialBlockHeaderMsg.builder()
                     .blockHeader(blockMesage.getBody().getBlockHeader())
-                    .blockSizeInBytes(blockMesage.getHeader().getLengthInBytes())
+                    .txsSizeInBytes(blockMesage.getHeader().getLength() - blockMesage.getBody().getBlockHeader().getLengthInBytes())
+                    .blockTxsFormat(PartialBlockHeaderMsg.BlockTxsFormat.DESERIALIZED)
                     .build();
             BitcoinMsg<PartialBlockHeaderMsg> partialHeaderBtcMsg =  new BitcoinMsgBuilder<>(config.getBasicConfig(), partialHeaderMsg).build();
             super.eventBus.publish(new BlockHeaderDownloadedEvent(peerInfo.getPeerAddress(), partialHeaderBtcMsg));
@@ -501,7 +501,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
             // We notify the Header has been downloaded:
             PartialBlockHeaderMsg partialHeaderMsg = PartialBlockHeaderMsg.builder()
                     .blockHeader(rawBlockMessage.getBody().getBlockHeader())
-                    .blockSizeInBytes(rawBlockMessage.getHeader().getLengthInBytes())
+                    .txsSizeInBytes(rawBlockMessage.getHeader().getLength() - rawBlockMessage.getBody().getBlockHeader().getLengthInBytes())
+                    .blockTxsFormat(PartialBlockHeaderMsg.BlockTxsFormat.RAW)
                     .build();
             BitcoinMsg<PartialBlockHeaderMsg> partialHeaderBtcMsg =  new BitcoinMsgBuilder<>(config.getBasicConfig(), partialHeaderMsg).build();
             super.eventBus.publish(new BlockHeaderDownloadedEvent(peerInfo.getPeerAddress(), partialHeaderBtcMsg));
@@ -517,7 +518,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
 
             // We update the structures:
             blocksLastActivity.put(blockHash, Instant.now());
-            blocksDownloadHistory.register(blockHash, peerInfo.getPeerAddress(), "Whole block downloaded");
+            blocksDownloadHistory.register(blockHash, peerInfo.getPeerAddress(), "Whole Raw block downloaded");
             blocksDownloadHistory.markForDeletion(blockHash);
             processDownloadSuccess(peerInfo, rawBlockMessage.getBody().getBlockHeader(), rawBlockMessage.getLengthInbytes());
         } finally {
@@ -723,6 +724,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                                   blocksDownloadHistory.register(peerInfo.getCurrentBlockInfo().hash, peerInfo.getPeerAddress(), "Download Issue detected : " + msgFailure);
                                   blocksFailedDuringDownload.add(peerInfo.getCurrentBlockInfo().hash);
                                   // We discard this Peer and also send a request to Disconnect from it:
+                                  //System.out.println(" >>>>> DOWNLOAD FAILIURE for " + peerInfo.getCurrentBlockInfo().hash + " from " + peerAddress + ": " + msgFailure);
                                   peerInfo.discard();
                                   super.eventBus.publish(new PeerDisconnectedEvent(peerInfo.getPeerAddress(), PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL_LAZY_DOWNLOAD));
                               }

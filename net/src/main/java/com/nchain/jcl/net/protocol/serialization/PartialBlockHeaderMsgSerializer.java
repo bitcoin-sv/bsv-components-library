@@ -32,7 +32,7 @@ public class PartialBlockHeaderMsgSerializer implements MessageSerializer<Partia
         var blockHeader = BlockHeaderMsgSerializer.getInstance().deserialize(context, reader);
         return PartialBlockHeaderMsg.builder()
                 .blockHeader(blockHeader)
-                .blockSizeInBytes(context.getMaxBytesToRead())
+                .txsSizeInBytes(context.getMaxBytesToRead() - blockHeader.getLengthInBytes())
                 .build();
     }
 

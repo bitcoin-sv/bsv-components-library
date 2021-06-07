@@ -173,7 +173,7 @@ class TxBlasterPerformanceTest extends Specification {
         given:
             // We configure the MessageHandler to DISABLE the Deserializer Cache...
             MessageHandlerConfig messageConfig = protocolConfig.getMessageConfig()
-            DeserializerConfig deserializerConfig = messageConfig.deserializerConfig.toBuilder().enabled(false).build()
+            DeserializerConfig deserializerConfig = messageConfig.deserializerConfig.toBuilder().cacheEnabled(false).build()
             messageConfig = messageConfig.toBuilder()
                     .deserializerConfig(deserializerConfig)
                     .rawTxsEnabled(true)

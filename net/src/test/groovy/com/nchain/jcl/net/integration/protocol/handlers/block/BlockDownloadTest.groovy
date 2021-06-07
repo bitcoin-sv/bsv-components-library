@@ -105,7 +105,7 @@ class BlockDownloadTest extends Specification {
 
             // Serialization Config:
             MessageHandlerConfig messageConfig = config.getMessageConfig().toBuilder()
-                .rawTxsEnabled(false)
+                .rawTxsEnabled(true)
                 .build();
 
             // We set up the Download configuration:
@@ -191,7 +191,7 @@ class BlockDownloadTest extends Specification {
             println(" > Testing Block Download in " + config.toString() + "...")
             // WE start the Service and request to download the Blocks...
             p2p.start()
-            p2p.REQUESTS.PEERS.connect("104.248.245.82/104.248.245.82:8333").submit();
+            //p2p.REQUESTS.PEERS.connect("104.248.245.82/104.248.245.82:8333").submit();
             // we wait until we reach the MAXIMUN number of Peers:
             while (!connReady.get()) Thread.sleep(100)
 

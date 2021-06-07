@@ -10,18 +10,31 @@ import com.nchain.jcl.net.protocol.messages.common.Message;
  */
 public final class PartialBlockHeaderMsg extends Message {
     public static final String MESSAGE_TYPE = "PartialBlockHeader";
-    private final BlockHeaderMsg blockHeader;   // Block Header
-    private final VarIntMsg blockSizeInBytes;   // Total Size of the Original Block
 
-    public PartialBlockHeaderMsg(BlockHeaderMsg blockHeader, VarIntMsg blockSizeInBytes) {
+    /**
+     * Specified the Format of the Txs of this block when they are broadcast oin future Events
+     */
+    public enum BlockTxsFormat {
+        DESERIALIZED, RAW
+    }
+
+    // Block Header
+    private final BlockHeaderMsg blockHeader;
+    // Total Size of the Original Block
+    private final VarIntMsg txsSizeInBytes;
+    // Indicates the format that the Txs of this block will be notified with:
+    private final BlockTxsFormat blockTxsFormat;
+
+    public PartialBlockHeaderMsg(BlockHeaderMsg blockHeader, VarIntMsg txsSizeInBytes, BlockTxsFormat blockTxsFormat) {
         this.blockHeader = blockHeader;
-        this.blockSizeInBytes = blockSizeInBytes;
+        this.txsSizeInBytes = txsSizeInBytes;
+        this.blockTxsFormat = blockTxsFormat;
         init();
     }
 
     @Override
     protected long calculateLength() {
-        return blockHeader.calculateLength() + blockSizeInBytes.calculateLength();
+        return blockHeader.calculateLength() + txsSizeInBytes.calculateLength();
     }
 
     @Override
@@ -32,14 +45,13 @@ public final class PartialBlockHeaderMsg extends Message {
     @Override
     protected void validateMessage() {}
 
-    public BlockHeaderMsg getBlockHeader() {
-        return this.blockHeader;
-    }
-    public VarIntMsg getBlockSizeInbytes() { return this.blockSizeInBytes;}
+    public BlockHeaderMsg getBlockHeader()      { return this.blockHeader; }
+    public VarIntMsg getTxsSizeInbytes()        { return this.txsSizeInBytes;}
+    public BlockTxsFormat getBlockTxsFormat()   { return this.blockTxsFormat;}
 
     @Override
     public String toString() {
-        return "PartialBlockHeaderMsg(blockHeader=" + this.getBlockHeader() + ", blockSizeInBytes = " + this.getBlockSizeInbytes() + ")";
+        return "PartialBlockHeaderMsg(blockHeader=" + this.getBlockHeader() + ", blockSizeInBytes = " + this.getTxsSizeInbytes() + ", nextTxsInRawFormat)";
     }
 
     @Override
@@ -56,6 +68,13 @@ public final class PartialBlockHeaderMsg extends Message {
         return Objects.equal(this.blockHeader, other.blockHeader);
     }
 
+    public PartialBlockHeaderMsgBuilder toBuilder() {
+        return new PartialBlockHeaderMsgBuilder()
+                .blockHeader(this.blockHeader)
+                .txsSizeInBytes(this.txsSizeInBytes.getValue())
+                .blockTxsFormat(this.blockTxsFormat);
+    }
+
     public static PartialBlockHeaderMsgBuilder builder() {
         return new PartialBlockHeaderMsgBuilder();
     }
@@ -65,7 +84,8 @@ public final class PartialBlockHeaderMsg extends Message {
      */
     public static class PartialBlockHeaderMsgBuilder {
         private BlockHeaderMsg blockHeader;
-        private VarIntMsg blockSizeInBytes;
+        private VarIntMsg txsSizeInBytes;
+        private BlockTxsFormat blockTxsFormat;
 
         PartialBlockHeaderMsgBuilder() { }
 
@@ -74,15 +94,20 @@ public final class PartialBlockHeaderMsg extends Message {
             return this;
         }
 
-        public PartialBlockHeaderMsg.PartialBlockHeaderMsgBuilder blockSizeInBytes(Long blockSizeInBytes) {
-            if (blockSizeInBytes != null) {
-                this.blockSizeInBytes = VarIntMsg.builder().value(blockSizeInBytes).build();
+        public PartialBlockHeaderMsg.PartialBlockHeaderMsgBuilder txsSizeInBytes(Long txsSizeInBytes) {
+            if (txsSizeInBytes != null) {
+                this.txsSizeInBytes = VarIntMsg.builder().value(txsSizeInBytes).build();
             }
             return this;
         }
 
+        public PartialBlockHeaderMsg.PartialBlockHeaderMsgBuilder blockTxsFormat(BlockTxsFormat blockTxsFormat) {
+            this.blockTxsFormat = blockTxsFormat;
+            return this;
+        }
+
         public PartialBlockHeaderMsg build() {
-            return new PartialBlockHeaderMsg(blockHeader, blockSizeInBytes);
+            return new PartialBlockHeaderMsg(blockHeader, txsSizeInBytes, blockTxsFormat);
         }
     }
 }

@@ -112,9 +112,14 @@ public class MsgSerializersFactory {
 
         if (command.equalsIgnoreCase(BlockMsg.MESSAGE_TYPE)) {
             result = (RAW_SERIALIZERS_ENABLED) ? new BigBlockRawDeserializer() : new BigBlockDeserializer();
+        } else {
+            System.out.println("SHOULD NEVER HAPPEN");
         }
 
-        result.setMinSpeedBytesPerSec(minBytesPerSec);
+        if (result != null) {
+            result.setMinSpeedBytesPerSec(minBytesPerSec);
+        }
+
         return result;
     }
 

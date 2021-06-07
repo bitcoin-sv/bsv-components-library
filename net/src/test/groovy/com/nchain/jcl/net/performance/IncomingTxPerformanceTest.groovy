@@ -165,7 +165,7 @@ class IncomingTxPerformanceTest extends Specification {
             // We disable the Deserialize Cache, so we force it to Deserialize all the TX, even if they are Tx that we
             // already processed...
             MessageHandlerConfig messageConfig = protocolConfig.getMessageConfig()
-            DeserializerConfig deserializerConfig = messageConfig.deserializerConfig.toBuilder().enabled(false).build()
+            DeserializerConfig deserializerConfig = messageConfig.deserializerConfig.toBuilder().cacheEnabled(false).build()
 
             // We also activate the "RawTxs" mode
             messageConfig = messageConfig.toBuilder()

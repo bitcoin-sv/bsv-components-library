@@ -49,7 +49,8 @@ public class BigBlockDeserializer extends LargeMessageDeserializerImpl {
             blockHeader = BlockHeaderMsgSerializer.getInstance().deserialize(context, byteReader);
             PartialBlockHeaderMsg partialBlockHeader = PartialBlockHeaderMsg.builder()
                     .blockHeader(blockHeader)
-                    .blockSizeInBytes(context.getMaxBytesToRead())
+                    .txsSizeInBytes(context.getMaxBytesToRead() - blockHeader.getLengthInBytes())
+                    .blockTxsFormat(PartialBlockHeaderMsg.BlockTxsFormat.DESERIALIZED)
                     .build();
             notifyDeserialization(partialBlockHeader);
 

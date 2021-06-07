@@ -144,8 +144,18 @@ public class P2PRequestHandler {
         public EnablePeerBigMessagesRequestBuilder enableBigMessages(PeerAddress peerAddress) {
             return new EnablePeerBigMessagesRequestBuilder(peerAddress);
         }
+        public EnablePeerBigMessagesRequestBuilder enableBigMessages(String peerAddressStr) {
+            try {
+                return new EnablePeerBigMessagesRequestBuilder(PeerAddress.fromIp(peerAddressStr));
+            } catch (UnknownHostException e) { throw new RuntimeException(e); }
+        }
         public DisablePeerBigMessagesRequestBuilder disableBigMessages(PeerAddress peerAddress) {
             return new DisablePeerBigMessagesRequestBuilder(peerAddress);
+        }
+        public DisablePeerBigMessagesRequestBuilder disableBigMessages(String peerAddressStr) {
+            try {
+                return new DisablePeerBigMessagesRequestBuilder(PeerAddress.fromIp(peerAddressStr));
+            } catch (UnknownHostException e) { throw new RuntimeException(e); }
         }
     }
 

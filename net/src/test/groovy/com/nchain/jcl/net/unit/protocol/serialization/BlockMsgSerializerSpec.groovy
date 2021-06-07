@@ -164,7 +164,7 @@ class BlockMsgSerializerSpec extends Specification {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             SerializerContext context = SerializerContext.builder()
-                .protocolconfig(config)
+                .protocolBasicConfig(config.getBasicConfig())
                 .build()
 
             List<TxMsg> transactionMsgList = new ArrayList<>()
