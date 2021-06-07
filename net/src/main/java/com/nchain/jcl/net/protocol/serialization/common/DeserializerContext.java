@@ -32,7 +32,7 @@ public final class DeserializerContext {
     private Long maxBytesToRead;
 
     // Override default batch size
-    private Integer batchSize;
+    private final Integer batchSize;
 
     public DeserializerContext(boolean calculateHashes, ProtocolBasicConfig protocolBasicConfig, boolean insideVersionMsg, Long maxBytesToRead, Integer batchSize) {
         this.calculateHashes = calculateHashes;

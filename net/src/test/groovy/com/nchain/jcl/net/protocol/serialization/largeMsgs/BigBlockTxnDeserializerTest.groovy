@@ -1,11 +1,16 @@
 package com.nchain.jcl.net.protocol.serialization.largeMsgs
 
+import com.nchain.jcl.net.protocol.config.ProtocolConfig
+import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
 import com.nchain.jcl.net.protocol.messages.PartialBlockTxnMsg
 import com.nchain.jcl.net.protocol.messages.common.Message
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
+import com.nchain.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
 import io.bitcoinj.core.Utils
+import io.bitcoinj.params.MainNetParams
+import io.bitcoinj.params.Net
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
 import spock.lang.Specification
@@ -24,7 +29,10 @@ class BigBlockTxnDeserializerTest extends Specification {
 
     def "Testing BigBlockTxn deserialization"() {
         given:
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+
             DeserializerContext context = DeserializerContext.builder()
+                .protocolBasicConfig(config.getBasicConfig())
                 .batchSize(2)
                 .build()
 
@@ -32,9 +40,7 @@ class BigBlockTxnDeserializerTest extends Specification {
             BigBlockTxnDeserializer deserializer = Mockito.spy(new BigBlockTxnDeserializer(executor))
 
             byte[] bytes = Utils.HEX.decode(BLOCKTXN_BYTES)
-            ByteArrayWriter byteArrayWriter = new ByteArrayWriter();
-            byteArrayWriter.write(bytes)
-            ByteArrayReader reader = byteArrayWriter.reader()
+            ByteArrayReader reader = ByteArrayArtificalStreamProducer.stream(bytes, byteInterval, delayMs)
 
             ArgumentCaptor<Message> messageCapture = new ArgumentCaptor<>()
 
@@ -56,5 +62,9 @@ class BigBlockTxnDeserializerTest extends Specification {
             messageCapture.getAllValues().size() == 8
             fullSizeCount == 7
             partialSizeCount == 1
+
+        where:
+            byteInterval | delayMs
+            10           | 5
     }
 }
