@@ -411,7 +411,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                 PartialBlockRawTXsMsg partialRawMsg = (PartialBlockRawTXsMsg) msg.getBody();
                 bigBlocksCurrentBytes.merge(blockHash, (long) partialRawMsg.getTxs().length, (o, n) -> o + partialRawMsg.getTxs().length);
                 blocksLastActivity.put(blockHash, Instant.now());
-                blocksDownloadHistory.register(blockHash, peerInfo.getPeerAddress(), partialRawMsg.getTxs().length + " bytes of Txs downloaded, (" + bigBlocksCurrentBytes.get(blockHash) + " Txs so far)");
+                blocksDownloadHistory.register(blockHash, peerInfo.getPeerAddress(), partialRawMsg.getTxs().length + " bytes of Txs downloaded, (" + bigBlocksCurrentBytes.get(blockHash) + " bytes so far)");
             }
 
             // Now we check if we've reached the total of TXs, so the Download is complete:
