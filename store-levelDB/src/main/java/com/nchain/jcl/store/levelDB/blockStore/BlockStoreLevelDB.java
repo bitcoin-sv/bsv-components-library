@@ -269,10 +269,6 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
     public boolean isTriggerTxEvents()          { return this.triggerTxEvents; }
     public EventBus getEventBus()               { return this.eventBus; }
 
-    public static BlockStoreLevelDBBuilder builder() {
-        return new BlockStoreLevelDBBuilder();
-    }
-
     /**
      * Builder
      */
