@@ -22,12 +22,6 @@ public interface RuntimeConfig {
     /** Returns a number of Bytes. Any Message bigger than that value, is a candidate for Real-Time Deserialization */
     int getMsgSizeInBytesForRealTimeProcessing();
 
-    /**
-     * If we are processing bytes in real time and wehave to wait for longer than the value returned by this method,
-     * then the process is interrupted.
-     */
-    Duration getMaxWaitingTimeForBytesInRealTime();
-
     /** File Utils used to read/write info in disk */
     FileUtils getFileUtils();
 

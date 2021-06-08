@@ -19,6 +19,12 @@ import java.util.function.Consumer;
 public interface LargeMessageDeserializer {
 
     /**
+     * After calling this method, the Deserializer will trigger an error if the bytes coming from the remote Peer
+     * come in a slower rate than this (in bytes per Sec)
+     */
+    void setMinSpeedBytesPerSec(int minSpeedBytesPerSec);
+
+    /**
      * It starts the Deserialization. The diffrent Results will be notified through the callbacks fed in the
      * "onDeserialized" methods.
      */

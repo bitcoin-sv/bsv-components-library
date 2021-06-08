@@ -2,7 +2,7 @@ package com.nchain.jcl.net.protocol.events.data;
 
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.protocol.events.control.BlockDownloadedEvent;
-import com.nchain.jcl.net.protocol.messages.PartialBlockTXsMsg;
+import com.nchain.jcl.net.protocol.messages.PartialBlockRawTXsMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 
 /**
@@ -14,11 +14,16 @@ import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
  * An Event triggered when a Set of TXs from a Block has been downloaded. If you want to get notified when all the
  * TXs have been downloaded and the block has been fully download, use the BlockDownloadedEvent.
  *
+ * NOTE: This event stores Transactions in RAW format (byte array), and it might contain partial Txs inside. So
+ * in order to reconstruct the Txs, yo¡ll have to either develop a try-catch mechanism to deserialize them until
+ * you come accross the last one which is not completed, or you wait until you get all events like this one from
+ * the block, so you can reconstruct it completely.
+ *
  * @see BlockDownloadedEvent
  * @see LiteBlockDownloadedEvent
  */
-public final class BlockTXsDownloadedEvent extends MsgReceivedEvent<PartialBlockTXsMsg> {
-    public BlockTXsDownloadedEvent(PeerAddress peerAddress, BitcoinMsg<PartialBlockTXsMsg>  blockTxsMsg) {
+public final class BlockRawTXsDownloadedEvent extends MsgReceivedEvent<PartialBlockRawTXsMsg> {
+    public BlockRawTXsDownloadedEvent(PeerAddress peerAddress, BitcoinMsg<PartialBlockRawTXsMsg>  blockTxsMsg) {
         super(peerAddress, blockTxsMsg);
     }
 }

@@ -35,12 +35,13 @@ class DeserializerStreamSpec extends Specification {
         given:
             RuntimeConfig runtimeConfig = new RuntimeConfigDefault()
             ProtocolConfig protocolConfig = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-            ExecutorService executor = Executors.newSingleThreadExecutor()
+            ExecutorService eventBusExecutor = Executors.newSingleThreadExecutor()
+            ExecutorService dedicatedConnExecutor = Executors.newSingleThreadExecutor()
 
             // We configure the Streams: The Source and the Deserializer:
             MsgTest.DummyPeerStreamSource source = MsgTest.getDummyStreamSource()
             Deserializer deserializer = new Deserializer(runtimeConfig, DeserializerConfig.builder().build())
-            DeserializerStream stream = new DeserializerStream(executor, source, runtimeConfig, protocolConfig.getBasicConfig(), deserializer)
+            DeserializerStream stream = new DeserializerStream(eventBusExecutor, source, runtimeConfig, protocolConfig.getBasicConfig(), deserializer, dedicatedConnExecutor)
 
             // We store the Msg after being Deserialized:
             AtomicReference<BitcoinMsg> msgReceived = new AtomicReference<>()

@@ -7,6 +7,8 @@ import io.bitcoinj.bitcoin.api.extended.ChainInfo;
 import io.bitcoinj.core.Verification;
 
 import java.math.BigInteger;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 /**
@@ -69,10 +71,20 @@ public class NewDifficultyAdjustmentAlgorithmRule extends AbstractBlockChainRule
          * influence, we select the median of the 3 top most blocks as a starting
          * point.
          */
+        // TODO: This needs reviewing, now that we support Forks (multiple ChainInfo at a certain height)
+        // NOTE: We assume the are not fork!! If the list of ChainInfos for a certain Height returns more than one Block,
+        // we just take the first one:
+        List<ChainInfo> blocksAtHeightMinus1 = blockChainStore.getBlock(candidateBlockIndex - 1);
+        List<ChainInfo> blocksAtHeightMinus2 = blockChainStore.getBlock(candidateBlockIndex - 2);
+        List<ChainInfo> blocksAtHeightMinus3 = blockChainStore.getBlock(candidateBlockIndex - 3);
+        Optional<ChainInfo> firstBlockAtHeightMinus1 = Optional.of((blocksAtHeightMinus1 != null && !blocksAtHeightMinus1.isEmpty()) ? blocksAtHeightMinus1.get(0) : null);
+        Optional<ChainInfo> firstBlockAtHeightMinus2 = Optional.of((blocksAtHeightMinus2 != null && !blocksAtHeightMinus2.isEmpty()) ? blocksAtHeightMinus2.get(0) : null);
+        Optional<ChainInfo> firstBlockAtHeightMinus3 = Optional.of((blocksAtHeightMinus3 != null && !blocksAtHeightMinus3.isEmpty()) ? blocksAtHeightMinus3.get(0) : null);
+
         ChainInfo blocks[] = new ChainInfo[3];
-        blocks[2] = blockChainStore.getBlock(candidateBlockIndex - 1).orElseThrow(() -> new BlockChainRuleFailureException("Not enough blocks in blockStore to calculate difficulty"));
-        blocks[1] = blockChainStore.getBlock(candidateBlockIndex - 2).orElseThrow(() -> new BlockChainRuleFailureException("Not enough blocks in blockStore to calculate difficulty"));
-        blocks[0] = blockChainStore.getBlock(candidateBlockIndex - 3).orElseThrow(() -> new BlockChainRuleFailureException("Not enough blocks in blockStore to calculate difficulty"));
+        blocks[2] = firstBlockAtHeightMinus1.orElseThrow(() -> new BlockChainRuleFailureException("Not enough blocks in blockStore to calculate difficulty"));
+        blocks[1] = firstBlockAtHeightMinus2.orElseThrow(() -> new BlockChainRuleFailureException("Not enough blocks in blockStore to calculate difficulty"));
+        blocks[0] = firstBlockAtHeightMinus3.orElseThrow(() -> new BlockChainRuleFailureException("Not enough blocks in blockStore to calculate difficulty"));
 
         // Sorting network.
         if (blocks[0].getHeader().getTime() > blocks[2].getHeader().getTime()) {

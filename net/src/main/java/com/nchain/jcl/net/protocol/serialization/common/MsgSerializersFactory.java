@@ -4,6 +4,7 @@ package com.nchain.jcl.net.protocol.serialization.common;
 import com.nchain.jcl.net.protocol.messages.*;
 import com.nchain.jcl.net.protocol.serialization.*;
 import com.nchain.jcl.net.protocol.serialization.largeMsgs.BigBlockDeserializer;
+import com.nchain.jcl.net.protocol.serialization.largeMsgs.BigBlockRawDeserializer;
 import com.nchain.jcl.net.protocol.serialization.largeMsgs.BigBlockTxnDeserializer;
 import com.nchain.jcl.net.protocol.serialization.largeMsgs.LargeMessageDeserializer;
 
@@ -24,7 +25,10 @@ public class MsgSerializersFactory {
     private static final Map<String, MessageSerializer> serializers = new HashMap<>();
 
     // Raw Message Serializers:
-    private static final Map<String, RawMsgSerializer> rawSerializers = new HashMap<>();
+    private static final Map<String, MessageSerializer> rawSerializers = new HashMap<>();
+
+    // Indicates if some Serializer have benn overwriten with their RAW Versions:
+    private static boolean RAW_SERIALIZERS_ENABLED = false;
 
     static {
 
@@ -70,20 +74,25 @@ public class MsgSerializersFactory {
         serializers.put(BlockTxnMsg.MESSAGE_TYPE.toUpperCase(), BlockTxnMsgSerializer.getInstance());
 
         rawSerializers.put(RawTxMsg.MESSAGE_TYPE.toUpperCase(), RawTxMsgSerializer.getInstance());
+        rawSerializers.put(RawBlockMsg.MESSAGE_TYPE.toUpperCase(), RawBlockMsgSerializer.getInstance());
     }
 
     private MsgSerializersFactory() {
     }
 
+    /**
+     * Returns a Serializer of the message specify by its COMMAND
+     */
     public static MessageSerializer getSerializer(String command) {
         return serializers.get(command.toUpperCase());
     }
 
     /**
-     * We overwrite a regular Serialzer with a raw Serializer
+     * We overwrite regular Serializers with their raw versions
      */
-    public static void assignRawSerializer(String command) {
-        serializers.put(command.toUpperCase(), rawSerializers.get(command.toUpperCase()));
+    public static void enableRawSerializers() {
+        RAW_SERIALIZERS_ENABLED = true;
+        rawSerializers.entrySet().forEach(entry -> serializers.put(entry.getKey(), entry.getValue()));
     }
 
     /**
@@ -94,14 +103,35 @@ public class MsgSerializersFactory {
      *
      * @param command Message Type to Deserialize
      */
-    public static LargeMessageDeserializer getLargeMsgDeserializer(String command) {
+    public static LargeMessageDeserializer getLargeMsgDeserializer(String command, int minBytesPerSec) {
         LargeMessageDeserializer result = null;
 
-        // One comparation per each Large Deserializer:
+        // We need to instantiate each Serializer manually, based on the COMMAND and whether the RAW versions of
+        // the serializers are enabled or not.
+        // NOTE: WE use the Constructor without arguments, that means that the Batches returned by these serializers
+        // will be triggered in this same Thread ina blocking way, but that's all right since the LargeDeserializers
+        // are already running in their own Thread.
 
-        if (command.equalsIgnoreCase(BlockMsg.MESSAGE_TYPE)) result = new BigBlockDeserializer();
-        else if(command.equalsIgnoreCase(BlockTxnMsg.MESSAGE_TYPE)) result = new BigBlockTxnDeserializer();
+        if (command.equalsIgnoreCase(BlockMsg.MESSAGE_TYPE)) {
+            result = (RAW_SERIALIZERS_ENABLED) ? new BigBlockRawDeserializer() : new BigBlockDeserializer();
+        } else if (command.equalsIgnoreCase(BlockTxnMsg.MESSAGE_TYPE)) {
+            result = new BigBlockTxnDeserializer();
+        } else {
+            System.out.println("SHOULD NEVER HAPPEN");
+        }
 
+        if (result != null) {
+            result.setMinSpeedBytesPerSec(minBytesPerSec);
+        }
+
+        return result;
+    }
+
+    /**
+     * Indicates if there is a Serializer register for this Message.
+     */
+    public static boolean hasSerializerFor(String command, boolean onlyForLargeMessages) {
+        boolean result = (!onlyForLargeMessages) ? serializers.containsKey(command.toUpperCase()) : (getLargeMsgDeserializer(command, 0) != null);
         return result;
     }
 

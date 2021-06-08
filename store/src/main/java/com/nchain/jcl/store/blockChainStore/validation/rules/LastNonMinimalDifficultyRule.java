@@ -52,7 +52,8 @@ public class LastNonMinimalDifficultyRule extends AbstractBlockChainRule {
 
     private HeaderReadOnly findLastNotEasiestPowBlock(ChainInfo storedPrev, BlockChainStore blockChainStore) {
         ChainInfo cursor = storedPrev;
-        HeaderReadOnly genesis = blockChainStore.getBlock(0).get().getHeader();
+
+        HeaderReadOnly genesis = blockChainStore.getBlock(0).get(0).getHeader();
 
         //TODO optimize
         while (!cursor.equals(genesis) &&

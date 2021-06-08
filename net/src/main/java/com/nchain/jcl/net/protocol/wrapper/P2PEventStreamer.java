@@ -149,11 +149,12 @@ public class P2PEventStreamer {
      * A convenience class that provides Event Streamer specific for Event triggered by the Block downloader Handler
      */
     public class BlockEventStreamer {
-        public final EventStreamer<LiteBlockDownloadedEvent>    LITE_BLOCK_DOWNLOADED   = new EventStreamer<>(eventBus, LiteBlockDownloadedEvent.class);
-        public final EventStreamer<BlockDownloadedEvent>        BLOCK_DOWNLOADED        = new EventStreamer<>(eventBus, BlockDownloadedEvent.class);
-        public final EventStreamer<BlockDiscardedEvent>         BLOCK_DISCARDED         = new EventStreamer<>(eventBus, BlockDiscardedEvent.class);
-        public final EventStreamer<BlockHeaderDownloadedEvent>  BLOCK_HEADER_DOWNLOADED = new EventStreamer<>(eventBus, BlockHeaderDownloadedEvent.class);
-        public final EventStreamer<BlockTXsDownloadedEvent>     BLOCK_TXS_DOWNLOADED    = new EventStreamer<>(eventBus, BlockTXsDownloadedEvent.class);
+        public final EventStreamer<LiteBlockDownloadedEvent>    LITE_BLOCK_DOWNLOADED       = new EventStreamer<>(eventBus, LiteBlockDownloadedEvent.class);
+        public final EventStreamer<BlockDownloadedEvent>        BLOCK_DOWNLOADED            = new EventStreamer<>(eventBus, BlockDownloadedEvent.class);
+        public final EventStreamer<BlockDiscardedEvent>         BLOCK_DISCARDED             = new EventStreamer<>(eventBus, BlockDiscardedEvent.class);
+        public final EventStreamer<BlockHeaderDownloadedEvent>  BLOCK_HEADER_DOWNLOADED     = new EventStreamer<>(eventBus, BlockHeaderDownloadedEvent.class);
+        public final EventStreamer<BlockTXsDownloadedEvent>     BLOCK_TXS_DOWNLOADED        = new EventStreamer<>(eventBus, BlockTXsDownloadedEvent.class);
+        public final EventStreamer<BlockRawTXsDownloadedEvent>  BLOCK_RAW_TXS_DOWNLOADED    = new EventStreamer<>(eventBus, BlockRawTXsDownloadedEvent.class);
     }
 
     /**

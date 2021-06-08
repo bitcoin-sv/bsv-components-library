@@ -100,10 +100,18 @@ public class BlocksDownloadHistory {
      * Marks a Block for deletion. When the timeout for this Block history expired, it will be removed
      */
     public synchronized void markForDeletion(String blockHash) { blocksMarkedForDeletion.add(blockHash);}
+
     /**
      * returns the history of the block given
      */
     public Optional<List<HistoricItem>> getBlockHistory(Sha256Hash blockHash) {
+        return history.containsKey(blockHash.toString())? Optional.of(history.get(blockHash)) : Optional.empty();
+    }
+
+    /**
+     * returns the history of the block given
+     */
+    public Optional<List<HistoricItem>> getBlockHistory(String blockHash) {
         return history.containsKey(blockHash)? Optional.of(history.get(blockHash)) : Optional.empty();
     }
 

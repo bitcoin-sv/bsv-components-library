@@ -101,21 +101,24 @@ public final class BlockDownloaderHandlerState extends HandlerState {
                 .filter(p -> p.getWorkingState() == BlockPeerInfo.PeerWorkingState.PROCESSING)
                 .forEach(p -> {
                     // we print basic status info:
-                    result.append(p.getCurrentBlockInfo().toString());
+                    BlockPeerInfo.BlockProgressInfo blockProgressInfo = p.getCurrentBlockInfo();
+                    if (blockProgressInfo != null) {
+                        result.append(blockProgressInfo.toString());
+                        // We print the download Speed info:
+                        Integer peerSpeed = p.getDownloadSpeed();
+                        String speedStr = (peerSpeed == null || blockProgressInfo.bytesDownloaded == null)
+                                ? "¿?"
+                                : (peerSpeed == Integer.MAX_VALUE)
+                                    ? "undefined"
+                                    : speedFormat.format((double) peerSpeed / 1_000);
+                        result.append(" [ " + speedStr + " KB/sec ]");
+                        // We print this Peer time info:
+                        Duration lastActivityTimestamp = Duration.between(blockProgressInfo.lastBytesReceivedTimestamp, Instant.now());
+                        result.append(" [" + lastActivityTimestamp.toMillis() + " millisecs last read]");
 
-                    // We print the download Speed info:
-                    Integer peerSpeed = p.getDownloadSpeed();
-                    String speedStr = (peerSpeed == null || p.getCurrentBlockInfo() == null || p.getCurrentBlockInfo().bytesDownloaded == null)
-                            ? "¿?"
-                            : (peerSpeed == Integer.MAX_VALUE)
-                                ? "undefined"
-                                : speedFormat.format((double) peerSpeed / 1_000);
-
-                    result.append(" [ " + speedStr + " KB/sec ]");
-                    // We print this Peer time info:
-                    Duration lastActivityTimestamp = Duration.between(p.getCurrentBlockInfo().lastBytesReceivedTimestamp, Instant.now());
-                    result.append(" [" + lastActivityTimestamp.toMillis() + " millisecs last read]");
-
+                    } else {
+                        result.append("Block progress info not available.");
+                    }
                     result.append("\n");
                 });
 

@@ -8,6 +8,8 @@ import io.bitcoinj.bitcoin.api.extended.ChainInfo;
 import io.bitcoinj.core.Utils;
 
 import java.math.BigInteger;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 public class DifficultyTransitionPointRule extends AbstractBlockChainRule {
@@ -35,7 +37,13 @@ public class DifficultyTransitionPointRule extends AbstractBlockChainRule {
     }
 
     private HeaderReadOnly findLastBlockInterval(ChainInfo candidateBlock, BlockChainStore blockChainStore) throws BlockChainRuleFailureException {
-        ChainInfo referenceBlockChainInfo = blockChainStore.getBlock(candidateBlock.getHeight() - blockDifficultyAdjustmentInterval).orElseThrow(() -> new BlockChainRuleFailureException("Not enough blocks to check difficulty transition rule."));
+        // TODO: This needs reviewing, now that we support Forks (multiple ChainInfo at a certain height)
+        // NOTE: We assume the are not fork!! If the list of ChainInfos for a certain Height returns more than one Block,
+        // we just take the first one:
+        List<ChainInfo> blocksAtHeight = blockChainStore.getBlock(candidateBlock.getHeight() - blockDifficultyAdjustmentInterval);
+        Optional<ChainInfo> firstBlockAtHeight = Optional.of((blocksAtHeight != null && !blocksAtHeight.isEmpty()) ? blocksAtHeight.get(0) : null);
+
+        ChainInfo referenceBlockChainInfo = firstBlockAtHeight.orElseThrow(() -> new BlockChainRuleFailureException("Not enough blocks to check difficulty transition rule."));
 
         return referenceBlockChainInfo.getHeader();
     }

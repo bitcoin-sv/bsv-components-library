@@ -15,7 +15,9 @@ import io.bitcoinj.core.Sha256Hash;
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  *
- * A Serializer for instance of {@Link RawTxMsg} messages
+ * A Serializer for instance of {@Link RawTxMsg} messages.
+ * This Serializer can be used when the WHOLE Message is Stored in RawFormat in the {@link RawMsg} class. If the
+ * Message has other fields that are NOT in Raw format, a custom Serializer must be developed.
  */
 public abstract class RawMsgSerializer<M extends RawMsg> implements MessageSerializer<M> {
 
@@ -26,10 +28,10 @@ public abstract class RawMsgSerializer<M extends RawMsg> implements MessageSeria
     public M deserialize(DeserializerContext context, ByteArrayReader byteReader) {
 
         // We read all the Bytes...
-        byte[] txContent = byteReader.read(context.getMaxBytesToRead().intValue());
+        byte[] content = byteReader.read(context.getMaxBytesToRead().intValue());
 
         // We return the object:
-        return buildRawMsg(txContent);
+        return buildRawMsg(content);
     }
 
     @Override

@@ -25,9 +25,10 @@ public interface BlockChainStore extends BlockStore {
     // Chain Methods:
 
     /**
-     * Retrieves the Block specified by the Height given
+     * Retrieves the Block specified by the Height given. In a regular scenario this will be a list of just on element
+     * (or Zero). but in case of a fork we might have more than one Block at the same height, but in different "branches"
      */
-    Optional<ChainInfo> getBlock(int height);
+    List<ChainInfo> getBlock(int height);
 
     /**
      * Returns the Hash of the Previous Block in the Chain

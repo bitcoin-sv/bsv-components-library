@@ -347,9 +347,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
             // Now we need to figure out if this incoming Message is one we need to Deserialize, or just Ignore, and that
             // depends on whether we have a Serializer Implementation for it...
             boolean doWeNeedRealTimeProcessing = headerMsg.getLength() >= runtimeConfig.getMsgSizeInBytesForRealTimeProcessing();
-            boolean ignoreMsg = (doWeNeedRealTimeProcessing)
-                    ? MsgSerializersFactory.getLargeMsgDeserializer(headerMsg.getCommand()) == null
-                    : MsgSerializersFactory.getSerializer(headerMsg.getCommand()) == null;
+            boolean ignoreMsg = !MsgSerializersFactory.hasSerializerFor(headerMsg.getCommand(), doWeNeedRealTimeProcessing);
 
             // The Header has been processed. After the HEAD a BODY must ALWAYS come, so there is still work todo...
             boolean stillWorkToDoInBuffer = true;

@@ -25,18 +25,41 @@ import java.time.Duration;
  */
 public class ByteArrayReaderRealTime extends ByteArrayReaderOptimized {
 
-    protected static final Duration THRESHOLD_WAITING = Duration.ofMillis(5000); // 5 sec
-    protected static final Duration WAITING_INTERVAL = Duration.ofMillis(100);
+    /**
+     * This reader will wait for the bytes its reading of those bytes are not available yet. But they way it waits is
+     * determined by this mode:
+     */
+    enum ReaderMode {
+        FIXED_WAIT,     // it waits always the same time, regardless of the amount of bytes we want to read
+        DYNAMIC_WAIT    // it waits an amount of time which is based on the speed (bytes/Sec) we expect for this reader
+    }
+
+    // during the wait, we wait several times for small amounts of time each, specified in this property:
+    private static final Duration WAITING_INTERVAL = Duration.ofMillis(50);
+
+    // If we are in FIXED_WAIT mode, the waitingTime will take this value for the next bytes to read (no matter how many bytes)
+    private static final Duration FIXED_WAIT_TIMEOUT = Duration.ofMillis(5000); // 5 sec
+
+    // In DYNAMIC_MODE, this is the default speed that will determine the waitingTime
+    // NOTE: This is a VERY LOW SPEED, but in practice some Peers seems to get idle sometimes and then they burst into
+    // sending data like crazy. So this speed is just something we use so we don´´ run into a deadlock waiting for
+    // bytes...
+    public static final int DEFAULT_SPEED_BYTES_PER_SECOND = 10; // 10 bytes/sec
+
+    // Current Speed expected by this reader when in DYNAMIC_MODE:
+    private int speedBytesPerSec = DEFAULT_SPEED_BYTES_PER_SECOND;
+
+    // Reader Mode:
+    private ReaderMode readerMode = ReaderMode.FIXED_WAIT;
 
     private static final Logger log = LoggerFactory.getLogger(ByteArrayReaderRealTime.class);
 
-    // Total time this Byte read has been waiting for bytes to arrive...
+    // for statistics: Total time this Byte read has been waiting for bytes to arrive...
     protected Duration waitingTime = Duration.ZERO;
-    protected Duration thresholdWaiting = THRESHOLD_WAITING;
 
-    public ByteArrayReaderRealTime(ByteArray byteArray, Duration thresholdWaiting) {
+    public ByteArrayReaderRealTime(ByteArray byteArray, int speedBytesPerSec) {
         super(byteArray);
-        this.thresholdWaiting = thresholdWaiting;
+        this.speedBytesPerSec = speedBytesPerSec;
     }
 
     public ByteArrayReaderRealTime(ByteArray byteArray) {
@@ -53,6 +76,12 @@ public class ByteArrayReaderRealTime extends ByteArrayReaderOptimized {
 
     public ByteArrayReaderRealTime(byte[] initialData) {
         super(initialData);
+    }
+
+    private Duration getWaitingTime(long length) {
+        return readerMode.equals(ReaderMode.FIXED_WAIT)
+                ? FIXED_WAIT_TIMEOUT
+                : Duration.ofMillis(length * 1000 / speedBytesPerSec);
     }
 
     public byte[] read(int length) {
@@ -84,17 +113,32 @@ public class ByteArrayReaderRealTime extends ByteArrayReaderOptimized {
         return (read() != 0);
     }
 
+    public void updateReaderSpeed(int speedBytesPerSec) {
+        this.readerMode = ReaderMode.DYNAMIC_WAIT;
+        this.speedBytesPerSec = speedBytesPerSec;
+    }
+
+    public void resetReaderSpeed() {
+        this.readerMode = ReaderMode.FIXED_WAIT;
+        this.speedBytesPerSec = DEFAULT_SPEED_BYTES_PER_SECOND;
+    }
+
     /*
      * Waits for the bytes to be written before returning. This will cause the thread to be blocked.
      */
     public void waitForBytes(int length) throws RuntimeException {
+        long millisecsToWait = getWaitingTime(length).toMillis();
 
-        long timeout = System.currentTimeMillis() + thresholdWaiting.toMillis();
+        long timeout = System.currentTimeMillis() + millisecsToWait;
 
         while (size() < length) {
 
             if (System.currentTimeMillis() > timeout) {
-                throw new RuntimeException("timed out waiting longer than " + thresholdWaiting.toMillis() + " millisecs for " + length + " bytes");
+                String errorLine = "timeout waiting longer than " + millisecsToWait + " millisecs for " + length + " bytes";
+                if (readerMode.equals(ReaderMode.DYNAMIC_WAIT)) {
+                    errorLine += " minSpeed = " + speedBytesPerSec + " bytes/sec";
+                }
+                throw new RuntimeException(errorLine);
             }
 
             try {

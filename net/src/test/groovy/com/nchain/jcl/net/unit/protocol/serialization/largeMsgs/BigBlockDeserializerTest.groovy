@@ -19,15 +19,14 @@ class BigBlockDeserializerTest extends Specification {
 
 
     /**
-     * We test the a "Big" Message is deserializes properly and that the callbacks are triggered and we deserialize notified
-     * of the different parts of this Block (the header, and diferent multiple notifications of TXs
+     * We test the a "Big" Message is deserializes properly and that the callbacks are triggered and we get notified
+     * of the different parts of this Block (the header, and different multiple notifications of TXs
      */
     def "Testing Big-Block Deserialized syncronously"() {
         given:
             // We are using the Block defined in the MsgTest Utility class, that Block contains 2 TXs
             final int NUM_TXS = 2
             String BLOCK_HEX = MsgTest.BLOCK_BODY_HEX
-
 
             ProtocolConfig protocolConfig = new ProtocolBSVMainConfig()
 
@@ -39,10 +38,15 @@ class BigBlockDeserializerTest extends Specification {
         when:
             // We configure the Deserializer and feed it with callbacks, so we deserialize notified when its different parts are
             // Deserialized:
-            DeserializerContext deserializedContext = DeserializerContext.builder().protocolBasicConfig(protocolConfig.getBasicConfig()).build()
+
             ByteArrayReader reader = new ByteArrayReader(Utils.HEX.decode(BLOCK_HEX))
             ByteArrayReader optimizedReader = new ByteArrayReaderOptimized(reader)
             BigBlockDeserializer bigBlockDeserializer = new BigBlockDeserializer()
+
+            DeserializerContext deserializedContext = DeserializerContext.builder()
+                .protocolBasicConfig(protocolConfig.getBasicConfig())
+                .maxBytesToRead(reader.size())
+                .build()
 
             bigBlockDeserializer.onDeserialized({ e ->
                 if (e.getData() instanceof PartialBlockHeaderMsg) headerReceived.set(true)

@@ -9,6 +9,8 @@ import io.bitcoinj.core.Utils;
 
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 public class EmergencyDifficultyAdjustmentRule extends AbstractBlockChainRule {
@@ -34,7 +36,12 @@ public class EmergencyDifficultyAdjustmentRule extends AbstractBlockChainRule {
     }
 
     private long getMedianProducingTimeInSeconds(ChainInfo storedPrev, BlockChainStore blockChainStore) throws BlockChainRuleFailureException {
-        ChainInfo referenceBlockChainInfo = blockChainStore.getBlock(storedPrev.getHeight() - REFERENCE_OF_BLOCKS_PRODUCED_SIZE).orElseThrow(() -> new BlockChainRuleFailureException("Not enough blocks to check emergency difficulty adjustment rule."));
+        // TODO: This needs reviewing, now that we support Forks (multiple ChainInfo at a certain height)
+        // NOTE: We assume the are not fork!! If the list of ChainInfos for a certain Height returns more than one Block,
+        // we just take the first one:
+        List<ChainInfo> blocksAtHeight = blockChainStore.getBlock(storedPrev.getHeight() - REFERENCE_OF_BLOCKS_PRODUCED_SIZE);
+        Optional<ChainInfo> firstBlockAtHeight = Optional.of((blocksAtHeight != null && !blocksAtHeight.isEmpty()) ? blocksAtHeight.get(0) : null);
+        ChainInfo referenceBlockChainInfo = firstBlockAtHeight.orElseThrow(() -> new BlockChainRuleFailureException("Not enough blocks to check emergency difficulty adjustment rule."));
 
         if(referenceBlockChainInfo.getHeight() - REFERENCE_BEFORE_BLOCK_DISTANCE < 0 ) {
             throw new BlockChainRuleFailureException("Not enough blocks to check emergency difficulty adjustment rule.");

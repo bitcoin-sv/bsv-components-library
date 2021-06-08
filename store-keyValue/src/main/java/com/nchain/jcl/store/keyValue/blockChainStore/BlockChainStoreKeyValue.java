@@ -7,7 +7,6 @@ import com.nchain.jcl.store.blockChainStore.events.ChainForkEvent;
 import com.nchain.jcl.store.blockChainStore.events.ChainPruneEvent;
 import com.nchain.jcl.store.blockChainStore.events.ChainStateEvent;
 import com.nchain.jcl.store.blockChainStore.validation.exception.BlockChainRuleFailureException;
-import com.nchain.jcl.store.blockStore.events.InvalidBlockEvent;
 import com.nchain.jcl.store.keyValue.blockStore.BlockStoreKeyValue;
 import com.nchain.jcl.store.keyValue.common.HashesList;
 import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
@@ -98,7 +97,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
 
     default String keyForBlockNext(String blockHash)        { return KEY_PREFFIX_BLOCK_PROP + blockHash + KEY_SEPARATOR + KEY_SUFFIX_BLOCK_NEXT + KEY_SEPARATOR; }
     default String keyForBlockChainInfo(String blockHash)   { return KEY_PREFFIX_BLOCK_CHAIN + KEY_SEPARATOR + blockHash + KEY_SEPARATOR; }
-    default String keyForBlockByHeight(int height)          { return KEY_PREFFIX_BLOCK_HEIGHT + KEY_SEPARATOR + height + KEY_SEPARATOR;}
+    default String keyForBlocksByHeight(int height)         { return KEY_PREFFIX_BLOCK_HEIGHT + KEY_SEPARATOR + height + KEY_SEPARATOR;}
     default String keyForChainTips()                        { return KEY_CHAIN_TIPS + KEY_SEPARATOR; }
     default String keyForChainPathsLast()                   { return KEY_PREFFIX_PATHS + KEY_SEPARATOR + KEY_SUFFIX_PATHS_LAST + KEY_SEPARATOR;}
     default String keyForChainPath(int branchId)            { return KEY_PREFFIX_PATH + KEY_SEPARATOR + branchId + KEY_SEPARATOR;}
@@ -107,7 +106,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
 
     byte[] fullKeyForBlockNext(String blockHash);
     byte[] fullKeyForBlockChainInfo(String blockHash);
-    byte[] fullKeyForBlockHashByHeight(int height);
+    byte[] fullKeyForBlockHashesByHeight(int height);
     byte[] fullKeyForChainTips();
     byte[] fullKeyForChainPathsLast();
     byte[] fullKeyForChainPath(int branchId);
@@ -183,22 +182,39 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     }
 
 
-    private String _getBlockHashByHeight(T tr, int height) {
-        byte[] value = read(tr, fullKeyForBlockHashByHeight(height));
-        return toString(value);
+    private HashesList _getBlockHashesByHeight(T tr, int height) {
+        byte[] value = read(tr, fullKeyForBlockHashesByHeight(height));
+        return toHashes(value);
     }
 
     private void _saveBlockHashByHeight(T tr, String blockHash, int height) {
-        byte[] key = fullKeyForBlockHashByHeight(height);
-        byte[] value = bytes(blockHash);
+        byte[] key = fullKeyForBlockHashesByHeight(height);
+        HashesList currentHashes = toHashes(read(tr, key));
+        if (currentHashes == null) {
+            currentHashes = new HashesList.HashesListBuilder().hash(blockHash).build();
+        }
+        currentHashes.addHash(blockHash);
+        byte[] value = bytes(currentHashes);
         save(tr, key, value);
     }
 
-    private void _removeBlockHashByHeight(T tr, int height) {
-        byte[] key = fullKeyForBlockHashByHeight(height);
+    private void _removeBlockHashesByHeight(T tr, int height) {
+        byte[] key = fullKeyForBlockHashesByHeight(height);
         remove(tr, key);
     }
 
+    private void _removeBlockHashFromHeight(T tr, String blockHash, int height) {
+        byte[] key = fullKeyForBlockHashesByHeight(height);
+        HashesList hashesList = toHashes(read(tr, key));
+        if (hashesList != null) {
+            hashesList.removeHash(blockHash);
+            if (hashesList.getHashes().isEmpty()) {
+                remove(tr, key);
+            } else {
+                save(tr, key, bytes(hashesList));
+            }
+        }
+    }
 
     private List<String> _getNextBlocks(T tr, String blockHash) {
         List<String> result = new ArrayList<>();
@@ -358,8 +374,8 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             // We remove the ChainInfo for this Node (this will disconnect this Block from the Chain):
             _removeBlockChainInfo(tr, blockHash);
 
-            // We remove the link f this Height with this block Hash...
-            _removeBlockHashByHeight(tr, blockChainInfo.getHeight());
+            // We remove the link of this Height with this block Hash...
+            _removeBlockHashFromHeight(tr, blockHash, blockChainInfo.getHeight());
 
             // We update the tip of the chain (this block is not the tip anymore, if its already)
             _updateTipsChain(tr, null, blockHash);
@@ -683,24 +699,27 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     }
 
     @Override
-    default Optional<ChainInfo> getBlock(int height) {
-        AtomicReference<ChainInfo> result = new AtomicReference<>();
+    default List<ChainInfo> getBlock(int height) {
+        AtomicReference<List<ChainInfo>> result = new AtomicReference<>(new ArrayList<>());
         T tr = createTransaction();
         executeInTransaction(tr, () -> {
-            String blockHash = _getBlockHashByHeight(tr, height);
-            if (blockHash == null) return;
-            HeaderReadOnly blockResultHeader = _getBlock(tr, blockHash);
-            if (blockResultHeader == null) return;
-            BlockChainInfo blockResultInfo = _getBlockChainInfo(tr, blockHash);
-            if (blockResultInfo == null) return;
-
-            ChainInfoBean chainInfoResult = new ChainInfoBean(blockResultHeader);
-            chainInfoResult.setChainWork(blockResultInfo.getChainWork());
-            chainInfoResult.setHeight(blockResultInfo.getHeight());
-            chainInfoResult.makeImmutable();
-            result.set(chainInfoResult);
+            HashesList blockHashes = _getBlockHashesByHeight(tr, height);
+            if (blockHashes == null) return;
+            for (String blockHash : blockHashes.getHashes()) {
+                HeaderReadOnly blockResultHeader = _getBlock(tr, blockHash);
+                if (blockResultHeader != null) {
+                    BlockChainInfo blockResultInfo = _getBlockChainInfo(tr, blockHash);
+                    if (blockResultInfo != null) {
+                        ChainInfoBean chainInfoResult = new ChainInfoBean(blockResultHeader);
+                        chainInfoResult.setChainWork(blockResultInfo.getChainWork());
+                        chainInfoResult.setHeight(blockResultInfo.getHeight());
+                        chainInfoResult.makeImmutable();
+                        result.get().add(chainInfoResult);
+                    }
+                }
+            }
         });
-        return Optional.ofNullable(result.get());
+        return result.get();
     }
 
     @Override
@@ -840,6 +859,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                 // We prune it:
 
                 if (removeTxs) removeBlockTxs(hashBlockToRemove);
+                getLogger().debug("prunning block " + hashBlockToRemove);
                 removeBlock(hashBlockToRemove);
                 numBlocksRemoved++;
 
