@@ -6,22 +6,22 @@ import java.util.List;
 
 /**
  * @author j.pomer@nchain.com
- * Copyright (c) 2018-2020 nChain Ltd
+ * Copyright (c) 2018-2021 nChain Ltd
  */
-public class BlockTxnMsg extends Message {
-    public static final String MESSAGE_TYPE = "blocktxn";
+public class PartialBlockTxnMsg extends Message {
+    public static final String MESSAGE_TYPE = "PartialBockTxn";
 
     private final HashMsg blockHash;
     private final List<TxMsg> transactions;
 
-    public BlockTxnMsg(HashMsg blockHash, List<TxMsg> transactions) {
+    public PartialBlockTxnMsg(HashMsg blockHash, List<TxMsg> transactions) {
         this.blockHash = blockHash;
         this.transactions = transactions;
         init();
     }
 
-    public static BlockTransactionsMsgBuilder builder() {
-        return new BlockTransactionsMsgBuilder();
+    public static PartialBlockTxnBuilder builder() {
+        return new PartialBlockTxnBuilder();
     }
 
     public HashMsg getBlockHash() {
@@ -40,32 +40,35 @@ public class BlockTxnMsg extends Message {
     @Override
     protected long calculateLength() {
         return blockHash.calculateLength()
-            + VarIntMsg.builder().value(transactions.size()).build().calculateLength()
+            + VarIntMsg.builder()
+                .value(transactions.size())
+                .build()
+                .calculateLength()
             + transactions.stream()
-            .mapToLong(TxMsg::calculateLength)
-            .sum();
+                .mapToLong(TxMsg::calculateLength)
+                .sum();
     }
 
     @Override
     protected void validateMessage() {
     }
 
-    public static class BlockTransactionsMsgBuilder {
+    public static class PartialBlockTxnBuilder {
         private HashMsg blockHash;
         private List<TxMsg> transactions;
 
-        public BlockTransactionsMsgBuilder blockHash(HashMsg blockHash) {
+        public PartialBlockTxnBuilder blockHash(HashMsg blockHash) {
             this.blockHash = blockHash;
             return this;
         }
 
-        public BlockTransactionsMsgBuilder transactions(List<TxMsg> transactions) {
+        public PartialBlockTxnBuilder transactions(List<TxMsg> transactions) {
             this.transactions = transactions;
             return this;
         }
 
-        public BlockTxnMsg build() {
-            return new BlockTxnMsg(blockHash, transactions);
+        public PartialBlockTxnMsg build() {
+            return new PartialBlockTxnMsg(blockHash, transactions);
         }
     }
 }

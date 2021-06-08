@@ -23,9 +23,9 @@ public class TxMsgSerializer implements MessageSerializer<TxMsg> {
     private static TxMsgSerializer instance;
 
     // Reference to singleton instances used during serialization/Deserialization. Defined here for performance
-    private static VarIntMsgSerializer varIntMsgSerializer         = VarIntMsgSerializer.getInstance();
-    private static TxInputMsgSerializer txInputMessageSerializer    = TxInputMsgSerializer.getInstance();
-    private static TxOutputMsgSerializer txOutputMessageSerializer   = TxOutputMsgSerializer.getInstance();
+    private static final VarIntMsgSerializer varIntMsgSerializer         = VarIntMsgSerializer.getInstance();
+    private static final TxInputMsgSerializer txInputMessageSerializer    = TxInputMsgSerializer.getInstance();
+    private static final TxOutputMsgSerializer txOutputMessageSerializer   = TxOutputMsgSerializer.getInstance();
 
     private TxMsgSerializer() {}
 
@@ -49,7 +49,7 @@ public class TxMsgSerializer implements MessageSerializer<TxMsg> {
         int txInCountValue = (int) txInCount.getValue();
         List<TxInputMsg> txInputMessage = new ArrayList<>();
 
-        for(int i =0 ; i< txInCountValue; i++) {
+        for(int i = 0; i< txInCountValue; i++) {
             txInputMessage.add(txInputMessageSerializer.deserialize(context,byteReader));
         }
 
@@ -57,7 +57,7 @@ public class TxMsgSerializer implements MessageSerializer<TxMsg> {
         int txOutCountValue = (int) txOutCount.getValue();
         List<TxOutputMsg> txOutputMessage = new ArrayList<>();
 
-        for(int i =0 ; i< txOutCountValue; i++) {
+        for(int i = 0; i< txOutCountValue; i++) {
             txOutputMessage.add(txOutputMessageSerializer.deserialize(context, byteReader));
         }
         long locktime = byteReader.readUint32();
@@ -69,7 +69,7 @@ public class TxMsgSerializer implements MessageSerializer<TxMsg> {
                 .lockTime(locktime);
 
 
-        // We only calculate the Hash if it¡s specified.
+        // We only calculate the Hash if it is specified.
         if (context.isCalculateHashes()) {
             // To calculate the TX Hash, we need to Serialize the TX itself...
             SerializerContext serializerContext = SerializerContext.builder()
@@ -91,8 +91,7 @@ public class TxMsgSerializer implements MessageSerializer<TxMsg> {
             txBuilder.hash(Optional.of(txHash));
         } else txBuilder.hash(Optional.empty());
 
-        TxMsg result = txBuilder.build();
-        return result;
+        return txBuilder.build();
     }
 
     @Override

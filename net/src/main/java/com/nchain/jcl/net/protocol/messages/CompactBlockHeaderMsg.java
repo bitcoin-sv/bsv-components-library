@@ -2,6 +2,10 @@ package com.nchain.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
 import com.nchain.jcl.net.protocol.messages.common.Message;
+import io.bitcoinj.bitcoin.api.base.AbstractBlock;
+import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
+import io.bitcoinj.bitcoin.bean.base.HeaderBean;
+import io.bitcoinj.core.Sha256Hash;
 
 /**
  * @author j.pomer@nchain.com
@@ -87,6 +91,18 @@ public class CompactBlockHeaderMsg extends Message {
             && Objects.equal(this.creationTimestamp, other.creationTimestamp)
             && Objects.equal(this.difficultyTarget, other.difficultyTarget)
             && Objects.equal(this.nonce, other.nonce);
+    }
+
+    public HeaderReadOnly toBean() {
+        HeaderBean result = new HeaderBean((AbstractBlock) null);
+        result.setTime(this.creationTimestamp);
+        result.setDifficultyTarget(this.difficultyTarget);
+        result.setNonce(this.nonce);
+        result.setPrevBlockHash(Sha256Hash.wrapReversed(this.prevBlockHash.getHashBytes()));
+        result.setVersion(this.version);
+        result.setMerkleRoot(Sha256Hash.wrapReversed(this.merkleRoot.getHashBytes()));
+        result.setHash(Sha256Hash.wrapReversed(this.hash.getHashBytes()));
+        return result;
     }
 
     public HashMsg getHash() {

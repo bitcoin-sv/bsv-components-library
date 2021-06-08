@@ -19,7 +19,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -33,28 +32,32 @@ import static org.iq80.leveldb.impl.Iq80DBFactory.factory;
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
- *
+ * <p>
  * BlockStore Implementation based on LevelDB Database.
  * It extends the BlockStoreKeyValue Interface, so it already contains most of the business logic, only
  * imnplementation-specific details are defined here.
- *
- *  - In LevelDB, each Database Entrie returned by a LevelDB iterator is a Map.Entry<byte[],byte[]>
- *  - LevelDB does NOT support Transactions, so we use "Object" as the Transaction type, and all the methods that
- *    are supposed to create/commit/rollback transactions do nothing.
+ * <p>
+ * - In LevelDB, each Database Entrie returned by a LevelDB iterator is a Map.Entry<byte[],byte[]>
+ * - LevelDB does NOT support Transactions, so we use "Object" as the Transaction type, and all the methods that
+ * are supposed to create/commit/rollback transactions do nothing.
  */
 public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], byte[]>, Object> {
-
 
 
     // A separator for full keys, made from composing smaller sub-keys:
     public static final String KEY_SEPARATOR = "\\";
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(BlockStoreLevelDB.class);
 
-    // A lock (used by some methods, to ensure Thread-safety):
-    private ReadWriteLock lock = new ReentrantReadWriteLock();
+    // Events Configuration:
+    protected final EventBus eventBus;
+    private final ExecutorService executorService;
+    private final BlockStoreStreamer blockStoreStreamer;
 
     // LevelDB instance:
     protected DB levelDBStore;
+
+    // A lock (used by some methods, to ensure Thread-safety):
+    private ReadWriteLock lock = new ReentrantReadWriteLock();
 
     // Configuration
     private BlockStoreLevelDBConfig config;
@@ -64,15 +67,10 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
     // Executor to trigger Async Methods:
     private ExecutorService executor;
 
-    // Events Configuration:
-    protected final EventBus eventBus;
-    private final ExecutorService executorService;
-    private final BlockStoreStreamer blockStoreStreamer;
-
     // MetadataClass linked to Blocks;
     private Class<? extends Metadata> blockMetadataClass;
 
-    public BlockStoreLevelDB(@Nonnull BlockStoreLevelDBConfig  config,
+    public BlockStoreLevelDB(@Nonnull BlockStoreLevelDBConfig config,
                              boolean triggerBlockEvents,
                              boolean triggerTxEvents,
                              Class<? extends Metadata> blockMetadataClass) throws RuntimeException {
@@ -101,6 +99,10 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
         }
     }
 
+    public static BlockStoreLevelDBBuilder builder() {
+        return new BlockStoreLevelDBBuilder();
+    }
+
     // Convenience method...
     private String castToString(Object obj) {
         if (obj instanceof String) return (String) obj;
@@ -114,7 +116,7 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
     }
 
     @Override
-    public byte[] fullKey(Object ...subKeys) {
+    public byte[] fullKey(Object... subKeys) {
         if (subKeys == null) return null;
         StringBuffer result = new StringBuffer();
         for (int i = 0; i < subKeys.length; i++) {
@@ -186,7 +188,7 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
     public List<Tx> _saveTxsIfNotExist(Object tr, List<Tx> txs) {
         List<Tx> result = new ArrayList<>();
         // We just iterate over the TXs and insert those that does not exist
-        for (Tx tx: txs) {
+        for (Tx tx : txs) {
             byte[] txBytes = _getTxBytes(tr, tx.getHash().toString());
             if (txBytes == null || txBytes.length == 0) {
                 _saveTx(tr, tx);
@@ -215,19 +217,19 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
 
     @Override
     public void stop() {
-            try {
-                getLock().writeLock().lock();
-                log.info("LevelDB-Store Stopping...");
-                this.executorService.shutdownNow();
-                this.executor.shutdownNow();
-                this.levelDBStore.close();
-                log.info("LevelDB-Store Stopped.");
-            } catch (IOException ioe) {
-                log.error(ioe.getMessage(), ioe);
-                throw new RuntimeException(ioe);
-            } finally {
-                getLock().writeLock().unlock();
-            }
+        try {
+            getLock().writeLock().lock();
+            log.info("LevelDB-Store Stopping...");
+            this.executorService.shutdownNow();
+            this.executor.shutdownNow();
+            this.levelDBStore.close();
+            log.info("LevelDB-Store Stopped.");
+        } catch (IOException ioe) {
+            log.error(ioe.getMessage(), ioe);
+            throw new RuntimeException(ioe);
+        } finally {
+            getLock().writeLock().unlock();
+        }
     }
 
     @Override
@@ -246,14 +248,12 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
             Options options = new Options();
             levelDBStore = factory.open(levelDBPath.toFile(), options);
         } catch (IOException ioe) {
-          getLogger().error("ERROR Clearing the DB", ioe);
+            getLogger().error("ERROR Clearing the DB", ioe);
         } finally {
             getLock().writeLock().unlock();
         }
 
     }
-
-
 
     @Override
     public void printKeys() {
@@ -268,10 +268,6 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
     public boolean isTriggerBlockEvents()       { return this.triggerBlockEvents; }
     public boolean isTriggerTxEvents()          { return this.triggerTxEvents; }
     public EventBus getEventBus()               { return this.eventBus; }
-
-    public static BlockStoreLevelDBBuilder builder() {
-        return new BlockStoreLevelDBBuilder();
-    }
 
     /**
      * Builder

@@ -42,7 +42,6 @@ public class CompactBlockMsgSerializer implements MessageSerializer<CompactBlock
             shortTxIds.add(byteReader.readInt48LE());
         }
 
-
         // read number of prefilled transactions and transactions
         var prefilledTxnLength = VarIntMsgSerializer.getInstance().deserialize(context, byteReader);
         var prefilledTransactions = new ArrayList<PrefilledTxMsg>((short) prefilledTxnLength.getValue());
@@ -57,7 +56,6 @@ public class CompactBlockMsgSerializer implements MessageSerializer<CompactBlock
             .prefilledTransactions(prefilledTransactions)
             .build();
     }
-
 
     @Override
     public void serialize(SerializerContext context, CompactBlockMsg message, ByteArrayWriter byteWriter) {

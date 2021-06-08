@@ -2,6 +2,7 @@ package com.nchain.jcl.net.protocol.serialization;
 
 import com.nchain.jcl.net.protocol.messages.BlockTxnMsg;
 import com.nchain.jcl.net.protocol.messages.TxMsg;
+import com.nchain.jcl.net.protocol.messages.VarIntMsg;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.net.protocol.serialization.common.MessageSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext;
@@ -32,6 +33,8 @@ public class BlockTxnMsgSerializer implements MessageSerializer<BlockTxnMsg> {
         var blockHash = HashMsgSerializer.getInstance().deserialize(context, byteReader);
         var transactionLength = VarIntMsgSerializer.getInstance().deserialize(context, byteReader);
 
+        context.setCalculateHashes(true);
+
         List<TxMsg> transactions = new ArrayList<>();
         for (int i = 0; i < transactionLength.getValue(); i++) {
             transactions.add(TxMsgSerializer.getInstance().deserialize(context, byteReader));
@@ -39,7 +42,6 @@ public class BlockTxnMsgSerializer implements MessageSerializer<BlockTxnMsg> {
 
         return BlockTxnMsg.builder()
             .blockHash(blockHash)
-            .transactionsLength(transactionLength)
             .transactions(transactions)
             .build();
     }
@@ -47,7 +49,14 @@ public class BlockTxnMsgSerializer implements MessageSerializer<BlockTxnMsg> {
     @Override
     public void serialize(SerializerContext context, BlockTxnMsg message, ByteArrayWriter byteWriter) {
         HashMsgSerializer.getInstance().serialize(context, message.getBlockHash(), byteWriter);
-        VarIntMsgSerializer.getInstance().serialize(context, message.getTransactionsLength(), byteWriter);
+
+        VarIntMsgSerializer.getInstance().serialize(
+            context,
+            VarIntMsg.builder()
+                .value(message.getTransactions().size())
+                .build(),
+            byteWriter
+        );
 
         var txMsgSerializer = TxMsgSerializer.getInstance();
         message.getTransactions().forEach(transaction -> txMsgSerializer.serialize(context, transaction, byteWriter));

@@ -5,6 +5,7 @@ import com.nchain.jcl.net.protocol.messages.*;
 import com.nchain.jcl.net.protocol.serialization.*;
 import com.nchain.jcl.net.protocol.serialization.largeMsgs.BigBlockDeserializer;
 import com.nchain.jcl.net.protocol.serialization.largeMsgs.BigBlockRawDeserializer;
+import com.nchain.jcl.net.protocol.serialization.largeMsgs.BigBlockTxnDeserializer;
 import com.nchain.jcl.net.protocol.serialization.largeMsgs.LargeMessageDeserializer;
 
 import java.util.HashMap;
@@ -76,7 +77,8 @@ public class MsgSerializersFactory {
         rawSerializers.put(RawBlockMsg.MESSAGE_TYPE.toUpperCase(), RawBlockMsgSerializer.getInstance());
     }
 
-    private MsgSerializersFactory() {}
+    private MsgSerializersFactory() {
+    }
 
     /**
      * Returns a Serializer of the message specify by its COMMAND
@@ -112,6 +114,8 @@ public class MsgSerializersFactory {
 
         if (command.equalsIgnoreCase(BlockMsg.MESSAGE_TYPE)) {
             result = (RAW_SERIALIZERS_ENABLED) ? new BigBlockRawDeserializer() : new BigBlockDeserializer();
+        } else if (command.equalsIgnoreCase(BlockTxnMsg.MESSAGE_TYPE)) {
+            result = new BigBlockTxnDeserializer();
         } else {
             System.out.println("SHOULD NEVER HAPPEN");
         }

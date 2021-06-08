@@ -1,10 +1,10 @@
 package com.nchain.jcl.net.protocol.serialization;
 
+import com.nchain.jcl.net.protocol.messages.InvMessage;
+import com.nchain.jcl.net.protocol.messages.InventoryVectorMsg;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.net.protocol.serialization.common.MessageSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext;
-import com.nchain.jcl.net.protocol.messages.InvMessage;
-import com.nchain.jcl.net.protocol.messages.InventoryVectorMsg;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.tools.bytes.ByteArrayWriter;
 
@@ -14,16 +14,19 @@ import java.util.List;
 /**
  * @author m.jose@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
- *
- *  A Serializer for {@link InvMessage} messages
+ * <p>
+ * A Serializer for {@link InvMessage} messages
  */
 public class InvMsgSerializer implements MessageSerializer<InvMessage> {
 
     private static InvMsgSerializer instance;
 
-    private InvMsgSerializer() { }
+    private InvMsgSerializer() {
+    }
 
-    /** Returns an instance of this Serializer (Singleton) */
+    /**
+     * Returns an instance of this Serializer (Singleton)
+     */
     public static InvMsgSerializer getInstance() {
         if (instance == null) {
             synchronized (InvMsgSerializer.class) {
@@ -57,18 +60,19 @@ public class InvMsgSerializer implements MessageSerializer<InvMessage> {
     public void serialize(SerializerContext context, InvMessage message, ByteArrayWriter byteWriter) {
         VarIntMsgSerializer.getInstance().serialize(context, message.getCount(), byteWriter);
         List<InventoryVectorMsg> inventoryVectorMsgList = message.getInvVectorList();
-        serializeList(context, inventoryVectorMsgList , byteWriter);
+        serializeList(context, inventoryVectorMsgList, byteWriter);
     }
 
     /**
      * Serialize Inventory Vector List
+     *
      * @param context
      * @param inventoryVectorMsgList
      * @param byteWriter
      */
     protected void serializeList(SerializerContext context, List<InventoryVectorMsg> inventoryVectorMsgList,
-                                        ByteArrayWriter byteWriter) {
-        for (InventoryVectorMsg inventoryVectorMsg:inventoryVectorMsgList) {
+                                 ByteArrayWriter byteWriter) {
+        for (InventoryVectorMsg inventoryVectorMsg : inventoryVectorMsgList) {
             InventoryVectorMsgSerializer.getInstance().serialize(context, inventoryVectorMsg, byteWriter);
         }
     }
