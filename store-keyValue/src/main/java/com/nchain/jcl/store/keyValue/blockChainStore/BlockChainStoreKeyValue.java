@@ -851,6 +851,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             // we are removing)
 
             Sha256Hash hashBlockToRemove = tipChainHash;
+            List<Sha256Hash> hashesBlocksToRemove = new ArrayList<>();
             Optional<Sha256Hash> parentHashOpt = getPrevBlock(hashBlockToRemove);
             long numBlocksRemoved = 0;
             while (true) {
@@ -861,6 +862,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                 if (removeTxs) removeBlockTxs(hashBlockToRemove);
                 getLogger().debug("prunning block " + hashBlockToRemove);
                 removeBlock(hashBlockToRemove);
+                hashesBlocksToRemove.add(hashBlockToRemove);
                 numBlocksRemoved++;
 
                 // If it does not have parent or the parent has more than one Child, we stop right here:
@@ -875,7 +877,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             getLogger().debug("chain tip #" + tipChainHash + " Pruned. " + numBlocksRemoved + " blocks removed.");
 
             // We trigger a Prune Event:
-            ChainPruneEvent event = new ChainPruneEvent(tipChainHash, parentHashOpt.get(), numBlocksRemoved);
+            ChainPruneEvent event = new ChainPruneEvent(tipChainHash, parentHashOpt.get(), hashesBlocksToRemove);
             getEventBus().publish(event);
         } finally {
             getLock().writeLock().unlock();

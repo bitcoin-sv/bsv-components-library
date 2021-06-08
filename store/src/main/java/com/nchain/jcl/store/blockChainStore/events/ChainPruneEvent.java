@@ -3,6 +3,8 @@ package com.nchain.jcl.store.blockChainStore.events;
 import com.nchain.jcl.store.blockStore.events.BlockStoreEvent;
 import io.bitcoinj.core.Sha256Hash;
 
+import java.util.List;
+
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
@@ -11,17 +13,18 @@ import io.bitcoinj.core.Sha256Hash;
 public final class ChainPruneEvent extends BlockStoreEvent {
     private final Sha256Hash tipForkHash;
     private final Sha256Hash parentForkHash;
-    private final long numBlocksPruned;
+    private final List<Sha256Hash> blocksPruned;
 
-    public ChainPruneEvent(Sha256Hash tipForkHash, Sha256Hash parentForkHash, long numBlocksPruned) {
+    public ChainPruneEvent(Sha256Hash tipForkHash, Sha256Hash parentForkHash, List<Sha256Hash> blocksPruned) {
         this.tipForkHash = tipForkHash;
         this.parentForkHash = parentForkHash;
-        this.numBlocksPruned = numBlocksPruned;
+        this.blocksPruned = blocksPruned;
     }
 
-    public Sha256Hash getTipForkHash()      { return this.tipForkHash; }
-    public Sha256Hash getParentForkHash()   { return this.parentForkHash; }
-    public long getNumBlocksPruned()        { return this.numBlocksPruned; }
+    public Sha256Hash getTipForkHash()          { return this.tipForkHash; }
+    public Sha256Hash getParentForkHash()       { return this.parentForkHash; }
+    public List<Sha256Hash> getBlocksPruned()   { return this.blocksPruned;}
+    public long getNumBlocksPruned()            { return this.blocksPruned.size(); }
 
     public String toString() {
         return "ChainPruneEvent(tipForkHash=" + this.getTipForkHash() + ", parentForkHash=" + this.getParentForkHash() + ", numBlocksPruned=" + this.getNumBlocksPruned() + ")";
