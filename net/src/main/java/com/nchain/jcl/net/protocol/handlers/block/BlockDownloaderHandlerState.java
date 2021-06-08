@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
 /**
@@ -26,6 +27,8 @@ public final class BlockDownloaderHandlerState extends HandlerState {
     private final List<String> pendingBlocks;
     private final List<String> downloadedBlocks;
     private final List<String> discardedBlocks;
+    private final List<String> pendingToCancelBlocks;
+    private final List<String> cancelledBlocks;
 
     // Blocks download History:
     private final Map<String, List<BlocksDownloadHistory.HistoricItem>> blocksHistory;
@@ -54,6 +57,8 @@ public final class BlockDownloaderHandlerState extends HandlerState {
                                         List<String> pendingBlocks,
                                         List<String> downloadedBlocks,
                                         List<String> discardedBlocks,
+                                        List<String> pendingToCancelBlocks,
+                                        List<String> cancelledBlocks,
                                         Map<String, List<BlocksDownloadHistory.HistoricItem>> blocksHistory,
                                         List<BlockPeerInfo> peersInfo,
                                         long totalReattempts,
@@ -65,6 +70,8 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         this.pendingBlocks = pendingBlocks;
         this.downloadedBlocks = downloadedBlocks;
         this.discardedBlocks = discardedBlocks;
+        this.pendingToCancelBlocks = pendingToCancelBlocks;
+        this.cancelledBlocks = cancelledBlocks;
         this.blocksHistory = blocksHistory;
         this.peersInfo = peersInfo;
         this.totalReattempts = totalReattempts;
@@ -85,6 +92,8 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         result.append(downloadedBlocks.size() + " downloaded, ");
         result.append(discardedBlocks.size() + " discarded, ");
         result.append(pendingBlocks.size() + " pending, ");
+        result.append(pendingToCancelBlocks.size() + " pending To Cancel, ");
+        result.append(cancelledBlocks.size() + " cancelled, ");
         result.append(peersInfo.size() + " peers, ");
         result.append(getNumPeersDownloading() + " peers downloading Blocks, ");
         result.append(totalReattempts + " re-attempts, ");
@@ -126,10 +135,13 @@ public final class BlockDownloaderHandlerState extends HandlerState {
     }
 
     public BlockDownloaderHandlerImpl.DonwloadingState getDownloadingState()
-                                                { return this.downloadingState; }
-    public List<String> getPendingBlocks()      { return this.pendingBlocks; }
-    public List<String> getDownloadedBlocks()   { return this.downloadedBlocks; }
-    public List<String> getDiscardedBlocks()    { return this.discardedBlocks; }
+                                                    { return this.downloadingState; }
+    public List<String> getPendingBlocks()          { return this.pendingBlocks; }
+    public List<String> getDownloadedBlocks()       { return this.downloadedBlocks; }
+    public List<String> getDiscardedBlocks()        { return this.discardedBlocks; }
+    public List<String> getPendingToCancelBlocks()  { return this.pendingToCancelBlocks; }
+    public List<String> getCancelledBlocks()        { return cancelledBlocks; }
+
     public List<BlockPeerInfo> getPeersInfo()   { return this.peersInfo; }
     public long getTotalReattempts()            { return this.totalReattempts;}
     public int getBusyPercentage()              { return this.busyPercentage;}
@@ -164,7 +176,12 @@ public final class BlockDownloaderHandlerState extends HandlerState {
                 .pendingBlocks(this.pendingBlocks)
                 .downloadedBlocks(this.downloadedBlocks)
                 .discardedBlocks(this.discardedBlocks)
+                .pendingToCancelBlocks(this.pendingToCancelBlocks)
+                .cancelledBlocks(this.cancelledBlocks)
+                .blocksHistory(this.blocksHistory)
                 .peersInfo(this.peersInfo)
+                .blocksNumDownloadAttempts(this.blocksNumDownloadAttempts)
+                .busyPercentage(this.busyPercentage)
                 .bandwidthRestricted(this.bandwidthRestricted)
                 .blocksDownloadingSize(this.blocksDownloadingSize);
     }
@@ -177,6 +194,8 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         private List<String> pendingBlocks;
         private List<String> downloadedBlocks;
         private List<String> discardedBlocks;
+        private List<String> pendingToCancelBlocks;
+        private List<String> cancelledBlocks;
         private Map<String, List<BlocksDownloadHistory.HistoricItem>> blocksHistory;
         private List<BlockPeerInfo> peersInfo;
         private long totalReattempts;
@@ -205,6 +224,16 @@ public final class BlockDownloaderHandlerState extends HandlerState {
 
         public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder discardedBlocks(List<String> discardedBlocks) {
             this.discardedBlocks = discardedBlocks;
+            return this;
+        }
+
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder pendingToCancelBlocks(List<String> pendingToCancelBlocks) {
+            this.pendingToCancelBlocks = pendingToCancelBlocks;
+            return this;
+        }
+
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder cancelledBlocks(List<String> cancelledBlocks) {
+            this.cancelledBlocks = cancelledBlocks;
             return this;
         }
 
@@ -244,7 +273,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         }
 
         public BlockDownloaderHandlerState build() {
-            return new BlockDownloaderHandlerState(downloadingState, pendingBlocks, downloadedBlocks, discardedBlocks, blocksHistory, peersInfo, totalReattempts, blocksNumDownloadAttempts, busyPercentage, bandwidthRestricted, blocksDownloadingSize);
+            return new BlockDownloaderHandlerState(downloadingState, pendingBlocks, downloadedBlocks, discardedBlocks, pendingToCancelBlocks, cancelledBlocks, blocksHistory, peersInfo, totalReattempts, blocksNumDownloadAttempts, busyPercentage, bandwidthRestricted, blocksDownloadingSize);
         }
     }
 }

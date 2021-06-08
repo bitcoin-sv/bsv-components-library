@@ -87,8 +87,22 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
     private Deque<String>           blocksPending = new ConcurrentLinkedDeque<>();
     private List<String>            blocksDownloaded = new CopyOnWriteArrayList<>();
     private Map<String, Instant>    blocksDiscarded = new ConcurrentHashMap<>();
-    private Set<String>             blocksFailedDuringDownload = ConcurrentHashMap.newKeySet();
 
+    // A block might fall into LIMBO if the download process gets interrupted: either by the Peer dropping the
+    // connection, or the Peer becoming Idle. In these cases, we haven't received the whole content of the block
+    // yet, but it might still be coming. So the Blocks goes to LIMBO, and it will stay there until it's
+    // download finishes, or we detect that there has not been any activity for that block for some time, in which
+    // case we can discard it:
+    private Set<String> blocksInLimbo = ConcurrentHashMap.newKeySet();
+
+    // Blocks can also be cancelled after they've benn requested for download. A block can only be cancelled if:
+    // - the download of the block has not started yet
+    // - the download of the block has started BUt there has been an error and now the block is in the
+    //   "blocksFailedDuringDownload" set, where It will remain until it's re-attempted. But if the block is cancelled, it
+    //   will bre removed from there and not re-attempted any more.
+
+    private Set<String>             blocksPendingToCancel = ConcurrentHashMap.newKeySet();
+    private Set<String>             blocksCancelled = ConcurrentHashMap.newKeySet();
 
     // If the block download fails for any reason while downloading a block,we process that as a FAILED.
     // But since the order of events is not guaranteed, it might be possible that the
@@ -151,7 +165,10 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         super.eventBus.subscribe(BlockHeaderDownloadedEvent.class, e -> this.onPartialBlockHeaderMsgReceived((BlockHeaderDownloadedEvent) e));
         super.eventBus.subscribe(BlockTXsDownloadedEvent.class, e -> this.onPartialBlockTxsMsgReceived((BlockTXsDownloadedEvent) e));
         super.eventBus.subscribe(BlockRawTXsDownloadedEvent.class, e -> this.onPartialBlockTxsMsgReceived((BlockRawTXsDownloadedEvent) e));
+
+        // Download/Cancel requests:
         super.eventBus.subscribe(BlocksDownloadRequest.class, e -> this.download(((BlocksDownloadRequest) e).getBlockHashes()));
+        super.eventBus.subscribe(BlocksCancelDownloadRequest.class, e -> this.cancelDownload(((BlocksCancelDownloadRequest) e).getBlockHashes()));
 
     }
 
@@ -195,6 +212,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                 .pendingBlocks(this.blocksPending.stream().collect(Collectors.toList()))
                 .downloadedBlocks(this.blocksDownloaded)
                 .discardedBlocks(this.blocksDiscarded.keySet().stream().collect(Collectors.toList()))
+                .pendingToCancelBlocks(this.blocksPendingToCancel.stream().collect(Collectors.toList()))
+                .cancelledBlocks(this.blocksCancelled.stream().collect(Collectors.toList()))
                 .blocksHistory(this.blocksDownloadHistory.getBlocksHistory())
                 .peersInfo(this.peersInfo.values().stream()
                         //.filter( p -> p.getCurrentBlockInfo() != null)
@@ -223,6 +242,17 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                 logger.debug(" Block " + b);
                 blocksPending.offer(b);
             });
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public void cancelDownload(List<String> blockHashes) {
+        try {
+            lock.lock();
+            logger.debug("Cancelling " + blockHashes.size() + " blocks from download: ");
+            blockHashes.forEach(h -> cancelDownload(h));
         } finally {
             lock.unlock();
         }
@@ -289,7 +319,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                 // If this Peer was in the middle of downloading a block, we process the failure...
                 if (peerInfo.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING)) {
                     blocksDownloadHistory.register(peerInfo.getCurrentBlockInfo().hash, peerInfo.getPeerAddress(), "Peer has disconnected");
-                    blocksFailedDuringDownload.add(peerInfo.getCurrentBlockInfo().hash);
+                    blocksInLimbo.add(peerInfo.getCurrentBlockInfo().hash);
                     //processDownloadFailiure(peerInfo, false);
                 }
                 peerInfo.disconnect();
@@ -578,9 +608,39 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
 
             blocksDownloaded.add(blockHash);
             blocksNumDownloadAttempts.remove(blockHash);
-            blocksFailedDuringDownload.remove(blockHash);
+            blocksInLimbo.remove(blockHash);
             bigBlocksHeaders.remove(blockHash);
             bigBlocksCurrentTxs.remove(blockHash);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void cancelDownload(String blockHash) {
+        try {
+            lock.tryLock();
+
+            // If this block has not been cancelled previously, we record it:
+            if (!blocksPendingToCancel.contains(blockHash) && !blocksCancelled.contains(blockHash)) {
+                logger.debug("Cancelling " + blockHash + " block from download: ");
+                blocksDownloadHistory.register(blockHash,   "block requested for cancellation");
+            }
+
+            // the only scenario when a Block can NOT be cancelling is when it's been actively being downloaded. In the
+            // rest of cases, we cancel and remove it from our internal structures:
+            if (blocksPending.contains(blockHash) || blocksDiscarded.containsKey(blockHash)) {
+
+                blocksInLimbo.remove(blockHash);
+                blocksPending.remove(blockHash);
+                blocksDiscarded.remove(blockHash);
+                blocksNumDownloadAttempts.remove(blockHash);
+                bigBlocksHeaders.remove(blockHash);
+                bigBlocksCurrentTxs.remove(blockHash);
+                blocksInLimbo.remove(blockHash);
+                blocksCancelled.add(blockHash);
+
+                blocksDownloadHistory.register(blockHash,   "block cancelled");
+            }
         } finally {
             lock.unlock();
         }
@@ -593,19 +653,27 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
             // if the number of attempts tried for this block is no longer stored, that means that the block has been
             // succcesfully downloaded after all...
             if (!blocksNumDownloadAttempts.containsKey(blockHash)) {
-                blocksFailedDuringDownload.remove(blockHash);
+                blocksInLimbo.remove(blockHash);
+                return;
+            }
+
+            // If this block is in the "pendingToCancel" list, that means that this Block ha sbeen cencelled, so we do
+            // not try to re-attempts it anymore...
+
+            if (this.blocksPendingToCancel.contains(blockHash)) {
+                cancelDownload(blockHash);
                 return;
             }
 
             int numAttempts = blocksNumDownloadAttempts.get(blockHash);
             if (numAttempts < config.getMaxDownloadAttempts()) {
                 logger.debug("Download failure for " + blockHash + " :: back to the pending Pool...");
-                blocksDownloadHistory.register(blockHash, "back to the pending Pool");
+                blocksDownloadHistory.register(blockHash, "Block moved back to the pending Pool");
                 blocksPending.offerFirst(blockHash);        // we add it to the FRONT of the Queue
                 this.totalReattempts.incrementAndGet();     // keep track of total re-attempts
             } else {
                 logger.debug("Download failure for " + blockHash, numAttempts + " attempts (max " + config.getMaxDownloadAttempts() + ")", "discarding Block...");
-                blocksDownloadHistory.register(blockHash,   "block discarded (max attempts broken)");
+                blocksDownloadHistory.register(blockHash,   "block discarded (max attempts broken, reset to zero)");
                 blocksDiscarded.put(blockHash, Instant.now());
                 // We reset the number of attempts, next time we try this block will start from scratch:
                 blocksNumDownloadAttempts.remove(blockHash);
@@ -615,7 +683,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
 
             bigBlocksHeaders.remove(blockHash);
             bigBlocksCurrentTxs.remove(blockHash);
-            blocksFailedDuringDownload.remove(blockHash);
+            blocksInLimbo.remove(blockHash);
 
         } finally {
             lock.unlock();
@@ -722,7 +790,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                               if (msgFailure != null) {
                                   logger.debug(peerAddress.toString(), "Download Failure", peerInfo.getCurrentBlockInfo().hash, msgFailure);
                                   blocksDownloadHistory.register(peerInfo.getCurrentBlockInfo().hash, peerInfo.getPeerAddress(), "Download Issue detected : " + msgFailure);
-                                  blocksFailedDuringDownload.add(peerInfo.getCurrentBlockInfo().hash);
+                                  blocksInLimbo.add(peerInfo.getCurrentBlockInfo().hash);
                                   // We discard this Peer and also send a request to Disconnect from it:
                                   //System.out.println(" >>>>> DOWNLOAD FAILIURE for " + peerInfo.getCurrentBlockInfo().hash + " from " + peerAddress + ": " + msgFailure);
                                   peerInfo.discard();
@@ -738,7 +806,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                     // (we are still receiving data from them, although we've been already notified about the peers
                     //  disconnecting), or those blocks are actually "broken", in this case we re-assign or discard them
 
-                    List<String> blocksFailed = this.blocksFailedDuringDownload.stream().collect(Collectors.toList());
+                    List<String> blocksFailed = this.blocksInLimbo.stream().collect(Collectors.toList());
                     for (String blockHash: blocksFailed) {
                         Duration timePassedSinceLastActivity = Duration.between(blocksLastActivity.get(blockHash), Instant.now());
                         if (timePassedSinceLastActivity.compareTo(blockInactivyFailTimeout) > 0) {
@@ -749,7 +817,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                     // CHECK DISCARDED BLOCKS
                     // blocks stored in "blocksDiscarded" are blocks that have failed more times than specified in a
                     // limit in the config. But they can be retried again, after some time has passed. Here we check if
-                    // its time to re.try them:
+                    // its time to re-try them:
 
                     List<String> blocksToReTry = new ArrayList<>();
                     for (String hashDiscarded: blocksDiscarded.keySet()) {
@@ -760,6 +828,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                     if (blocksToReTry.size() > 0) {
                         for (String hashToRetry : blocksToReTry) {
                               blocksDiscarded.remove(hashToRetry);
+                              blocksDownloadHistory.register(hashToRetry, "Block picked up again to re-attempt download...");
                               blocksPending.offerFirst(hashToRetry); // blocks to retry have preference...
                           }
                       }

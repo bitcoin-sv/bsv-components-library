@@ -237,29 +237,45 @@ public class P2PRequestHandler {
     /**
      * A convenience Class for Requests related to Blocks Downloading
      */
-    public class BlockDownloadRequestBuilder extends RequestBuilder {
+    public class BlocksDownloadRequestBuilder {
+        public BlocksToDownloadRequestBuilder download(String blockHash) {
+            return new BlocksToDownloadRequestBuilder(Arrays.asList(blockHash));
+        }
+        public BlocksToDownloadRequestBuilder download(List<String> blockHashes) {
+            return new BlocksToDownloadRequestBuilder(blockHashes);
+        }
+        public BlocksToCancelDownloadRequestBuilder cancelDownload(String blockHash) {
+            return new BlocksToCancelDownloadRequestBuilder(Arrays.asList(blockHash));
+        }
+        public BlocksToCancelDownloadRequestBuilder cancelDownload(List<String> blockHashes) {
+            return new BlocksToCancelDownloadRequestBuilder(blockHashes);
+        }
+    }
+
+    /**
+     * A Builder for Requests to Download Blocks
+     */
+    public class BlocksToDownloadRequestBuilder extends RequestBuilder {
         private List<String> blockHash;
 
-        public BlockDownloadRequestBuilder(List<String> blockHash)  { this.blockHash = blockHash; }
-        public BlocksDownloadRequest buildRequest()                 { return new BlocksDownloadRequest(blockHash); }
+        public BlocksToDownloadRequestBuilder(List<String> blockHash)   { this.blockHash = blockHash; }
+        public BlocksDownloadRequest buildRequest()                     { return new BlocksDownloadRequest(blockHash); }
     }
 
 
     /**
-     * A convenience Class for Request related to the Block Downloader Handler
+     * A Builder for Requests to Cancel the Download of Blocks
      */
-    public class BlockDownloaderRequestBuilder {
-        public BlockDownloadRequestBuilder download(String blockHash) {
-            return new BlockDownloadRequestBuilder(Arrays.asList(blockHash));
-        }
-        public BlockDownloadRequestBuilder download(List<String> blockHashes) {
-            return new BlockDownloadRequestBuilder(blockHashes);
-        }
+    public class BlocksToCancelDownloadRequestBuilder extends RequestBuilder {
+        private List<String> blockHash;
+
+        public BlocksToCancelDownloadRequestBuilder(List<String> blockHash)   { this.blockHash = blockHash; }
+        public BlocksCancelDownloadRequest buildRequest()                     { return new BlocksCancelDownloadRequest(blockHash); }
     }
 
     // Definition of the built-in Request Handlers:
     public final PeersRequestBuilder            PEERS   = new PeersRequestBuilder();
     public final MsgsRequestBuilder             MSGS    = new MsgsRequestBuilder();
-    public final BlockDownloaderRequestBuilder  BLOCKS  = new BlockDownloaderRequestBuilder();
+    public final BlocksDownloadRequestBuilder   BLOCKS  = new BlocksDownloadRequestBuilder();
 
 }

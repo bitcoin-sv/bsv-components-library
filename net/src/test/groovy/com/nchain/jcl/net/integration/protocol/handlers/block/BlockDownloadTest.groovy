@@ -5,6 +5,7 @@ import com.nchain.jcl.net.network.config.provided.NetworkDefaultConfig
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandlerConfig
+import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandlerState
 import com.nchain.jcl.net.protocol.handlers.block.BlocksDownloadHistory
 import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerConfig
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg
@@ -27,7 +28,11 @@ import java.util.concurrent.atomic.AtomicBoolean
 class BlockDownloadTest extends Specification {
 
     // Several real Block HASHES to download from different Networks:
+    // For each Network, we Define:
+    // - a list of Blocks to Download
+    // - a sublist of the preivous blocks that will be cancelled after the download starts (a few seconds later)
 
+    // BSV MAINNET:
 
     private static final List<String> BLOCKS_BSV_MAIN = Arrays.asList(
             "0000000000000000027abeb2a2348dac5f953676f6b68a6ed5d92458a1c12cab", // 0.6MB
@@ -55,22 +60,34 @@ class BlockDownloadTest extends Specification {
             "0000000000000000061757aed9f19d4e6a94ad5f309d1cc53f4303298cbf033f", // 2.2MB
     )
 
+    private static final List<String> BLOCKS_BSV_MAIN_TO_CANCEL = Arrays.asList(
+            "0000000000000000071e6e1c401fc530a63d27c826661a2f48709ba2ab51ecb4", // 7K
+            "0000000000000000039f4868d8c88d8ba86458101b965f5885cc63ed6814fb5c", // 2MB
+            "000000000000000002f5268d72f9c79f29bef494e350e58f624bcf28700a1846" //  369MB
+    )
 
+    // BSV STNNET:
 
     private static final List<String> BLOCKS_BSV_STN = Arrays.asList(
-            //"00000000041a389a73cfdc312f06eb1ea187b86a227b5cca5002d30ccb55e6e9", // 450MB
-            //"000000000c3c309a1597f0626abaa4fa32ca0085851eceeaf56c3288be800752", // 380MB
-            //"000000001ef6a2b165313202ad6938fc90ae942ad09575b6929bdf7558db78ea", // 325MB
-            //"0000000010366d336e351d020a838c4992878ba8f0bad3c62d1810319ff6da24"  // 192MB
+            "00000000041a389a73cfdc312f06eb1ea187b86a227b5cca5002d30ccb55e6e9", // 450MB
+            "000000000c3c309a1597f0626abaa4fa32ca0085851eceeaf56c3288be800752", // 380MB
+            "000000001ef6a2b165313202ad6938fc90ae942ad09575b6929bdf7558db78ea", // 325MB
+            "0000000010366d336e351d020a838c4992878ba8f0bad3c62d1810319ff6da24",  // 192MB
             "000000000f07389d9ed5e0d31e1f93dce1dd4777ae5f204272ce4beb20c838f7", // 5MB
             "00000000164f38c92e48c04cb7ce0bc9a26faf7651f95cb2cc349a4a4e100dae", // 224 bytes
             "000000001bc7963fd54d4968a68a3b467564a4e05f357a9ff5e53fd422362d6e"  // 224 bytes
 
     )
+
+    private static final List<String> BLOCKS_BSV_STN_TO_CANCEL = new ArrayList<>();
+
+    // BTC MAIN:
     private static final List<String> BLOCKS_BTC_MAIN = Arrays.asList(
             "000000000000000000067e14c07b50025455a26cd745ed32247a64ab917e677e", //1MB
             "00000000000000000007f095af6667da606d2d060f3a02a9c6a1e6a2ef9fc4e9"  // 1MB
     )
+
+    private static final List<String> BLOCKS_BTC_MAIN_TO_CANCEL = new ArrayList<>();
 
     /**
      * We test that the Blocks can be either downloaded for different Chains (BSV, BTC, etc).
@@ -86,6 +103,9 @@ class BlockDownloadTest extends Specification {
         given:
             // The longest Timeout we'll wait for to run the test:
             Duration TIMEOUT = Duration.ofMinutes(3)
+
+            // Time to wait to cancel blocks after starting downloading:
+            Duration WAIT_FOR_CANCELLING = Duration.ofSeconds(2);
 
             // Runtime Config:
             RuntimeConfig runtimeConfig = new RuntimeConfigDefault().toBuilder()
@@ -113,7 +133,7 @@ class BlockDownloadTest extends Specification {
                 .maxBlocksInParallel(3)
                 .maxIdleTimeout(Duration.ofSeconds(10))
                 .removeBlockHistoryAfterDownload(false)
-                .removeBlockHistoryAfter(Duration.ofSeconds(10))
+                .removeBlockHistoryAfter(Duration.ofMinutes(10))
                 .build()
 
             // We configure the P2P Service:
@@ -133,9 +153,10 @@ class BlockDownloadTest extends Specification {
             Map<String, Long> blockTxsBytes = new ConcurrentHashMap<>()             // number of BYTES of Txs downloaded for each Block...
             Set<String> blocksDownloaded = new HashSet<>()                          // Blocks fully downloaded
             Set<String> blocksDiscarded = new HashSet<>()                           // Blocks Discarded...
+            Set<String> blocksCancelled = new HashSet<>()                           // Blocks Cancelled...
 
-            // We keep track of the History of each Block:
-            Map<String, List<BlocksDownloadHistory>> blocksHistory = new ConcurrentHashMap<>()
+            // We keep track of the last Download STATUS:
+            BlockDownloaderHandlerState downloadState = null;
 
             // We capture the state when we reach the min Peers, so we do not start the download until this moment:
             AtomicBoolean connReady = new AtomicBoolean(false);
@@ -157,7 +178,7 @@ class BlockDownloadTest extends Specification {
                 blockTxs.put(hash, currentTxs)
             })
 
-            // Every time a set of TXs is downloaded, we increase the counter of Txs for this block:
+            // Every time a set of RAW TXs is downloaded, we increase the counter of Txs for this block:
             p2p.EVENTS.BLOCKS.BLOCK_RAW_TXS_DOWNLOADED.forEach({e ->
                 String hash = Utils.HEX.encode(Utils.reverseBytes(e.getBtcMsg().body.getBlockHeader().getHash().getHashBytes()))
                 Long currentTxsBytes = blockTxsBytes.containsKey(hash)? (blockTxsBytes.get(hash) + e.getBtcMsg().body.getTxs().length) : e.getBtcMsg().body.getTxs().length
@@ -185,32 +206,38 @@ class BlockDownloadTest extends Specification {
             p2p.EVENTS.STATE.HANDSHAKE.forEach({ e -> println(e)})
             p2p.EVENTS.STATE.BLOCKS.forEach( {e ->
                 println(e)
+                downloadState = (BlockDownloaderHandlerState) e.getState();
+                blocksCancelled = downloadState.getCancelledBlocks()
             })
 
         when:
             println(" > Testing Block Download in " + config.toString() + "...")
-            // WE start the Service and request to download the Blocks...
+
+            // We start the Service and request to download the Blocks...
             p2p.start()
             //p2p.REQUESTS.PEERS.connect("104.248.245.82/104.248.245.82:8333").submit();
-            // we wait until we reach the MAXIMUN number of Peers:
+
+            // we wait until we reach the MAXIMUM number of Peers:
             while (!connReady.get()) Thread.sleep(100)
 
+            // Connections are Ready. We submit the Request to start downloading...
             println("Connection Ready...")
             p2p.REQUESTS.BLOCKS.download(block_hashes).submit()
 
-            // We'll wait until all the blocks are done (downloaded or discarded) OR we've waited for too long...
+            // We wait some time and then we submit a request to Cancel some mBlocks from downloading:
+            Thread.sleep(WAIT_FOR_CANCELLING.toMillis());
+            p2p.REQUESTS.BLOCKS.cancelDownload(block_hashes_to_cancel).submit()
+
+            // We'll wait until all the blocks are done (downloaded, discarded or cancelled) OR we've waited for too long...
             Instant startTime = Instant.now()
             boolean allBlocksDone = false
             boolean timeoutBroken = false;
             Duration testDuration = null
             while (!allBlocksDone && !timeoutBroken) {
                 Thread.sleep(500)
-                allBlocksDone = (blocksDownloaded.size() + blocksDiscarded.size()) == block_hashes.size()
-                timeoutBroken = Duration.between(startTime, Instant.now()).compareTo(TIMEOUT) > 0
-
-                if (allBlocksDone) {
-                    testDuration = Duration.between(startTime, Instant.now())
-                }
+                allBlocksDone = (blocksDownloaded.size() + blocksDiscarded.size() + blocksCancelled.size()) == block_hashes.size()
+                testDuration = Duration.between(startTime, Instant.now())
+                timeoutBroken = testDuration.compareTo(TIMEOUT) > 0
             }
             p2p.stop()
             println("It took " + testDuration.toSeconds() + " seconds to finish the Test.")
@@ -218,24 +245,22 @@ class BlockDownloadTest extends Specification {
 
             Thread.sleep(1000)
 
-            // Then, if some blocks has NOT been downloaded, we shot its history:
-            block_hashes.stream()
-                .filter({hash -> !blocksDownloaded.contains(hash)})
-                .forEach({ hash ->
-                    println("> BLOCK " + hash + " HAS NOT BEEN DOWNLOADED. HISTORY:")
-                    List<BlocksDownloadHistory.HistoricItem> blockHistory = blocksHistory.get(hash);
-                    if (blocksHistory != null) {
-                        blockHistory.forEach({i -> println("  -> " + i)})
-                    } else println(" > No History recorded (might not even have started downloaded)")
-
-                })
+            // Now we show the History of ALL the blocks:
+            println(" TEST DONE. Printing the Whole Download Hisatory:\n");
+            Map<String, BlocksDownloadHistory.HistoricItem> history = downloadState.blocksHistory;
+            for (String blockHash: history.keySet()) {
+                println(" > block " + blockHash + " :");
+                for (BlocksDownloadHistory.HistoricItem historicItem : history.get(blockHash)) {
+                    println("  - " + historicItem.toString());
+                }
+            }
 
         then:
             allBlocksDone
 
         where:
-            config                     |   block_hashes
-            new ProtocolBSVMainConfig()      |   BLOCKS_BSV_MAIN
+            config                     |   block_hashes     | block_hashes_to_cancel
+            new ProtocolBSVMainConfig()      |   BLOCKS_BSV_MAIN    | BLOCKS_BSV_MAIN_TO_CANCEL
            //com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder.get(MainNetParams.get()) |   BLOCKS_BSV_MAIN
            //new ProtocolBSVStnConfig()      |   BLOCKS_BSV_STN
            //new ProtocolBTCMainConfig() |   BLOCKS_BTC_MAIN
