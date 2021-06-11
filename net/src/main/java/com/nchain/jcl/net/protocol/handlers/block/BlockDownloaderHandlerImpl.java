@@ -238,10 +238,13 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         try {
             lock.lock();
             logger.debug("Adding " + blockHashes.size() + " blocks to download: ");
-            blockHashes.forEach(b -> {
-                logger.debug(" Block " + b);
-                blocksPending.offer(b);
-            });
+            blockHashes.stream()
+                    .filter(h -> !blocksCancelled.contains(h))
+                    .filter(h -> !blocksPendingToCancel.contains(h))
+                    .forEach(b -> {
+                        logger.debug(" Block " + b);
+                        blocksPending.offer(b);
+                    });
         } finally {
             lock.unlock();
         }
@@ -623,6 +626,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
             // If this block has not been cancelled previously, we record it:
             if (!blocksPendingToCancel.contains(blockHash) && !blocksCancelled.contains(blockHash)) {
                 logger.debug("Cancelling " + blockHash + " block from download: ");
+                blocksPendingToCancel.add(blockHash);
                 blocksDownloadHistory.register(blockHash,   "block requested for cancellation");
             }
 
@@ -637,6 +641,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                 bigBlocksHeaders.remove(blockHash);
                 bigBlocksCurrentTxs.remove(blockHash);
                 blocksInLimbo.remove(blockHash);
+
+                blocksPendingToCancel.remove(blockHash);
                 blocksCancelled.add(blockHash);
 
                 blocksDownloadHistory.register(blockHash,   "block cancelled");

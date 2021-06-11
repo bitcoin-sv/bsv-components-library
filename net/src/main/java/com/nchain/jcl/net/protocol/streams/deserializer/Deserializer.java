@@ -45,7 +45,7 @@ import java.util.function.Consumer;
 public class Deserializer {
 
     /**
-     * Key of the Items stored in the Cache for mall messages.
+     * Key of the Items stored in the Cache for small messages.
      * It contain several fields, but only the CHECKSUM field is used as a Key (that's why the 'Equals' and 'hasCode'
      * only use that field). The rest of fields are needed to "deserialize" the items into the cache when they are not there
      * (in this case "loading" an item means to deserialize it, so we need the Deserialization Context, the
