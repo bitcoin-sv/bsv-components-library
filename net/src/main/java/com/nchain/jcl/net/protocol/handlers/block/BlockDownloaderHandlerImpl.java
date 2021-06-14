@@ -324,7 +324,9 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                 if (peerInfo.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING)) {
                     blocksDownloadHistory.register(peerInfo.getCurrentBlockInfo().hash, peerInfo.getPeerAddress(), "Peer has disconnected");
                     blocksInLimbo.add(peerInfo.getCurrentBlockInfo().hash);
-                    //processDownloadFailiure(peerInfo, false);
+
+                    // We process this failiure right away, no need to wait for the monitorJob to pick it up 1 minutes later
+                    processDownloadFailiure(peerInfo.getCurrentBlockInfo().hash);
                 }
                 peerInfo.disconnect();
             }
@@ -808,7 +810,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                        } // Switch...
                     } // white it. next...
 
-                    // CHECK INTERRUMPTED DOWNLOADS
+                    // CHECK INTERRUMPTED DOWNLOADS (BLOCKS IN "LIMBO")
                     // We look over the "blocksFailedDuringDownload" set, and check if those blocks are still "alive"
                     // (we are still receiving data from them, although we've been already notified about the peers
                     //  disconnecting), or those blocks are actually "broken", in this case we re-assign or discard them
