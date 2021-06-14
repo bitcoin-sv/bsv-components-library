@@ -169,7 +169,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         // Download/Cancel requests:
         super.eventBus.subscribe(BlocksDownloadRequest.class, e -> this.download(((BlocksDownloadRequest) e).getBlockHashes()));
         super.eventBus.subscribe(BlocksCancelDownloadRequest.class, e -> this.cancelDownload(((BlocksCancelDownloadRequest) e).getBlockHashes()));
-
+        super.eventBus.subscribe(BlocksDownloadStartRequest.class, e -> this.resume());
+        super.eventBus.subscribe(BlocksDownloadPauseRequest.class, e -> this.pause());
     }
 
     // Returns the total size (in bytes) of all the blocks being downloaded at this moment

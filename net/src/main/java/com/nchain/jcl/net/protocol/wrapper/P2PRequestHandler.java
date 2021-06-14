@@ -250,6 +250,12 @@ public class P2PRequestHandler {
         public BlocksToCancelDownloadRequestBuilder cancelDownload(List<String> blockHashes) {
             return new BlocksToCancelDownloadRequestBuilder(blockHashes);
         }
+        public BlocksDownloadStartRequestBuilder resume() {
+            return new BlocksDownloadStartRequestBuilder();
+        }
+        public BlocksDownloadPauseRequestBuilder pause() {
+            return new BlocksDownloadPauseRequestBuilder();
+        }
     }
 
     /**
@@ -272,6 +278,23 @@ public class P2PRequestHandler {
         public BlocksToCancelDownloadRequestBuilder(List<String> blockHash)   { this.blockHash = blockHash; }
         public BlocksCancelDownloadRequest buildRequest()                     { return new BlocksCancelDownloadRequest(blockHash); }
     }
+
+    /**
+     * A Builder for Requests to Resume the Download process
+     */
+    public class BlocksDownloadStartRequestBuilder extends RequestBuilder {
+        public BlocksDownloadStartRequestBuilder() {}
+        public BlocksDownloadStartRequest buildRequest() { return new BlocksDownloadStartRequest();}
+    }
+
+    /**
+     * A Builder for Requests to Resume the Download process
+     */
+    public class BlocksDownloadPauseRequestBuilder extends RequestBuilder {
+        public BlocksDownloadPauseRequestBuilder() {}
+        public BlocksDownloadPauseRequest buildRequest() { return new BlocksDownloadPauseRequest();}
+    }
+
 
     // Definition of the built-in Request Handlers:
     public final PeersRequestBuilder            PEERS   = new PeersRequestBuilder();
