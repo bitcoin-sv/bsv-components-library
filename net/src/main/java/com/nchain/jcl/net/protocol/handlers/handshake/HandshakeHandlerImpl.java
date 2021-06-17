@@ -234,18 +234,22 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
                 }
             }
 
-            // If we reach this far, the Version is compatible. We send an ACK Back:
+            // If we reach this far, the Version is compatible. We send an ACK back
+            // NOTE: Before sending the ACK, we make sure the PeerHandshaked event is propagated through JCL
+            // by the time the remote Peer receives the message.
+
+            peerInfo.sendACK(); // update this peer state as if the ACK was already sent...
+
+            // if the Handshake is completed (back-and-forth messages have been exchanged), we notify this through JCL:
+            if (peerInfo.checkHandshakeOK()) {
+                acceptHandshake(peerInfo);
+            } else logger.debug( peerInfo.getPeerAddress(), " Handshake pending, still missing ACK from peer");
+
+            // And now we send the ACK...
             VersionAckMsg ackMsgBody = VersionAckMsg.builder().build();
             BitcoinMsg<VersionAckMsg> btcAckMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), ackMsgBody).build();
             super.eventBus.publish(new SendMsgRequest(peerInfo.getPeerAddress(), btcAckMsg));
 
-            // And we update the State of this Peer:
-            peerInfo.sendACK();
-
-            // After this message is processed, we check the Handshake status:
-            if (peerInfo.checkHandshakeOK()) {
-                acceptHandshake(peerInfo);
-            } else logger.debug( peerInfo.getPeerAddress(), " Handshake pending, still missing ACK from peer");
         } finally {
             lock.unlock();
         }
@@ -424,27 +428,6 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
                 maxPeersReachedEventSent = true;
             }
         }
-
-        /*
-
-        if (checkForMinPeersLost && config.getBasicConfig().getMinPeers().isPresent()
-                && state.getNumCurrentHandshakes() < config.getBasicConfig().getMinPeers().getAsInt()
-                && !minPeersLostEventSent
-                && minPeersReachedEventSent) {
-            super.eventBus.publish(new MinHandshakedPeersLostEvent(state.getNumCurrentHandshakes()));
-            minPeersLostEventSent = true;
-            minPeersReachedEventSent = false;
-        }
-
-        if (!checkForMinPeersLost && config.getBasicConfig().getMaxPeers().isPresent()
-                && state.getNumCurrentHandshakes() >= config.getBasicConfig().getMinPeers().getAsInt()
-                && !minPeersReachedEventSent) {
-            super.eventBus.publish(new MinHandshakedPeersReachedEvent(state.getNumCurrentHandshakes()));
-            minPeersReachedEventSent = true;
-            minPeersLostEventSent = false;
-        }
-
-         */
     }
 
     /**
