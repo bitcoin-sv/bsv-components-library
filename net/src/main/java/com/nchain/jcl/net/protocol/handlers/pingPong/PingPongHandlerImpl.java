@@ -136,8 +136,20 @@ public class PingPongHandlerImpl extends HandlerImpl implements PingPongHandler 
 
     // Event Handler:
     public void onMsgReceived(MsgReceivedEvent event) {
-        PingPongPeerInfo peerInfo = peersInfo.get(event.getPeerAddress());
-        if (peerInfo != null)  processMsg(event.getBtcMsg(), peerInfo);
+        // As a general rule, we only process messages from Peers that we know have been Handshaked.
+        // BUT if this a PING and the peer is still unknown, we wait a little bit before moving forward, since the
+        // peer might have sent a PING so fast after the handshake, than we didn't have time to register it.
+        // The "PeerHandshakedEvent" should be triggered during the delay, if not, we just discard it.
+
+        try {
+            if (!peersInfo.containsKey(event.getPeerAddress()) && event.getBtcMsg().is(PingMsg.MESSAGE_TYPE)) {
+                Thread.sleep(50);
+            }
+            PingPongPeerInfo peerInfo = peersInfo.get(event.getPeerAddress());
+            if (peerInfo != null)  processMsg(event.getBtcMsg(), peerInfo);
+        } catch (InterruptedException ie) {
+            throw new RuntimeException(ie);
+        }
     }
 
     // Event Handler:
