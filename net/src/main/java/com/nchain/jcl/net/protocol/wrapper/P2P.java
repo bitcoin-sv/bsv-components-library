@@ -13,6 +13,7 @@ import com.nchain.jcl.net.protocol.events.data.MsgReceivedEvent;
 import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandler;
 import com.nchain.jcl.net.protocol.messages.FeeFilterMsg;
 import com.nchain.jcl.net.protocol.messages.InvMessage;
+import com.nchain.jcl.net.protocol.messages.PingMsg;
 import com.nchain.jcl.net.protocol.messages.TxMsg;
 import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault;
@@ -71,10 +72,7 @@ public class P2P {
     // We use this list to define a Function that will be used in the EventBus to set the priority for each Message.
     // By default, all Event are HIGH-Priority messages, and the Low-Priority ones are those specified here:
     Set<Class> lowPriorityMessages = new HashSet<>( Arrays.asList(
-            MsgReceivedEvent.class,
-            InvMessage.class,
-            TxMsg.class,
-            FeeFilterMsg.class));
+            MsgReceivedEvent.class));
 
     /** Constructor */
     public P2P(String id, RuntimeConfig runtimeConfig, NetworkConfig networkConfig, ProtocolConfig protocolConfig) {
