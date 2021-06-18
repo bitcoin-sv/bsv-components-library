@@ -18,9 +18,6 @@ import java.util.function.Consumer;
  */
 public class EventQueueProcessor {
 
-    // Queue of Events:
-    private BlockingQueue<Event> events = new LinkedBlockingQueue();
-
     // List of Consumers, linked to specific Event types:
     Map<Class<? extends Event>, Consumer> eventsConsumers = new ConcurrentHashMap<>();
 
@@ -39,28 +36,15 @@ public class EventQueueProcessor {
 
     /** I adds a new Event to be consumed. This method returns immediately, the Event is processed in a separate Thread */
     public void addEvent(Event event) {
-        events.add(event);
+        executor.submit(()-> eventsConsumers.get(event.getClass()).accept(event));
     }
 
     /** Starts the Execution */
     public void start() {
-        executor.submit(this::processQueue);
     }
 
     /** Stops the execution */
     public void stop() {
         executor.shutdownNow();
-    }
-
-    /** An infinite-loop thread that processes the Events in the queue */
-    private void processQueue() {
-        try {
-            while (true) {
-                Event event = events.take();
-                eventsConsumers.get(event.getClass()).accept(event);
-            }
-        } catch (InterruptedException e) {
-            //e.printStackTrace();
-        }
     }
 }
