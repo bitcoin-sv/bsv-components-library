@@ -24,6 +24,9 @@ import com.nchain.jcl.tools.thread.ThreadUtils;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -66,6 +69,9 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
     // way we won't slow down the rate at which the eVents are published and processed in the Bus
     private EventQueueProcessor eventQueueProcessor;
 
+    //Each ack needs to be processed after a delay to give the handshake messages time to propagate through the pipeline
+    private ScheduledExecutorService ackProcessor;
+
     public HandshakeHandlerImpl(String id, RuntimeConfig runtimeConfig, HandshakeHandlerConfig config) {
         super(id, runtimeConfig);
         this.logger = new LoggerUtil(id, HANDLER_ID, this.getClass());
@@ -76,6 +82,7 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
         // We start the EventQueueProcessor. We do not expect many messages (compared to the rest of traffic), so a
         // single Thread will do...
         this.eventQueueProcessor = new EventQueueProcessor(ThreadUtils.getSingleThreadScheduledExecutorService("JclHandshakeHandler-EventsConsumers"));
+        this.ackProcessor = ThreadUtils.getScheduledExecutorService("JclHandshakeHandler-AckProcessor", 2);
     }
 
     // We register this Handler to LISTEN to these Events:
@@ -256,14 +263,7 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
 
         acceptHandshake(peerInfo);
 
-        try {
-            //Give time for the HandShakeCompleteEvent to propagate through the pipeline
-            Thread.sleep(50);
-        } catch (InterruptedException e) {
-            logger.warm("Failed when attempting to sleep thread. Enough time may not have been given for the HandShakeEvent to propagate through the pipeline. Peer's ping may not have been responded to");
-        }
-
-        // And now we send the ACK...
+        //At this point, we've processd the VERSION and VERACK, and just propagated the ready messaged through the pipeline. We can now respond with an ACK as we're ready to go.
         VersionAckMsg ackMsgBody = VersionAckMsg.builder().build();
         BitcoinMsg<VersionAckMsg> btcAckMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), ackMsgBody).build();
         super.eventBus.publish(new SendMsgRequest(peerInfo.getPeerAddress(), btcAckMsg));
