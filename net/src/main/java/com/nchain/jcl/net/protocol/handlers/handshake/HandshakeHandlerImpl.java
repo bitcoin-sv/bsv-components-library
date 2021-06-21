@@ -240,19 +240,33 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
 
             peerInfo.sendACK(); // update this peer state as if the ACK was already sent...
 
-            // if the Handshake is completed (back-and-forth messages have been exchanged), we notify this through JCL:
-            if (peerInfo.checkHandshakeOK()) {
-                acceptHandshake(peerInfo);
-            } else logger.debug( peerInfo.getPeerAddress(), " Handshake pending, still missing ACK from peer");
-
-            // And now we send the ACK...
-            VersionAckMsg ackMsgBody = VersionAckMsg.builder().build();
-            BitcoinMsg<VersionAckMsg> btcAckMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), ackMsgBody).build();
-            super.eventBus.publish(new SendMsgRequest(peerInfo.getPeerAddress(), btcAckMsg));
+            //we can only complete once we've received both a version and an ack
+            tryCompleteHandshake(peerInfo);
 
         } finally {
             lock.unlock();
         }
+    }
+
+    private void tryCompleteHandshake(HandshakePeerInfo peerInfo){
+        // Check we've received both a version and an ack
+        if (!peerInfo.checkHandshakeOK()) {
+            return;
+        }
+
+        acceptHandshake(peerInfo);
+
+        try {
+            //Give time for the HandShakeCompleteEvent to propagate through the pipeline
+            Thread.sleep(50);
+        } catch (InterruptedException e) {
+            logger.warm("Failed when attempting to sleep thread. Enough time may not have been given for the HandShakeEvent to propagate through the pipeline. Peer's ping may not have been responded to");
+        }
+
+        // And now we send the ACK...
+        VersionAckMsg ackMsgBody = VersionAckMsg.builder().build();
+        BitcoinMsg<VersionAckMsg> btcAckMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), ackMsgBody).build();
+        super.eventBus.publish(new SendMsgRequest(peerInfo.getPeerAddress(), btcAckMsg));
     }
 
     /**
@@ -292,10 +306,9 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
             // We update the sate of this Peer:
             peerInfo.receiveACK();
 
-            // After this message is processed, we check the Handshake status:
-            if (peerInfo.checkHandshakeOK()) {
-                acceptHandshake(peerInfo);
-            } logger.debug( peerInfo.getPeerAddress(), " Handshake pending, ACK not sent to Peer yet");
+            //we can only complete once we've received both a version and an ack
+            tryCompleteHandshake(peerInfo);
+
         } finally {
             lock.unlock();
         }
