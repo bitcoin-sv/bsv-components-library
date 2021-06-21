@@ -1,10 +1,7 @@
 package com.nchain.jcl.tools.events;
 
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
 
 /**
@@ -36,7 +33,16 @@ public class EventQueueProcessor {
 
     /** I adds a new Event to be consumed. This method returns immediately, the Event is processed in a separate Thread */
     public void addEvent(Event event) {
-        executor.submit(()-> eventsConsumers.get(event.getClass()).accept(event));
+        try {
+            executor.submit(()-> eventsConsumers.get(event.getClass()).accept(event));
+        } catch (RejectedExecutionException e) {
+            // Most probably, we are trying to submit tasks when this executor has been already shutdown. This
+            // might happen if the order of events triggered by the EventBus is not in the right order:
+            // For example, when receiving the "NetStop" event form the EventBus, Handler will probably call the
+            // "stop()" method in this class, which will shutdown the executor, so no further events will be allowed.
+            // But due to the inherent Multi-thread randomness, other events might still come after the "NetStop"
+            // events, and those events therefore cannot be processed.
+        }
     }
 
     /** Starts the Execution */
