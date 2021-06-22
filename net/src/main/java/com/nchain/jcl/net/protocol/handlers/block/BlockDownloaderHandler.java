@@ -19,6 +19,7 @@ public interface BlockDownloaderHandler extends Handler {
 
     /** Adds more Block Hashes to the list of Blocks to Download */
     void download(List<String> blockHashes);
+    void download(List<String> blockHashes, boolean withPriority);
 
     /**
      * Cancels the download of the blocks given. If some of the blocks are already being download, those blocks will

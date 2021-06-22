@@ -16,15 +16,18 @@ import java.util.List;
  */
 public final class BlocksDownloadRequest extends P2PRequest {
     private final List<String> blockHashes;
+    private final boolean withPriority;
 
-    public BlocksDownloadRequest(List<String> blockHashes) {
+    public BlocksDownloadRequest(List<String> blockHashes, boolean withPriority) {
         this.blockHashes = blockHashes;
+        this.withPriority = withPriority;
     }
 
     public List<String> getBlockHashes() { return this.blockHashes; }
+    public boolean isWithPriority() { return this.withPriority;}
 
     @Override
     public String toString() {
-        return "BlocksDownloadRequest(blockHashes=" + this.getBlockHashes() + ")";
+        return "BlocksDownloadRequest(blockHashes=" + this.getBlockHashes() + ", withPriority=" + withPriority + ")";
     }
 }

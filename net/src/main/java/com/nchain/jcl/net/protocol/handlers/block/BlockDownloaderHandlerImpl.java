@@ -167,7 +167,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
         super.eventBus.subscribe(BlockRawTXsDownloadedEvent.class, e -> this.onPartialBlockTxsMsgReceived((BlockRawTXsDownloadedEvent) e));
 
         // Download/Cancel requests:
-        super.eventBus.subscribe(BlocksDownloadRequest.class, e -> this.download(((BlocksDownloadRequest) e).getBlockHashes()));
+        super.eventBus.subscribe(BlocksDownloadRequest.class, e -> this.download(((BlocksDownloadRequest) e).getBlockHashes(), ((BlocksDownloadRequest) e).isWithPriority()));
         super.eventBus.subscribe(BlocksCancelDownloadRequest.class, e -> this.cancelDownload(((BlocksCancelDownloadRequest) e).getBlockHashes()));
         super.eventBus.subscribe(BlocksDownloadStartRequest.class, e -> this.resume());
         super.eventBus.subscribe(BlocksDownloadPauseRequest.class, e -> this.pause());
@@ -236,20 +236,31 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
 
     @Override
     public void download(List<String> blockHashes) {
+        download(blockHashes, false);
+    }
+
+    @Override
+    public void download(List<String> blockHashes, boolean withPriority) {
         try {
             lock.lock();
-            logger.debug("Adding " + blockHashes.size() + " blocks to download: ");
+            logger.debug("Adding " + blockHashes.size() + " blocks to download (priority: " + withPriority +": ");
             blockHashes.stream()
                     .filter(h -> !blocksCancelled.contains(h))
                     .filter(h -> !blocksPendingToCancel.contains(h))
                     .forEach(b -> {
                         logger.debug(" Block " + b);
-                        blocksPending.offer(b);
+                        if (withPriority) {
+                            blocksPending.offerFirst(b);
+                        } else {
+                            blocksPending.offer(b);
+                        }
+
                     });
         } finally {
             lock.unlock();
         }
     }
+
 
     @Override
     public void cancelDownload(List<String> blockHashes) {

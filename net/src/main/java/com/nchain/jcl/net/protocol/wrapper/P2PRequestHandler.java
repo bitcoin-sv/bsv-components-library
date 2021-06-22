@@ -239,10 +239,16 @@ public class P2PRequestHandler {
      */
     public class BlocksDownloadRequestBuilder {
         public BlocksToDownloadRequestBuilder download(String blockHash) {
-            return new BlocksToDownloadRequestBuilder(Arrays.asList(blockHash));
+            return new BlocksToDownloadRequestBuilder(Arrays.asList(blockHash), false);
         }
         public BlocksToDownloadRequestBuilder download(List<String> blockHashes) {
-            return new BlocksToDownloadRequestBuilder(blockHashes);
+            return new BlocksToDownloadRequestBuilder(blockHashes, false);
+        }
+        public BlocksToDownloadRequestBuilder downloadWithPriority(String blockHash) {
+            return new BlocksToDownloadRequestBuilder(Arrays.asList(blockHash), true);
+        }
+        public BlocksToDownloadRequestBuilder downloadWithPriority(List<String> blockHashes) {
+            return new BlocksToDownloadRequestBuilder(blockHashes, true);
         }
         public BlocksToCancelDownloadRequestBuilder cancelDownload(String blockHash) {
             return new BlocksToCancelDownloadRequestBuilder(Arrays.asList(blockHash));
@@ -263,9 +269,15 @@ public class P2PRequestHandler {
      */
     public class BlocksToDownloadRequestBuilder extends RequestBuilder {
         private List<String> blockHash;
+        private boolean withPriority;
 
-        public BlocksToDownloadRequestBuilder(List<String> blockHash)   { this.blockHash = blockHash; }
-        public BlocksDownloadRequest buildRequest()                     { return new BlocksDownloadRequest(blockHash); }
+        public BlocksToDownloadRequestBuilder(List<String> blockHash, boolean withPriority)   {
+            this.blockHash = blockHash;
+            this.withPriority = withPriority;
+        }
+        public BlocksDownloadRequest buildRequest() {
+            return new BlocksDownloadRequest(blockHash, withPriority);
+        }
     }
 
 
