@@ -1,5 +1,6 @@
 package com.nchain.jcl.net.protocol.handlers.block;
 
+import com.google.common.base.Strings;
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.BlockMsg;
@@ -45,6 +46,7 @@ public class BlockPeerInfo {
      */
     public class BlockProgressInfo {
         protected String hash;
+        protected int numAttempt;
         protected BlockHeaderMsg blockHeaderMsg;
         protected PeerAddress peerAddress; // a bit redundant, but it's ok
         protected boolean corrupted;
@@ -54,8 +56,9 @@ public class BlockPeerInfo {
         protected Instant startTimestamp;
         protected Instant lastBytesReceivedTimestamp;
 
-        public BlockProgressInfo(String hash, PeerAddress peerAddress) {
+        public BlockProgressInfo(String hash, PeerAddress peerAddress, int numAttempt) {
             this.hash = hash;
+            this.numAttempt = numAttempt;
             this.peerAddress = peerAddress;
             this.startTimestamp = Instant.now();
             this.lastBytesReceivedTimestamp = Instant.now();
@@ -64,17 +67,19 @@ public class BlockPeerInfo {
         @Override
         public String toString() {
             StringBuffer result = new StringBuffer();
-            result.append("Hash: " + hash + ", ");
-            result.append(" Peer: " + peerAddress + ",");
+            result.append(hash).append(" : ");
+            result.append(Strings.padEnd("#" + numAttempt,3,' ')).append(" : ");
             if (corrupted) result.append("CORRUPTED");
             else {
                 DecimalFormat format = new DecimalFormat("#0.0");
-                String bytesTotalStr = (bytesTotal == null) ? "¿? MB " : format.format((double) bytesTotal / 1_000_000) + " MB";
-                String bytesDownStr =  (bytesDownloaded == null) ? "¿? MB " : format.format((double) bytesDownloaded / 1_000_000) + " MB";
-                String progressStr = (getProgressPercentage() == null)? "¿? %" : (getProgressPercentage() + " %");
-                result.append("progress: " + progressStr);
-                result.append(" [" + bytesDownStr + " / " + bytesTotalStr + "]");
-                //result.append(" >> raw: bytesDownloaded: " + bytesDownloaded + " , bytesTotal: " + bytesTotal);
+                if (bytesDownloaded != null && bytesTotal != null) {
+                    String bytesTotalStr = format.format((double) bytesTotal / 1_000_000) + " MB";
+                    String bytesDownStr =  format.format((double) bytesDownloaded / 1_000_000) + " MB";
+                    String progressStr = (getProgressPercentage() == null)? "¿? %" : (getProgressPercentage() + " %");
+                    result.append(Strings.padEnd(progressStr, 4, ' '));
+                    String bytesRead = " [" + bytesDownStr + " / " + bytesTotalStr + "]";
+                    result.append(Strings.padEnd(bytesRead, 22, ' '));
+                }
             }
             return result.toString();
         }
@@ -184,9 +189,9 @@ public class BlockPeerInfo {
     }
 
     /** It updates the Peer to reflect that it's just started to download this block */
-    protected void startDownloading(String blockHash) {
+    protected void startDownloading(String blockHash, int numAttempt) {
         reset();
-        this.currentBlockInfo = new BlockProgressInfo(blockHash, this.peerAddress);
+        this.currentBlockInfo = new BlockProgressInfo(blockHash, this.peerAddress, numAttempt);
         this.workingState = PeerWorkingState.PROCESSING;
     }
 
@@ -263,16 +268,35 @@ public class BlockPeerInfo {
     @Override
     public String toString() {
         StringBuffer result = new StringBuffer();
-        result.append(this.connectionState);
-        result.append(", ");
+        result.append(Strings.padEnd(this.peerAddress.toString(), 36, ' ')).append(" : ");
+
         // we calculate the Progress status, if any:
-        if (currentBlockInfo != null) {
-            result.append(currentBlockInfo.toString());
-            result.append(", ");
-            if (currentBlockInfo.getRealTimeProcessing() != null)
-                result.append(currentBlockInfo.getRealTimeProcessing() ? "Big block" : "small Block");
+        BlockProgressInfo blockProgressInfo = currentBlockInfo;
+        if (blockProgressInfo != null) {
+            result.append(blockProgressInfo.toString());
+
+            //if (blockProgressInfo.getRealTimeProcessing() != null)
+            //    result.append(blockProgressInfo.getRealTimeProcessing() ? "[Big block]" : "").append(" : ");
+
+            // We print this Peer download Speed:
+            DecimalFormat speedFormat = new DecimalFormat("#0.0");
+            Integer peerSpeed = getDownloadSpeed();
+            if (peerSpeed != null && blockProgressInfo.bytesDownloaded != null && peerSpeed != Integer.MAX_VALUE) {
+                String speedStr = speedFormat.format((double) peerSpeed / 1_000);
+                result.append(Strings.padEnd("[ " + speedStr + " KB/sec ]",17, ' '));
+                result.append(" : ");
+            }
+
+            // We print the downloading time:
+            Duration downloadingTime = Duration.between(blockProgressInfo.startTimestamp, Instant.now());
+            if (downloadingTime.toSeconds() > 0) {
+                result.append("[" + downloadingTime.toSeconds() + " secs]");
+            }
+        } else {
+            result.append(this.connectionState).append("-");
+            result.append(this.workingState);
         }
-        else result.append("Idle");
+
         return result.toString();
     }
 

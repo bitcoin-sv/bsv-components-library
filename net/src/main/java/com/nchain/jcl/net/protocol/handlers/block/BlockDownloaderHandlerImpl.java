@@ -720,7 +720,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
             blocksDownloadHistory.register(blockHash, peerInfo.getPeerAddress(), "Starting downloading");
 
             // We update the Peer Info
-            peerInfo.startDownloading(blockHash);
+            int numAttempts = blocksNumDownloadAttempts.containsKey(blockHash) ? blocksNumDownloadAttempts.get(blockHash) + 1 : 1;
+            peerInfo.startDownloading(blockHash, numAttempts);
             peerInfo.getStream().upgradeBufferSize();
 
             // We disable the Ping/Pong monitor process on it, since it might be busy during the block downloading
@@ -728,7 +729,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
 
             // We update other structures (num Attempts on this block, and blocks pendings, etc):
             blocksLastActivity.put(blockHash, Instant.now());
-            blocksNumDownloadAttempts.merge(blockHash, 1, (v1, v2) -> v1 + v2);
+            blocksNumDownloadAttempts.put(blockHash,numAttempts);
             blocksPending.remove(blockHash);
 
             // We update the accumulative "busyPercentage" field:

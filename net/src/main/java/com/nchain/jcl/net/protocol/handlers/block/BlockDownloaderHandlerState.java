@@ -85,50 +85,38 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         return new BlockDownloaderHandlerStateBuilder();
     }
 
-    @Override
-    public String toString() {
+    public String toStringShort() {
         StringBuffer result = new StringBuffer();
-        result.append("Block Downloader State: ");
-        result.append(downloadedBlocks.size() + " downloaded, ");
-        result.append(discardedBlocks.size() + " discarded, ");
-        result.append(pendingBlocks.size() + " pending, ");
-        result.append(pendingToCancelBlocks.size() + " pending To Cancel, ");
-        result.append(cancelledBlocks.size() + " cancelled, ");
-        result.append(peersInfo.size() + " peers, ");
-        result.append(getNumPeersDownloading() + " peers downloading Blocks, ");
-        result.append(totalReattempts + " re-attempts, ");
-        result.append(busyPercentage + "% busy");
         result.append(" [ " + downloadingState + " ] ");
+        result.append(" : ");
+        result.append("Blocks: [");
+        result.append(downloadedBlocks.size() + "/" + pendingBlocks.size() + " downloaded, ");
+        result.append(discardedBlocks.size() + " discarded, ");
+        result.append(cancelledBlocks.size() + "/"+ pendingToCancelBlocks.size() + " cancelled, ");
+        result.append(totalReattempts + " re-attempts");
+        result.append("] ");
+        result.append(" Peers: [");
+        result.append(peersInfo.size() + " peers, ");
+        result.append(busyPercentage + "% downloading ");
         if (bandwidthRestricted) {
             result.append("(bandwidth restricted)");
         }
-        result.append("\n");
+        result.append("]");
 
-        // We print this Peer download Speed:
-        DecimalFormat speedFormat = new DecimalFormat("#0.0");
+        long totalSizeDownloadingInMB = getBlocksDownloadingSize() / 1_000_000;
+        result.append((totalSizeDownloadingInMB > 0)? ": downloading " + totalSizeDownloadingInMB + " MBs or more" : "");
+        return result.toString();
+    }
+
+    @Override
+    public String toString() {
+        StringBuffer result = new StringBuffer();
+        result.append(toStringShort());
+        result.append("\n");
         peersInfo.stream()
                 .filter(p -> p.getWorkingState() == BlockPeerInfo.PeerWorkingState.PROCESSING)
                 .forEach(p -> {
-                    // we print basic status info:
-                    BlockPeerInfo.BlockProgressInfo blockProgressInfo = p.getCurrentBlockInfo();
-                    if (blockProgressInfo != null) {
-                        result.append(blockProgressInfo.toString());
-                        // We print the download Speed info:
-                        Integer peerSpeed = p.getDownloadSpeed();
-                        String speedStr = (peerSpeed == null || blockProgressInfo.bytesDownloaded == null)
-                                ? "¿?"
-                                : (peerSpeed == Integer.MAX_VALUE)
-                                    ? "undefined"
-                                    : speedFormat.format((double) peerSpeed / 1_000);
-                        result.append(" [ " + speedStr + " KB/sec ]");
-                        // We print this Peer time info:
-                        Duration lastActivityTimestamp = Duration.between(blockProgressInfo.lastBytesReceivedTimestamp, Instant.now());
-                        result.append(" [" + lastActivityTimestamp.toMillis() + " millisecs last read]");
-
-                    } else {
-                        result.append("Block progress info not available.");
-                    }
-                    result.append("\n");
+                    result.append(p.toString()).append("\n");
                 });
 
         return result.toString();
