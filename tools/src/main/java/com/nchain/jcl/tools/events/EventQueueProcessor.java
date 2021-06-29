@@ -1,6 +1,9 @@
 package com.nchain.jcl.tools.events;
 
+import com.nchain.jcl.tools.thread.ThreadUtils;
+
 import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 
@@ -19,11 +22,18 @@ public class EventQueueProcessor {
     Map<Class<? extends Event>, Consumer> eventsConsumers = new ConcurrentHashMap<>();
 
     // Executor used to run the Consumers/Event Handlers
-    private ExecutorService executor;
+    private ExecutorService eventsExecutor;
+
+    // Executor used to consume the Queue:
+    private ExecutorService queueExecutor;
+
+    // Queue where we store the Events
+    private BlockingQueue<Event> eventsQueue = new LinkedBlockingQueue<>();
 
     /** Constructor */
-    public EventQueueProcessor(ExecutorService executor) {
-        this.executor = executor;
+    public EventQueueProcessor(String name, ExecutorService eventsExecutor) {
+        this.eventsExecutor = eventsExecutor;
+        this.queueExecutor = ThreadUtils.getSingleThreadScheduledExecutorService(name + "-queueProcessor");
     }
 
     /** It adds an Event Handler/Consumer, linked to an event Type. More than on Handler can be assigned to a Type */
@@ -34,7 +44,7 @@ public class EventQueueProcessor {
     /** I adds a new Event to be consumed. This method returns immediately, the Event is processed in a separate Thread */
     public void addEvent(Event event) {
         try {
-            executor.submit(()-> eventsConsumers.get(event.getClass()).accept(event));
+            eventsQueue.offer(event);
         } catch (RejectedExecutionException e) {
             // Most probably, we are trying to submit tasks when this executor has been already shutdown. This
             // might happen if the order of events triggered by the EventBus is not in the right order:
@@ -47,10 +57,26 @@ public class EventQueueProcessor {
 
     /** Starts the Execution */
     public void start() {
+        this.queueExecutor.submit(this::eventsProcessorJob);
     }
 
     /** Stops the execution */
     public void stop() {
-        executor.shutdownNow();
+        this.eventsExecutor.shutdownNow();
+        this.queueExecutor.shutdownNow();
+    }
+
+    /**
+     * It processes the Queue of events one after another.
+     */
+    private void eventsProcessorJob() {
+        try {
+            while (true) {
+                Event event = eventsQueue.take();
+                eventsExecutor.submit(()-> eventsConsumers.get(event.getClass()).accept(event));
+            }
+        } catch (InterruptedException ie) {
+            // Nothing: Most probably its just the system shutting down...
+        }
     }
 }

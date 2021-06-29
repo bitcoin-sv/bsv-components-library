@@ -95,7 +95,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
 
         // We start the EventQueueProcessor. We do not expect many messages (compared to the rest of traffic), so a
         // single Thread will do...
-        this.eventQueueProcessor = new EventQueueProcessor(ThreadUtils.getSingleThreadScheduledExecutorService("JclDiscoveryHandler-EventsConsumers"));
+        this.eventQueueProcessor = new EventQueueProcessor("JclDiscoveryHandler", ThreadUtils.getSingleThreadScheduledExecutorService("JclDiscoveryHandler-EventsConsumers"));
     }
 
     @Override
