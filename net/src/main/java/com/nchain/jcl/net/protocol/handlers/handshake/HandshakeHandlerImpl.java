@@ -69,8 +69,6 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
     // way we won't slow down the rate at which the eVents are published and processed in the Bus
     private EventQueueProcessor eventQueueProcessor;
 
-    //Each ack needs to be processed after a delay to give the handshake messages time to propagate through the pipeline
-    private ScheduledExecutorService ackProcessor;
 
     public HandshakeHandlerImpl(String id, RuntimeConfig runtimeConfig, HandshakeHandlerConfig config) {
         super(id, runtimeConfig);
@@ -82,7 +80,6 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
         // We start the EventQueueProcessor. We do not expect many messages (compared to the rest of traffic), so a
         // single Thread will do...
         this.eventQueueProcessor = new EventQueueProcessor("JclHandshakeHandler", ThreadUtils.getSingleThreadScheduledExecutorService("JclHandshakeHandler-EventsConsumers"));
-        this.ackProcessor = ThreadUtils.getScheduledExecutorService("JclHandshakeHandler-AckProcessor", 2);
     }
 
     // We register this Handler to LISTEN to these Events:
