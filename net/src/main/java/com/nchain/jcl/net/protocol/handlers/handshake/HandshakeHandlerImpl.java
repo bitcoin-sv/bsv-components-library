@@ -244,26 +244,19 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
 
             peerInfo.sendACK(); // update this peer state as if the ACK was already sent...
 
-            //we can only complete once we've received both a version and an ack
-            tryCompleteHandshake(peerInfo);
+            // We check the Handshake...
+            if (peerInfo.checkHandshakeOK()) {
+                acceptHandshake(peerInfo);
+            }
+
+            // NOW we really send the ACK...
+            VersionAckMsg ackMsgBody = VersionAckMsg.builder().build();
+            BitcoinMsg<VersionAckMsg> btcAckMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), ackMsgBody).build();
+            super.eventBus.publish(new SendMsgRequest(peerInfo.getPeerAddress(), btcAckMsg));
 
         } finally {
             lock.unlock();
         }
-    }
-
-    private void tryCompleteHandshake(HandshakePeerInfo peerInfo){
-        // Check we've received both a version and an ack
-        if (!peerInfo.checkHandshakeOK()) {
-            return;
-        }
-
-        acceptHandshake(peerInfo);
-
-        //At this point, we've processd the VERSION and VERACK, and just propagated the ready messaged through the pipeline. We can now respond with an ACK as we're ready to go.
-        VersionAckMsg ackMsgBody = VersionAckMsg.builder().build();
-        BitcoinMsg<VersionAckMsg> btcAckMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), ackMsgBody).build();
-        super.eventBus.publish(new SendMsgRequest(peerInfo.getPeerAddress(), btcAckMsg));
     }
 
     /**
@@ -303,8 +296,10 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
             // We update the sate of this Peer:
             peerInfo.receiveACK();
 
-            //we can only complete once we've received both a version and an ack
-            tryCompleteHandshake(peerInfo);
+            // We check the Handshake...
+            if (peerInfo.checkHandshakeOK()) {
+                acceptHandshake(peerInfo);
+            }
 
         } finally {
             lock.unlock();
