@@ -160,9 +160,11 @@ public class P2PBuilder {
             // We addBytes different built-in handlers:
 
             // Network Handler...
+            // IMPORTANT: We use 0.0.0.0 to allow connections from anywhere
 
             if (this.serverPort == null) this.serverPort = networkConfig.getPort();
-            Handler networkHandler = new NetworkHandlerImpl(id, runtimeConfig, networkConfig, PeerAddress.localhost(this.serverPort));
+            String serverIp = "0.0.0.0:" + this.serverPort;
+            Handler networkHandler = new NetworkHandlerImpl(id, runtimeConfig, networkConfig, PeerAddress.fromIp(serverIp));
             result.put(networkHandler.getId(), networkHandler);
 
             // P2P Handlers:
