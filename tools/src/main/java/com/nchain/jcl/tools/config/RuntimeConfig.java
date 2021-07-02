@@ -25,4 +25,11 @@ public interface RuntimeConfig {
     /** File Utils used to read/write info in disk */
     FileUtils getFileUtils();
 
+    /**
+     * Returns the maximum number of Threads used in the P2P Service during the process of all the messages in/out
+     * the network. This is an aproximation, the real number of Threads might be a bit bigger if the system is
+     * under stress.
+     */
+    int getMaxNumThreadsForP2P();
+
 }

@@ -17,27 +17,32 @@ public class RuntimeConfigImpl implements RuntimeConfig {
     protected ByteArrayConfig byteArrayMemoryConfig;
     protected int msgSizeInBytesForRealTimeProcessing;
     protected FileUtils fileUtils;
+    protected int maxNumThreadsForP2P;
 
     public RuntimeConfigImpl(ByteArrayConfig byteArrayMemoryConfig,
                              int msgSizeInBytesForRealTimeProcessing,
-                             FileUtils fileUtils) {
+                             FileUtils fileUtils,
+                             int maxNumThreadsForP2P) {
         this.byteArrayMemoryConfig = byteArrayMemoryConfig;
         this.msgSizeInBytesForRealTimeProcessing = msgSizeInBytesForRealTimeProcessing;
         this.fileUtils = fileUtils;
+        this.maxNumThreadsForP2P = maxNumThreadsForP2P;
     }
 
-    public RuntimeConfigImpl() { }
+    public RuntimeConfigImpl() {}
 
-    public static RuntimeConfigImplBuilder builder()                { return new RuntimeConfigImplBuilder(); }
     public ByteArrayConfig getByteArrayMemoryConfig()               { return this.byteArrayMemoryConfig; }
     public int getMsgSizeInBytesForRealTimeProcessing()             { return this.msgSizeInBytesForRealTimeProcessing; }
     public FileUtils getFileUtils()                                 { return this.fileUtils; }
+    public int getMaxNumThreadsForP2P()                             { return this.maxNumThreadsForP2P; }
+    public static RuntimeConfigImplBuilder builder()                { return new RuntimeConfigImplBuilder(); }
 
     public RuntimeConfigImplBuilder toBuilder() {
         return new RuntimeConfigImplBuilder()
                 .byteArrayMemoryConfig(this.byteArrayMemoryConfig)
                 .msgSizeInBytesForRealTimeProcessing(this.msgSizeInBytesForRealTimeProcessing)
-                .fileUtils(this.fileUtils);
+                .fileUtils(this.fileUtils)
+                .maxNumThreadsForP2P(this.maxNumThreadsForP2P);
     }
 
     /**
@@ -47,6 +52,7 @@ public class RuntimeConfigImpl implements RuntimeConfig {
         private ByteArrayConfig byteArrayMemoryConfig;
         private int msgSizeInBytesForRealTimeProcessing;
         private FileUtils fileUtils;
+        protected int maxNumThreadsForP2P;
 
         RuntimeConfigImplBuilder() {
         }
@@ -66,8 +72,13 @@ public class RuntimeConfigImpl implements RuntimeConfig {
             return this;
         }
 
+        public RuntimeConfigImplBuilder maxNumThreadsForP2P(int maxNumThreadsForP2P) {
+            this.maxNumThreadsForP2P = maxNumThreadsForP2P;
+            return this;
+        }
+
         public RuntimeConfigImpl build() {
-            return new RuntimeConfigImpl(byteArrayMemoryConfig, msgSizeInBytesForRealTimeProcessing, fileUtils);
+            return new RuntimeConfigImpl(byteArrayMemoryConfig, msgSizeInBytesForRealTimeProcessing, fileUtils, maxNumThreadsForP2P);
         }
     }
 }

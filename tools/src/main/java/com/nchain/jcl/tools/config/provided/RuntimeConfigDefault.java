@@ -2,10 +2,11 @@ package com.nchain.jcl.tools.config.provided;
 
 
 import com.nchain.jcl.tools.bytes.ByteArrayConfig;
+import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.config.RuntimeConfigImpl;
+import com.nchain.jcl.tools.files.FileUtils;
 import com.nchain.jcl.tools.files.FileUtilsBuilder;
 
-import java.time.Duration;
 
 /**
  * @author i.fernandez@nchain.com
@@ -13,11 +14,12 @@ import java.time.Duration;
  *
  * Default RuntimeConfiguration.
  */
-public final class RuntimeConfigDefault extends RuntimeConfigImpl {
+public final class RuntimeConfigDefault extends RuntimeConfigImpl implements RuntimeConfig {
 
-    private static final ByteArrayConfig BYTE_ARRAY_MEMORY_CONFIGURATION = new ByteArrayConfig();
-
-    private static final int MSG_SIZE_IN_BYTES_FOR_REAL_TIME_PROCESSING = 10_000_000;
+    // Default values:
+    private static ByteArrayConfig byteArrayMemoryConfig = new ByteArrayConfig();
+    private static int msgSizeInBytesForRealTimeProcessing = 10_000_000;;
+    private static int maxNumThreadsForP2P = 400;
 
     /** Constructor */
     public RuntimeConfigDefault() {
@@ -27,25 +29,28 @@ public final class RuntimeConfigDefault extends RuntimeConfigImpl {
 
     /** Constructor */
     public RuntimeConfigDefault(ClassLoader classLoader) {
-        super();
+        this();
         init(classLoader);
     }
 
     private void init(ClassLoader classLoader) {
-        super.byteArrayMemoryConfig = BYTE_ARRAY_MEMORY_CONFIGURATION;
-        super.msgSizeInBytesForRealTimeProcessing = MSG_SIZE_IN_BYTES_FOR_REAL_TIME_PROCESSING;
+        // We initialize all the parent fields:
+        super.byteArrayMemoryConfig = byteArrayMemoryConfig;
+        super.msgSizeInBytesForRealTimeProcessing = msgSizeInBytesForRealTimeProcessing;
+        super.maxNumThreadsForP2P = maxNumThreadsForP2P;
 
         try {
             FileUtilsBuilder fileUtilsBuilder = new FileUtilsBuilder().useTempFolder();
             if (classLoader != null) {
                 fileUtilsBuilder.copyFromClasspath();
-                fileUtils = fileUtilsBuilder.build(classLoader);
-            } else fileUtils = fileUtilsBuilder.build();
+                super.fileUtils = fileUtilsBuilder.build(classLoader);
+            } else super.fileUtils = fileUtilsBuilder.build();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
+    @Override
     public String toString() {
         return "RuntimeConfigDefault";
     }

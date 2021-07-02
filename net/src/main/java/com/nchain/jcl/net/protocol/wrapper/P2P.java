@@ -68,12 +68,6 @@ public class P2P {
     // Request Handler:
     public final P2PRequestHandler REQUESTS;
 
-    // Low priority messages:
-    // We use this list to define a Function that will be used in the EventBus to set the priority for each Message.
-    // By default, all Event are HIGH-Priority messages, and the Low-Priority ones are those specified here:
-    Set<Class> lowPriorityMessages = new HashSet<>( Arrays.asList(
-            MsgReceivedEvent.class));
-
     /** Constructor */
     public P2P(String id, RuntimeConfig runtimeConfig, NetworkConfig networkConfig, ProtocolConfig protocolConfig) {
         try {
@@ -85,21 +79,9 @@ public class P2P {
             this.protocolConfig = protocolConfig;
 
             // We initialize the EventBus...
-            // First we define the function that will be used to determine the Priority of each Event published to the
-            // Bus:
-            Function<Event, EventBus.ConsumerPriority> eventPriorityChecker = (Event e) -> {
-                return (lowPriorityMessages.contains(e.getClass()))
-                        ? EventBus.ConsumerPriority.NORMAL
-                        : EventBus.ConsumerPriority.HIGH;
-            };
-
-            // Now we crate the EventBus, specifying 2 executor for LOW and High priority Events:
             this.eventBus = EventBus.builder()
-                   .executor(ThreadUtils.EVENT_BUS_EXECUTOR)
-                   .executorHighPriority(ThreadUtils.EVENT_BUS_EXECUTOR_HIGH_PRIORITY)
-                   .eventPriorityChecker(eventPriorityChecker)
+                   .executor(ThreadUtils.getFixedThreadExecutorService("JclEventBus", runtimeConfig.getMaxNumThreadsForP2P()))
                    .build();
-
 
             // Event Streamer:
             EVENTS = new P2PEventStreamer(this.eventBus);
