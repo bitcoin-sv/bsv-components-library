@@ -109,7 +109,7 @@ class ProtocolHandshakeFailedTest extends Specification {
             // class, any user_agent containing "ABC" and some other patterns are blacklisted)
 
             HandshakeHandlerConfig handshakeConfig = protocolConfig.getHandshakeConfig().toBuilder()
-                .userAgent("ABC")
+                .userAgent("Bitcoin ABC")
                 .build()
             // We disable all the Handlers we don't need for this Test:
             P2P client = new P2PBuilder("client")

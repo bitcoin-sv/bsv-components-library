@@ -1,5 +1,6 @@
 package com.nchain.jcl.net.performance
 
+import com.google.common.util.concurrent.RateLimiter
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
@@ -38,14 +39,18 @@ import java.util.concurrent.atomic.AtomicLong
 class IncomingTxPerformanceTest extends Specification {
 
     // Duration of the test:
-    Duration TEST_DURATION = Duration.ofSeconds(300)
+    Duration TEST_DURATION = Duration.ofSeconds(240)
+
+    // Min number of Peers before we start asking for Txs (NULL for no limit)
+    Integer MIN_PEERS = null
 
     // Number of Txs processed
     AtomicLong numTxs = new AtomicLong()
     AtomicInteger numPeersHandshaked = new AtomicInteger()
 
-    // Time when we receive the FIRST TX:
+    // Time when we receive the FIRST and LAST TXs:
     Instant firstTxInstant = null
+    Instant lastTxInstant = null;
 
     /**
      * It connects the P2P Service to some Peers manually. The peers are different depending on the network. This
@@ -118,22 +123,38 @@ class IncomingTxPerformanceTest extends Specification {
      */
     private void processINV(P2P p2p, InvMsgReceivedEvent event) {
         List<InventoryVectorMsg> newTxsInvItems =  event.btcMsg.body.invVectorList;
-        long usedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-        long availableMem = Runtime.getRuntime().maxMemory() - usedMem;
-        String memorySummary = String.format("totalMem: %s, maxMem: %s, freeMem: %s, usedMem: %s, availableMem: %s",
-                Utils.humanReadableByteCount(Runtime.getRuntime().totalMemory(), false),
-                Utils.humanReadableByteCount(Runtime.getRuntime().maxMemory(), false),
-                Utils.humanReadableByteCount(Runtime.getRuntime().freeMemory(), false),
-                Utils.humanReadableByteCount(usedMem, false),
-                Utils.humanReadableByteCount(availableMem, false))
 
-        println(" INV (" + newTxsInvItems.size() + " items) [ " + Thread.activeCount() + " threads, " + numPeersHandshaked.get() + " peers] memory : " + memorySummary )
-        if (newTxsInvItems.size() > 0) {
-            // Now we send a GetData asking for them....
-            GetdataMsg getDataMsg = GetdataMsg.builder().invVectorList(newTxsInvItems).build()
-            BitcoinMsg<GetdataMsg> btcGetDataMsg = new BitcoinMsgBuilder(p2p.protocolConfig.basicConfig, getDataMsg).build()
-            p2p.REQUESTS.MSGS.send(event.peerAddress, btcGetDataMsg).submit()
+        StringBuffer logLine = new StringBuffer();
+        logLine.append(":: INV (" + newTxsInvItems.size() + " items) ")
+        logLine.append("[").append(numTxs.get()).append(" txs] ");
+        logLine.append(numPeersHandshaked + " peers.")
+
+        if (MIN_PEERS == null || numPeersHandshaked >= MIN_PEERS) {
+
+            logLine.append("\n");
+            logLine.append(":: Threads : " + ThreadUtils.getThreadsInfo())
+
+            long usedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+            long availableMem = Runtime.getRuntime().maxMemory() - usedMem;
+            String memorySummary = String.format("totalMem: %s, maxMem: %s, freeMem: %s, usedMem: %s, availableMem: %s",
+                    Utils.humanReadableByteCount(Runtime.getRuntime().totalMemory(), false),
+                    Utils.humanReadableByteCount(Runtime.getRuntime().maxMemory(), false),
+                    Utils.humanReadableByteCount(Runtime.getRuntime().freeMemory(), false),
+                    Utils.humanReadableByteCount(usedMem, false),
+                    Utils.humanReadableByteCount(availableMem, false))
+
+            logLine.append("\n");
+            logLine.append(":: ").append(memorySummary);
+
+            if (newTxsInvItems.size() > 0) {
+                // Now we send a GetData asking for them....
+                GetdataMsg getDataMsg = GetdataMsg.builder().invVectorList(newTxsInvItems).build()
+                BitcoinMsg<GetdataMsg> btcGetDataMsg = new BitcoinMsgBuilder(p2p.protocolConfig.basicConfig, getDataMsg).build()
+                p2p.REQUESTS.MSGS.send(event.peerAddress, btcGetDataMsg).submit()
+            }
         }
+
+        println(logLine.toString())
     }
 
     /**
@@ -141,6 +162,7 @@ class IncomingTxPerformanceTest extends Specification {
      */
     private void processTX(P2P p2p, TxMsgReceivedEvent event) {
         if (firstTxInstant == null) firstTxInstant = Instant.now()
+        lastTxInstant = Instant.now()
         numTxs.incrementAndGet()
         Sha256Hash txHash = Sha256Hash.wrap(event.btcMsg.body.hash.get().hashBytes)
         println(" Tx " + txHash + " from " + event.peerAddress + " [ " + numTxs.get() + " txs, " + Thread.activeCount() + " threads, " + numPeersHandshaked.get() + " peers handshaked ]")
@@ -148,6 +170,7 @@ class IncomingTxPerformanceTest extends Specification {
 
     private void processRawTX(P2P p2p, RawTxMsgReceivedEvent event) {
         if (firstTxInstant == null) firstTxInstant = Instant.now()
+        lastTxInstant = Instant.now()
         numTxs.incrementAndGet()
         //Sha256Hash txHash = event.btcMsg.body.hash
         //println(" Tx " + txHash + " from " + event.peerAddress + " [ " + numTxs.get() + " txs, " + Thread.activeCount() + " threads, " + numPeersHandshaked.get() + " peers handshaked ]")
@@ -193,8 +216,8 @@ class IncomingTxPerformanceTest extends Specification {
 
 
             // We define 2 Queues where well be processing the incoming INV and TX messages...
-            EventQueueProcessor invProcessor = new EventQueueProcessor(ThreadUtils.EVENT_BUS_EXECUTOR_HIGH_PRIORITY);
-            EventQueueProcessor txProcessor = new EventQueueProcessor(ThreadUtils.EVENT_BUS_EXECUTOR_HIGH_PRIORITY);
+            EventQueueProcessor invProcessor = new EventQueueProcessor("inv-Queue", ThreadUtils.EVENT_BUS_EXECUTOR_HIGH_PRIORITY);
+            EventQueueProcessor txProcessor = new EventQueueProcessor("tx-Queue",ThreadUtils.EVENT_BUS_EXECUTOR_HIGH_PRIORITY);
             invProcessor.addProcessor(InvMsgReceivedEvent.class, {e -> processINV(p2p, e)})
             txProcessor.addProcessor(TxMsgReceivedEvent.class, {e -> processTX(p2p, e)})
             txProcessor.addProcessor(RawTxMsgReceivedEvent.class, { e -> processRawTX(p2p, e)})
@@ -231,14 +254,13 @@ class IncomingTxPerformanceTest extends Specification {
 
             // we let it running for some time, and then we measure times in order to calculate statistics:
             Thread.sleep(TEST_DURATION.toMillis())
-            Instant endTime = Instant.now()
 
             p2p.stop()
             txProcessor.stop()
             invProcessor.stop()
 
             // We print the Summary:
-            Duration effectiveTime = Duration.between(firstTxInstant, endTime)
+            Duration effectiveTime = Duration.between(firstTxInstant, lastTxInstant)
             println(" >> " + TEST_DURATION.toSeconds() + " secs of Test")
             println(" >> " + effectiveTime.toSeconds() + " secs processing Txs")
             println(" >> " + numTxs.get() + " Txs processed")

@@ -133,7 +133,7 @@ class TxBlasterPerformanceTest extends Specification {
     private void processRawTX(RawTxMsgReceivedEvent event) {
         if (firstTxInstant == null) firstTxInstant = Instant.now()
         numTxs.incrementAndGet()
-        Sha256Hash txHash = event.btcMsg.body.hash
+        Sha256Hash txHash = event.btcMsg.body.getHash()
 
         long usedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
         long availableMem = Runtime.getRuntime().maxMemory() - usedMem;
@@ -199,7 +199,7 @@ class TxBlasterPerformanceTest extends Specification {
 
 
             // We define 1 Queue where the service will be processing the incoming TX messages...
-            EventQueueProcessor txProcessor = new EventQueueProcessor(ThreadUtils.EVENT_BUS_EXECUTOR_HIGH_PRIORITY);
+            EventQueueProcessor txProcessor = new EventQueueProcessor("Test", ThreadUtils.EVENT_BUS_EXECUTOR_HIGH_PRIORITY);
             txProcessor.addProcessor(TxMsgReceivedEvent.class, {e -> processTX(e)})
             txProcessor.addProcessor(RawTxMsgReceivedEvent.class, {e -> processRawTX(e)})
 
