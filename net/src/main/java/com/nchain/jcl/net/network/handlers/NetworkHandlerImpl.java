@@ -32,9 +32,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -122,7 +120,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     // An executor Service, to trigger jobs in MultiThread...
     ExecutorService jobExecutor = ThreadUtils.getThreadPoolExecutorService("JclNetworkHandler");
     // An executor for triggering new Connections to remote Peers:
-    ExecutorService newConnsExecutor = ThreadUtils.getCachedThreadExecutorService("jclNetworkHandlerRemoteConn", 20);
+    ExecutorService newConnsExecutor = ThreadUtils.getFixedThreadExecutorService("jclNetworkHandlerRemoteConn", 20);
 
     // General State:
     private NetworkHandlerState state;

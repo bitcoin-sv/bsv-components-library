@@ -10,8 +10,9 @@ import com.nchain.jcl.net.protocol.events.control.DisablePingPongRequest;
 import com.nchain.jcl.net.protocol.events.control.EnablePingPongRequest;
 import com.nchain.jcl.net.protocol.events.control.PeerHandshakedEvent;
 import com.nchain.jcl.net.protocol.events.control.PingPongFailedEvent;
-import com.nchain.jcl.net.protocol.events.data.MsgReceivedEvent;
 import com.nchain.jcl.net.protocol.events.control.SendMsgRequest;
+import com.nchain.jcl.net.protocol.events.data.PingMsgReceivedEvent;
+import com.nchain.jcl.net.protocol.events.data.PongMsgReceivedEvent;
 import com.nchain.jcl.net.protocol.messages.PingMsg;
 import com.nchain.jcl.net.protocol.messages.PongMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
@@ -69,7 +70,7 @@ public class PingPongHandlerImpl extends HandlerImpl implements PingPongHandler 
 
         // We start the EventQueueProcessor. We do not expect many messages (compared to the rest of traffic), so a
         // single Thread will do...
-        this.eventQueueProcessor = new EventQueueProcessor("JclPingPongHandler", ThreadUtils.getCachedThreadExecutorService("JclPingPongHandler-EventsConsumers", 3));
+        this.eventQueueProcessor = new EventQueueProcessor("JclPingPongHandler", ThreadUtils.getFixedThreadExecutorService("JclPingPongHandler-EventsConsumers", 3));
     }
 
     // We register this Handler to LISTEN to these Events:
@@ -79,7 +80,8 @@ public class PingPongHandlerImpl extends HandlerImpl implements PingPongHandler 
         this.eventQueueProcessor.addProcessor(NetStopEvent.class, e -> onStop((NetStopEvent) e));
         this.eventQueueProcessor.addProcessor(PeerHandshakedEvent.class, e -> onPeerHandshaked((PeerHandshakedEvent) e));
         this.eventQueueProcessor.addProcessor(PeerDisconnectedEvent.class, e -> onPeerDisconnected((PeerDisconnectedEvent) e));
-        this.eventQueueProcessor.addProcessor(MsgReceivedEvent.class, e -> onMsgReceived((MsgReceivedEvent) e));
+        this.eventQueueProcessor.addProcessor(PingMsgReceivedEvent.class, e -> onPingReceived((PingMsgReceivedEvent) e));
+        this.eventQueueProcessor.addProcessor(PongMsgReceivedEvent.class, e -> onPongReceived((PongMsgReceivedEvent) e));
         this.eventQueueProcessor.addProcessor(EnablePingPongRequest.class, e -> onEnablePingPong((EnablePingPongRequest) e));
         this.eventQueueProcessor.addProcessor(DisablePingPongRequest.class, e -> onDisablePingPong((DisablePingPongRequest) e));
 
@@ -87,7 +89,8 @@ public class PingPongHandlerImpl extends HandlerImpl implements PingPongHandler 
         super.eventBus.subscribe(NetStopEvent.class, e -> this.eventQueueProcessor.addEvent(e));
         super.eventBus.subscribe(PeerHandshakedEvent.class, e -> this.eventQueueProcessor.addEvent(e));
         super.eventBus.subscribe(PeerDisconnectedEvent.class, e -> this.eventQueueProcessor.addEvent(e));
-        super.eventBus.subscribe(MsgReceivedEvent.class, e -> this.eventQueueProcessor.addEvent(e));
+        super.eventBus.subscribe(PingMsgReceivedEvent.class, e -> this.eventQueueProcessor.addEvent(e));
+        super.eventBus.subscribe(PongMsgReceivedEvent.class, e -> this.eventQueueProcessor.addEvent(e));
         super.eventBus.subscribe(EnablePingPongRequest.class, e -> this.eventQueueProcessor.addEvent(e));
         super.eventBus.subscribe(DisablePingPongRequest.class, e -> this.eventQueueProcessor.addEvent(e));
 
@@ -135,20 +138,31 @@ public class PingPongHandlerImpl extends HandlerImpl implements PingPongHandler 
     }
 
     // Event Handler:
-    public void onMsgReceived(MsgReceivedEvent event) {
+    public void onPingReceived(PingMsgReceivedEvent event) {
         // As a general rule, we only process messages from Peers that we know have been Handshaked.
         // BUT if this a PING and the peer is still unknown, we wait a little bit before moving forward, since the
         // peer might have sent a PING so fast after the handshake, than we didn't have time to register it.
         // The "PeerHandshakedEvent" should be triggered during the delay, if not, we just discard it.
 
         try {
-            if (!peersInfo.containsKey(event.getPeerAddress()) && event.getBtcMsg().is(PingMsg.MESSAGE_TYPE)) {
-                Thread.sleep(50);
-            }
-            PingPongPeerInfo peerInfo = peersInfo.get(event.getPeerAddress());
-            if (peerInfo != null)  processMsg(event.getBtcMsg(), peerInfo);
-        } catch (InterruptedException ie) {
-            throw new RuntimeException(ie);
+            if (!peersInfo.containsKey(event.getPeerAddress())) { Thread.sleep(50); }
+        } catch (InterruptedException ie) { throw new RuntimeException(ie); }
+
+        PingPongPeerInfo peerInfo = peersInfo.get(event.getPeerAddress());
+        if (peerInfo != null)  {
+            // We update the activity of this Peer and process it:
+            peerInfo.updateActivity();
+            processPingMsg(event.getBtcMsg(), peerInfo);
+        }
+    }
+
+    // Event Handler:
+    public void onPongReceived(PongMsgReceivedEvent event) {
+        PingPongPeerInfo peerInfo = peersInfo.get(event.getPeerAddress());
+        if (peerInfo != null)  {
+            // We update the activity of this Peer and process it:
+            peerInfo.updateActivity();
+            processPongMsg( event.getBtcMsg(), peerInfo);
         }
     }
 
@@ -160,19 +174,6 @@ public class PingPongHandlerImpl extends HandlerImpl implements PingPongHandler 
     // Event Handler:
     public void onDisablePingPong(DisablePingPongRequest event) {
         disablePingPong(event.getPeerAddress());
-    }
-
-
-    /**
-     * It processes an incoming Msg. It only process PING or PONG Messages, discarding the rest
-     */
-    private void processMsg(BitcoinMsg<?> btcMsg, PingPongPeerInfo peerInfo) {
-        // We update the activity of this Peer:
-        peerInfo.updateActivity();
-
-        // We process the Msg:
-        if (btcMsg.is(PingMsg.MESSAGE_TYPE)) processPingMsg((BitcoinMsg<PingMsg>) btcMsg, peerInfo);
-        else if (btcMsg.is(PongMsg.MESSAGE_TYPE)) processPongMsg((BitcoinMsg<PongMsg>) btcMsg, peerInfo);
     }
 
     /**

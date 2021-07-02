@@ -11,8 +11,6 @@ import com.nchain.jcl.net.protocol.events.control.BroadcastMsgRequest;
 import com.nchain.jcl.net.protocol.events.data.MsgReceivedEvent;
 import com.nchain.jcl.net.protocol.events.data.MsgSentEvent;
 import com.nchain.jcl.net.protocol.events.control.SendMsgRequest;
-import com.nchain.jcl.net.protocol.messages.BlockMsg;
-import com.nchain.jcl.net.protocol.messages.TxMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
 import com.nchain.jcl.net.protocol.messages.common.Message;
@@ -73,7 +71,7 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
             MsgSerializersFactory.enableRawSerializers();
         }
 
-        this.dedicateConnsExecutor = ThreadUtils.getCachedThreadExecutorService( "JclDeserializer", config.getMaxNumberDedicatedConnections());
+        this.dedicateConnsExecutor = ThreadUtils.getFixedThreadExecutorService( "JclDeserializer", config.getMaxNumberDedicatedConnections());
     }
 
     // We register this Handler to LISTEN to these Events:

@@ -31,11 +31,6 @@ import java.util.function.Function;
  */
 public class EventBus {
 
-    /** Different Types of Priorities for the Evnets published to the Bus */
-    public enum ConsumerPriority {
-        NORMAL, HIGH
-    }
-
     // For each Event Type, we store the list of Consumers/Event Handlers that will get run/notified
     private Map<Class<? extends Event>, List<Consumer<? extends Event>>> eventHandlers = new ConcurrentHashMap<>();
 
@@ -51,26 +46,15 @@ public class EventBus {
     private Map<Class<? extends Event>, Long> numEventsPublished = new ConcurrentHashMap<>();
 
     // An executor for running the Handlers:
-    private final ExecutorService executor;
+    private ExecutorService executor;
 
-    // An executor for running the HIgh-Priority Events:
-    private final ExecutorService executorHighPriority;
-
-    // Function that is executed for each Event published to the Bus, to identity its priority and therefore use the
-    // right executor to submit it:
-    private Function<Event, EventBus.ConsumerPriority> eventPriorityChecker;
 
     /** Constructor */
-    private EventBus(ExecutorService executor, ExecutorService executorHighPriority, Function<Event, EventBus.ConsumerPriority> eventPriorityChecker) {
+    private EventBus(ExecutorService executor) {
         this.executor = executor;
-        this.executorHighPriority = (executorHighPriority != null)? executorHighPriority : executor;
-        this.eventPriorityChecker = eventPriorityChecker;
     }
 
-    /** Constructor with NO High-priority. All Events are run with the same priority */
-    private EventBus(ExecutorService executor) {
-        this(executor, executor, null);
-    }
+    private EventBus() {}
 
     /**
      * It assigns a Handler to an Event Type. More than one Handler can be linked to an Event Type, and they are all
@@ -99,19 +83,22 @@ public class EventBus {
      * It publishes a new Event to the Bus and executes the handlers subscribed to it
      */
     public void publish(Event event) {
-        ConsumerPriority priority = (eventPriorityChecker != null) ? eventPriorityChecker.apply(event) : ConsumerPriority.HIGH;
-        ExecutorService executorToRun = (priority.equals(ConsumerPriority.HIGH)) ? executorHighPriority : executor;
-        Runnable task = () -> {eventHandlersOptimized.get(event.getClass()).accept(event);};
-        if (executorToRun != null) { // Asynchronously
-            try {
-                executorToRun.submit(task);
-            } catch (RejectedExecutionException e) {
-                // nothing
+        // We do not do anything at all if nobody is listening to this event
+        if (eventHandlersOptimized.containsKey(event.getClass())) {
+            Runnable task = () -> {eventHandlersOptimized.get(event.getClass()).accept(event);};
+            if (executor != null) { // Asynchronously
+                try {
+                    executor.submit(task);
+                } catch (RejectedExecutionException e) {
+                    // nothing
+                }
             }
+            else {
+                task.run(); // Synchronously
+            }
+            numEventsPublished.merge(event.getClass(), 1L ,Long::sum);
         }
-        else task.run(); // Synchronously
 
-        numEventsPublished.merge(event.getClass(), 1L ,Long::sum);
     }
 
     /** Returns the EVentBus Status (ONLY FOR TESTING/DEBUGGING) */
@@ -134,25 +121,15 @@ public class EventBus {
      */
     public static class EventBusBuilder {
         private ExecutorService executor;
-        private ExecutorService executorHighPriority;
-        Function<Event, EventBus.ConsumerPriority> eventPriorityChecker;
 
         EventBusBuilder() {}
         public EventBus.EventBusBuilder executor(ExecutorService executor) {
             this.executor = executor;
             return this;
         }
-        public EventBus.EventBusBuilder executorHighPriority(ExecutorService executorHighPriority) {
-            this.executorHighPriority = executorHighPriority;
-            return this;
-        }
 
-        public EventBus.EventBusBuilder eventPriorityChecker(Function<Event, EventBus.ConsumerPriority> eventPriorityChecker) {
-            this.eventPriorityChecker = eventPriorityChecker;
-            return this;
-        }
         public EventBus build() {
-            return new EventBus(executor, executorHighPriority, eventPriorityChecker);
+            return new EventBus(executor);
         }
     }
 }

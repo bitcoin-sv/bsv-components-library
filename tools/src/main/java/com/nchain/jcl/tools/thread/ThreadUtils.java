@@ -55,15 +55,12 @@ public class ThreadUtils {
             Thread thread = new Thread(r);
             thread.setPriority(Thread.MAX_PRIORITY);
             thread.setDaemon(true);
-            thread.setName("JclEventBus");
+            thread.setName("JclEventBusHighPriority");
             return thread;
         }
     }
 
-    // A built-in Executor used for the EventBus shared by all the Network and Protocol Handlers
-    public static ExecutorService EVENT_BUS_EXECUTOR = Executors.newCachedThreadPool(new EventBusThreadFactory());
-
-    public static ExecutorService EVENT_BUS_EXECUTOR_HIGH_PRIORITY = Executors.newCachedThreadPool(new EventBusThreadFactoryHighPriority());
+    public static ExecutorService EVENT_BUS_EXECUTOR_HIGH_PRIORITY = Executors.newFixedThreadPool(100, new EventBusThreadFactoryHighPriority());
 
     // A built-in Executor for the Streams connected to the Remote Peers. This Stream needs to be Single-thread,
     // otherwise the order of the bytes coming in/out from the Peer cannot be guaranteed
@@ -98,7 +95,7 @@ public class ThreadUtils {
     public static ScheduledExecutorService getScheduledExecutorService(String threadName, int maxThreads) {
         return Executors.newScheduledThreadPool(maxThreads, (getThreadFactory(threadName, Thread.MAX_PRIORITY, true)));
     }
-    public static ExecutorService getCachedThreadExecutorService(String threadName, int maxThreads) {
+    public static ExecutorService getFixedThreadExecutorService(String threadName, int maxThreads) {
         return Executors.newFixedThreadPool(maxThreads, getThreadFactory(threadName, Thread.MAX_PRIORITY, true));
     }
 
@@ -116,7 +113,7 @@ public class ThreadUtils {
 
 
     public static String getThreadsInfo() {
-        // First we get the roo threadGroup
+        // First we get the root threadGroup
         ThreadGroup threadGroup = Thread.currentThread().getThreadGroup();
         while (threadGroup.getParent() != null) {
             threadGroup = threadGroup.getParent();
@@ -124,7 +121,7 @@ public class ThreadUtils {
         // Now we loop over all the threads belonging to this group and we group them by Name:
         String[] separators = new String[] {"-", " ", ":"};
         Map<String, Integer> numThreadsByPreffixMap = new HashMap<>();
-        Thread[] threads = new Thread[500];
+        Thread[] threads = new Thread[Thread.activeCount()];
         int numThreads = threadGroup.enumerate(threads);
         for (int i = 0; i < numThreads; i++) {
             String threadName = threads[i].getName();
@@ -153,6 +150,6 @@ public class ThreadUtils {
                 .map(e -> e.getKey() + ":" + e.getValue() + ", ")
                 .limit(30)
                 .collect(Collectors.joining());
-        return Thread.activeCount() + " Threads. High-load distribution: " + result;
+        return Thread.activeCount() + " Threads. JCL distribution: " + result;
     }
 }
