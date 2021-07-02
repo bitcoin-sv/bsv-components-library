@@ -41,10 +41,10 @@ public class RawTxMsgSerializer extends RawMsgSerializer<RawTxMsg> {
         // We calculate the Hash, in human.readable format (reversed)
         // TESTING THE Guava Implementation:
         //Sha256Hash txHash =  Sha256Hash.wrapReversed(Sha256Hash.twiceOf(content).getBytes());
-        Sha256Hash txHash =  Sha256Hash.wrapReversed(hashFunction.hashBytes(hashFunction.hashBytes(content).asBytes()).asBytes());
+        //Sha256Hash txHash =  Sha256Hash.wrapReversed(hashFunction.hashBytes(hashFunction.hashBytes(content).asBytes()).asBytes());
 
         // We return the object
-        return new RawTxMsg(content, txHash);
+        return new RawTxMsg(content);
     }
 
 }

@@ -2,6 +2,8 @@ package com.nchain.jcl.net.protocol.messages;
 
 
 import com.google.common.base.Objects;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
 import io.bitcoinj.core.Sha256Hash;
 
 
@@ -18,6 +20,7 @@ import io.bitcoinj.core.Sha256Hash;
 public class RawTxMsg extends RawMsg {
 
     public static final String MESSAGE_TYPE = "tx";
+    private static HashFunction hashFunction = Hashing.sha256();
 
     // Tx Hash in readable format (reversed)
     private Sha256Hash hash;
@@ -26,6 +29,15 @@ public class RawTxMsg extends RawMsg {
         super(content);
         this.hash = hash;
         init();
+    }
+
+    public RawTxMsg(byte[] content) {
+        this(content, null);
+    }
+
+    // Calculate the Hash...
+    private void calculateHash() {
+        this.hash = Sha256Hash.wrapReversed(hashFunction.hashBytes(hashFunction.hashBytes(content).asBytes()).asBytes());
     }
 
     @Override
@@ -40,12 +52,15 @@ public class RawTxMsg extends RawMsg {
     protected void validateMessage() {}
 
     public Sha256Hash getHash() {
+        if (this.hash == null) {
+            calculateHash();
+        }
         return this.hash;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(hash);
+        return Objects.hashCode(super.content);
     }
 
     @Override
@@ -54,11 +69,11 @@ public class RawTxMsg extends RawMsg {
         if (obj == this) { return true; }
         if (obj.getClass() != getClass()) { return false; }
         RawTxMsg other = (RawTxMsg) obj;
-        return Objects.equal(this.hash, other.hash);
+        return Objects.equal(super.content, super.content);
     }
 
     @Override
     public String toString() {
-        return "RawTxMsg(hash=" + this.getHash() + ")";
+        return "RawTxMsg(hash=" + this.hash + ")";
     }
 }
