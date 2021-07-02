@@ -226,7 +226,8 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
                     }
             }
 
-            if (config.getUserAgentWhitelist() != null) {
+
+            if ((config.getUserAgentWhitelist() != null) && (config.getUserAgentWhitelist().length > 0)) {
                 boolean hasOneValidPattern = false;
                 for (String pattern : config.getUserAgentWhitelist())
                     if (versionMsg.getUser_agent().getStr().toUpperCase().indexOf(pattern.toUpperCase()) != -1) {
