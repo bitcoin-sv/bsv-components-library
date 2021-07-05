@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.performance
 
 import com.google.common.util.concurrent.RateLimiter
+import com.nchain.jcl.net.network.PeerAddress
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
@@ -11,7 +12,9 @@ import com.nchain.jcl.net.protocol.events.data.TxMsgReceivedEvent
 import com.nchain.jcl.net.protocol.handlers.discovery.DiscoveryHandler
 import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandlerConfig
 import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerConfig
+import com.nchain.jcl.net.protocol.handlers.pingPong.PingPongHandlerConfig
 import com.nchain.jcl.net.protocol.messages.GetdataMsg
+import com.nchain.jcl.net.protocol.messages.HashMsg
 import com.nchain.jcl.net.protocol.messages.InventoryVectorMsg
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder
@@ -27,8 +30,11 @@ import io.bitcoinj.params.STNParams
 import spock.lang.Specification
 import java.time.Duration
 import java.time.Instant
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
+import java.util.stream.Collectors
 
 
 /**
@@ -52,6 +58,9 @@ class IncomingTxPerformanceTest extends Specification {
     Instant firstTxInstant = null
     Instant lastTxInstant = null;
 
+    Set<PeerAddress> peersInfo = ConcurrentHashMap.newKeySet()
+    Map<PeerAddress, List<InventoryVectorMsg>> peersTxs = new ConcurrentHashMap<>();
+
     /**
      * It connects the P2P Service to some Peers manually. The peers are different depending on the network. This
      * is done this way because someties we cannot waut ofr the current Node.Discovery algorithm to find them in a
@@ -71,6 +80,21 @@ class IncomingTxPerformanceTest extends Specification {
         }
 
         if (netId.equalsIgnoreCase(ProtocolBSVStnConfig.id) || netId.equalsIgnoreCase(STNParams.get().getId())) {
+
+            // Brad:
+            p2p.REQUESTS.PEERS.connect("209.97.128.49:9333").submit()
+            p2p.REQUESTS.PEERS.connect("188.166.44.242:9333").submit()
+            p2p.REQUESTS.PEERS.connect("165.22.58.146:9333").submit()
+            p2p.REQUESTS.PEERS.connect("206.189.42.110:9333").submit()
+            p2p.REQUESTS.PEERS.connect("165.22.59.150:9333").submit()
+            p2p.REQUESTS.PEERS.connect("116.202.171.166:9333").submit()
+            p2p.REQUESTS.PEERS.connect("95.217.38.94:9333").submit()
+            p2p.REQUESTS.PEERS.connect("116.202.113.92:9333").submit()
+            p2p.REQUESTS.PEERS.connect("116.202.118.183:9333").submit()
+            p2p.REQUESTS.PEERS.connect("46.4.76.249:9333").submit()
+            p2p.REQUESTS.PEERS.connect("95.217.121.173:9333").submit()
+            p2p.REQUESTS.PEERS.connect("116.202.234.249:9333").submit()
+            p2p.REQUESTS.PEERS.connect("95.217.108.109:9333").submit()
 
             // Esthon:
             p2p.REQUESTS.PEERS.connect("104.154.79.59:9333").submit()
@@ -147,10 +171,12 @@ class IncomingTxPerformanceTest extends Specification {
             logLine.append(":: ").append(memorySummary);
 
             if (newTxsInvItems.size() > 0) {
+
                 // Now we send a GetData asking for them....
                 GetdataMsg getDataMsg = GetdataMsg.builder().invVectorList(newTxsInvItems).build()
                 BitcoinMsg<GetdataMsg> btcGetDataMsg = new BitcoinMsgBuilder(p2p.protocolConfig.basicConfig, getDataMsg).build()
-                p2p.REQUESTS.MSGS.send(event.peerAddress, btcGetDataMsg).submit()
+                p2p.REQUESTS.MSGS.send(event.getPeerAddress(), btcGetDataMsg).submit()
+
             }
         }
 
@@ -200,6 +226,13 @@ class IncomingTxPerformanceTest extends Specification {
             HandshakeHandlerConfig handshakeConfig = protocolConfig.getHandshakeConfig().toBuilder()
                                                         .relayTxs(true)
                                                         .build()
+
+            // We raise the Timeot for PING/PONG protocols:
+            PingPongHandlerConfig pingPongConfig = protocolConfig.getPingPongConfig().toBuilder()
+                .inactivityTimeout(Duration.ofSeconds(50))
+                .responseTimeout(Duration.ofSeconds(120))
+                .build()
+
             // We define a Range of Peers...
             ProtocolBasicConfig basicConfig = protocolConfig.getBasicConfig().toBuilder()
                                                         .minPeers(OptionalInt.of(15))
@@ -208,6 +241,7 @@ class IncomingTxPerformanceTest extends Specification {
             // We build the P2P Service:
             P2P p2p = new P2PBuilder("performance")
                             .config(protocolConfig)
+                            .config(pingPongConfig)
                             .config(messageConfig)
                             .config(handshakeConfig)
                             .config(basicConfig)
@@ -227,6 +261,11 @@ class IncomingTxPerformanceTest extends Specification {
             p2p.EVENTS.PEERS.HANDSHAKED.forEach({e ->
                 println(e)
                 numPeersHandshaked.incrementAndGet()
+                peersInfo.add(e.peerAddress)
+            })
+            p2p.EVENTS.PEERS.HANDSHAKED_DISCONNECTED.forEach({e ->
+                numPeersHandshaked.decrementAndGet();
+                peersInfo.remove(e.peerAddress)
             })
             p2p.EVENTS.PEERS.CONNECTED.forEach({e -> println(e)})
             p2p.EVENTS.PEERS.HANDSHAKED_REJECTED.forEach({e -> println(e)})
