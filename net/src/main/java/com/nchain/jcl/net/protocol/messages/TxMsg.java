@@ -160,7 +160,7 @@ public class TxMsg extends Message {
             txInput.setScriptBytes(txInputMsg.getSignature_script());
             TxOutPoint outpoint = new TxOutPointBean(txInput);
             outpoint.setIndex(txInputMsg.getPre_outpoint().getIndex());
-            outpoint.setHash(Sha256Hash.wrap(txInputMsg.getPre_outpoint().getHash().getHashBytes()));
+            outpoint.setHash(Sha256Hash.wrapReversed(txInputMsg.getPre_outpoint().getHash().getHashBytes()));
             txInput.setOutpoint(outpoint);;
             inputs.add(txInput);
         }
