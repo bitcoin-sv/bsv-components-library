@@ -26,8 +26,6 @@ import com.nchain.jcl.tools.thread.ThreadUtils;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -40,16 +38,13 @@ import java.util.concurrent.ExecutorService;
  * also be disabled, in case we assume that the remote Peer is gonna be very busy in the future (for example, if we
  * are downloading a block from it), and we dont want to overload it with replying to our Ping messages.
  */
-public class PingPongHandlerImpl extends HandlerImpl implements PingPongHandler {
+public class PingPongHandlerImpl extends HandlerImpl<PeerAddress, PingPongPeerInfo> implements PingPongHandler {
 
     // For logging:
     private LoggerUtil logger;
 
     // P2P Configuration (used by the MessageStreams) we wrap around each Peer connection
     private PingPongHandlerConfig config;
-
-    // We store info about each Peer:
-    private Map<PeerAddress, PingPongPeerInfo> peersInfo = new ConcurrentHashMap<>();
 
     // State of this Handler
     private PingPongHandlerState state = PingPongHandlerState.builder().build();
@@ -104,14 +99,18 @@ public class PingPongHandlerImpl extends HandlerImpl implements PingPongHandler 
 
     @Override
     public void disablePingPong(PeerAddress peerAddress) {
-        PingPongPeerInfo peerInfo = peersInfo.get(peerAddress);
-        if (peerInfo != null) peerInfo.disablePingPong();
+        PingPongPeerInfo peerInfo = getOrWaitForHandlerInfo(peerAddress);
+        if(peerInfo != null) {
+            peerInfo.disablePingPong();
+        }
     }
 
     @Override
     public void enablePingPong(PeerAddress peerAddress) {
-        PingPongPeerInfo peerInfo = peersInfo.get(peerAddress);
-        if (peerInfo != null) peerInfo.enablePingPong();
+        PingPongPeerInfo peerInfo = getOrWaitForHandlerInfo(peerAddress);
+        if(peerInfo != null) {
+            peerInfo.enablePingPong();
+        }
     }
 
     // Event Handler
@@ -129,12 +128,12 @@ public class PingPongHandlerImpl extends HandlerImpl implements PingPongHandler 
 
     // Event Handler:
     public void onPeerHandshaked(PeerHandshakedEvent event) {
-        peersInfo.put(event.getPeerAddress(), new PingPongPeerInfo(event.getPeerAddress()));
+        handlerInfo.put(event.getPeerAddress(), new PingPongPeerInfo(event.getPeerAddress()));
     }
 
     // Event Handler:
     public void onPeerDisconnected(PeerDisconnectedEvent event) {
-        peersInfo.remove(event.getPeerAddress());
+        handlerInfo.remove(event.getPeerAddress());
     }
 
     // Event Handler:
@@ -144,12 +143,8 @@ public class PingPongHandlerImpl extends HandlerImpl implements PingPongHandler 
         // peer might have sent a PING so fast after the handshake, than we didn't have time to register it.
         // The "PeerHandshakedEvent" should be triggered during the delay, if not, we just discard it.
 
-        try {
-            if (!peersInfo.containsKey(event.getPeerAddress())) { Thread.sleep(50); }
-        } catch (InterruptedException ie) { throw new RuntimeException(ie); }
-
-        PingPongPeerInfo peerInfo = peersInfo.get(event.getPeerAddress());
-        if (peerInfo != null)  {
+        PingPongPeerInfo peerInfo = getOrWaitForHandlerInfo(event.getPeerAddress());
+        if (peerInfo != null) {
             // We update the activity of this Peer and process it:
             peerInfo.updateActivity();
             processPingMsg(event.getBtcMsg(), peerInfo);
@@ -158,11 +153,11 @@ public class PingPongHandlerImpl extends HandlerImpl implements PingPongHandler 
 
     // Event Handler:
     public void onPongReceived(PongMsgReceivedEvent event) {
-        PingPongPeerInfo peerInfo = peersInfo.get(event.getPeerAddress());
-        if (peerInfo != null)  {
+        PingPongPeerInfo peerInfo = getOrWaitForHandlerInfo(event.getPeerAddress());
+        if (peerInfo != null) {
             // We update the activity of this Peer and process it:
             peerInfo.updateActivity();
-            processPongMsg( event.getBtcMsg(), peerInfo);
+            processPongMsg(event.getBtcMsg(), peerInfo);
         }
     }
 
@@ -232,7 +227,7 @@ public class PingPongHandlerImpl extends HandlerImpl implements PingPongHandler 
         // We request a Disconnection
         super.eventBus.publish(new DisconnectPeerRequest(peerInfo.getPeerAddress()));
         // We remove this Peer
-        peersInfo.remove(peerInfo.getPeerAddress());
+        handlerInfo.remove(peerInfo.getPeerAddress());
         // We propagate the event
         super.eventBus.publish(new PingPongFailedEvent(peerInfo.getPeerAddress(), reason));
     }
@@ -254,7 +249,7 @@ public class PingPongHandlerImpl extends HandlerImpl implements PingPongHandler 
             // First loop level: This job runs forever...
             while (true) {
                 // Second loop level: We loop over all our registered peers
-                for (PingPongPeerInfo peerInfo : peersInfo.values()) {
+                for (PingPongPeerInfo peerInfo : handlerInfo.values()) {
                     //logger.trace("Checking pending ping for " + peerInfo.getPeerAddress() + "...");
                     if (!peerInfo.isPingPongDisabled()) {
                         boolean pingSent = peerInfo.getTimePingSent() != null;

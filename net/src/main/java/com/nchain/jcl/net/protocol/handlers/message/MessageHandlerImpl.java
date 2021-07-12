@@ -25,8 +25,6 @@ import com.nchain.jcl.tools.log.LoggerUtil;
 import com.nchain.jcl.tools.thread.ThreadUtils;
 
 import java.math.BigInteger;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -38,16 +36,13 @@ import java.util.concurrent.ExecutorService;
  * a MessageStream (which takes care of the Serializing/Deserializing part), and that the messages received from those
  * peers are publish into the Bus for anybody interested to see.
  */
-public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
+public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo> implements MessageHandler {
 
     // For logging:
     private LoggerUtil logger;
 
     // P2P Configuration (used by the MessageStreams) we wrap around each Peer connection
     private MessageHandlerConfig config;
-
-    // We keep track of all the Connected Peers:
-    private Map<PeerAddress, MessagePeerInfo> peersInfo = new ConcurrentHashMap<>();
 
     // State of this Handler:
     private MessageHandlerState state = MessageHandlerState.builder().build();
@@ -143,7 +138,7 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
             ((DeserializerStream) msgStream.input()).setPreSerializer(config.getPreSerializer());
 
         // We use this Stream to build a MessagePeerInfo and addBytes it to our pool...
-        peersInfo.put(event.getStream().getPeerAddress(), new MessagePeerInfo(msgStream));
+        handlerInfo.put(event.getStream().getPeerAddress(), new MessagePeerInfo(msgStream));
         // We publish the message to the Bus:
         eventBus.publish(new PeerMsgReadyEvent(msgStream));
 
@@ -151,7 +146,7 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
     }
     // Event Handler:
     private void onPeerDisconnected(PeerDisconnectedEvent event) {
-        peersInfo.remove(event.getPeerAddress());
+        handlerInfo.remove(event.getPeerAddress());
     }
 
     // Event Handler:
@@ -178,7 +173,7 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
     }
     // Event Handler:
     private void onStreamClosed(PeerAddress peerAddress) {
-        peersInfo.remove(peerAddress);
+        handlerInfo.remove(peerAddress);
     }
 
     // Event Handler:
@@ -190,7 +185,7 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
 
     // Event Handler:
     private void onEnablePeerBigMessages(EnablePeerBigMessagesRequest event) {
-        MessagePeerInfo messagePeerInfo = this.peersInfo.get(event.getPeerAddress());
+        MessagePeerInfo messagePeerInfo = this.handlerInfo.get(event.getPeerAddress());
         if (messagePeerInfo != null) {
             ((DeserializerStream) messagePeerInfo.getStream().input()).upgradeBufferSize();
         }
@@ -198,7 +193,7 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
 
     // Event Handler:
     private void onDisablePeerBigMessages(DisablePeerBigMessagesRequest event) {
-        MessagePeerInfo messagePeerInfo = this.peersInfo.get(event.getPeerAddress());
+        MessagePeerInfo messagePeerInfo = this.handlerInfo.get(event.getPeerAddress());
         if (messagePeerInfo != null) {
             ((DeserializerStream) messagePeerInfo.getStream().input()).resetBufferSize();
         }
@@ -211,8 +206,8 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
 
     @Override
     public void send(PeerAddress peerAddress, BitcoinMsg<?> btcMessage) {
-        if (peersInfo.containsKey(peerAddress)) {
-            peersInfo.get(peerAddress).getStream().output().send(new StreamDataEvent<>(btcMessage));
+        if (handlerInfo.containsKey(peerAddress)) {
+            handlerInfo.get(peerAddress).getStream().output().send(new StreamDataEvent<>(btcMessage));
             logger.trace(peerAddress.toString() + " :: " + btcMessage.getHeader().getCommand() + " Msg sent.");
 
             // We propagate this message to the Bus, so other handlers can pick them up if they are subscribed to:
@@ -229,7 +224,7 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
 
     @Override
     public void send(PeerAddress peerAddress, Message msgBody) {
-        if (peersInfo.containsKey(peerAddress)) {
+        if (handlerInfo.containsKey(peerAddress)) {
             BitcoinMsg<?> btcMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), msgBody).build();
             send(peerAddress, btcMsg);
         } else logger.trace(peerAddress, " Request to Send Msg Body Discarded (unknown Peer)");
@@ -237,15 +232,15 @@ public class MessageHandlerImpl extends HandlerImpl implements MessageHandler {
 
     @Override
     public void broadcast(BitcoinMsg<?> btcMessage) {
-        peersInfo.values().forEach(p -> p.getStream().output().send(new StreamDataEvent<>(btcMessage)));
-        updateState(0, peersInfo.size());
+        handlerInfo.values().forEach(p -> p.getStream().output().send(new StreamDataEvent<>(btcMessage)));
+        updateState(0, handlerInfo.size());
     }
 
     @Override
     public void broadcast(Message msgBody) {
         BitcoinMsg<?> btcMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), msgBody).build();
-        peersInfo.values().forEach(p -> p.getStream().output().send(new StreamDataEvent<>(btcMsg)));
-        updateState(0, peersInfo.size());
+        handlerInfo.values().forEach(p -> p.getStream().output().send(new StreamDataEvent<>(btcMsg)));
+        updateState(0, handlerInfo.size());
     }
 
     // It updates the State of this Handler:

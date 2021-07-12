@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
  * @see LiteBlockDownloadedEvent
  * @see BlockDiscardedEvent
  */
-public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDownloaderHandler {
+public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPeerInfo> implements BlockDownloaderHandler {
 
     /**
      * States this handler can be into. RUNNING is the normal mode. In PAUSED mode, no new blocks will be downloaded,
@@ -78,9 +78,6 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
 
     // En Executor and a Listener to trigger jobs in parallels.
     private ExecutorService executor;
-
-    // Info about each connected Peer and their downloading progress:
-    private Map<PeerAddress, BlockPeerInfo> peersInfo = new ConcurrentHashMap<>();
 
     // Structures to keep track of the download process:
     private Map<String, Integer>    blocksNumDownloadAttempts = new ConcurrentHashMap<>();
@@ -180,7 +177,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
 
     // Returns the number of Peers currently downloading blocks:
     public int getCurrentPeersDownloading() {
-        return (int) peersInfo.values().stream()
+        return (int) handlerInfo.values().stream()
                 .filter(p -> p.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING))
                 .count();
     }
@@ -216,7 +213,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                 .pendingToCancelBlocks(this.blocksPendingToCancel.stream().collect(Collectors.toList()))
                 .cancelledBlocks(this.blocksCancelled.stream().collect(Collectors.toList()))
                 .blocksHistory(this.blocksDownloadHistory.getBlocksHistory())
-                .peersInfo(this.peersInfo.values().stream()
+                .peersInfo(this.handlerInfo.values().stream()
                         //.filter( p -> p.getCurrentBlockInfo() != null)
                         //.filter( p -> p.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING))
                         .filter(p -> p.getConnectionState().equals(BlockPeerInfo.PeerConnectionState.HANDSHAKED))
@@ -295,7 +292,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
             // If the Peer is already in our Pool, that means it's been used before, so we just reset it, otherwise
             // we create a new one...
             PeerAddress peerAddress = event.getStream().getPeerAddress();
-            BlockPeerInfo peerInfo = peersInfo.get(peerAddress);
+            BlockPeerInfo peerInfo = handlerInfo.get(peerAddress);
 
             if (peerInfo == null) {
                 peerInfo = new BlockPeerInfo(peerAddress, (DeserializerStream) event.getStream().input());
@@ -309,7 +306,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                 }
             }
 
-            peersInfo.put(peerAddress, peerInfo);
+            handlerInfo.put(peerAddress, peerInfo);
         } finally {
             lock.unlock();
         }
@@ -318,7 +315,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
     public void onPeerHandshaked(PeerHandshakedEvent event) {
         try {
             lock.lock();
-            BlockPeerInfo peerInfo = peersInfo.get(event.getPeerAddress());
+            BlockPeerInfo peerInfo = handlerInfo.get(event.getPeerAddress());
             peerInfo.handshake();
         } finally {
             lock.unlock();
@@ -328,7 +325,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
     public void onPeerDisconnected(PeerDisconnectedEvent event) {
         try {
             lock.lock();
-            BlockPeerInfo peerInfo = peersInfo.get(event.getPeerAddress());
+            BlockPeerInfo peerInfo = handlerInfo.get(event.getPeerAddress());
             if (peerInfo != null) {
                 logger.trace(peerInfo.getPeerAddress(),  "Peer Disconnected", peerInfo.toString());
                 // If this Peer was in the middle of downloading a block, we process the failure...
@@ -350,9 +347,9 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
     public void onBlockMsgReceived(BlockMsgReceivedEvent event) {
         try {
             lock.lock();
-            if (!peersInfo.containsKey(event.getPeerAddress())) return;
-            if (!peersInfo.get(event.getPeerAddress()).isProcessing()) return;
-            processWholeBlockReceived(peersInfo.get(event.getPeerAddress()), event.getBtcMsg());
+            if (!handlerInfo.containsKey(event.getPeerAddress())) return;
+            if (!handlerInfo.get(event.getPeerAddress()).isProcessing()) return;
+            processWholeBlockReceived(handlerInfo.get(event.getPeerAddress()), event.getBtcMsg());
         } finally {
             lock.unlock();
         }
@@ -362,9 +359,9 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
     public void onBlockMsgReceived(RawBlockMsgReceivedEvent event) {
         try {
             lock.lock();
-            if (!peersInfo.containsKey(event.getPeerAddress())) return;
-            if (!peersInfo.get(event.getPeerAddress()).isProcessing()) return;
-            processWholeRawBlockReceived(peersInfo.get(event.getPeerAddress()), event.getBtcMsg());
+            if (!handlerInfo.containsKey(event.getPeerAddress())) return;
+            if (!handlerInfo.get(event.getPeerAddress()).isProcessing()) return;
+            processWholeRawBlockReceived(handlerInfo.get(event.getPeerAddress()), event.getBtcMsg());
         } finally {
             lock.unlock();
         }
@@ -374,9 +371,9 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
     public void onPartialBlockHeaderMsgReceived(BlockHeaderDownloadedEvent event) {
         try {
             lock.lock();
-            if (!peersInfo.containsKey(event.getPeerAddress())) return;
-            if (!peersInfo.get(event.getPeerAddress()).isProcessing()) return;
-            processPartialBlockReceived(peersInfo.get(event.getPeerAddress()), event.getBtcMsg());
+            if (!handlerInfo.containsKey(event.getPeerAddress())) return;
+            if (!handlerInfo.get(event.getPeerAddress()).isProcessing()) return;
+            processPartialBlockReceived(handlerInfo.get(event.getPeerAddress()), event.getBtcMsg());
         } finally {
             lock.unlock();
         }
@@ -386,9 +383,9 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
     public void onPartialBlockTxsMsgReceived(MsgReceivedEvent event) {
         try {
             lock.lock();
-            if (!peersInfo.containsKey(event.getPeerAddress())) return;
-            if (!peersInfo.get(event.getPeerAddress()).isProcessing()) return;
-            processPartialBlockReceived(peersInfo.get(event.getPeerAddress()), event.getBtcMsg());
+            if (!handlerInfo.containsKey(event.getPeerAddress())) return;
+            if (!handlerInfo.get(event.getPeerAddress()).isProcessing()) return;
+            processPartialBlockReceived(handlerInfo.get(event.getPeerAddress()), event.getBtcMsg());
         } finally {
             lock.unlock();
         }
@@ -769,7 +766,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl implements BlockDown
                     // download progress, or we detect if some timeouts have been triggered...
 
                     // We order the peers by download Speed, the fastest go first:
-                    List<BlockPeerInfo> peersOrdered =  peersInfo.values().stream().collect(Collectors.toList());
+                    List<BlockPeerInfo> peersOrdered =  handlerInfo.values().stream().collect(Collectors.toList());
                     Collections.sort(peersOrdered, BlockPeerInfo.SPEED_COMPARATOR);
                     Iterator<BlockPeerInfo> it = peersOrdered.iterator();
 
