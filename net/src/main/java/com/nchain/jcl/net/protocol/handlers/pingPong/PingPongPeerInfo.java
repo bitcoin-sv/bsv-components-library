@@ -1,7 +1,6 @@
 package com.nchain.jcl.net.protocol.handlers.pingPong;
 
 import com.nchain.jcl.net.network.PeerAddress;
-import com.nchain.jcl.net.protocol.handlers.common.PeerInfo;
 import com.nchain.jcl.net.protocol.messages.PingMsg;
 
 import java.time.Instant;
@@ -14,7 +13,7 @@ import java.time.Instant;
  * Ping-Pong P2P
  */
 
-public class PingPongPeerInfo extends PeerInfo {
+public class PingPongPeerInfo {
     private PeerAddress peerAddress;
     private Instant timeLastActivity;
     private Instant timePingSent;
