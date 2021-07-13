@@ -12,6 +12,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author m.fletcher@nchain.com
  * Copyright (c) 2018-2021 nChain Ltd
  * @date 11/07/2021
+ *
+ * A Blocking Map that includes an extra operation that "waits" during a timeout given if the Value to retrieve is not
+ * the map yet.
  */
 public class SimpleBlockingMap<K, V> implements Map<K,V>{
 
@@ -20,15 +23,9 @@ public class SimpleBlockingMap<K, V> implements Map<K,V>{
     private Map<K, V> map = new ConcurrentHashMap<>();
     private Set<K> mapLookups = Collections.synchronizedSet(new HashSet<>());
 
-    public SimpleBlockingMap() {
-    }
+    public SimpleBlockingMap() { }
 
-    /**
-     * If the element does not exist, waits the given duration and tries again
-     * @param key
-     * @param timeout
-     * @return
-     */
+    /** If the element does not exist, waits the given duration and tries again */
     public V take(K key, Duration timeout) throws InterruptedException {
         if(!map.containsKey(key) && !mapLookups.contains(key)){
                 try {
