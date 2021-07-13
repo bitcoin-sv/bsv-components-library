@@ -27,6 +27,7 @@ import com.nchain.jcl.tools.thread.ThreadUtils
 
 import io.bitcoinj.core.Sha256Hash
 import io.bitcoinj.core.Utils
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.time.Duration
@@ -169,6 +170,7 @@ class TxBlasterPerformanceTest extends Specification {
     /**
      * Main TEst.
      */
+    @Ignore
     def "Testing Tx Blaster"() {
         given:
             // We configure the MessageHandler to DISABLE the Deserializer Cache...

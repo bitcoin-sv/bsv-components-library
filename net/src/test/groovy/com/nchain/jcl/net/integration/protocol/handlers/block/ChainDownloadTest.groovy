@@ -21,6 +21,7 @@ import io.bitcoinj.core.Sha256Hash
 import io.bitcoinj.core.Utils
 import io.bitcoinj.params.MainNetParams
 import io.bitcoinj.params.Net
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.time.Duration
@@ -59,6 +60,7 @@ class ChainDownloadTest extends Specification {
         return getHeadersMsg;
     }
 
+    @Ignore
     def "Test download Chain from hash Locator"() {
         given:
             // The longest Timeout we'll wait for to run the test:
