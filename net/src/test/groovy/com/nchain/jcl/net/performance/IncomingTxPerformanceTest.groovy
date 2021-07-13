@@ -247,7 +247,7 @@ class IncomingTxPerformanceTest extends Specification {
                             .config(messageConfig)
                             .config(handshakeConfig)
                             .config(basicConfig)
-                            .excludeHandler(DiscoveryHandler.HANDLER_ID)
+                           // .excludeHandler(DiscoveryHandler.HANDLER_ID)
                             .build()
 
 
