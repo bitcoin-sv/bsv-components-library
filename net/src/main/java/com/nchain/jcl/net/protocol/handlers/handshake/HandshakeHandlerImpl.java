@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  */
-public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandler {
+public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeerInfo> implements HandshakeHandler {
 
     public static final String HANDLER_ID = "Handshake-Handler";
 
@@ -45,8 +45,6 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
     // P2P configuration:
    private HandshakeHandlerConfig config;
 
-    // We keep track of all the Peers for which we are performing the handshake:
-    private Map<PeerAddress, HandshakePeerInfo> peersInfo = new ConcurrentHashMap<>();
 
     // Handler State:
     private HandshakeHandlerState state;
@@ -109,7 +107,7 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
 
     @Override
     public boolean isHandshaked(PeerAddress peerAddress) {
-        return (peersInfo.containsKey(peerAddress) && peersInfo.get(peerAddress).isHandshakeAccepted());
+        return (handlerInfo.containsKey(peerAddress) && handlerInfo.get(peerAddress).isHandshakeAccepted());
     }
 
 
@@ -131,7 +129,7 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
     private void onPeerDisconnected(PeerDisconnectedEvent event) {
         try {
             lock.lock();
-            HandshakePeerInfo peerInfo = peersInfo.get(event.getPeerAddress());
+            HandshakePeerInfo peerInfo = handlerInfo.get(event.getPeerAddress());
             if (peerInfo != null) {
 
                 // If the Peer is currently handshaked, we update the status and trigger an specific event:
@@ -143,7 +141,7 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
                 }
 
                 // We remove if from our Pool:
-                this.peersInfo.remove(event.getPeerAddress());
+                this.handlerInfo.remove(event.getPeerAddress());
 
                 // We update the State:
                 updateStatus(false,false, peerInfo.getPeerAddress());
@@ -165,9 +163,9 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
             // For some strange reasons, sometimes this event is triggered several times, so in order to
             // prevent from starting the same handshake twice, we check if there is already a handshake in progress
             // with this Peer...
-            if (peersInfo.get(peerAddress) == null) {
+            if (handlerInfo.get(peerAddress) == null) {
                 HandshakePeerInfo peerInfo = new HandshakePeerInfo(peerAddress);
-                peersInfo.put(peerAddress, peerInfo);
+                handlerInfo.put(peerAddress, peerInfo);
 
                 // If we still need Handshakes, we start the process with this Peer:
                 if (!doWeHaveEnoughHandshakes()) startHandshake(peerInfo);
@@ -186,7 +184,7 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
     private void onVersionMessage(VersionMsgReceivedEvent event) {
 
         // If this message is coming from a Peer we don't have anymore, we just discard it
-        HandshakePeerInfo peerInfo = peersInfo.get(event.getPeerAddress());
+        HandshakePeerInfo peerInfo = handlerInfo.get(event.getPeerAddress());
         if (peerInfo == null) {
             logger.debug(event.getPeerAddress(), event.getBtcMsg().getHeader().getCommand().toUpperCase(), " message discarded (Peer already discarded)");
             return;
@@ -267,7 +265,7 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
     private void onAckMessage(VersionAckMsgReceivedEvent event) {
 
         // If this message is coming from a Peer we don't have anymore, we just discard it
-        HandshakePeerInfo peerInfo = peersInfo.get(event.getPeerAddress());
+        HandshakePeerInfo peerInfo = handlerInfo.get(event.getPeerAddress());
         if (peerInfo == null) {
             logger.debug(event.getPeerAddress(), event.getBtcMsg().getHeader().getCommand().toUpperCase(), " message discarded (Peer already discarded)");
             return;
@@ -312,13 +310,13 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
                                            boolean requestToStopConns,
                                            PeerAddress anotherPeerHandshakedLost) {
         HandshakeHandlerState.HandshakeHandlerStateBuilder stateBuilder = this.state.toBuilder();
-        int numCurrentHandshakes = (int) this.peersInfo.values().stream()
+        int numCurrentHandshakes = (int) this.handlerInfo.values().stream()
                 .filter(p -> p.isHandshakeAccepted())
                 .count();
-        int numHandshakesInProgress =  (int) this.peersInfo.values().stream()
+        int numHandshakesInProgress =  (int) this.handlerInfo.values().stream()
                 .filter(p -> ((p.isVersionMsgReceived() || p.isVersionMsgSent()) && !p.isHandshakeAccepted() && !p.isHandshakeRejected()))
                 .count();
-        BigInteger numHandshakesFailed = BigInteger.valueOf(this.peersInfo.values().stream()
+        BigInteger numHandshakesFailed = BigInteger.valueOf(this.handlerInfo.values().stream()
                 .filter(p -> p.isHandshakeRejected())
                 .count());
         stateBuilder.numCurrentHandshakes(numCurrentHandshakes);
@@ -382,7 +380,7 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
                     // from those Peers we don't need , since we've already reached the MAX limit:
 
                     logger.debug("Requesting to disconnect any Peers Except the ones already handshaked...");
-                    List<PeerAddress> peerToKeep = peersInfo.values().stream()
+                    List<PeerAddress> peerToKeep = handlerInfo.values().stream()
                             .filter(p -> p.isHandshakeAccepted())
                             .map(p -> p.getPeerAddress())
                             .collect(Collectors.toList());
@@ -523,7 +521,7 @@ public class HandshakeHandlerImpl extends HandlerImpl implements HandshakeHandle
         super.eventBus.publish(request);
 
         // We remove it from our List of Peers...
-        peersInfo.remove(peerInfo.getPeerAddress());
+        handlerInfo.remove(peerInfo.getPeerAddress());
     }
 
     public HandshakeHandlerConfig getConfig() {

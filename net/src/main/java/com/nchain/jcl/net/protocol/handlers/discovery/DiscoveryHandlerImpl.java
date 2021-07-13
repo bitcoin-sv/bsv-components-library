@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
  * - Every time a Peer is handshaked, we start the NodeDiscovery protocol for that peer.
  * -
  */
-public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandler {
+public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeerInfo> implements DiscoveryHandler {
 
     // Suffix of the File that stores Peers from the Pool:
     private static final String NET_FOLDER = "net";
@@ -62,10 +62,6 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
     private LoggerUtil logger;
     private DiscoveryHandlerConfig config;
     private ScheduledExecutorService executor;
-
-    // Pool of Peers. The Peers in this Collection will be used for the future ADDR Messages replied to
-    // Remote peers, and for requesting new Connections...
-    private Map<PeerAddress, DiscoveryPeerInfo> peersInfo = new ConcurrentHashMap<>();
 
     // We keep track of all the Peers that have been handshaked during this session, so we can try to
     // re-connect to them if we eventually run out of other Peers to try on...
@@ -198,7 +194,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
      * NOTE: A high-Quality Peer is a Peer that is in our Pool and has ever been handshaked before.
      */
     private void savePoolToDisk() {
-        List<DiscoveryPeerInfo> hqPeers = peersInfo.values().stream()
+        List<DiscoveryPeerInfo> hqPeers = handlerInfo.values().stream()
                 .filter(p -> peersHandshaked.contains(p.getPeerAddress()))
                 .collect(Collectors.toList());
         String csvFileName = StringUtils.fileNamingFriendly(config.getBasicConfig().getId()) + FILE_POOL_SUFFIX;
@@ -241,18 +237,18 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
         // want to keep. so in that case, we look for another Peer within the Peer we might replace (like a Peer in
         // the pool that is NOT handshaked)
 
-        DiscoveryPeerInfo peerInfo = peersInfo.get(peerAddress);
+        DiscoveryPeerInfo peerInfo = handlerInfo.get(peerAddress);
         if (peerInfo == null) {
             peerInfo = new DiscoveryPeerInfo(peerAddress);
             boolean addedOK = addToPool(peerInfo);
             if (!addedOK) {
-                Optional<PeerAddress> peerAddressToReplace = peersInfo.values().stream()
+                Optional<PeerAddress> peerAddressToReplace = handlerInfo.values().stream()
                         .filter(p ->  !peersHandshaked.contains(p)).findFirst().map(p -> p.getPeerAddress());
                 if (peerAddressToReplace.isPresent()) {
                     logger.trace( peerAddressToReplace.get().toString(),
                             "Removing this Peer from the main pool, to make room for  " + peerAddress.toString() + "...");
-                    peersInfo.remove(peerAddressToReplace.get());
-                    peersInfo.put(peerAddress, peerInfo);
+                    handlerInfo.remove(peerAddressToReplace.get());
+                    handlerInfo.put(peerAddress, peerInfo);
                 }
             }
         }
@@ -269,7 +265,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
         this.peersBlacklisted.addAll(event.getInetAddresses().keySet());
 
         // We remove from the Pool all the Peers using this IP:
-        List<PeerAddress> toRemoveFromMainPool = peersInfo.keySet().stream()
+        List<PeerAddress> toRemoveFromMainPool = handlerInfo.keySet().stream()
                 .filter(p -> event.getInetAddresses().keySet().contains(p.getIp()))
                 .collect(Collectors.toList());
 
@@ -280,7 +276,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
     }
     // Event Handler:
     public void onPeerDisconnected(PeerDisconnectedEvent event) {
-        DiscoveryPeerInfo peerInfo = peersInfo.get(event.getPeerAddress());
+        DiscoveryPeerInfo peerInfo = handlerInfo.get(event.getPeerAddress());
         if (peerInfo != null) peerInfo.reset();
     }
     // Event Handler:
@@ -300,11 +296,11 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
      */
     private void onGetAddrMsg(GetAddrMsgReceivedEvent event) {
 
-        DiscoveryPeerInfo peerInfo = peersInfo.get(event.getPeerAddress());
+        DiscoveryPeerInfo peerInfo = getOrWaitForHandlerInfo(event.getPeerAddress());
         if (peerInfo == null) return;
         logger.debug(peerInfo.getPeerAddress().toString() + " :: Processing incoming GET_ADDR...");
         // We check that we have enough of them to send them out:
-        if (config.getRelayMinAddresses().isPresent() && (peersInfo.size() > config.getRelayMinAddresses().getAsInt())) {
+        if (config.getRelayMinAddresses().isPresent() && (handlerInfo.size() > config.getRelayMinAddresses().getAsInt())) {
             logger.debug(peerInfo.getPeerAddress(), "GETADDR Ignored (not enough Addresses to send");
             return;
         }
@@ -316,7 +312,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
 
         int numAddrToAdd = 0;
         NetAddressMsg netAddrMsg;
-        for (DiscoveryPeerInfo addrInfo : peersInfo.values()) {
+        for (DiscoveryPeerInfo addrInfo : handlerInfo.values()) {
             Long within1Hour = System.currentTimeMillis() - Duration.ofHours(1).toMillis();
 
             if (addrInfo.getTimestamp() >= within1Hour && netAddressMsgs.size() < MAX_ADDR_ADDRESSES) {
@@ -343,7 +339,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
      */
     private void onAddrMsg(AddrMsgReceivedEvent event) {
         try {
-            DiscoveryPeerInfo peerInfo = peersInfo.get(event.getPeerAddress());
+            DiscoveryPeerInfo peerInfo = getOrWaitForHandlerInfo(event.getPeerAddress());
             if (peerInfo == null) return;
 
             AddrMsg msg = event.getBtcMsg().getBody();
@@ -440,13 +436,13 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
         Long timestamp = peerInfo.getTimestamp();
 
         // If the Peer is already included, we quit:
-        if (peersInfo.containsKey(peerInfo.getPeerAddress())) result =  false;
+        if (handlerInfo.containsKey(peerInfo.getPeerAddress())) result =  false;
 
         // If it's blacklisted, we discard it:
         if (peersBlacklisted.contains(peerInfo.getPeerAddress().getIp())) result =  false;
 
         // If the main Pool is already full, we discard it:
-        if (config.getMaxAddresses().isPresent() && peersInfo.size() >= config.getMaxAddresses().getAsInt())
+        if (config.getMaxAddresses().isPresent() && handlerInfo.size() >= config.getMaxAddresses().getAsInt())
             result =  false;
 
         // Finally, we either addBytes it to the mainPool or not:
@@ -475,7 +471,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
 
             // We update and put the Address in the MAIN POOL
             peerInfo.updateTimestamp(timestamp);
-            peersInfo.put(peerAddress, peerInfo);
+            handlerInfo.put(peerAddress, peerInfo);
 
         } else {
             // We update the Status:
@@ -486,7 +482,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
     }
 
     private void removeFromPool(PeerAddress peerAddress) {
-        boolean actuallyRemoved = (peersInfo.remove(peerAddress) != null);
+        boolean actuallyRemoved = (handlerInfo.remove(peerAddress) != null);
         if (actuallyRemoved) updateState(0,1,0,0,0,null);
     }
 
@@ -498,7 +494,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
     private void jobRenewAddresses() {
         try {
             logger.debug("Renewing Pool of Addresses...");
-            List<DiscoveryPeerInfo> peersToAsk = this.peersInfo.values().stream()
+            List<DiscoveryPeerInfo> peersToAsk = this.handlerInfo.values().stream()
                     .filter( p -> peersHandshaked.contains(p.getPeerAddress()))
                     .filter( p -> (new Random().nextInt(100) <= config.getADDRPercentage().getAsInt()))
                     .collect(Collectors.toList());
@@ -522,7 +518,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl implements DiscoveryHandle
         try {
             // This is the point in time
             Duration waitingDuration = config.getRecoveryHandshakeThreshold().get();
-            List<DiscoveryPeerInfo> handshakesToRecover = peersInfo.values().stream()
+            List<DiscoveryPeerInfo> handshakesToRecover = handlerInfo.values().stream()
                     .filter(p -> !p.isHandshaked())
                     .filter(p -> peersHandshaked.contains(p.getPeerAddress()))
                     .filter(p -> Duration.between(p.getLastHandshakeTime(), DateTimeUtils.nowDateTimeUTC()).compareTo(waitingDuration) > 0)

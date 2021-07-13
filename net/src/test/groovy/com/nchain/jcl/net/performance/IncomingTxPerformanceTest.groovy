@@ -27,6 +27,7 @@ import io.bitcoinj.core.Sha256Hash
 import io.bitcoinj.core.Utils
 import io.bitcoinj.params.MainNetParams
 import io.bitcoinj.params.STNParams
+import spock.lang.Ignore
 import spock.lang.Specification
 import java.time.Duration
 import java.time.Instant
@@ -205,6 +206,7 @@ class IncomingTxPerformanceTest extends Specification {
     /**
      * Main TEst.
      */
+    @Ignore
     def "Testing Incoming TX in real Mainnet"() {
         given:
             // We set up the Network we are connecting to...

@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
  *
  * Implementation of a Blacklist Handler
  */
-public class BlacklistHandlerImpl extends HandlerImpl implements BlacklistHandler {
+public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHostInfo> implements BlacklistHandler {
 
     // Suffix of the File that stores Peers from the Pool:
     private static final String NET_FOLDER = "net";
@@ -35,10 +35,6 @@ public class BlacklistHandlerImpl extends HandlerImpl implements BlacklistHandle
 
     private LoggerUtil logger;
     private BlacklistHandlerConfig config;
-
-    // Pool of Hosts. They might be blacklisted or not. We keep track of ALL The different IP addresses (hosts)
-    // we connect to during the session:
-    private Map<InetAddress, BlacklistHostInfo> hostsInfo = new ConcurrentHashMap<>();
 
     // An executor, to run jobs in parallel:
     private ExecutorService executor;
@@ -72,7 +68,7 @@ public class BlacklistHandlerImpl extends HandlerImpl implements BlacklistHandle
 
         // Now that the list os loaded, we request a Blacklist event for them all...
         Map<InetAddress, PeersBlacklistedEvent.BlacklistReason> hostsToBlacklist = new HashMap<>();
-        hostsInfo.keySet().forEach(ip -> hostsToBlacklist.put(ip, hostsInfo.get(ip).getBlacklistReason()));
+        handlerInfo.keySet().forEach(ip -> hostsToBlacklist.put(ip, handlerInfo.get(ip).getBlacklistReason()));
         super.eventBus.publish(new PeersBlacklistedEvent(hostsToBlacklist));
 
         // We start the Job to look over the Blacklist IPs and whitelist them if needed:
@@ -120,14 +116,14 @@ public class BlacklistHandlerImpl extends HandlerImpl implements BlacklistHandle
         Path csvPath = Paths.get(runtimeConfig.getFileUtils().getRootPath().toString(), NET_FOLDER, csvFileName);
         if (Files.exists(csvPath)) {
             List<BlacklistHostInfo> hosts = runtimeConfig.getFileUtils().readCV(csvPath, () -> new BlacklistHostInfo());
-            hosts.forEach(h -> hostsInfo.put(h.getIp(), h));
+            hosts.forEach(h -> handlerInfo.put(h.getIp(), h));
         }
     }
 
     private void saveBlacklistToDisk() {
         String csvFileName = StringUtils.fileNamingFriendly(config.getBasicConfig().getId()) + FILE_BLACKLIST_SUFFIX;
         Path csvPath = Paths.get(runtimeConfig.getFileUtils().getRootPath().toString(), NET_FOLDER, csvFileName);
-        List<BlacklistHostInfo> hostsToSave = hostsInfo.values().stream().filter(h -> h.isBlacklisted()).collect(Collectors.toList());
+        List<BlacklistHostInfo> hostsToSave = handlerInfo.values().stream().filter(h -> h.isBlacklisted()).collect(Collectors.toList());
         runtimeConfig.getFileUtils().writeCSV(csvPath, hostsToSave);
     }
 
@@ -173,11 +169,11 @@ public class BlacklistHandlerImpl extends HandlerImpl implements BlacklistHandle
      */
     private void processHostAndCheckBlacklisting(PeerAddress peerAddress, Consumer<BlacklistHostInfo> updateExpr) {
         InetAddress ip = peerAddress.getIp();
-        BlacklistHostInfo hostInfo = hostsInfo.keySet().contains(ip) ? hostsInfo.get(ip) : new BlacklistHostInfo(ip);
+        BlacklistHostInfo hostInfo = handlerInfo.keySet().contains(ip) ? handlerInfo.get(ip) : new BlacklistHostInfo(ip);
         if (updateExpr != null) updateExpr.accept(hostInfo);
 
         // We add this Host to the Pool
-        hostsInfo.put(ip, hostInfo);
+        handlerInfo.put(ip, hostInfo);
 
         // We check if this Host should be blacklisted
         if (!hostInfo.isBlacklisted()) {
@@ -213,24 +209,24 @@ public class BlacklistHandlerImpl extends HandlerImpl implements BlacklistHandle
 
             while(true) {
                 // First, we check if any of the Blacklisted Peers can be whitelisted...
-                long numBlacklisted = hostsInfo.values().stream().filter( h -> h.isBlacklisted()).count();
-                List<BlacklistHostInfo> hostsToWhitelist = hostsInfo.values().stream()
+                long numBlacklisted = handlerInfo.values().stream().filter( h -> h.isBlacklisted()).count();
+                List<BlacklistHostInfo> hostsToWhitelist = handlerInfo.values().stream()
                         .filter(h -> h.isBlacklistExpired())
                         .collect(Collectors.toList());
                 whitelist(hostsToWhitelist);
-                long numBlacklistedAfter = hostsInfo.values().stream().filter( h -> h.isBlacklisted()).count();
+                long numBlacklistedAfter = handlerInfo.values().stream().filter( h -> h.isBlacklisted()).count();
                 logger.debug( "Blacklist reviewed: " + (numBlacklisted - numBlacklistedAfter) + " IPs have been WHITELISTED.");
 
                 // Now we publish those blacklisted peers that have not been published yet:
                 // First we get them...
                 Map<InetAddress, PeersBlacklistedEvent.BlacklistReason> hostsBlacklistedToPublish = new HashMap<>();
-                hostsInfo.values().stream()
+                handlerInfo.values().stream()
                         .filter(h -> h.isBlacklisted() && !h.isPublished())
                         .forEach(h -> hostsBlacklistedToPublish.put(h.getIp(), h.getBlacklistReason()));
                 // Now we publish them...
                 super.eventBus.publish(new PeersBlacklistedEvent(hostsBlacklistedToPublish));
                 // And now we update their "published" state
-                hostsBlacklistedToPublish.keySet().forEach(i -> hostsInfo.get(i).publish());
+                hostsBlacklistedToPublish.keySet().forEach(i -> handlerInfo.get(i).publish());
 
                 logger.debug( "Publishing Blacklist of: " + hostsBlacklistedToPublish.size() + " IPs.");
                 Thread.sleep(300000); // 5 minutes

@@ -6,4 +6,7 @@ package com.nchain.jcl.tools.handlers;
  *
  * A base class for a Handler Configuration Class.
  */
-public class HandlerConfig {}
+public class HandlerConfig {
+
+
+}
