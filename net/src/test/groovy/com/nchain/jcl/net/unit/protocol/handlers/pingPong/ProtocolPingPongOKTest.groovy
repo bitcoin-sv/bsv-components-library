@@ -98,11 +98,19 @@ class ProtocolPingPongOKTest extends Specification {
             client.stop()
             Thread.sleep(1000) // We make sure the Guava service is down...
         then:
-            // We check that the Ping/Pong protocol has been triggered at LEAST ONCE. In order to check it, we verify
-            // that both Server and client hae exchange the respective PING and PON messages.
-            numPingReceivedByServer.get() > 0
-            numPongReceivedByServer.get() > 0
-            numPingReceivedByClient.get() > 0
-            numPongReceivedByClient.get() > 0
+            // NOTE: The PING/PONG Starts after a Period of inactivity. So in this case, if both Server and Client are inactive
+            // after some time, the ping/pong is triggered. BUT... The Ping/Pong will always start first in one of them, say
+            // for example in the Server: the server then sends a PING to the Client. Meanwhile, the Client was about to start
+            // the Ping/pong on its own, BUT when the PING from the Server arrived, this would RESET the counter in the client
+            // side, so the "server" is not inactive anymore from the client standpoint, so the Ping/Pong TRIGGERED FROM THE
+            // CLIENT SIDE doesn't happen in the end.
+            // So in this tests, most of the time only one of the Ping/Pong processes will be triggered, and only in certain
+            // HW the two of them will take place
+
+
+            // We check that at least one of the Ping/pong process from any of the sides is performed:
+            ((numPingReceivedByServer.get() > 0 && numPongReceivedByClient.get() > 0)
+                    || (numPingReceivedByClient.get() > 0 && numPongReceivedByServer.get() > 0))
+
     }
 }
