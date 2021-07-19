@@ -4,6 +4,7 @@ package com.nchain.jcl.tools.bytes;
 import javax.annotation.concurrent.GuardedBy;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -34,6 +35,11 @@ public class ByteArrayBuffer implements ByteArray {
     @GuardedBy("this") private ByteArrayConfig config;
     @GuardedBy("this") private List<ByteArray> buffers = new ArrayList<>();
 
+    // For Performance sake:
+    AtomicLong size = new AtomicLong();
+    AtomicLong capacity = new AtomicLong();
+    AtomicLong available = new AtomicLong();
+
     public ByteArrayBuffer(){
         this.config = new ByteArrayConfig();
     }
@@ -45,7 +51,12 @@ public class ByteArrayBuffer implements ByteArray {
 
     // Adds a new buffer to the list and returns it
     private synchronized ByteArray addBuffer() {
-        buffers.add(new ByteArrayNIO(config.getByteArraySize()));
+        ByteArray byteArray = new ByteArrayNIO(config.getByteArraySize());
+        buffers.add(byteArray);
+
+        // Performance counters:
+        capacity.addAndGet(byteArray.capacity());
+        available.addAndGet(byteArray.available());
         return buffers.get(buffers.size() - 1);
     }
 
@@ -61,6 +72,11 @@ public class ByteArrayBuffer implements ByteArray {
     /** Adds a single byte to the end of the data */
     public synchronized ByteArrayBuffer addBytes(ByteArray byteArray) {
         buffers.add(byteArray);
+
+        // Performance counters:
+        size.addAndGet(byteArray.size());
+        capacity.addAndGet(byteArray.capacity());
+        available.addAndGet(byteArray.available());
         return this;
     }
 
@@ -82,6 +98,8 @@ public class ByteArrayBuffer implements ByteArray {
             buffer.add(data, data.length - bytesRemaining, writeLength);
             bytesRemaining -= writeLength;
         }
+        size.addAndGet(data.length);
+
     }
 
     /** Adds a byte Array at the specific location */
@@ -139,10 +157,13 @@ public class ByteArrayBuffer implements ByteArray {
         // We remove those ByteArrays that are now empty after the extraction...
         buffers.removeAll(buffersToRemove);
 
+        size.addAndGet(-length);
+        capacity.set(buffers.stream().mapToLong(b -> b.capacity()).sum());
+        available.set(buffers.stream().mapToLong(b -> b.available()).sum());
         return new ByteArrayReader(writeBuilder);
     }
 
-    public ByteArrayReader extractReader(long length) {
+    public synchronized ByteArrayReader extractReader(long length) {
         return this.extractReader(length, config);
     }
 
@@ -182,26 +203,28 @@ public class ByteArrayBuffer implements ByteArray {
         buffersToRemove.forEach(b -> b.clear());
         buffers.removeAll(buffersToRemove);
 
+        size.addAndGet(-length);
+        capacity.set(buffers.stream().mapToLong(b -> b.capacity()).sum());
+        available.set(buffers.stream().mapToLong(b -> b.available()).sum());
         return result.get();
     }
 
     /** Returns the number of bytes stored */
-    public synchronized long size() {
-        return buffers.stream().mapToLong(b -> b.size()).sum();
-    }
+    //public long size() { return buffers.stream().mapToLong(b -> b.size()).sum(); }
+    public long size() { return size.get(); }
 
     /** Returns the remaining capacity (if more bytes are added, this number might change */
-    public synchronized long available() {
-        return buffers.stream().mapToLong(b -> b.available()).sum();
-    }
+    //public long available() { return buffers.stream().mapToLong(b -> b.available()).sum(); }
+    public long available() { return available.get(); }
 
     /** Returns the total capacity */
-    public synchronized long capacity() {
-        return buffers.stream().mapToLong(b -> b.capacity()).sum();
+    //public long capacity() {return buffers.stream().mapToLong(b -> b.capacity()).sum();}
+    public long capacity() {
+        return capacity.get();
     }
 
     /** Indicates if there are no bytes at all */
-    public synchronized boolean isEmpty() { return (size() == 0);}
+    public boolean isEmpty() { return (size() == 0);}
 
     /**
      * Cleans the data. For the data stored in Memory, it
