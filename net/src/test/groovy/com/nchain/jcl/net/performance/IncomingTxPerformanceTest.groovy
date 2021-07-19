@@ -4,6 +4,7 @@ import com.google.common.util.concurrent.RateLimiter
 import com.nchain.jcl.net.network.PeerAddress
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
+import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVStnConfig
 import com.nchain.jcl.net.protocol.events.data.InvMsgReceivedEvent
@@ -12,6 +13,7 @@ import com.nchain.jcl.net.protocol.events.data.TxMsgReceivedEvent
 import com.nchain.jcl.net.protocol.handlers.discovery.DiscoveryHandler
 import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandlerConfig
 import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerConfig
+import com.nchain.jcl.net.protocol.handlers.pingPong.PingPongHandler
 import com.nchain.jcl.net.protocol.handlers.pingPong.PingPongHandlerConfig
 import com.nchain.jcl.net.protocol.messages.GetdataMsg
 import com.nchain.jcl.net.protocol.messages.HashMsg
@@ -26,13 +28,17 @@ import com.nchain.jcl.tools.thread.ThreadUtils
 import io.bitcoinj.core.Sha256Hash
 import io.bitcoinj.core.Utils
 import io.bitcoinj.params.MainNetParams
+import io.bitcoinj.params.Net
 import io.bitcoinj.params.STNParams
 import spock.lang.Ignore
 import spock.lang.Specification
 import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 import java.util.stream.Collectors
@@ -61,6 +67,8 @@ class IncomingTxPerformanceTest extends Specification {
 
     Set<PeerAddress> peersInfo = ConcurrentHashMap.newKeySet()
     Map<PeerAddress, List<InventoryVectorMsg>> peersTxs = new ConcurrentHashMap<>();
+
+    ScheduledExecutorService executor = Executors.newScheduledThreadPool(5);
 
     /**
      * It connects the P2P Service to some Peers manually. The peers are different depending on the network. This
@@ -148,30 +156,9 @@ class IncomingTxPerformanceTest extends Specification {
      */
     private void processINV(P2P p2p, InvMsgReceivedEvent event) {
         List<InventoryVectorMsg> newTxsInvItems =  event.btcMsg.body.invVectorList;
-
-        StringBuffer logLine = new StringBuffer();
-        logLine.append(":: INV (" + newTxsInvItems.size() + " items) ")
-        logLine.append("[").append(numTxs.get()).append(" txs] ");
-        logLine.append(numPeersHandshaked + " peers.")
-
         if (MIN_PEERS == null || numPeersHandshaked >= MIN_PEERS) {
 
-            logLine.append("\n");
-            logLine.append(":: Threads : " + ThreadUtils.getThreadsInfo())
-
-            long usedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-            long availableMem = Runtime.getRuntime().maxMemory() - usedMem;
-            String memorySummary = String.format("totalMem: %s, maxMem: %s, freeMem: %s, usedMem: %s, availableMem: %s",
-                    Utils.humanReadableByteCount(Runtime.getRuntime().totalMemory(), false),
-                    Utils.humanReadableByteCount(Runtime.getRuntime().maxMemory(), false),
-                    Utils.humanReadableByteCount(Runtime.getRuntime().freeMemory(), false),
-                    Utils.humanReadableByteCount(usedMem, false),
-                    Utils.humanReadableByteCount(availableMem, false))
-
-            logLine.append("\n");
-            logLine.append(":: ").append(memorySummary);
-
-            if (newTxsInvItems.size() > 0) {
+           if (newTxsInvItems.size() > 0) {
 
                 // Now we send a GetData asking for them....
                 GetdataMsg getDataMsg = GetdataMsg.builder().invVectorList(newTxsInvItems).build()
@@ -180,8 +167,6 @@ class IncomingTxPerformanceTest extends Specification {
 
             }
         }
-
-        println(logLine.toString())
     }
 
     /**
@@ -191,27 +176,25 @@ class IncomingTxPerformanceTest extends Specification {
         if (firstTxInstant == null) firstTxInstant = Instant.now()
         lastTxInstant = Instant.now()
         numTxs.incrementAndGet()
-        Sha256Hash txHash = Sha256Hash.wrap(event.btcMsg.body.hash.get().hashBytes)
-        println(" Tx " + txHash + " from " + event.peerAddress + " [ " + numTxs.get() + " txs, " + Thread.activeCount() + " threads, " + numPeersHandshaked.get() + " peers handshaked ]")
     }
 
     private void processRawTX(P2P p2p, RawTxMsgReceivedEvent event) {
         if (firstTxInstant == null) firstTxInstant = Instant.now()
         lastTxInstant = Instant.now()
         numTxs.incrementAndGet()
-        //Sha256Hash txHash = event.btcMsg.body.hash
-        //println(" Tx " + txHash + " from " + event.peerAddress + " [ " + numTxs.get() + " txs, " + Thread.activeCount() + " threads, " + numPeersHandshaked.get() + " peers handshaked ]")
+
     }
 
     /**
      * Main TEst.
      */
-    @Ignore
+    //@Ignore
     def "Testing Incoming TX in real Mainnet"() {
         given:
             // We set up the Network we are connecting to...
             //ProtocolConfig protocolConfig = new ProtocolBSVMainConfig()
             ProtocolConfig protocolConfig = new ProtocolBSVStnConfig()
+            //ProtocolConfig protocolConfig = ProtocolConfigBuilder.get(Net.valueOf("REGTEST").params())
 
             // We disable the Deserialize Cache, so we force it to Deserialize all the TX, even if they are Tx that we
             // already processed...
@@ -238,7 +221,7 @@ class IncomingTxPerformanceTest extends Specification {
             // We define a Range of Peers...
             ProtocolBasicConfig basicConfig = protocolConfig.getBasicConfig().toBuilder()
                                                         .minPeers(OptionalInt.of(15))
-                                                        .maxPeers(OptionalInt.of(18))
+                                                        .maxPeers(OptionalInt.of(30))
                                                         .build()
             // We build the P2P Service:
             P2P p2p = new P2PBuilder("performance")
@@ -247,6 +230,7 @@ class IncomingTxPerformanceTest extends Specification {
                             .config(messageConfig)
                             .config(handshakeConfig)
                             .config(basicConfig)
+                            //.excludeHandler(PingPongHandler.HANDLER_ID)
                            // .excludeHandler(DiscoveryHandler.HANDLER_ID)
                             .build()
 
@@ -287,11 +271,16 @@ class IncomingTxPerformanceTest extends Specification {
             txProcessor.start()
             invProcessor.start()
 
+
             // We start the P2P Service...
-            p2p.start()
+            //p2p.start()
+            p2p.startServer()
 
             // We connect to some nodes manually, in order to improve Node Discovery:
             connectPeersManually(p2p);
+
+            // We start the logging Thread:
+            executor.scheduleAtFixedRate({-> this.log()}, 0, 1, TimeUnit.SECONDS)
 
             // we let it running for some time, and then we measure times in order to calculate statistics:
             Thread.sleep(TEST_DURATION.toMillis())
@@ -300,6 +289,8 @@ class IncomingTxPerformanceTest extends Specification {
             txProcessor.stop()
             invProcessor.stop()
 
+            executor.shutdownNow()
+
             // We print the Summary:
             Duration effectiveTime = Duration.between(firstTxInstant, lastTxInstant)
             println(" >> " + TEST_DURATION.toSeconds() + " secs of Test")
@@ -307,7 +298,32 @@ class IncomingTxPerformanceTest extends Specification {
             println(" >> " + numTxs.get() + " Txs processed")
             println(" >> performance: " + (numTxs.get() / effectiveTime.toSeconds()) + " txs/sec")
             println(p2p.getEventBus().getStatus())
+
         then:
             true
+    }
+
+
+    void log() {
+        StringBuffer logLine = new StringBuffer()
+        // Performance log:
+        logLine.append(":: Performance : " +  numPeersHandshaked + " peers, " + numTxs.get() + " Txs received.");
+        // Threads log:
+        logLine.append("\n");
+        logLine.append(":: Threads     : " + ThreadUtils.getThreadsInfo())
+        // Memory log:
+        long usedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+        long availableMem = Runtime.getRuntime().maxMemory() - usedMem;
+        String memorySummary = String.format("totalMem: %s, maxMem: %s, freeMem: %s, usedMem: %s, availableMem: %s",
+                Utils.humanReadableByteCount(Runtime.getRuntime().totalMemory(), false),
+                Utils.humanReadableByteCount(Runtime.getRuntime().maxMemory(), false),
+                Utils.humanReadableByteCount(Runtime.getRuntime().freeMemory(), false),
+                Utils.humanReadableByteCount(usedMem, false),
+                Utils.humanReadableByteCount(availableMem, false))
+
+        logLine.append("\n");
+        logLine.append(":: Memory      : ").append(memorySummary);
+        println(logLine.toString());
+
     }
 }
