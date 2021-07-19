@@ -29,7 +29,7 @@ public class ThreadUtils {
     static class PeerStreamThreadFactory implements ThreadFactory {
         public Thread newThread(Runnable r) {
             Thread thread = new Thread(r);
-            thread.setPriority(Thread.MAX_PRIORITY);
+            thread.setPriority(Thread.NORM_PRIORITY);
             thread.setDaemon(true);
             thread.setName("JclNetworkStreams");
             return thread;

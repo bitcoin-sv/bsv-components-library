@@ -52,10 +52,10 @@ public class JCLServer {
     private final Logger log = LoggerFactory.getLogger(JCLServer.class);
 
     // BASIC PARAMETERS:
-    private final Integer MIN_PEERS = 10;
-    private final Integer MAX_PEERS = 30;
-    private String NET = Net.STN.name();
-    //private String NET = Net.REGTEST.name();
+    private final Integer MIN_PEERS = 1;
+    private final Integer MAX_PEERS = 1;
+    //private String NET = Net.STN.name();
+    private String NET = Net.REGTEST.name();
 
     // List of initial Nodes to connect to, specific for some Networks:
     String[] STN_INITIAL_PEERS = new String[]{
