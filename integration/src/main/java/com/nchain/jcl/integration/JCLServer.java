@@ -23,12 +23,15 @@ import io.bitcoinj.core.Utils;
 import io.bitcoinj.params.Net;
 import io.bitcoinj.params.NetworkParameters;
 import io.bitcoinj.params.RegTestParams;
+import io.bitcoinj.params.STNParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.OptionalInt;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -45,10 +48,37 @@ public class JCLServer {
 
     private final Logger log = LoggerFactory.getLogger(JCLServer.class);
 
-    // PARAMETERS:
+    // BASIC PARAMETERS:
     private final Integer MIN_PEERS = 1;
     private final Integer MAX_PEERS = 1;
-    private final NetworkParameters NETWORK_PARAMS = new RegTestParams(Net.REGTEST);
+    //private String NET = Net.STN.name();
+    private String NET = Net.REGTEST.name();
+
+    // List of initial Nodes to connect to, specific for some Networks:
+    String[] STN_INITIAL_PEERS = new String[]{
+            // From Brad:
+            "209.97.128.49:9333",   "188.166.44.242:9333",  "165.22.58.146:9333",
+            "206.189.42.110:9333",  "165.22.59.150:9333",   "116.202.171.166:9333",
+            "95.217.38.94:9333",    "116.202.113.92:9333",  "116.202.118.183:9333",
+            "46.4.76.249:9333",     "95.217.121.173:9333",   "116.202.234.249:9333",
+            "95.217.108.109:9333",
+            // From Esthon:
+            "104.154.79.59:9333",   "35.184.152.150:9333",  "35.188.22.213:9333",
+            "35.224.150.17:9333",   "104.197.96.163:9333",  "34.68.205.136:9333",
+            "34.70.95.165:9333",    "34.70.152.148:9333",   "104.154.79.59:9333",
+            "35.232.247.207:9333",
+            // From WhatOnChain.com:
+            "37.122.249.164:9333",  "95.217.121.173:9333",  "165.22.58.146:9333",
+            "46.4.76.249:9333",     "134.122.102.58:9333",  "178.128.169.224:9333",
+            "206.189.42.110:9333",  "116.202.171.166:9333", "178.62.11.170:9333",
+            "34.70.152.148:9333",   "95.217.121.173:9333",  "116.202.118.183:9333",
+            "139.59.78.14:9333",    "37.122.249.164:9333",  "165.22.127.22:9333",
+            "78.110.160.26:9333",   "209.97.181.106:9333",  "64.227.40.244:9333",
+            "35.184.152.150:9333",  "212.89.6.129:9333"
+    };
+
+    // List of Initial Peers to Connect on startup, broken down in diffferent Networks:
+    private Map<String, String[]> INITIAL_PEERS = new HashMap<>() {{ put(Net.STN.name(), STN_INITIAL_PEERS);}};
 
     // Time when we receive the FIRST and LAST TXs:
     Instant firstTxInstant = null;
@@ -59,8 +89,10 @@ public class JCLServer {
     AtomicLong numTxs = new AtomicLong();
     AtomicLong numINVs = new AtomicLong();
 
-    // Logging Thread:
+    // Logging:
     ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+    AtomicInteger numTxsLog = new AtomicInteger();  // Number of Txs received between 2 logs:
+    Instant lastLogInstant = Instant.now();         // Last log timestamp:
 
     // JCL P2P Service:
     private P2P p2p;
@@ -68,6 +100,7 @@ public class JCLServer {
     public JCLServer() {
 
         // We configure the P2P connection:
+        NetworkParameters NETWORK_PARAMS = Net.valueOf(NET).params();
         ProtocolConfig protocolConfig = ProtocolConfigBuilder.get(NETWORK_PARAMS);
 
          // Protocol Basic Configuration: We set up the Range of Peers:
@@ -86,15 +119,20 @@ public class JCLServer {
                 .build();
 
         // We build the P2P Service
-        this.p2p = new P2PBuilder("JCLServer")
+        P2PBuilder p2pBuilder = new P2PBuilder("JCLServer")
                 .config(protocolConfig)
                 .config(basicConfig)
                 .config(messageConfig)
                 .config(handshakeConfig)
                 .publishStates(Duration.ofSeconds(5))       // we publish all Handler states
-                .excludeHandler(PingPongHandler.HANDLER_ID)
-                .excludeHandler(BlockDownloaderHandler.HANDLER_ID)
-                .build();
+                .excludeHandler(BlockDownloaderHandler.HANDLER_ID);
+
+        // if the Network is REGTEST we disable the PingPong Handler...
+        if (NETWORK_PARAMS.getClass().equals(RegTestParams.class)) {
+            p2pBuilder.excludeHandler(PingPongHandler.HANDLER_ID);
+        }
+
+        this.p2p = p2pBuilder.build();
 
         p2p.EVENTS.PEERS.HANDSHAKED.forEach(this::onPeerHandshaked);
         p2p.EVENTS.PEERS.HANDSHAKED_DISCONNECTED.forEach(this::onPeerDisconnected);
@@ -113,6 +151,14 @@ public class JCLServer {
         executor.shutdownNow();
     }
 
+    public void connectToInitialPeers() {
+        if (INITIAL_PEERS.containsKey(NET)) {
+            for (String initialPeer : INITIAL_PEERS.get(NET)) {
+                p2p.REQUESTS.PEERS.connect(initialPeer).submit();
+            }
+        }
+    }
+
     private void onPeerHandshaked(PeerHandshakedEvent event) {
         numPeersHandshaked.incrementAndGet();
         log.info("JCL Server :: Peer Connected: " + event.getPeerAddress() + " : " + event.getVersionMsg().getUser_agent().getStr());
@@ -125,7 +171,8 @@ public class JCLServer {
 
     private void processINV(InvMsgReceivedEvent event) {
         List<InventoryVectorMsg> newTxsInvItems =  event.getBtcMsg().getBody().getInvVectorList();
-        // WE only process the INV after reaching the MINIMUM set of Peers:
+        numINVs.incrementAndGet();
+        // We only process the INV after reaching the MINIMUM set of Peers:
         if (MIN_PEERS == null || numPeersHandshaked.get() >= MIN_PEERS) {
 
             if (newTxsInvItems.size() > 0) {
@@ -143,11 +190,20 @@ public class JCLServer {
 
         lastTxInstant = Instant.now();
         numTxs.incrementAndGet();
+        numTxsLog.incrementAndGet();
     }
 
     private void log() {
         // Performance log:
-        log.info("JCL Server :: Performance : " +  numPeersHandshaked + " peers, " + numTxs.get() + " Txs received.");
+        StringBuffer logLine = new StringBuffer("JCL Server :: Performance : " + numPeersHandshaked + " peers");
+        if (firstTxInstant != null) {
+            int txsPerSec = (int) (((double) numTxsLog.get() / (Duration.between(lastLogInstant, Instant.now()).toMillis())) * 1000);
+            logLine.append(", " + numTxs.get() + " Txs received, " + txsPerSec + " txs/sec");
+            // reset:
+            lastLogInstant = Instant.now();
+            numTxsLog.set(0);
+        }
+        log.info(logLine.toString());
 
         // Threads log:
         log.info("JCL Server :: Threads     : " + ThreadUtils.getThreadsInfo());
@@ -168,6 +224,7 @@ public class JCLServer {
 
         JCLServer server = new JCLServer();
         server.start();
+        server.connectToInitialPeers();
         // For now, we do NOT stop...
     }
 }
