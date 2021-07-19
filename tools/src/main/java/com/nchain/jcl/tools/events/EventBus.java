@@ -132,4 +132,8 @@ public class EventBus {
             return new EventBus(executor);
         }
     }
+
+    public ExecutorService getExecutor() {
+        return this.executor;
+    }
 }

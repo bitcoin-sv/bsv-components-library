@@ -25,6 +25,7 @@ import com.nchain.jcl.tools.log.LoggerUtil;
 import com.nchain.jcl.tools.thread.ThreadUtils;
 
 import java.math.BigInteger;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -122,7 +123,11 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
     // Event Handler:
     private void onPeerStreamConnected(PeerNIOStreamConnectedEvent event) {
         PeerAddress peerAddress = event.getStream().getPeerAddress();
-        MessageStream msgStream = new MessageStream(ThreadUtils.PEER_STREAM_EXECUTOR,
+
+        // NOTE: The Executor Service assigned to this Stream used to be the same as the Executor responsible for
+        // processing the bytes on each Stream (which was a singleThread).
+        // Now we are assigning the same Executor as the EventBus (Which is multi-thread)
+        MessageStream msgStream = new MessageStream(super.eventBus.getExecutor(),
                 super.runtimeConfig,
                 config.getBasicConfig(),
                 this.deserializer,

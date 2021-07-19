@@ -1,5 +1,6 @@
 package com.nchain.jcl.integration;
 
+import com.nchain.jcl.net.network.handlers.NetworkHandlerState;
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig;
 import com.nchain.jcl.net.protocol.config.ProtocolConfig;
 import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder;
@@ -10,6 +11,7 @@ import com.nchain.jcl.net.protocol.events.data.RawTxMsgReceivedEvent;
 import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandler;
 import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandlerConfig;
 import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerConfig;
+import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerState;
 import com.nchain.jcl.net.protocol.handlers.pingPong.PingPongHandler;
 import com.nchain.jcl.net.protocol.messages.GetdataMsg;
 import com.nchain.jcl.net.protocol.messages.InventoryVectorMsg;
@@ -52,8 +54,8 @@ public class JCLServer {
     // BASIC PARAMETERS:
     private final Integer MIN_PEERS = 10;
     private final Integer MAX_PEERS = 30;
-    //private String NET = Net.STN.name();
-    private String NET = Net.REGTEST.name();
+    private String NET = Net.STN.name();
+    //private String NET = Net.REGTEST.name();
 
     // List of initial Nodes to connect to, specific for some Networks:
     String[] STN_INITIAL_PEERS = new String[]{
