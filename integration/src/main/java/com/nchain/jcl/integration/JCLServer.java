@@ -41,6 +41,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author m.fletcher@nchain.com
+ * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2021 nChain Ltd
  * @date 16/07/2021
  */
@@ -49,8 +50,8 @@ public class JCLServer {
     private final Logger log = LoggerFactory.getLogger(JCLServer.class);
 
     // BASIC PARAMETERS:
-    private final Integer MIN_PEERS = 1;
-    private final Integer MAX_PEERS = 1;
+    private final Integer MIN_PEERS = 10;
+    private final Integer MAX_PEERS = 30;
     //private String NET = Net.STN.name();
     private String NET = Net.REGTEST.name();
 
@@ -88,10 +89,12 @@ public class JCLServer {
     AtomicInteger numPeersHandshaked = new AtomicInteger();
     AtomicLong numTxs = new AtomicLong();
     AtomicLong numINVs = new AtomicLong();
+    AtomicLong sizeTxs = new AtomicLong();
 
     // Logging:
     ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
     AtomicInteger numTxsLog = new AtomicInteger();  // Number of Txs received between 2 logs:
+    AtomicLong sizeTxsLog = new AtomicLong();       // Size of Txs received since last Log:
     Instant lastLogInstant = Instant.now();         // Last log timestamp:
 
     // JCL P2P Service:
@@ -172,15 +175,12 @@ public class JCLServer {
     private void processINV(InvMsgReceivedEvent event) {
         List<InventoryVectorMsg> newTxsInvItems =  event.getBtcMsg().getBody().getInvVectorList();
         numINVs.incrementAndGet();
-        // We only process the INV after reaching the MINIMUM set of Peers:
-        if (MIN_PEERS == null || numPeersHandshaked.get() >= MIN_PEERS) {
 
-            if (newTxsInvItems.size() > 0) {
-                // Now we send a GetData asking for them....
-                GetdataMsg getDataMsg = GetdataMsg.builder().invVectorList(newTxsInvItems).build();
-                BitcoinMsg<GetdataMsg> btcGetDataMsg = new BitcoinMsgBuilder(p2p.getProtocolConfig().getBasicConfig(), getDataMsg).build();
-                p2p.REQUESTS.MSGS.send(event.getPeerAddress(), btcGetDataMsg).submit();
-            }
+        if (newTxsInvItems.size() > 0) {
+            // Now we send a GetData asking for them....
+            GetdataMsg getDataMsg = GetdataMsg.builder().invVectorList(newTxsInvItems).build();
+            BitcoinMsg<GetdataMsg> btcGetDataMsg = new BitcoinMsgBuilder(p2p.getProtocolConfig().getBasicConfig(), getDataMsg).build();
+            p2p.REQUESTS.MSGS.send(event.getPeerAddress(), btcGetDataMsg).submit();
         }
     }
 
@@ -190,7 +190,9 @@ public class JCLServer {
 
         lastTxInstant = Instant.now();
         numTxs.incrementAndGet();
+        sizeTxs.addAndGet(event.getBtcMsg().getBody().getContent().length);
         numTxsLog.incrementAndGet();
+        sizeTxsLog.addAndGet(event.getBtcMsg().getBody().getContent().length);
     }
 
     private void log() {
@@ -199,9 +201,18 @@ public class JCLServer {
         if (firstTxInstant != null) {
             int txsPerSec = (int) (((double) numTxsLog.get() / (Duration.between(lastLogInstant, Instant.now()).toMillis())) * 1000);
             logLine.append(", " + numTxs.get() + " Txs received, " + txsPerSec + " txs/sec");
+            // We format the accumulated Txs Size:
+            String txsSize = (sizeTxsLog.get() < 1000)
+                    ? sizeTxsLog.get() + " bytes"
+                    : (sizeTxsLog.get() < 1_000_000)
+                        ? (sizeTxsLog.get() / 1000) + " KB"
+                        : (sizeTxsLog.get()/1_000_000) + " MB";
+            logLine.append(", " + txsSize + ", Total: " + sizeTxs);
+
             // reset:
             lastLogInstant = Instant.now();
             numTxsLog.set(0);
+            sizeTxsLog.set(0);
         }
         log.info(logLine.toString());
 
