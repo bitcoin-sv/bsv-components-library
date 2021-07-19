@@ -117,7 +117,7 @@ public class MsgSerializersFactory {
         } else if (command.equalsIgnoreCase(BlockTxnMsg.MESSAGE_TYPE)) {
             result = new BigBlockTxnDeserializer();
         } else {
-            System.out.println("SHOULD NEVER HAPPEN");
+            System.out.println("SHOULD NEVER HAPPEN: command=" + command);
         }
 
         if (result != null) {
