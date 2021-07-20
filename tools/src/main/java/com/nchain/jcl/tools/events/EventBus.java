@@ -103,7 +103,7 @@ public class EventBus {
 
     /** Returns the EVentBus Status (ONLY FOR TESTING/DEBUGGING) */
     public String getStatus() {
-        String result = "EventBus Status: \n";
+        String result = "";
         Iterator<Class<? extends Event>> events = eventHandlers.keySet().iterator();
         while (events.hasNext()) {
             Class eventClass = events.next();
