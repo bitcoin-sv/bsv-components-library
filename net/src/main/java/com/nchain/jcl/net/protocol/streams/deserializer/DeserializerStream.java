@@ -218,8 +218,8 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
                     .insideVersionMsg(headerMsg.getCommand().equalsIgnoreCase(VersionMsg.MESSAGE_TYPE))
                     .calculateHashes(!realTime) // We only pre-calculate Hashes if we are NOT in Real-Timeprocessing
                     .build();
-            ByteArrayReader byteReader = new ByteArrayReaderOptimized(buffer);
-            //ByteArrayReader byteReader = new ByteArrayReader(buffer);
+            //ByteArrayReader byteReader = new ByteArrayReaderOptimized(buffer);
+            ByteArrayReader byteReader = new ByteArrayReader(buffer);
 
             // Here comes the Deserialization: This process is blocking, the only difference between "REAl-TIME" or
             // not is that, in REAL-TIME, the Deserialization can "wait" until the bytes arrive, and the bytes are consumed
