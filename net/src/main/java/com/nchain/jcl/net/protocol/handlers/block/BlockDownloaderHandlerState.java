@@ -90,9 +90,9 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         result.append(" [ " + downloadingState + " ] ");
         result.append(" : ");
         result.append("Blocks: [");
-        result.append(downloadedBlocks.size() + "/" + pendingBlocks.size() + " downloaded, ");
+        result.append(downloadedBlocks.size() + " downloaded, " + getNumPeersDownloading() + " downloading, " + pendingBlocks.size() + " pending, ");
         result.append(discardedBlocks.size() + " discarded, ");
-        result.append(cancelledBlocks.size() + "/"+ pendingToCancelBlocks.size() + " cancelled, ");
+        result.append(cancelledBlocks.size() + " canceled, "+ pendingToCancelBlocks.size() + " pending to cancel, ");
         result.append(totalReattempts + " re-attempts");
         result.append("] ");
         result.append(" Peers: [");
