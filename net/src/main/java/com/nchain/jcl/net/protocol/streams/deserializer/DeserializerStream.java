@@ -218,6 +218,10 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
                     .insideVersionMsg(headerMsg.getCommand().equalsIgnoreCase(VersionMsg.MESSAGE_TYPE))
                     .calculateHashes(!realTime) // We only pre-calculate Hashes if we are NOT in Real-Timeprocessing
                     .build();
+
+            // We instantiate a ByteArrayReader that will be used to read the bytes from the buffer during deserialization
+            // NOTE: Each specific Deserializer might wrap this reader with another one, like the ByteArrayReaderOptimized
+            // or the ByteArrayReaderRealTime. That depends on the Deserializer implementation.
             //ByteArrayReader byteReader = new ByteArrayReaderOptimized(buffer);
             ByteArrayReader byteReader = new ByteArrayReader(buffer);
 
