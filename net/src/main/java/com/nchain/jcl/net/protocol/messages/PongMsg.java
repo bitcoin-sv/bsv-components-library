@@ -4,6 +4,8 @@ package com.nchain.jcl.net.protocol.messages;
 import com.google.common.base.Objects;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
+import java.io.Serializable;
+
 /**
  * @author m.jose@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
@@ -17,7 +19,7 @@ import com.nchain.jcl.net.protocol.messages.common.Message;
  *   Random nonce assigned to this pong message.
  *   The pong message sends back the same nonce received in the ping message it is replying to.
  */
-public final class PongMsg extends Message {
+public final class PongMsg extends Message implements Serializable {
     protected static final int FIXED_MESSAGE_LENGTH = 8;
     public static final String MESSAGE_TYPE = "pong";
 

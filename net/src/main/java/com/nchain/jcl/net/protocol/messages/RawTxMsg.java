@@ -6,6 +6,8 @@ import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import io.bitcoinj.core.Sha256Hash;
 
+import java.io.Serializable;
+
 
 /**
  * @author i.fernandez@nchain.com
@@ -17,7 +19,7 @@ import io.bitcoinj.core.Sha256Hash;
  * Structure of the Message:
  * - hash: Hash of the Tx
  */
-public class RawTxMsg extends RawMsg {
+public class RawTxMsg extends RawMsg implements Serializable {
 
     public static final String MESSAGE_TYPE = "tx";
     private static HashFunction hashFunction = Hashing.sha256();

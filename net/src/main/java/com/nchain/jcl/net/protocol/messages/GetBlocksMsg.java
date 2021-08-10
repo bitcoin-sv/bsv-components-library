@@ -3,6 +3,8 @@ package com.nchain.jcl.net.protocol.messages;
 import com.google.common.base.Objects;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
+import java.io.Serializable;
+
 
 /**
  * @author m.jose@nchain.com
@@ -12,7 +14,7 @@ import com.nchain.jcl.net.protocol.messages.common.Message;
  * in the block locator object, up to hash_stop or 500 blocks, whichever comes first.
  *
  */
-public final class GetBlocksMsg extends Message {
+public final class GetBlocksMsg extends Message implements Serializable {
 
     public static final String MESSAGE_TYPE = "getblocks";
     private final BaseGetDataAndHeaderMsg baseGetDataAndHeaderMsg;

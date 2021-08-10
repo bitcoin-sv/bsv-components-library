@@ -3,13 +3,14 @@ package com.nchain.jcl.net.protocol.messages;
 import com.google.common.base.Objects;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  */
-public final class PartialBlockRawTXsMsg extends Message {
+public final class PartialBlockRawTXsMsg extends Message implements Serializable {
 
     public static final String MESSAGE_TYPE = "PartialBlockRawTxs";
     private final BlockHeaderMsg blockHeader;

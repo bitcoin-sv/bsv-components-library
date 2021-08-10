@@ -4,6 +4,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -28,7 +29,7 @@ import java.util.List;
  *   - field: "hash_stop"  (32 bytes)
  *   hash of the last desired block; set to zero to get as many blocks as possible (500)
  */
-public final class BaseGetDataAndHeaderMsg extends Message {
+public final class BaseGetDataAndHeaderMsg extends Message implements Serializable {
     private final long version;
     private final VarIntMsg hashCount;
     private final ImmutableList<HashMsg> blockLocatorHash;

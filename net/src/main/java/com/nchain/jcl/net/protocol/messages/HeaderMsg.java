@@ -3,6 +3,8 @@ package com.nchain.jcl.net.protocol.messages;
 import com.google.common.base.Objects;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
+import java.io.Serializable;
+
 
 /**
  * @author i.fernandez@nchain.com
@@ -25,7 +27,7 @@ import com.nchain.jcl.net.protocol.messages.common.Message;
  *   First 4 bytes of sha256(sha256(payload)).
  *   payload = bytes serialized of the Body of the Bitcoin Message that goes with this Header
  */
-public final class HeaderMsg extends Message {
+public final class HeaderMsg extends Message implements Serializable {
 
     public static final String MESSAGE_TYPE = "header";
     // The HeaderMsg always has a length of 24 Bytes

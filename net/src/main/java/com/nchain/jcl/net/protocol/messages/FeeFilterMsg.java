@@ -4,6 +4,8 @@ package com.nchain.jcl.net.protocol.messages;
 import com.google.common.base.Objects;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
+import java.io.Serializable;
+
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
@@ -16,7 +18,7 @@ import com.nchain.jcl.net.protocol.messages.common.Message;
  * Structure of the Message:
  * - fee: A long value indicating the Fee (in Satoshis / KB)
  */
-public class FeeFilterMsg extends Message {
+public class FeeFilterMsg extends Message implements Serializable {
 
     public static final String MESSAGE_TYPE = "feefilter";
 

@@ -3,6 +3,8 @@ package com.nchain.jcl.net.protocol.messages;
 import com.google.common.base.Objects;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
+import java.io.Serializable;
+
 import static com.google.common.base.Preconditions.checkState;
 
 /**
@@ -19,7 +21,7 @@ import static com.google.common.base.Preconditions.checkState;
  * In this case, we use {@link RawMsg} to store the Raw part, which is ONLY the Txs. The Header is stored separately
  * ion this Class.
  */
-public final class RawBlockMsg extends RawMsg {
+public final class RawBlockMsg extends RawMsg implements Serializable {
 
     public static final String MESSAGE_TYPE = "Block";
     private final BlockHeaderMsg blockHeader;
