@@ -3,6 +3,8 @@ package com.nchain.jcl.net.protocol.messages;
 import com.google.common.base.Objects;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
+import java.io.Serializable;
+
 
 /**
  * @author i.fernandez@nchain.com
@@ -48,7 +50,7 @@ import com.nchain.jcl.net.protocol.messages.common.Message;
  *  - field: "isHandshakeUsingRelay" (1 bytes) bool
  *    Whether the remote peer should announce relayed transactions or not, see BIP 0037
  */
-public final class VersionMsg extends Message {
+public final class VersionMsg extends Message implements Serializable {
     // The only field which a variable length in the Version Message is the "getHandshakeUserAgent" field.
     // The rest of the Message has a fixed length of 85 bytes.
     private static final int FIXED_MESSAGE_LENGTH = 84; // need to addBytes the "getHandshakeUserAgent"  and RELAY length to this.
