@@ -526,7 +526,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
         }
     }
 
-    private void processWholeRawBlockReceived(BlockPeerInfo peerInfo, BitcoinMsg<RawBlockMsg> rawBlockMessage) {
+    private void processWholeRawBlockReceived(BlockPeerInfo peerInfo, BitcoinMsg<RawTxBlockMsg> rawBlockMessage) {
 
         // We just received a Block.
         // We publish an specific event for this Lite Block being downloaded:
@@ -558,13 +558,13 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
             super.eventBus.publish(new BlockHeaderDownloadedEvent(peerInfo.getPeerAddress(), partialHeaderBtcMsg));
 
             // We notify the txs has been downloaded:
-            PartialBlockRawDataMsg partialBlockRawTxMsg = PartialBlockRawDataMsg.builder()
+            PartialBlockRawTxMsg partialBlockRawTxMsg = PartialBlockRawTxMsg.builder()
                     .blockHeader(rawBlockMessage.getBody().getBlockHeader())
                     .txs(rawBlockMessage.getBody().getTxs())
                     .txsOrdersNumber(0)
                     .build();
-            BitcoinMsg<PartialBlockRawDataMsg> partialBlockRawTxsBtcMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), partialBlockRawTxMsg).build();
-            super.eventBus.publish(new BlockRawDataDownloadedEvent(peerInfo.getPeerAddress(),partialBlockRawTxsBtcMsg));
+            BitcoinMsg<PartialBlockRawTxMsg> partialBlockRawTxsBtcMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), partialBlockRawTxMsg).build();
+            super.eventBus.publish(new BlockRawTXsDownloadedEvent(peerInfo.getPeerAddress(),partialBlockRawTxsBtcMsg));
 
             // We update the structures:
             blocksLastActivity.put(blockHash, Instant.now());

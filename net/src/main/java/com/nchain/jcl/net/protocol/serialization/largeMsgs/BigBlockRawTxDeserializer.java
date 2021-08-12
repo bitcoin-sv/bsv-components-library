@@ -3,16 +3,11 @@ package com.nchain.jcl.net.protocol.serialization.largeMsgs;
 
 import com.nchain.jcl.net.protocol.messages.*;
 import com.nchain.jcl.net.protocol.serialization.BlockHeaderMsgSerializer;
-import com.nchain.jcl.net.protocol.serialization.VarIntMsgSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
-import com.nchain.jcl.tools.bytes.ByteArrayBuffer;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
-import com.nchain.jcl.tools.bytes.ByteArrayWriter;
 import com.nchain.jcl.tools.serialization.BitcoinSerializerUtils;
 import org.slf4j.Logger;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -26,24 +21,24 @@ import java.util.concurrent.ExecutorService;
  * "notify" provided by the parent Class. Those notifications will trigger callbacks that previously must have been
  * fed by the client of this class. All notifications will contain Raw Tx Data.
  */
-public class BigBlockRawTxsDeserializer extends LargeMessageDeserializerImpl {
+public class BigBlockRawTxDeserializer extends LargeMessageDeserializerImpl {
 
     // Size of each Chunk of TXs in byte array format:
     private static final int TX_LIST_TOTAL_BYTES = 10_000_000;    // 10 MB
 
-    private static final Logger log = org.slf4j.LoggerFactory.getLogger(BigBlockRawTxsDeserializer.class);
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(BigBlockRawTxDeserializer.class);
 
     // Once the Block Header is deserialzed, we keep a reference here, since we include it as well when we
     // deserialize each set of TXs:
     private BlockHeaderMsg blockHeader;
 
     /** Constructor */
-    public BigBlockRawTxsDeserializer(ExecutorService executor) {
+    public BigBlockRawTxDeserializer(ExecutorService executor) {
         super(executor);
     }
 
     /** Constructor. Callbacks will be blocking */
-    public BigBlockRawTxsDeserializer() {
+    public BigBlockRawTxDeserializer() {
         super(null);
     }
 
