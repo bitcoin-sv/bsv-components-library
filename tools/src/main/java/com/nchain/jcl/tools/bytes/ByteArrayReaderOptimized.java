@@ -79,6 +79,12 @@ public class ByteArrayReaderOptimized extends ByteArrayReader {
         }
     }
 
+    public long getUint32(int position) {
+        adjustBufferIfNeededForReading(position + 4);
+        long result= Utils.readUint32(buffer, bytesConsumed + position);
+        return result;
+    }
+
     public long readUint32() {
         adjustBufferIfNeededForReading(4);
         long result= Utils.readUint32(buffer, bytesConsumed);
@@ -90,6 +96,12 @@ public class ByteArrayReaderOptimized extends ByteArrayReader {
         adjustBufferIfNeededForReading(1);
         byte result = buffer[bytesConsumed];
         bytesConsumed+= 1;
+        return result;
+    }
+
+    public long getInt64LE(int position) {
+        adjustBufferIfNeededForReading(position + 8);
+        long result = Utils.readInt64(buffer, bytesConsumed + position);
         return result;
     }
 
@@ -123,6 +135,20 @@ public class ByteArrayReaderOptimized extends ByteArrayReader {
             // WE reset the buffe rto Zero
             bufferDataSize = 0;
             bytesConsumed = 0;
+            return result;
+        }
+        return result;
+    }
+
+    @Override
+    public byte[] get(int offset, int length) {
+        byte[] result = new byte[length];
+        if (offset + length <= buffer.length) {
+            adjustBufferIfNeededForReading(offset + length);
+            System.arraycopy(buffer, bytesConsumed + offset, result, 0, length);
+        } else {
+            result = super.get(length);
+            resetBuffer();
             return result;
         }
         return result;

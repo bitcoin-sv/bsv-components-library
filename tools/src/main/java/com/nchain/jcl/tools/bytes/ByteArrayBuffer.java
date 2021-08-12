@@ -260,7 +260,23 @@ public class ByteArrayBuffer implements ByteArray {
 
     /** Returns a Byte Array starting at the given position with the given length */
     public synchronized byte[] get(int offset, int length) {
-        throw new UnsupportedOperationException("Not supported at the moment");
+        checkArgument(length + offset <= this.size(),
+                " trying to extractReader too much data (not enough in the byteArray)");
+
+        byte[] result = new byte[length];
+        long bytesRemaining = length;
+        int index = offset / config.getByteArraySize();
+        while (bytesRemaining > 0) {
+            ByteArray buffer = buffers.get(index);
+            long offsetQuantityRemaining = buffer.size() - offset % config.getByteArraySize();
+            long bytesToWriteLength = (offsetQuantityRemaining >= bytesRemaining) ? bytesRemaining : offsetQuantityRemaining;
+            byte[] bytesToAdd = buffer.get(offset % config.getByteArraySize(), (int) bytesToWriteLength);
+            System.arraycopy(bytesToAdd, 0, result, (int) (length - bytesRemaining), (int) bytesToWriteLength);
+            bytesRemaining -= bytesToWriteLength;
+            index++;
+        }
+
+        return result;
     }
 
     /**

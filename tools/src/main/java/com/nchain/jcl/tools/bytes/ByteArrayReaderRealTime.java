@@ -89,9 +89,19 @@ public class ByteArrayReaderRealTime extends ByteArrayReaderOptimized {
         return super.read(length);
     }
 
+    public byte[] get(int offset, int length) {
+        waitForBytes(offset + length);
+        return super.get(offset, length);
+    }
+
     public byte[] get(int length) {
         waitForBytes(length);
         return super.get(length);
+    }
+
+    public long getUint32(int offset) {
+        waitForBytes(offset + 4);
+        return super.getUint32(offset);
     }
 
     public long readUint32() {
@@ -102,6 +112,11 @@ public class ByteArrayReaderRealTime extends ByteArrayReaderOptimized {
     public byte read() {
         waitForBytes(1);
         return super.read();
+    }
+
+    public long getInt64LE(int offset) {
+        waitForBytes(offset + 8);
+        return super.getInt64LE(offset);
     }
 
     public long readInt64LE() {
