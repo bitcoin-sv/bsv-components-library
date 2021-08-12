@@ -161,6 +161,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
         // Big Blocks received in Batches:
         super.eventBus.subscribe(BlockHeaderDownloadedEvent.class, e -> this.onPartialBlockHeaderMsgReceived((BlockHeaderDownloadedEvent) e));
         super.eventBus.subscribe(BlockTXsDownloadedEvent.class, e -> this.onPartialBlockTxsMsgReceived((BlockTXsDownloadedEvent) e));
+        super.eventBus.subscribe(BlockRawDataDownloadedEvent.class, e -> this.onPartialBlockTxsMsgReceived((BlockRawDataDownloadedEvent) e));
         super.eventBus.subscribe(BlockRawTXsDownloadedEvent.class, e -> this.onPartialBlockTxsMsgReceived((BlockRawTXsDownloadedEvent) e));
 
         // Download/Cancel requests:
@@ -426,11 +427,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
             /// in this method creating an infinite loop.
             // So we just discard those messages related to Lite blocks:
 
-            String blockHash = (msg.is(PartialBlockHeaderMsg.MESSAGE_TYPE))
-                    ? Utils.HEX.encode(Utils.reverseBytes(((PartialBlockHeaderMsg) msg.getBody()).getBlockHeader().getHash().getHashBytes()))
-                    : (msg.is(PartialBlockTXsMsg.MESSAGE_TYPE))
-                        ? Utils.HEX.encode(Utils.reverseBytes(((PartialBlockTXsMsg) msg.getBody()).getBlockHeader().getHash().getHashBytes()))
-                        : Utils.HEX.encode(Utils.reverseBytes(((PartialBlockRawTXsMsg) msg.getBody()).getBlockHeader().getHash().getHashBytes()));
+            String blockHash = "";
 
             // If this Event is triggered by this own class, we discard it (infinite loop)
             if (liteBlocksDownloaded.contains(blockHash)) {
@@ -438,24 +435,33 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
             }
 
             if (msg.is(PartialBlockHeaderMsg.MESSAGE_TYPE)) {
+                blockHash = Utils.HEX.encode(Utils.reverseBytes(((PartialBlockHeaderMsg) msg.getBody()).getBlockHeader().getHash().getHashBytes()));
                 // We update the info about the Header this block:
                 PartialBlockHeaderMsg partialMsg = (PartialBlockHeaderMsg) msg.getBody();
                 bigBlocksHeaders.put(blockHash, partialMsg);
                 blocksLastActivity.put(blockHash, Instant.now());
                 blocksDownloadHistory.register(blockHash, peerInfo.getPeerAddress(), "Header downloaded");
-
             } else if (msg.is(PartialBlockTXsMsg.MESSAGE_TYPE)) {
+                blockHash = Utils.HEX.encode(Utils.reverseBytes(((PartialBlockTXsMsg) msg.getBody()).getBlockHeader().getHash().getHashBytes()));
                 // We update the info about the Txs of this block:
                 PartialBlockTXsMsg partialMsg = (PartialBlockTXsMsg) msg.getBody();
                 bigBlocksCurrentTxs.merge(blockHash, (long) partialMsg.getTxs().size(), (o, n) -> o + partialMsg.getTxs().size());
                 blocksLastActivity.put(blockHash, Instant.now());
                 blocksDownloadHistory.register(blockHash, peerInfo.getPeerAddress(), partialMsg.getTxs().size() + " Txs downloaded, (" + bigBlocksCurrentTxs.get(blockHash) + " Txs so far)");
-            } else if (msg.is(PartialBlockRawTXsMsg.MESSAGE_TYPE)) {
+            } else if (msg.is(PartialBlockRawDataMsg.MESSAGE_TYPE)) {
+                blockHash = Utils.HEX.encode(Utils.reverseBytes(((PartialBlockRawDataMsg) msg.getBody()).getBlockHeader().getHash().getHashBytes()));
                 // We update the info about the Txs of this block:
-                PartialBlockRawTXsMsg partialRawMsg = (PartialBlockRawTXsMsg) msg.getBody();
+                PartialBlockRawDataMsg partialRawMsg = (PartialBlockRawDataMsg) msg.getBody();
                 bigBlocksCurrentBytes.merge(blockHash, (long) partialRawMsg.getTxs().length, (o, n) -> o + partialRawMsg.getTxs().length);
                 blocksLastActivity.put(blockHash, Instant.now());
                 blocksDownloadHistory.register(blockHash, peerInfo.getPeerAddress(), partialRawMsg.getTxs().length + " bytes of Txs downloaded, (" + bigBlocksCurrentBytes.get(blockHash) + " bytes so far)");
+            } else if (msg.is(PartialBlockRawTxMsg.MESSAGE_TYPE)) {
+                blockHash = Utils.HEX.encode(Utils.reverseBytes(((PartialBlockRawTxMsg) msg.getBody()).getBlockHeader().getHash().getHashBytes()));
+                // We update the info about the Txs of this block:
+                PartialBlockRawTxMsg partialMsg = (PartialBlockRawTxMsg) msg.getBody();
+                bigBlocksCurrentTxs.merge(blockHash, (long) partialMsg.getTxs().size(), (o, n) -> o + partialMsg.getTxs().size());
+                blocksLastActivity.put(blockHash, Instant.now());
+                blocksDownloadHistory.register(blockHash, peerInfo.getPeerAddress(), partialMsg.getTxs().size() + "Raw Txs downloaded, (" + bigBlocksCurrentTxs.get(blockHash) + " Txs so far)");
             }
 
             // Now we check if we've reached the total of TXs, so the Download is complete:
@@ -552,13 +558,13 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
             super.eventBus.publish(new BlockHeaderDownloadedEvent(peerInfo.getPeerAddress(), partialHeaderBtcMsg));
 
             // We notify the txs has been downloaded:
-            PartialBlockRawTXsMsg partialBlockRawTxsMsg = PartialBlockRawTXsMsg.builder()
+            PartialBlockRawDataMsg partialBlockRawTxMsg = PartialBlockRawDataMsg.builder()
                     .blockHeader(rawBlockMessage.getBody().getBlockHeader())
                     .txs(rawBlockMessage.getBody().getTxs())
                     .txsOrdersNumber(0)
                     .build();
-            BitcoinMsg<PartialBlockRawTXsMsg> partialBlockRawTxsBtcMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), partialBlockRawTxsMsg).build();
-            super.eventBus.publish(new BlockRawTXsDownloadedEvent(peerInfo.getPeerAddress(),partialBlockRawTxsBtcMsg));
+            BitcoinMsg<PartialBlockRawDataMsg> partialBlockRawTxsBtcMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), partialBlockRawTxMsg).build();
+            super.eventBus.publish(new BlockRawDataDownloadedEvent(peerInfo.getPeerAddress(),partialBlockRawTxsBtcMsg));
 
             // We update the structures:
             blocksLastActivity.put(blockHash, Instant.now());
