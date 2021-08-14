@@ -46,7 +46,6 @@ public class ByteArrayReader {
         return result;
     }
 
-    public byte get()                       { return byteArray.get(1)[0];}
     public byte[] get(int length)           { return byteArray.get(length); }
     public byte[] get(int offset, int length) { return byteArray.get(offset, length);}
     public long getUint32(int offset)                 { return Utils.readUint32(get(offset, 4), 0);}

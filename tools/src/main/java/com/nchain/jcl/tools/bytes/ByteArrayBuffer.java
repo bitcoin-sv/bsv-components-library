@@ -263,18 +263,38 @@ public class ByteArrayBuffer implements ByteArray {
         checkArgument(length + offset <= this.size(),
                 " trying to extractReader too much data (not enough in the byteArray)");
 
-        byte[] result = new byte[length];
-        long bytesRemaining = length;
-        int index = offset / config.getByteArraySize();
-        while (bytesRemaining > 0) {
-            ByteArray buffer = buffers.get(index);
-            long offsetQuantityRemaining = buffer.size() - offset % config.getByteArraySize();
-            long bytesToWriteLength = (offsetQuantityRemaining >= bytesRemaining) ? bytesRemaining : offsetQuantityRemaining;
-            byte[] bytesToAdd = buffer.get(offset % config.getByteArraySize(), (int) bytesToWriteLength);
-            System.arraycopy(bytesToAdd, 0, result, (int) (length - bytesRemaining), (int) bytesToWriteLength);
-            bytesRemaining -= bytesToWriteLength;
-            index++;
-        }
+       byte[] result = new byte[length];
+       int size = 0;
+       int bytesRemaining = length;
+
+       boolean initialBufferOffsetFound = false;
+       int bufferOffset;
+       for(ByteArray buffer : buffers){
+
+           if(size + buffer.size() < offset){
+               size += buffer.size();
+               continue;
+           }
+
+           if(bytesRemaining == 0){
+               break;
+           }
+
+           //we only need to offset the first buffer, the rest of the buffers data will be sequential
+           if(initialBufferOffsetFound){
+               bufferOffset = 0;
+           } else {
+               bufferOffset = offset - size;
+               initialBufferOffsetFound = true;
+           }
+
+           long availableDataInBuffer = buffer.size() - bufferOffset;
+           long bytesToWriteLength = (availableDataInBuffer >= bytesRemaining) ? bytesRemaining : availableDataInBuffer;
+           byte[] bytesToAdd = buffer.get(bufferOffset, (int) bytesToWriteLength);
+           System.arraycopy(bytesToAdd, 0, result, length - bytesRemaining, (int) bytesToWriteLength);
+           bytesRemaining -= bytesToWriteLength;
+
+       }
 
         return result;
     }
