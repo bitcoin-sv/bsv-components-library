@@ -2,6 +2,9 @@ package com.nchain.jcl.tools.events;
 
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -30,6 +33,8 @@ import java.util.function.Function;
  *
  */
 public class EventBus {
+
+    private static Logger log = LoggerFactory.getLogger(EventBus.class);
 
     // For each Event Type, we store the list of Consumers/Event Handlers that will get run/notified
     private Map<Class<? extends Event>, List<Consumer<? extends Event>>> eventHandlers = new ConcurrentHashMap<>();
@@ -90,7 +95,7 @@ public class EventBus {
                 try {
                     executor.submit(task);
                 } catch (RejectedExecutionException e) {
-                    // nothing
+                    log.error(e.getMessage(), e);
                 }
             }
             else {

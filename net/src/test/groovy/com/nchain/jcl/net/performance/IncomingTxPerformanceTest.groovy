@@ -236,8 +236,8 @@ class IncomingTxPerformanceTest extends Specification {
 
 
             // We define 2 Queues where well be processing the incoming INV and TX messages...
-            EventQueueProcessor invProcessor = new EventQueueProcessor("inv-Queue", ThreadUtils.EVENT_BUS_EXECUTOR_HIGH_PRIORITY);
-            EventQueueProcessor txProcessor = new EventQueueProcessor("tx-Queue",ThreadUtils.EVENT_BUS_EXECUTOR_HIGH_PRIORITY);
+            EventQueueProcessor invProcessor = new EventQueueProcessor("inv-Queue", ThreadUtils.getFixedThreadExecutorService("inv-Queue", 100));
+            EventQueueProcessor txProcessor = new EventQueueProcessor("tx-Queue",ThreadUtils.getFixedThreadExecutorService("inv-Queue", 100));
             invProcessor.addProcessor(InvMsgReceivedEvent.class, {e -> processINV(p2p, e)})
             txProcessor.addProcessor(TxMsgReceivedEvent.class, {e -> processTX(p2p, e)})
             txProcessor.addProcessor(RawTxMsgReceivedEvent.class, { e -> processRawTX(p2p, e)})

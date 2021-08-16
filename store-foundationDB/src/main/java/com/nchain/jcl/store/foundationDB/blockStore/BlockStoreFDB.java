@@ -85,7 +85,7 @@ public class BlockStoreFDB implements BlockStoreKeyValue<KeyValue, Transaction>,
         this.blockMetadataClass = blockMetadataClass;
 
         // Events Configuration:
-        this.eventBusExecutor = ThreadUtils.getThreadPoolExecutorService("BlockStore-FoundationDB");
+        this.eventBusExecutor = ThreadUtils.getCachedThreadExecutorService("BlockStore-FoundationDB");
         this.eventBus = EventBus.builder().executor(this.eventBusExecutor).build();
         this.blockStoreStreamer = new BlockStoreStreamer(this.eventBus);
 

@@ -40,12 +40,13 @@ public class BlockMsgSerializer implements MessageSerializer<BlockMsg> {
 
         // We wrap the reader around an ByteArrayReaderOptimized, which works faster than a regular ByteArrayReader
         // (its also more expensive in terms of memory, but it usually pays off):
-        ByteArrayReaderOptimized reader = (byteReader instanceof ByteArrayReaderOptimized)
-                    ? (ByteArrayReaderOptimized) byteReader
-                    : new ByteArrayReaderOptimized(byteReader);
+        ByteArrayReader reader = byteReader;
+        if (!(byteReader instanceof ByteArrayReaderOptimized)) {
+            reader = new ByteArrayReaderOptimized(byteReader);
+        }
 
         // First we deserialize the Block Header:
-        var blockHeader = BlockHeaderMsgSerializer.getInstance().deserialize(context, reader);
+        var blockHeader = BlockHeaderMsgSerializer.getInstance().deserialize(context, byteReader);
 
         // The transactions are taken from the Block Body...since the Block Header has been already extracted
         // from the "byteReader", the information remaining in there are the Block Transactions...
@@ -68,7 +69,6 @@ public class BlockMsgSerializer implements MessageSerializer<BlockMsg> {
             }
             transactionMsgList.add(TxMsgSerializer.getInstance().deserialize(context, reader));
         }
-
         return BlockMsg.builder().blockHeader(blockHeader).transactionMsgs(transactionMsgList).build();
     }
 

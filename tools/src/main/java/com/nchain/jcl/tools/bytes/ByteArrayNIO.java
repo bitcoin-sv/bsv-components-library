@@ -4,6 +4,7 @@ package com.nchain.jcl.tools.bytes;
 import javax.annotation.concurrent.GuardedBy;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -83,6 +84,20 @@ public class ByteArrayNIO implements ByteArray {
         }
     }
 
+    @GuardedBy("this")
+    @Override
+    public void extractInto(int length, byte[] bytes, int writeOffset) {
+        checkArgument(length >= 0, "'length' must be >= 0");
+        checkArgument(size() >= length,
+                "not enough data in the buffer: actual data: " + size() + " bytes,"
+                        + " , requested: " + length + " bytes");
+        try {
+            extract_bytes_into(length, bytes, writeOffset);
+        } catch (IOException ioe) {
+            throw new RuntimeException(ioe);
+        }
+    }
+
     @Override
     public void init() {}
 
@@ -127,8 +142,20 @@ public class ByteArrayNIO implements ByteArray {
         return result;
     }
 
+    public void get_bytes_into(int readOffset, int writeOffset, int length, byte[] bytes) {
+        buffer.position(readOffset).limit(dataSize).get(bytes, writeOffset, length);
+    }
+
+
+    public void extract_bytes_into(int length, byte[] bytes, int writeOffset) throws IOException {
+        get_bytes_into(0, writeOffset, length, bytes);
+        buffer.compact();
+        remaining += length;
+        dataSize -= length;
+    }
+
     public byte[] extract_bytes(int length) throws IOException {
-        byte[] result = get(0, length);
+        byte[] result = get_bytes(0, length);
         buffer.compact();
         remaining += length;
         dataSize -= length;

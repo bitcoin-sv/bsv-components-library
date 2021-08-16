@@ -87,7 +87,7 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
             levelDBStore = factory.open(levelDBPath.toFile(), options);
 
             // Events Configuration:
-            this.executorService = ThreadUtils.getThreadPoolExecutorService("BlockStore-LevelDB");
+            this.executorService = ThreadUtils.getCachedThreadExecutorService("BlockStore-LevelDB");
             this.eventBus = EventBus.builder().executor(this.executorService).build();
             this.blockStoreStreamer = new BlockStoreStreamer(this.eventBus);
 

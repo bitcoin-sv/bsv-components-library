@@ -216,4 +216,7 @@ public class Deserializer {
     public void cleanUp() {
         cache.cleanUp();
     }
+
+    /** Returns the Configuration */
+    public DeserializerConfig getConfig() { return this.config;}
 }
