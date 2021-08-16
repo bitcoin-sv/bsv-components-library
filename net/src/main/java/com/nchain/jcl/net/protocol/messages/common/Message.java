@@ -1,5 +1,7 @@
 package com.nchain.jcl.net.protocol.messages.common;
 
+import java.io.Serializable;
+
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
@@ -22,7 +24,7 @@ package com.nchain.jcl.net.protocol.messages.common;
  *
  * Classes that extend this class should be immutable.
  */
-public abstract class Message {
+public abstract class Message implements Serializable {
 
     // Size of the Message in Bytes. This stores the number of bytes that this Message will take once it's
     // serialized.
