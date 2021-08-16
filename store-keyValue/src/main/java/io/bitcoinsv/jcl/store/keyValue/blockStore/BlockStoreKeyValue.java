@@ -5,7 +5,6 @@ import com.google.common.collect.Lists;
 
 import io.bitcoinsv.jcl.store.blockStore.BlockStore;
 import io.bitcoinsv.jcl.store.blockStore.BlocksCompareResult;
-import com.nchain.jcl.store.blockStore.events.*;
 import io.bitcoinsv.jcl.store.blockStore.events.BlocksRemovedEvent;
 import io.bitcoinsv.jcl.store.blockStore.events.BlocksSavedEvent;
 import io.bitcoinsv.jcl.store.blockStore.events.TxsRemovedEvent;

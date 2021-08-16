@@ -4,8 +4,6 @@ import com.google.common.util.concurrent.AbstractExecutionThreadService;
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.network.config.NetworkConfig;
 import io.bitcoinsv.jcl.net.network.config.NetworkConfigImpl;
-import com.nchain.jcl.net.network.events.*;
-
 import io.bitcoinsv.jcl.net.network.events.*;
 import io.bitcoinsv.jcl.net.network.streams.StreamCloseEvent;
 import io.bitcoinsv.jcl.net.network.streams.nio.NIOInputStream;

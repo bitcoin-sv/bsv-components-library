@@ -2,7 +2,6 @@ package io.bitcoinsv.jcl.net.protocol.handlers.blacklist;
 
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
-import com.nchain.jcl.net.network.events.*;
 import io.bitcoinsv.jcl.net.network.events.*;
 import io.bitcoinsv.jcl.net.protocol.events.control.PeerHandshakeRejectedEvent;
 import io.bitcoinsv.jcl.net.protocol.events.control.PingPongFailedEvent;

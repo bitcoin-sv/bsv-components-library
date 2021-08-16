@@ -1,7 +1,6 @@
 package io.bitcoinsv.jcl.net.unit.protocol.serialization
 
 
-import com.nchain.jcl.net.protocol.messages.*
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter
 import io.bitcoinj.core.Sha256Hash
 import io.bitcoinj.core.Utils

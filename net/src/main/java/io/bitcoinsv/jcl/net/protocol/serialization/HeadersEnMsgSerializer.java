@@ -1,6 +1,5 @@
 package io.bitcoinsv.jcl.net.protocol.serialization;
 
-import com.nchain.jcl.net.protocol.messages.*;
 import io.bitcoinsv.jcl.net.protocol.messages.BlockHeaderEnMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.HeadersEnMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.VarIntMsg;

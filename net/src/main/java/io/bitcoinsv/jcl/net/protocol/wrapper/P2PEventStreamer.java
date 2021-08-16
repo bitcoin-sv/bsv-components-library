@@ -1,8 +1,5 @@
 package io.bitcoinsv.jcl.net.protocol.wrapper;
 
-import com.nchain.jcl.net.network.events.*;
-import com.nchain.jcl.net.protocol.events.control.*;
-import com.nchain.jcl.net.protocol.events.data.*;
 import io.bitcoinsv.jcl.net.network.events.*;
 import io.bitcoinsv.jcl.net.network.handlers.NetworkHandlerState;
 import io.bitcoinsv.jcl.net.protocol.events.control.*;

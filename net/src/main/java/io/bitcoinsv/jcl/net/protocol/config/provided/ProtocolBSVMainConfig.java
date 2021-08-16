@@ -2,7 +2,6 @@ package io.bitcoinsv.jcl.net.protocol.config.provided;
 
 
 
-import com.nchain.jcl.net.protocol.config.*;
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolBasicConfig;
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig;
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigImpl;

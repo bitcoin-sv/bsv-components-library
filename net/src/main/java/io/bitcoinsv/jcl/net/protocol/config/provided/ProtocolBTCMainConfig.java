@@ -1,6 +1,5 @@
 package io.bitcoinsv.jcl.net.protocol.config.provided;
 
-import com.nchain.jcl.net.protocol.config.*;
 import io.bitcoinsv.jcl.net.protocol.config.*;
 import io.bitcoinsv.jcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig;
 import io.bitcoinsv.jcl.net.protocol.handlers.handshake.HandshakeHandlerConfig;

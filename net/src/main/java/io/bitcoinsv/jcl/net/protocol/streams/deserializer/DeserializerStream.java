@@ -1,7 +1,6 @@
 package io.bitcoinsv.jcl.net.protocol.streams.deserializer;
 
 
-import com.nchain.jcl.net.network.streams.*;
 import io.bitcoinsv.jcl.net.network.streams.PeerInputStream;
 import io.bitcoinsv.jcl.net.network.streams.PeerInputStreamImpl;
 import io.bitcoinsv.jcl.net.network.streams.StreamDataEvent;

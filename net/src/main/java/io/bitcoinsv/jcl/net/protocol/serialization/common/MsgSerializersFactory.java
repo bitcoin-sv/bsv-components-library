@@ -1,8 +1,6 @@
 package io.bitcoinsv.jcl.net.protocol.serialization.common;
 
 
-import com.nchain.jcl.net.protocol.messages.*;
-import com.nchain.jcl.net.protocol.serialization.*;
 import io.bitcoinsv.jcl.net.protocol.messages.*;
 import io.bitcoinsv.jcl.net.protocol.serialization.*;
 import io.bitcoinsv.jcl.net.protocol.serialization.largeMsgs.BigBlockDeserializer;

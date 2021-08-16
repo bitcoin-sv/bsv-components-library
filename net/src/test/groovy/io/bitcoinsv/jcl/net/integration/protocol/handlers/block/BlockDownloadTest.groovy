@@ -263,7 +263,7 @@ class BlockDownloadTest extends Specification {
         where:
             config                     |   block_hashes     | block_hashes_to_cancel
             new ProtocolBSVMainConfig() |   BLOCKS_BSV_MAIN | BLOCKS_BSV_MAIN_TO_CANCEL
-           //com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder.get(MainNetParams.get()) |   BLOCKS_BSV_MAIN
+           //io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigBuilder.get(MainNetParams.get()) |   BLOCKS_BSV_MAIN
            //new ProtocolBSVStnConfig()      |   BLOCKS_BSV_STN
            //new ProtocolBTCMainConfig() |   BLOCKS_BTC_MAIN
     }

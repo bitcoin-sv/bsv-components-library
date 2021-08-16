@@ -2,12 +2,10 @@ package io.bitcoinsv.jcl.net.protocol.handlers.message;
 
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
-import com.nchain.jcl.net.network.events.*;
 import io.bitcoinsv.jcl.net.network.events.*;
 import io.bitcoinsv.jcl.net.network.streams.StreamDataEvent;
 import io.bitcoinsv.jcl.net.network.streams.StreamErrorEvent;
 
-import com.nchain.jcl.net.protocol.events.control.*;
 import io.bitcoinsv.jcl.net.protocol.events.control.*;
 import io.bitcoinsv.jcl.net.protocol.events.data.MsgReceivedEvent;
 import io.bitcoinsv.jcl.net.protocol.events.data.MsgSentEvent;

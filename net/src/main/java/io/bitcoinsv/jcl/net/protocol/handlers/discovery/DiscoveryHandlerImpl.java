@@ -2,7 +2,6 @@ package io.bitcoinsv.jcl.net.protocol.handlers.discovery;
 
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
-import com.nchain.jcl.net.network.events.*;
 import io.bitcoinsv.jcl.net.network.events.*;
 import io.bitcoinsv.jcl.net.protocol.events.data.AddrMsgReceivedEvent;
 import io.bitcoinsv.jcl.net.protocol.events.data.GetAddrMsgReceivedEvent;

@@ -2,10 +2,8 @@ package io.bitcoinsv.jcl.net.protocol.wrapper;
 
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
-import com.nchain.jcl.net.network.events.*;
 import io.bitcoinsv.jcl.net.network.events.*;
 import io.bitcoinsv.jcl.net.network.events.PeerDisconnectedEvent.DisconnectedReason;
-import com.nchain.jcl.net.protocol.events.control.*;
 import io.bitcoinsv.jcl.net.protocol.events.control.*;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.common.Message;

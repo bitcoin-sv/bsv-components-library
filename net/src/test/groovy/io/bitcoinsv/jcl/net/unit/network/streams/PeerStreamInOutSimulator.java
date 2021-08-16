@@ -1,7 +1,6 @@
 package io.bitcoinsv.jcl.net.unit.network.streams;
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
-import com.nchain.jcl.net.network.streams.*;
 import io.bitcoinsv.jcl.tools.events.EventBus;
 import io.bitcoinsv.jcl.net.network.streams.*;
 

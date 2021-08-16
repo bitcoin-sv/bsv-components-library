@@ -1,7 +1,6 @@
 package io.bitcoinsv.jcl.store.blockChainStore.validation;
 
 import io.bitcoinsv.jcl.store.blockChainStore.BlockChainStoreConfig;
-import com.nchain.jcl.store.blockChainStore.validation.rules.*;
 import io.bitcoinsv.jcl.store.blockChainStore.validation.rules.BlockChainRule;
 
 import java.util.ArrayList;

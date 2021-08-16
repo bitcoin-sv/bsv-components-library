@@ -2,8 +2,6 @@ package io.bitcoinsv.jcl.net.protocol.handlers.message;
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.protocol.events.data.*;
-import com.nchain.jcl.net.protocol.events.data.*;
-import com.nchain.jcl.net.protocol.messages.*;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
 import io.bitcoinsv.jcl.tools.events.Event;

@@ -1,7 +1,6 @@
 package io.bitcoinsv.jcl.net.protocol.serialization;
 
 
-import com.nchain.jcl.net.protocol.messages.*;
 import io.bitcoinsv.jcl.net.protocol.messages.*;
 import io.bitcoinsv.jcl.net.protocol.serialization.common.DeserializerContext;
 import io.bitcoinsv.jcl.net.protocol.serialization.common.MessageSerializer;

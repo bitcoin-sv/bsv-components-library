@@ -3,7 +3,6 @@ package io.bitcoinsv.jcl.net.protocol.serialization;
 
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
-import com.nchain.jcl.net.protocol.messages.*;
 import io.bitcoinsv.jcl.net.protocol.messages.RawTxMsg;
 
 /**

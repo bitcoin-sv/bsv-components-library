@@ -2,10 +2,8 @@ package io.bitcoinsv.jcl.net.protocol.handlers.handshake;
 
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
-import com.nchain.jcl.net.network.events.*;
 import io.bitcoinsv.jcl.net.network.events.*;
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolVersion;
-import com.nchain.jcl.net.protocol.events.control.*;
 import io.bitcoinsv.jcl.net.protocol.events.control.*;
 import io.bitcoinsv.jcl.net.protocol.events.data.VersionAckMsgReceivedEvent;
 import io.bitcoinsv.jcl.net.protocol.events.data.VersionMsgReceivedEvent;
