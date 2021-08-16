@@ -74,6 +74,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     class KeyConnectionAttach {
         PeerAddress peerAddress;
         NIOStream stream;
+        boolean started; // set to TRUE when we have received already some bytes from this Peer
         public KeyConnectionAttach(PeerAddress peerAddress) { this.peerAddress = peerAddress;}
     }
 
@@ -118,7 +119,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     private EventBus eventBus;
 
     // An executor Service, to trigger jobs in MultiThread...
-    ExecutorService jobExecutor = ThreadUtils.getThreadPoolExecutorService("JclNetworkHandler");
+    ExecutorService jobExecutor = ThreadUtils.getCachedThreadExecutorService("JclNetworkHandler");
     // An executor for triggering new Connections to remote Peers:
     ExecutorService newConnsExecutor = ThreadUtils.getFixedThreadExecutorService("jclNetworkHandlerRemoteConn", 20);
 
@@ -896,18 +897,21 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         // We read the data from the Peer (through the Stream wrapped out around it) and we run the callbacks:
         //handlerLogger.log(Level.TRACE, "read key...");
         KeyConnectionAttach keyConnection = (KeyConnectionAttach) key.attachment();
+
+        // If these bytes are the FIRST bytes coming from a Peer, we wait a bit JUST IN CASE, so we make sure that
+        // all the events related to this Peer/Stream have been populated properly...
+
+        if (!keyConnection.started) {
+            try { Thread.sleep(50);} catch (InterruptedException ie) {}
+            keyConnection.started = true;
+        }
+
         int numBytesRead = ((NIOInputStream)keyConnection.stream.input()).readFromSocket();
         //logger.trace(numBytesRead + " read from " + ((NIOInputStream) keyConnection.stream.input()).getPeerAddress().toString());
         if (numBytesRead == -1) {
             logger.trace(keyConnection.peerAddress, "Connection closed by the Remote Peer.");
             this.closeKey(key, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_REMOTE);
         }
-        /*
-        else {
-            listenerExecutor.executePeerIncomingData(keyConnection.peerAddress, numBytesRead);
-
-        }*/
-
     }
 
     /**

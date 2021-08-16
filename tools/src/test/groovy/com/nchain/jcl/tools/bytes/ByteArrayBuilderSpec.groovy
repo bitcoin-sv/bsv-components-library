@@ -25,10 +25,10 @@ class ByteArrayBuilderSpec extends Specification {
             ByteArrayConfig memoryConfig = new ByteArrayConfig(byteArraySize)
 
             ByteArrayBuffer builder = new ByteArrayBuffer(memoryConfig);
-            builder.addBytes(toAdd)
+            builder.add(toAdd)
 
             int bufferSize = builder.buffers.size()
-            byte[] result = builder.extractReader(toExtract).getFullContent()
+            byte[] result = new ByteArrayReader(builder.extract(toExtract)).getFullContent()
 
             builder.clear()
         expect:

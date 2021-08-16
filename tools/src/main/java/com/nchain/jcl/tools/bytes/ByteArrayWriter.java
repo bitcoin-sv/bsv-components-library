@@ -27,33 +27,33 @@ public class ByteArrayWriter {
     }
 
     public void write(byte data) {
-        buffer.addBytes(new byte[]{data});
+        buffer.add(new byte[]{data});
     }
 
     public void write(byte[] data) {
-        buffer.addBytes(data);
+        buffer.add(data);
     }
 
     public void writeUint32LE(long value) {
         byte[] out = new byte[4];
         Utils.uint32ToByteArrayLE(value, out, 0);
-        buffer.addBytes(out);
+        buffer.add(out);
     }
 
     public void writeUint48LE(long value) {
         byte[] out = new byte[6];
         Utils.uint48ToByteArrayLE(value, out, 0);
-        buffer.addBytes(out);
+        buffer.add(out);
     }
 
     public void writeUint64LE(long value) {
         byte[] out = new byte[8];
         Utils.uint64ToByteArrayLE(value, out, 0);
-        buffer.addBytes(out);
+        buffer.add(out);
     }
 
     public void writeBoolean(boolean value) {
-        buffer.addBytes(new byte[]{(byte) (value ? 1 : 0)});
+        buffer.add(new byte[]{(byte) (value ? 1 : 0)});
     }
 
     public void writeStr(String str) {

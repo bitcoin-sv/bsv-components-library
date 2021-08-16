@@ -1,6 +1,8 @@
 package com.nchain.jcl.tools.events;
 
 import com.nchain.jcl.tools.thread.ThreadUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Queue;
@@ -18,6 +20,7 @@ import java.util.function.Consumer;
  */
 public class EventQueueProcessor {
 
+    private static Logger log = LoggerFactory.getLogger(EventQueueProcessor.class);
     // List of Consumers, linked to specific Event types:
     Map<Class<? extends Event>, Consumer> eventsConsumers = new ConcurrentHashMap<>();
 
@@ -76,7 +79,7 @@ public class EventQueueProcessor {
                 eventsExecutor.submit(()-> eventsConsumers.get(event.getClass()).accept(event));
             }
         } catch (InterruptedException ie) {
-            // Nothing: Most probably its just the system shutting down...
+            //log.error(ie.getMessage(), ie);
         }
     }
 }

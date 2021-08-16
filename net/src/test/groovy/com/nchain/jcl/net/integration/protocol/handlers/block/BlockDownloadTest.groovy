@@ -35,9 +35,9 @@ class BlockDownloadTest extends Specification {
     // BSV MAINNET:
 
     private static final List<String> BLOCKS_BSV_MAIN = Arrays.asList(
+            "000000000000000002f5268d72f9c79f29bef494e350e58f624bcf28700a1846",  // 369MB
             "0000000000000000027abeb2a2348dac5f953676f6b68a6ed5d92458a1c12cab", // 0.6MB
             "000000000000000000dd6c89655ca27fd2555247232a5ced8376f5bda0d26ec4", // 12MB
-            "000000000000000002f5268d72f9c79f29bef494e350e58f624bcf28700a1846",  // 369MB
 
             "0000000000000000071e6e1c401fc530a63d27c826661a2f48709ba2ab51ecb4", // 7K
             "0000000000000000010b0c201f99c4636b35972fc870cdd322d49aea4e9e469e", // 4MB
@@ -215,14 +215,14 @@ class BlockDownloadTest extends Specification {
 
             // We start the Service and request to download the Blocks...
             p2p.start()
-            //p2p.REQUESTS.PEERS.connect("104.248.245.82/104.248.245.82:8333").submit();
+            p2p.REQUESTS.BLOCKS.download(block_hashes).submit()
 
             // we wait until we reach the MAXIMUM number of Peers:
             while (!connReady.get()) Thread.sleep(100)
 
             // Connections are Ready. We submit the Request to start downloading...
             println("Connection Ready...")
-            p2p.REQUESTS.BLOCKS.download(block_hashes).submit()
+
 
             // We wait some time and then we submit a request to Cancel some mBlocks from downloading:
             Thread.sleep(WAIT_FOR_CANCELLING.toMillis());

@@ -19,7 +19,8 @@ public final class RuntimeConfigDefault extends RuntimeConfigImpl implements Run
     // Default values:
     private static ByteArrayConfig byteArrayMemoryConfig = new ByteArrayConfig();
     private static int msgSizeInBytesForRealTimeProcessing = 10_000_000;;
-    private static int maxNumThreadsForP2P = 400;
+    private static int maxNumThreadsForP2P = 50;
+    private static boolean useCachedThreadPoolForP2P = false;
 
     /** Constructor */
     public RuntimeConfigDefault() {
@@ -38,6 +39,7 @@ public final class RuntimeConfigDefault extends RuntimeConfigImpl implements Run
         super.byteArrayMemoryConfig = byteArrayMemoryConfig;
         super.msgSizeInBytesForRealTimeProcessing = msgSizeInBytesForRealTimeProcessing;
         super.maxNumThreadsForP2P = maxNumThreadsForP2P;
+        super.useCachedThreadPoolForP2P = useCachedThreadPoolForP2P;
 
         try {
             FileUtilsBuilder fileUtilsBuilder = new FileUtilsBuilder().useTempFolder();

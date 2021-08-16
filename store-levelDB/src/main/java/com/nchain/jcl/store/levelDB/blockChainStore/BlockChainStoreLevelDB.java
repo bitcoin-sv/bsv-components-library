@@ -71,7 +71,7 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
         // We set up the executor Service in case we need to launch processes in a different Thread, which is the case
         // when we publish state, do automatic Fork prunning or automatic orphan prunning
         if (this.statePublishFrequency != null || this.enableAutomaticForkPrunning || this.enableAutomaticOrphanPrunning) {
-            this.scheduledExecutorService = ThreadUtils.getScheduledExecutorService("BlockChainStore-LevelDB-thread", 2);
+            this.scheduledExecutorService = ThreadUtils.getScheduledExecutorService("BlockChainStore-LevelDB-thread");
         }
 
         blockChainStoreStreamer = new BlockChainStoreStreamer(super.eventBus);

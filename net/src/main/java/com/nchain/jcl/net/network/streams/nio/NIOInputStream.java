@@ -7,6 +7,7 @@ import com.nchain.jcl.net.network.streams.PeerInputStreamImpl;
 import com.nchain.jcl.net.network.streams.StreamCloseEvent;
 import com.nchain.jcl.net.network.streams.StreamDataEvent;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
+import com.nchain.jcl.tools.bytes.ByteArrayStatic;
 import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.log.LoggerUtil;
 
@@ -150,7 +151,15 @@ public class NIOInputStream extends PeerInputStreamImpl<ByteArrayReader, ByteArr
             buffer.compact();
 
             // We send this data down the Stream:
-            ByteArrayReader byteArrayReader = new ByteArrayReader(data);
+            // This data needs to be wrapped up in a ByteArray and then in a ByteArrayReader. But when it arrives at the
+            // destination (which is a DeserializerStream), this reader will only be used to GET all its content
+            // "getFullContent()", which in turns calls the "get()" method in the ByteArray. And after that, this reader
+            // and the underlying ByteArray won't be used anymore.
+            // So we are using here an "improved" version of ByteArray which is optimized for the situation when we are
+            // mainly only interested in its "get()" method.
+
+            ByteArrayReader byteArrayReader = new ByteArrayReader(new ByteArrayStatic(data)); // Optimization
+
             logger.trace(read + " bytes received from " + peerAddress.toString());
             super.eventBus.publish(new StreamDataEvent<>(byteArrayReader));
             return read;

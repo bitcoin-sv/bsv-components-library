@@ -114,7 +114,8 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
         this.logger = new LoggerUtil(this.getPeerAddress().toString(), this.getClass());
         this.runtimeConfig = runtimeConfig;
         this.protocolBasicConfig = protocolBasicConfig;
-        this.buffer = new ByteArrayBuffer(runtimeConfig.getByteArrayMemoryConfig());
+        //this.buffer = new ByteArrayBuffer(runtimeConfig.getByteArrayMemoryConfig());
+        this.buffer = new ByteArrayBuffer(deserializer.getConfig().getBufferInitialSizeInBytes(), runtimeConfig.getByteArrayMemoryConfig());
         this.bigMsgsDeserializersExecutor = bigMsgsDeserializersExecutor;
 
         // We initialize the State:
@@ -168,7 +169,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
 
             // We feed the buffer with the incoming bytes....
             //log.trace("SHARED Thread :: " + dataEvent.getData().size() + " bytes received, " + buffer.size() + " bytes in buffer. " + Thread.activeCount() + " active Threads...");
-            buffer.addBytes(dataEvent.getData().getFullContent());
+            buffer.add(dataEvent.getData().getFullContent());
 
             // We update the State with the new incoming bytes...
             state = state.toBuilder()
@@ -218,6 +219,10 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
                     .insideVersionMsg(headerMsg.getCommand().equalsIgnoreCase(VersionMsg.MESSAGE_TYPE))
                     .calculateHashes(!realTime) // We only pre-calculate Hashes if we are NOT in Real-Timeprocessing
                     .build();
+
+            // We instantiate a ByteArrayReader that will be used to read the bytes from the buffer during deserialization
+            // NOTE: Each specific Deserializer might wrap this reader with another one, like the ByteArrayReaderOptimized
+            // or the ByteArrayReaderRealTime. That depends on the Deserializer implementation.
             //ByteArrayReader byteReader = new ByteArrayReaderOptimized(buffer);
             ByteArrayReader byteReader = new ByteArrayReader(buffer);
 

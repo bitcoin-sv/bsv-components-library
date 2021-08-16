@@ -39,11 +39,10 @@ public class HeaderMsgSerializer implements MessageSerializer<HeaderMsg> {
         // The "command" field is NULL-padded, so we remove the NULL values before
         // storing the value in a String:
         String command = byteReader.readString(12, "UTF-8");
-        String commandClean = StringUtils.removeNulls(command);
 
         HeaderMsg headerMsg = HeaderMsg.builder()
                 .magic(magic)
-                .command(commandClean)
+                .command(command)
                 .length(byteReader.readUint32())
                 .checksum(byteReader.readUint32()).build();
 

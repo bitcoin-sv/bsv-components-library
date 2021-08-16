@@ -33,6 +33,7 @@ import spock.lang.Specification
 import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicLong
 
 /**
@@ -55,7 +56,7 @@ class TxBlasterPerformanceTest extends Specification {
     static Instant firstTxInstant = null
 
     // Executor that twill trigger a thread from where the TxBlaster will be firing Txs...
-    static ExecutorService executor = ThreadUtils.EVENT_BUS_EXECUTOR_HIGH_PRIORITY
+    static ExecutorService executor =  ThreadUtils.getFixedThreadExecutorService("txBlaster-Performance", 100);
 
     // Number of Tx/sec to Blast in general
     static int NUM_TX_SEC = 4000
@@ -201,7 +202,7 @@ class TxBlasterPerformanceTest extends Specification {
 
 
             // We define 1 Queue where the service will be processing the incoming TX messages...
-            EventQueueProcessor txProcessor = new EventQueueProcessor("Test", ThreadUtils.EVENT_BUS_EXECUTOR_HIGH_PRIORITY);
+            EventQueueProcessor txProcessor = new EventQueueProcessor("Test", ThreadUtils.getFixedThreadExecutorService("tx-Queue", 100));
             txProcessor.addProcessor(TxMsgReceivedEvent.class, {e -> processTX(e)})
             txProcessor.addProcessor(RawTxMsgReceivedEvent.class, {e -> processRawTX(e)})
 

@@ -46,7 +46,7 @@ public class ByteReaderDelaySource extends PeerStreamInOutSimulator<ByteArrayRea
 
     @Override
     public void send(StreamDataEvent<ByteArrayReader> event) {
-        byteArrayBuilder.addBytes(event.getData().getFullContent());
+        byteArrayBuilder.add(event.getData().getFullContent());
     }
 
     @Override

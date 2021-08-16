@@ -21,6 +21,7 @@ import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
 import com.nchain.jcl.net.protocol.wrapper.P2P;
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder;
 import com.nchain.jcl.tools.config.RuntimeConfig;
+import com.nchain.jcl.tools.config.RuntimeConfigImpl;
 import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault;
 import com.nchain.jcl.tools.events.EventQueueProcessor;
 import com.nchain.jcl.tools.thread.ThreadUtils;
@@ -62,6 +63,7 @@ public class JCLServer {
         boolean pingEnabled;
         Duration timeLimit;
         Integer maxThreads;
+        boolean useCachedThreadPool;
 
         public JCLServerConfig(Net net, int minPeers, int maxPeers, boolean pingEnabled) {
             this.net = net;
@@ -137,17 +139,23 @@ public class JCLServer {
         NetworkParameters NETWORK_PARAMS = config.net.params();
 
         // Runtime Configuration:
-        RuntimeConfig runtimeConfig = new RuntimeConfigDefault();
+        RuntimeConfigImpl runtimeConfig = new RuntimeConfigDefault();
         if (config.maxThreads != null) {
-            runtimeConfig = ((RuntimeConfigDefault) runtimeConfig).toBuilder()
-                .maxNumThreadsForP2P(config.maxThreads)
-                .build();
+            runtimeConfig = runtimeConfig.toBuilder()
+                    .maxNumThreadsForP2P(config.maxThreads)
+                    .build();
+        }
+
+        if (config.useCachedThreadPool) {
+            runtimeConfig = runtimeConfig.toBuilder()
+                    .useCachedThreadPoolForP2P(true)
+                    .build();
         }
 
         // Protocol Configuration:
         ProtocolConfig protocolConfig = ProtocolConfigBuilder.get(NETWORK_PARAMS);
 
-         // Protocol Basic Configuration: We set up the Range of Peers:
+        // Protocol Basic Configuration: We set up the Range of Peers:
         ProtocolBasicConfig basicConfig = protocolConfig.getBasicConfig().toBuilder()
                 .minPeers(OptionalInt.of(config.minPeers))
                 .maxPeers(OptionalInt.of(config.maxPeers))
@@ -258,17 +266,22 @@ public class JCLServer {
         if (netValue == null) { return null; }
         Net net = Net.valueOf(netValue.toUpperCase());
 
-        // We get the timeLimit parameter;
+        // We get the 'timeLimit' parameter;
         String timeLimitValue = getParamValue("timeLimit", args);
         Duration timeLimit = (timeLimitValue != null) ? Duration.ofSeconds(Integer.valueOf(timeLimitValue)) : null;
 
-        // We get the maxThreads parameter:
+        // We get the 'maxThreads' parameter:
         String maxThreadsValue = getParamValue("maxThreads", args);
         Integer maxThreads = (maxThreadsValue != null) ? Integer.valueOf(maxThreadsValue) : null;
+
+        // We get the 'useCachedPool' parameter:
+        String useCachedThreadPoolStr = getParamValue("useCachedPool", args);
+        boolean useCachedThreadPool = (useCachedThreadPoolStr != null) ? Boolean.valueOf(useCachedThreadPoolStr) : false;
 
         JCLServerConfig result = CONFIGS.get(net);
         result.timeLimit = timeLimit;
         result.maxThreads = maxThreads;
+        result.useCachedThreadPool = useCachedThreadPool;
         return result;
     }
 

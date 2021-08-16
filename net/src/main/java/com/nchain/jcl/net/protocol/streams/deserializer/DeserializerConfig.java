@@ -18,6 +18,12 @@ import java.util.Set;
  */
 public final class DeserializerConfig {
 
+    /**
+     *  Initial size of each Buffer assigned to each Peer for Deserialization.
+     *  The Buffer can still expand/collapse over time if needed, this is just the initial size
+     */
+    private Integer bufferInitialSizeInBytes = 5_000_000; // 5 MB by default
+
     /** Indicates the minimum speed of the bytes coming from the remote Peer */
     private int minBytesPerSecForLargeMessages = ByteArrayReaderRealTime.DEFAULT_SPEED_BYTES_PER_SECOND;
 
@@ -53,7 +59,8 @@ public final class DeserializerConfig {
     /** If the Message is NOT part of this List, then it won't be cached */
     private Set<String> messagesToCache = new HashSet<>(Arrays.asList(DEFAULT_MSGS_TO_CACHE));
 
-    public DeserializerConfig(Integer minBytesPerSecForLargeMessages,
+    public DeserializerConfig(Integer bufferInitialSizeInBytes,
+                              Integer minBytesPerSecForLargeMessages,
                               Boolean cacheEnabled,
                               Long maxCacheSizeInBytes,
                               Long maxCacheSizeInNumMsgs,
@@ -61,6 +68,7 @@ public final class DeserializerConfig {
                               Long maxMsgSizeInBytes,
                               Boolean generateStats,
                               Set<String> messagesToCache) {
+        if (bufferInitialSizeInBytes != null)       this.bufferInitialSizeInBytes = bufferInitialSizeInBytes;
         if (minBytesPerSecForLargeMessages != null) this.minBytesPerSecForLargeMessages = minBytesPerSecForLargeMessages;
         if (cacheEnabled != null)                   this.cacheEnabled = cacheEnabled;
         if (maxCacheSizeInBytes != null)            this.maxCacheSizeInBytes = maxCacheSizeInBytes;
@@ -72,6 +80,7 @@ public final class DeserializerConfig {
     }
 
     public static DeserializerConfigBuilder builder()   { return new DeserializerConfigBuilder(); }
+    public int getBufferInitialSizeInBytes()            { return this.bufferInitialSizeInBytes;}
     public int getMinBytesPerSecForLargeMessages()      { return this.minBytesPerSecForLargeMessages;}
     public boolean isCacheEnabled()                     { return cacheEnabled; }
     public Long getMaxCacheSizeInNumMsgs()              { return this.maxCacheSizeInNumMsgs;}
@@ -84,11 +93,12 @@ public final class DeserializerConfig {
 
     @Override
     public String toString() {
-        return "DeserializerConfig(minBytesPerSecForLargeMessages=" + minBytesPerSecForLargeMessages + ", maxCacheSizeInBytes=" + this.maxCacheSizeInBytes + ", maxMsgSizeInBytes=" + this.cacheMaxMsgSizeInBytes + ", generateStats=" + this.generateStats + ", messagesToCache=" + this.messagesToCache + ")";
+        return "DeserializerConfig(bufferInitialSizeInBytes=" + bufferInitialSizeInBytes + ",minBytesPerSecForLargeMessages=" + minBytesPerSecForLargeMessages + ", maxCacheSizeInBytes=" + this.maxCacheSizeInBytes + ", maxMsgSizeInBytes=" + this.cacheMaxMsgSizeInBytes + ", generateStats=" + this.generateStats + ", messagesToCache=" + this.messagesToCache + ")";
     }
 
     public DeserializerConfigBuilder toBuilder() {
         return new DeserializerConfigBuilder()
+                .bufferInitialSizeInBytes(this.bufferInitialSizeInBytes)
                 .minBytesPerSecForLargeMessages(this.minBytesPerSecForLargeMessages)
                 .cacheEnabled(this.cacheEnabled)
                 .maxCacheSizeInNumMsgs(this.maxCacheSizeInNumMsgs)
@@ -103,6 +113,7 @@ public final class DeserializerConfig {
      * Builder
      */
     public static class DeserializerConfigBuilder {
+        private Integer bufferInitialSizeInBytes;
         private Integer minBytesPerSecForLargeMessages;
         private Boolean cacheEnabled;
         private Long maxCacheSizeInBytes;
@@ -113,6 +124,12 @@ public final class DeserializerConfig {
         private Set<String> messagesToCache;
 
         DeserializerConfigBuilder() { }
+
+
+        public DeserializerConfig.DeserializerConfigBuilder bufferInitialSizeInBytes(int bufferInitialSizeInBytes) {
+            this.bufferInitialSizeInBytes = bufferInitialSizeInBytes;
+            return this;
+        }
 
         public DeserializerConfig.DeserializerConfigBuilder minBytesPerSecForLargeMessages(int minBytesPerSecForLargeMessages) {
             this.minBytesPerSecForLargeMessages = minBytesPerSecForLargeMessages;
@@ -156,6 +173,7 @@ public final class DeserializerConfig {
 
         public DeserializerConfig build() {
             return new DeserializerConfig(
+                    bufferInitialSizeInBytes,
                     minBytesPerSecForLargeMessages,
                     cacheEnabled,
                     maxCacheSizeInBytes,

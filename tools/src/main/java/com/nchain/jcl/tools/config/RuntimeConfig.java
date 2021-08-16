@@ -32,4 +32,12 @@ public interface RuntimeConfig {
      */
     int getMaxNumThreadsForP2P();
 
+    /**
+     * If TRUE, and CachedThreadPool for the Threads used in the P2P Service will be used, using a maxLimite dfined by
+     * "getMaxNumThreadsForP2P" Otherwise, a FixedThreadPool will be used.
+     * NOTE: A CachedThreadPool has much higher performance than a Fixed one ofr small tasks. Its been proved than JCL
+     * works much better with a CachedThreadPool, but sometimes it might not work very well if we connect JCL to another
+     * system.
+     */
+    boolean useCachedThreadPoolForP2P();
 }

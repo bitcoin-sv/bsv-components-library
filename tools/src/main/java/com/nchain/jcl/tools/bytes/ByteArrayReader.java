@@ -33,7 +33,7 @@ public class ByteArrayReader {
     }
 
     public ByteArrayReader(byte[] initialData) {
-        this(new ByteArrayBuffer().addBytes(initialData));
+        this(new ByteArrayBuffer(initialData));
     }
 
     public ByteArrayReader(ByteArray byteArray) {

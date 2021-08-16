@@ -26,6 +26,7 @@ import com.nchain.jcl.tools.thread.ThreadUtils;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -79,8 +80,12 @@ public class P2P {
             this.protocolConfig = protocolConfig;
 
             // We initialize the EventBus...
+            ExecutorService executor = (runtimeConfig.useCachedThreadPoolForP2P())
+                    ? ThreadUtils.getCachedThreadExecutorService("JclEventBus", runtimeConfig.getMaxNumThreadsForP2P())
+                    : ThreadUtils.getFixedThreadExecutorService("JclEventBus", runtimeConfig.getMaxNumThreadsForP2P());
+
             this.eventBus = EventBus.builder()
-                   .executor(ThreadUtils.getFixedThreadExecutorService("JclEventBus", runtimeConfig.getMaxNumThreadsForP2P()))
+                   .executor(executor)
                    .build();
 
             // Event Streamer:
@@ -141,6 +146,8 @@ public class P2P {
                 String maxPeersStr = protocolConfig.getBasicConfig().getMaxPeers().isEmpty() ? "?)" :  protocolConfig.getBasicConfig().getMaxPeers().getAsInt() + "]";
                 logger.info(" - peers range: " + minPeersStr + " - " + maxPeersStr);
             }
+            logger.info("Thread Pool used: " + (runtimeConfig.useCachedThreadPoolForP2P()? "Cached" : "Fixed") + ", MaxThreads: " + runtimeConfig.getMaxNumThreadsForP2P());
+
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e);

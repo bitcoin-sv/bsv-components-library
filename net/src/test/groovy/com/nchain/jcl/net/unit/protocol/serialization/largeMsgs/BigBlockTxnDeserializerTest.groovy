@@ -1,10 +1,11 @@
-package com.nchain.jcl.net.protocol.serialization.largeMsgs
+package com.nchain.jcl.net.unit.protocol.serialization.largeMsgs
 
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
 import com.nchain.jcl.net.protocol.messages.PartialBlockTxnMsg
 import com.nchain.jcl.net.protocol.messages.common.Message
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
+import com.nchain.jcl.net.protocol.serialization.largeMsgs.BigBlockTxnDeserializer
 import com.nchain.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
@@ -19,9 +20,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 /**
- * Performance Testing. We use a P2P Service to connect the network, and we process all the INV messages that come
- * from it. For each Tx contained in the INV,s we ask for them. Sinc ethis is just a performance testing, we do not
- * care whether we are asking for Txs already processed or not, we just need to check how many Tx/sec we can process..
+ * A Test to Deserialize a BlockTxN Msg using the BigBlockTxsDeserializer, which is a Large Deserializer
  */
 class BigBlockTxnDeserializerTest extends Specification {
 
@@ -37,7 +36,7 @@ class BigBlockTxnDeserializerTest extends Specification {
                 .build()
 
             ExecutorService executor = Executors.newSingleThreadExecutor()
-            BigBlockTxnDeserializer deserializer = Mockito.spy(new BigBlockTxnDeserializer(executor))
+        BigBlockTxnDeserializer deserializer = Mockito.spy(new BigBlockTxnDeserializer(executor))
 
             byte[] bytes = Utils.HEX.decode(BLOCKTXN_BYTES)
             ByteArrayReader reader = ByteArrayArtificalStreamProducer.stream(bytes, byteInterval, delayMs)
