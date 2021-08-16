@@ -1,3 +1,7 @@
+/*
+ * Distributed under the Open BSV software license, see the accompanying file LICENSE
+ * Copyright (c) 2020 Bitcoin Association
+ */
 package io.bitcoinsv.jcl.net.network.handlers;
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
