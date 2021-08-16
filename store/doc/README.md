@@ -344,7 +344,7 @@ public interface Metadata {
 ```
 
 *JCL* has already ou-of-the-box some Utiity *Metadata* Classes that can be used. For example, the 
-class ``com.nchain.jcl.store.blockStore.metadata.provided.BlockValidationMD``, which contains useful information that
+class ``BlockValidationMD``, which contains useful information that
 can be used to track the progress of downloading/Validating a Block from the P2P Network.
 
 The next ste it to *inform* *JCL* that the ``BlockValidationMD`` class will be used as a *Metadata* for blocks (and 
@@ -387,7 +387,7 @@ An Event triggered when a one or more Blocks have been saved in the Store.
  This Event is accesible by: ``[BlockStore].EVENTS().BLOCKS_SAVED``
  
  The Event class passed as parameter to the *forEach* method is an instance of
-``com.nchain.jcl.store.blockStore.events.BlocksSavedEvent``
+``BlocksSavedEvent``
 
 ##### BlocksRemovedEvent
 
@@ -395,7 +395,7 @@ An Event triggered when a one or more Blocks have been removed from the Store.
  This Event is accesible by: ``[BlockStore].EVENTS().BLOCKS_REMOVED``
  
  The Event class passed as parameter to the *forEach* method is an instance of
-``com.nchain.jcl.store.blockStore.events.BlocksRemovedEvent``
+``BlocksRemovedEvent``
 
 
 ##### TxsSavedEvent
@@ -404,7 +404,7 @@ An Event triggered when a one or more Txs have been saved in the Store.
  This Event is accesible by: ``[BlockStore].EVENTS().TXS_SAVED``
  
  The Event class passed as parameter to the *forEach* method is an instance of
-``com.nchain.jcl.store.blockStore.events.TxsSavedEvent``
+``TxsSavedEvent``
 
 
 ##### TxsRemovedEvent
@@ -413,7 +413,7 @@ An Event triggered when a one or more Txs have been removed in the Store.
  This Event is accesible by: ``[BlockStore].EVENTS().TXS_REMOVED``
  
  The Event class passed as parameter to the *forEach* method is an instance of
-``com.nchain.jcl.store.blockStore.events.TxsRemovedEvent``
+``TxsRemovedEvent``
 
 
 ## BlockChainStore interface
@@ -606,7 +606,7 @@ ALREADY other Block built on top of it.
  This Event is accesible by: ``[BlockStore].EVENTS().FORKS``
  
  The Event class passed as parameter to the *forEach* method is an instance of
-``com.nchain.jcl.store.blockChainStore.events.ChainForkEvent``
+``ChainForkEvent``
 
 ##### ChainPruneEvent
 
@@ -615,7 +615,7 @@ automatically (by the *Automatic Prunning*)
  This Event is accessible by: ``[BlockStore].EVENTS().BLOCKS_REMOVED``
  
  The Event class passed as parameter to the *forEach* method is an instance of
-``com.nchain.jcl.store.blockChainStore.events.ChainPruneEvent``
+``ChainPruneEvent``
 
 
 ##### ChainStateEvent
@@ -624,7 +624,7 @@ An Event triggered periodically based on the configuration (implementation-speci
  This Event is accesible by: ``[BlockStore].EVENTS().STATE``
  
  The Event class passed as parameter to the *forEach* method is an instance of
-``com.nchain.jcl.store.blockChainStore.events.ChainStateEvent``
+``ChainStateEvent``
 
 
 # Implementations

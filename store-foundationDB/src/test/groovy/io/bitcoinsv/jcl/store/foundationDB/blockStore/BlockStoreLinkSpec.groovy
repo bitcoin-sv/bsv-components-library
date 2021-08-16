@@ -1,0 +1,24 @@
+package io.bitcoinsv.jcl.store.foundationDB.blockStore
+
+
+import io.bitcoinsv.jcl.store.blockStore.BlockStore
+import io.bitcoinsv.jcl.store.foundationDB.FDBTestUtils
+import io.bitcoinsv.jcl.store.foundationDB.StoreFactory
+import io.bitcoinsv.jcl.store.blockStore.BlockStoreLinkSpecBase
+import io.bitcoinsv.jcl.store.blockStore.metadata.Metadata
+
+
+/**
+ * A Test class for scenarios related to the relationship (link) between Blocks and Txs
+ */
+class BlockStoreLinkSpec extends BlockStoreLinkSpecBase {
+
+    // Start & Stop FoundationDB in Docker Container (check DockerTestUtils for details)...
+    def setupSpec()     { FDBTestUtils.checkFDBBefore()}
+    def cleanupSpec()   { FDBTestUtils.checkFDBAfter()}
+
+    @Override
+    BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents, Class<? extends Metadata> blockMetadataClass) {
+        return StoreFactory.getInstance(netId, triggerBlockEvents, triggerTxEvents, blockMetadataClass)
+    }
+}
