@@ -79,10 +79,8 @@ public class ByteArrayReaderOptimized extends ByteArrayReader {
         }
     }
 
-    public long getUint32(int position) {
-        adjustBufferIfNeededForReading(position + 4);
-        long result= Utils.readUint32(buffer, bytesConsumed + position);
-        return result;
+    public long getUint32(int offset) {
+        return Utils.readUint32(get(offset, 4), 0);
     }
 
     public long readUint32() {
@@ -99,10 +97,8 @@ public class ByteArrayReaderOptimized extends ByteArrayReader {
         return result;
     }
 
-    public long getInt64LE(int position) {
-        adjustBufferIfNeededForReading(position + 8);
-        long result = Utils.readInt64(buffer, bytesConsumed + position);
-        return result;
+    public long getInt64LE(int offset) {
+        return Utils.readInt64(get(offset, 8), 0);
     }
 
     public long readInt64LE() {
