@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 
 /**
@@ -29,6 +30,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
     private final List<String> discardedBlocks;
     private final List<String> pendingToCancelBlocks;
     private final List<String> cancelledBlocks;
+    private final Set<String> blocksInLimbo;
 
     // Blocks download History:
     private final Map<String, List<BlocksDownloadHistory.HistoricItem>> blocksHistory;
@@ -59,6 +61,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
                                         List<String> discardedBlocks,
                                         List<String> pendingToCancelBlocks,
                                         List<String> cancelledBlocks,
+                                        Set<String> blocksInLimbo,
                                         Map<String, List<BlocksDownloadHistory.HistoricItem>> blocksHistory,
                                         List<BlockPeerInfo> peersInfo,
                                         long totalReattempts,
@@ -72,6 +75,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         this.discardedBlocks = discardedBlocks;
         this.pendingToCancelBlocks = pendingToCancelBlocks;
         this.cancelledBlocks = cancelledBlocks;
+        this.blocksInLimbo = blocksInLimbo;
         this.blocksHistory = blocksHistory;
         this.peersInfo = peersInfo;
         this.totalReattempts = totalReattempts;
@@ -91,6 +95,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         result.append(" : ");
         result.append("Blocks: [");
         result.append(downloadedBlocks.size() + " downloaded, " + getNumPeersDownloading() + " downloading, " + pendingBlocks.size() + " pending, ");
+        result.append(blocksInLimbo.size() + " in limbo, ");
         result.append(discardedBlocks.size() + " discarded, ");
         result.append(cancelledBlocks.size() + " canceled, "+ pendingToCancelBlocks.size() + " pending to cancel, ");
         result.append(totalReattempts + " re-attempts");
@@ -129,6 +134,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
     public List<String> getDiscardedBlocks()        { return this.discardedBlocks; }
     public List<String> getPendingToCancelBlocks()  { return this.pendingToCancelBlocks; }
     public List<String> getCancelledBlocks()        { return cancelledBlocks; }
+    public Set<String>  getBlocksInLimbo()          { return blocksInLimbo; }
 
     public List<BlockPeerInfo> getPeersInfo()   { return this.peersInfo; }
     public long getTotalReattempts()            { return this.totalReattempts;}
@@ -166,6 +172,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
                 .discardedBlocks(this.discardedBlocks)
                 .pendingToCancelBlocks(this.pendingToCancelBlocks)
                 .cancelledBlocks(this.cancelledBlocks)
+                .blocksInLimbo(this.blocksInLimbo)
                 .blocksHistory(this.blocksHistory)
                 .peersInfo(this.peersInfo)
                 .blocksNumDownloadAttempts(this.blocksNumDownloadAttempts)
@@ -184,6 +191,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         private List<String> discardedBlocks;
         private List<String> pendingToCancelBlocks;
         private List<String> cancelledBlocks;
+        private Set<String> blocksInLimbo;
         private Map<String, List<BlocksDownloadHistory.HistoricItem>> blocksHistory;
         private List<BlockPeerInfo> peersInfo;
         private long totalReattempts;
@@ -225,6 +233,11 @@ public final class BlockDownloaderHandlerState extends HandlerState {
             return this;
         }
 
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder blocksInLimbo(Set<String> blocksInLimbo) {
+            this.blocksInLimbo = blocksInLimbo;
+            return this;
+        }
+
         public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder blocksHistory(Map<String, List<BlocksDownloadHistory.HistoricItem>> blocksHistory) {
             this.blocksHistory = blocksHistory;
             return this;
@@ -261,7 +274,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         }
 
         public BlockDownloaderHandlerState build() {
-            return new BlockDownloaderHandlerState(downloadingState, pendingBlocks, downloadedBlocks, discardedBlocks, pendingToCancelBlocks, cancelledBlocks, blocksHistory, peersInfo, totalReattempts, blocksNumDownloadAttempts, busyPercentage, bandwidthRestricted, blocksDownloadingSize);
+            return new BlockDownloaderHandlerState(downloadingState, pendingBlocks, downloadedBlocks, discardedBlocks, pendingToCancelBlocks, cancelledBlocks, blocksInLimbo, blocksHistory, peersInfo, totalReattempts, blocksNumDownloadAttempts, busyPercentage, bandwidthRestricted, blocksDownloadingSize);
         }
     }
 }
