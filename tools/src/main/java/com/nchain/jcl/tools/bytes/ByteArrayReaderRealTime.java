@@ -149,7 +149,7 @@ public class ByteArrayReaderRealTime extends ByteArrayReaderOptimized {
         while (size() < length) {
 
             if (System.currentTimeMillis() > timeout) {
-                String errorLine = "timeout waiting longer than " + millisecsToWait + " millisecs for " + length + " bytes";
+                String errorLine = "timeout waiting longer than " + millisecsToWait + " millisecs for " + length + " bytes, current size: " + size();
                 if (readerMode.equals(ReaderMode.DYNAMIC_WAIT)) {
                     errorLine += " minSpeed = " + speedBytesPerSec + " bytes/sec";
                 }

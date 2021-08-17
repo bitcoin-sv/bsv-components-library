@@ -33,7 +33,7 @@ public class ByteArrayReaderOptimized extends ByteArrayReader {
     //private int BUFFER_SIZE = 50;
     private byte[] buffer = new byte[BUFFER_SIZE];
     private int bufferDataSize = 0;
-    private int bytesConsumed = 0;
+    public int bytesConsumed = 0;
 
     public ByteArrayReaderOptimized(ByteArray byteArray) {
         super(byteArray);
@@ -143,29 +143,19 @@ public class ByteArrayReaderOptimized extends ByteArrayReader {
     @Override
     public byte[] get(int offset, int length) {
         byte[] result = new byte[length];
-        if (offset + length <= buffer.length) {
-            adjustBufferIfNeededForReading(offset + length);
+
+        if (bytesConsumed + offset + length <= bufferDataSize) {
             System.arraycopy(buffer, bytesConsumed + offset, result, 0, length);
         } else {
-            result = super.get(length);
-            resetBuffer();
-            return result;
+            result = super.get(bytesConsumed + offset, length);
         }
+
         return result;
     }
 
     @Override
     public byte[] get(int length) {
-        byte[] result = new byte[length];
-        if ((buffer.length) >= length) {
-            adjustBufferIfNeededForReading(length);
-            System.arraycopy(buffer, bytesConsumed, result, 0, length);
-        } else {
-            result = super.get(length);
-            resetBuffer();
-            return result;
-        }
-        return result;
+        return get(0, length);
     }
 
     public byte[] getFullContentAndClose() {

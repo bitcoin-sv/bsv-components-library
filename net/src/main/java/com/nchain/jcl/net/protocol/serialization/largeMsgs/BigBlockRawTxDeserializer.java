@@ -116,13 +116,7 @@ public class BigBlockRawTxDeserializer extends LargeMessageDeserializerImpl {
                     totalSizeInBatch += totalBytesInTx;
                     rawTxBatch.add(new RawTxMsg(byteReader.read(totalBytesInTx)));
                 } else {
-                    //Is the tx bigger than our maximum batch size
-                    if(totalBytesInTx > TX_LIST_TOTAL_BYTES){
-                        log.warn("Tx has been pushed down the pipeline that is greater than maximum batch size");
-                        rawTxBatch.add(new RawTxMsg(byteReader.read(totalBytesInTx)));
-                    }
-
-                    //push the batch down the pipeline
+                    // We do not Have enough space in this Batch for this Tx. push the batch we have so far down the pipeline
                     PartialBlockRawTxMsg partialBlockRawTXs = PartialBlockRawTxMsg.builder()
                             .blockHeader(blockHeader)
                             .txs(rawTxBatch)
@@ -134,6 +128,16 @@ public class BigBlockRawTxDeserializer extends LargeMessageDeserializerImpl {
                     rawTxBatch = new ArrayList<>();
                     txsOrderNumber++;
                     totalSizeInBatch = 0;
+
+                    // We add this Tx tot he next Batch:
+                    rawTxBatch.add(new RawTxMsg(byteReader.read(totalBytesInTx)));
+
+                    // If the size of this individual Tx is already bigger than our Max Batch size, this Txs will be
+                    // pushed down in the next iteration, but we warm of this situation here...
+                    if(totalBytesInTx > TX_LIST_TOTAL_BYTES){
+                        log.warn("Tx bigger than the current max Batch size has been added to the Batch, it will be pushed next.");
+                    }
+
                 }
 
                 totalBytesRemaining -= totalBytesInTx;
@@ -154,6 +158,7 @@ public class BigBlockRawTxDeserializer extends LargeMessageDeserializerImpl {
             resetReaderSpeed(byteReader);
 
         } catch (Exception e) {
+            e.printStackTrace();
             notifyError(e);
         }
     }
