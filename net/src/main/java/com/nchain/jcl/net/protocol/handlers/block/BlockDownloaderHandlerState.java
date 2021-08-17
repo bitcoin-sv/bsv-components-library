@@ -102,7 +102,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         result.append("] ");
         result.append(" Peers: [");
         result.append(peersInfo.size() + " peers, ");
-        result.append(busyPercentage + "% downloading ");
+        result.append(busyPercentage + "% busy ");
         if (bandwidthRestricted) {
             result.append("(bandwidth restricted)");
         }
