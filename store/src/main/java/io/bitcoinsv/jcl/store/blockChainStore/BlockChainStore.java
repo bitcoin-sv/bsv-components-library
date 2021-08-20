@@ -7,8 +7,8 @@ package io.bitcoinsv.jcl.store.blockChainStore;
 
 import io.bitcoinsv.jcl.store.blockChainStore.events.BlockChainStoreStreamer;
 import io.bitcoinsv.jcl.store.blockStore.BlockStore;
-import io.bitcoinj.bitcoin.api.extended.ChainInfo;
-import io.bitcoinj.core.Sha256Hash;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.extended.ChainInfo;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 
 import java.util.List;
 import java.util.Optional;

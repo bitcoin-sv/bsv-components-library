@@ -8,7 +8,7 @@ package io.bitcoinsv.jcl.net.unit.protocol.serialization.streams
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig
 import io.bitcoinsv.jcl.tools.config.provided.RuntimeConfigDefault
-import io.bitcoinj.core.Utils
+import io.bitcoinsv.bitcoinjsv.core.Utils
 import io.bitcoinsv.jcl.net.network.streams.PeerInputStream
 import io.bitcoinsv.jcl.net.network.streams.StreamDataEvent
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig

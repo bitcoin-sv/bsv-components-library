@@ -5,7 +5,7 @@
 package io.bitcoinsv.jcl.net.integration.protocol.handlers.handshake
 
 
-import io.bitcoinj.params.MainNetParams
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigBuilder
 import io.bitcoinsv.jcl.net.protocol.events.control.MinHandshakedPeersLostEvent

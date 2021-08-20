@@ -12,7 +12,7 @@ import java.math.BigInteger;
  * Copyright (c) 2018-2020 nChain Ltd
  *
  * It stores info about the Chain, relative to the position of one specific Block.
- * This class is an alternative version of the {@link io.bitcoinj.bitcoin.api.extended.ChainInfo} class,
+ * This class is an alternative version of the {@link io.bitcoinsv.bitcoinjsv.bitcoin.api.extended.ChainInfo} class,
  * storing the same basic info, but this class does not store the whole BlockHeader, instead it only stored the Hash.
  * This class is used to store the relative Chain info for each Block. Sicne the Blocks themselves are
  * already being stored in other keys, we only need the Block Hash here.

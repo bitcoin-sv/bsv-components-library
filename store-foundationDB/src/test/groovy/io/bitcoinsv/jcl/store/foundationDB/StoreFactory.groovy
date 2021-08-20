@@ -10,7 +10,7 @@ import io.bitcoinsv.jcl.store.foundationDB.blockChainStore.BlockChainStoreFDB
 import io.bitcoinsv.jcl.store.foundationDB.blockChainStore.BlockChainStoreFDBConfig
 import io.bitcoinsv.jcl.store.foundationDB.blockStore.BlockStoreFDB
 import io.bitcoinsv.jcl.store.foundationDB.blockStore.BlockStoreFDBConfig
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly
 import io.bitcoinsv.jcl.store.blockChainStore.BlockChainStore
 import io.bitcoinsv.jcl.store.blockStore.metadata.Metadata
 

@@ -7,9 +7,9 @@ package io.bitcoinsv.jcl.net.unit.protocol.serialization
 
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter
-import io.bitcoinj.core.Sha256Hash
-import io.bitcoinj.params.MainNetParams
-import io.bitcoinj.params.Net
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import io.bitcoinsv.bitcoinjsv.params.Net
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigBuilder
 import io.bitcoinsv.jcl.net.protocol.messages.HashMsg

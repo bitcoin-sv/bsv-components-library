@@ -7,7 +7,7 @@ package io.bitcoinsv.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
-import io.bitcoinj.core.Sha256Hash;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 
 /**
  * @author i.fernandez@nchain.com

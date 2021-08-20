@@ -4,7 +4,7 @@
  */
 package io.bitcoinsv.jcl.tools.bytes;
 
-import io.bitcoinj.core.Utils;
+import io.bitcoinsv.bitcoinjsv.core.Utils;
 
 import java.io.UnsupportedEncodingException;
 

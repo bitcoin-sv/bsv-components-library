@@ -5,7 +5,7 @@
 package io.bitcoinsv.jcl.store.blockStore
 
 import io.bitcoinsv.jcl.store.common.TestingUtils
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly
 
 import java.util.concurrent.atomic.AtomicInteger
 

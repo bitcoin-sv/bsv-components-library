@@ -9,8 +9,8 @@ import com.google.common.hash.Hashing
 import io.bitcoinsv.jcl.tools.events.EventQueueProcessor
 import io.bitcoinsv.jcl.tools.thread.ThreadUtils
 
-import io.bitcoinj.core.Sha256Hash
-import io.bitcoinj.core.Utils
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
+import io.bitcoinsv.bitcoinjsv.core.Utils
 import io.bitcoinsv.jcl.net.network.PeerAddress
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolBasicConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig

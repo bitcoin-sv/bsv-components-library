@@ -6,7 +6,7 @@ package io.bitcoinsv.jcl.store.blockStore
 
 import io.bitcoinsv.jcl.store.blockStore.metadata.provided.BlockValidationMD
 import io.bitcoinsv.jcl.store.common.TestingUtils
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly
 
 /**
  * Testing class for the Metadata that can be linked to one specific Block (Save, remove, etc)

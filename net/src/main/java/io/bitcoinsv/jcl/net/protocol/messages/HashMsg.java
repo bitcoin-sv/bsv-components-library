@@ -7,7 +7,7 @@ package io.bitcoinsv.jcl.net.protocol.messages;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
-import io.bitcoinj.core.Utils;
+import io.bitcoinsv.bitcoinjsv.core.Utils;
 
 import java.util.Arrays;
 

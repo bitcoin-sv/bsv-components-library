@@ -5,7 +5,7 @@
 package io.bitcoinsv.jcl.store.blockChainStore.events;
 
 import io.bitcoinsv.jcl.store.blockStore.events.BlockStoreEvent;
-import io.bitcoinj.core.Sha256Hash;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 
 import java.util.List;
 

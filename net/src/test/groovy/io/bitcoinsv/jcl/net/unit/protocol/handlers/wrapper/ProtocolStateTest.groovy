@@ -5,7 +5,7 @@
 package io.bitcoinsv.jcl.net.unit.protocol.handlers.wrapper
 
 
-import io.bitcoinj.params.MainNetParams
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
 import io.bitcoinsv.jcl.net.network.handlers.NetworkHandler
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigBuilder

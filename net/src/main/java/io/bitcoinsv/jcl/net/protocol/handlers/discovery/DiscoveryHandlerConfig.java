@@ -7,7 +7,7 @@ package io.bitcoinsv.jcl.net.protocol.handlers.discovery;
 
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolBasicConfig;
 import io.bitcoinsv.jcl.tools.handlers.HandlerConfig;
-import io.bitcoinj.params.NetworkParameters;
+import io.bitcoinsv.bitcoinjsv.params.NetworkParameters;
 
 import java.time.Duration;
 import java.util.Optional;

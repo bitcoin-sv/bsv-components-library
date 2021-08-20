@@ -5,9 +5,9 @@
 package io.bitcoinsv.jcl.net.integration.protocol.handlers.cmpctBlock
 
 
-import io.bitcoinj.core.Utils
-import io.bitcoinj.params.MainNetParams
-import io.bitcoinj.params.Net
+import io.bitcoinsv.bitcoinjsv.core.Utils
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import io.bitcoinsv.bitcoinjsv.params.Net
 import io.bitcoinsv.jcl.net.network.PeerAddress
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolBasicConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig

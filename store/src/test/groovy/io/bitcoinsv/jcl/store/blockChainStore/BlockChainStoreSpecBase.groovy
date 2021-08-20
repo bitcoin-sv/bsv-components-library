@@ -4,7 +4,7 @@
  */
 package io.bitcoinsv.jcl.store.blockChainStore
 
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly
 import spock.lang.Specification
 
 import java.time.Duration

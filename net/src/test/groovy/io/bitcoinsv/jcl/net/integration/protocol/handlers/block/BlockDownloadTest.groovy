@@ -8,7 +8,7 @@ package io.bitcoinsv.jcl.net.integration.protocol.handlers.block
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig
 import io.bitcoinsv.jcl.tools.config.provided.RuntimeConfigDefault
 import io.bitcoinsv.jcl.tools.thread.ThreadUtils
-import io.bitcoinj.core.Utils
+import io.bitcoinsv.bitcoinjsv.core.Utils
 import io.bitcoinsv.jcl.net.network.config.NetworkConfig
 import io.bitcoinsv.jcl.net.network.config.provided.NetworkDefaultConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolBasicConfig

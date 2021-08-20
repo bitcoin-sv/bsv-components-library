@@ -6,7 +6,7 @@ package io.bitcoinsv.jcl.store.keyValue.blockChainStore;
 
 
 import io.bitcoinsv.jcl.store.keyValue.blockStore.BlockStoreKeyValueConfig;
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly;
 
 import java.time.Duration;
 

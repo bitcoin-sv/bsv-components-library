@@ -13,7 +13,7 @@ import io.bitcoinsv.jcl.net.protocol.messages.RejectMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.VarStrMsg;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter;
-import io.bitcoinj.core.Sha256Hash;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 
 /**
  * @author i.fernandez@nchain.com

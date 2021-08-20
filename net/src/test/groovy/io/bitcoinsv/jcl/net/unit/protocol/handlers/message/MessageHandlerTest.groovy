@@ -9,8 +9,8 @@ import io.bitcoinsv.jcl.tools.config.RuntimeConfig
 import io.bitcoinsv.jcl.tools.config.provided.RuntimeConfigDefault
 import io.bitcoinsv.jcl.tools.events.EventBus
 import io.bitcoinsv.jcl.tools.thread.ThreadUtils
-import io.bitcoinj.params.MainNetParams
-import io.bitcoinj.params.Net
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import io.bitcoinsv.bitcoinjsv.params.Net
 import io.bitcoinsv.jcl.net.network.PeerAddress
 import io.bitcoinsv.jcl.net.network.config.NetworkConfig
 import io.bitcoinsv.jcl.net.network.config.provided.NetworkDefaultConfig

@@ -28,12 +28,12 @@ import io.bitcoinsv.jcl.store.levelDB.blockChainStore.BlockChainStoreLevelDB
 import io.bitcoinsv.jcl.store.levelDB.blockChainStore.BlockChainStoreLevelDBConfig
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig
 import io.bitcoinsv.jcl.tools.config.provided.RuntimeConfigDefault
-import io.bitcoinj.bitcoin.Genesis
-import io.bitcoinj.bitcoin.api.extended.ChainInfo
-import io.bitcoinj.core.Sha256Hash
-import io.bitcoinj.core.Utils
-import io.bitcoinj.params.Net
-import io.bitcoinj.params.NetworkParameters
+import io.bitcoinsv.bitcoinjsv.bitcoin.Genesis
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.extended.ChainInfo
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
+import io.bitcoinsv.bitcoinjsv.core.Utils
+import io.bitcoinsv.bitcoinjsv.params.Net
+import io.bitcoinsv.bitcoinjsv.params.NetworkParameters
 import spock.lang.Specification
 
 import java.time.Duration

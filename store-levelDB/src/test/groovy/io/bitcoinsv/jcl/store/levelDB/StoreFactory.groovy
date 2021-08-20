@@ -12,7 +12,7 @@ import io.bitcoinsv.jcl.store.levelDB.blockChainStore.BlockChainStoreLevelDB
 import io.bitcoinsv.jcl.store.levelDB.blockChainStore.BlockChainStoreLevelDBConfig
 import io.bitcoinsv.jcl.store.levelDB.blockStore.BlockStoreLevelDB
 import io.bitcoinsv.jcl.store.levelDB.blockStore.BlockStoreLevelDBConfig
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly
 
 import java.nio.file.Path
 import java.time.Duration

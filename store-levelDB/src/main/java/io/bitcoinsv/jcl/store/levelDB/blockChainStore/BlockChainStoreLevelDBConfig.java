@@ -10,7 +10,7 @@ import io.bitcoinsv.jcl.store.blockChainStore.validation.rules.BlockChainRule;
 import io.bitcoinsv.jcl.store.keyValue.blockChainStore.BlockChainStoreKeyValueConfig;
 import io.bitcoinsv.jcl.store.levelDB.blockStore.BlockStoreLevelDBConfig;
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig;
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly;
 import org.slf4j.Logger;
 
 import java.nio.file.Path;

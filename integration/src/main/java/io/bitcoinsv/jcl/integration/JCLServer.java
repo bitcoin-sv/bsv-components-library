@@ -24,9 +24,9 @@ import io.bitcoinsv.jcl.net.protocol.wrapper.P2PBuilder;
 import io.bitcoinsv.jcl.tools.config.RuntimeConfigImpl;
 import io.bitcoinsv.jcl.tools.config.provided.RuntimeConfigDefault;
 import io.bitcoinsv.jcl.tools.thread.ThreadUtils;
-import io.bitcoinj.core.Utils;
-import io.bitcoinj.params.Net;
-import io.bitcoinj.params.NetworkParameters;
+import io.bitcoinsv.bitcoinjsv.core.Utils;
+import io.bitcoinsv.bitcoinjsv.params.Net;
+import io.bitcoinsv.bitcoinjsv.params.NetworkParameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

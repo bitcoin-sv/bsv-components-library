@@ -19,7 +19,7 @@ import io.bitcoinsv.jcl.store.keyValue.blockStore.BlockStoreKeyValue;
 import io.bitcoinsv.jcl.store.keyValue.common.KeyValueIterator;
 import io.bitcoinsv.jcl.tools.events.EventBus;
 import io.bitcoinsv.jcl.tools.thread.ThreadUtils;
-import io.bitcoinj.bitcoin.api.base.Tx;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.Tx;
 import org.slf4j.Logger;
 
 import javax.annotation.Nonnull;

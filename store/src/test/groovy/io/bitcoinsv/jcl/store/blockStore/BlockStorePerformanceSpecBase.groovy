@@ -6,9 +6,9 @@ package io.bitcoinsv.jcl.store.blockStore
 
 
 import io.bitcoinsv.jcl.store.common.TestingUtils
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
-import io.bitcoinj.bitcoin.api.base.Tx
-import io.bitcoinj.bitcoin.bean.base.TxBean
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.Tx
+import io.bitcoinsv.bitcoinjsv.bitcoin.bean.base.TxBean
 import spock.lang.Ignore
 
 import java.time.Duration

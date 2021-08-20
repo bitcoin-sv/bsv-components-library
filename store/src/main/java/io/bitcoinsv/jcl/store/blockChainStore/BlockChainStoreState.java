@@ -5,7 +5,7 @@
 package io.bitcoinsv.jcl.store.blockChainStore;
 
 
-import io.bitcoinj.bitcoin.api.extended.ChainInfo;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.extended.ChainInfo;
 
 import java.util.List;
 

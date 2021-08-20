@@ -12,7 +12,7 @@ import io.bitcoinsv.jcl.store.blockStore.metadata.Metadata;
 import io.bitcoinsv.jcl.store.keyValue.blockChainStore.BlockChainStoreKeyValue;
 import io.bitcoinsv.jcl.store.levelDB.blockStore.BlockStoreLevelDB;
 import io.bitcoinsv.jcl.tools.thread.ThreadUtils;
-import io.bitcoinj.bitcoin.api.extended.ChainInfo;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.extended.ChainInfo;
 import org.slf4j.Logger;
 
 import javax.annotation.Nonnull;

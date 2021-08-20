@@ -7,9 +7,9 @@ package io.bitcoinsv.jcl.net.performance
 
 import io.bitcoinsv.jcl.tools.events.EventQueueProcessor
 import io.bitcoinsv.jcl.tools.thread.ThreadUtils
-import io.bitcoinj.core.Utils
-import io.bitcoinj.params.MainNetParams
-import io.bitcoinj.params.STNParams
+import io.bitcoinsv.bitcoinjsv.core.Utils
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import io.bitcoinsv.bitcoinjsv.params.STNParams
 import io.bitcoinsv.jcl.net.network.PeerAddress
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolBasicConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig

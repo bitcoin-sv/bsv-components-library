@@ -7,9 +7,9 @@ package io.bitcoinsv.jcl.store.blockStore;
 
 import io.bitcoinsv.jcl.store.blockStore.events.BlockStoreStreamer;
 import io.bitcoinsv.jcl.store.blockStore.metadata.Metadata;
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
-import io.bitcoinj.bitcoin.api.base.Tx;
-import io.bitcoinj.core.Sha256Hash;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.Tx;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 
 import java.util.Iterator;
 import java.util.List;

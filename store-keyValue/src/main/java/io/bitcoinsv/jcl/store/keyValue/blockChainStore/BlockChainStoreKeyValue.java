@@ -13,10 +13,10 @@ import io.bitcoinsv.jcl.store.blockChainStore.events.ChainStateEvent;
 import io.bitcoinsv.jcl.store.blockChainStore.validation.exception.BlockChainRuleFailureException;
 import io.bitcoinsv.jcl.store.keyValue.blockStore.BlockStoreKeyValue;
 import io.bitcoinsv.jcl.store.keyValue.common.HashesList;
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
-import io.bitcoinj.bitcoin.api.extended.ChainInfo;
-import io.bitcoinj.bitcoin.bean.extended.ChainInfoBean;
-import io.bitcoinj.core.Sha256Hash;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.extended.ChainInfo;
+import io.bitcoinsv.bitcoinjsv.bitcoin.bean.extended.ChainInfoBean;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 
 
 import java.math.BigInteger;

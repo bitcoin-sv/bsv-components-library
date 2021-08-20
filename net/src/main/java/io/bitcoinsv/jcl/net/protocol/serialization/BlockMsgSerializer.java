@@ -13,7 +13,7 @@ import io.bitcoinsv.jcl.net.protocol.serialization.common.SerializerContext;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReaderOptimized;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter;
-import io.bitcoinj.core.Utils;
+import io.bitcoinsv.bitcoinjsv.core.Utils;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;

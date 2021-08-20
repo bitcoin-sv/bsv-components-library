@@ -6,7 +6,7 @@ package io.bitcoinsv.jcl.net.protocol.config;
 
 
 import io.bitcoinsv.jcl.tools.handlers.HandlerConfig;
-import io.bitcoinj.params.NetworkParameters;
+import io.bitcoinsv.bitcoinjsv.params.NetworkParameters;
 
 import java.util.OptionalInt;
 

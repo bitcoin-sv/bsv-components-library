@@ -7,9 +7,9 @@ package io.bitcoinsv.jcl.store.blockChainStore.validation.rules;
 import io.bitcoinsv.jcl.store.blockChainStore.BlockChainStore;
 import io.bitcoinsv.jcl.store.blockChainStore.validation.exception.BlockChainRuleFailureException;
 import io.bitcoinsv.jcl.tools.util.PowUtil;
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
-import io.bitcoinj.bitcoin.api.extended.ChainInfo;
-import io.bitcoinj.core.Utils;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.extended.ChainInfo;
+import io.bitcoinsv.bitcoinjsv.core.Utils;
 
 import java.math.BigInteger;
 import java.util.List;

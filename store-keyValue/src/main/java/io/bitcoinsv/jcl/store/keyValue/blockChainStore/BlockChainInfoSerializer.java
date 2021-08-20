@@ -9,7 +9,7 @@ package io.bitcoinsv.jcl.store.keyValue.blockChainStore;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter;
 import io.bitcoinsv.jcl.tools.serialization.BitcoinSerializerUtils;
-import io.bitcoinj.core.Utils;
+import io.bitcoinsv.bitcoinjsv.core.Utils;
 
 import java.math.BigInteger;
 

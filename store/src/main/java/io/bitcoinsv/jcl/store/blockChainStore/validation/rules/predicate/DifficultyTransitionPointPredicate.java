@@ -4,7 +4,7 @@
  */
 package io.bitcoinsv.jcl.store.blockChainStore.validation.rules.predicate;
 
-import io.bitcoinj.bitcoin.api.extended.ChainInfo;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.extended.ChainInfo;
 
 import java.util.function.Predicate;
 

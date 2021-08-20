@@ -8,7 +8,7 @@ package io.bitcoinsv.jcl.store.levelDB.blockChainStore
 import io.bitcoinsv.jcl.store.blockChainStore.BlockChainForkSpecBase
 import io.bitcoinsv.jcl.store.blockChainStore.BlockChainStore
 import io.bitcoinsv.jcl.store.levelDB.StoreFactory
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly
 
 import java.time.Duration
 

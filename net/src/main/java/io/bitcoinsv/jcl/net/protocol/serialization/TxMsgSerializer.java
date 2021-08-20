@@ -12,7 +12,7 @@ import io.bitcoinsv.jcl.net.protocol.serialization.common.SerializerContext;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReaderOptimized;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter;
-import io.bitcoinj.core.Sha256Hash;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -8,7 +8,7 @@ package io.bitcoinsv.jcl.net.protocol.messages;
 import com.google.common.base.Objects;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
-import io.bitcoinj.core.Sha256Hash;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 
 
 /**

@@ -6,9 +6,9 @@ package io.bitcoinsv.jcl.store.common
 
 
 import io.bitcoinsv.jcl.store.blockStore.BlockStore
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
-import io.bitcoinj.bitcoin.api.base.Tx
-import io.bitcoinj.core.Sha256Hash
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.Tx
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
 import io.bitcoinsv.jcl.store.blockStore.BlockStoreSpecBase
 
 import java.util.concurrent.atomic.AtomicBoolean

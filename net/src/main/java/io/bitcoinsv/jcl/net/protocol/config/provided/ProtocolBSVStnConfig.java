@@ -10,7 +10,7 @@ import io.bitcoinsv.jcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig;
 import io.bitcoinsv.jcl.net.protocol.handlers.handshake.HandshakeHandlerConfig;
 import io.bitcoinsv.jcl.net.protocol.messages.BlockHeaderMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.HashMsg;
-import io.bitcoinj.core.Sha256Hash;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 
 
 /**

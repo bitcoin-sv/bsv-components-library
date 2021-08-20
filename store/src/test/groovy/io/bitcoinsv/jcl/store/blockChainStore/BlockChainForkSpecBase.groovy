@@ -8,8 +8,8 @@ package io.bitcoinsv.jcl.store.blockChainStore
 import io.bitcoinsv.jcl.store.blockChainStore.events.ChainForkEvent
 import io.bitcoinsv.jcl.store.blockChainStore.events.ChainPruneEvent
 import io.bitcoinsv.jcl.store.common.TestingUtils
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
-import io.bitcoinj.core.Sha256Hash
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
 import spock.lang.Ignore
 
 import java.time.Duration

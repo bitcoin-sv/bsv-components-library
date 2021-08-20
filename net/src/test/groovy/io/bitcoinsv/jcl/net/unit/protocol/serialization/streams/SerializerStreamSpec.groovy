@@ -8,10 +8,10 @@ package io.bitcoinsv.jcl.net.unit.protocol.serialization.streams
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter
 
-import io.bitcoinj.core.Sha256Hash
-import io.bitcoinj.core.Utils
-import io.bitcoinj.params.MainNetParams
-import io.bitcoinj.params.Net
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
+import io.bitcoinsv.bitcoinjsv.core.Utils
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import io.bitcoinsv.bitcoinjsv.params.Net
 import io.bitcoinsv.jcl.net.network.PeerAddress
 import io.bitcoinsv.jcl.net.network.streams.PeerOutputStream
 import io.bitcoinsv.jcl.net.network.streams.StreamDataEvent

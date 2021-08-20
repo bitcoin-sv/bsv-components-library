@@ -5,9 +5,9 @@
 package io.bitcoinsv.jcl.net.integration.protocol.handlers.block
 
 
-import io.bitcoinj.core.Sha256Hash
-import io.bitcoinj.core.Utils
-import io.bitcoinj.params.Net
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
+import io.bitcoinsv.bitcoinjsv.core.Utils
+import io.bitcoinsv.bitcoinjsv.params.Net
 import io.bitcoinsv.jcl.net.network.config.NetworkConfig
 import io.bitcoinsv.jcl.net.network.config.provided.NetworkDefaultConfig
 import io.bitcoinsv.jcl.net.network.handlers.NetworkHandler

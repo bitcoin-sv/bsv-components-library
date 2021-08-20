@@ -8,7 +8,7 @@ package io.bitcoinsv.jcl.store.foundationDB.blockChainStore;
 import io.bitcoinsv.jcl.store.foundationDB.blockStore.BlockStoreFDBConfig;
 import io.bitcoinsv.jcl.store.keyValue.blockChainStore.BlockChainStoreKeyValueConfig;
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig;
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly;
 
 import java.time.Duration;
 

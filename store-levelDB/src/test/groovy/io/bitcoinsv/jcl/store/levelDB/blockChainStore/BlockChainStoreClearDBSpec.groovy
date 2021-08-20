@@ -9,7 +9,7 @@ import io.bitcoinsv.jcl.store.blockChainStore.BlockChainClearDBSpecBase
 import io.bitcoinsv.jcl.store.blockChainStore.BlockChainStore
 import io.bitcoinsv.jcl.store.blockStore.BlockStoreBlocksSpecBase
 import io.bitcoinsv.jcl.store.levelDB.StoreFactory
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly
 
 import java.time.Duration
 

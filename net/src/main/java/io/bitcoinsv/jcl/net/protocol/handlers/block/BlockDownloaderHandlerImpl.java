@@ -18,7 +18,7 @@ import io.bitcoinsv.jcl.tools.config.RuntimeConfig;
 import io.bitcoinsv.jcl.tools.handlers.HandlerImpl;
 import io.bitcoinsv.jcl.tools.log.LoggerUtil;
 import io.bitcoinsv.jcl.tools.thread.ThreadUtils;
-import io.bitcoinj.core.Utils;
+import io.bitcoinsv.bitcoinjsv.core.Utils;
 import io.bitcoinsv.jcl.net.protocol.messages.*;
 
 import java.time.Duration;

@@ -7,7 +7,7 @@ package io.bitcoinsv.jcl.store.foundationDB.blockChainStore
 
 import io.bitcoinsv.jcl.store.foundationDB.FDBTestUtils
 import io.bitcoinsv.jcl.store.foundationDB.StoreFactory
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly
 import io.bitcoinsv.jcl.store.blockChainStore.BlockChainMultiThreadSpecBase
 import io.bitcoinsv.jcl.store.blockChainStore.BlockChainStore
 

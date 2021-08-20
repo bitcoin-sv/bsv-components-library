@@ -21,12 +21,12 @@ import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter;
 import io.bitcoinsv.jcl.tools.events.EventBus;
 import io.bitcoinsv.jcl.tools.serialization.BitcoinSerializerUtils;
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
-import io.bitcoinj.bitcoin.api.base.Tx;
-import io.bitcoinj.bitcoin.bean.base.HeaderBean;
-import io.bitcoinj.bitcoin.bean.base.TxBean;
-import io.bitcoinj.core.Sha256Hash;
-import io.bitcoinj.core.Utils;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.Tx;
+import io.bitcoinsv.bitcoinjsv.bitcoin.bean.base.HeaderBean;
+import io.bitcoinsv.bitcoinjsv.bitcoin.bean.base.TxBean;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
+import io.bitcoinsv.bitcoinjsv.core.Utils;
 import org.slf4j.Logger;
 
 import java.util.*;

@@ -7,7 +7,7 @@ package io.bitcoinsv.jcl.net.unit.protocol.serialization.largeMsgs
 
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReaderOptimized
-import io.bitcoinj.core.Utils
+import io.bitcoinsv.bitcoinjsv.core.Utils
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import io.bitcoinsv.jcl.net.protocol.messages.PartialBlockHeaderMsg
