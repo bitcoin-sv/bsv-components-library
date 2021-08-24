@@ -14,20 +14,14 @@ import com.nchain.jcl.tools.events.Event;
  *
  * An Event triggered when a Raw Message is received from a Remote Peer.
  */
-public class RawMsgReceivedEvent<T extends RawMsg> extends P2PEvent {
-    private final PeerAddress peerAddress;
-    private final BitcoinMsg<T> btcMsg;
+public class RawMsgReceivedEvent<T extends RawMsg> extends MsgReceivedEvent {
 
     public RawMsgReceivedEvent(PeerAddress peerAddress, BitcoinMsg<T> btcMsg) {
-        this.peerAddress = peerAddress;
-        this.btcMsg = btcMsg;
+        super(peerAddress, btcMsg);
     }
-
-    public PeerAddress getPeerAddress() { return this.peerAddress; }
-    public BitcoinMsg<T> getBtcMsg()    { return this.btcMsg; }
 
     @Override
     public String toString() {
-        return "Event[ Raw " + btcMsg.getHeader().getCommand().toUpperCase() + " Received]: from " + peerAddress.toString();
+        return "Raw " + super.toString();
     }
 }

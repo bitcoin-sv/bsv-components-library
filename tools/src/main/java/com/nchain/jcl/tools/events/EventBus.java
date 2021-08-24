@@ -9,6 +9,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -33,6 +34,9 @@ import java.util.function.Function;
  *
  */
 public class EventBus {
+
+    // UGLY HACK:
+    public static AtomicLong NUM_MSGS_LOST = new AtomicLong();
 
     private static Logger log = LoggerFactory.getLogger(EventBus.class);
 
@@ -95,6 +99,7 @@ public class EventBus {
                 try {
                     executor.submit(task);
                 } catch (RejectedExecutionException e) {
+                    NUM_MSGS_LOST.incrementAndGet();
                     log.error(e.getMessage(), e);
                 }
             }

@@ -8,8 +8,8 @@ import com.nchain.jcl.net.network.streams.StreamErrorEvent;
 
 import com.nchain.jcl.net.protocol.events.control.*;
 import com.nchain.jcl.net.protocol.events.control.BroadcastMsgRequest;
+import com.nchain.jcl.net.protocol.events.data.MsgReceivedBatchEvent;
 import com.nchain.jcl.net.protocol.events.data.MsgReceivedEvent;
-import com.nchain.jcl.net.protocol.events.data.MsgSentEvent;
 import com.nchain.jcl.net.protocol.events.control.SendMsgRequest;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
@@ -19,13 +19,15 @@ import com.nchain.jcl.net.protocol.streams.MessageStream;
 import com.nchain.jcl.net.protocol.streams.deserializer.Deserializer;
 import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStream;
 import com.nchain.jcl.tools.config.RuntimeConfig;
-import com.nchain.jcl.tools.events.Event;
 import com.nchain.jcl.tools.handlers.HandlerImpl;
 import com.nchain.jcl.tools.log.LoggerUtil;
 import com.nchain.jcl.tools.thread.ThreadUtils;
 
 import java.math.BigInteger;
-import java.util.concurrent.Executor;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -54,6 +56,14 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
     // A Executor Service to manage dedicated Connections with dedicated Threads:
     private ExecutorService dedicateConnsExecutor;
 
+    // A Executor Service to run Jobs in this Handler
+    private ExecutorService executor;
+
+
+    // Messages BATCH Configuration:
+    // if some Messages Batch config has been specified for some MsgType, we keep track of that Batch status:
+    private HashMap<Class, MessageBatchManager> msgsBatchManagers = new HashMap<>();
+
     /** Constructor */
     public MessageHandlerImpl(String id, RuntimeConfig runtimeConfig, MessageHandlerConfig config) {
         super(id, runtimeConfig);
@@ -66,8 +76,11 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
         if (config.isRawTxsEnabled()) {
             MsgSerializersFactory.enableRawSerializers();
         }
-
+        this.executor = ThreadUtils.getSingleThreadExecutorService("JclMessageHandler-Job");
         this.dedicateConnsExecutor = ThreadUtils.getFixedThreadExecutorService( "JclDeserializer", config.getMaxNumberDedicatedConnections());
+
+        // If some Batch Config has been specified, we instantiate the classes to keep track of their state:
+        this.config.getMsgBatchConfigs().entrySet().forEach(entry -> msgsBatchManagers.put(entry.getKey(), new MessageBatchManager(entry.getKey(), entry.getValue())));
     }
 
     // We register this Handler to LISTEN to these Events:
@@ -88,10 +101,12 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
     // Event Handler:
     private void onNetStart(NetStartEvent event) {
         logger.debug("Starting...");
+        this.executor.submit(this::checkPendingBatchesToBroadcast);
     }
 
     // Event Handler:
     private void onNetStop(NetStopEvent event) {
+        this.executor.shutdownNow();
         logger.debug("Stop.");
     }
 
@@ -158,20 +173,24 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
     private void onStreamMsgReceived(PeerAddress peerAddress, BitcoinMsg<?> btcMsg) {
         String msgType = btcMsg.getHeader().getCommand().toUpperCase();
         logger.trace(peerAddress, msgType + " Msg received.");
-        // We run a basic validation on the message,. If OK we publish the Message on the bus, otherwise we request
-        // a Peer disconnection (and a Blacklist??)
+
+        // We only broadcast the MSg to JCK if it's RIGHT...
         String validationError = findErrorInMsg(btcMsg);
         if (validationError == null) {
-            // We propagate this message to the Bus, so other handlers can pick them up if they are subscribed to:
-            Event event = EventFactory.buildIncomingEvent(peerAddress, btcMsg);
-            super.eventBus.publish(event);
 
-            // We also publish a more "general" msgReceived Event, which covers any incoming message...
-            super.eventBus.publish(new MsgReceivedEvent(peerAddress, btcMsg));
+            // All incoming Msgs are wrapped up in a MegReceivedEvent:
+            MsgReceivedEvent event = EventFactory.buildIncomingEvent(peerAddress, btcMsg);
 
-            // We update the state:
-            updateState(1, 0);
+            // The broadcast method is slightly different if a BATCH is configured for this Message type:
+            MessageBatchManager batchManager = this.msgsBatchManagers.get(event.getClass());
+            if (batchManager != null) {
+                publishBatchMessageToEventBus(batchManager.addEventAndExtractBatch(event));
+            } else {
+                publishMessageToEventBus(event);
+            }
+
         } else {
+            // If the Msg is Incorrect, we disconnect from this Peer
             logger.trace(peerAddress, " ERROR In incoming msg :: " + validationError);
             super.eventBus.publish(new DisconnectPeerRequest(peerAddress, validationError));
         }
@@ -216,12 +235,13 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
             logger.trace(peerAddress.toString() + " :: " + btcMessage.getHeader().getCommand() + " Msg sent.");
 
             // We propagate this message to the Bus, so other handlers can pick them up if they are subscribed to:
+            /* NOTE: WE DISABLE THESE EVENT; IN ORDER TO REDUCE MULTI-THREAD PRESSURE
             Event event = EventFactory.buildOutcomingEvent(peerAddress, btcMessage);
             super.eventBus.publish(event);
 
             // we also publish a more "general" event, valid for any outcoming message
             super.eventBus.publish(new MsgSentEvent<>(peerAddress, btcMessage));
-
+            */
             // We update the state:
             updateState(0, 1);
         } else logger.trace(peerAddress, " Request to Send Msg Discarded (unknown Peer)");
@@ -273,5 +293,37 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
         return this.state;
     }
 
+    // It publishes the event to the Bus and updares the State
+    private void publishMessageToEventBus(MsgReceivedEvent event) {
+        super.eventBus.publish(event);                                                              // we publish the specific Event
+        super.eventBus.publish(new MsgReceivedEvent(event.getPeerAddress(), event.getBtcMsg()));    // we publish a more generic Event
+        updateState(1, 0);                                               // State update
+    }
 
+    // It publishes the Batch event to the Bus and updares the State
+    private void publishBatchMessageToEventBus(Optional<MsgReceivedBatchEvent> batchEventOpt) {
+        batchEventOpt.ifPresent(batchEvent -> {
+            super.eventBus.publish(batchEvent);                                     // we publish the specific Event
+            updateState(batchEvent.getEvents().size(), 0);            // State update
+        });
+    }
+
+    private void checkPendingBatchesToBroadcast() {
+        final Duration TIMEOUT = Duration.ofMillis(2000);
+        try {
+            while (true) {
+                // we only process those Batches that are clearly inactive:
+                msgsBatchManagers.values().stream()
+                        .forEach(batch -> {
+                            if (Duration.between(batch.getTimestamp(), Instant.now()).compareTo(TIMEOUT) > 0) {
+                                publishBatchMessageToEventBus(batch.extractBatchAndReset());
+                            }
+                });
+                Thread.sleep(TIMEOUT.toMillis());
+            }
+        } catch (InterruptedException ie) {
+            logger.error(ie.getMessage(), ie);
+            throw new RuntimeException(ie);
+        }
+    }
 }
