@@ -216,6 +216,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                 .discardedBlocks(this.blocksDiscarded.keySet().stream().collect(Collectors.toList()))
                 .pendingToCancelBlocks(this.blocksPendingToCancel.stream().collect(Collectors.toList()))
                 .cancelledBlocks(this.blocksCancelled.stream().collect(Collectors.toList()))
+                .blocksInLimbo(this.blocksInLimbo)
                 .blocksHistory(this.blocksDownloadHistory.getBlocksHistory())
                 .peersInfo(this.handlerInfo.values().stream()
                         //.filter( p -> p.getCurrentBlockInfo() != null)

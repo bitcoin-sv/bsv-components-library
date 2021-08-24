@@ -108,7 +108,7 @@ class BlockDownloadTest extends Specification {
     def "Testing Block Downloading"() {
         given:
             // The longest Timeout we'll wait for to run the test:
-            Duration TIMEOUT = Duration.ofMinutes(3)
+            Duration TIMEOUT = Duration.ofMinutes(10)
 
             // Time to wait to cancel blocks after starting downloading:
             Duration WAIT_FOR_CANCELLING = Duration.ofSeconds(2);
@@ -124,9 +124,9 @@ class BlockDownloadTest extends Specification {
                 .build();
 
             // Basic Config:
-        ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
-                .minPeers(OptionalInt.of(10))
-                .maxPeers(OptionalInt.of(15))
+            ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
+                .minPeers(OptionalInt.of(100))
+                .maxPeers(OptionalInt.of(110))
                 .build()
 
             // Serialization Config:
@@ -221,16 +221,16 @@ class BlockDownloadTest extends Specification {
 
             // We start the Service and request to download the Blocks...
             p2p.start()
-            p2p.REQUESTS.BLOCKS.download(block_hashes).submit()
 
-            // we wait until we reach the MAXIMUM number of Peers:
+            // We do NOT start downloading until we reach the MAX Number of Peers:
             while (!connReady.get()) Thread.sleep(100)
+
+            p2p.REQUESTS.BLOCKS.download(block_hashes).submit()
 
             // Connections are Ready. We submit the Request to start downloading...
             println("Connection Ready...")
 
-
-            // We wait some time and then we submit a request to Cancel some mBlocks from downloading:
+            // We wait some time and then we submit a request to Cancel some Blocks from downloading:
             Thread.sleep(WAIT_FOR_CANCELLING.toMillis());
             p2p.REQUESTS.BLOCKS.cancelDownload(block_hashes_to_cancel).submit()
 
