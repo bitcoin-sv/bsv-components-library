@@ -51,7 +51,7 @@ public class TxMsg extends Message {
     // This field is NOT part of the specification of a Bitcoin Transaction Message, so its not either
     // Serialized or Deserialized. But it's ver conveniente to have it here, since this field is the most
     // commons thing to identify a TX.
-    // The calculation of this Field is made during the Serialization/Deserialization. Ïn those cases where
+    // The calculation of this Field is made during the Serialization/Deserialization. In those cases where
     // performance is very important, the Hash calculation might be disabled, that0's why we are using an Optional.
 
     private final Optional<HashMsg> hash;
