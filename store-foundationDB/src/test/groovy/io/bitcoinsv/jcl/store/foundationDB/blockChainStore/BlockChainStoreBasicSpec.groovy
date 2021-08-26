@@ -9,12 +9,15 @@ import io.bitcoinsv.jcl.store.foundationDB.FDBTestUtils
 import io.bitcoinsv.jcl.store.foundationDB.StoreFactory
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly
 import io.bitcoinsv.jcl.store.blockChainStore.BlockChainStoreBasicSpecBase
+import spock.lang.Ignore
 
 import java.time.Duration
 
 /**
  * Basic Tests to verify that the Chain info is saved and is consistent after saving or removing Blocks.
  */
+//@TODO: Test Ignored: FDB installation in docker is not stable. A local FB installation is recommended instead.
+@Ignore
 class BlockChainStoreBasicSpec extends BlockChainStoreBasicSpecBase {
 
     // Start & Stop FoundationDB in Docker Container (check DockerTestUtils for details)...

@@ -9,11 +9,14 @@ import io.bitcoinsv.jcl.store.blockStore.metadata.Metadata
 import io.bitcoinsv.jcl.store.foundationDB.FDBTestUtils
 import io.bitcoinsv.jcl.store.foundationDB.StoreFactory
 import io.bitcoinsv.jcl.store.blockStore.BlockStoreTxsSpecBase
+import spock.lang.Ignore
 
 /**
  * Testing class with Scenarios specific for Txs.
  * @see BlockStoreTxsSpecBase
  */
+//@TODO: Test Ignored: FDB installation in docker is not stable. A local FB installation is recommended instead.
+@Ignore
 class BlockStoreTxsSpec extends BlockStoreTxsSpecBase {
 
     // Start & Stop FoundationDB in Docker Container (check DockerTestUtils for details)...

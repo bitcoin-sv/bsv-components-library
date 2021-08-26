@@ -9,11 +9,14 @@ import io.bitcoinsv.jcl.store.foundationDB.FDBTestUtils
 import io.bitcoinsv.jcl.store.foundationDB.StoreFactory
 import io.bitcoinsv.jcl.store.blockStore.BlockStorePerformanceSpecBase
 import io.bitcoinsv.jcl.store.blockStore.metadata.Metadata
+import spock.lang.Ignore
 
 
 /**
  * Performance Testing class for the BlockStore
  */
+//@TODO: Test Ignored: FDB installation in docker is not stable. A local FB installation is recommended instead.
+@Ignore
 class BlockStorePerformanceSpec extends BlockStorePerformanceSpecBase {
 
     // Start & Stop FoundationDB in Docker Container (check DockerTestUtils for details)...

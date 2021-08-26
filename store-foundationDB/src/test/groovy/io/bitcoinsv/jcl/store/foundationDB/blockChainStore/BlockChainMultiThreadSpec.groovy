@@ -10,12 +10,15 @@ import io.bitcoinsv.jcl.store.foundationDB.StoreFactory
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly
 import io.bitcoinsv.jcl.store.blockChainStore.BlockChainMultiThreadSpecBase
 import io.bitcoinsv.jcl.store.blockChainStore.BlockChainStore
+import spock.lang.Ignore
 
 import java.time.Duration
 
 /**
  * Test scenarios involving a Fork and Prune operations
  */
+//@TODO: Test Ignored: FDB installation in docker is not stable. A local FB installation is recommended instead.
+@Ignore
 class BlockChainMultiThreadSpec extends BlockChainMultiThreadSpecBase {
 
     // Start & Stop FoundationDB in Docker Container (check DockerTestUtils for details)...

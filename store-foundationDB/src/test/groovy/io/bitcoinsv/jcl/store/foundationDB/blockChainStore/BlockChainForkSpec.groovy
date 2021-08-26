@@ -10,12 +10,14 @@ import io.bitcoinsv.jcl.store.foundationDB.FDBTestUtils
 import io.bitcoinsv.jcl.store.foundationDB.StoreFactory
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly
 import io.bitcoinsv.jcl.store.blockChainStore.BlockChainForkSpecBase
+import spock.lang.Ignore
 
 import java.time.Duration
 
 /**
  * Test scenarios involving a Fork and Prune operations
  */
+@Ignore
 class BlockChainForkSpec extends BlockChainForkSpecBase {
 
     // Start & Stop FoundationDB in Docker Container (check DockerTestUtils for details)...

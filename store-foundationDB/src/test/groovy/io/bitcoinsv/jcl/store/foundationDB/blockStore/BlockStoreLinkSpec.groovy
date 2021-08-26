@@ -10,11 +10,14 @@ import io.bitcoinsv.jcl.store.foundationDB.FDBTestUtils
 import io.bitcoinsv.jcl.store.foundationDB.StoreFactory
 import io.bitcoinsv.jcl.store.blockStore.BlockStoreLinkSpecBase
 import io.bitcoinsv.jcl.store.blockStore.metadata.Metadata
+import spock.lang.Ignore
 
 
 /**
  * A Test class for scenarios related to the relationship (link) between Blocks and Txs
  */
+//@TODO: Test Ignored: FDB installation in docker is not stable. A local FB installation is recommended instead.
+@Ignore
 class BlockStoreLinkSpec extends BlockStoreLinkSpecBase {
 
     // Start & Stop FoundationDB in Docker Container (check DockerTestUtils for details)...

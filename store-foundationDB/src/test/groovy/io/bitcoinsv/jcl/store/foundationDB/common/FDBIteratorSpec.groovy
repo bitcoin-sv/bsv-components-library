@@ -10,6 +10,7 @@ import io.bitcoinsv.jcl.store.foundationDB.StoreFactory
 import io.bitcoinsv.jcl.store.blockStore.metadata.Metadata
 import io.bitcoinsv.jcl.store.common.IteratorSpecBase
 import io.bitcoinsv.jcl.store.foundationDB.FDBTestUtils
+import spock.lang.Ignore
 
 import java.util.function.Function
 
@@ -17,7 +18,8 @@ import java.util.function.Function
  * Testing iterator for the FBDIterator, which is a very basic class and plays a big role in the FoundationDB
  * implementation of the JCL-Store
  */
-
+//@TODO: Test Ignored: FDB installation in docker is not stable. A local FB installation is recommended instead.
+@Ignore
 class FDBIteratorSpec extends IteratorSpecBase {
 
     // Start & Stop FoundationDB in Docker Container (check DockerTestUtils for details)...

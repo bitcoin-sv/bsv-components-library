@@ -10,11 +10,14 @@ import io.bitcoinsv.jcl.store.blockStore.metadata.Metadata
 import io.bitcoinsv.jcl.store.foundationDB.FDBTestUtils
 import io.bitcoinsv.jcl.store.foundationDB.StoreFactory
 import io.bitcoinsv.jcl.store.blockStore.BlockStoreBlockMetadataSpecBase
+import spock.lang.Ignore
 
 /**
  * Testing class for basic Scenarios for Block Metadata.
  * @see BlockStoreBlocksSpecBase
  */
+//@TODO: Test Ignored: FDB installation in docker is not stable. A local FB installation is recommended instead.
+@Ignore
 class BlockStoreBlocksMetadataSpec extends BlockStoreBlockMetadataSpecBase {
 
     // Start & Stop FoundationDB in Docker Container (check DockerTestUtils for details)...
