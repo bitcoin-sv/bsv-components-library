@@ -6,6 +6,8 @@ package io.bitcoinsv.jcl.net.unit.protocol.handlers.wrapper
 
 
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import io.bitcoinsv.jcl.net.network.config.NetworkConfig
+import io.bitcoinsv.jcl.net.network.config.provided.NetworkDefaultConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigBuilder
 import io.bitcoinsv.jcl.net.protocol.handlers.blacklist.BlacklistHandler
@@ -32,23 +34,36 @@ class ProtocolMsgsTest extends Specification {
     def "Testing Client/Server Msgs exchange"() {
         given:
             // Server and client configuration:
-        ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams())
-            // We disable all the Handlers we don't need for this Test:
-        P2P server = new P2PBuilder("server")
-                    .config(config)
-                    .serverPort(0) // Random Port
-                    .excludeHandler(HandshakeHandler.HANDLER_ID)
-                    .excludeHandler(PingPongHandler.HANDLER_ID)
-                    .excludeHandler(DiscoveryHandler.HANDLER_ID)
-                    .excludeHandler(BlacklistHandler.HANDLER_ID)
-                    .build()
+
+            // Time we wait for a Connection between Server and client (in millisecs).
+            // The connection should be pretty fast. But the default URL for a Server/Client has been recently changed to
+            // "0.0.0.0" instead of "127.0.0.1", and that might add some delay in the network communication, so we
+            // increase the timeout now...
+            final int CONN_TIMEOUT = 5000; // crazy long
+
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams())
+
+            NetworkConfig netConfig = new NetworkDefaultConfig().toBuilder()
+                .timeoutSocketConnection(OptionalInt.of(CONN_TIMEOUT))
+                .build();
+                // We disable all the Handlers we don't need for this Test:
+            P2P server = new P2PBuilder("server")
+                        .config(netConfig)
+                        .config(config)
+                        .serverPort(0) // Random Port
+                        .excludeHandler(HandshakeHandler.HANDLER_ID)
+                        .excludeHandler(PingPongHandler.HANDLER_ID)
+                        .excludeHandler(DiscoveryHandler.HANDLER_ID)
+                        .excludeHandler(BlacklistHandler.HANDLER_ID)
+                        .build()
             P2P client = new P2PBuilder("client")
-                    .config(config)
-                    .excludeHandler(HandshakeHandler.HANDLER_ID)
-                    .excludeHandler(PingPongHandler.HANDLER_ID)
-                    .excludeHandler(DiscoveryHandler.HANDLER_ID)
-                    .excludeHandler(BlacklistHandler.HANDLER_ID)
-                    .build()
+                        .config(netConfig)
+                        .config(config)
+                        .excludeHandler(HandshakeHandler.HANDLER_ID)
+                        .excludeHandler(PingPongHandler.HANDLER_ID)
+                        .excludeHandler(DiscoveryHandler.HANDLER_ID)
+                        .excludeHandler(BlacklistHandler.HANDLER_ID)
+                        .build()
 
             // we listen to the Connect/Disconnect Events:
             int NUM_MSGS = 3
@@ -69,10 +84,7 @@ class ProtocolMsgsTest extends Specification {
             Thread.sleep(100)
             client.REQUESTS.PEERS.connect(server.getPeerAddress()).submit()
 
-            // The connection should be pretty fast. But the default URL for a Server/Client has been recently changed to
-            // "0.0.0.0" instead of "127.0.0.1", and that might add some delay in the network communication, so we
-            // increase the delay now...
-            Thread.sleep(1000)
+            Thread.sleep(CONN_TIMEOUT)
             BitcoinMsg<AddrMsg> msg = MsgTest.getAddrMsg();
             for (int i = 0; i < NUM_MSGS; i++) {
                 println(" >> SENDING ADDR MSG...")
