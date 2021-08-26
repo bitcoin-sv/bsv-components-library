@@ -34,6 +34,7 @@ import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
 import io.bitcoinsv.bitcoinjsv.core.Utils
 import io.bitcoinsv.bitcoinjsv.params.Net
 import io.bitcoinsv.bitcoinjsv.params.NetworkParameters
+import org.junit.Ignore
 import spock.lang.Specification
 
 import java.time.Duration
@@ -46,9 +47,11 @@ import java.util.stream.Collectors
  * This test will download the whole Chain. It uses JCl-Store to store the chain (mainly headers), and JCL-Net for
  * the P2P Communication. It performs a headers sync, and right after gettting the headers it requests the blocks for
  * download (they are requested ordered by height).
- * In case the tests is interrumpted, next time it will read the DB looking for blocks which headers are stored but they
+ * In case the tests is interrupted, next time it will read the DB looking for blocks which headers are stored but they
  * have not been downloaded, and it will start with that list.
  */
+// @TODO: Ignored. It's time-consuming and the basic functionality is already tested in other sub-modules
+@Ignore
 class ChainDownloadTest extends Specification {
 
     // Maximum Duration of the Test:

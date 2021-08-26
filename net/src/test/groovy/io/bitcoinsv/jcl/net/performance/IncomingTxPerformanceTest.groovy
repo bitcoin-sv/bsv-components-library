@@ -28,6 +28,7 @@ import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsgBuilder
 import io.bitcoinsv.jcl.net.protocol.streams.deserializer.DeserializerConfig
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2P
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2PBuilder
+import spock.lang.Ignore
 import spock.lang.Specification
 import java.time.Duration
 import java.time.Instant
@@ -43,6 +44,7 @@ import java.util.concurrent.atomic.AtomicLong
  * from it. For each Tx contained in the INV,s we ask for them. Sinc ethis is just a performance testing, we do not
  * care whether we are asking for Txs already processed or not, we just need to check how many Tx/sec we can process..
  */
+@Ignore
 class IncomingTxPerformanceTest extends Specification {
 
     // Duration of the test:

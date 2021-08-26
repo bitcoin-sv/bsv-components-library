@@ -20,6 +20,7 @@ import io.bitcoinsv.jcl.net.protocol.handlers.message.MessageHandlerConfig
 import io.bitcoinsv.jcl.net.protocol.messages.BlockHeaderMsg
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2P
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2PBuilder
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.time.Duration
@@ -30,6 +31,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 /**
  * An integration Test for Downloading Blocks.
  */
+//@TODO: time-consuming
+@Ignore
 class BlockDownloadTest extends Specification {
 
     // Several real Block HASHES to download from different Networks:
