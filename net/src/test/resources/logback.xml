@@ -17,7 +17,7 @@
     </appender>
 
     <logger name="io.bitcoinsv.jcl.net.protocol" additivity="false">
-        <level value="DEBUG" />
+        <level value="INFO" />
         <appender-ref ref="STDOUT" />
     </logger>
 
