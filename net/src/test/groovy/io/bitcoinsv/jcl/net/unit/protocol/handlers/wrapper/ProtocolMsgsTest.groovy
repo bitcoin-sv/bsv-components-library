@@ -69,8 +69,11 @@ class ProtocolMsgsTest extends Specification {
             Thread.sleep(100)
             client.REQUESTS.PEERS.connect(server.getPeerAddress()).submit()
 
-            Thread.sleep(100)
-        BitcoinMsg<AddrMsg> msg = MsgTest.getAddrMsg();
+            // The connection should be pretty fast. But the default URL for a Server/Client has been recently changed to
+            // "0.0.0.0" instead of "127.0.0.1", and that might add some delay in the network communication, so we
+            // increase the delay now...
+            Thread.sleep(1000)
+            BitcoinMsg<AddrMsg> msg = MsgTest.getAddrMsg();
             for (int i = 0; i < NUM_MSGS; i++) {
                 println(" >> SENDING ADDR MSG...")
                 client.REQUESTS.MSGS.send(server.getPeerAddress(), msg).submit()
