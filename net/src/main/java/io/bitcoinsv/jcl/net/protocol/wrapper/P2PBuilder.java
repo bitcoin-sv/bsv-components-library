@@ -54,6 +54,10 @@ public class P2PBuilder {
     // Configurations:
     private RuntimeConfig runtimeConfig = new RuntimeConfigDefault(); // Default...
     private NetworkConfig networkConfig = new NetworkDefaultConfig(); // Default...
+    // the server Address is 0.0.0.0 by default, which allows for connections from everywhere. If you are running
+    // tests with multiple P2P instances connecting to each other in localhost, use the "useLocalhost()" method
+    // instead, that will set the address to "127.0.0.1" which is more efficient.
+    private String serverAddress = "0.0.0.0";
     private Integer serverPort; // when running in Server Mode and it might be different for the rest of the network ports
 
 
@@ -157,6 +161,11 @@ public class P2PBuilder {
         return this;
     }
 
+    public P2PBuilder useLocalhost() {
+        this.serverAddress = "127.0.0.1";
+        return this;
+    }
+
     private Map<String, Handler> createBuiltInHandlers(RuntimeConfig runtimeConfig, NetworkConfig networkConfig, Map<String, HandlerConfig> handlerConfigs) {
         Map<String, Handler> result = new HashMap<>();
         try {
@@ -167,7 +176,7 @@ public class P2PBuilder {
             // IMPORTANT: We use 0.0.0.0 to allow connections from anywhere
 
             if (this.serverPort == null) this.serverPort = networkConfig.getPort();
-            String serverIp = "0.0.0.0:" + this.serverPort;
+            String serverIp = this.serverAddress + ":" + this.serverPort;
             Handler networkHandler = new NetworkHandlerImpl(id, runtimeConfig, networkConfig, PeerAddress.fromIp(serverIp));
             result.put(networkHandler.getId(), networkHandler);
 
