@@ -48,6 +48,7 @@ class ProtocolPingPongOKTest extends Specification {
             P2P server = new P2PBuilder("server")
                     .config(serverConfig)
                     .config(serverPingConfig)
+                    .useLocalhost()
                     .serverPort(0) // Random Port
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
@@ -64,6 +65,7 @@ class ProtocolPingPongOKTest extends Specification {
             P2P client = new P2PBuilder("client")
                     .config(clientConfig)
                     .config(clientPingConfig)
+                    .useLocalhost()
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
                     .build()

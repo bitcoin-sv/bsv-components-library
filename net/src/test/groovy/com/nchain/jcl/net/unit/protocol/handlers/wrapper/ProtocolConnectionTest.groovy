@@ -29,6 +29,7 @@ class ProtocolConnectionTest extends Specification {
             // We disable all the Handlers we don't need for this Test:
             P2P server = new P2PBuilder("server")
                     .config(config)
+                    .useLocalhost()
                     .serverPort(0) // Random Port
                     .excludeHandler(HandshakeHandler.HANDLER_ID)
                     .excludeHandler(PingPongHandler.HANDLER_ID)
@@ -39,6 +40,7 @@ class ProtocolConnectionTest extends Specification {
             // We disable all the Handlers we don't need for this Test:
             P2P client = new P2PBuilder("client")
                     .config(config)
+                    .useLocalhost()
                     .excludeHandler(HandshakeHandler.HANDLER_ID)
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
