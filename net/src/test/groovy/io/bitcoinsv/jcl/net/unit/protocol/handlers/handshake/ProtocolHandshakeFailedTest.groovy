@@ -40,6 +40,7 @@ class ProtocolHandshakeFailedTest extends Specification {
             // We disable all the Handlers we don't need for this Test:
         P2P server = new P2PBuilder("server")
                     .config(protocolConfig)
+                    .useLocalhost()
                     .serverPort(0) // Random Port
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
@@ -61,6 +62,7 @@ class ProtocolHandshakeFailedTest extends Specification {
             // We disable all the Handlers we don't need for this Test:
             P2P client = new P2PBuilder("client")
                     .config(wrongConfig)
+                    .useLocalhost()
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
@@ -103,6 +105,7 @@ class ProtocolHandshakeFailedTest extends Specification {
             // We disable all the Handlers we don't need for this Test:
             P2P server = new P2PBuilder("server")
                     .config(protocolConfig)
+                    .useLocalhost()
                     .serverPort(0) // Random Port
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
@@ -120,6 +123,7 @@ class ProtocolHandshakeFailedTest extends Specification {
             P2P client = new P2PBuilder("client")
                     .config(protocolConfig)
                     .config(handshakeConfig)
+                    .useLocalhost()
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
@@ -164,6 +168,7 @@ class ProtocolHandshakeFailedTest extends Specification {
             // We disable all the Handlers we don't need for this Test:
             P2P server = new P2PBuilder("server")
                     .config(protocolConfig)
+                    .useLocalhost()
                     .serverPort(0) // Random Port
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
@@ -172,6 +177,7 @@ class ProtocolHandshakeFailedTest extends Specification {
             // We disable all the Handlers we don't need for this Test:
             P2P client = new P2PBuilder("client")
                     .config(protocolConfig)
+                    .useLocalhost()
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
