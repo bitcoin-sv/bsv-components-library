@@ -286,7 +286,7 @@ public class JCLServer {
     }
 
     public static void printHelp() {
-        System.out.println("\n JCL Server Usage: java -jar jclServer.jar [net=XXX] (timeLimit=XXX) (maxThreads=XXX)");
+        System.out.println("\n JCL Server Usage: java -jar jclServer.jar [net=XXX] (timeLimit=XXX) (maxThreads=XXX) (useCachedPool=xxx)");
         System.out.println(" - [net]       : Mandatory : Possible Values: mainnet, stn, regtest");
         System.out.println(" - (timeLimit) : Optional  : Time limit in seconds After that the Server will shutdown.");
         System.out.println(" - (maxThreads): Optional  : Max number of Threads used by JCL-Net");
