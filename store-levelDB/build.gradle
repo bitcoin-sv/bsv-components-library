@@ -24,6 +24,7 @@ repositories {
     mavenCentral()
     maven {
         url = "http://aire.sleepingsalmon.com:2095/repository/maven-releases/"
+        allowInsecureProtocol = true
         credentials {
             username = "$nexusUser"
             password = "$nexusPassword"
@@ -52,7 +53,7 @@ dependencies {
     // Tests are oly defined ONCe in the JCL-Store module, and in this project we just extend them and add the
     // concrete logic to create instances of those interfaces:
 
-    testCompile project(':store').sourceSets.test.output
+    testImplementation project(':store').sourceSets.test.output
 
     testImplementation 'org.codehaus.groovy:groovy'
     testImplementation "org.spockframework:spock-core:1.2-groovy-2.5"
@@ -113,6 +114,7 @@ publishing {
     repositories {
         maven {
             url = "http://aire.sleepingsalmon.com:2095/repository/maven-releases/"
+            allowInsecureProtocol = true
             credentials {
                 username = "$nexusUser"
                 password = "$nexusPassword"

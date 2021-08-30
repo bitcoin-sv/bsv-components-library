@@ -24,6 +24,7 @@ repositories {
     mavenCentral()
     maven {
         url = "http://aire.sleepingsalmon.com:2095/repository/maven-releases/"
+        allowInsecureProtocol = true
         credentials {
             username = "$nexusUser"
             password = "$nexusPassword"
@@ -102,6 +103,7 @@ publishing {
     repositories {
         maven {
             url = "http://aire.sleepingsalmon.com:2095/repository/maven-releases/"
+            allowInsecureProtocol = true
             credentials {
                 username = "$nexusUser"
                 password = "$nexusPassword"

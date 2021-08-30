@@ -24,6 +24,7 @@ repositories {
     mavenCentral()
     maven {
         url = "http://aire.sleepingsalmon.com:2095/repository/maven-releases/"
+        allowInsecureProtocol = true
         credentials {
             username = "$nexusUser"
             password = "$nexusPassword"
@@ -51,8 +52,8 @@ dependencies {
     // case its OK, since the JCL-Module defines the interfaces and the Tests that those interfaces must meet. So the
     // Tests are oly defined ONCe in the JCL-Store module, and in this project we just extend them and add the 
     // concrete logic to create instances of those interfaces:
-    
-    testCompile project(':store').sourceSets.test.output
+
+    testImplementation project(':store').sourceSets.test.output
     
     
     testImplementation 'org.codehaus.groovy:groovy'
@@ -121,6 +122,7 @@ publishing {
     repositories {
         maven {
             url = "http://aire.sleepingsalmon.com:2095/repository/maven-releases/"
+            allowInsecureProtocol = true
             credentials {
                 username = "$nexusUser"
                 password = "$nexusPassword"
