@@ -1,5 +1,7 @@
 package com.nchain.jcl.net.protocol.handlers.message;
 
+import static com.google.common.base.Preconditions.*;
+
 import java.time.Duration;
 
 /**
@@ -19,6 +21,9 @@ public class MessageBatchConfig {
 
     /** Constructor */
     private MessageBatchConfig(Integer maxMsgsInBatch, Duration maxIntervalBetweenBatches, Integer maxBatchSizeInBytes) {
+        checkArgument(maxMsgsInBatch != null, "You need to specify the max number of Msgs within each Batch");
+        checkArgument(maxIntervalBetweenBatches != null, "You need to specify the max delay between 2 Batches");
+        checkArgument(maxBatchSizeInBytes != null, "You need to specify the max size (bytes) of each Batch");
         this.maxMsgsInBatch = maxMsgsInBatch;
         this.maxIntervalBetweenBatches = maxIntervalBetweenBatches;
         this.maxBatchSizeInBytes = maxBatchSizeInBytes;
