@@ -1,0 +1,101 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+}
+
+/****************************************
+ * Local Configuration
+ ****************************************/
+jclGroup = "$jclGroup"
+jclVersion = "$jclVersion"
+jclNetName = "$jclNetName"
+
+sourceCompatibility = "11"
+targetCompatibility = "11"
+
+configurations {
+    childJars
+}
+
+repositories {
+    mavenCentral()
+    jcenter()
+    mavenLocal()
+    maven {
+        url = "http://aire.sleepingsalmon.com:2095/repository/maven-releases/"
+        allowInsecureProtocol = true
+        credentials {
+            username = "$nexusUser"
+            password = "$nexusPassword"
+        }
+    }
+}
+
+/****************************************
+ * Build the JAR - Include all sub project classes and dependencies
+ ****************************************/
+dependencies {
+    subprojects.each {
+        childJars project(it.path)
+    }
+}
+
+jar {
+    dependsOn configurations.childJars
+    from { configurations.childJars.collect { zipTree(it) } }
+}
+
+
+/****************************************
+ * Publish the JAR
+ ****************************************/
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+
+            artifactId = "$jclNetName"
+            groupId = "$jclGroup"
+            version = "$jclVersion"
+
+            from components.java
+
+            pom {
+                name = "$jclNetName"
+                description = 'Java implementation of Bitcoin components'
+                url = 'https://bitbucket.org/nchteamnch/java-component-library'
+
+                licenses {
+                    license {
+                        name = ''
+                        url = ''
+                    }
+                }
+                developers {
+                    developer {
+                        name = 'Ivan Fernandez'
+                        email = 'i.fernandez@nchain.com'
+                    }
+                    developer {
+                        name = 'Michael Fletcher'
+                        email = 'm.fletcher@nchain.com'
+                    }
+                }
+                scm {
+                    url = 'https://bitbucket.org/nchteamnch/java-component-library'
+                }
+            }
+        }
+    }
+
+    repositories {
+        mavenLocal()
+        maven {
+            url = "http://161.35.175.46:8081/repository/maven-releases/"
+            allowInsecureProtocol = true
+            credentials {
+                username = "$nexusUser"
+                password = "$nexusPassword"
+            }
+        }
+    }
+}
