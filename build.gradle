@@ -1,0 +1,82 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+}
+
+/****************************************
+ * Local Configuration
+ ****************************************/
+jclGroup = "$jclGroup"
+jclVersion = "$jclVersion"
+jclNetName = "$jclNetName"
+
+sourceCompatibility = "11"
+targetCompatibility = "11"
+
+configurations {
+    childJars
+}
+
+repositories {
+    mavenCentral()
+    jcenter()
+    mavenLocal()
+}
+
+/****************************************
+ * Build the JAR - Include all sub project classes and dependencies
+ ****************************************/
+dependencies {
+    subprojects.each {
+        childJars project(it.path)
+    }
+}
+
+jar {
+    dependsOn configurations.childJars
+    from { configurations.childJars.collect { zipTree(it) } }
+}
+
+
+/****************************************
+ * Publish the JAR
+ ****************************************/
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+
+            artifactId = "$jclNetName"
+            groupId = "$jclGroup"
+            version = "$jclVersion"
+
+            from components.java
+
+            pom {
+                name = "$jclNetName"
+                description = 'Java implementation of Bitcoin components'
+                url = 'https://github.com/bitcoin-sv/bsv-components-library'
+
+                licenses {
+                    license {
+                        name = 'Open BSV License'
+                        url = 'https://github.com/bitcoin-sv/bsv-components-library/blob/master/LICENSE'
+                    }
+                }
+                developers {
+                    developer {
+                        organization = 'nChain'
+                        organizationUrl = 'https://nchain.com'
+                        name = 'i.fernandez'
+                    }
+                }
+                scm {
+                    url = 'https://github.com/bitcoin-sv/bsv-components-library'
+                }
+            }
+        }
+    }
+
+    repositories {
+        mavenLocal()
+    }
+}
