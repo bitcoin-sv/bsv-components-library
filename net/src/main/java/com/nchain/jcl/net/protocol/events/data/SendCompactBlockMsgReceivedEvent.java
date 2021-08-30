@@ -11,7 +11,7 @@ import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
  * An Event triggered when a SEND COMPACT BLOCK Message is received from a remote Peer.
  * </p>
  */
-public final class SendCompactBlockMsgReceivedEvent extends MsgSentEvent<SendCompactBlockMsg> {
+public final class SendCompactBlockMsgReceivedEvent extends MsgReceivedEvent<SendCompactBlockMsg> {
     public SendCompactBlockMsgReceivedEvent(PeerAddress peerAddress, BitcoinMsg<SendCompactBlockMsg> btcMsg) {
         super(peerAddress, btcMsg);
     }

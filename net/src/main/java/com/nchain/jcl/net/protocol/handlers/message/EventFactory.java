@@ -18,8 +18,8 @@ import com.nchain.jcl.tools.events.Event;
 public class EventFactory {
 
     /** It creates the Event to be published to the Bus after we process an incoming Message */
-    public static Event buildIncomingEvent(PeerAddress peerAddress, BitcoinMsg<? extends Message> btcMsg) {
-        Event result = new MsgReceivedEvent<>(peerAddress, btcMsg);
+    public static MsgReceivedEvent buildIncomingEvent(PeerAddress peerAddress, BitcoinMsg<? extends Message> btcMsg) {
+        MsgReceivedEvent result = new MsgReceivedEvent<>(peerAddress, btcMsg);
         Message body = btcMsg.getBody();
 
         if (body instanceof VersionMsg)                 result = new VersionMsgReceivedEvent(peerAddress, (BitcoinMsg<VersionMsg>) btcMsg);

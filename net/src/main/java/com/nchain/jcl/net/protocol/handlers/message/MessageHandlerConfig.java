@@ -5,9 +5,12 @@ package com.nchain.jcl.net.protocol.handlers.message;
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig;
 
 
-
+import com.nchain.jcl.net.protocol.events.data.RawTxMsgReceivedEvent;
+import com.nchain.jcl.net.protocol.events.data.TxMsgReceivedEvent;
 import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerConfig;
 import com.nchain.jcl.tools.handlers.HandlerConfig;
+
+import java.util.HashMap;
 
 /**
  * @author i.fernandez@nchain.com
@@ -29,6 +32,12 @@ public final class MessageHandlerConfig extends HandlerConfig {
     private boolean rawTxsEnabled = false;
 
     /**
+     * A Map containing Batch Message Configurations. If for example we want to Deserialize the "RawTxMsg" messages
+     * in batches, then an entry with "RawTxMsg.class" as a Key should be included here.
+     */
+    private HashMap<Class, MessageBatchConfig> msgBatchConfigs = new HashMap<>();
+
+    /**
      * Maximun number of Connections to other Peers that can use a dedicated thread to manage its connections.
      * By default, all the connections to remote peers are managed by a single Thread, that's why JCL can connect to
      * so many peers in parallel. but sometimes its worth it to manage an individual connection with a dedicated Thread
@@ -40,7 +49,8 @@ public final class MessageHandlerConfig extends HandlerConfig {
                          MessagePreSerializer preSerializer,
                          DeserializerConfig deserializerConfig,
                          boolean rawTxsEnabled,
-                         int maxNumberDedicatedConnections
+                         int maxNumberDedicatedConnections,
+                         HashMap<Class, MessageBatchConfig> msgBatchConfigs
     ) {
         if (basicConfig != null)
             this.basicConfig = basicConfig;
@@ -49,17 +59,19 @@ public final class MessageHandlerConfig extends HandlerConfig {
             this.deserializerConfig = deserializerConfig;
         this.rawTxsEnabled = rawTxsEnabled;
         this.maxNumberDedicatedConnections = maxNumberDedicatedConnections;
+        this.msgBatchConfigs = msgBatchConfigs;
     }
 
-    public ProtocolBasicConfig getBasicConfig()         { return this.basicConfig; }
-    public MessagePreSerializer getPreSerializer()      { return this.preSerializer; }
-    public DeserializerConfig getDeserializerConfig()   { return this.deserializerConfig; }
-    public boolean isRawTxsEnabled()                    { return this.rawTxsEnabled; }
-    public int getMaxNumberDedicatedConnections()       { return this.maxNumberDedicatedConnections;}
+    public ProtocolBasicConfig getBasicConfig()                     { return this.basicConfig; }
+    public MessagePreSerializer getPreSerializer()                  { return this.preSerializer; }
+    public DeserializerConfig getDeserializerConfig()               { return this.deserializerConfig; }
+    public boolean isRawTxsEnabled()                                { return this.rawTxsEnabled; }
+    public int getMaxNumberDedicatedConnections()                   { return this.maxNumberDedicatedConnections;}
+    public HashMap<Class, MessageBatchConfig> getMsgBatchConfigs()  { return this.msgBatchConfigs;}
 
     @Override
     public String toString() {
-        return "MessageHandlerConfig(basicConfig=" + this.getBasicConfig() + ", preSerializer=" + this.getPreSerializer() + ", deserializerConfig=" + this.getDeserializerConfig() + ", maxNumberDedicatedConnections=" + maxNumberDedicatedConnections + ")";
+        return "MessageHandlerConfig(basicConfig=" + this.getBasicConfig() + ", preSerializer=" + this.getPreSerializer() + ", deserializerConfig=" + this.getDeserializerConfig() + ", maxNumberDedicatedConnections=" + maxNumberDedicatedConnections + ", msgBatchConfigs=" + msgBatchConfigs + ")";
     }
 
     public MessageHandlerConfigBuilder toBuilder() {
@@ -68,7 +80,8 @@ public final class MessageHandlerConfig extends HandlerConfig {
                 .preSerializer(this.preSerializer)
                 .deserializerConfig(this.deserializerConfig)
                 .rawTxsEnabled(rawTxsEnabled)
-                .maxNumberDedicatedConnections(this.maxNumberDedicatedConnections);
+                .maxNumberDedicatedConnections(this.maxNumberDedicatedConnections)
+                .msgBatchConfigs(this.msgBatchConfigs);
     }
 
     public static MessageHandlerConfigBuilder builder() {
@@ -84,6 +97,7 @@ public final class MessageHandlerConfig extends HandlerConfig {
         private DeserializerConfig deserializerConfig;
         private boolean rawTxsEnabled = false;
         private int maxNumberDedicatedConnections = 10;
+        private HashMap<Class, MessageBatchConfig> msgBatchConfigs = new HashMap<>();
 
         MessageHandlerConfigBuilder() { }
 
@@ -112,8 +126,28 @@ public final class MessageHandlerConfig extends HandlerConfig {
             return this;
         }
 
+        public MessageHandlerConfig.MessageHandlerConfigBuilder msgBatchConfigs(HashMap<Class, MessageBatchConfig> msgBatchConfigs) {
+            this.msgBatchConfigs = msgBatchConfigs;
+            return this;
+        }
+
+        public MessageHandlerConfig.MessageHandlerConfigBuilder addMsgBatchConfig(Class msgType, MessageBatchConfig msgBatchConfig) {
+            this.msgBatchConfigs.put(msgType, msgBatchConfig);
+            return this;
+        }
+
+        public MessageHandlerConfig.MessageHandlerConfigBuilder setTxsBatchConfig(MessageBatchConfig batchConfig) {
+            this.msgBatchConfigs.put(TxMsgReceivedEvent.class, batchConfig);
+            return this;
+        }
+
+        public MessageHandlerConfig.MessageHandlerConfigBuilder setRawTxsBatchConfig(MessageBatchConfig batchConfig) {
+            this.msgBatchConfigs.put(RawTxMsgReceivedEvent.class, batchConfig);
+            return this;
+        }
+
         public MessageHandlerConfig build() {
-            return new MessageHandlerConfig(basicConfig, preSerializer, deserializerConfig, rawTxsEnabled, maxNumberDedicatedConnections);
+            return new MessageHandlerConfig(basicConfig, preSerializer, deserializerConfig, rawTxsEnabled, maxNumberDedicatedConnections, msgBatchConfigs);
         }
     }
 }

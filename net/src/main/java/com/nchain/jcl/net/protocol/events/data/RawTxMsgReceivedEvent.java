@@ -12,7 +12,7 @@ import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
  *
  * An Event triggered when a Raw TX Message is received from a Remote Peer.
  */
-public final class RawTxMsgReceivedEvent extends RawMsgReceivedEvent<RawTxMsg> {
+public final class RawTxMsgReceivedEvent extends MsgReceivedEvent<RawTxMsg> {
     public RawTxMsgReceivedEvent(PeerAddress peerAddress, BitcoinMsg<RawTxMsg> btcMsg) {
         super(peerAddress, btcMsg);
     }

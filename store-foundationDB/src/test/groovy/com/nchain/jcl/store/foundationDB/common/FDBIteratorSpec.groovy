@@ -6,6 +6,7 @@ import com.nchain.jcl.store.common.IteratorSpecBase
 import com.nchain.jcl.store.foundationDB.FDBTestUtils
 import com.nchain.jcl.store.foundationDB.blockStore.BlockStoreFDB
 import com.nchain.jcl.store.foundationDB.StoreFactory
+import spock.lang.Ignore
 
 import java.util.function.Function
 
@@ -13,7 +14,9 @@ import java.util.function.Function
  * Testing iterator for the FBDIterator, which is a very basic class and plays a big role in the FoundationDB
  * implementation of the JCL-Store
  */
-
+// Test Ignored. If you want to run this Test, set up a local FDB or configure FDBTestUtils.useDocker to use the
+// Docker image provided instead (not fully tested at the moment)
+@Ignore
 class FDBIteratorSpec extends IteratorSpecBase {
 
     // Start & Stop FoundationDB in Docker Container (check DockerTestUtils for details)...

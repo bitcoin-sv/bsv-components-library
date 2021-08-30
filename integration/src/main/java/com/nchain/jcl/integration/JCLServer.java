@@ -1,7 +1,5 @@
 package com.nchain.jcl.integration;
 
-import com.google.common.base.Preconditions;
-import com.nchain.jcl.net.network.handlers.NetworkHandlerState;
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig;
 import com.nchain.jcl.net.protocol.config.ProtocolConfig;
 import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder;
@@ -9,10 +7,11 @@ import com.nchain.jcl.net.protocol.events.control.PeerHandshakedDisconnectedEven
 import com.nchain.jcl.net.protocol.events.control.PeerHandshakedEvent;
 import com.nchain.jcl.net.protocol.events.data.InvMsgReceivedEvent;
 import com.nchain.jcl.net.protocol.events.data.RawTxMsgReceivedEvent;
+import com.nchain.jcl.net.protocol.events.data.RawTxsBatchMsgReceivedEvent;
 import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandler;
 import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandlerConfig;
+import com.nchain.jcl.net.protocol.handlers.message.MessageBatchConfig;
 import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerConfig;
-import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerState;
 import com.nchain.jcl.net.protocol.handlers.pingPong.PingPongHandler;
 import com.nchain.jcl.net.protocol.messages.GetdataMsg;
 import com.nchain.jcl.net.protocol.messages.InventoryVectorMsg;
@@ -20,16 +19,12 @@ import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
 import com.nchain.jcl.net.protocol.wrapper.P2P;
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder;
-import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.config.RuntimeConfigImpl;
 import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault;
-import com.nchain.jcl.tools.events.EventQueueProcessor;
 import com.nchain.jcl.tools.thread.ThreadUtils;
 import io.bitcoinj.core.Utils;
 import io.bitcoinj.params.Net;
 import io.bitcoinj.params.NetworkParameters;
-import io.bitcoinj.params.RegTestParams;
-import io.bitcoinj.params.STNParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,6 +59,8 @@ public class JCLServer {
         Duration timeLimit;
         Integer maxThreads;
         boolean useCachedThreadPool;
+        boolean useTxsBatch;
+        int txsBatchSize;
 
         public JCLServerConfig(Net net, int minPeers, int maxPeers, boolean pingEnabled) {
             this.net = net;
@@ -166,9 +163,22 @@ public class JCLServer {
                 .relayTxs(true)
                 .build();
 
+        // We configure the Serialization:
+        // - We enable RAW Txs
         MessageHandlerConfig messageConfig = protocolConfig.getMessageConfig().toBuilder()
                 .rawTxsEnabled(true) // IMPORTANT: It affects both Tx and Blocks
                 .build();
+        // - We enable (depending on parameters) the Batch of Txs...
+        if (config.useTxsBatch) {
+            MessageBatchConfig batchConfig = new MessageBatchConfig.MessageBatchBuilder()
+                    .maxMsgsInBatch(config.txsBatchSize)
+                    .maxIntervalBetweenBatches(Duration.ofMillis(500))
+                    .maxBatchSizeInBytes(10_000_000)
+                    .build();
+            messageConfig = messageConfig.toBuilder()
+                    .setRawTxsBatchConfig(batchConfig)
+                    .build();
+        }
 
         // We build the P2P Service
         P2PBuilder p2pBuilder = new P2PBuilder("JCLServer")
@@ -191,6 +201,7 @@ public class JCLServer {
         p2p.EVENTS.PEERS.HANDSHAKED_DISCONNECTED.forEach(this::onPeerDisconnected);
         p2p.EVENTS.MSGS.INV.forEach(this::processINV);
         p2p.EVENTS.MSGS.TX_RAW.forEach(this::processRawTX);
+        p2p.EVENTS.MSGS.TX_RAW_BATCH.forEach(this::processRawTxsBatch);
 
     }
 
@@ -248,6 +259,17 @@ public class JCLServer {
         sizeTxsLog.addAndGet(event.getBtcMsg().getBody().getContent().length);
     }
 
+    private void processRawTxsBatch(RawTxsBatchMsgReceivedEvent event) {
+        long txsSize = event.getEvents().stream().mapToLong(e -> e.getBtcMsg().getLengthInbytes()).sum();
+        if (firstTxInstant == null)
+            firstTxInstant = Instant.now();
+        lastTxInstant = Instant.now();
+        numTxs.addAndGet(event.getEvents().size());
+        sizeTxs.addAndGet(txsSize);
+        numTxsLog.addAndGet(event.getEvents().size());
+        sizeTxsLog.addAndGet(txsSize);
+    }
+
     private static String getParamValue(String paramName, String ...params) {
         String result = null;
         for (String param : params) {
@@ -278,18 +300,31 @@ public class JCLServer {
         String useCachedThreadPoolStr = getParamValue("useCachedPool", args);
         boolean useCachedThreadPool = (useCachedThreadPoolStr != null) ? Boolean.valueOf(useCachedThreadPoolStr) : false;
 
+        // We get the useTxsBatch' parameter:
+        String useTxsBatchStr = getParamValue("useTxsBatch", args);
+        boolean useTxsBatch = (useTxsBatchStr != null) ? Boolean.valueOf(useTxsBatchStr) : false;
+
+        // We get the 'txsBatchSize' parameter:
+        String txsBatchSizeStr = getParamValue("txsBatchSize", args);
+        int txsBatchSize = (txsBatchSizeStr != null) ? Integer.parseInt(txsBatchSizeStr) : 100;
+
         JCLServerConfig result = CONFIGS.get(net);
         result.timeLimit = timeLimit;
         result.maxThreads = maxThreads;
         result.useCachedThreadPool = useCachedThreadPool;
+        result.useTxsBatch = useTxsBatch;
+        result.txsBatchSize = txsBatchSize;
         return result;
     }
 
     public static void printHelp() {
-        System.out.println("\n JCL Server Usage: java -jar jclServer.jar [net=XXX] (timeLimit=XXX) (maxThreads=XXX) (useCachedPool=xxx)");
-        System.out.println(" - [net]       : Mandatory : Possible Values: mainnet, stn, regtest");
-        System.out.println(" - (timeLimit) : Optional  : Time limit in seconds After that the Server will shutdown.");
-        System.out.println(" - (maxThreads): Optional  : Max number of Threads used by JCL-Net");
+        System.out.println("\n JCL Server Usage: java -jar jclServer.jar [net=XXX] (timeLimit=XXX) (maxThreads=XXX) (useCachedPool=xxx) (useTxsBatch=xxx) (txsBatchSize=xxx)");
+        System.out.println(" - [net]            : Mandatory : Possible Values: mainnet, stn, regtest");
+        System.out.println(" - (timeLimit)      : Optional  : Time limit in seconds After that the Server will shutdown.");
+        System.out.println(" - (maxThreads)     : Optional  : Max number of Threads used by JCL-Net");
+        System.out.println(" - (useCachedPool)  : Optional  : (true/false) If True, the Threads used wil come from a CachedThreadPool");
+        System.out.println(" - (useTxsBatch)    : Optional  : (true/False)) If True Txs are returned in Batches (default size = 100)");
+        System.out.println(" - (txsBatchSize)   : Optional  : Number of Txs within each Batch returned (only if 'useTxsBatch=true')");
         System.out.println("Example:");
         System.out.println(" java -jar jclServer.jar net=mainnet timeLimit=300 maxThreads=500");
         System.out.println("\n\n");

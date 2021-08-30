@@ -53,6 +53,7 @@ class ProtocolPingPongFailTest extends Specification {
             P2P server = new P2PBuilder("server")
                     .config(serverConfig)
                     .config(serverPingConfig)
+                    .useLocalhost()
                     .serverPort(0) // Random Port
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
@@ -66,6 +67,7 @@ class ProtocolPingPongFailTest extends Specification {
             ProtocolConfig clientConfig = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             P2P client = new P2PBuilder("client")
                     .config(clientConfig)
+                    .useLocalhost()
                     .serverPort(0) // Random Port
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
