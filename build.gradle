@@ -37,6 +37,16 @@ jar {
     from { configurations.childJars.collect { zipTree(it) } }
 }
 
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+javadoc {
+    if (JavaVersion.current().isJava11Compatible()) {
+        options.addBooleanOption('Xdoclint:none', true)
+    }
+}
 
 /****************************************
  * Publish the JAR

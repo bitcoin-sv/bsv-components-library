@@ -51,6 +51,16 @@ jar {
     enabled = true
 }
 
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+javadoc {
+    if (JavaVersion.current().isJava11Compatible()) {
+        options.addBooleanOption('Xdoclint:none', true)
+    }
+}
 
 /****************************************
  * Packaging a FAT Jar with jCLServer
