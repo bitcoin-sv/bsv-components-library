@@ -318,10 +318,13 @@ public class JCLServer {
     }
 
     public static void printHelp() {
-        System.out.println("\n JCL Server Usage: java -jar jclServer.jar [net=XXX] (timeLimit=XXX) (maxThreads=XXX) (useCachedPool=xxx)");
-        System.out.println(" - [net]       : Mandatory : Possible Values: mainnet, stn, regtest");
-        System.out.println(" - (timeLimit) : Optional  : Time limit in seconds After that the Server will shutdown.");
-        System.out.println(" - (maxThreads): Optional  : Max number of Threads used by JCL-Net");
+        System.out.println("\n JCL Server Usage: java -jar jclServer.jar [net=XXX] (timeLimit=XXX) (maxThreads=XXX) (useCachedPool=xxx) (useTxsBatch=xxx) (txsBatchSize=xxx)");
+        System.out.println(" - [net]            : Mandatory : Possible Values: mainnet, stn, regtest");
+        System.out.println(" - (timeLimit)      : Optional  : Time limit in seconds After that the Server will shutdown.");
+        System.out.println(" - (maxThreads)     : Optional  : Max number of Threads used by JCL-Net");
+        System.out.println(" - (useCachedPool)  : Optional  : (true/false) If True, the Threads used wil come from a CachedThreadPool");
+        System.out.println(" - (useTxsBatch)    : Optional  : (true/False)) If True Txs are returned in Batches (default size = 100)");
+        System.out.println(" - (txsBatchSize)   : Optional  : Number of Txs within each Batch returned (only if 'useTxsBatch=true')");
         System.out.println("Example:");
         System.out.println(" java -jar jclServer.jar net=mainnet timeLimit=300 maxThreads=500");
         System.out.println("\n\n");
