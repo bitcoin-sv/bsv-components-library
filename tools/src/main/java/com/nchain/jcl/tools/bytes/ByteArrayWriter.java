@@ -34,6 +34,12 @@ public class ByteArrayWriter {
         buffer.add(data);
     }
 
+    public void writeUint16LE(int value){
+        byte[] out = new byte[2];
+        Utils.uint16ToByteArrayLE(value, out, 0);
+        buffer.add(out);
+    }
+
     public void writeUint32LE(long value) {
         byte[] out = new byte[4];
         Utils.uint32ToByteArrayLE(value, out, 0);
