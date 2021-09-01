@@ -68,7 +68,7 @@ public class BlocksDownloadHistory {
     // to track when testing, so the properties below can add a remaining Item even after removing...
     private boolean addingItemAfterAutomaticRemoveEnabled;
     private boolean addingItemAfterOnDemandRemoveEnabled;
-    private String ITEM_AFTER_AUTOMATIC_REMOVE = "Block History removed automatically after {} seconds";
+    private String ITEM_AFTER_AUTOMATIC_REMOVE = "Block History removed automatically after %d seconds";
     private String ITEM_AFTER_ONDEMAND_REMOVE = "Block History removed.";
 
     /** Constructor */
