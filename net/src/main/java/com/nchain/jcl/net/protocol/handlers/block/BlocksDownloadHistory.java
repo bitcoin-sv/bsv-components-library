@@ -27,7 +27,7 @@ public class BlocksDownloadHistory {
 
     private Logger logger = LoggerFactory.getLogger(BlocksDownloadHistory.class);
 
-    /** Represents an Historic Item. A block History is made up of several of this objects, ordered by timesamp */
+    /** Represents an Historic Item. A block History is made up of several of this objects, ordered by timestamp */
     public class HistoricItem {
         private Instant timestamp;
         private PeerAddress peerAddress;
@@ -61,18 +61,24 @@ public class BlocksDownloadHistory {
     private Set<String> blocksMarkedForDeletion =  ConcurrentHashMap.newKeySet();
 
     // Configuration to clean entries in the DB after a timeout is configured:
-    private Duration DEFAULT_TIMEOUT = Duration.ofMinutes(10);
     private Duration cleaningTimeout;
     private ExecutorService executor;
+
+    // By default, after removing a Block History we loose all info about it. That might make things harder
+    // to track when testing, so the properties below can add a remaining Item even after removing...
+    private boolean addingItemAfterAutomaticRemoveEnabled;
+    private boolean addingItemAfterOnDemandRemoveEnabled;
+    private String ITEM_AFTER_AUTOMATIC_REMOVE = "Block History removed automatically after {} seconds";
+    private String ITEM_AFTER_ONDEMAND_REMOVE = "Block History removed.";
 
     /** Constructor */
     public BlocksDownloadHistory() {
         this.executor = ThreadUtils.getSingleThreadExecutorService("jclBlocksDownloadHistory");
     }
 
-    public void setCleaningTimeout(Duration cleaningTimeout) {
-        this.cleaningTimeout = cleaningTimeout;
-    }
+    public void setCleaningTimeout(Duration cleaningTimeout)    { this.cleaningTimeout = cleaningTimeout; }
+    public void enableAddingItemAfterAutomaticRemove()          { this.addingItemAfterAutomaticRemoveEnabled = true;}
+    public void enableAddingItemAfterOnDemandRemoveEnabled()    { this.addingItemAfterOnDemandRemoveEnabled = true;}
 
     /** It registers a item/s in a Block history */
     public synchronized void register(String blockHashHex, PeerAddress peerAddress, String ...historyItems) {
@@ -82,9 +88,7 @@ public class BlocksDownloadHistory {
             }
             history.put(blockHashHex, items);
     }
-    /**
-     * It registers a item/s in a Block history
-     */
+    /** It registers a item/s in a Block history */
     public synchronized  void register(String blockHash, String ...historyItems) {
         register(blockHash, null, historyItems);
     }
@@ -94,6 +98,19 @@ public class BlocksDownloadHistory {
      */
     public synchronized void remove(String blockHash) {
         history.remove(blockHash);
+        if (addingItemAfterOnDemandRemoveEnabled) {
+            register(blockHash, (PeerAddress) null, ITEM_AFTER_ONDEMAND_REMOVE);
+        }
+    }
+
+    /**
+     * Removes the whole history of a block
+     */
+    private synchronized void clean(String blockHash) {
+        history.remove(blockHash);
+        if (addingItemAfterAutomaticRemoveEnabled) {
+            register(blockHash, (PeerAddress) null, String.format(ITEM_AFTER_AUTOMATIC_REMOVE, this.cleaningTimeout.toSeconds()));
+        }
     }
 
     /**
@@ -163,7 +180,7 @@ public class BlocksDownloadHistory {
                                         && (blocksMarkedForDeletion.contains(hash)))
                             .collect(Collectors.toList());
                     // We remove its history and also form the markForDeletion Map:
-                    hashesToClean.forEach(this::remove);
+                    hashesToClean.forEach(this::clean);
                     hashesToClean.forEach(hash -> blocksMarkedForDeletion.remove(hash));
                     logger.trace(hashesToClean.size() + " Blocks history removed");
                 }
