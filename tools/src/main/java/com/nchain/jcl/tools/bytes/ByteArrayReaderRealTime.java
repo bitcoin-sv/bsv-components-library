@@ -22,6 +22,8 @@ import java.time.Duration;
  * NOTE: There is alimit to how long we are willing to wait for the info to be available, and if the timeout is broken
  * then an error is thrown.
  *
+ * -------------------------------------------------------------------------------------------------------------------
+ * WARNING: Please read the WARNING section in ByteArrayReaderOptimized
  */
 public class ByteArrayReaderRealTime extends ByteArrayReaderOptimized {
 
