@@ -6,7 +6,6 @@ import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.net.protocol.serialization.common.MessageSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
-import com.nchain.jcl.tools.bytes.ByteArrayReaderOptimized;
 import com.nchain.jcl.tools.bytes.ByteArrayWriter;
 import io.bitcoinj.core.Sha256Hash;
 
@@ -44,30 +43,24 @@ public class TxMsgSerializer implements MessageSerializer<TxMsg> {
     @Override
     public TxMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
 
-        // We wrap the reader around an ByteArrayReaderOptimized, which works faster than a regular ByteArrayReader
-        // (its also more expensive in terms of memory, but it usually pays off):
-        ByteArrayReaderOptimized reader = (byteReader instanceof ByteArrayReaderOptimized)
-                    ? (ByteArrayReaderOptimized) byteReader
-                    : new ByteArrayReaderOptimized(byteReader);
-
         // We deserialize the Tx the usual way...
-        long version = reader.readUint32();
-        VarIntMsg txInCount = varIntMsgSerializer.deserialize(context, reader);
+        long version = byteReader.readUint32();
+        VarIntMsg txInCount = varIntMsgSerializer.deserialize(context, byteReader);
         int txInCountValue = (int) txInCount.getValue();
         List<TxInputMsg> txInputMessage = new ArrayList<>();
 
         for(int i = 0; i< txInCountValue; i++) {
-            txInputMessage.add(txInputMessageSerializer.deserialize(context,reader));
+            txInputMessage.add(txInputMessageSerializer.deserialize(context,byteReader));
         }
 
-        VarIntMsg txOutCount = varIntMsgSerializer.deserialize(context, reader);
+        VarIntMsg txOutCount = varIntMsgSerializer.deserialize(context, byteReader);
         int txOutCountValue = (int) txOutCount.getValue();
         List<TxOutputMsg> txOutputMessage = new ArrayList<>();
 
         for(int i = 0; i< txOutCountValue; i++) {
-            txOutputMessage.add(txOutputMessageSerializer.deserialize(context, reader));
+            txOutputMessage.add(txOutputMessageSerializer.deserialize(context, byteReader));
         }
-        long locktime = reader.readUint32();
+        long locktime = byteReader.readUint32();
 
         TxMsg.TxMsgBuilder txBuilder =  TxMsg.builder()
                 .version(version)
