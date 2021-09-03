@@ -1,8 +1,6 @@
 package com.nchain.jcl.net.protocol.streams.deserializer;
 
-import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
-import com.nchain.jcl.net.protocol.messages.HeadersMsg;
-import com.nchain.jcl.net.protocol.messages.TxMsg;
+import com.nchain.jcl.net.protocol.messages.*;
 import com.nchain.jcl.tools.bytes.ByteArrayReaderRealTime;
 
 import java.time.Duration;
@@ -53,7 +51,9 @@ public final class DeserializerConfig {
     private static final String[] DEFAULT_MSGS_TO_CACHE = {
             HeadersMsg.MESSAGE_TYPE.toUpperCase(),
             TxMsg.MESSAGE_TYPE.toUpperCase(),
-            BlockHeaderMsg.MESSAGE_TYPE.toUpperCase()
+            BlockHeaderMsg.MESSAGE_TYPE.toUpperCase(),
+            CompactBlockMsg.MESSAGE_TYPE.toUpperCase(),
+            BlockTxnMsg.MESSAGE_TYPE.toUpperCase()
     };
 
     /** If the Message is NOT part of this List, then it won't be cached */
