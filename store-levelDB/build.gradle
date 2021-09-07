@@ -56,6 +56,9 @@ bootJar {
 
 jar {
     enabled = true
+    metaInf {
+        from "${project.rootDir}/LICENSE"
+    }
 }
 
 java {
