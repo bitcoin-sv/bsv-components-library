@@ -57,6 +57,7 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
         super.eventBus.subscribe(PeerRejectedEvent.class, e -> this.onPeerRejected((PeerRejectedEvent) e));
         super.eventBus.subscribe(PeerHandshakeRejectedEvent.class, e -> onPeerHandshakedRejected((PeerHandshakeRejectedEvent) e));
         super.eventBus.subscribe(PingPongFailedEvent.class, e -> onPingPongFailed((PingPongFailedEvent) e));
+        super.eventBus.subscribe(BlacklistPeerRequest.class, e -> onBacklistPeerRequest((BlacklistPeerRequest) e));
     }
 
     @Override
@@ -110,6 +111,14 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
         processHostAndCheckBlacklisting(event.getPeerAddress(), h -> h.addFailedPingPongs());
     }
 
+    // Event Handler:
+    private void onBacklistPeerRequest(BlacklistPeerRequest event) {
+        InetAddress ip = event.getPeerAddress().getIp();
+        BlacklistHostInfo hostInfo = this.handlerInfo.get(ip);
+        if (hostInfo != null) {
+            blacklist(hostInfo, PeersBlacklistedEvent.BlacklistReason.CLIENT);
+        }
+    }
 
     private void loadBlacklistFromDisk() {
         String csvFileName = StringUtils.fileNamingFriendly(config.getBasicConfig().getId()) + FILE_BLACKLIST_SUFFIX;
