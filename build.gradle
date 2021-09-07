@@ -37,6 +37,11 @@ jar {
     from { configurations.childJars.collect { zipTree(it) } }
 }
 
+// Refer to https://github.com/gradle/gradle/issues/17236#issuecomment-894768083
+rootProject.tasks.named("jar") {
+    duplicatesStrategy = 'include'
+}
+
 java {
     withJavadocJar()
     withSourcesJar()
