@@ -13,10 +13,12 @@ public class PartialBlockTxnMsg extends Message {
 
     private final HashMsg blockHash;
     private final List<TxMsg> transactions;
+    private final int order;
 
-    public PartialBlockTxnMsg(HashMsg blockHash, List<TxMsg> transactions) {
+    public PartialBlockTxnMsg(HashMsg blockHash, List<TxMsg> transactions, int order) {
         this.blockHash = blockHash;
         this.transactions = transactions;
+        this.order = order;
         init();
     }
 
@@ -32,6 +34,10 @@ public class PartialBlockTxnMsg extends Message {
         return transactions;
     }
 
+    public int getOrder() {
+        return order;
+    }
+
     @Override
     public String getMessageType() {
         return MESSAGE_TYPE;
@@ -41,12 +47,12 @@ public class PartialBlockTxnMsg extends Message {
     protected long calculateLength() {
         return blockHash.calculateLength()
             + VarIntMsg.builder()
-                .value(transactions.size())
-                .build()
-                .calculateLength()
+            .value(transactions.size())
+            .build()
+            .calculateLength()
             + transactions.stream()
-                .mapToLong(TxMsg::calculateLength)
-                .sum();
+            .mapToLong(TxMsg::calculateLength)
+            .sum();
     }
 
     @Override
@@ -56,6 +62,7 @@ public class PartialBlockTxnMsg extends Message {
     public static class PartialBlockTxnBuilder {
         private HashMsg blockHash;
         private List<TxMsg> transactions;
+        private int order;
 
         public PartialBlockTxnBuilder blockHash(HashMsg blockHash) {
             this.blockHash = blockHash;
@@ -67,8 +74,13 @@ public class PartialBlockTxnMsg extends Message {
             return this;
         }
 
+        public PartialBlockTxnBuilder order(int order) {
+            this.order = order;
+            return this;
+        }
+
         public PartialBlockTxnMsg build() {
-            return new PartialBlockTxnMsg(blockHash, transactions);
+            return new PartialBlockTxnMsg(blockHash, transactions, order);
         }
     }
 }

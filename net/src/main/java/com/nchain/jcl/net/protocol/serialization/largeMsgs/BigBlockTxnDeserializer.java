@@ -40,6 +40,8 @@ public class BigBlockTxnDeserializer extends LargeMessageDeserializerImpl {
 
         long batchSize = ofNullable(context.getBatchSize()).orElse(TX_BATCH);
 
+        int order = 0;
+
         List<TxMsg> transactions = new ArrayList<>();
         for (int i = 0; i < numOfTxs; i++) {
             transactions.add(TxMsgSerializer.getInstance().deserialize(context, byteReader));
@@ -49,8 +51,11 @@ public class BigBlockTxnDeserializer extends LargeMessageDeserializerImpl {
                     PartialBlockTxnMsg.builder()
                         .blockHash(blockHash)
                         .transactions(new ArrayList<>(transactions))
+                        .order(order)
                         .build()
                 );
+
+                order++;
                 transactions.clear();
             }
         }
@@ -60,6 +65,7 @@ public class BigBlockTxnDeserializer extends LargeMessageDeserializerImpl {
                 PartialBlockTxnMsg.builder()
                     .blockHash(blockHash)
                     .transactions(transactions)
+                    .order(order)
                     .build()
             );
         }
