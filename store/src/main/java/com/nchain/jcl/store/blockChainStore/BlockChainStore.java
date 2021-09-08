@@ -7,6 +7,7 @@ import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
 import io.bitcoinj.bitcoin.api.extended.ChainInfo;
 import io.bitcoinj.core.Sha256Hash;
 
+import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Optional;
 
@@ -66,6 +67,11 @@ public interface BlockChainStore extends BlockStore {
      * Returns the List of the Tips of the Chains the block given belongs to
      */
     List<Sha256Hash> getTipsChains(Sha256Hash blockHash);
+
+    /**
+     * Efficently returns the Lowest common ancestor between the given list of blocks.
+     */
+    Optional<ChainInfo> getLargestCommonAncestor(List<Sha256Hash> blockHashes);
 
     /**
      * Returns the FIRST Block in the same Path as the block given.

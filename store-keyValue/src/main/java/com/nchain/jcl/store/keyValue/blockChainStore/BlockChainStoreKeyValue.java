@@ -91,8 +91,6 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     String KEY_SUFFIX_PATHS_LAST     = "last";
     String KEY_PREFFIX_PATH          = "chain_path";
 
-
-
     /* Functions to generate Simple Keys in String format: */
 
     default String keyForBlockNext(String blockHash)        { return KEY_PREFFIX_BLOCK_PROP + blockHash + KEY_SEPARATOR + KEY_SUFFIX_BLOCK_NEXT + KEY_SEPARATOR; }
@@ -628,6 +626,64 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         } finally {
             getLock().readLock().unlock();
         }
+    }
+
+    @Override
+    default Optional<ChainInfo> getLargestCommonAncestor(List<Sha256Hash> blockHashes) {
+
+        try {
+            getLock().readLock().lock();
+            AtomicReference<ChainInfo> result = new AtomicReference<>();
+
+            T tr = createTransaction();
+            executeInTransaction(tr, () -> {
+                Set<BlockChainInfo> leafNodeSet = new TreeSet<>(Comparator.comparing(BlockChainInfo::getHeight).reversed());
+
+                // we loop through each of the chain path histories, taking the common root ancestors, then the ancestor with the largest height will be the highest common ancestor
+                for(Sha256Hash hash : blockHashes){
+                    BlockChainInfo chainInfo = _getBlockChainInfo(tr, hash.toString());
+
+                    if(chainInfo == null)
+                        return;
+
+                    //we will store all ancestors up to genesis
+                    Set<BlockChainInfo> ancestorRootNodes = new TreeSet<>(Comparator.comparing(BlockChainInfo::getHeight));
+
+                    //starting path
+                    ChainPathInfo chainPathInfo = _getChainPathInfo(tr, chainInfo.getChainPathId());
+
+                    //recursively loop up the chain paths, adding each root node to the set
+                    while(chainPathInfo != null){
+                        ancestorRootNodes.add(_getBlockChainInfo(tr, chainPathInfo.getBlockHash()));
+                        chainPathInfo = _getChainPathInfo(tr, chainPathInfo.getParent_id());
+                    }
+
+                    //we want to keep the intersection between all the sets, if this is the first loop then the intersection will be an empty set, so just copy it over.
+                    if(leafNodeSet.isEmpty()){
+                        leafNodeSet.addAll(ancestorRootNodes);
+                    } else {
+                        leafNodeSet.retainAll(ancestorRootNodes);
+                    }
+                }
+
+                BlockChainInfo highestCommonAncestorChainInfo = leafNodeSet.iterator().next();
+                HeaderReadOnly highestCommonAncestorHeader = _getBlock(tr, highestCommonAncestorChainInfo.getBlockHash());
+
+                ChainInfoBean chainInfoResult = new ChainInfoBean(highestCommonAncestorHeader);
+                chainInfoResult.setChainWork(highestCommonAncestorChainInfo.getChainWork());
+                chainInfoResult.setHeight(highestCommonAncestorChainInfo.getHeight());
+                chainInfoResult.makeImmutable();
+
+                //the first element in the set, is now the higest common ancestor
+                result.set(chainInfoResult);
+            });
+
+            return Optional.ofNullable(result.get());
+
+        } finally {
+            getLock().readLock().unlock();
+        }
+
     }
 
     @Override
