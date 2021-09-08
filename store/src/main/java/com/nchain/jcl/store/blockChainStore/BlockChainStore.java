@@ -71,7 +71,12 @@ public interface BlockChainStore extends BlockStore {
     /**
      * Efficently returns the Lowest common ancestor between the given list of blocks.
      */
-    Optional<ChainInfo> getLargestCommonAncestor(List<Sha256Hash> blockHashes);
+    Optional<ChainInfo> getLowestCommonAncestor(List<Sha256Hash> blockHashes);
+
+    /**
+     * Gets the given blocks ancestor by height
+     */
+    Optional<ChainInfo> getAncestorByHeight(Sha256Hash blockHash, int height);
 
     /**
      * Returns the FIRST Block in the same Path as the block given.
