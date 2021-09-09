@@ -161,7 +161,6 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
         // Big Blocks received in Batches:
         super.eventBus.subscribe(BlockHeaderDownloadedEvent.class, e -> this.onPartialBlockHeaderMsgReceived((BlockHeaderDownloadedEvent) e));
         super.eventBus.subscribe(BlockTXsDownloadedEvent.class, e -> this.onPartialBlockTxsMsgReceived((BlockTXsDownloadedEvent) e));
-        super.eventBus.subscribe(BlockRawDataDownloadedEvent.class, e -> this.onPartialBlockTxsMsgReceived((BlockRawDataDownloadedEvent) e));
         super.eventBus.subscribe(BlockRawTXsDownloadedEvent.class, e -> this.onPartialBlockTxsMsgReceived((BlockRawTXsDownloadedEvent) e));
 
         // Download/Cancel requests:
@@ -449,13 +448,6 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                 bigBlocksCurrentTxs.merge(blockHash, (long) partialMsg.getTxs().size(), (o, n) -> o + partialMsg.getTxs().size());
                 blocksLastActivity.put(blockHash, Instant.now());
                 blocksDownloadHistory.register(blockHash, peerInfo.getPeerAddress(), partialMsg.getTxs().size() + " Txs downloaded, (" + bigBlocksCurrentTxs.get(blockHash) + " Txs so far)");
-            } else if (msg.is(PartialBlockRawDataMsg.MESSAGE_TYPE)) {
-                blockHash = Utils.HEX.encode(Utils.reverseBytes(((PartialBlockRawDataMsg) msg.getBody()).getBlockHeader().getHash().getHashBytes()));
-                // We update the info about the Txs of this block:
-                PartialBlockRawDataMsg partialRawMsg = (PartialBlockRawDataMsg) msg.getBody();
-                bigBlocksCurrentBytes.merge(blockHash, (long) partialRawMsg.getTxs().length, (o, n) -> o + partialRawMsg.getTxs().length);
-                blocksLastActivity.put(blockHash, Instant.now());
-                blocksDownloadHistory.register(blockHash, peerInfo.getPeerAddress(), partialRawMsg.getTxs().length + " bytes of Txs downloaded, (" + bigBlocksCurrentBytes.get(blockHash) + " bytes so far)");
             } else if (msg.is(PartialBlockRawTxMsg.MESSAGE_TYPE)) {
                 blockHash = Utils.HEX.encode(Utils.reverseBytes(((PartialBlockRawTxMsg) msg.getBody()).getBlockHeader().getHash().getHashBytes()));
                 // We update the info about the Txs of this block:
