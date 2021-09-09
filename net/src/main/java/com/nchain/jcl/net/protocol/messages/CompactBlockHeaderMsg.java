@@ -7,11 +7,13 @@ import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
 import io.bitcoinj.bitcoin.bean.base.HeaderBean;
 import io.bitcoinj.core.Sha256Hash;
 
+import java.io.Serializable;
+
 /**
  * @author j.pomer@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  */
-public class CompactBlockHeaderMsg extends Message {
+public class CompactBlockHeaderMsg extends Message implements Serializable {
 
     public static final String MESSAGE_TYPE = "CompactClockHeader";
 

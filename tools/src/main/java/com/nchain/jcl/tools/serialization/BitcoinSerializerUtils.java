@@ -20,7 +20,7 @@ import java.io.IOException;
 public abstract class BitcoinSerializerUtils {
 
     // Indicates how many bytes the number given will take
-    private static int getVarIntSizeInBytes(long value) {
+    public static int getVarIntSizeInBytes(long value) {
         // if negative, it's actually a very largeMsgs unsigned long value
         if (value < 0) return 9; // 1 marker + 8 data bytes
         if (value < 253) return 1; // 1 data byte
@@ -28,6 +28,26 @@ public abstract class BitcoinSerializerUtils {
         if (value <= 0xFFFFFFFFL) return 5; // 1 marker + 4 data bytes
         return 9; // 1 marker + 8 data bytes
     }
+
+    /** Deserialize the ByteArray into a number (length variable) */
+    public static long deserializeVarIntWithoutExtraction(ByteArrayReader byteReader, int offset) {
+        long result = -1;
+        int firstByte = 0xFF & byteReader.get(offset, 1)[0];
+
+        // We calculate how to read the value from the byte Array.
+        // the size in bytes used to store the value will be calculated automatically by the Builder later on:
+        if (firstByte < 253){
+            result = firstByte;
+        } else if (firstByte == 253){
+            result = (0xFF & byteReader.get(offset + 1, 1)[0]) | ((0xFF & byteReader.get(offset + 2, 1)[0]) << 8);
+        } else if (firstByte == 254) {
+            result = byteReader.getUint32(offset + 1);
+        } else {
+            result = byteReader.getInt64LE(offset + 1);
+        }
+        return result;
+    }
+
 
     /** Deserialize the ByteArray into a number (length variable) */
     public static long deserializeVarInt(ByteArrayReader byteReader) {

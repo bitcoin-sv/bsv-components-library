@@ -62,7 +62,7 @@ public class ByteArrayNIO implements ByteArray {
         checkArgument(length >= 0, "'length' must be >= zero");
         checkArgument(size() >= (offset + length),
                 "not enough data in the buffer: actual data: " + size() + " bytes,"
-                        + " , requested: " + length + " bytes");
+                        + " , requested: " + offset + length + " bytes");
         try {
             return get_bytes(offset, length);
         } catch (IOException ioe) {

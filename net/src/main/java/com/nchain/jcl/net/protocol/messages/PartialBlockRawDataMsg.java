@@ -10,33 +10,34 @@ import java.util.List;
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  */
-public final class PartialBlockTXsMsg extends Message implements Serializable {
+public final class PartialBlockRawDataMsg extends Message implements Serializable {
 
-    public static final String MESSAGE_TYPE = "PartialBlockTxs";
+    public static final String MESSAGE_TYPE = "PartialBlockRawDataMsg";
     private final BlockHeaderMsg blockHeader;
-    private final List<TxMsg> txs;
+    // Txs in raw format (it might contains partial Txs (broken in the middle):
+    private final byte[] txs;
     // This field stores the order of this Batch of Txs within the Block (zero-based)
     private final VarIntMsg txsOrderNumber;
 
-    public PartialBlockTXsMsg(BlockHeaderMsg blockHeader, List<TxMsg> txs, VarIntMsg txsOrderNumber) {
+    public PartialBlockRawDataMsg(BlockHeaderMsg blockHeader, byte[] txs, VarIntMsg txsOrderNumber) {
         this.blockHeader = blockHeader;
         this.txs = txs;
         this.txsOrderNumber = txsOrderNumber;
         init();
     }
 
-    public static PartialBlockTXsMsgBuilder builder() {
-        return new PartialBlockTXsMsgBuilder();
+    public static PartialBlockRawDataMsgBuilder builder() {
+        return new PartialBlockRawDataMsgBuilder();
     }
 
     @Override
     protected long calculateLength() {
-        return blockHeader.getLengthInBytes() + txs.stream().mapToLong(tx -> tx.getLengthInBytes()).sum() + txsOrderNumber.getLengthInBytes();
+        return blockHeader.getLengthInBytes() + txs.length + txsOrderNumber.getLengthInBytes();
     }
 
     @Override
     protected void validateMessage() {
-        if (txs == null || txs.size() == 0) throw new RuntimeException("The List of TXs is empty or null");
+        if (txs == null || txs.length == 0) throw new RuntimeException("TXs bytes is empty or null");
         if (txsOrderNumber.getValue() < 0) throw new RuntimeException("the txs Order Number must be >= 0");
     }
 
@@ -52,13 +53,13 @@ public final class PartialBlockTXsMsg extends Message implements Serializable {
         return this.txsOrderNumber;
     }
 
-    public List<TxMsg> getTxs() {
+    public byte[] getTxs() {
         return this.txs;
     }
 
     @Override
     public String toString() {
-        return "PartialBlockTXsMsg(blockHeader=" + this.getBlockHeader() + ", txs=" + this.getTxs() + ")";
+        return "PartialBlockRawDataMsg(blockHeader=" + this.getBlockHeader() + ", txs.length=" + this.getTxs().length + ")";
     }
 
     @Override
@@ -77,7 +78,7 @@ public final class PartialBlockTXsMsg extends Message implements Serializable {
         if (obj.getClass() != getClass()) {
             return false;
         }
-        PartialBlockTXsMsg other = (PartialBlockTXsMsg) obj;
+        PartialBlockRawDataMsg other = (PartialBlockRawDataMsg) obj;
         return Objects.equal(this.blockHeader, other.blockHeader)
             && Objects.equal(this.txs, other.txs)
             && Objects.equal(this.txsOrderNumber, other.txsOrderNumber);
@@ -86,31 +87,31 @@ public final class PartialBlockTXsMsg extends Message implements Serializable {
     /**
      * Builder
      */
-    public static class PartialBlockTXsMsgBuilder {
+    public static class PartialBlockRawDataMsgBuilder {
         private BlockHeaderMsg blockHeader;
-        private List<TxMsg> txs;
+        private byte[] txs;
         private VarIntMsg txsOrderNumber;
 
-        PartialBlockTXsMsgBuilder() {
+        PartialBlockRawDataMsgBuilder() {
         }
 
-        public PartialBlockTXsMsg.PartialBlockTXsMsgBuilder blockHeader(BlockHeaderMsg blockHeader) {
+        public PartialBlockRawDataMsgBuilder blockHeader(BlockHeaderMsg blockHeader) {
             this.blockHeader = blockHeader;
             return this;
         }
 
-        public PartialBlockTXsMsg.PartialBlockTXsMsgBuilder txs(List<TxMsg> txs) {
+        public PartialBlockRawDataMsgBuilder txs(byte[] txs) {
             this.txs = txs;
             return this;
         }
 
-        public PartialBlockTXsMsg.PartialBlockTXsMsgBuilder txsOrdersNumber(long orderNumber) {
+        public PartialBlockRawDataMsgBuilder txsOrdersNumber(long orderNumber) {
             this.txsOrderNumber = VarIntMsg.builder().value(orderNumber).build();
             return this;
         }
 
-        public PartialBlockTXsMsg build() {
-            return new PartialBlockTXsMsg(blockHeader, txs, txsOrderNumber);
+        public PartialBlockRawDataMsg build() {
+            return new PartialBlockRawDataMsg(blockHeader, txs, txsOrderNumber);
         }
     }
 }

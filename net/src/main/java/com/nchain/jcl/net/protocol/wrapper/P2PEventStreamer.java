@@ -152,7 +152,8 @@ public class P2PEventStreamer {
         public final EventStreamer<BlockDiscardedEvent>         BLOCK_DISCARDED             = new EventStreamer<>(eventBus, BlockDiscardedEvent.class);
         public final EventStreamer<BlockHeaderDownloadedEvent>  BLOCK_HEADER_DOWNLOADED     = new EventStreamer<>(eventBus, BlockHeaderDownloadedEvent.class);
         public final EventStreamer<BlockTXsDownloadedEvent>     BLOCK_TXS_DOWNLOADED        = new EventStreamer<>(eventBus, BlockTXsDownloadedEvent.class);
-        public final EventStreamer<BlockRawTXsDownloadedEvent>  BLOCK_RAW_TXS_DOWNLOADED    = new EventStreamer<>(eventBus, BlockRawTXsDownloadedEvent.class);
+        public final EventStreamer<BlockRawDataDownloadedEvent> BLOCK_RAW_DATA_DOWNLOADED = new EventStreamer<>(eventBus, BlockRawDataDownloadedEvent.class);
+        public final EventStreamer<BlockRawTXsDownloadedEvent> BLOCK_RAW_TXS_DOWNLOADED = new EventStreamer<>(eventBus, BlockRawTXsDownloadedEvent.class);
     }
 
     /**

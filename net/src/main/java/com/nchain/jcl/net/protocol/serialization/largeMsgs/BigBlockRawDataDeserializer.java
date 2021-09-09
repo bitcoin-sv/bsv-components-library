@@ -5,7 +5,6 @@ import com.nchain.jcl.net.protocol.messages.*;
 import com.nchain.jcl.net.protocol.serialization.BlockHeaderMsgSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
-import com.nchain.jcl.tools.bytes.ByteArrayReaderRealTime;
 import org.slf4j.Logger;
 
 import java.time.Duration;
@@ -21,24 +20,24 @@ import java.util.concurrent.ExecutorService;
  * "notify" provided by the parent Class. Those notifications will trigger callbacks that previously must have been
  * fed by the client of this class.
  */
-public class BigBlockRawDeserializer extends LargeMessageDeserializerImpl {
+public class BigBlockRawDataDeserializer extends LargeMessageDeserializerImpl {
 
     // Size of each Chunk of TXs in byte array format:
     private static final int TX_CHUNK_SIZE = 10_000_000;    // 10 MB
 
-    private static final Logger log = org.slf4j.LoggerFactory.getLogger(BigBlockRawDeserializer.class);
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(BigBlockRawDataDeserializer.class);
 
     // Once the Block Header is deserialzed, we keep a reference here, since we include it as well when we
     // deserialize each set of TXs:
     private BlockHeaderMsg blockHeader;
 
     /** Constructor */
-    public BigBlockRawDeserializer(ExecutorService executor) {
+    public BigBlockRawDataDeserializer(ExecutorService executor) {
         super(executor);
     }
 
     /** Constructor. Callbacks will be blocking */
-    public BigBlockRawDeserializer() {
+    public BigBlockRawDataDeserializer() {
         super(null);
     }
 
@@ -77,7 +76,7 @@ public class BigBlockRawDeserializer extends LargeMessageDeserializerImpl {
                 // We notify about a new Batch of TX Deserialized...
                 log.trace("Batch of " + TX_CHUNK_SIZE + " bytes of Txs deserialized :: "
                         + Duration.between(deserializingTime, Instant.now()).toMillis() + " milissecs...");
-                PartialBlockRawTXsMsg partialBlockRawTXs = PartialBlockRawTXsMsg.builder()
+                PartialBlockRawDataMsg partialBlockRawTXs = PartialBlockRawDataMsg.builder()
                         .blockHeader(blockHeader)
                         .txs(chunk)
                         .txsOrdersNumber(txsOrderNumber)

@@ -3,6 +3,8 @@ package com.nchain.jcl.net.protocol.messages;
 import com.google.common.base.Objects;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
+import java.io.Serializable;
+
 
 /**
  * @author m.jose@nchain.com
@@ -20,7 +22,7 @@ import com.nchain.jcl.net.protocol.messages.common.Message;
  *   identify the ping message to which it is replying.
  *
  */
-public final class PingMsg extends Message {
+public final class PingMsg extends Message implements Serializable {
     public static final String MESSAGE_TYPE = "ping";
     protected static final int FIXED_MESSAGE_LENGTH = 8;
 

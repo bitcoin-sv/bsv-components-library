@@ -180,7 +180,7 @@ class BlockDownloadTest extends Specification {
             })
 
             // Every time a set of RAW TXs is downloaded, we increase the counter of Txs for this block:
-            p2p.EVENTS.BLOCKS.BLOCK_RAW_TXS_DOWNLOADED.forEach({e ->
+            p2p.EVENTS.BLOCKS.BLOCK_RAW_DATA_DOWNLOADED.forEach({ e ->
                 String hash = Utils.HEX.encode(Utils.reverseBytes(e.getBtcMsg().body.getBlockHeader().getHash().getHashBytes()))
                 Long currentTxsBytes = blockTxsBytes.containsKey(hash)? (blockTxsBytes.get(hash) + e.getBtcMsg().body.getTxs().length) : e.getBtcMsg().body.getTxs().length
                 println(currentTxsBytes + " bytes of Txs downloaded of the block " + hash + " from " + e.getPeerAddress());

@@ -11,6 +11,7 @@ import io.bitcoinj.bitcoin.bean.base.TxOutputBean;
 import io.bitcoinj.core.Coin;
 import io.bitcoinj.core.Sha256Hash;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -39,7 +40,7 @@ import java.util.Random;
  *  - field: "tx_out" (4 bytes) var_int
  *  The block number or timestamp at which this transaction is unlocked:
  */
-public class TxMsg extends Message {
+public class TxMsg extends Message implements Serializable {
 
     public static final String MESSAGE_TYPE = "tx";
 
