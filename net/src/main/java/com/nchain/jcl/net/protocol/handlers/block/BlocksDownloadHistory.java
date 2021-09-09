@@ -177,7 +177,7 @@ public class BlocksDownloadHistory {
                             .filter(hash ->
                                     (getLastActivity(hash).isPresent()
                                         && Duration.between(getLastActivity(hash).get(), Instant.now()).compareTo(cleaningTimeout) > 0)
-                                        && (blocksMarkedForDeletion.contains(hash)))
+                                        || (blocksMarkedForDeletion.contains(hash)))
                             .collect(Collectors.toList());
                     // We remove its history and also form the markForDeletion Map:
                     hashesToClean.forEach(this::clean);
