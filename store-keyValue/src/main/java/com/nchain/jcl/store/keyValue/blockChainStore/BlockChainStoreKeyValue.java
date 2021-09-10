@@ -91,8 +91,6 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     String KEY_SUFFIX_PATHS_LAST     = "last";
     String KEY_PREFFIX_PATH          = "chain_path";
 
-
-
     /* Functions to generate Simple Keys in String format: */
 
     default String keyForBlockNext(String blockHash)        { return KEY_PREFFIX_BLOCK_PROP + blockHash + KEY_SEPARATOR + KEY_SUFFIX_BLOCK_NEXT + KEY_SEPARATOR; }
@@ -315,7 +313,14 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             blockChainInfo = _getBlockChainInfo(blockHeader, parentBlockChainInfo, pathIdForNewBlock);
         }
 
+        //save the block
+        _saveBlockChainInfo(tr, blockChainInfo);
+
+        // We store a Key to link the HEIGHT with its Hash, so we can retrieve it later by its Height in O(1) time...
+        _saveBlockHashByHeight(tr, blockChainInfo.getBlockHash(), blockChainInfo.getHeight());
+
         try{
+            //we validate block afterwards as the validation will look up state from the blockstore.
             _validateBlock(blockHeader, blockChainInfo);
         } catch (BlockChainRuleFailureException ex) {
             //remove all traces from the block if it's invalid
@@ -324,11 +329,6 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             throw ex;
         }
 
-        //block is valid, save
-        _saveBlockChainInfo(tr, blockChainInfo);
-
-        // We store a Key to link the HEIGHT with its Hash, so we can retrieve it later by its Height in O(1) time...
-        _saveBlockHashByHeight(tr, blockChainInfo.getBlockHash(), blockChainInfo.getHeight());
 
         // Now we update the tips of the Chain:
         List<String> tipsChain = _getChainTips(tr);
@@ -628,6 +628,132 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         } finally {
             getLock().readLock().unlock();
         }
+    }
+
+    @Override
+    default Optional<ChainInfo> getAncestorByHeight(Sha256Hash blockHash, int ancestorHeight) {
+
+        try {
+            getLock().readLock().lock();
+            AtomicReference<ChainInfo> result = new AtomicReference<>();
+
+            T tr = createTransaction();
+            executeInTransaction(tr, () -> {
+                BlockChainInfo currentBlock = _getBlockChainInfo(tr, blockHash.toString());
+                List<BlockChainInfo> ancestorBlocks = _getBlockHashesByHeight(tr, ancestorHeight).getHashes().stream().map(h -> _getBlockChainInfo(tr, h)).collect(Collectors.toList());
+
+                if(currentBlock == null || ancestorBlocks.isEmpty()){
+                    return;
+                }
+
+                if(currentBlock.getHeight() < ancestorHeight) {
+                    return;
+                }
+
+                //starting path
+                ChainPathInfo chainPathInfo = _getChainPathInfo(tr, currentBlock.getChainPathId());
+
+                //recursively loop up the given blocks chain paths, if one of the ancestor blocks is on the same path, then we know it's a direct ancestor
+                BlockChainInfo ancestorBlock = null;
+                while(chainPathInfo != null){
+                    for(BlockChainInfo blockChainInfo : ancestorBlocks){
+                        if(blockChainInfo.getChainPathId() == chainPathInfo.getId()) {
+                            ancestorBlock = blockChainInfo;
+                            break;
+                        }
+                    }
+                    chainPathInfo = _getChainPathInfo(tr, chainPathInfo.getParent_id());
+                }
+
+                HeaderReadOnly ancestorBlockHeader = _getBlock(tr, ancestorBlock.getBlockHash());
+
+                ChainInfoBean chainInfoResult = new ChainInfoBean(ancestorBlockHeader);
+                chainInfoResult.setChainWork(ancestorBlock.getChainWork());
+                chainInfoResult.setHeight(ancestorBlock.getHeight());
+                chainInfoResult.makeImmutable();
+
+                result.set(chainInfoResult);
+            });
+
+            return Optional.ofNullable(result.get());
+
+        } finally {
+            getLock().readLock().unlock();
+        }
+    }
+
+    @Override
+    default Optional<ChainInfo> getLowestCommonAncestor(List<Sha256Hash> blockHashes) {
+
+        try {
+            getLock().readLock().lock();
+            AtomicReference<ChainInfo> result = new AtomicReference<>();
+
+            T tr = createTransaction();
+            executeInTransaction(tr, () -> {
+                Set<BlockChainInfo> leafNodeSet = new TreeSet<>(Comparator.comparing(BlockChainInfo::getHeight).reversed());
+
+                // we loop through each of the chain path histories, taking the common root ancestors, then the ancestor with the largest height will be the highest common ancestor
+                for(Sha256Hash hash : blockHashes){
+                    BlockChainInfo chainInfo = _getBlockChainInfo(tr, hash.toString());
+
+                    if(chainInfo == null)
+                        return;
+
+                    //we will store all ancestors up to genesis
+                    Set<BlockChainInfo> ancestorRootNodes = new TreeSet<>(Comparator.comparing(BlockChainInfo::getHeight));
+
+                    //starting path
+                    ChainPathInfo chainPathInfo = _getChainPathInfo(tr, chainInfo.getChainPathId());
+
+                    //recursively loop up the chain paths, and get the first nodes parent in that branch. The parent is the common ancestor. Then take the intersection of all three lists to
+                    //find the common ancestor(s). Then we take the ancestor with the highest height from the new intersected list.
+                    while(chainPathInfo != null){
+                        HeaderReadOnly firstNodeBlock = _getBlock(tr, chainPathInfo.getBlockHash());
+                        BlockChainInfo rootNodeBlockChainInfo;
+
+                        //secial handling for genesis branch, as genesis blocks parent is itself
+                        if(firstNodeBlock.getPrevBlockHash().equals(Sha256Hash.ZERO_HASH)){
+                            rootNodeBlockChainInfo = _getBlockChainInfo(tr, firstNodeBlock.getHash().toString());
+                        } else {
+                            rootNodeBlockChainInfo = _getBlockChainInfo(tr, firstNodeBlock.getPrevBlockHash().toString());
+                        }
+
+                        //Add to list of common ancestors
+                        ancestorRootNodes.add(rootNodeBlockChainInfo);
+
+                        //recursively loop up the paths
+                        chainPathInfo = _getChainPathInfo(tr, chainPathInfo.getParent_id());
+                    }
+
+                    //we want to keep the intersection between all the sets, if this is the first loop then the intersection will be an empty set, so just copy it over.
+                    if(leafNodeSet.isEmpty()){
+                        leafNodeSet.addAll(ancestorRootNodes);
+                    } else {
+                        //if not, then the intersection is the common ancestors between both lists
+                        leafNodeSet.retainAll(ancestorRootNodes);
+                    }
+                }
+
+                //As this list is sorted by height decending, the first in the list will be the common ancestor with the highest height
+                BlockChainInfo lowestCommonAncestorChainInfo = leafNodeSet.iterator().next();
+                HeaderReadOnly lowestCommonAncestorHeader = _getBlock(tr, lowestCommonAncestorChainInfo.getBlockHash());
+
+                ChainInfoBean chainInfoResult = new ChainInfoBean(lowestCommonAncestorHeader);
+                chainInfoResult.setChainWork(lowestCommonAncestorChainInfo.getChainWork());
+                chainInfoResult.setHeight(lowestCommonAncestorChainInfo.getHeight());
+                chainInfoResult.makeImmutable();
+
+                //the first element in the set, is now the higest common ancestor
+                result.set(chainInfoResult);
+            });
+
+            return Optional.ofNullable(result.get());
+
+        } finally {
+            getLock().readLock().unlock();
+        }
+
     }
 
     @Override
