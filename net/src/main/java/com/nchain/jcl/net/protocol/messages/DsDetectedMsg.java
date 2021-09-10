@@ -9,6 +9,8 @@ import java.util.List;
  * @author m.fletcher@nchain.com
  * Copyright (c) 2018-2021 nChain Ltd
  * @date 24/08/2021
+ *
+ * This message is the main message to be submitted in the event of a double spend. Containing the transaction, block and history information needed in order to verify the double spend.
  */
 public class DsDetectedMsg extends Message {
 

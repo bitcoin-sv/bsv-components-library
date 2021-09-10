@@ -9,6 +9,8 @@ import java.util.List;
  * @author m.fletcher@nchain.com
  * Copyright (c) 2018-2021 nChain Ltd
  * @date 24/08/2021
+ *
+ * This message is used by the BlockDetailsMsg, and contains a list of ancestor histories up to the point of the fork, along with the merkle proof msg of the block that contains the double spend.
  */
 public class BlockDetailsMsg extends Message {
 

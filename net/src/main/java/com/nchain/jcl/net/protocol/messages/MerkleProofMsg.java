@@ -11,6 +11,10 @@ import java.util.List;
  * @author m.fletcher@nchain.com
  * Copyright (c) 2018-2021 nChain Ltd
  * @date 24/08/2021
+ *
+ * The merkle proof message contains the transaction, a merkle nodes in order to verify the transaction was a member of a given header. The flag field indicates the structure of the message that will be deserialized,
+ * but in this case, it's currently hardcoded and the message structure will not change. But, it's possible to generate similar merkle proof messages that contain different pieces of information by amending the flag,
+ * see: https://tsc.bitcoinassociation.net/standards/merkle-proof-standardised-format/
  */
 public class MerkleProofMsg extends Message {
 
