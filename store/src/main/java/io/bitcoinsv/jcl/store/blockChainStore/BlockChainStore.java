@@ -71,6 +71,16 @@ public interface BlockChainStore extends BlockStore {
     List<Sha256Hash> getTipsChains(Sha256Hash blockHash);
 
     /**
+     * Efficently returns the Lowest common ancestor between the given list of blocks.
+     */
+    Optional<ChainInfo> getLowestCommonAncestor(List<Sha256Hash> blockHashes);
+
+    /**
+     * Gets the given blocks ancestor by height
+     */
+    Optional<ChainInfo> getAncestorByHeight(Sha256Hash blockHash, int height);
+
+    /**
      * Returns the FIRST Block in the same Path as the block given.
      * If the block has been saved before a Fork, then this method will return the GENESIS Block.
      * If the block has been saved after a Fork, then this method will return the FIRST Block saved after that Fork

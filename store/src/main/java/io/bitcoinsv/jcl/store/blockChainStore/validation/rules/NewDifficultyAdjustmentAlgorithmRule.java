@@ -4,6 +4,7 @@
  */
 package io.bitcoinsv.jcl.store.blockChainStore.validation.rules;
 
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 import io.bitcoinsv.jcl.store.blockChainStore.BlockChainStore;
 import io.bitcoinsv.jcl.store.blockChainStore.validation.exception.BlockChainRuleFailureException;
 import io.bitcoinsv.jcl.tools.util.PowUtil;
@@ -56,8 +57,8 @@ public class NewDifficultyAdjustmentAlgorithmRule extends AbstractBlockChainRule
      * input, this ensures the algorithm is more resistant to malicious inputs.
      */
     private void checkNextCashWorkRequired(ChainInfo candidateBlock, BlockChainStore blockChainStore) throws BlockChainRuleFailureException {
-        ChainInfo last = GetMostSuitableBlock(candidateBlock.getHeight(), blockChainStore);
-        ChainInfo first = GetMostSuitableBlock(candidateBlock.getHeight() - AVERAGE_BLOCKS_PER_DAY, blockChainStore);
+        ChainInfo last = GetMostSuitableBlock(candidateBlock.getHeader().getHash(), candidateBlock.getHeight(), blockChainStore);
+        ChainInfo first = GetMostSuitableBlock(candidateBlock.getHeader().getHash(), candidateBlock.getHeight() - AVERAGE_BLOCKS_PER_DAY, blockChainStore);
 
             BigInteger nextTarget = Verification.ComputeTarget(
                     first.getChainWork(), first.getHeader().getTime(), first.getHeight(),
@@ -69,7 +70,7 @@ public class NewDifficultyAdjustmentAlgorithmRule extends AbstractBlockChainRule
      * To reduce the impact of timestamp manipulation, we select the block we are
      * basing our computation on via a median of 3.
      */
-    private ChainInfo GetMostSuitableBlock(int candidateBlockIndex, BlockChainStore blockChainStore) throws BlockChainRuleFailureException {
+    private ChainInfo GetMostSuitableBlock(Sha256Hash candidateBlockHash, int candiateBlockHeight, BlockChainStore blockChainStore) throws BlockChainRuleFailureException {
         /**
          * In order to avoid a block is a very skewed timestamp to have too much
          * influence, we select the median of the 3 top most blocks as a starting
@@ -78,12 +79,12 @@ public class NewDifficultyAdjustmentAlgorithmRule extends AbstractBlockChainRule
         // TODO: This needs reviewing, now that we support Forks (multiple ChainInfo at a certain height)
         // NOTE: We assume the are not fork!! If the list of ChainInfos for a certain Height returns more than one Block,
         // we just take the first one:
-        List<ChainInfo> blocksAtHeightMinus1 = blockChainStore.getBlock(candidateBlockIndex - 1);
-        List<ChainInfo> blocksAtHeightMinus2 = blockChainStore.getBlock(candidateBlockIndex - 2);
-        List<ChainInfo> blocksAtHeightMinus3 = blockChainStore.getBlock(candidateBlockIndex - 3);
-        Optional<ChainInfo> firstBlockAtHeightMinus1 = Optional.of((blocksAtHeightMinus1 != null && !blocksAtHeightMinus1.isEmpty()) ? blocksAtHeightMinus1.get(0) : null);
-        Optional<ChainInfo> firstBlockAtHeightMinus2 = Optional.of((blocksAtHeightMinus2 != null && !blocksAtHeightMinus2.isEmpty()) ? blocksAtHeightMinus2.get(0) : null);
-        Optional<ChainInfo> firstBlockAtHeightMinus3 = Optional.of((blocksAtHeightMinus3 != null && !blocksAtHeightMinus3.isEmpty()) ? blocksAtHeightMinus3.get(0) : null);
+        Optional<ChainInfo> blocksAtHeightMinus1 = blockChainStore.getAncestorByHeight(candidateBlockHash, candiateBlockHeight - 1);
+        Optional<ChainInfo> blocksAtHeightMinus2 = blockChainStore.getAncestorByHeight(candidateBlockHash, candiateBlockHeight - 2);
+        Optional<ChainInfo> blocksAtHeightMinus3 = blockChainStore.getAncestorByHeight(candidateBlockHash, candiateBlockHeight - 3);
+        Optional<ChainInfo> firstBlockAtHeightMinus1 = Optional.of((blocksAtHeightMinus1 != null && !blocksAtHeightMinus1.isEmpty()) ? blocksAtHeightMinus1.get() : null);
+        Optional<ChainInfo> firstBlockAtHeightMinus2 = Optional.of((blocksAtHeightMinus2 != null && !blocksAtHeightMinus2.isEmpty()) ? blocksAtHeightMinus2.get() : null);
+        Optional<ChainInfo> firstBlockAtHeightMinus3 = Optional.of((blocksAtHeightMinus3 != null && !blocksAtHeightMinus3.isEmpty()) ? blocksAtHeightMinus3.get() : null);
 
         ChainInfo blocks[] = new ChainInfo[3];
         blocks[2] = firstBlockAtHeightMinus1.orElseThrow(() -> new BlockChainRuleFailureException("Not enough blocks in blockStore to calculate difficulty"));
