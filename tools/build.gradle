@@ -36,7 +36,7 @@ repositories {
 dependencies {
 
     // Compile Dependencies:
-    implementation "io.bitcoinj:bitcoinj-base:2.0-SNAPSHOT"
+    implementation "io.bitcoinsv.bitcoinjsv:bitcoinj-base:1.0.0"
     implementation 'org.slf4j:slf4j-api:1.7.26'
     implementation 'com.madgag.spongycastle:core:1.51.0.0'
 
