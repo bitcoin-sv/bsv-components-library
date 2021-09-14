@@ -2,6 +2,8 @@ package com.nchain.jcl.tools.bytes;
 
 import io.bitcoinj.core.Utils;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 
 /**
@@ -36,7 +38,10 @@ public class ByteArrayWriter {
 
     public void writeUint16LE(int value){
         byte[] out = new byte[2];
-        Utils.uint16ToByteArrayLE(value, out, 0);
+
+        out[0] = (byte) (255L & value);
+        out[1] = (byte) (255L & value >> 8);
+
         buffer.add(out);
     }
 
