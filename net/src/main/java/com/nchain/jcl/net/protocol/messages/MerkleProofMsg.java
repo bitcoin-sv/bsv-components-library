@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.protocol.messages;
 
 import com.nchain.jcl.net.protocol.messages.common.Message;
+import com.nchain.jcl.net.protocol.messages.merkle.MerkleNode;
 import com.nchain.jcl.net.protocol.messages.merkle.MerkleProofMsgFlags;
 import io.bitcoinj.core.Sha256Hash;
 
@@ -18,7 +19,7 @@ import java.util.List;
  */
 public class MerkleProofMsg extends Message {
 
-    public static final String MESSAGE_TYPE = "blockdetails";
+    public static final String MESSAGE_TYPE = "merkleproof";
 
     private MerkleProofMsgFlags flags;
     private VarIntMsg transactionIndex;
@@ -26,7 +27,7 @@ public class MerkleProofMsg extends Message {
     private TxMsg transaction;
     private HashMsg target;
     private VarIntMsg nodeCount;
-    private List<HashMsg> nodes;
+    private List<MerkleNode> nodes;
 
     public MerkleProofMsg() {
         init();
@@ -98,11 +99,11 @@ public class MerkleProofMsg extends Message {
         this.nodeCount = nodeCount;
     }
 
-    public List<HashMsg> getNodes() {
+    public List<MerkleNode> getNodes() {
         return nodes;
     }
 
-    public void setNodes(List<HashMsg> nodes) {
+    public void setNodes(List<MerkleNode> nodes) {
         this.nodes = nodes;
     }
 
@@ -113,7 +114,7 @@ public class MerkleProofMsg extends Message {
         private TxMsg transaction;
         private HashMsg target;
         private VarIntMsg nodeCount;
-        private List<HashMsg> nodes;
+        private List<MerkleNode> nodes;
 
         private MerkleProofMsgBuilder() {
         }
@@ -152,7 +153,7 @@ public class MerkleProofMsg extends Message {
             return this;
         }
 
-        public MerkleProofMsgBuilder withNodes(List<HashMsg> nodes) {
+        public MerkleProofMsgBuilder withNodes(List<MerkleNode> nodes) {
             this.nodes = nodes;
             return this;
         }

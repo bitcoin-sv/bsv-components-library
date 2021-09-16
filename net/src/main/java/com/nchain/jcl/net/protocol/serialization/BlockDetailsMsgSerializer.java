@@ -41,7 +41,7 @@ public class BlockDetailsMsgSerializer implements MessageSerializer<BlockDetails
 
         List<BlockHeaderMsg> blockHeaderMsgList = new ArrayList<>();
         for(int i = 0; i < headerCount.getValue(); i++){
-            blockHeaderMsgList.add(BlockHeaderMsgSerializer.getInstance().deserialize(context,byteReader));
+            blockHeaderMsgList.add(DsDetectedBlockHeaderMsgSerializer.getInstance().deserialize(context,byteReader));
         }
 
         return BlockDetailsMsg.builder()
@@ -57,7 +57,7 @@ public class BlockDetailsMsgSerializer implements MessageSerializer<BlockDetails
         VarIntMsgSerializer.getInstance().serialize(context, message.getHeaderCount(), byteWriter);
 
         for(int i = 0; i < message.getHeaderCount().getValue(); i++){
-            BlockHeaderMsgSerializer.getInstance().serialize(context, message.getHeaderMsg().get(i), byteWriter);
+            DsDetectedBlockHeaderMsgSerializer.getInstance().serialize(context, message.getHeaderMsg().get(i), byteWriter);
         }
 
         MerkleProofMsgSerializer.getInstance().serialize(context, message.getMerkleProofMsg(), byteWriter);

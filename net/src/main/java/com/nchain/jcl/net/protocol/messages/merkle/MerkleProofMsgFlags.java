@@ -6,12 +6,14 @@ package com.nchain.jcl.net.protocol.messages.merkle;
  * @date 25/08/2021
  */
 public class MerkleProofMsgFlags {
-    private MerkleProofMsgTxFlagType merkleProofMsgTxFlagType;
-    private MerkleProofMsgTargetFlagType merkleProofMsgTargetFlagType;
-    private MerkleProofMsgProofFlagType merkleProofMsgProofFlagType;
-    private MerkleProofMsgCompositeFlagType merkleProofMsgCompositeFlagType;
+    private final byte flag;
+    private final MerkleProofMsgTxFlagType merkleProofMsgTxFlagType;
+    private final MerkleProofMsgTargetFlagType merkleProofMsgTargetFlagType;
+    private final MerkleProofMsgProofFlagType merkleProofMsgProofFlagType;
+    private final MerkleProofMsgCompositeFlagType merkleProofMsgCompositeFlagType;
 
     public MerkleProofMsgFlags(byte flag){
+        this.flag = flag;
         merkleProofMsgTxFlagType = MerkleProofMsgTxFlagType.fromCode(flag & 0x01);
         merkleProofMsgTargetFlagType = MerkleProofMsgTargetFlagType.fromCode(flag & (0x04 | 0x02));
         merkleProofMsgProofFlagType = MerkleProofMsgProofFlagType.fromCode(flag & 0x08);
@@ -22,31 +24,21 @@ public class MerkleProofMsgFlags {
         return merkleProofMsgTxFlagType;
     }
 
-    public void setMerkleProofMsgTxFlagType(MerkleProofMsgTxFlagType merkleProofMsgTxFlagType) {
-        this.merkleProofMsgTxFlagType = merkleProofMsgTxFlagType;
-    }
-
     public MerkleProofMsgTargetFlagType getMerkleProofMsgTargetFlagType() {
         return merkleProofMsgTargetFlagType;
-    }
-
-    public void setMerkleProofMsgTargetFlagType(MerkleProofMsgTargetFlagType merkleProofMsgTargetFlagType) {
-        this.merkleProofMsgTargetFlagType = merkleProofMsgTargetFlagType;
     }
 
     public MerkleProofMsgProofFlagType getMerkleProofMsgProofFlagType() {
         return merkleProofMsgProofFlagType;
     }
 
-    public void setMerkleProofMsgProofFlagType(MerkleProofMsgProofFlagType merkleProofMsgProofFlagType) {
-        this.merkleProofMsgProofFlagType = merkleProofMsgProofFlagType;
-    }
-
     public MerkleProofMsgCompositeFlagType getMerkleProofMsgCompositeFlagType() {
         return merkleProofMsgCompositeFlagType;
     }
 
-    public void setMerkleProofMsgCompositeFlagType(MerkleProofMsgCompositeFlagType merkleProofMsgCompositeFlagType) {
-        this.merkleProofMsgCompositeFlagType = merkleProofMsgCompositeFlagType;
+    public byte getFlag() {
+        return flag;
     }
+
+
 }
