@@ -15,6 +15,7 @@ import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.handlers.HandlerImpl;
 import com.nchain.jcl.tools.log.LoggerUtil;
 import com.nchain.jcl.tools.thread.ThreadUtils;
+import io.bitcoinj.core.Sha256Hash;
 import io.bitcoinj.core.Utils;
 
 import java.time.Duration;
@@ -79,9 +80,12 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
     // En Executor and a Listener to trigger jobs in parallels.
     private ExecutorService executor;
 
+    // This Managers stores the list of Pending Blocks and has some logic inside to decide what is the "best" block
+    // to download from an specific Peer, based on configuration:
+    private BlocksPendingManager blocksPendingManager;
+
     // Structures to keep track of the download process:
     private Map<String, Integer>    blocksNumDownloadAttempts = new ConcurrentHashMap<>();
-    private Deque<String>           blocksPending = new ConcurrentLinkedDeque<>();
     private List<String>            blocksDownloaded = new CopyOnWriteArrayList<>();
     private Map<String, Instant>    blocksDiscarded = new ConcurrentHashMap<>();
 
@@ -121,12 +125,12 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
     // we need to keep track of the number of TXs contained in each block. When we detect that all the TXs within
     // a block have been deserialized, we mark it as finished.
 
-    private Map<String, PartialBlockHeaderMsg>   bigBlocksHeaders   = new ConcurrentHashMap<>();
-    private Map<String, Long>                    bigBlocksCurrentTxs = new ConcurrentHashMap();
+    private Map<String, PartialBlockHeaderMsg>   bigBlocksHeaders       = new ConcurrentHashMap<>();
+    private Map<String, Long>                    bigBlocksCurrentTxs    = new ConcurrentHashMap();
 
     // And A block might be downloaded in RAW Format, that means that each Batch of Txs contains a byte array of Txs. In
     // this case, we detect that we got the whole block when we received the total number of Bytes.
-    private Map<String, Long>                    bigBlocksCurrentBytes = new ConcurrentHashMap<>();
+    private Map<String, Long>                    bigBlocksCurrentBytes  = new ConcurrentHashMap<>();
 
     // We keep track of some indicators:
     private AtomicLong totalReattempts = new AtomicLong();
@@ -141,6 +145,11 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
         this.downloadingState = DonwloadingState.RUNNING;
         this.blocksDownloadHistory = new BlocksDownloadHistory();
         this.blocksDownloadHistory.setCleaningTimeout(config.getBlockHistoryTimeout());
+
+        this.blocksPendingManager = new BlocksPendingManager();
+        if (config.isOnlyDownloadAfterAnnouncement()) {
+            blocksPendingManager.onlyDownloadAfterAnnouncement();
+        }
     }
 
     private void registerForEvents() {
@@ -168,6 +177,9 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
         super.eventBus.subscribe(BlocksCancelDownloadRequest.class, e -> this.cancelDownload(((BlocksCancelDownloadRequest) e).getBlockHashes()));
         super.eventBus.subscribe(BlocksDownloadStartRequest.class, e -> this.resume());
         super.eventBus.subscribe(BlocksDownloadPauseRequest.class, e -> this.pause());
+
+        // We get notified about a block being announced:
+        super.eventBus.subscribe(InvMsgReceivedEvent.class, e -> this.onInvMsgReceived((InvMsgReceivedEvent) e));
     }
 
     // Returns the total size (in bytes) of all the blocks being downloaded at this moment
@@ -207,7 +219,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
 
         return BlockDownloaderHandlerState.builder()
                 .downloadingState(this.downloadingState)
-                .pendingBlocks(this.blocksPending.stream().collect(Collectors.toList()))
+                .pendingBlocks(this.blocksPendingManager.getPendingBlocks().stream().collect(Collectors.toList()))
                 .downloadedBlocks(this.blocksDownloaded)
                 .discardedBlocks(this.blocksDiscarded.keySet().stream().collect(Collectors.toList()))
                 .pendingToCancelBlocks(this.blocksPendingToCancel.stream().collect(Collectors.toList()))
@@ -248,9 +260,9 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                     .forEach(b -> {
                         logger.debug(" Block " + b);
                         if (withPriority) {
-                            blocksPending.offerFirst(b);
+                            blocksPendingManager.addWithPriority(b);
                         } else {
-                            blocksPending.offer(b);
+                            blocksPendingManager.add(b);
                         }
 
                     });
@@ -342,6 +354,17 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
         } finally {
             lock.unlock();
         }
+    }
+
+    // Event Handler:
+    // We register the Peers that are announcing Blocks:
+    public void onInvMsgReceived(InvMsgReceivedEvent event) {
+        event.getBtcMsg().getBody().getInvVectorList().stream()
+                .filter(item -> item.getType().equals(InventoryVectorMsg.VectorType.MSG_BLOCK))
+                .forEach(item -> {
+                    String blockHash = Sha256Hash.wrapReversed(item.getHashMsg().getHashBytes()).toString();
+                    blocksPendingManager.registerBlockAnnouncement(blockHash, event.getPeerAddress());
+                });
     }
 
     // Event Handler:
@@ -650,10 +673,10 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
 
             // the only scenario when a Block can NOT be cancelling is when it's been actively being downloaded. In the
             // rest of cases, we cancel and remove it from our internal structures:
-            if (blocksPending.contains(blockHash) || blocksDiscarded.containsKey(blockHash)) {
+            if (blocksPendingManager.contains(blockHash) || blocksDiscarded.containsKey(blockHash)) {
 
                 blocksInLimbo.remove(blockHash);
-                blocksPending.remove(blockHash);
+                blocksPendingManager.remove(blockHash);
                 blocksDiscarded.remove(blockHash);
                 blocksNumDownloadAttempts.remove(blockHash);
                 bigBlocksHeaders.remove(blockHash);
@@ -693,8 +716,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
             if (numAttempts < config.getMaxDownloadAttempts()) {
                 logger.debug("Download failure for " + blockHash + " :: back to the pending Pool...");
                 blocksDownloadHistory.register(blockHash, "Block moved back to the pending Pool");
-                blocksPending.offerFirst(blockHash);        // we add it to the FRONT of the Queue
-                this.totalReattempts.incrementAndGet();     // keep track of total re-attempts
+                blocksPendingManager.addWithPriority(blockHash); // we add it to the FRONT of the Queue
+                this.totalReattempts.incrementAndGet();                       // keep track of total re-attempts
             } else {
                 logger.debug("Download failure for " + blockHash, numAttempts + " attempts (max " + config.getMaxDownloadAttempts() + ")", "discarding Block...");
                 blocksDownloadHistory.register(blockHash,   "block discarded (max attempts broken, reset to zero)");
@@ -734,7 +757,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
             // We update other structures (num Attempts on this block, and blocks pendings, etc):
             blocksLastActivity.put(blockHash, Instant.now());
             blocksNumDownloadAttempts.put(blockHash,numAttempts);
-            blocksPending.remove(blockHash);
+            blocksPendingManager.remove(blockHash);
 
             // We update the accumulative "busyPercentage" field:
             this.busyPercentage.set(getUpdatedBusyPercentage());
@@ -800,8 +823,11 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                                       || ((numPeersWorking < config.getMaxBlocksInParallel()) && !bandwidthRestricted);
 
                               // If we can download more Blocks, we assign one to it...
-                              if (isRunning() && moreDownloadsAllowed && (blocksPending.size() > 0)) {
-                                      startDownloading(peerInfo, blocksPending.poll());
+                              if (isRunning() && moreDownloadsAllowed && (blocksPendingManager.size() > 0)) {
+                                  Optional<String> blockHashToDownload = blocksPendingManager.extractMostSuitableBlockForDownload(peerAddress);
+                                  if (blockHashToDownload.isPresent()) {
+                                      startDownloading(peerInfo, blockHashToDownload.get());
+                                  }
                               }
                               break;
                           }
@@ -854,7 +880,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                         for (String hashToRetry : blocksToReTry) {
                               blocksDiscarded.remove(hashToRetry);
                               blocksDownloadHistory.register(hashToRetry, "Block picked up again to re-attempt download...");
-                              blocksPending.offerFirst(hashToRetry); // blocks to retry have preference...
+                              blocksPendingManager.addWithPriority(hashToRetry); // blocks to retry have preference...
                           }
                       }
                 } finally {

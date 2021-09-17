@@ -7,6 +7,7 @@ import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandlerConfig
 import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandlerState
 import com.nchain.jcl.net.protocol.handlers.block.BlocksDownloadHistory
+import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandlerConfig
 import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerConfig
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg
 import com.nchain.jcl.net.protocol.wrapper.P2P
@@ -35,7 +36,7 @@ class BlockDownloadTest extends Specification {
     // BSV MAINNET:
 
     private static final List<String> BLOCKS_BSV_MAIN = Arrays.asList(
-            "0000000000000000052c4236c4c34dc7686f8285e2646a584785b8d3b1eb8779", // 1.25GB
+           // "0000000000000000052c4236c4c34dc7686f8285e2646a584785b8d3b1eb8779", // 1.25GB
             "000000000000000002f5268d72f9c79f29bef494e350e58f624bcf28700a1846", // 369MB
             "0000000000000000027abeb2a2348dac5f953676f6b68a6ed5d92458a1c12cab", // 0.6MB
             "000000000000000000dd6c89655ca27fd2555247232a5ced8376f5bda0d26ec4", // 12MB
@@ -120,9 +121,14 @@ class BlockDownloadTest extends Specification {
 
             // Basic Config:
             ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
-                .minPeers(OptionalInt.of(100))
-                .maxPeers(OptionalInt.of(110))
+                .minPeers(OptionalInt.of(10))
+                .maxPeers(OptionalInt.of(15))
                 .build()
+
+            // We enable the Tx Relay:
+            HandshakeHandlerConfig handshakeConfig = config.getHandshakeConfig().toBuilder()
+                .relayTxs(true)
+                .build();
 
             // Serialization Config:
             MessageHandlerConfig messageConfig = config.getMessageConfig().toBuilder()
@@ -135,6 +141,7 @@ class BlockDownloadTest extends Specification {
                 .maxIdleTimeout(Duration.ofSeconds(10))
                 .removeBlockHistoryAfterDownload(false)
                 .removeBlockHistoryAfter(Duration.ofMinutes(10))
+                .onlyDownloadAfterAnnouncement(true)
                 .build()
 
             // We configure the P2P Service:
@@ -143,6 +150,7 @@ class BlockDownloadTest extends Specification {
                 .config(networkConfig)
                 .config(config)
                 .config(basicConfig)
+                .config(handshakeConfig)
                 .config(messageConfig)
                 .config(blockConfig)
                 .publishStates(Duration.ofMillis(500))
@@ -180,9 +188,11 @@ class BlockDownloadTest extends Specification {
             })
 
             // Every time a set of RAW TXs is downloaded, we increase the counter of Txs for this block:
-            p2p.EVENTS.BLOCKS.BLOCK_RAW_DATA_DOWNLOADED.forEach({ e ->
+            p2p.EVENTS.BLOCKS.BLOCK_RAW_TXS_DOWNLOADED.forEach({ e ->
                 String hash = Utils.HEX.encode(Utils.reverseBytes(e.getBtcMsg().body.getBlockHeader().getHash().getHashBytes()))
-                Long currentTxsBytes = blockTxsBytes.containsKey(hash)? (blockTxsBytes.get(hash) + e.getBtcMsg().body.getTxs().length) : e.getBtcMsg().body.getTxs().length
+                Long currentTxsBytes = blockTxsBytes.containsKey(hash)
+                        ? (blockTxsBytes.get(hash) + e.getBtcMsg().body.getTxs().stream().mapToInt({tx -> (int) tx.getLengthInBytes()}).sum())
+                        : e.getBtcMsg().body.getTxs().stream().mapToInt({tx -> (int) tx.getLengthInBytes()}).sum()
                 println(currentTxsBytes + " bytes of Txs downloaded of the block " + hash + " from " + e.getPeerAddress());
                 blockTxs.put(hash, currentTxsBytes)
             })
