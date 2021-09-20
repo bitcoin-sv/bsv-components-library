@@ -107,6 +107,10 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
         // We schedule the Job to re-connect the Lost Handshaked Peers:
         if (config.getRecoveryHandshakeFrequency().isPresent()
             && config.getRecoveryHandshakeThreshold().isPresent()) {
+            logger.debug("Scheduling job to renew once-handshaked peers every "
+                    + config.getRecoveryHandshakeFrequency().get().toSeconds() + " seconds."
+                    + " Every Peer disconnected after " + config.getRecoveryHandshakeThreshold().get().toSeconds()
+                    + " seconds will be re-connected again). ");
             executor.scheduleAtFixedRate(this::jobRenewLostHandshakedPeers,
                     config.getRecoveryHandshakeFrequency().get().toMillis(),
                     config.getRecoveryHandshakeFrequency().get().toMillis(),
@@ -232,8 +236,8 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
         // We addBytes it to our "historic" of handshaked peers:
         peersHandshaked.add(peerAddress);
 
-        // Now we addBytes this Peer to our Pool. If it's not possible to Add (most probably because the Pool has already
-        // reached the maximum size), we still try to addBytes it, since a handshaked Peer is a high-quality Peer that we
+        // Now we add this Peer to our Pool. If it's not possible to Add (most probably because the Pool has already
+        // reached the maximum size), we still try to add it, since a handshaked Peer is a high-quality Peer that we
         // want to keep. so in that case, we look for another Peer within the Peer we might replace (like a Peer in
         // the pool that is NOT handshaked)
 
