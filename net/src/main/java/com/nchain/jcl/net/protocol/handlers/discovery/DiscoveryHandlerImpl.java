@@ -520,6 +520,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
             Duration waitingDuration = config.getRecoveryHandshakeThreshold().get();
             List<DiscoveryPeerInfo> handshakesToRecover = handlerInfo.values().stream()
                     .filter(p -> !p.isHandshaked())
+                    .filter(p -> p.getLastHandshakeTime() != null)
                     .filter(p -> peersHandshaked.contains(p.getPeerAddress()))
                     .filter(p -> Duration.between(p.getLastHandshakeTime(), DateTimeUtils.nowDateTimeUTC()).compareTo(waitingDuration) > 0)
                     .collect(Collectors.toList());
