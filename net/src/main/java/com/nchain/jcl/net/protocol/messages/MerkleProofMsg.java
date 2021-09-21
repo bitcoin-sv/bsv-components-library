@@ -29,7 +29,20 @@ public class MerkleProofMsg extends Message {
     private VarIntMsg nodeCount;
     private List<MerkleNode> nodes;
 
-    public MerkleProofMsg() {
+    public MerkleProofMsg(MerkleProofMsgFlags flags,
+                          VarIntMsg transactionIndex,
+                          VarIntMsg transactionLength,
+                          TxMsg transaction,
+                          HashMsg target,
+                          VarIntMsg nodeCount,
+                          List<MerkleNode> nodes) {
+        this.flags = flags;
+        this.transactionIndex = transactionIndex;
+        this.transactionLength = transactionLength;
+        this.transaction = transaction;
+        this.target = target;
+        this.nodeCount = nodeCount;
+        this.nodes = nodes;
         init();
     }
 
@@ -165,15 +178,7 @@ public class MerkleProofMsg extends Message {
         }
 
         public MerkleProofMsg build() {
-            MerkleProofMsg merkleProofMsg = new MerkleProofMsg();
-            merkleProofMsg.setFlags(flags);
-            merkleProofMsg.setTransactionIndex(transactionIndex);
-            merkleProofMsg.setTransactionLength(transactionLength);
-            merkleProofMsg.setTransaction(transaction);
-            merkleProofMsg.setTarget(target);
-            merkleProofMsg.setNodeCount(nodeCount);
-            merkleProofMsg.setNodes(nodes);
-            return merkleProofMsg;
+            return new MerkleProofMsg(flags, transactionIndex, transactionLength, transaction, target, nodeCount, nodes);
         }
     }
 

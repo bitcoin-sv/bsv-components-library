@@ -20,7 +20,10 @@ public class BlockDetailsMsg extends Message {
     private List<BlockHeaderMsg> headerMsg;
     private MerkleProofMsg merkleProofMsg;
 
-    public BlockDetailsMsg() {
+    public BlockDetailsMsg(VarIntMsg headerCount, List<BlockHeaderMsg> headerMsg, MerkleProofMsg merkleProofMsg) {
+        this.headerCount = headerCount;
+        this.headerMsg = headerMsg;
+        this.merkleProofMsg = merkleProofMsg;
         init();
     }
 
@@ -97,11 +100,7 @@ public class BlockDetailsMsg extends Message {
         }
 
         public BlockDetailsMsg build() {
-            BlockDetailsMsg blockDetailsMsg = new BlockDetailsMsg();
-            blockDetailsMsg.setHeaderCount(headerCount);
-            blockDetailsMsg.setHeaderMsg(headerMsg);
-            blockDetailsMsg.setMerkleProofMsg(merkleProofMsg);
-            return blockDetailsMsg;
+            return new BlockDetailsMsg(headerCount, headerMsg, merkleProofMsg);
         }
     }
 }
