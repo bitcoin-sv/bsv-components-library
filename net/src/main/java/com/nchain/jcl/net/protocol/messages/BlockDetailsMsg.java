@@ -31,7 +31,9 @@ public class BlockDetailsMsg extends Message {
 
     @Override
     protected long calculateLength() {
-        return 0;
+        return headerCount.getLengthInBytes()
+                + headerMsg.stream().mapToLong(h -> h.getLengthInBytes()).sum()
+                + merkleProofMsg.getLengthInBytes();
     }
 
     @Override
