@@ -4,6 +4,7 @@
  */
 package io.bitcoinsv.jcl.tools.bytes;
 
+
 import io.bitcoinsv.bitcoinjsv.core.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

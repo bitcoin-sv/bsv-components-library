@@ -43,9 +43,8 @@ public class EmergencyDifficultyAdjustmentRule extends AbstractBlockChainRule {
         // TODO: This needs reviewing, now that we support Forks (multiple ChainInfo at a certain height)
         // NOTE: We assume the are not fork!! If the list of ChainInfos for a certain Height returns more than one Block,
         // we just take the first one:
-        List<ChainInfo> blocksAtHeight = blockChainStore.getBlock(storedPrev.getHeight() - REFERENCE_OF_BLOCKS_PRODUCED_SIZE);
-        Optional<ChainInfo> firstBlockAtHeight = Optional.of((blocksAtHeight != null && !blocksAtHeight.isEmpty()) ? blocksAtHeight.get(0) : null);
-        ChainInfo referenceBlockChainInfo = firstBlockAtHeight.orElseThrow(() -> new BlockChainRuleFailureException("Not enough blocks to check emergency difficulty adjustment rule."));
+        Optional<ChainInfo> ancestor = blockChainStore.getAncestorByHeight(storedPrev.getHeader().getHash(), storedPrev.getHeight() - REFERENCE_OF_BLOCKS_PRODUCED_SIZE);
+        ChainInfo referenceBlockChainInfo = ancestor.orElseThrow(() -> new BlockChainRuleFailureException("Not enough blocks to check emergency difficulty adjustment rule."));
 
         if(referenceBlockChainInfo.getHeight() - REFERENCE_BEFORE_BLOCK_DISTANCE < 0 ) {
             throw new BlockChainRuleFailureException("Not enough blocks to check emergency difficulty adjustment rule.");
