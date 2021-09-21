@@ -53,6 +53,12 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
     /** If TRUE, Blocks are downloaded ONLY from those Peers that announced them */
     private boolean onlyDownloadAfterAnnouncement = false;
 
+    /**
+     * If TRUE, block are downloaded from Peers that have announced them, but if there are no such peers they are
+     * downloaded by any other Peer
+     */
+    private boolean downloadFromAnnouncersFirst = false;
+
     public BlockDownloaderHandlerConfig(ProtocolBasicConfig basicConfig,
                                         Duration maxDownloadTimeout,
                                         Duration maxIdleTimeout,
@@ -62,7 +68,8 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
                                         boolean removeBlockHistoryAfterDownload,
                                         long maxMBinParallel,
                                         Duration blockHistoryTimeout,
-                                        boolean onlyDownloadAfterAnnouncement) {
+                                        boolean onlyDownloadAfterAnnouncement,
+                                        boolean downloadFromAnnouncersFirst) {
         this.basicConfig = basicConfig;
         if (maxDownloadTimeout != null)             this.maxDownloadTimeout = maxDownloadTimeout;
         if (maxIdleTimeout != null)                 this.maxIdleTimeout = maxIdleTimeout;
@@ -73,6 +80,7 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
         this.maxMBinParallel = maxMBinParallel;
         this.blockHistoryTimeout = blockHistoryTimeout;
         this.onlyDownloadAfterAnnouncement = onlyDownloadAfterAnnouncement;
+        this.downloadFromAnnouncersFirst = downloadFromAnnouncersFirst;
     }
 
     public BlockDownloaderHandlerConfig() {}
@@ -87,6 +95,7 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
     public long getMaxMBinParallel()                    { return this.maxMBinParallel;}
     public Duration getBlockHistoryTimeout()            { return this.blockHistoryTimeout;}
     public boolean isOnlyDownloadAfterAnnouncement()    { return this.onlyDownloadAfterAnnouncement;}
+    public boolean isDownloadFromAnnouncersFirst()      { return this.downloadFromAnnouncersFirst;}
 
     public BlockDownloaderHandlerConfigBuilder toBuilder() {
         return new BlockDownloaderHandlerConfigBuilder()
@@ -99,7 +108,8 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
                 .removeBlockHistoryAfterDownload(this.removeBlockHistoryAfterDownload)
                 .maxMBinParallel(this.maxMBinParallel)
                 .removeBlockHistoryAfter(this.blockHistoryTimeout)
-                .onlyDownloadAfterAnnouncement(this.onlyDownloadAfterAnnouncement);
+                .onlyDownloadAfterAnnouncement(this.onlyDownloadAfterAnnouncement)
+                .downloadFromAnnouncersFirst(this.downloadFromAnnouncersFirst);
     }
 
     public static BlockDownloaderHandlerConfigBuilder builder() {
@@ -120,6 +130,7 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
         private long maxMBinParallel = DEFAULT_MAX_MB_IN_PARALLEL;
         private Duration blockHistoryTimeout = DEFAULT_CLEANING_HISTORY_TIMEOUT;
         private boolean onlyDownloadAfterAnnouncement = false;
+        private boolean downloadFromAnnouncersFirst = false;
 
         BlockDownloaderHandlerConfigBuilder() { }
 
@@ -173,6 +184,11 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
             return this;
         }
 
+        public BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder downloadFromAnnouncersFirst(boolean downloadFromAnnouncersFirst) {
+            this.downloadFromAnnouncersFirst = downloadFromAnnouncersFirst;
+            return this;
+        }
+
         public BlockDownloaderHandlerConfig build() {
             return new BlockDownloaderHandlerConfig(
                     basicConfig,
@@ -184,7 +200,8 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
                     removeBlockHistoryAfterDownload,
                     maxMBinParallel,
                     blockHistoryTimeout,
-                    onlyDownloadAfterAnnouncement);
+                    onlyDownloadAfterAnnouncement,
+                    downloadFromAnnouncersFirst);
         }
     }
 }

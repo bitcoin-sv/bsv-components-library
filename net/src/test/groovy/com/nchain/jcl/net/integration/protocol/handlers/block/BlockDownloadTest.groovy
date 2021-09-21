@@ -141,7 +141,7 @@ class BlockDownloadTest extends Specification {
                 .maxIdleTimeout(Duration.ofSeconds(10))
                 .removeBlockHistoryAfterDownload(false)
                 .removeBlockHistoryAfter(Duration.ofMinutes(10))
-                .onlyDownloadAfterAnnouncement(true)
+               //.onlyDownloadAfterAnnouncement(true)
                 .build()
 
             // We configure the P2P Service:

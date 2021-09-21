@@ -194,6 +194,14 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                 .count();
     }
 
+    // Returns the list of Blocks being downloaded at this moment
+    public List<String> getBlocksBeingDownloaded() {
+        return handlerInfo.values().stream()
+                .filter(p -> p.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING))
+                .map(p -> p.getCurrentBlockInfo().getHash())
+                .collect(Collectors.toList());
+    }
+
     // This method calculates the percentage of Thread occupation.
     // This value is an accumulative one, and it resets every time the "getState()" method is called.
     // It compares the number of blocks being downloaded to the maximum allowed.
@@ -485,7 +493,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                 PartialBlockRawTxMsg partialMsg = (PartialBlockRawTxMsg) msg.getBody();
                 bigBlocksCurrentTxs.merge(blockHash, (long) partialMsg.getTxs().size(), (o, n) -> o + partialMsg.getTxs().size());
                 blocksLastActivity.put(blockHash, Instant.now());
-                blocksDownloadHistory.register(blockHash, peerInfo.getPeerAddress(), partialMsg.getTxs().size() + "Raw Txs downloaded, (" + bigBlocksCurrentTxs.get(blockHash) + " Txs so far)");
+                blocksDownloadHistory.register(blockHash, peerInfo.getPeerAddress(), partialMsg.getTxs().size() + " Raw Txs downloaded, (" + bigBlocksCurrentTxs.get(blockHash) + " Txs so far)");
             }
 
             // Now we check if we've reached the total of TXs, so the Download is complete:
@@ -673,8 +681,9 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
 
             // the only scenario when a Block can NOT be cancelling is when it's been actively being downloaded. In the
             // rest of cases, we cancel and remove it from our internal structures:
-            if (blocksPendingManager.contains(blockHash) || blocksDiscarded.containsKey(blockHash)) {
 
+            List<String> blocksBeingDownloaded = getBlocksBeingDownloaded();
+            if (!blocksBeingDownloaded.contains(blockHash)) {
                 blocksInLimbo.remove(blockHash);
                 blocksPendingManager.remove(blockHash);
                 blocksDiscarded.remove(blockHash);
@@ -822,9 +831,22 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                               this.moreDownloadsAllowed = (numPeersWorking == 0)
                                       || ((numPeersWorking < config.getMaxBlocksInParallel()) && !bandwidthRestricted);
 
-                              // If we can download more Blocks, we assign one to it...
-                              if (isRunning() && moreDownloadsAllowed && (blocksPendingManager.size() > 0)) {
-                                  Optional<String> blockHashToDownload = blocksPendingManager.extractMostSuitableBlockForDownload(peerAddress);
+                              // If we can download more Blocks, we ask the BlocksPendingManager for a Suitable block for
+                              // this Peer to download:
+
+                              if (isRunning() && moreDownloadsAllowed) {
+
+                                  // In order to be efficient, the BlocksPendingManager also needs to know
+                                  // about all the peers available for Download (EXCLUDING THIS ONE):
+                                  List availablePeers = peersOrdered.stream()
+                                          .filter(i -> !i.getPeerAddress().equals(peerAddress))
+                                          .filter(i -> i.isHandshaked())
+                                          .filter(i -> i.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.IDLE))
+                                          .map( i -> i.getPeerAddress())
+                                          .collect(Collectors.toList());
+
+                                  // We finally request a Peer to assign adn download from this Peer, if any has been found:
+                                  Optional<String> blockHashToDownload = blocksPendingManager.extractMostSuitableBlockForDownload(peerAddress, availablePeers);
                                   if (blockHashToDownload.isPresent()) {
                                       startDownloading(peerInfo, blockHashToDownload.get());
                                   }
