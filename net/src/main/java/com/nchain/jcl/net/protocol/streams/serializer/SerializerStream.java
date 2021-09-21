@@ -6,12 +6,14 @@ import com.nchain.jcl.net.network.streams.PeerOutputStream;
 import com.nchain.jcl.net.network.streams.PeerOutputStreamImpl;
 import com.nchain.jcl.net.network.streams.StreamDataEvent;
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig;
+import com.nchain.jcl.net.protocol.messages.DsDetectedMsg;
 import com.nchain.jcl.net.protocol.messages.VersionMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl;
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.tools.log.LoggerUtil;
+import io.bitcoinj.core.Utils;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -68,6 +70,15 @@ public class SerializerStream extends PeerOutputStreamImpl<BitcoinMsg<?>, ByteAr
                         serializerContext,
                         data.getData(),
                         data.getData().getHeader().getCommand())));
+
+        // HACK:
+        // We print out the HEX Version of the DS_DETECTED MSG:
+        if (data.getData().getHeader().getCommand().equalsIgnoreCase(DsDetectedMsg.MESSAGE_TYPE)) {
+            byte[] msgBytes = result.get(0).getData().getFullContent();
+            String msgHEX = Utils.HEX.encode(msgBytes);
+            logger.trace("Sending DS_DETECTED Msg: " + msgHEX) ;
+        }
+
         return result;
     }
 
