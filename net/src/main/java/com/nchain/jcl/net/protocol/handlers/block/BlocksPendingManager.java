@@ -36,6 +36,12 @@ public class BlocksPendingManager {
     // We register the Blocks announced by each Peer:
     private Map<PeerAddress, Set<String>> blockAnnouncements = new ConcurrentHashMap<>();
 
+    // It stores the blocks to download exclusivity from a Peer
+    private Map<String, PeerAddress> blocksPeerExclusivity = new ConcurrentHashMap<>();
+
+    // It stores the Blocks to download from a specific Peer first, if possible:
+    private Map<String, Set<PeerAddress>> blocksPeerPriority = new ConcurrentHashMap<>();
+
     /** Constructor */
     public BlocksPendingManager() {
     }
@@ -59,6 +65,21 @@ public class BlocksPendingManager {
         }
         blocks.add(blockHash);
         blockAnnouncements.put(peerAddress, blocks);
+    }
+
+    public void registerBlockExclusivity(List<String> blockHashes, PeerAddress peerAddress) {
+        blockHashes.forEach(blockHash -> blocksPeerExclusivity.put(blockHash, peerAddress));
+    }
+
+    public void registerBlockPriority(List<String> blockHashes, PeerAddress peerAddress) {
+        blockHashes.forEach(blockHash -> {
+            Set<PeerAddress> peers = blocksPeerPriority.get(blockHash);
+            if (peers == null) {
+                peers = new HashSet<>();
+            }
+            peers.add(peerAddress);
+            blocksPeerPriority.put(blockHash, peers);
+        });
     }
 
     private boolean isBlockAnnouncedBy(String blockHash, PeerAddress peerAddress) {
@@ -97,55 +118,84 @@ public class BlocksPendingManager {
     }
 
 
+    private boolean isThisBlockSuitableForThisPeer(String blockHash, PeerAddress peerAddress, List<PeerAddress> availablePeers) {
+
+        boolean result = true;
+
+        // If this Block has been assigned to one specific Peer to be downloaded from exclusively, we check if this
+        // is that peer. If its not, then this Block is NOT assigned.
+
+        if (this.blocksPeerExclusivity.containsKey(blockHash)) {
+            result = this.blocksPeerExclusivity.get(blockHash).equals(peerAddress);
+            return result;
+        }
+
+        // If this block has been assigned a list of Peers to download from with priority, we heck if this Peer is
+        // one of them. If it is, we assign it.
+        // If its not:
+        // - If this block has been assigned a list of Priority Peers and any of those Peers is available, then we just
+        //   return FALSE, so we skip the process for this Peer so this block can be assigned to that peer with priority
+        //    in another call to this method.
+        // - If this block has NOT been assigned a list of Priority Peers, we just continue...
+
+        if (this.blocksPeerPriority.containsKey(blockHash)) {
+            if (this.blocksPeerPriority.get(blockHash).contains(peerAddress)) {
+                return true;
+            } else {
+                boolean anyPriorityPeerAvailable = availablePeers.stream().anyMatch(p -> this.blocksPeerPriority.get(blockHash).contains(p));
+                if (anyPriorityPeerAvailable) {
+                    return false;
+                }
+            }
+        }
+
+        // If the Peers can only be downloaded form those Peers who announced them, we check this Peer:
+        // If the Peer has NOT been announced, then this block is SKIPPED
+
+        if (this.onlyDownloadAfterAnnouncement) {
+            result = isBlockAnnouncedBy(blockHash, peerAddress);
+            return result;
+        }
+
+        // If the Peers that announce the blocks have Priority over others, then this block can be assigned to this
+        // Peer IF:
+        //  - it's been announced by this Peer, OR...
+        //  - it's NOT been announced by any Peer, OR...
+        //  - it's been announced by another Peer, but that Peer is NOT available anymore
+
+        if (this.downloadFromAnnouncersFirst) {
+            if (isBlockAnnouncedBy(blockHash, peerAddress)) {
+                return true;
+            } else {
+                Optional<PeerAddress> announcerPeer = getAnnouncer(blockHash);
+                if (announcerPeer.isEmpty() || (!availablePeers.contains(announcerPeer.get()))) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }
+
+        return result;
+    }
+
     public synchronized Optional<String> extractMostSuitableBlockForDownload(PeerAddress peerAddress, List<PeerAddress> availablePeers) {
 
         // Default:
         Optional<String> result = Optional.empty();
 
-        // If there are no pending blocks, we don't assign anything...
-        if (this.pendingBlocks.size() == 0) { return result; }
+        if (this.pendingBlocks.size() > 0) {
+            // Now we just return the Block that meets the check...
+            OptionalInt blockIndexToReturn = IntStream.range(0, this.pendingBlocks.size())
+                    .filter(i -> isThisBlockSuitableForThisPeer(this.pendingBlocks.get(i), peerAddress, availablePeers))
+                    .findFirst();
 
-        // To return a suitable block to download, we loop over the pending pool and perform some verifications on
-        // each one until we find the best one. So the difference between multiple scenarios is the verification itself
-        // that can be expressed as a IntPredicate (taking the index of the Pool as a parameter):
-
-        // Default: we return the next block in the Pool. the check will stop at the first element
-        IntPredicate blockCheck = i -> true;
-
-        // If 'onlyDownloadAfterAnnouncement == TRUE', we return a Block announced by this Peer:
-        if (onlyDownloadAfterAnnouncement) {
-            blockCheck = i -> isBlockAnnouncedBy(this.pendingBlocks.get(i), peerAddress);
+            // We 'extract' the block from the pending List and return it:
+            if (blockIndexToReturn.isPresent()) {
+                result = Optional.of(this.pendingBlocks.get(blockIndexToReturn.getAsInt()));
+                this.pendingBlocks.remove(blockIndexToReturn.getAsInt());
+            }
         }
-
-        // If 'downloadFromAnnouncersFirst == TRUE', we return a Block that:
-        //  - it's been announced by this Peer, OR...
-        //  - it's NOT been announced by any Peer, OR...
-        //  - it's been announced by another Peer, but that Peer is NOT available anymore
-
-        if (downloadFromAnnouncersFirst) {
-            blockCheck = i -> {
-                if (isBlockAnnouncedBy(this.pendingBlocks.get(i), peerAddress)) {
-                    return true;
-                } else {
-                    Optional<PeerAddress> announcerPeer = getAnnouncer(this.pendingBlocks.get(i));
-                    if (announcerPeer.isEmpty() || (announcerPeer.isPresent() && !availablePeers.contains(announcerPeer.get()))) {
-                        return true;
-                    } else { return false;}
-                }
-            };
-        }
-
-        // Now we just return the Block that meets the Predicate...
-        OptionalInt blockIndexToReturn = IntStream.range(0, this.pendingBlocks.size())
-                .filter(blockCheck)
-                .findFirst();
-
-        // We 'extract' the block from the pending List and return it:
-        if (blockIndexToReturn.isPresent()) {
-            result = Optional.of(this.pendingBlocks.get(blockIndexToReturn.getAsInt()));
-            this.pendingBlocks.remove(blockIndexToReturn.getAsInt());
-        }
-
         return result;
     }
 }

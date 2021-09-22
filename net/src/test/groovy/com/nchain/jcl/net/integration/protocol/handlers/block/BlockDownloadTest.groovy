@@ -230,7 +230,11 @@ class BlockDownloadTest extends Specification {
             // We do NOT start downloading until we reach the MAX Number of Peers:
             while (!connReady.get()) Thread.sleep(100)
 
-            p2p.REQUESTS.BLOCKS.download(block_hashes).submit()
+            p2p.REQUESTS.BLOCKS
+                    .download(block_hashes)
+                    //.fromThisPeerOnly("104.248.245.82:8333")
+                    .fromThisPeerPreferably("104.248.245.82:8333")
+                    .submit()
 
             // Connections are Ready. We submit the Request to start downloading...
             println("Connection Ready...")

@@ -173,7 +173,11 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
         super.eventBus.subscribe(BlockRawTXsDownloadedEvent.class, e -> this.onPartialBlockTxsMsgReceived((BlockRawTXsDownloadedEvent) e));
 
         // Download/Cancel requests:
-        super.eventBus.subscribe(BlocksDownloadRequest.class, e -> this.download(((BlocksDownloadRequest) e).getBlockHashes(), ((BlocksDownloadRequest) e).isWithPriority()));
+        super.eventBus.subscribe(BlocksDownloadRequest.class, e -> this.download(
+                ((BlocksDownloadRequest) e).getBlockHashes(),
+                ((BlocksDownloadRequest) e).isWithPriority(),
+                ((BlocksDownloadRequest) e).getFromThisPeerOnly(),
+                ((BlocksDownloadRequest) e).getFromThisPeerPreferably()));
         super.eventBus.subscribe(BlocksCancelDownloadRequest.class, e -> this.cancelDownload(((BlocksCancelDownloadRequest) e).getBlockHashes()));
         super.eventBus.subscribe(BlocksDownloadStartRequest.class, e -> this.resume());
         super.eventBus.subscribe(BlocksDownloadPauseRequest.class, e -> this.pause());
@@ -254,13 +258,19 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
 
     @Override
     public void download(List<String> blockHashes) {
-        download(blockHashes, false);
+        download(blockHashes, false, null, null);
     }
 
     @Override
     public void download(List<String> blockHashes, boolean withPriority) {
+        download(blockHashes, false, null, null);
+    }
+
+    @Override
+    public void download(List<String> blockHashes, boolean withPriority, PeerAddress fromThisPeerOnly, PeerAddress fromThisPeerPreferably) {
         try {
             lock.lock();
+            // First we add the list of Block Hashes to the Pending Pool:
             logger.debug("Adding " + blockHashes.size() + " blocks to download (priority: " + withPriority +": ");
             blockHashes.stream()
                     .filter(h -> !blocksCancelled.contains(h))
@@ -272,8 +282,14 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                         } else {
                             blocksPendingManager.add(b);
                         }
-
                     });
+            // Now we add the Priorities Peers, if specified:
+            if (fromThisPeerOnly != null) {
+                blocksPendingManager.registerBlockExclusivity(blockHashes, fromThisPeerOnly);
+            }
+            if (fromThisPeerPreferably != null) {
+                blocksPendingManager.registerBlockPriority(blockHashes, fromThisPeerPreferably);
+            }
         } finally {
             lock.unlock();
         }
