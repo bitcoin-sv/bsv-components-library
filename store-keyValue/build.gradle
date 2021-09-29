@@ -26,7 +26,7 @@ repositories {
 
 dependencies {
     // Compile Dependencies:
-    implementation "io.bitcoinsv.bitcoinjsv:bitcoinj-base:1.0.0"
+    implementation "io.bitcoinsv.bitcoinjsv:bitcoinj-base:1.0.1"
     implementation(project(":tools"))
     implementation(project(":store"))
     implementation 'org.slf4j:slf4j-api:1.7.26'
