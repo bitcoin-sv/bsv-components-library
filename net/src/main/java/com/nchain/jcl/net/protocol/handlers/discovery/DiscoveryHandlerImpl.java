@@ -160,31 +160,34 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
                     ? new InitialPeersFinderSeed(this.config)
                     : new InitialPeersFinderCSV(super.runtimeConfig.getFileUtils(), this.config);
             logger.debug("Loading Pool with Peers Finder: " + peersFinder.getClass().getSimpleName() + "...");
-            List<DiscoveryPeerInfo> initialPeers = peersFinder.findPeers().stream()
-                    .map(p -> new DiscoveryPeerInfo(p))
-                    .collect(Collectors.toList());
+            List<PeerAddress> initialPeers = peersFinder.findPeers();
+
             // We trigger the Event:
             super.eventBus.publish(new InitialPeersLoadedEvent(initialPeers.size(), config.getDiscoveryMethod()));
             logger.debug(initialPeers.size() + " peers found.");
 
             // Now we load the Peers from the POOL from previous execution, stored in a CSV File:
-            logger.debug("Loading High-Quality Peers from file...");
-            List<DiscoveryPeerInfo> poolPeers = new ArrayList<>();
+            List<PeerAddress> poolPeers = new ArrayList<>();
             String csvFileName = StringUtils.fileNamingFriendly(config.getBasicConfig().getId()) + FILE_POOL_SUFFIX;
             Path csvPath = Paths.get(runtimeConfig.getFileUtils().getRootPath().toString(), NET_FOLDER, csvFileName);
             logger.debug("looking for High Quality Peers file in: " + csvPath.toString());
             if (Files.exists(csvPath)) {
-                poolPeers = runtimeConfig.getFileUtils().readCV(csvPath, () -> new DiscoveryPeerInfo());
+                poolPeers = runtimeConfig.getFileUtils().readCV(csvPath, () -> new DiscoveryPeerInfo()).stream()
+                        .map(d -> d.getPeerAddress())
+                        .collect(Collectors.toList());
                 logger.debug(poolPeers.size() + " peers loaded from file.");
             } else logger.debug(" No file found.");
 
+            // We also check if some initial Connections have been defined directly in the Configuration:
+            List<PeerAddress> initialConnections = config.getInitialConnections();
+
             // we put them both all into the Main Pool:
-            List<DiscoveryPeerInfo> totalPeers = new ArrayList<>();
-            totalPeers.addAll(initialPeers);
-            totalPeers.addAll(poolPeers);
+            List<PeerAddress> peersToConnect = new ArrayList<>();
+            peersToConnect.addAll(initialConnections);
+            peersToConnect.addAll(initialPeers);
+            peersToConnect.addAll(poolPeers);
 
             // We register all of them for connection:
-            List<PeerAddress> peersToConnect = totalPeers.stream().map(p -> p.getPeerAddress()).collect(Collectors.toList());
             super.eventBus.publish(new ConnectPeersRequest(peersToConnect));
         } catch (Exception e) {
             e.printStackTrace();
