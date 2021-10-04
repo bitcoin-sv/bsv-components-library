@@ -218,6 +218,11 @@ public class DiscoveryHandlerConfig extends HandlerConfig {
             return this;
         }
 
+        public DiscoveryHandlerConfig.DiscoveryHandlerConfigBuilder addInitialConnectionsStr(List<String> initialConnections) {
+            initialConnections.forEach(p -> addInitialConnection(p));
+            return this;
+        }
+
         public DiscoveryHandlerConfig build() {
             return new DiscoveryHandlerConfig(basicConfig,
                     dns,
