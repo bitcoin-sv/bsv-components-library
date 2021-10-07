@@ -149,6 +149,9 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
         if (config.isOnlyDownloadAfterAnnouncement()) {
             blocksPendingManager.onlyDownloadAfterAnnouncement();
         }
+        if (config.isDownloadFromAnnouncersFirst()) {
+            blocksPendingManager.downloadFromAnnouncersFirst();
+        }
     }
 
     private void registerForEvents() {
