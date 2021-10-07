@@ -113,7 +113,6 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
     // So we keep track of the last activity timestamp for any block, and the threshold mentioned before:
 
     private Map<String, Instant>    blocksLastActivity = new ConcurrentHashMap<>();
-    private Duration blockInactivyFailTimeout = Duration.ofMinutes(1);
 
     Lock lock = new ReentrantLock();
 
@@ -898,7 +897,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                     List<String> blocksFailed = this.blocksInLimbo.stream().collect(Collectors.toList());
                     for (String blockHash: blocksFailed) {
                         Duration timePassedSinceLastActivity = Duration.between(blocksLastActivity.get(blockHash), Instant.now());
-                        if (timePassedSinceLastActivity.compareTo(blockInactivyFailTimeout) > 0) {
+                        if (timePassedSinceLastActivity.compareTo(config.getInactivityTimeoutToFail()) > 0) {
                             processDownloadFailiure(blockHash); // This block has definitely failed:
                         }
                     }

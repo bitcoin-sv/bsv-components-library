@@ -21,7 +21,8 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
     public static final Integer  DEFAULT_MAX_BLOCK_ATTEMPTS         = 5;
     public static final Integer  DEFAULT_MAX_DOWNLOADS_IN_PARALLEL  = 1;
     public static final Integer  DEFAULT_MAX_MB_IN_PARALLEL         = 100;
-    public static final Duration DEFAULT_CLEANING_HISTORY_TIMEOUT  = Duration.ofMinutes(10);
+    public static final Duration DEFAULT_CLEANING_HISTORY_TIMEOUT   = Duration.ofMinutes(10);
+    public static final Duration DEFAULT_INACTIVITY_TO_FAIL_TIMEOUT = Duration.ofSeconds(30);
 
     // Basic protocol Config:
     private ProtocolBasicConfig basicConfig;
@@ -52,12 +53,19 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
 
     /** If TRUE, Blocks are downloaded ONLY from those Peers that announced them */
     private boolean onlyDownloadAfterAnnouncement = false;
-
     /**
      * If TRUE, block are downloaded from Peers that have announced them, but if there are no such peers they are
      * downloaded by any other Peer
      */
     private boolean downloadFromAnnouncersFirst = false;
+
+    /**
+     * When a block download fails for whatever reason (idle peer, early disconnection, etc), the block is
+     * moved to a LIMBO state, and it will remain there for some time before we definitely acknowledge that
+     * there is areal problem (and not just multithread events coming in the wrong order or things like that).
+     * The time a Block remains in LIMBO is determined by this variable.
+     */
+    private Duration inactivityTimeoutToFail = DEFAULT_INACTIVITY_TO_FAIL_TIMEOUT;
 
     public BlockDownloaderHandlerConfig(ProtocolBasicConfig basicConfig,
                                         Duration maxDownloadTimeout,
@@ -69,7 +77,8 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
                                         long maxMBinParallel,
                                         Duration blockHistoryTimeout,
                                         boolean onlyDownloadAfterAnnouncement,
-                                        boolean downloadFromAnnouncersFirst) {
+                                        boolean downloadFromAnnouncersFirst,
+                                        Duration inactivityTimeoutToFail) {
         this.basicConfig = basicConfig;
         if (maxDownloadTimeout != null)             this.maxDownloadTimeout = maxDownloadTimeout;
         if (maxIdleTimeout != null)                 this.maxIdleTimeout = maxIdleTimeout;
@@ -81,6 +90,7 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
         this.blockHistoryTimeout = blockHistoryTimeout;
         this.onlyDownloadAfterAnnouncement = onlyDownloadAfterAnnouncement;
         this.downloadFromAnnouncersFirst = downloadFromAnnouncersFirst;
+        this.inactivityTimeoutToFail = inactivityTimeoutToFail;
     }
 
     public BlockDownloaderHandlerConfig() {}
@@ -96,6 +106,7 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
     public Duration getBlockHistoryTimeout()            { return this.blockHistoryTimeout;}
     public boolean isOnlyDownloadAfterAnnouncement()    { return this.onlyDownloadAfterAnnouncement;}
     public boolean isDownloadFromAnnouncersFirst()      { return this.downloadFromAnnouncersFirst;}
+    public Duration getInactivityTimeoutToFail()         { return this.inactivityTimeoutToFail;}
 
     public BlockDownloaderHandlerConfigBuilder toBuilder() {
         return new BlockDownloaderHandlerConfigBuilder()
@@ -109,7 +120,8 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
                 .maxMBinParallel(this.maxMBinParallel)
                 .removeBlockHistoryAfter(this.blockHistoryTimeout)
                 .onlyDownloadAfterAnnouncement(this.onlyDownloadAfterAnnouncement)
-                .downloadFromAnnouncersFirst(this.downloadFromAnnouncersFirst);
+                .downloadFromAnnouncersFirst(this.downloadFromAnnouncersFirst)
+                .inactivityTimeoutToFail(this.inactivityTimeoutToFail);
     }
 
     public static BlockDownloaderHandlerConfigBuilder builder() {
@@ -131,6 +143,7 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
         private Duration blockHistoryTimeout = DEFAULT_CLEANING_HISTORY_TIMEOUT;
         private boolean onlyDownloadAfterAnnouncement = false;
         private boolean downloadFromAnnouncersFirst = false;
+        private Duration inactivityTimeoutToFail = DEFAULT_INACTIVITY_TO_FAIL_TIMEOUT;
 
         BlockDownloaderHandlerConfigBuilder() { }
 
@@ -189,6 +202,11 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
             return this;
         }
 
+        public BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder inactivityTimeoutToFail(Duration inactivityTimeoutToFail) {
+            this.inactivityTimeoutToFail = inactivityTimeoutToFail;
+            return this;
+        }
+
         public BlockDownloaderHandlerConfig build() {
             return new BlockDownloaderHandlerConfig(
                     basicConfig,
@@ -201,7 +219,8 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
                     maxMBinParallel,
                     blockHistoryTimeout,
                     onlyDownloadAfterAnnouncement,
-                    downloadFromAnnouncersFirst);
+                    downloadFromAnnouncersFirst,
+                    inactivityTimeoutToFail);
         }
     }
 }
