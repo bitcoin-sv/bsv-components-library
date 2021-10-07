@@ -90,8 +90,6 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     String KEY_PREFFIX_PATHS         = "chain_paths";
     String KEY_SUFFIX_PATHS_LAST     = "last";
     String KEY_PREFFIX_PATH          = "chain_path";
-    String KEY_PREFIX_ORPHAN         = "orphan";
-
     /* Functions to generate Simple Keys in String format: */
 
     default String keyForBlockNext(String blockHash)        { return KEY_PREFFIX_BLOCK_PROP + blockHash + KEY_SEPARATOR + KEY_SUFFIX_BLOCK_NEXT + KEY_SEPARATOR; }
@@ -100,7 +98,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     default String keyForChainTips()                        { return KEY_CHAIN_TIPS + KEY_SEPARATOR; }
     default String keyForChainPathsLast()                   { return KEY_PREFFIX_PATHS + KEY_SEPARATOR + KEY_SUFFIX_PATHS_LAST + KEY_SEPARATOR;}
     default String keyForChainPath(int branchId)            { return KEY_PREFFIX_PATH + KEY_SEPARATOR + branchId + KEY_SEPARATOR;}
-    default String keyForOrphanBlocks()                     { return KEY_PREFIX_ORPHAN + KEY_SEPARATOR;}
+
 
     /* Functions to generate WHOLE Keys, from the root up to the item. to be implemented by specific DB provider */
 
@@ -110,7 +108,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     byte[] fullKeyForChainTips();
     byte[] fullKeyForChainPathsLast();
     byte[] fullKeyForChainPath(int branchId);
-    byte[] fullKeyForOrphanBlocks();
+
 
     /* Functions to serialize Objects:  */
 
@@ -260,37 +258,6 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         return result;
     }
 
-    default List<String> _getOrphanBlocks(T tr) {
-        List<String> result = new ArrayList<>();
-        HashesList orphans = toHashes(read(tr, fullKeyForOrphanBlocks()));
-
-        if (orphans != null) {
-            result.addAll(orphans.getHashes());
-        }
-
-        return result;
-    }
-
-    private void _saveOrphanBlocks(T tr, HashesList orphanBlocks) {
-        save(tr, fullKeyForOrphanBlocks(), bytes(orphanBlocks));
-    }
-
-    private void _updateOrphanBlocks(T tr, String blockHashToAdd, String blockHashToRemove){
-        List<String> orphanBlocks = _getOrphanBlocks(tr);
-        if ((blockHashToAdd != null)  && (!orphanBlocks.contains(blockHashToAdd))) {
-            orphanBlocks.add(blockHashToAdd);
-            getLogger().trace("Block "+ blockHashToAdd + " added to orphan pool");
-        }
-        if (blockHashToRemove != null && orphanBlocks.contains(blockHashToRemove))  {
-            orphanBlocks.remove(blockHashToRemove);
-            getLogger().trace("Block "+ blockHashToRemove + " removed from orphan pool");
-        }
-
-        HashesList orphansToSave = HashesList.builder().hashes(orphanBlocks).build();
-
-        _saveOrphanBlocks(tr, orphansToSave);
-    }
-
     private void _saveChainTips(T tr, HashesList chainstips) {
         save(tr, fullKeyForChainTips(), bytes(chainstips));
     }
@@ -388,7 +355,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                     try {
                         blocksConnected.addAll(_connectBlock(tr, childBlock.get(), blockChainInfo));
                         //The child block is no longer an orphan as it's been connected to the main chain
-                        _updateOrphanBlocks(tr, null, childHashHex);
+                        BlockStoreKeyValue.super._removeOrphanBlockHash(tr, childHashHex);
                     } catch (BlockChainRuleFailureException ex) {
                         //child could not be connected, ignore as it has been deleted when _connectBlock is called
                     }
@@ -488,7 +455,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             } else {
                 //Only the genesis block should have ZERO hash, genesis is not an orphan
                 if(!blockHeader.getPrevBlockHash().equals(Sha256Hash.ZERO_HASH)) {
-                    _updateOrphanBlocks(tr, blockHeader.getHash().toString(), null);
+                    _saveOrphanBlockHash(tr, blockHeader.getHash().toString());
                 }
             }
         }
@@ -517,9 +484,6 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             if (parentChildren == null || parentChildren.size() == 0)
                 _updateTipsChain(tr, block.getPrevBlockHash().toString(), null);
         }
-
-        //If the block is an orphan, remove it
-        _updateOrphanBlocks(tr, null, blockHash);
 
         // we remove the Block the usual way:
         BlockStoreKeyValue.super._removeBlock(tr, blockHash);
@@ -963,19 +927,34 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     }
 
     @Override
-    default List<Sha256Hash> getOrphanBlocks() {
-        try {
-            getLock().readLock().lock();
-            List<Sha256Hash> result = new ArrayList<>();
-            T tr = createTransaction();
-            executeInTransaction(tr, () -> {
-                List<String> orphans = _getOrphanBlocks(tr);
-                result.addAll(orphans.stream().map(h -> Sha256Hash.wrap(h)).collect(Collectors.toList()));
-            });
-            return result;
-        } finally {
-            getLock().readLock().unlock();
-        }
+    default Iterable<Sha256Hash> getOrphanBlocks() {
+
+        // We configure the parameters for creating an Iterator that loops over the ORPHAN Blocks:
+
+        // The iterator will loop over that Keys that belong to the "blocks" folder and start with the preffix
+        // used for storing orphans:
+        byte[] startingWithKey = fullKey(fullKeyForBlocks(), KEY_PREFFIX_ORPHAN_HASH);
+
+
+        // The keyVerifier Function will check that each Key we loop over is a Valid Key: A Valid Key is a key that
+        // references a Block that has NO parent block stored in the DB:
+
+        BiPredicate<T, byte[]> keyVerifier = (tr, key) -> true;
+
+        // The "buildItemBy" is the function used to take a Key and return each Item of the Iterator. The iterator
+        // will returns a series of BlockHeader, so this function will build a BlockHeader out of a Key:
+
+        Function<E, Sha256Hash> buildItemBy = (E item) -> {
+            byte[] key = keyFromItem(item);
+            String blockHash = extractBlockHashFromKey(key).get();
+            return Sha256Hash.wrap(blockHash);
+        };
+
+        // With everything set up, we create our Iterator and return it wrapped up in an Iterable:
+        Iterator<Sha256Hash> iterator = getIterator(startingWithKey, null, keyVerifier, buildItemBy);
+
+        Iterable<Sha256Hash> result = () -> iterator;
+        return result;
     }
 
     @Override
@@ -1060,19 +1039,19 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                 getLogger().debug("Automatic Orphan Pruning initiating...");
                 int numBlocksRemoved = 0;
                 // we get the list of Orphans, and we remove them if they are old" enough:
-                List<Sha256Hash> orphanHashes = getOrphanBlocks();
-                for(Sha256Hash orphanHash : orphanHashes) {
-
+                Iterator<Sha256Hash> orphansIt = getOrphanBlocks().iterator();
+                while (orphansIt.hasNext()) {
+                    Sha256Hash blockHash = orphansIt.next();
                     //getLogger().info("Automatic Orphan Pruning:: Checking block " + blockHash.toString() + "...");
-                    Optional<HeaderReadOnly> blockHeaderOpt = getBlock(orphanHash);
+                    Optional<HeaderReadOnly> blockHeaderOpt = getBlock(blockHash);
                     //getLogger().info("Automatic Orphan Pruning:: Checking block Header " + blockHash.toString() + "...");
                     if (blockHeaderOpt.isPresent()) {
                         Instant blockTime = Instant.ofEpochSecond(blockHeaderOpt.get().getTime());
                         if (Duration.between(blockTime, Instant.now()).compareTo(getConfig().getOrphanPrunningBlockAge()) > 0) {
                             //getLogger().info("Automatic Orphan Pruning:: Prunning Block " + blockHash.toString() + "...");
-                            removeBlock(orphanHash);
+                            removeBlock(blockHash);
                             numBlocksRemoved++;
-                            getLogger().debug("Automatic Orphan Pruning:: Block pruned." + orphanHash.toString());
+                            getLogger().debug("Automatic Orphan Pruning:: Block pruned." + blockHash.toString());
                         }
                     }
                 } // while...

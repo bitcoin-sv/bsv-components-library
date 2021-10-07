@@ -47,7 +47,7 @@ public interface BlockChainStore extends BlockStore {
     /**
      * Returns all the Orphan blocks in the DB
      */
-    List<Sha256Hash> getOrphanBlocks();
+    Iterable<Sha256Hash> getOrphanBlocks();
 
     /**
      * Returns the relative info about the Chain that the Block given is connected to. If the Block is not stored in
