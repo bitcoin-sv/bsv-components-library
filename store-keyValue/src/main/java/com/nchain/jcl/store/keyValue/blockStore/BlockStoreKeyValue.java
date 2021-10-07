@@ -446,6 +446,7 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
         remove(tr, fullKeyForBlockNumTxs(tr, blockHash));
         remove(tr, fullKeyForBlockTxIndex(tr, blockHash));
 
+
         // IF a metadata class has been defined, we remove it too
         if (getMetadataClassForBlocks() != null) {
             _removeBlockMetadata(tr, blockHash);

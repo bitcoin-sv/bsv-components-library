@@ -85,6 +85,7 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
     @Override public byte[] fullKeyForChainPathsLast()                  { return fullKey(this.fullKeyForBlocks(), keyForChainPathsLast());}
     @Override public byte[] fullKeyForChainPath(int branchId)           { return fullKey(this.fullKeyForBlocks(), keyForChainPath(branchId));}
     @Override public byte[] fullKeyForBlockHashesByHeight(int height)     {return fullKey(this.fullKeyForBlocks(), keyForBlocksByHeight(height));}
+    @Override public byte[] fullKeyForOrphanBlocks()                    { return fullKey(this.fullKeyForBlocks(), keyForOrphanBlocks());}
 
     @Override public BlockChainStoreStreamer EVENTS()                   { return blockChainStoreStreamer;}
 

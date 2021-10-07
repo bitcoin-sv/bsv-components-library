@@ -76,6 +76,7 @@ public class BlockChainStoreFDB extends BlockStoreFDB implements BlockChainStore
     @Override public byte[] fullKeyForChainPathsLast()                  { return fullKey(blocksDir, keyForChainPathsLast());}
     @Override public byte[] fullKeyForChainPath(int branchId)           { return fullKey(blocksDir, keyForChainPath(branchId));}
     @Override public byte[] fullKeyForBlockHashesByHeight(int height)     {return fullKey(blocksDir, keyForBlocksByHeight(height));}
+    @Override public byte[] fullKeyForOrphanBlocks()                    { return  fullKey(blocksDir, keyForOrphanBlocks());}
 
     @Override public BlockChainStoreStreamer EVENTS()                   { return blockChainStoreStreamer;}
 
