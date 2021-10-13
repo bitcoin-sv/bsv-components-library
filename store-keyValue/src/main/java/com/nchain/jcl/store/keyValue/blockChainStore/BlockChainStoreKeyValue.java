@@ -429,7 +429,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
        BlockStoreKeyValue.super._saveBlock(tr, blockHeader);
 
         // and its relation with its parent (ONLY If this is NOT the GENESIS Block)
-        if (!blockHeader.getPrevBlockHash().equals(Sha256Hash.ZERO_HASH)) {
+        if (!blockHeader.getHash().equals(getConfig().getGenesisBlock().getHash())) {
             _addChildToBlock(tr, parentHashHex, blockHeader.getHash().toString());
         }
 
@@ -454,7 +454,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                 }
             } else {
                 //Only the genesis block should have ZERO hash, genesis is not an orphan
-                if(!blockHeader.getPrevBlockHash().equals(Sha256Hash.ZERO_HASH)) {
+                if(!blockHeader.getHash().equals(getConfig().getGenesisBlock().getHash())) {
                     _saveOrphanBlockHash(tr, blockHeader.getHash().toString());
                 }
             }
@@ -721,7 +721,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                         BlockChainInfo rootNodeBlockChainInfo;
 
                         //secial handling for genesis branch, as genesis blocks parent is itself
-                        if(firstNodeBlock.getPrevBlockHash().equals(Sha256Hash.ZERO_HASH)){
+                        if(firstNodeBlock.getHash().equals(getConfig().getGenesisBlock().getHash())){
                             rootNodeBlockChainInfo = _getBlockChainInfo(tr, firstNodeBlock.getHash().toString());
                         } else {
                             rootNodeBlockChainInfo = _getBlockChainInfo(tr, firstNodeBlock.getPrevBlockHash().toString());
