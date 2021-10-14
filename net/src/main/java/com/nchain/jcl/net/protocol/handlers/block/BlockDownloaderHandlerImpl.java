@@ -2,6 +2,7 @@ package com.nchain.jcl.net.protocol.handlers.block;
 
 
 import com.nchain.jcl.net.network.PeerAddress;
+import com.nchain.jcl.net.network.events.DisconnectPeerRequest;
 import com.nchain.jcl.net.network.events.NetStartEvent;
 import com.nchain.jcl.net.network.events.NetStopEvent;
 import com.nchain.jcl.net.network.events.PeerDisconnectedEvent;
@@ -681,6 +682,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
             blocksInLimbo.remove(blockHash);
             bigBlocksHeaders.remove(blockHash);
             bigBlocksCurrentTxs.remove(blockHash);
+            blocksPendingToCancel.remove(blockHash);
         } finally {
             lock.unlock();
         }
@@ -883,9 +885,9 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                                   blocksDownloadHistory.register(peerInfo.getCurrentBlockInfo().hash, peerInfo.getPeerAddress(), "Download Issue detected : " + msgFailure);
                                   blocksInLimbo.add(peerInfo.getCurrentBlockInfo().hash);
                                   // We discard this Peer and also send a request to Disconnect from it:
-                                  //System.out.println(" >>>>> DOWNLOAD FAILIURE for " + peerInfo.getCurrentBlockInfo().hash + " from " + peerAddress + ": " + msgFailure);
                                   peerInfo.discard();
-                                  super.eventBus.publish(new PeerDisconnectedEvent(peerInfo.getPeerAddress(), PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL_LAZY_DOWNLOAD));
+                                  super.eventBus.publish(new DisconnectPeerRequest(peerInfo.getPeerAddress(), PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL_LAZY_DOWNLOAD, null));
+                                  //super.eventBus.publish(new PeerDisconnectedEvent(peerInfo.getPeerAddress(), PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL_LAZY_DOWNLOAD));
                               }
                               break;
                           }
