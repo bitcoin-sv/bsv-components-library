@@ -141,8 +141,9 @@ class BlockDownloadTest extends Specification {
                 .maxIdleTimeout(Duration.ofSeconds(10))
                 .removeBlockHistoryAfterDownload(false)
                 .removeBlockHistoryAfter(Duration.ofMinutes(10))
-               //.onlyDownloadAfterAnnouncement(true)
+                //.downloadFromAnnouncersFirst(true)
                 .build()
+
 
             // We configure the P2P Service:
             P2P p2p = new P2PBuilder("testing")
@@ -233,7 +234,7 @@ class BlockDownloadTest extends Specification {
             p2p.REQUESTS.BLOCKS
                     .download(block_hashes)
                     //.fromThisPeerOnly("104.248.245.82:8333")
-                    .fromThisPeerPreferably("104.248.245.82:8333")
+                    //.fromThisPeerPreferably("104.248.245.82:8333")
                     .submit()
 
             // Connections are Ready. We submit the Request to start downloading...

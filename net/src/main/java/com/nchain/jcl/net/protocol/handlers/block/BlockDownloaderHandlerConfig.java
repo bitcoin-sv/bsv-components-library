@@ -194,11 +194,17 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
 
         public BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder onlyDownloadAfterAnnouncement(boolean onlyDownloadAfterAnnouncement) {
             this.onlyDownloadAfterAnnouncement = onlyDownloadAfterAnnouncement;
+            if (onlyDownloadAfterAnnouncement) {
+                this.downloadFromAnnouncersFirst = false; // mutual exclusive
+            }
             return this;
         }
 
         public BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder downloadFromAnnouncersFirst(boolean downloadFromAnnouncersFirst) {
             this.downloadFromAnnouncersFirst = downloadFromAnnouncersFirst;
+            if (downloadFromAnnouncersFirst) {
+                this.onlyDownloadAfterAnnouncement = false; // mutual exclusive
+            }
             return this;
         }
 

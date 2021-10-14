@@ -146,12 +146,13 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
         this.blocksDownloadHistory = new BlocksDownloadHistory();
         this.blocksDownloadHistory.setCleaningTimeout(config.getBlockHistoryTimeout());
 
+        // We configure the Blocks-Pending Manager:
         this.blocksPendingManager = new BlocksPendingManager();
         if (config.isOnlyDownloadAfterAnnouncement()) {
-            blocksPendingManager.onlyDownloadAfterAnnouncement();
+            blocksPendingManager.onlyDownloadAfterAnnouncement(true);
         }
         if (config.isDownloadFromAnnouncersFirst()) {
-            blocksPendingManager.downloadFromAnnouncersFirst();
+            blocksPendingManager.downloadFromAnnouncersFirst(true);
         }
     }
 

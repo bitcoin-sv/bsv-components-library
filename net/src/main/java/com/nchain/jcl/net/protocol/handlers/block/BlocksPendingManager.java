@@ -48,14 +48,14 @@ public class BlocksPendingManager {
     }
 
     /** It enables the Flag so the Blocks are ONLY downloaded from those Peers that have announced them */
-    public BlocksPendingManager onlyDownloadAfterAnnouncement() {
-        this.onlyDownloadAfterAnnouncement = true;
+    public BlocksPendingManager onlyDownloadAfterAnnouncement(boolean value) {
+        this.onlyDownloadAfterAnnouncement = value;
         return this;
     }
 
     /** It enabled the flag so Blocks are downloaded from their announcers first, and from any other peers otherwise */
-    public BlocksPendingManager downloadFromAnnouncersFirst() {
-        this.downloadFromAnnouncersFirst = true;
+    public BlocksPendingManager downloadFromAnnouncersFirst(boolean value) {
+        this.downloadFromAnnouncersFirst = value;
         return this;
     }
 
