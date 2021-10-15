@@ -148,12 +148,10 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
 
         // We configure the Blocks-Pending Manager:
         this.blocksPendingManager = new BlocksPendingManager();
-        if (config.isOnlyDownloadAfterAnnouncement()) {
-            blocksPendingManager.onlyDownloadAfterAnnouncement(true);
-        }
-        if (config.isDownloadFromAnnouncersFirst()) {
-            blocksPendingManager.downloadFromAnnouncersFirst(true);
-        }
+        this.blocksPendingManager.setBestMatchCriteria(config.getBestMatchCriteria());
+        this.blocksPendingManager.setBestMatchNotAvailableAction(config.getBestMatchNotAvailableAction());
+        this.blocksPendingManager.setNoBestMatchAction(config.getNoBestMatchAction());
+
     }
 
     private void registerForEvents() {
@@ -859,6 +857,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
 
                                   // In order to be efficient, the BlocksPendingManager also needs to know
                                   // about all the peers available for Download (EXCLUDING THIS ONE):
+
+
                                   List availablePeers = peersOrdered.stream()
                                           .filter(i -> !i.getPeerAddress().equals(peerAddress))
                                           .filter(i -> i.isHandshaked())
@@ -866,8 +866,15 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                                           .map( i -> i.getPeerAddress())
                                           .collect(Collectors.toList());
 
+                                  List notAvailablePeers = peersOrdered.stream()
+                                          .filter(i -> !i.getPeerAddress().equals(peerAddress))
+                                          .filter(i -> i.isHandshaked())
+                                          .filter(i -> i.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING))
+                                          .map( i -> i.getPeerAddress())
+                                          .collect(Collectors.toList());
+
                                   // We finally request a Peer to assign adn download from this Peer, if any has been found:
-                                  Optional<String> blockHashToDownload = blocksPendingManager.extractMostSuitableBlockForDownload(peerAddress, availablePeers);
+                                  Optional<String> blockHashToDownload = blocksPendingManager.extractMostSuitableBlockForDownload(peerAddress, availablePeers, notAvailablePeers);
                                   if (blockHashToDownload.isPresent()) {
                                       startDownloading(peerInfo, blockHashToDownload.get());
                                   }
