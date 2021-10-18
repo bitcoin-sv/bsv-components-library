@@ -1,10 +1,11 @@
 package com.nchain.jcl.net.protocol.handlers.block;
 
 import com.nchain.jcl.net.network.PeerAddress;
-import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandlerConfig.*;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.IntPredicate;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -18,10 +19,15 @@ import java.util.stream.IntStream;
  */
 public class BlocksPendingManager {
 
-    // Criteria and Action to perform to chose the BEST MATCH when downloading a Block:
-    private BestMatchCriteria           bestMatchCriteria = BestMatchCriteria.FROM_ANYONE;
-    private BestMatchNotAvailableAction bestMatchNotAvailableAction = BestMatchNotAvailableAction.DOWNLOAD_FROM_ANYONE;
-    private NoBestMatchAction           noBestMatchAction = NoBestMatchAction.DOWNLOAD_FROM_ANYONE;
+    // This flag controls one of the criteria for downloading blocks:
+    // If TRUE, then blocks are ONLY downloaded from those Peers that have announced them. If a Block is pending but
+    // has NOT been announced by any peer, its NOT downloaded.
+    private boolean onlyDownloadAfterAnnouncement;
+
+    // This flag controls one of the criteria for downloading blocks:
+    // If TRUE, then blocks are assigned to those Peers that have announced them first. but if they are not being
+    // announced explicitly then they are assigned by other peer.
+    private boolean downloadFromAnnouncersFirst;
 
     // List of pending blocks: It works as a FIFO Queue: First Block to be added are the first ones to be downloaded.
     // If 'onlyDownloadBlocksAfterAnnouncement' is TRUE, then this behaviour might be a bit different, since some Blocks
@@ -34,23 +40,23 @@ public class BlocksPendingManager {
     // It stores the blocks to download exclusivity from a Peer
     private Map<String, PeerAddress> blocksPeerExclusivity = new ConcurrentHashMap<>();
 
-    // It stores the Blocks to download from a specific Peers first, if possible:
+    // It stores the Blocks to download from a specific Peer first, if possible:
     private Map<String, Set<PeerAddress>> blocksPeerPriority = new ConcurrentHashMap<>();
 
     /** Constructor */
     public BlocksPendingManager() {
     }
 
-    public void setBestMatchCriteria(BestMatchCriteria bestMatchCriteria) {
-        this.bestMatchCriteria = bestMatchCriteria;
+    /** It enables the Flag so the Blocks are ONLY downloaded from those Peers that have announced them */
+    public BlocksPendingManager onlyDownloadAfterAnnouncement(boolean value) {
+        this.onlyDownloadAfterAnnouncement = value;
+        return this;
     }
 
-    public void setBestMatchNotAvailableAction(BestMatchNotAvailableAction bestMatchNotAvailableAction) {
-        this.bestMatchNotAvailableAction = bestMatchNotAvailableAction;
-    }
-
-    public void setNoBestMatchAction(NoBestMatchAction noBestMatchAction) {
-        this.noBestMatchAction = noBestMatchAction;
+    /** It enabled the flag so Blocks are downloaded from their announcers first, and from any other peers otherwise */
+    public BlocksPendingManager downloadFromAnnouncersFirst(boolean value) {
+        this.downloadFromAnnouncersFirst = value;
+        return this;
     }
 
     public void registerBlockAnnouncement(String blockHash, PeerAddress peerAddress) {
@@ -81,25 +87,12 @@ public class BlocksPendingManager {
         return (blockAnnouncements.containsKey(peerAddress)) ? blockAnnouncements.get(peerAddress).contains(blockHash): false;
     }
 
-    private boolean isBlockAnnouncedBy(String blockHash, List<PeerAddress> peerAddress) {
-        return peerAddress.stream()
-                .anyMatch(p -> (blockAnnouncements.containsKey(p) && blockAnnouncements.get(p).contains(blockHash)));
-    }
-
     public synchronized void add(String blockHash) {
         this.pendingBlocks.add(blockHash);
     }
 
-    public synchronized void add(List<String> blockHashes) {
-        this.pendingBlocks.addAll(blockHashes);
-    }
-
     public synchronized void addWithPriority(String blockHash) {
         this.pendingBlocks.add(0, blockHash);
-    }
-
-    public synchronized void addWithPriority(List<String> blockHashes) {
-        this.pendingBlocks.addAll(0, blockHashes);
     }
 
     public synchronized void remove(String blockHash) {
@@ -120,22 +113,31 @@ public class BlocksPendingManager {
 
 
     /**
-     * This methods checks if a given Block can be assigned to the Peer given (currentPeer) to be download from it.
-     * Depending on the CRITERIA and ACTIONS defined, some logic needs to be performed in order to pick up the right
-     * Peer to download from. So the return of this method is:
-     * - TRUE: The current Peer will be used to download the Block
-     * - FALSE: The current Peer will NOT be used to download the Block. In this case, since this method will iterate
-     *   other all the Peers, another Peer might be chosen for that (this method might return TRUE for other Peer)
+     * This methods checks if a given Block can be assigned to the Peer given to be download from it.
+     * Depending on the download priority configured, a Block might be better assigned to some Peer rather than others,
+     * depending on whether the block has been announced by them or not, etc. So for that reason, in order to make the
+     * decision we need to know not only the Block and Peer given, but also the list of other Peers that are also
+     * available for Download.
+     *
+     * For example:
+     * - We have 3 Peers: P1, P2, P3
+     * - We have a pending list of 2 Blocks: B1, B2
+     *
+     * A loop is performed over the Peers, and for each peer, another loop is performed over the Blocks until a godd
+     * fit is found:
+     *  - isThisBlockSuitableForThisPeer(P1, B1, [P2,P3])
+     *  - isThisBlockSuitableForThisPeer(P1, B2, [P2,P3])
+     *  - isThisBlockSuitableForThisPeer(P2, B1, [P1,P3])
+     *  - isThisBlockSuitableForThisPeer(P2, B2, [P1,P3])
+     *  - isThisBlockSuitableForThisPeer(P3, B1, [P1,P2])
+     *  - isThisBlockSuitableForThisPeer(P3, B2, [P1,P2])
      *
      * @param blockHash         Block Hash we want to download
-     * @param currentPeer       Peer we try to check if its a good fit to download this block
-     * @param availablePeers    List of available Pers (excluding 'currentPeer')
-     * @param notAvailablePeers List of NOT available Pers (excluding 'currentPeer')
+     * @param peerAddress       Peer we try to check if its a good fit to download this block
+     * @param availablePeers    List of other Peers also available for download (EXCLUDING 'peerAddress')
      * @return                  true -> This block can be assigned to this Peer for download
      */
-    private boolean isPeerSuitableForDownload(String blockHash, PeerAddress currentPeer,
-                                              List<PeerAddress> availablePeers,
-                                              List<PeerAddress> notAvailablePeers) {
+    private boolean isThisBlockSuitableForThisPeer(String blockHash, PeerAddress peerAddress, List<PeerAddress> availablePeers) {
 
         // By default, we assign this block to this Peer:
         boolean result = true;
@@ -145,58 +147,55 @@ public class BlocksPendingManager {
         // is that peer. If its not, then this Block is NOT assigned.
 
         if (this.blocksPeerExclusivity.containsKey(blockHash)) {
-            result = this.blocksPeerExclusivity.get(blockHash).equals(currentPeer);
+            result = this.blocksPeerExclusivity.get(blockHash).equals(peerAddress);
             return result;
         }
 
-        // If this block has been assigned a list of Peers to download from with priority, we check:
-        // If this Peer is one of the assigned Peers, we assign it (return TRUE).
+        // If this block has been assigned a list of Peers to download from with priority, we heck if this Peer is
+        // one of them. If it is, we assign it.
         // If its not:
         // - If this block has been assigned a list of Priority Peers and any of those Peers is available, then we just
         //   return FALSE, so we skip the process for this Peer so this block can be assigned to that peer with priority
-        //   in another call to this method.
+        //    in another call to this method.
         // - If this block has NOT been assigned a list of Priority Peers, we just continue...
 
         if (this.blocksPeerPriority.containsKey(blockHash)) {
-            if (this.blocksPeerPriority.get(blockHash).contains(currentPeer)) {
-                result = true;
+            if (this.blocksPeerPriority.get(blockHash).contains(peerAddress)) {
+                return true;
             } else {
                 boolean anyPriorityPeerAvailable = availablePeers.stream().anyMatch(p -> this.blocksPeerPriority.get(blockHash).contains(p));
-                if (anyPriorityPeerAvailable) {
-                    result = false;
-                }
+                return (availablePeers.isEmpty() || !anyPriorityPeerAvailable);
             }
+        }
+
+        // If the Peers can only be downloaded from those Peers who announced them, we check this Peer:
+        // If the Peer has NOT been announced, then this block is SKIPPED
+
+        if (this.onlyDownloadAfterAnnouncement) {
+            result = isBlockAnnouncedBy(blockHash, peerAddress);
             return result;
         }
 
-        // If blocks can be downloaded from ANYONE, we return TRUE right away:
-        if (this.bestMatchCriteria == BestMatchCriteria.FROM_ANYONE) {
-            return true;
-        }
+        // If the Peers that announce the blocks have Priority over others, then this block can be assigned to this
+        // Peer IF:
+        //  - it's been announced by this Peer, OR...
+        //  - it's NOT been announced by any Peer and it's not been announced by any available Peer either
 
-        // If Blocks can only be downloaded from those Peers who announced them:
-        if (this.bestMatchCriteria == BestMatchCriteria.FROM_ANNOUNCERS) {
-            if (isBlockAnnouncedBy(blockHash, currentPeer)) {
-                result = true; // Announced by this Peer. We assign it
-            } else if (isBlockAnnouncedBy(blockHash, availablePeers)){
-                result = false; // Announced by OTHER available Peer. WE skip this one (Return false)
-            } else if (isBlockAnnouncedBy(blockHash, notAvailablePeers)) {
-                // Block has been announced by a Peer that is NOT available. We do based on Action defined:
-                result = (bestMatchNotAvailableAction == BestMatchNotAvailableAction.DOWNLOAD_FROM_ANYONE);
-
+        if (this.downloadFromAnnouncersFirst) {
+            if (isBlockAnnouncedBy(blockHash, peerAddress)) {
+                // The Block has been announced by this Peer, so we assign it :
+                return true;
             } else {
-                // Block has NOT been announced by ANY Peer at all. We do based on Action defined:
-                result = (noBestMatchAction == NoBestMatchAction.DOWNLOAD_FROM_ANYONE);
+                // The block has NOT been announced by this Peer.
+                boolean isAnnnouncedByAnyAvailablePeer = availablePeers.stream().anyMatch(p -> isBlockAnnouncedBy(blockHash, p));
+                return (availablePeers.isEmpty() || !isAnnnouncedByAnyAvailablePeer);
             }
-            return result;
         }
 
         return result;
     }
 
-    public synchronized Optional<String> extractMostSuitableBlockForDownload(PeerAddress peerAddress,
-                                                                             List<PeerAddress> availablePeers,
-                                                                             List<PeerAddress> notAvailablePeers) {
+    public synchronized Optional<String> extractMostSuitableBlockForDownload(PeerAddress peerAddress, List<PeerAddress> availablePeers) {
 
         // Default:
         Optional<String> result = Optional.empty();
@@ -204,7 +203,7 @@ public class BlocksPendingManager {
         if (this.pendingBlocks.size() > 0) {
             // Now we just return the Block that meets the check...
             OptionalInt blockIndexToReturn = IntStream.range(0, this.pendingBlocks.size())
-                    .filter(i -> isPeerSuitableForDownload(this.pendingBlocks.get(i), peerAddress, availablePeers, notAvailablePeers))
+                    .filter(i -> isThisBlockSuitableForThisPeer(this.pendingBlocks.get(i), peerAddress, availablePeers))
                     .findFirst();
 
             // We 'extract' the block from the pending List and return it:
