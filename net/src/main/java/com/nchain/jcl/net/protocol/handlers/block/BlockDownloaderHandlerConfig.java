@@ -87,13 +87,13 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
      * In case a Match has been found BUT its NOT AVAILABLE because its downloading another Block,
      * here we specify what to do:
      */
-    enum BestMatchNotAvailableAction {
+    public enum BestMatchNotAvailableAction {
         DOWNLOAD_FROM_ANYONE,   // We download it from first other available peer if possible
         WAIT                    // We do NOT download it yet, we wait instead for the Match to be available
     }
 
     /** In case there is no Best Match, here we specify what do to */
-    enum NoBestMatchAction {
+    public enum NoBestMatchAction {
         DOWNLOAD_FROM_ANYONE, // We download it from first other available peer if possible
         WAIT                  // We do NOT download it yet, we wait instead for next Match
     }
