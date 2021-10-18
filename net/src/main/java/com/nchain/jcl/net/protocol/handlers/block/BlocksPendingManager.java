@@ -196,7 +196,7 @@ public class BlocksPendingManager {
 
     /**
      * Given the currentPeer, it assigns Block to download from it, from the list of pending Blocks. Since due to the
-     * different CRITERIA or ACTION defined this election might be "complex", we also need exta info about what other
+     * different CRITERIA or ACTION defined this election might be "complex2, we also need exta info about what other
      * Peers we are currently connected to: available and NOT available.
      *
      * @param currentPeer           Peer we want to assign a Block to download
