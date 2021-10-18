@@ -194,7 +194,19 @@ public class BlocksPendingManager {
         return result;
     }
 
-    public synchronized Optional<String> extractMostSuitableBlockForDownload(PeerAddress peerAddress,
+    /**
+     * Given the currentPeer, it assigns Block to download from it, from the list of pending Blocks. Since due to the
+     * different CRITERIA or ACTION defined this election might be "complex2, we also need exta info about what other
+     * Peers we are currently connected to: available and NOT available.
+     *
+     * @param currentPeer           Peer we want to assign a Block to download
+     * @param availablePeers        List of Peers we are connected to and available for download
+     * @param notAvailablePeers     List of Peers we are connected bo but are NOT available (they are already busy
+     *                              downloading other blocks).
+     * @return  A block to assign to this PEer, or empty if no assignment is possible (because there are no pending
+     *          blocks anymore, or because due to the CRITERIA and ACTIONS defined there is no match possible.
+     */
+    public synchronized Optional<String> extractMostSuitableBlockForDownload(PeerAddress currentPeer,
                                                                              List<PeerAddress> availablePeers,
                                                                              List<PeerAddress> notAvailablePeers) {
 
@@ -204,7 +216,7 @@ public class BlocksPendingManager {
         if (this.pendingBlocks.size() > 0) {
             // Now we just return the Block that meets the check...
             OptionalInt blockIndexToReturn = IntStream.range(0, this.pendingBlocks.size())
-                    .filter(i -> isPeerSuitableForDownload(this.pendingBlocks.get(i), peerAddress, availablePeers, notAvailablePeers))
+                    .filter(i -> isPeerSuitableForDownload(this.pendingBlocks.get(i), currentPeer, availablePeers, notAvailablePeers))
                     .findFirst();
 
             // We 'extract' the block from the pending List and return it:
