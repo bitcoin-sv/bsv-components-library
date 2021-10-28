@@ -1,12 +1,17 @@
-package com.nchain.jcl.tools.tree
+package com.nchain.jcl.tools.chainStore
+
 
 import spock.lang.Specification
 
 import java.time.Duration
 import java.time.Instant
 
-class TreeNodePerformanceSpec extends Specification {
+/**
+ * Performance tests for ChainMemStore.
+ */
+class ChainMemStorePerformanceSpec extends Specification {
 
+    /** Data Type stored in the Chain */
     class NodeTest implements Node<String> {
         String id;
         String title;
@@ -16,28 +21,32 @@ class TreeNodePerformanceSpec extends Specification {
             this.title = title;
         }
         @Override String getId() { return id;}
-//        @Override int hashCode() { return id.hashCode();}
-////        @Override boolean equals(Object other) {
-////            if (other == null) return false;
-////            return id.equals(((NodeTest) other).id);
-////        }
     }
 
-    def "testing forking & prunning with long trunks and many branches"() {
+    /**
+     * - We crate a long main branch.
+     * - Then we crate a FORK in the MIDDLE of the previous chain and add a FORK chain
+     * - Then we prune/remove the FORK chain
+     *
+     * Each of the 3 operations above can be configured to determine the size/length of the chains.
+     * We expect each operation to be performed before some threshod that can also be configured. If any of the tasks
+     * take loner the test fails.
+     */
+    def "testing forking & prunning with long trunks"() {
         given:
             // Size of the TREE
             final long MAIN_CHAIN_LENGTH = 500_000;
             final long FORK_CHAIN_LENGTH = 1000;
             final long FORK_HEIGHT = 200_000;
 
-            // Metrics we need to Meet to consider the Test a Success:
-            final Duration TIME_TO_BUILD_MAIN_CHAIN = Duration.ofSeconds(120)
+            // Metrics/Thresholds we need to Meet to consider the Test a Success:
+            final Duration TIME_TO_BUILD_MAIN_CHAIN = Duration.ofSeconds(180)
             final Duration TIME_TO_ADD_FORK = Duration.ofSeconds(30)
             final Duration TIME_TO_PRUNE_FORK = Duration.ofSeconds(10)
 
             // Tree initialization:
             NodeTest genesis = new NodeTest("0", "genesis")
-            TreeNode<String, NodeTest> treeNode = new TreeNode<>(genesis)
+            ChainMemStore<String, NodeTest> treeNode = new ChainMemStore<>(genesis)
 
         when:
 

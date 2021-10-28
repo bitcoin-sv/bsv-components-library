@@ -1,11 +1,15 @@
-package com.nchain.jcl.tools.tree
+package com.nchain.jcl.tools.chainStore
+
 
 import spock.lang.Specification
 
 
+/**
+ * Testing class for ChainMemStore. Basic operations (adding/removing nodes, creating/removing forks...)
+ */
+class ChainMemStoreAddRemoveSpec extends Specification {
 
-class TreeNodeAddRemoveSpec extends Specification {
-
+    /** Data Type stored in the Chain */
     class NodeTest implements Node<String> {
         String id;
         String title;
@@ -28,16 +32,16 @@ class TreeNodeAddRemoveSpec extends Specification {
             NodeTest node3 = new NodeTest("3", "three")
             NodeTest node4 = new NodeTest("4", "four")
         when:
-            TreeNode<String, NodeTest> treeNode = new TreeNode<>(genesis)
+            ChainMemStore<String, NodeTest> treeNode = new ChainMemStore<>(genesis)
             boolean node1Saved = treeNode.addNode(genesis.getId(), node1)
             boolean node2Saved = treeNode.addNode(node1.getId(), node2)
             boolean node3Saved = treeNode.addNode(node2.getId(), node3)
             boolean node4Saved = treeNode.addNode(node4.getId(), node4)         // NOT SAVED
             boolean node3SavedAgain =  treeNode.addNode(node2.getId(), node3)   // NOT SAVED
 
-            long oneHeight = treeNode.getHeight("1").getAsLong()
-            long twoHeight = treeNode.getHeight("2").getAsLong()
-            long threeHeight = treeNode.getHeight("3").getAsLong()
+            int oneHeight = treeNode.getHeight("1").getAsInt()
+            int twoHeight = treeNode.getHeight("2").getAsInt()
+            int threeHeight = treeNode.getHeight("3").getAsInt()
 
             List<String> tips = treeNode.getTips()
 
@@ -71,7 +75,7 @@ class TreeNodeAddRemoveSpec extends Specification {
             NodeTest node4 = new NodeTest("4", "four")
             NodeTest node5 = new NodeTest("5", "five")
         when:
-            TreeNode<String, NodeTest> treeNode = new TreeNode<>(genesis)
+            ChainMemStore<String, NodeTest> treeNode = new ChainMemStore<>(genesis)
             treeNode.addNode(genesis.getId(), node1)
             treeNode.addNode(node1.getId(), node2)
             treeNode.addNode(node2.getId(), node3A)
@@ -79,12 +83,12 @@ class TreeNodeAddRemoveSpec extends Specification {
             treeNode.addNode(node3A.getId(), node4)
             treeNode.addNode(node4.getId(), node5)
 
-            long oneHeight = treeNode.getHeight("1").getAsLong()
-            long twoHeight = treeNode.getHeight("2").getAsLong()
-            long threeAHeight = treeNode.getHeight("3A").getAsLong()
-            long threeBHeight = treeNode.getHeight("3B").getAsLong()
-            long fourAHeight = treeNode.getHeight("4").getAsLong()
-            long fiveBHeight = treeNode.getHeight("5").getAsLong()
+            int oneHeight = treeNode.getHeight("1").getAsInt()
+            int twoHeight = treeNode.getHeight("2").getAsInt()
+            int threeAHeight = treeNode.getHeight("3A").getAsInt()
+            int threeBHeight = treeNode.getHeight("3B").getAsInt()
+            int fourAHeight = treeNode.getHeight("4").getAsInt()
+            int fiveBHeight = treeNode.getHeight("5").getAsInt()
 
             List<String> nodesAtHeight3 = treeNode.getNodesAtHeight(3);
             List<String> tips = treeNode.getTips()
@@ -116,7 +120,7 @@ class TreeNodeAddRemoveSpec extends Specification {
             NodeTest node2 = new NodeTest("2", "two")
             NodeTest node3 = new NodeTest("3", "three")
         when:
-            TreeNode<String, NodeTest> treeNode = new TreeNode<>(genesis)
+            ChainMemStore<String, NodeTest> treeNode = new ChainMemStore<>(genesis)
             treeNode.addNode(genesis.getId(), node1)
             treeNode.addNode(node1.getId(), node2)
             treeNode.addNode(node2.getId(), node3)
@@ -157,7 +161,7 @@ class TreeNodeAddRemoveSpec extends Specification {
             NodeTest node4 = new NodeTest("4", "four")
             NodeTest node5 = new NodeTest("5", "five")
         when:
-            TreeNode<String, NodeTest> treeNode = new TreeNode<>(genesis)
+            ChainMemStore<String, NodeTest> treeNode = new ChainMemStore<>(genesis)
             treeNode.addNode(genesis.getId(), node1)
             treeNode.addNode(node1.getId(), node2)
             treeNode.addNode(node2.getId(), node3A)
@@ -171,8 +175,8 @@ class TreeNodeAddRemoveSpec extends Specification {
             boolean threeARemoved = treeNode.removeNode("3A")
 
             List<String> tipsAfterRemoving = treeNode.getTips()
-            long oneHeight = treeNode.getHeight("1").getAsLong()
-            long twoHeight = treeNode.getHeight("2").getAsLong()
+            int oneHeight = treeNode.getHeight("1").getAsInt()
+            int twoHeight = treeNode.getHeight("2").getAsInt()
             Optional<NodeTest> nodeRemoved = treeNode.getNode("3A")
             List<String> nodesAt3AfterRemoving = treeNode.getNodesAtHeight(3)
 

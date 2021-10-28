@@ -1,4 +1,4 @@
-package com.nchain.jcl.tools.tree;
+package com.nchain.jcl.tools.chainStore;
 
 /**
  * @author i.fernandez@nchain.com
