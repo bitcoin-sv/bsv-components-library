@@ -45,6 +45,7 @@ class ChainMemStoreAddRemoveSpec extends Specification {
 
             List<String> tips = treeNode.getTips()
 
+
         then:
             treeNode.size() == 4
             node1Saved
@@ -57,12 +58,12 @@ class ChainMemStoreAddRemoveSpec extends Specification {
             threeHeight == 3
             tips.size() == 1
             tips.contains(node3.getId())
+            treeNode.getMaxLength() == 4
     }
 
     /**
      * We build [genesis]-[1]-[2]
-     *                         |-[3A]
-     *                           |-[4]-[5]
+     *                         |-[3A]-[4]-[5]
      *                         |-[3B]
      */
     def "adding Branches"() {
@@ -107,6 +108,7 @@ class ChainMemStoreAddRemoveSpec extends Specification {
             tips.size() == 2
             tips.contains(node5.getId())
             tips.contains(node3B.getId())
+            treeNode.getMaxLength() == 6
     }
 
     /**
@@ -126,9 +128,11 @@ class ChainMemStoreAddRemoveSpec extends Specification {
             treeNode.addNode(node2.getId(), node3)
 
             List<String> tipsBeforeRemoving = treeNode.getTips()
+            long maxLengthBeforeRemoving = treeNode.getMaxLength()
             boolean twoRemoved = treeNode.removeNode("2")
             boolean unknownRemoved = treeNode.removeNode("xx");
             List<String> tipsAfterRemoving = treeNode.getTips()
+            long maxLengthAfterRemoving = treeNode.getMaxLength()
 
         then:
             treeNode.size() == 2
@@ -138,17 +142,17 @@ class ChainMemStoreAddRemoveSpec extends Specification {
             tipsBeforeRemoving.contains(node3.getId())
             tipsAfterRemoving.size() == 1
             tipsAfterRemoving.contains(node1.getId())
+            maxLengthBeforeRemoving == 4
+            maxLengthAfterRemoving == 2
     }
 
     /**
      * We build [genesis]-[1]-[2]
-     *                         |-[3A]
-     *                           |-[4]-[5]
+     *                         |-[3A] -[4]-[5]
      *                         |-[3B]
      *
      * Then we remove [3A], so we should get:
-     * [genesis]-[1]-[2]
-     *                |-[3B]
+     * [genesis]-[1]-[2]-[3B]
      *
      */
     def "adding and removing Blocks from Branches"() {
@@ -171,6 +175,7 @@ class ChainMemStoreAddRemoveSpec extends Specification {
 
             List<String> nodesAt3BeforeRemoving = treeNode.getNodesAtHeight(3)
             List<String> tipsBeforeRemoving = treeNode.getTips()
+            long maxLengthBeforeRemoving = treeNode.getMaxLength()
 
             boolean threeARemoved = treeNode.removeNode("3A")
 
@@ -179,6 +184,7 @@ class ChainMemStoreAddRemoveSpec extends Specification {
             int twoHeight = treeNode.getHeight("2").getAsInt()
             Optional<NodeTest> nodeRemoved = treeNode.getNode("3A")
             List<String> nodesAt3AfterRemoving = treeNode.getNodesAtHeight(3)
+            long maxLengthAfterRemoving = treeNode.getMaxLength()
 
         then:
             treeNode.size() == 4
@@ -197,5 +203,7 @@ class ChainMemStoreAddRemoveSpec extends Specification {
             tipsBeforeRemoving.contains(node3B.getId())
             tipsAfterRemoving.size() == 1
             tipsAfterRemoving.contains(node3B.getId())
+            maxLengthBeforeRemoving == 6
+            maxLengthAfterRemoving == 4
     }
 }

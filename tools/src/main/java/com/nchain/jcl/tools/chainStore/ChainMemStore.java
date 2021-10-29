@@ -158,6 +158,17 @@ public class ChainMemStore<NodeId, NodeData extends Node<NodeId>> {
         }
     }
 
+    /**
+     * Returns the length of the longest chain
+     */
+    public long getMaxLength() {
+        try {
+            lock.readLock().lock();
+            return rootNode.maxLength();
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
 
     // Recursive function to get the Tips.
     // NOTE: In a blockchain-like structure, number of branches is small so we should not have to worry about StackOverflow
