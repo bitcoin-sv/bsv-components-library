@@ -232,6 +232,13 @@ public class ChainTree<NodeId, NodeData extends Node<NodeId>> {
         return trunk.size() + branches.stream().mapToLong(b -> b.size()).sum();
     }
 
+    /** Returns the maxLength of this Tree, that is the length of the best chain */
+    public long maxLength() {
+        return  branches.isEmpty()
+                ? trunk.size()
+                : trunk.size() + branches.stream().mapToLong(b -> b.maxLength()).max().getAsLong();
+    }
+
     /** Returns the Node of this Tree at the relative Height*/
     public NodeData getNode(int relativeHeight) {
         return trunk.get(relativeHeight);
