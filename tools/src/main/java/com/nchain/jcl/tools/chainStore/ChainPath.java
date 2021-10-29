@@ -81,10 +81,15 @@ public class ChainPath<NodeId> {
         int offsetOther         = firstCommonKnown - other.startingHeight;
 
         // No fork if they are empty, or they do NOT overlap, or the very first node in common is already different
-        if (other.path.size() == 0 || path.size() == 0)                     { return -1; }
-        if (path.size() < firstCommonKnown - startingHeight)                { return null; }
-        if (other.path.size() < firstCommonKnown - other.startingHeight)    { return null; }
-        if (!path.get(offset).equals(other.path.get(offsetOther)))          { return null; }
+        if (other.path.size() == 0 || path.size() == 0)                         { return -1; }
+        if ((firstCommonKnown == 0) && (!path.get(0).equals(other.path.get(0)))){ return -1;}
+
+        if (path.size() < firstCommonKnown - startingHeight)                    { return null; }
+        if (other.path.size() < firstCommonKnown - other.startingHeight)        { return null; }
+        if (!path.get(offset).equals(other.path.get(offsetOther)))              { return null; }
+
+        if (!path.get(offset).equals(other.path.get(offsetOther)))              { return -1; }
+
 
         // We get the FIRST Node in both chains that is DIFFERENT, and the Fork would be the Node BEFORE that
         // (the parent). We do a BINARY Search:
