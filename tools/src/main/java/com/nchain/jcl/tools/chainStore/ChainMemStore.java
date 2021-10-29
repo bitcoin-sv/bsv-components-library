@@ -90,7 +90,8 @@ public class ChainMemStore<NodeId, NodeData extends Node<NodeId>> {
     }
 
     // Returns the list of Trees that contains Nodes at the given Height
-    // NOTE: In a blockchain-like structure, number of branches is small so we should not have to worry about StackOverflow
+    // NOTE: This is a recursive function, but in a blockchain-like structure the number of branches is small so we
+    // should not have to worry about StackOverflow and this should be very close to O(1)
     private List<ChainTree<NodeId, NodeData>> getTreeContainingHeight(long height, ChainTree<NodeId, NodeData> currentTree) {
         if (currentTree.startingHeight <= height) {
             if (height <= (currentTree.startingHeight + currentTree.trunk.size() - 1)) {
@@ -131,7 +132,7 @@ public class ChainMemStore<NodeId, NodeData extends Node<NodeId>> {
     }
 
     /**
-     * It removes the node given and re-adjusts the Tree accordingly. It returns TRU if the node has been removed, or
+     * It removes the node given and re-adjusts the Tree accordingly. It returns TRUE if the node has been removed, or
      * FALSE if it doesn't exist.
      */
     public Boolean removeNode(NodeId nodeId) {
@@ -197,6 +198,20 @@ public class ChainMemStore<NodeId, NodeData extends Node<NodeId>> {
         try {
             lock.readLock().lock();
             return nodeLocator.contains(nodeId);
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    /**
+     * Returns the Last Node of the Longest Chain. If There are more than one chain we return one of them
+     */
+    public NodeData getLastNode() {
+        try {
+            lock.readLock().lock();
+            long longestChainLength = getMaxLength();
+            List<NodeId> nodes = getNodesAtHeight(longestChainLength - 1);
+            return getNode(nodes.get(0)).get(); // The first one. does it matter?
         } finally {
             lock.readLock().unlock();
         }

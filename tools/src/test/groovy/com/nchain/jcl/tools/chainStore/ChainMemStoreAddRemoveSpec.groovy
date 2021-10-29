@@ -44,7 +44,7 @@ class ChainMemStoreAddRemoveSpec extends Specification {
             int threeHeight = treeNode.getHeight("3").getAsInt()
 
             List<String> tips = treeNode.getTips()
-
+            NodeTest bestNode = treeNode.getLastNode()
 
         then:
             treeNode.size() == 4
@@ -59,6 +59,7 @@ class ChainMemStoreAddRemoveSpec extends Specification {
             tips.size() == 1
             tips.contains(node3.getId())
             treeNode.getMaxLength() == 4
+            bestNode.getId().equals("3")
     }
 
     /**
@@ -93,6 +94,7 @@ class ChainMemStoreAddRemoveSpec extends Specification {
 
             List<String> nodesAtHeight3 = treeNode.getNodesAtHeight(3);
             List<String> tips = treeNode.getTips()
+            NodeTest bestNode = treeNode.getLastNode()
 
         then:
             treeNode.size() == 7
@@ -109,6 +111,7 @@ class ChainMemStoreAddRemoveSpec extends Specification {
             tips.contains(node5.getId())
             tips.contains(node3B.getId())
             treeNode.getMaxLength() == 6
+            bestNode.getId().equals("5")
     }
 
     /**
@@ -129,10 +132,14 @@ class ChainMemStoreAddRemoveSpec extends Specification {
 
             List<String> tipsBeforeRemoving = treeNode.getTips()
             long maxLengthBeforeRemoving = treeNode.getMaxLength()
+            NodeTest bestNodeBeforeRemoving = treeNode.getLastNode()
+
             boolean twoRemoved = treeNode.removeNode("2")
             boolean unknownRemoved = treeNode.removeNode("xx");
+
             List<String> tipsAfterRemoving = treeNode.getTips()
             long maxLengthAfterRemoving = treeNode.getMaxLength()
+            NodeTest bestNodeAfterRemoving = treeNode.getLastNode()
 
         then:
             treeNode.size() == 2
@@ -144,6 +151,8 @@ class ChainMemStoreAddRemoveSpec extends Specification {
             tipsAfterRemoving.contains(node1.getId())
             maxLengthBeforeRemoving == 4
             maxLengthAfterRemoving == 2
+            bestNodeBeforeRemoving.getId().equals("3")
+            bestNodeAfterRemoving.getId().equals("1")
     }
 
     /**
@@ -176,6 +185,7 @@ class ChainMemStoreAddRemoveSpec extends Specification {
             List<String> nodesAt3BeforeRemoving = treeNode.getNodesAtHeight(3)
             List<String> tipsBeforeRemoving = treeNode.getTips()
             long maxLengthBeforeRemoving = treeNode.getMaxLength()
+            NodeTest bestNodeBeforeRemoving = treeNode.getLastNode()
 
             boolean threeARemoved = treeNode.removeNode("3A")
 
@@ -185,6 +195,7 @@ class ChainMemStoreAddRemoveSpec extends Specification {
             Optional<NodeTest> nodeRemoved = treeNode.getNode("3A")
             List<String> nodesAt3AfterRemoving = treeNode.getNodesAtHeight(3)
             long maxLengthAfterRemoving = treeNode.getMaxLength()
+            NodeTest bestNodeAfterRemoving = treeNode.getLastNode()
 
         then:
             treeNode.size() == 4
@@ -205,5 +216,7 @@ class ChainMemStoreAddRemoveSpec extends Specification {
             tipsAfterRemoving.contains(node3B.getId())
             maxLengthBeforeRemoving == 6
             maxLengthAfterRemoving == 4
+            bestNodeBeforeRemoving.getId().equals("5")
+            bestNodeAfterRemoving.getId().equals("3B")
     }
 }
