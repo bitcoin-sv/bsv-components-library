@@ -80,7 +80,6 @@ public class ChainPath<NodeId> {
         int offset              = firstCommonKnown - startingHeight;
         int offsetOther         = firstCommonKnown - other.startingHeight;
 
-        // No fork if they are empty, or they do NOT overlap, or the very first node in common is already different
         if (other.path.size() == 0 || path.size() == 0)                         { return -1; }
         if ((firstCommonKnown == 0) && (!path.get(0).equals(other.path.get(0)))){ return -1;}
 
@@ -98,10 +97,8 @@ public class ChainPath<NodeId> {
         int endCheck = Math.min(other.path.size() - offsetOther, path.size() - offset) - 1 + offset;
 
         while (beginCheck < endCheck) {
-            System.out.println("Checking Nodes in interval [" + beginCheck + " - " + endCheck + "]");
             int indexToCheck = ((endCheck - beginCheck + 1) / 2) + beginCheck;
             int indexOtherToCheck = (offset == 0)? indexToCheck + offsetOther : indexToCheck - offset;
-            System.out.println(" - checking Node[" + indexToCheck + "]: " + path.get(indexToCheck) + " - Node[" + indexOtherToCheck + "]: " +  other.path.get(indexOtherToCheck) + " ...");
             if (other.path.get(indexOtherToCheck).equals(path.get(indexToCheck))) {
                 beginCheck = indexToCheck;
             } else {
