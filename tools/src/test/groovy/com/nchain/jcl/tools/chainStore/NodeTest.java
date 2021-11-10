@@ -27,10 +27,9 @@ public class NodeTest implements Node<String> {
     }
 
     @Override
-    public boolean isEqual(Node other) {
+    public boolean equals(Object other) {
         if (!(other instanceof NodeTest)) return false;
         NodeTest otherNode = (NodeTest) other;
         return Objects.equals(this.id, otherNode.id) && Objects.equals(this.title, otherNode.title);
     }
-
 }
