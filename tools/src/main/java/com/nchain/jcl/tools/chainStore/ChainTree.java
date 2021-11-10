@@ -55,10 +55,6 @@ public class ChainTree<NodeId, NodeData extends Node<NodeId>> {
         this(parentTree, height, Arrays.asList(node), nodeLocator);
     }
 
-    /** It adds a branch to this Tree. We assume the branch has already the right 'startingHeight' */
-    protected void addBranch(ChainTree<NodeId, NodeData> branch) {
-        this.branches.add(branch);
-    }
     /** It adds branches to this Tree. We assume the branches have already the right 'startingHeight' */
     protected void addBranches(List<ChainTree<NodeId, NodeData>> branches) {
         this.branches.addAll(branches);
@@ -138,8 +134,8 @@ public class ChainTree<NodeId, NodeData extends Node<NodeId>> {
      *  - 1 branch containing the previous tree after the cut below the parent
      */
     public boolean addNode(NodeData parentNode, NodeData nodeData) {
-        if (!trunk.contains(parentNode)) return false;
-        if (trunk.contains(nodeData))    return false;
+        if (!contains(parentNode.getId())) return false;
+        if (contains(nodeData.getId()))    return false;
 
         int parentIndex = nodesRelativeHeight.get(parentNode.getId());
 
@@ -173,7 +169,7 @@ public class ChainTree<NodeId, NodeData extends Node<NodeId>> {
      *
      */
     public boolean removeNode(NodeData nodeData) {
-        if (!trunk.contains(nodeData)) return false;
+        if (!contains(nodeData.getId())) return false;
 
         int nodeIndex = nodesRelativeHeight.get(nodeData.getId());
 
@@ -196,15 +192,15 @@ public class ChainTree<NodeId, NodeData extends Node<NodeId>> {
      * Returns the PArent of this Node
      */
     public Optional<NodeData> getParentNode(NodeData node) {
-        if (!trunk.contains(node)) return Optional.empty();
-
-        int nodeIndex = nodesRelativeHeight.get(node.getId());
-        Optional<NodeData> result = (nodeIndex > 0)
-                ? Optional.of(trunk.get(nodeIndex - 1))
-                : (parent != null)
-                    ? Optional.of(parent.trunk.get(parent.trunk.size() - 1))
-                    : Optional.empty();
-        return result;
+        Integer nodeIndex = nodesRelativeHeight.get(node.getId());
+        // not in this Tree
+        if (nodeIndex == null)  { return Optional.empty();}
+        // present in the Trunk
+        if (nodeIndex > 0)      { return Optional.of(trunk.get(nodeIndex - 1));}
+        // int he parent, but parent is null
+        if (parent == null)     { return Optional.empty();}
+        // from the parent
+        return Optional.of(parent.trunk.get(parent.trunk.size() - 1));
     }
 
     /**
@@ -232,11 +228,28 @@ public class ChainTree<NodeId, NodeData extends Node<NodeId>> {
         return trunk.size() + branches.stream().mapToLong(b -> b.size()).sum();
     }
 
+    /** Returns the Total number of nodes ONLY in the TRUNK */
+    public int trunkSize() {
+        return trunk.size();
+    }
+
     /** Returns the maxLength of this Tree, that is the length of the best chain */
     public long maxLength() {
-        return  branches.isEmpty()
-                ? trunk.size()
-                : trunk.size() + branches.stream().mapToLong(b -> b.maxLength()).max().getAsLong();
+        return trunk.size() + (!branches.isEmpty()? branches.stream().mapToLong(b -> b.maxLength()).max().getAsLong() : 0);
+    }
+
+    /** Returns the max Depth of the Tree that this Tree is part of */
+    public long maxDepth() {
+        return  startingHeight + maxLength();
+    }
+
+    /** Returns the longest branch */
+    public Optional<ChainTree<NodeId, NodeData>> getLongestBranch() {
+        if (this.branches.isEmpty()) { return Optional.empty();}
+
+        long maxLengthToSearch = maxLength() - this.trunk.size();
+        Optional<ChainTree<NodeId, NodeData>> result = this.branches.stream().filter(b -> b.maxLength() == maxLengthToSearch).findFirst();
+        return result;
     }
 
     /** Returns the Node of this Tree at the relative Height*/
@@ -249,4 +262,66 @@ public class ChainTree<NodeId, NodeData extends Node<NodeId>> {
         return trunk.get(nodesRelativeHeight.get(nodeId));
     }
 
+    public boolean contains(NodeId nodeId) {
+        return nodesRelativeHeight.containsKey(nodeId);
+    }
+
+    // It copies and returns the trunk. If we are copying the whole trunk, we just return its reference instead
+    // of making a copy, for performance reasons.
+    // NOTE: There might be a risk here if the reference to the trunk is returned and that trunk is modified in another
+    // thread (in that case we'll just have to always copy the trunk)
+    private List<NodeData> copyTrunk(int startOffset, int endOffset) {
+        if (startOffset == 0 && endOffset == trunk.size() - 1) {
+            return this.trunk;
+        } else return trunk.subList(startOffset, endOffset + 1);
+    }
+
+    /**
+     * It returns the ChainPath this Tree belongs to, form the Height given up to the Block given, including also
+     * descendants if specified.
+     */
+    public ChainPath<NodeData> getPath(NodeId nodeId, int fromHeight, boolean includeLongestDescendents) {
+
+        // Sanity check:
+        if (!contains(nodeId)) {return new ChainPath<>(startingHeight);}
+
+        // All the Trunks from here back to genesis (or 'fromHeight') are stored here:
+        List<List<NodeData>> partialTrunks = new ArrayList<>();
+
+        // We add the descendents:
+        if (includeLongestDescendents) {
+            partialTrunks.add(getLongestPathAfterThisTree());
+        }
+
+        // We add our trunk and ALl the trunks from here up to the genesis:
+        ChainTree<NodeId, NodeData> tree = this;
+        int endOffset = (includeLongestDescendents)? trunkSize() - 1 : nodesRelativeHeight.get(nodeId);
+        while (true) {
+            int startOffset = Math.max(fromHeight, tree.startingHeight) - tree.startingHeight;
+            partialTrunks.add(tree.copyTrunk(startOffset, endOffset));
+            if (tree.parent != null && startOffset == 0) {
+                tree = tree.parent;
+                endOffset = tree.trunkSize() - 1;
+            } else break;
+        } // while...
+
+        // Now we collect all the trunks into a single response:
+        List<NodeData> result = new ArrayList<NodeData>((int) this.maxDepth());
+        for (int i = partialTrunks.size() - 1 ; i >= 0; i--) { result.addAll(partialTrunks.get(i));}
+
+        return new ChainPath<>(result, tree.startingHeight);
+    }
+
+    /**
+     * Returns the nodes built on top of this Tree. In case there are several branches, it follows the longest chain
+     */
+    private List<NodeData> getLongestPathAfterThisTree() {
+        List<NodeData> result = new ArrayList<>();
+        if (!branches.isEmpty()) {
+            ChainTree<NodeId, NodeData> longestBranch = this.getLongestBranch().get();
+            result.addAll(longestBranch.trunk);
+            result.addAll(longestBranch.getLongestPathAfterThisTree());
+        }
+        return result;
+    }
 }
