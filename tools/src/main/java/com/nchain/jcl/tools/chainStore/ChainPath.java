@@ -4,6 +4,7 @@ package com.nchain.jcl.tools.chainStore;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.IntStream;
 
 /**
  * @author i.fernandez@nchain.com
@@ -15,9 +16,9 @@ import java.util.Optional;
  *
  * (based on initial implementation by Domen Vrankar)
  */
-public class ChainPath<NodeId> {
+public class ChainPath<NodeData> {
 
-    private List<NodeId> path;
+    private List<NodeData> path;
     private int startingHeight;
 
     /**
@@ -25,7 +26,7 @@ public class ChainPath<NodeId> {
      * @param nodes             List of Nodes of this Chain Path
      * @param startingHeight    Height that this Path represents of the whole blockchain is part of
      */
-    public ChainPath(List<NodeId> nodes, int startingHeight) {
+    public ChainPath(List<NodeData> nodes, int startingHeight) {
         this.path = nodes;
         this.startingHeight = startingHeight;
     }
@@ -49,7 +50,7 @@ public class ChainPath<NodeId> {
      *  - FALSE: Block is NOT in the chain
      *  - null: block is beyond this chain Path (height is higher than this whole Chain Path)
      */
-    public Boolean isInChain(NodeId nodeId, int height ) {
+    public Boolean isInChain(NodeData nodeId, int height ) {
         assert (height >= 0) : "Index may never be less than 0.";
 
         if (height < startingHeight) {
@@ -72,7 +73,7 @@ public class ChainPath<NodeId> {
      *   - -1: There is no fork
      *   - null: can't answer as the blocks are pruned too far back
      */
-    public Integer getForkPoint(ChainPath<NodeId> other) {
+    public Integer getForkPoint(ChainPath<NodeData> other) {
 
         // First Node in common is the Height after wish they overlap:
         // Offsets are the indexes where both paths can start comparing nodes to each other:
@@ -111,7 +112,7 @@ public class ChainPath<NodeId> {
     /**
      * Returns the Block Id identified by the height given, if it's stored in this Chain Path.
      */
-    public Optional<NodeId> getNode(int height ) {
+    public Optional<NodeData> getNode(int height ) {
         assert (height >= 0) : "Index may never be less than 0.";
 
         if (height < startingHeight) {
@@ -121,10 +122,13 @@ public class ChainPath<NodeId> {
         return (offset < path.size() ? Optional.of(path.get(offset)) : Optional.empty());
     }
 
+    /** Returns the size (length) of this ChainPath */
+    public int size() { return path.size();}
+
     /**
      * Returns a list with the Nodes of this Chain Path, starting at the height given
      */
-    public List<NodeId> getNodesFrom(int startAtHeight) {
+    public List<NodeData> getNodesFrom(int startAtHeight) {
         assert (startAtHeight >= 0) : "Index may never be less than 0.";
 
         if (startAtHeight < startingHeight) {
@@ -135,6 +139,36 @@ public class ChainPath<NodeId> {
             return null;
         }
         return path.subList(offset, path.size());
+    }
+
+    /**
+     * Returns a list with the Nodes of this Chain Path, starting at the height given
+     */
+    public List<NodeData> getNodes() {
+        return path;
+    }
+
+    /**
+     * Returns the starting height (height of the first Block) of this Path
+     */
+    public int getStartingHeight() { return startingHeight;}
+
+    @Override
+    public boolean equals(Object other) {
+        if (other instanceof ChainPath) {
+            ChainPath<NodeData> otherChain = (ChainPath<NodeData>) other;
+            return this.startingHeight == otherChain.startingHeight
+                    && path.size() == otherChain.path.size()
+                    && IntStream.range(0, path.size())
+                    .allMatch(i -> {
+                        if (path.get(i) instanceof Node && otherChain.path.get(i) instanceof Node) {
+                            return ((Node) path.get(i)).isEqual((Node) otherChain.path.get(i));
+                        } else {
+                            return path.get(i).equals(otherChain.path.get(i));
+                        }
+                    });
+        }
+        return false;
     }
 
 }

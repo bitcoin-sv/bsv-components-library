@@ -1,5 +1,6 @@
 package com.nchain.jcl.tools.chainStore;
 
+import java.sql.Array;
 import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -33,23 +34,28 @@ public class ChainMemStore<NodeId, NodeData extends Node<NodeId>> {
      * Constructor
      * @param genesisNode Genesis Node that will make the Root of the Blockchain.
      */
-    public ChainMemStore(NodeData genesisNode) {
+    public ChainMemStore(NodeData genesisNode, int startingHeight) {
         this.nodeLocator = new NodeIndexer<>();
-        this.rootNode = new ChainTree<>(null, 0, genesisNode, nodeLocator);
+        this.rootNode = new ChainTree<>(null, startingHeight, genesisNode, nodeLocator);
         this.nodeLocator.update(this.rootNode);
+    }
+
+    /** Convenience constructor */
+    public ChainMemStore(NodeData genesisNode) {
+        this(genesisNode, 0);
     }
 
     /**
      * Adds a Node to the ChainTree.
      * @param parentId  Id of the Parent
      * @param nodeData  Node to add
-     * @return          TRUE if inserted, FALSE if not (parent not present, or node already saved)
+     * @return          TRUE if inserted, FALSE if node already saved, nul if parent does NOT exist
      */
     public Boolean addNode(NodeId parentId, NodeData nodeData) {
         try {
             lock.writeLock().lock();
             ChainTree<NodeId, NodeData> parentTree = nodeLocator.getNodeTree(parentId);
-            if (parentTree == null) return false;
+            if (parentTree == null) return null;
             NodeData parentNode = parentTree.getNode(parentId);
             return parentTree.addNode(parentNode, nodeData);
         } finally {
@@ -148,6 +154,16 @@ public class ChainMemStore<NodeId, NodeData extends Node<NodeId>> {
     }
 
     /**
+     * Returns the length of the chain from this Node to the Tip, following the longest chain
+     */
+    public OptionalLong getLengthUpToTip(NodeId nodeId) {
+        ChainTree<NodeId, NodeData> nodeTree = nodeLocator.getNodeTree(nodeId);
+        if (nodeTree == null) { return OptionalLong.empty();}
+
+        return OptionalLong.of(nodeTree.maxLength() - (nodeTree.nodesRelativeHeight.get(nodeId) - nodeTree.startingHeight));
+    }
+
+    /**
      * Returns the total number of Nodes
      */
     public long size() {
@@ -214,6 +230,73 @@ public class ChainMemStore<NodeId, NodeData extends Node<NodeId>> {
             return getNode(nodes.get(0)).get(); // The first one. does it matter?
         } finally {
             lock.readLock().unlock();
+        }
+    }
+
+    /**
+     * Returns a List of Nodes that form a linear chain:
+     * - It begins at the node at "fromHeight", and connects to "nodeId", and:
+     *   if "includeChildrenLongestChain" is TRUE, the Path continues and also includes the blocks built AFTER "nodeId"
+     *   and up to the tip of the LONGEST chain.
+     * @param fromHeight height the Path will start on
+     * @param nodeId Node Id that will make the end of the Path (if includeChildrenUpToNExtFork is false)
+     * @param includeChildrenLongestChain It controls the length of the Path:
+     *                                     - If FALSE: the Path will start at "fromHeight" and will finish on NodeId.
+     *                                     - If TRUE: the path will start at "fromHeight" and will finish at the last
+     *                                       Node AFTER "nodeId", following the longest chain after it.
+     */
+    // TODO: CHECK PERFORMANCE OF THIS METHOD!!!!!!!!
+    public ChainPath<NodeData> getPath(int fromHeight, NodeId nodeId, boolean includeChildrenLongestChain) {
+        try {
+            lock.readLock().lock();
+
+            OptionalInt nodeHeight = getHeight(nodeId);
+            if (nodeHeight.isEmpty())               { return null;}
+            if (nodeHeight.getAsInt() < fromHeight) { return new ChainPath<>(fromHeight);}
+
+            ChainPath<NodeData> result = nodeLocator.getNodeTree(nodeId).getPath(nodeId, fromHeight, includeChildrenLongestChain);
+
+            return result;
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    /**
+     * It prunes the Tree at the height given. If there are more than 1 block at the height given, representing different
+     * branches, all of them but one is removed. the longest branch will be preserved.
+     * NOTE: This method does NOT check the chain BEFORE this height, so its up to the caller to provide the right height.
+     * Examples:
+     * 1 - 2 - 2A - 3A
+     *       - 2B - 3B
+     *
+     * If we call "prune(2)", the result will be:
+     * 1 - 2
+     *
+     * If we call "prune(3) the result will be:
+     * 1 - 2 - 2A - 3A
+     *       - 2B
+     * @param height height from whcih branches will be pruned, remaining only the loongest one.
+     */
+    public void prune(int height) {
+        try {
+            lock.writeLock().lock();
+            List<NodeId> nodesAtHeight = getNodesAtHeight(height + 1);
+            if (nodesAtHeight.size() > 1) {
+                // We only remove all the nodes at this height expect the longest one.
+                long maxLength = nodesAtHeight.stream().mapToLong(h -> getLengthUpToTip(h).getAsLong()).max().getAsLong();
+                nodesAtHeight.stream().filter(n -> getLengthUpToTip(n).getAsLong() < maxLength).forEach(this::removeNode);
+
+                // At this moment there should be only 1 branch remaining. But if some branches have the same
+                // max length, then none of them will have been removed. So just in case, we remove again all the
+                // branches but the first one
+                nodesAtHeight = getNodesAtHeight(height + 1);
+                if (nodesAtHeight.size() > 1) {
+                    nodesAtHeight.stream().skip(1).forEach(this::removeNode);
+                }
+            }
+        } finally {
+            lock.writeLock().unlock();
         }
     }
 }
