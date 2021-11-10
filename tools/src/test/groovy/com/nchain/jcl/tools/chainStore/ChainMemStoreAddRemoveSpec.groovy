@@ -2,6 +2,7 @@ package com.nchain.jcl.tools.chainStore
 
 
 import spock.lang.Specification
+import static com.nchain.jcl.tools.chainStore.NodeTestFactory.*
 
 
 /**
@@ -9,35 +10,19 @@ import spock.lang.Specification
  */
 class ChainMemStoreAddRemoveSpec extends Specification {
 
-    /** Data Type stored in the Chain */
-    class NodeTest implements Node<String> {
-        String id;
-        String title;
-        NodeTest(String id, String title) {
-            this.id = id;
-            this.title = title;
-        }
-        @Override String getId() { return id;}
-    }
-
     /**
      * We build [genesis]-[1]-[2]-[3].
      * [4] is NOT saved (parent not found)
      */
     def "adding Nodes to Trunk"() {
         given:
-            NodeTest genesis = new NodeTest("0", "genesis")
-            NodeTest node1 = new NodeTest("1", "one")
-            NodeTest node2 = new NodeTest("2", "two")
-            NodeTest node3 = new NodeTest("3", "three")
-            NodeTest node4 = new NodeTest("4", "four")
+            ChainMemStore<String, NodeTest> treeNode = new ChainMemStore<>(genesis())
         when:
-            ChainMemStore<String, NodeTest> treeNode = new ChainMemStore<>(genesis)
-            boolean node1Saved = treeNode.addNode(genesis.getId(), node1)
-            boolean node2Saved = treeNode.addNode(node1.getId(), node2)
-            boolean node3Saved = treeNode.addNode(node2.getId(), node3)
-            boolean node4Saved = treeNode.addNode(node4.getId(), node4)         // NOT SAVED
-            boolean node3SavedAgain =  treeNode.addNode(node2.getId(), node3)   // NOT SAVED
+            boolean node1Saved = treeNode.addNode(genesis().getId(), node("1"))
+            boolean node2Saved = treeNode.addNode(node("1").getId(), node("2"))
+            boolean node3Saved = treeNode.addNode(node("2").getId(), node("3"))
+            boolean node4Saved = treeNode.addNode(node("4").getId(), node("4"))         // NOT SAVED
+            boolean node3SavedAgain = treeNode.addNode(node("2").getId(), node("3"))   // NOT SAVED
 
             int oneHeight = treeNode.getHeight("1").getAsInt()
             int twoHeight = treeNode.getHeight("2").getAsInt()
@@ -45,6 +30,17 @@ class ChainMemStoreAddRemoveSpec extends Specification {
 
             List<String> tips = treeNode.getTips()
             NodeTest bestNode = treeNode.getLastNode()
+
+            // We extract a couple of Chain of Nodes:
+            // Only Up to the Node:
+            ChainPath<NodeTest> wholePath = treeNode.getPath(0, "3", false)
+            ChainPath<NodeTest> partialPath = treeNode.getPath(1, "2", false)
+            ChainPath<NodeTest> notFoundPath = treeNode.getPath(2, "6", false)
+
+            // Now, including children after the Node and up to next fork:
+            ChainPath<NodeTest> wholePath2 = treeNode.getPath(0, "3", true)
+            ChainPath<NodeTest> partialPath2 = treeNode.getPath(1, "2", true)
+            ChainPath<NodeTest> notFoundPath2 = treeNode.getPath(2, "6", true)
 
         then:
             treeNode.size() == 4
@@ -57,9 +53,17 @@ class ChainMemStoreAddRemoveSpec extends Specification {
             twoHeight == 2
             threeHeight == 3
             tips.size() == 1
-            tips.contains(node3.getId())
+            tips.contains(node("3").getId())
             treeNode.getMaxLength() == 4
             bestNode.getId().equals("3")
+
+            wholePath.getNodes().size() == 4
+            partialPath.getNodes().size() == 2
+            notFoundPath == null
+
+            wholePath2.getNodes().size() == 4
+            partialPath2.getNodes().size() == 3
+            notFoundPath2 == null
     }
 
     /**
@@ -69,21 +73,14 @@ class ChainMemStoreAddRemoveSpec extends Specification {
      */
     def "adding Branches"() {
         given:
-            NodeTest genesis = new NodeTest("0", "genesis")
-            NodeTest node1 = new NodeTest("1", "one")
-            NodeTest node2 = new NodeTest("2", "two")
-            NodeTest node3A = new NodeTest("3A", "three-A")
-            NodeTest node3B = new NodeTest("3B", "three-B")
-            NodeTest node4 = new NodeTest("4", "four")
-            NodeTest node5 = new NodeTest("5", "five")
+            ChainMemStore<String, NodeTest> treeNode = new ChainMemStore<>(genesis())
         when:
-            ChainMemStore<String, NodeTest> treeNode = new ChainMemStore<>(genesis)
-            treeNode.addNode(genesis.getId(), node1)
-            treeNode.addNode(node1.getId(), node2)
-            treeNode.addNode(node2.getId(), node3A)
-            treeNode.addNode(node2.getId(), node3B)
-            treeNode.addNode(node3A.getId(), node4)
-            treeNode.addNode(node4.getId(), node5)
+            treeNode.addNode(genesis().getId(), node("1"))
+            treeNode.addNode(node("1").getId(), node("2"))
+            treeNode.addNode(node("2").getId(), node("3A"))
+            treeNode.addNode(node("2").getId(), node("3B"))
+            treeNode.addNode(node("3A").getId(), node("4"))
+            treeNode.addNode(node("4").getId(), node("5"))
 
             int oneHeight = treeNode.getHeight("1").getAsInt()
             int twoHeight = treeNode.getHeight("2").getAsInt()
@@ -96,6 +93,18 @@ class ChainMemStoreAddRemoveSpec extends Specification {
             List<String> tips = treeNode.getTips()
             NodeTest bestNode = treeNode.getLastNode()
 
+            // We get a couple of Paths:
+            // Only up to the Node:
+            ChainPath<NodeTest> path1 = treeNode.getPath(0, "5", false)
+            ChainPath<NodeTest> path2 = treeNode.getPath(0, "1", false)
+            ChainPath<NodeTest> path3 = treeNode.getPath(1, "3B", false)
+
+            // including children AFTER the node and up to next fork
+            ChainPath<NodeTest> path1B = treeNode.getPath(0, "5", true)
+            ChainPath<NodeTest> path2B = treeNode.getPath(0, "1", true)
+            ChainPath<NodeTest> path3B = treeNode.getPath(1, "3B", true)
+
+
         then:
             treeNode.size() == 7
             oneHeight == 1
@@ -105,13 +114,22 @@ class ChainMemStoreAddRemoveSpec extends Specification {
             fourAHeight == 4
             fiveBHeight == 5
             nodesAtHeight3.size() == 2
-            nodesAtHeight3.contains(node3A.getId())
-            nodesAtHeight3.contains(node3B.getId())
+            nodesAtHeight3.contains(node("3A").getId())
+            nodesAtHeight3.contains(node("3B").getId())
             tips.size() == 2
-            tips.contains(node5.getId())
-            tips.contains(node3B.getId())
+            tips.contains(node("5").getId())
+            tips.contains(node("3B").getId())
             treeNode.getMaxLength() == 6
             bestNode.getId().equals("5")
+
+            path1.getNodes().size() == 6
+            path2.getNodes().size() == 2
+            path3.getNodes().size() == 3
+
+            path1B.getNodes().size() == 6
+            path2B.getNodes().size() == 6
+            path3B.getNodes().size() == 3
+
     }
 
     /**
@@ -120,15 +138,11 @@ class ChainMemStoreAddRemoveSpec extends Specification {
      */
     def "adding and removing Blocks from Trunk"() {
         given:
-            NodeTest genesis = new NodeTest("0", "genesis")
-            NodeTest node1 = new NodeTest("1", "one")
-            NodeTest node2 = new NodeTest("2", "two")
-            NodeTest node3 = new NodeTest("3", "three")
+            ChainMemStore<String, NodeTest> treeNode = new ChainMemStore<>(genesis())
         when:
-            ChainMemStore<String, NodeTest> treeNode = new ChainMemStore<>(genesis)
-            treeNode.addNode(genesis.getId(), node1)
-            treeNode.addNode(node1.getId(), node2)
-            treeNode.addNode(node2.getId(), node3)
+            treeNode.addNode(genesis().getId(), node("1"))
+            treeNode.addNode(node("1").getId(), node("2"))
+            treeNode.addNode(node("2").getId(), node("3"))
 
             List<String> tipsBeforeRemoving = treeNode.getTips()
             long maxLengthBeforeRemoving = treeNode.getMaxLength()
@@ -146,9 +160,9 @@ class ChainMemStoreAddRemoveSpec extends Specification {
             twoRemoved
             !unknownRemoved
             tipsBeforeRemoving.size() == 1
-            tipsBeforeRemoving.contains(node3.getId())
+            tipsBeforeRemoving.contains(node("3").getId())
             tipsAfterRemoving.size() == 1
-            tipsAfterRemoving.contains(node1.getId())
+            tipsAfterRemoving.contains(node("1").getId())
             maxLengthBeforeRemoving == 4
             maxLengthAfterRemoving == 2
             bestNodeBeforeRemoving.getId().equals("3")
@@ -166,21 +180,14 @@ class ChainMemStoreAddRemoveSpec extends Specification {
      */
     def "adding and removing Blocks from Branches"() {
         given:
-            NodeTest genesis = new NodeTest("0", "genesis")
-            NodeTest node1 = new NodeTest("1", "one")
-            NodeTest node2 = new NodeTest("2", "two")
-            NodeTest node3A = new NodeTest("3A", "three-A")
-            NodeTest node3B = new NodeTest("3B", "three-B")
-            NodeTest node4 = new NodeTest("4", "four")
-            NodeTest node5 = new NodeTest("5", "five")
+            ChainMemStore<String, NodeTest> treeNode = new ChainMemStore<>(genesis())
         when:
-            ChainMemStore<String, NodeTest> treeNode = new ChainMemStore<>(genesis)
-            treeNode.addNode(genesis.getId(), node1)
-            treeNode.addNode(node1.getId(), node2)
-            treeNode.addNode(node2.getId(), node3A)
-            treeNode.addNode(node2.getId(), node3B)
-            treeNode.addNode(node3A.getId(), node4)
-            treeNode.addNode(node4.getId(), node5)
+            treeNode.addNode(genesis().getId(), node("1"))
+            treeNode.addNode(node("1").getId(), node("2"))
+            treeNode.addNode(node("2").getId(), node("3A"))
+            treeNode.addNode(node("2").getId(), node("3B"))
+            treeNode.addNode(node("3A").getId(), node("4"))
+            treeNode.addNode(node("4").getId(), node("5"))
 
             List<String> nodesAt3BeforeRemoving = treeNode.getNodesAtHeight(3)
             List<String> tipsBeforeRemoving = treeNode.getTips()
@@ -204,16 +211,15 @@ class ChainMemStoreAddRemoveSpec extends Specification {
             twoHeight == 2
             nodeRemoved.isEmpty()
             nodesAt3BeforeRemoving.size() == 2
-            nodesAt3BeforeRemoving.contains(node3A.getId())
-            nodesAt3BeforeRemoving.contains(node3A.getId())
+            nodesAt3BeforeRemoving.contains(node("3A").getId())
             nodesAt3AfterRemoving.size() == 1
-            nodesAt3AfterRemoving.contains(node3B.getId())
-            !nodesAt3AfterRemoving.contains(node3A.getId())
+            nodesAt3AfterRemoving.contains(node("3B").getId())
+            !nodesAt3AfterRemoving.contains(node("3A").getId())
             tipsBeforeRemoving.size() == 2
-            tipsBeforeRemoving.contains(node5.getId())
-            tipsBeforeRemoving.contains(node3B.getId())
+            tipsBeforeRemoving.contains(node("5").getId())
+            tipsBeforeRemoving.contains(node("3B").getId())
             tipsAfterRemoving.size() == 1
-            tipsAfterRemoving.contains(node3B.getId())
+            tipsAfterRemoving.contains(node("3B").getId())
             maxLengthBeforeRemoving == 6
             maxLengthAfterRemoving == 4
             bestNodeBeforeRemoving.getId().equals("5")
