@@ -160,13 +160,7 @@ public class ChainPath<NodeData> {
             return this.startingHeight == otherChain.startingHeight
                     && path.size() == otherChain.path.size()
                     && IntStream.range(0, path.size())
-                    .allMatch(i -> {
-                        if (path.get(i) instanceof Node && otherChain.path.get(i) instanceof Node) {
-                            return ((Node) path.get(i)).isEqual((Node) otherChain.path.get(i));
-                        } else {
-                            return path.get(i).equals(otherChain.path.get(i));
-                        }
-                    });
+                    .allMatch(i -> path.get(i).equals(otherChain.path.get(i)));
         }
         return false;
     }
