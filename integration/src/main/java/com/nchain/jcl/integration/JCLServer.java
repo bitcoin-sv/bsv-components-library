@@ -281,7 +281,8 @@ public class JCLServer {
     }
 
     public static JCLServerConfig getConfigFromArguments(String ...args) {
-        if (args.length < 1) { return null; }
+        // If there are no arguments, we use STN as default:
+        if (args.length < 1) { return CONFIGS.get(Net.STN); }
 
         // We get the 'Net' parameter:
         String netValue = getParamValue("net", args);
