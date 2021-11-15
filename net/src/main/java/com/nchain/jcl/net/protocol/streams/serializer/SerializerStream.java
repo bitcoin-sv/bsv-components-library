@@ -57,7 +57,7 @@ public class SerializerStream extends PeerOutputStreamImpl<BitcoinMsg<?>, ByteAr
 
     @Override
     public List<StreamDataEvent<ByteArrayReader>> transform(StreamDataEvent<BitcoinMsg<?>> data) {
-        logger.trace("Serializing " + data.getData().getHeader().getCommand() + " Message...");
+        logger.trace("Serializing " + data.getData().getHeader().getMsgCommand() + " Message...");
 
         SerializerContext serializerContext = SerializerContext.builder()
                 .protocolBasicConfig(ProtocolBasicConfig)
@@ -67,7 +67,7 @@ public class SerializerStream extends PeerOutputStreamImpl<BitcoinMsg<?>, ByteAr
                 BitcoinMsgSerializerImpl.getInstance().serialize(
                         serializerContext,
                         data.getData(),
-                        data.getData().getHeader().getCommand())));
+                        data.getData().getHeader().getMsgCommand())));
         return result;
     }
 

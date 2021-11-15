@@ -186,7 +186,7 @@ public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeer
         // If this message is coming from a Peer we don't have anymore, we just discard it
         HandshakePeerInfo peerInfo = handlerInfo.get(event.getPeerAddress());
         if (peerInfo == null) {
-            logger.debug(event.getPeerAddress(), event.getBtcMsg().getHeader().getCommand().toUpperCase(), " message discarded (Peer already discarded)");
+            logger.debug(event.getPeerAddress(), event.getBtcMsg().getHeader().getMsgCommand().toUpperCase(), " message discarded (Peer already discarded)");
             return;
         }
         logger.debug( peerInfo.getPeerAddress(), " received VersionMsg :: " + event.getBtcMsg().getBody().toString());
@@ -267,7 +267,7 @@ public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeer
         // If this message is coming from a Peer we don't have anymore, we just discard it
         HandshakePeerInfo peerInfo = handlerInfo.get(event.getPeerAddress());
         if (peerInfo == null) {
-            logger.debug(event.getPeerAddress(), event.getBtcMsg().getHeader().getCommand().toUpperCase(), " message discarded (Peer already discarded)");
+            logger.debug(event.getPeerAddress(), event.getBtcMsg().getHeader().getMsgCommand().toUpperCase(), " message discarded (Peer already discarded)");
             return;
         }
         logger.debug( peerInfo.getPeerAddress(), " received VersionACK...");

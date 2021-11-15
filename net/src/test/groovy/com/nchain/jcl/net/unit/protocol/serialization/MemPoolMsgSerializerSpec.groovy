@@ -1,5 +1,7 @@
 package com.nchain.jcl.net.unit.protocol.serialization
 
+import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig
+import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
 import com.nchain.jcl.net.protocol.messages.HeaderMsg
 import com.nchain.jcl.net.protocol.messages.MemPoolMsg
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg
@@ -10,6 +12,7 @@ import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
+import io.bitcoinj.params.MainNetParams
 import spock.lang.Specification
 
 /**
@@ -24,10 +27,13 @@ class MemPoolMsgSerializerSpec extends Specification {
 
     def "testing MemPoolMsg Serializing and Deserializing"() {
         given:
+            ProtocolBasicConfig protocolBasicConfig = ProtocolConfigBuilder.get(MainNetParams.get()).getBasicConfig()
             SerializerContext serializerContext = SerializerContext.builder()
+                    .protocolBasicConfig(protocolBasicConfig)
                     .build()
 
             DeserializerContext deserializerContext = DeserializerContext.builder()
+                    .protocolBasicConfig(protocolBasicConfig)
                     .build()
 
             MemPoolMsg memPoolMsg = MemPoolMsg.builder().build()
@@ -43,10 +49,13 @@ class MemPoolMsgSerializerSpec extends Specification {
 
     def "testing MemPoolMsg COMPLETE Serializing and Deserializing"() {
         given:
+            ProtocolBasicConfig protocolBasicConfig = ProtocolConfigBuilder.get(MainNetParams.get()).getBasicConfig()
             SerializerContext serializerContext = SerializerContext.builder()
+                    .protocolBasicConfig(protocolBasicConfig)
                     .build()
 
             DeserializerContext deserializerContext = DeserializerContext.builder()
+                    .protocolBasicConfig(protocolBasicConfig)
                     .build()
 
             MemPoolMsg memPoolMsg = MemPoolMsg.builder().build()

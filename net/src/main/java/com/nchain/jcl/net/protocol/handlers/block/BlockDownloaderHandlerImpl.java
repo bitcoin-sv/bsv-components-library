@@ -496,7 +496,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
             // We notify the Header has been downloaded:
             PartialBlockHeaderMsg partialHeaderMsg = PartialBlockHeaderMsg.builder()
                     .blockHeader(blockMesage.getBody().getBlockHeader())
-                    .txsSizeInBytes(blockMesage.getHeader().getLength() - blockMesage.getBody().getBlockHeader().getLengthInBytes())
+                    .txsSizeInBytes(blockMesage.getHeader().getMsgLength() - blockMesage.getBody().getBlockHeader().getLengthInBytes())
                     .blockTxsFormat(PartialBlockHeaderMsg.BlockTxsFormat.DESERIALIZED)
                     .build();
             BitcoinMsg<PartialBlockHeaderMsg> partialHeaderBtcMsg =  new BitcoinMsgBuilder<>(config.getBasicConfig(), partialHeaderMsg).build();
@@ -546,7 +546,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
             // We notify the Header has been downloaded:
             PartialBlockHeaderMsg partialHeaderMsg = PartialBlockHeaderMsg.builder()
                     .blockHeader(rawBlockMessage.getBody().getBlockHeader())
-                    .txsSizeInBytes(rawBlockMessage.getHeader().getLength() - rawBlockMessage.getBody().getBlockHeader().getLengthInBytes())
+                    .txsSizeInBytes(rawBlockMessage.getHeader().getMsgLength() - rawBlockMessage.getBody().getBlockHeader().getLengthInBytes())
                     .blockTxsFormat(PartialBlockHeaderMsg.BlockTxsFormat.RAW)
                     .build();
             BitcoinMsg<PartialBlockHeaderMsg> partialHeaderBtcMsg =  new BitcoinMsgBuilder<>(config.getBasicConfig(), partialHeaderMsg).build();

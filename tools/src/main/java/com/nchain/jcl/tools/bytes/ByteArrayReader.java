@@ -48,6 +48,7 @@ public class ByteArrayReader {
 
     public byte[] get(int length)           { return byteArray.get(length); }
     public long readUint32()                { return Utils.readUint32(read(4), 0); }
+    public long readUint64()                { return Utils.readUint64(read(8), 0); }
     public byte read()                      { return read(1)[0]; }
     public int readUint16()                { return Utils.readUint16(read(2), 0); }
     public long readInt64LE()               { return Utils.readInt64(read(8), 0); }

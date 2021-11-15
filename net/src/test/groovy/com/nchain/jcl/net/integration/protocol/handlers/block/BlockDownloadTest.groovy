@@ -120,8 +120,8 @@ class BlockDownloadTest extends Specification {
 
             // Basic Config:
             ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
-                .minPeers(OptionalInt.of(100))
-                .maxPeers(OptionalInt.of(110))
+                .minPeers(OptionalInt.of(20))
+                .maxPeers(OptionalInt.of(22))
                 .build()
 
             // Serialization Config:

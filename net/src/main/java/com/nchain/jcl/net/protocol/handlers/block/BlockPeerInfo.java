@@ -205,7 +205,7 @@ public class BlockPeerInfo {
             DeserializerStreamState streamState = stream.getState();
             HeaderMsg currentHeaderMsg = streamState.getCurrentHeaderMsg();
             // We only do the update if the current Msg being downloaded by this Peer is a BLOCK
-            if (currentHeaderMsg != null && currentHeaderMsg.getCommand().equalsIgnoreCase(BlockMsg.MESSAGE_TYPE)) {
+            if (currentHeaderMsg != null && currentHeaderMsg.getMsgCommand().equalsIgnoreCase(BlockMsg.MESSAGE_TYPE)) {
 
                 // We set the Total Bytes. This is a bit tricky:
                 // When a Peer starts the downloading of a block, "bytesTotal" is reset to ZERO. then, and while
@@ -218,7 +218,7 @@ public class BlockPeerInfo {
 
                if (stream.getState().getProcessState() == DeserializerStreamState.ProcessingBytesState.SEEIKING_BODY ||
                     stream.getState().getProcessState() == DeserializerStreamState.ProcessingBytesState.DESERIALIZING_BODY) {
-                    currentBlockInfo.bytesTotal = currentHeaderMsg.getLength();
+                    currentBlockInfo.bytesTotal = currentHeaderMsg.getMsgLength();
                 }
 
                 // If the Deserializer stream is in CORRUPTED State (after throwing some error), we do nothing...

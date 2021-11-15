@@ -22,6 +22,7 @@ import static com.google.common.base.Preconditions.checkState;
 public final class RawBlockMsg extends RawMsg {
 
     public static final String MESSAGE_TYPE = "Block";
+
     private final BlockHeaderMsg blockHeader;
 
     // Constructor (specifying the Block Header and All Txs

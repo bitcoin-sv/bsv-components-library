@@ -41,7 +41,9 @@ class DeserializerSpec extends Specification {
      */
     private BitcoinMsg updateChecksum(ProtocolBasicConfig protocolConfig,  BitcoinMsg message) {
         String command = message.header.command
-        SerializerContext serContext = SerializerContext.builder().build()
+        SerializerContext serContext = SerializerContext.builder()
+                .protocolBasicConfig(protocolConfig)
+                .build()
 
         BitcoinMsgSerializer serializer = new BitcoinMsgSerializerImpl()
         ByteArrayReader reader = serializer.serialize(serContext, message, command)
@@ -122,7 +124,7 @@ class DeserializerSpec extends Specification {
             //println("- after Header: " + reader.size() + ". reading " + headerMsg.length + " next...")
             // We look the Body in the Cache...
             desContext = desContext.toBuilder()
-                    .maxBytesToRead(headerMsg.length)
+                    .maxBytesToRead(headerMsg.getMsgLength())
                     .insideVersionMsg(headerMsg.command.toUpperCase().equals(VersionMsg.MESSAGE_TYPE.toUpperCase()))
                     .build()
             Message bodyMsg = deserializer.deserilize (desContext, headerMsg, reader)
@@ -160,8 +162,10 @@ class DeserializerSpec extends Specification {
         this method takes a List of Messages and serializes them into a Pipeline of bytes, a ByteArrayReader that
         can be used to READ bytes form it, as it's being done in the JCL-Net Module.
      */
-    private ByteArrayReader serializeMessages(List<BitcoinMsg> msgs) {
-        SerializerContext serContext = SerializerContext.builder().build()
+    private ByteArrayReader serializeMessages(ProtocolBasicConfig protocolBasicConfig,  List<BitcoinMsg> msgs) {
+        SerializerContext serContext = SerializerContext.builder()
+                .protocolBasicConfig(protocolBasicConfig)
+                .build()
         BitcoinMsgSerializer serializer = new BitcoinMsgSerializerImpl()
         ByteArrayWriter writer = new ByteArrayWriter()
         for (BitcoinMsg btcMsg : msgs) {
@@ -193,7 +197,7 @@ class DeserializerSpec extends Specification {
             Deserializer cache = new Deserializer(runtimeConfig, cacheConfig)
         when:
             // We "simulate" an incoming flow of messages with a ByteReader containing the messages in raw format
-            ByteArrayReader reader = serializeMessages(msgsFromP2P)
+            ByteArrayReader reader = serializeMessages(protocolConfig, msgsFromP2P)
 
             // Now we simulate the same process as it's being done by the JCL-Net, that is we deserialize the incoming
             // Messages from the Reader, but this time using the Cache, and we return them...
@@ -231,8 +235,8 @@ class DeserializerSpec extends Specification {
         when:
             // We "simulate" an incoming flow of messages with a ByteReader containing the messages in raw format
             // Since the reader is consumed after the deserialization, we create 2 readers, one per each process.
-            ByteArrayReader readerForNoCache = serializeMessages(msgsFromP2P)
-            ByteArrayReader readerForCache = serializeMessages(msgsFromP2P)
+            ByteArrayReader readerForNoCache = serializeMessages(protocolConfig, msgsFromP2P)
+            ByteArrayReader readerForCache = serializeMessages(protocolConfig, msgsFromP2P)
 
             // We measure times WITHOUT Cache...
 
@@ -275,9 +279,9 @@ class DeserializerSpec extends Specification {
             List<BitcoinMsg> msgsFromP2P = new ArrayList<>()
             for (int i = 0; i < NUM_MSGS; i++) msgsFromP2P.add(buildVersionMsg(protocolConfig, false))
 
-            long totalMsgsSize = msgsFromP2P.stream().mapToLong({ m -> m.header.length}).sum()
+            long totalMsgsSize = msgsFromP2P.stream().mapToLong({ m -> m.header.getMsgLength()}).sum()
 
-            println("Each message size: " + msgsFromP2P.get(0).header.length + " bytes")
+            println("Each message size: " + msgsFromP2P.get(0).header.getMsgLength() + " bytes")
             println("Total length of all messages " + totalMsgsSize + " bytes")
 
             // We initialize the Cache, including eviction strategy...
@@ -294,7 +298,7 @@ class DeserializerSpec extends Specification {
             int cacheSize = 0
 
             for (int i = 0; i < NUM_LOOPS; i++) {
-                ByteArrayReader reader = serializeMessages(msgsFromP2P)
+                ByteArrayReader reader = serializeMessages(protocolConfig, msgsFromP2P)
                 deserializeWithCache(protocolConfig, reader, cache)
                 cacheSize = cache.getCacheSize()
                 println("Iteration # " + i + ", Cache Size: " + cacheSize)

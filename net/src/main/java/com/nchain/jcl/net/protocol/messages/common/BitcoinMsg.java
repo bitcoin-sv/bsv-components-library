@@ -42,7 +42,7 @@ public class BitcoinMsg<M extends Message> {
     }
 
     // Convenience method. Indicates is the message represents the Commands provided
-    public boolean is(String command) { return header.getCommand().equalsIgnoreCase(command);}
+    public boolean is(String command) { return header.getMsgCommand().equalsIgnoreCase(command);}
 
     /** Returns the Sice in Bytes of the Serialized version of this Message */
     public long getLengthInbytes() {

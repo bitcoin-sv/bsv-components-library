@@ -26,6 +26,6 @@ public class MsgSentEvent<T extends Message> extends P2PEvent {
 
     @Override
     public String toString() {
-        return "Event[" +  btcMsg.getHeader().getCommand().toUpperCase() + " Sent]: to " + peerAddress.toString();
+        return "Event[" +  btcMsg.getHeader().getMsgCommand().toUpperCase() + " Sent]: to " + peerAddress.toString();
     }
 }

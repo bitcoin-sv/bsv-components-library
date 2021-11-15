@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.unit.protocol.serialization
 
-
+import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig
+import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg
 import com.nchain.jcl.net.protocol.messages.HashMsg
 import com.nchain.jcl.net.protocol.messages.HeaderMsg
@@ -15,6 +16,7 @@ import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
 import io.bitcoinj.core.Sha256Hash
 import io.bitcoinj.core.Utils
+import io.bitcoinj.params.MainNetParams
 import spock.lang.Ignore
 import spock.lang.Specification
 
@@ -35,11 +37,13 @@ class HeadersMsgSerializerSpec extends Specification {
     @Ignore
     def "testing HeadersMsg Serializing and Deserializing"() {
         given:
-
+            ProtocolBasicConfig protocolBasicConfig = ProtocolConfigBuilder.get(MainNetParams.get())
             SerializerContext serializerContext = SerializerContext.builder()
+                .protocolBasicConfig(protocolBasicConfig)
                 .build()
 
             DeserializerContext deserializerContext = DeserializerContext.builder()
+                .protocolBasicConfig(protocolBasicConfig)
                 .build()
 
             BlockHeaderMsg blockHeaderMsg = BlockHeaderMsg.builder()
@@ -92,11 +96,13 @@ class HeadersMsgSerializerSpec extends Specification {
 
     def "testing HeadersMsg COMPLETE Serializing and Deserializing"() {
         given:
-
+            ProtocolBasicConfig protocolBasicConfig = ProtocolConfigBuilder.get(MainNetParams.get()).getBasicConfig()
             SerializerContext serializerContext = SerializerContext.builder()
+                .protocolBasicConfig(protocolBasicConfig)
                 .build()
 
             DeserializerContext deserializerContext = DeserializerContext.builder()
+                .protocolBasicConfig(protocolBasicConfig)
                 .build()
 
             ByteArrayWriter byteArrayWriter = new ByteArrayWriter()
