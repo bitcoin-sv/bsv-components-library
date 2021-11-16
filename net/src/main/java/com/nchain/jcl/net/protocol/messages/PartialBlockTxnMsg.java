@@ -59,7 +59,15 @@ public class PartialBlockTxnMsg extends Message {
     protected void validateMessage() {
     }
 
-    public static class PartialBlockTxnBuilder {
+    @Override
+    public PartialBlockTxnBuilder toBuilder() {
+        return new PartialBlockTxnBuilder()
+                        .blockHash(this.blockHash)
+                        .transactions(this.transactions)
+                        .order(this.order);
+    }
+
+    public static class PartialBlockTxnBuilder extends MessageBuilder{
         private HashMsg blockHash;
         private List<TxMsg> transactions;
         private int order;

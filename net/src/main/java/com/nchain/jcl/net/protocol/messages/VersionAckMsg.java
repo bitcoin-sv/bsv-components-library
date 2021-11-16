@@ -17,8 +17,10 @@ public final class VersionAckMsg extends Message {
     public static final String MESSAGE_TYPE = "verack";
     private static final int MESSAGE_LENGTH = 0;
 
-    protected VersionAckMsg() {init(); }
-
+    protected VersionAckMsg() {
+        super.updateChecksum(0);
+        init();
+    }
 
     @Override
     public String getMessageType() { return MESSAGE_TYPE; }
@@ -50,15 +52,19 @@ public final class VersionAckMsg extends Message {
     @Override
     protected void validateMessage() {}
 
-
     public static VersionAckMsgBuilder builder() {
+        return new VersionAckMsgBuilder();
+    }
+
+    @Override
+    public VersionAckMsgBuilder toBuilder() {
         return new VersionAckMsgBuilder();
     }
 
     /**
      * Builder
      */
-    public static class VersionAckMsgBuilder {
+    public static class VersionAckMsgBuilder extends MessageBuilder{
         VersionAckMsgBuilder() {}
 
         public VersionAckMsg build() {

@@ -137,10 +137,28 @@ public final class BlockHeaderEnMsg extends Message {
         return new BlockHeaderEnMsgBuilder();
     }
 
+    @Override
+    public BlockHeaderEnMsgBuilder toBuilder() {
+        return new BlockHeaderEnMsgBuilder()
+                    .hash(this.hash)
+                    .version(this.version)
+                    .prevBlockHash(this.prevBlockHash)
+                    .merkleRoot(this.merkleRoot)
+                    .creationTimestamp(this.creationTimestamp)
+                    .nBits(this.nBits)
+                    .nonce(this.nonce)
+                    .transactionCount(this.transactionCount)
+                    .noMoreHeaders(this.noMoreHeaders)
+                    .hasCoinbaseData(this.hasCoinbaseData)
+                    .coinbaseMerkleProof(this.coinbaseMerkleProof)
+                    .coinbase(this.coinbase)
+                    .coinbaseTX(this.coinbaseTX);
+    }
+
     /**
      * Builder
      */
-    public static class BlockHeaderEnMsgBuilder {
+    public static class BlockHeaderEnMsgBuilder extends MessageBuilder {
         private HashMsg hash;
         private long version;
         private HashMsg prevBlockHash;

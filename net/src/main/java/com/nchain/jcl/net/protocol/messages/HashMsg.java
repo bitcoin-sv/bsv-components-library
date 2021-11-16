@@ -65,10 +65,15 @@ public class HashMsg extends Message {
         return Arrays.equals(this.hashBytes, other.hashBytes);
     }
 
+    @Override
+    public HashMsgBuilder toBuilder() {
+      return new HashMsgBuilder().hash(this.hashBytes);
+    }
+
     /**
      * Builder
      */
-    public static class HashMsgBuilder {
+    public static class HashMsgBuilder extends MessageBuilder{
         private byte[] hash;
 
         HashMsgBuilder() {}

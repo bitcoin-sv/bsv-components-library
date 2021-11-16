@@ -85,10 +85,17 @@ public final class RawBlockMsg extends RawMsg {
             && Objects.equal(super.content, super.content);
     }
 
+    @Override
+    public BlockMsgBuilder toBuilder() {
+        return new BlockMsgBuilder()
+                    .blockHeader(this.blockHeader)
+                    .txs(super.content);
+    }
+
     /**
      * Builder
      */
-    public static class BlockMsgBuilder {
+    public static class BlockMsgBuilder extends MessageBuilder{
         private BlockHeaderMsg blockHeader;
         private byte[] txs;
 

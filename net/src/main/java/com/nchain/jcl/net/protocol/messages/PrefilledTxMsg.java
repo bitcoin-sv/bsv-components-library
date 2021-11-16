@@ -46,7 +46,14 @@ public class PrefilledTxMsg extends Message {
     protected void validateMessage() {
     }
 
-    public static class PrefilledTransactionMsgBuilder {
+    @Override
+    public PrefilledTransactionMsgBuilder toBuilder() {
+        return new PrefilledTransactionMsgBuilder()
+                        .index(this.index)
+                        .transaction(this.transaction);
+    }
+
+    public static class PrefilledTransactionMsgBuilder extends MessageBuilder {
         private VarIntMsg index;
         private TxMsg transaction;
 

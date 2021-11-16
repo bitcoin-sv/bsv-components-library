@@ -57,7 +57,15 @@ public class GetBlockTxnMsg extends Message {
 
     }
 
-    public static class BlockTransactionsRequestMsgBuilder {
+    @Override
+    public BlockTransactionsRequestMsgBuilder toBuilder() {
+        return new BlockTransactionsRequestMsgBuilder()
+                    .blockHash(this.blockHash)
+                    .indexesLength(this.indexesLength)
+                    .indexes(this.indexes);
+    }
+
+    public static class BlockTransactionsRequestMsgBuilder extends MessageBuilder{
         private HashMsg blockHash;
         private VarIntMsg indexesLength;
         private List<VarIntMsg> indexes;

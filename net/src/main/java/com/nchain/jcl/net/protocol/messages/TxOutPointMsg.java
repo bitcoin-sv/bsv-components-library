@@ -69,10 +69,16 @@ public final class TxOutPointMsg extends Message {
         return new TxOutPointMsgBuilder();
     }
 
+    @Override
+    public TxOutPointMsgBuilder toBuilder() {
+        return new TxOutPointMsgBuilder()
+                        .hash(this.hash)
+                        .index(this.index);
+    }
     /**
      * Builder
      */
-    public static class TxOutPointMsgBuilder {
+    public static class TxOutPointMsgBuilder extends MessageBuilder {
         private HashMsg hash;
         private long index;
 

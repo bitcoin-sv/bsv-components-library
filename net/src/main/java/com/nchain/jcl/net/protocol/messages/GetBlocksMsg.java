@@ -58,10 +58,16 @@ public final class GetBlocksMsg extends Message {
         return new GetBlocksMsgBuilder();
     }
 
+    @Override
+    public GetBlocksMsgBuilder toBuilder() {
+        return new GetBlocksMsgBuilder()
+                    .baseGetDataAndHeaderMsg(this.baseGetDataAndHeaderMsg);
+    }
+
     /**
      * Builder
      */
-    public static class GetBlocksMsgBuilder {
+    public static class GetBlocksMsgBuilder extends MessageBuilder{
         private BaseGetDataAndHeaderMsg baseGetDataAndHeaderMsg;
 
         GetBlocksMsgBuilder() {}

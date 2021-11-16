@@ -52,10 +52,15 @@ public final class MemPoolMsg extends Message {
         return new MemPoolMsgBuilder();
     }
 
+    @Override
+    public MemPoolMsgBuilder toBuilder() {
+        return new MemPoolMsgBuilder();
+    }
+
     /**
      * Builder
      */
-    public static class MemPoolMsgBuilder {
+    public static class MemPoolMsgBuilder extends MessageBuilder{
         MemPoolMsgBuilder() {}
 
         public MemPoolMsg build() {

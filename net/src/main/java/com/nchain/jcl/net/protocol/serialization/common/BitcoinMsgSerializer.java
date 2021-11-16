@@ -17,7 +17,7 @@ import com.nchain.jcl.tools.bytes.ByteArrayReader;
 public interface BitcoinMsgSerializer {
 
     /**
-     * It takes a Byte soruce and returns the Header contained in it. Other bytes in the ByteRader are not procesed.
+     * It takes a Byte source and returns the Header contained in it. Other bytes in the ByteRader are not procesed.
      * The same ByteReader could be used later to keep reading data from it.
      *
      * @param context           Serializer Context
@@ -25,6 +25,17 @@ public interface BitcoinMsgSerializer {
      * @return                  The Header of the Bitcoin Message
      */
     HeaderMsg deserializeHeader(DeserializerContext context, ByteArrayReader byteReader);
+
+    /**
+     * It takes a Byte source and returns the Header contained in it. Other bytes in the ByteRader are not procesed.
+     * The same ByteReader could be used later to keep reading data from it.
+     *
+     * @param context           Serializer Context
+     * @param headerMsg         HeaderMsg related (previously received))to the body we are deserializing
+     * @param byteReader        Byte Source
+     * @return                  The Header of the Bitcoin Message
+     */
+    <M extends Message> M deserializeBody(DeserializerContext context, HeaderMsg headerMsg, ByteArrayReader byteReader);
 
 
     /**

@@ -79,10 +79,16 @@ public final class TxOutputMsg extends Message {
         return new TxOutputMsgBuilder();
     }
 
+    @Override
+    public TxOutputMsgBuilder toBuilder() {
+        return new TxOutputMsgBuilder()
+                        .txValue(this.txValue)
+                        .pk_script(this.pk_script);
+    }
     /**
      * Builder
      */
-    public static class TxOutputMsgBuilder {
+    public static class TxOutputMsgBuilder extends MessageBuilder {
         private long txValue;
         private byte[] pk_script;
 

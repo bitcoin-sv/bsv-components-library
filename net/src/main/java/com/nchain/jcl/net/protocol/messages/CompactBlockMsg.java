@@ -67,7 +67,16 @@ public class CompactBlockMsg extends Message {
     protected void validateMessage() {
     }
 
-    public static class CompactBlockMsgBuilder {
+    @Override
+    public CompactBlockMsgBuilder toBuilder() {
+        return new CompactBlockMsgBuilder()
+                    .header(this.header)
+                    .nonce(this.nonce)
+                    .shortTxIds(this.shortTxIds)
+                    .prefilledTransactions(this.prefilledTransactions);
+    }
+
+    public static class CompactBlockMsgBuilder extends MessageBuilder {
         private CompactBlockHeaderMsg header;
         private long nonce;
         private List<Long> shortTxIds;

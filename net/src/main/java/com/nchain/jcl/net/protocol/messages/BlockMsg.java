@@ -49,17 +49,9 @@ public final class BlockMsg extends Message {
     }
 
     @Override
-    public String getMessageType() {
-        return MESSAGE_TYPE;
-    }
-
-    public BlockHeaderMsg getBlockHeader() {
-        return this.blockHeader;
-    }
-
-    public List<TxMsg> getTransactionMsg() {
-        return this.transactionMsg;
-    }
+    public String getMessageType()          { return MESSAGE_TYPE; }
+    public BlockHeaderMsg getBlockHeader()  { return this.blockHeader; }
+    public List<TxMsg> getTransactionMsg()  { return this.transactionMsg; }
 
     public String toString() {
         return "BlockMsg(blockHeader=" + this.getBlockHeader() + ", transactionMsg=" + this.getTransactionMsg() + ")";
@@ -86,10 +78,17 @@ public final class BlockMsg extends Message {
             && Objects.equal(this.transactionMsg, other.transactionMsg);
     }
 
+    @Override
+    public BlockMsgBuilder toBuilder() {
+        return new BlockMsgBuilder()
+                    .blockHeader(this.blockHeader)
+                    .transactionMsgs(this.transactionMsg);
+    }
+
     /**
      * Builder
      */
-    public static class BlockMsgBuilder {
+    public static class BlockMsgBuilder extends MessageBuilder {
         private BlockHeaderMsg blockHeader;
         private List<TxMsg> transactionMsgs;
 

@@ -20,22 +20,16 @@ public class BlockTxnMsg extends Message {
         init();
     }
 
-    public static BlockTransactionsMsgBuilder builder() {
-        return new BlockTransactionsMsgBuilder();
-    }
-
-    public HashMsg getBlockHash() {
-        return blockHash;
-    }
-
-    public List<TxMsg> getTransactions() {
-        return transactions;
+    public static BlockTxnMsgBuilder builder() {
+        return new BlockTxnMsgBuilder();
     }
 
     @Override
-    public String getMessageType() {
-        return MESSAGE_TYPE;
-    }
+    public String getMessageType()          { return MESSAGE_TYPE; }
+    public HashMsg getBlockHash()           { return blockHash; }
+    public List<TxMsg> getTransactions()    { return transactions; }
+
+
 
     @Override
     protected long calculateLength() {
@@ -47,19 +41,25 @@ public class BlockTxnMsg extends Message {
     }
 
     @Override
-    protected void validateMessage() {
+    protected void validateMessage() {}
+
+    @Override
+    public BlockTxnMsgBuilder toBuilder() {
+        return new BlockTxnMsgBuilder()
+                    .blockHash(this.blockHash)
+                    .transactions(this.transactions);
     }
 
-    public static class BlockTransactionsMsgBuilder {
+    public static class BlockTxnMsgBuilder extends MessageBuilder {
         private HashMsg blockHash;
         private List<TxMsg> transactions;
 
-        public BlockTransactionsMsgBuilder blockHash(HashMsg blockHash) {
+        public BlockTxnMsgBuilder blockHash(HashMsg blockHash) {
             this.blockHash = blockHash;
             return this;
         }
 
-        public BlockTransactionsMsgBuilder transactions(List<TxMsg> transactions) {
+        public BlockTxnMsgBuilder transactions(List<TxMsg> transactions) {
             this.transactions = transactions;
             return this;
         }

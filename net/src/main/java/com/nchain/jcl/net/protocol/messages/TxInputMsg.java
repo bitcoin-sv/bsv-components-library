@@ -90,10 +90,18 @@ public final class TxInputMsg extends Message {
         return new TxInputMsgBuilder();
     }
 
+    @Override
+    public TxInputMsgBuilder toBuilder() {
+        return new TxInputMsgBuilder()
+                    .pre_outpoint(this.pre_outpoint)
+                    .signature_script(this.signature_script)
+                    .sequence(this.sequence);
+    }
+
     /**
      * Builder
      */
-    public static class TxInputMsgBuilder {
+    public static class TxInputMsgBuilder extends MessageBuilder {
         private TxOutPointMsg pre_outpoint;
         private byte[] signature_script;
         private long sequence;

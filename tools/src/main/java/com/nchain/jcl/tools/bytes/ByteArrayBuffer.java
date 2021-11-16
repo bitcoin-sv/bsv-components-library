@@ -175,17 +175,12 @@ public class ByteArrayBuffer implements ByteArray {
         buffers.clear();
     }
 
-    /**
-     * It returns a piece of data from the buffer, but it does NOT consume it.
-     * @param length    length of the data
-     */
-    public synchronized byte[] get(int length) {
-        checkArgument(length <= this.size(),
-                " trying to extractReader too much data (not enough in the byteArray)");
+
+    private byte[] getBytes(int bufferIndex, int length) {
 
         byte[] result = new byte[length];
         long bytesRemaining = length;
-        int index = 0;
+        int index = bufferIndex;
         while (bytesRemaining > 0) {
             ByteArray buffer = buffers.get(index);
             long bytesToWriteLength = (buffer.size() >= bytesRemaining) ? bytesRemaining : (buffer.size());
@@ -198,9 +193,39 @@ public class ByteArrayBuffer implements ByteArray {
         return result;
     }
 
+    /**
+     * It returns a piece of data from the buffer, but it does NOT consume it.
+     * @param length    length of the data
+     */
+    public synchronized byte[] get(int length) {
+        checkArgument(length <= this.size(),
+                " trying to extract too much data (not enough in the byteArray)");
+
+        byte[] result = getBytes(0, length);
+        return result;
+    }
+
+    // It returns the Buffer ordinal that contains the offset given:
+    private int getBufferIndexContainingOffset(long offset) {
+        int result = 0;
+        int relativeOffset = 0;
+        while ((relativeOffset + buffers.get(result).size()) <= offset) {
+            relativeOffset += buffers.get(result).size();
+            result++;
+        }
+        return result;
+    }
+
     /** Returns a Byte Array starting at the given position with the given length */
-    public synchronized byte[] get(int offset, int length) {
-        throw new UnsupportedOperationException("Not supported at the moment");
+    public synchronized byte[] get(long offset, int length) {
+        checkArgument((offset + length) <= size(), " trying to get too many bytes");
+        checkArgument(length <= 2_000_000_000, "no more than 2GB can be get at a time");
+
+        // First we locate the offset:
+        int bufferIndex = getBufferIndexContainingOffset(offset);
+        // Now we get the bytes:
+        byte[] result = getBytes(bufferIndex, length);
+        return result;
     }
 
     /**

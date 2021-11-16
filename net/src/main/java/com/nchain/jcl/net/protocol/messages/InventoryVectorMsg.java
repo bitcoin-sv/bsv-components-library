@@ -98,10 +98,17 @@ public final class InventoryVectorMsg extends Message {
         return new InventoryVectorMsgBuilder();
     }
 
+    @Override
+    public InventoryVectorMsgBuilder toBuilder() {
+        return new InventoryVectorMsgBuilder()
+                    .type(this.type)
+                    .hashMsg(this.hashMsg);
+    }
+
     /**
      * Builder
      */
-    public static class InventoryVectorMsgBuilder {
+    public static class InventoryVectorMsgBuilder extends MessageBuilder {
         private VectorType type;
         private HashMsg hashMsg;
 

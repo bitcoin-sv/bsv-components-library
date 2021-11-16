@@ -82,7 +82,7 @@ public final class PartialBlockHeaderMsg extends Message {
     /**
      * Builder
      */
-    public static class PartialBlockHeaderMsgBuilder {
+    public static class PartialBlockHeaderMsgBuilder extends MessageBuilder{
         private BlockHeaderMsg blockHeader;
         private VarIntMsg txsSizeInBytes;
         private BlockTxsFormat blockTxsFormat;

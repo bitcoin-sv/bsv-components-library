@@ -23,8 +23,9 @@ public final class PongMsg extends Message {
 
     private final long nonce;
 
-    public PongMsg(long nonce) {
+    public PongMsg(long nonce, long checksum) {
         this.nonce = nonce;
+        super.updateChecksum(checksum);
         init();
     }
 
@@ -64,10 +65,15 @@ public final class PongMsg extends Message {
         return new PongMsgBuilder();
     }
 
+    @Override
+    public PongMsgBuilder toBuilder() {
+        return new PongMsgBuilder().nonce(this.nonce);
+    }
+
     /**
      * Builder
      */
-    public static class PongMsgBuilder {
+    public static class PongMsgBuilder extends MessageBuilder {
         private long nonce;
 
         PongMsgBuilder() {}
@@ -78,7 +84,7 @@ public final class PongMsg extends Message {
         }
 
         public PongMsg build() {
-            return new PongMsg(nonce);
+            return new PongMsg(nonce, super.checksum);
         }
     }
 }

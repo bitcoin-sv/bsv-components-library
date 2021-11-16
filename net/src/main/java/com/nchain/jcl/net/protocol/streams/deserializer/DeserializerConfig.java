@@ -25,6 +25,9 @@ public final class DeserializerConfig {
     /** Size in byte sof each "partial" message returned by a "Large" Deserialized when the message is big */
     private int partialSerializationMsgSize = DEFAULT_PARTIAL_SERIALIZATION_MSG_SIZE;
 
+    /** If FALSE; the checksum is not calculated nor verified */
+    private boolean verifyChecksum = true;
+
     /**
      *  Initial size of each Buffer assigned to each Peer for Deserialization.
      *  The Buffer can still expand/collapse over time if needed, this is just the initial size
@@ -77,7 +80,8 @@ public final class DeserializerConfig {
                               Long maxMsgSizeInBytes,
                               Boolean generateStats,
                               Set<String> messagesToCache,
-                              int partialSerializationMsgSize) {
+                              int partialSerializationMsgSize,
+                              boolean verifyChecksum) {
         if (bufferInitialSizeInBytes != null)       this.bufferInitialSizeInBytes = bufferInitialSizeInBytes;
         if (minBytesPerSecForLargeMessages != null) this.minBytesPerSecForLargeMessages = minBytesPerSecForLargeMessages;
         if (cacheEnabled != null)                   this.cacheEnabled = cacheEnabled;
@@ -88,6 +92,7 @@ public final class DeserializerConfig {
         if (generateStats != null)                  this.generateStats = generateStats;
         if (messagesToCache != null)                this.messagesToCache = messagesToCache;
         this.partialSerializationMsgSize = partialSerializationMsgSize;
+        this.verifyChecksum = verifyChecksum;
     }
 
     public static DeserializerConfigBuilder builder()   { return new DeserializerConfigBuilder(); }
@@ -101,6 +106,7 @@ public final class DeserializerConfig {
     public boolean isGenerateStats()                    { return this.generateStats; }
     public Set<String> getMessagesToCache()             { return this.messagesToCache; }
     public int getPartialSerializationMsgSize()         { return this.partialSerializationMsgSize;}
+    public boolean isVerifyChecksum()                   { return this.verifyChecksum;}
 
     @Override
     public String toString() {
@@ -110,7 +116,9 @@ public final class DeserializerConfig {
                 + ", maxMsgSizeInBytes=" + this.cacheMaxMsgSizeInBytes
                 + ", generateStats=" + this.generateStats
                 + ", messagesToCache=" + this.messagesToCache
-                + ", partialSerializationMsgSize=" + this.partialSerializationMsgSize + ")";
+                + ", partialSerializationMsgSize=" + this.partialSerializationMsgSize
+                + ", verifyChecksum=" + this.verifyChecksum
+                + ")";
     }
 
     public DeserializerConfigBuilder toBuilder() {
@@ -124,7 +132,8 @@ public final class DeserializerConfig {
                 .cacheExpirationTime(this.cacheExpirationTime)
                 .generateStats(this.generateStats)
                 .messagesToCache(this.messagesToCache)
-                .partialSerializationMsgSize(this.partialSerializationMsgSize);
+                .partialSerializationMsgSize(this.partialSerializationMsgSize)
+                .verifyChecksum(this.verifyChecksum);
     }
 
     /**
@@ -141,6 +150,7 @@ public final class DeserializerConfig {
         private boolean generateStats;
         private Set<String> messagesToCache;
         private int partialSerializationMsgSize = DEFAULT_PARTIAL_SERIALIZATION_MSG_SIZE;
+        private boolean verifyChecksum = true;
 
         DeserializerConfigBuilder() { }
 
@@ -195,6 +205,11 @@ public final class DeserializerConfig {
             return this;
         }
 
+        public DeserializerConfig.DeserializerConfigBuilder verifyChecksum(boolean verifyChecksum) {
+            this.verifyChecksum = verifyChecksum;
+            return this;
+        }
+
         public DeserializerConfig build() {
             return new DeserializerConfig(
                     bufferInitialSizeInBytes,
@@ -206,7 +221,8 @@ public final class DeserializerConfig {
                     maxMsgSizeInBytes,
                     generateStats,
                     messagesToCache,
-                    partialSerializationMsgSize);
+                    partialSerializationMsgSize,
+                    verifyChecksum);
         }
     }
 }

@@ -71,7 +71,7 @@ public final class BlockHeaderMsg extends Message {
     }
 
     /**
-     * Returns a Domain Class. It alos reverses the PrevBlockHash and merkle tree into human-readable format
+     * Returns a Domain Class. It also reverses the PrevBlockHash and merkle tree into human-readable format
      */
     public HeaderReadOnly toBean() {
         HeaderBean result = new HeaderBean((AbstractBlock) null);
@@ -92,37 +92,14 @@ public final class BlockHeaderMsg extends Message {
         return "BlockHeaderMsg(hash=" + this.getHash() + ", version=" + this.getVersion() + ", prevBlockHash=" + this.getPrevBlockHash() + ", merkleRoot=" + this.getMerkleRoot() + ", creationTimestamp=" + this.getCreationTimestamp() + ", difficultyTarget=" + this.getDifficultyTarget() + ", nonce=" + this.getNonce() + ", transactionCount=" + this.getTransactionCount() + ")";
     }
 
-    public HashMsg getHash() {
-        return hash;
-    }
-
-    public long getVersion() {
-        return version;
-    }
-
-    public HashMsg getPrevBlockHash() {
-        return prevBlockHash;
-    }
-
-    public HashMsg getMerkleRoot() {
-        return merkleRoot;
-    }
-
-    public long getCreationTimestamp() {
-        return creationTimestamp;
-    }
-
-    public long getDifficultyTarget() {
-        return difficultyTarget;
-    }
-
-    public long getNonce() {
-        return nonce;
-    }
-
-    public VarIntMsg getTransactionCount() {
-        return transactionCount;
-    }
+    public HashMsg getHash()                { return hash; }
+    public long getVersion()                { return version; }
+    public HashMsg getPrevBlockHash()       { return prevBlockHash; }
+    public HashMsg getMerkleRoot()          { return merkleRoot; }
+    public long getCreationTimestamp()      { return creationTimestamp; }
+    public long getDifficultyTarget()       { return difficultyTarget; }
+    public long getNonce()                  { return nonce; }
+    public VarIntMsg getTransactionCount()  { return transactionCount; }
 
     @Override
     public boolean equals(Object obj) {
@@ -150,10 +127,23 @@ public final class BlockHeaderMsg extends Message {
             && Objects.equal(this.transactionCount, other.transactionCount);
     }
 
+    @Override
+    public BlockHeaderMsgBuilder toBuilder() {
+            return new BlockHeaderMsgBuilder()
+                    .hash(this.hash)
+                    .version(this.version)
+                    .prevBlockHash(this.prevBlockHash)
+                    .merkleRoot(this.merkleRoot)
+                    .creationTimestamp(this.creationTimestamp)
+                    .difficultyTarget(this.difficultyTarget)
+                    .nonce(this.nonce)
+                    .transactionCount(this.transactionCount);
+    }
+
     /**
      * Builder
      */
-    public static class BlockHeaderMsgBuilder {
+    public static class BlockHeaderMsgBuilder extends MessageBuilder {
         protected HashMsg hash;
         protected long version;
         protected HashMsg prevBlockHash;

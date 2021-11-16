@@ -93,10 +93,15 @@ public final class VarIntMsg extends Message {
         return new VarIntMsgBuilder();
     }
 
+    @Override
+    public VarIntMsgBuilder toBuilder() {
+        return new VarIntMsgBuilder().value(this.value);
+    }
+
     /**
      * Builder
      */
-    public static class VarIntMsgBuilder {
+    public static class VarIntMsgBuilder extends MessageBuilder {
         private long value;
 
         VarIntMsgBuilder() {}

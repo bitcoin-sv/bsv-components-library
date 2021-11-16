@@ -52,10 +52,15 @@ public final class GetAddrMsg extends Message {
         return new GetAddrMsgBuilder();
     }
 
+    @Override
+    public GetAddrMsgBuilder toBuilder() {
+       return new GetAddrMsgBuilder();
+    }
+
     /**
      * Builder
      */
-    public static class GetAddrMsgBuilder {
+    public static class GetAddrMsgBuilder extends MessageBuilder{
         GetAddrMsgBuilder() {}
         public GetAddrMsg build() {
             return new GetAddrMsg();

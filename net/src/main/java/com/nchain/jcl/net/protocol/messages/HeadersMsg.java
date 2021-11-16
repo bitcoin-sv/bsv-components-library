@@ -83,10 +83,15 @@ public final class HeadersMsg extends Message {
         return new HeadersMsgBuilder();
     }
 
+    @Override
+    public HeadersMsgBuilder toBuilder() {
+        return new HeadersMsgBuilder().blockHeaderMsgList(this.blockHeaderMsgList);
+    }
+
     /**
      * Builder
      */
-    public static class HeadersMsgBuilder {
+    public static class HeadersMsgBuilder extends MessageBuilder {
         private List<BlockHeaderMsg> blockHeaderMsgList;
 
         HeadersMsgBuilder() {}

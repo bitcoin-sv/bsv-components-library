@@ -84,10 +84,19 @@ public final class BaseGetDataAndHeaderMsg extends Message {
         return new BaseGetDataAndHeaderMsgBuilder();
     }
 
+    @Override
+    public BaseGetDataAndHeaderMsgBuilder toBuilder() {
+        return new BaseGetDataAndHeaderMsgBuilder()
+                    .version(this.version)
+                    .hashCount(this.hashCount)
+                    .hashStop(this.hashStop)
+                    .blockLocatorHash(this.blockLocatorHash);
+    }
+
     /**
      * Builder
      */
-    public static class BaseGetDataAndHeaderMsgBuilder {
+    public static class BaseGetDataAndHeaderMsgBuilder extends MessageBuilder {
         private long version;
         private VarIntMsg hashCount;
         private List<HashMsg> blockLocatorHash;

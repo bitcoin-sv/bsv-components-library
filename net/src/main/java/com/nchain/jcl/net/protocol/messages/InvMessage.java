@@ -81,10 +81,15 @@ public class InvMessage extends Message {
         return new InvMessageBuilder();
     }
 
+    @Override
+    public InvMessageBuilder toBuilder() {
+        return new InvMessageBuilder().invVectorMsgList(this.invVectorList);
+    }
+
     /**
      * Builder
      */
-    public static class InvMessageBuilder {
+    public static class InvMessageBuilder extends MessageBuilder{
         private List<InventoryVectorMsg> invVectorMsgList;
 
         InvMessageBuilder() {}

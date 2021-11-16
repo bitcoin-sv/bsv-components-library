@@ -136,20 +136,21 @@ public final class HeaderMsg extends Message {
         return new HeaderMsgBuilder();
     }
 
+    @Override
     public HeaderMsgBuilder toBuilder() {
         return new HeaderMsgBuilder()
-                .magic(this.magic)
-                .command(this.command)
-                .length(this.length)
-                .checksum(this.checksum)
-                .extCommand(this.extCommand)
-                .extLength(this.extLength);
+                    .magic(this.magic)
+                    .command(this.command)
+                    .length(this.length)
+                    .checksum(this.checksum)
+                    .extCommand(this.extCommand)
+                    .extLength(this.extLength);
     }
 
     /**
      * Builder
      */
-    public static class HeaderMsgBuilder {
+    public static class HeaderMsgBuilder extends MessageBuilder {
         private long magic;
         private String command;
         private long length;

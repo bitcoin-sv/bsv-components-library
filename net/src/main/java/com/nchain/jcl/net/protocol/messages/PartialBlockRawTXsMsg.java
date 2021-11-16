@@ -40,21 +40,11 @@ public final class PartialBlockRawTXsMsg extends Message {
         if (txsOrderNumber.getValue() < 0) throw new RuntimeException("the txs Order Number must be >= 0");
     }
 
-    public String getMessageType() {
-        return MESSAGE_TYPE;
-    }
-
-    public BlockHeaderMsg getBlockHeader() {
-        return this.blockHeader;
-    }
-
-    public VarIntMsg getTxsOrderNumber() {
-        return this.txsOrderNumber;
-    }
-
-    public byte[] getTxs() {
-        return this.txs;
-    }
+    @Override
+    public String getMessageType()          { return MESSAGE_TYPE; }
+    public BlockHeaderMsg getBlockHeader()  { return this.blockHeader; }
+    public VarIntMsg getTxsOrderNumber()    { return this.txsOrderNumber; }
+    public byte[] getTxs()                  { return this.txs; }
 
     @Override
     public String toString() {
@@ -83,10 +73,18 @@ public final class PartialBlockRawTXsMsg extends Message {
             && Objects.equal(this.txsOrderNumber, other.txsOrderNumber);
     }
 
+    @Override
+    public PartialBlockTXsMsgBuilder toBuilder() {
+        return new PartialBlockTXsMsgBuilder()
+                        .blockHeader(this.blockHeader)
+                        .txs(this.txs)
+                        .txsOrdersNumber(this.txsOrderNumber);
+    }
+
     /**
      * Builder
      */
-    public static class PartialBlockTXsMsgBuilder {
+    public static class PartialBlockTXsMsgBuilder extends MessageBuilder{
         private BlockHeaderMsg blockHeader;
         private byte[] txs;
         private VarIntMsg txsOrderNumber;
@@ -106,6 +104,11 @@ public final class PartialBlockRawTXsMsg extends Message {
 
         public PartialBlockRawTXsMsg.PartialBlockTXsMsgBuilder txsOrdersNumber(long orderNumber) {
             this.txsOrderNumber = VarIntMsg.builder().value(orderNumber).build();
+            return this;
+        }
+
+        public PartialBlockRawTXsMsg.PartialBlockTXsMsgBuilder txsOrdersNumber(VarIntMsg orderNumber) {
+            this.txsOrderNumber = orderNumber;
             return this;
         }
 

@@ -26,8 +26,9 @@ public final class PingMsg extends Message {
 
     private final long nonce;
 
-    protected PingMsg(long nonce) {
+    protected PingMsg(long nonce, long checksum) {
         this.nonce = nonce;
+        super.updateChecksum(checksum);
         init();
     }
 
@@ -66,10 +67,15 @@ public final class PingMsg extends Message {
         return new PingMsgBuilder();
     }
 
+    @Override
+    public PingMsgBuilder toBuilder() {
+        return new PingMsgBuilder().nonce(this.nonce);
+    }
+
     /**
      * Builder
      */
-    public static class PingMsgBuilder {
+    public static class PingMsgBuilder extends MessageBuilder{
         private long nonce;
 
         PingMsgBuilder() { }
@@ -80,7 +86,7 @@ public final class PingMsg extends Message {
         }
 
         public PingMsg build() {
-            return new PingMsg(nonce);
+            return new PingMsg(nonce, super.checksum);
         }
     }
 }

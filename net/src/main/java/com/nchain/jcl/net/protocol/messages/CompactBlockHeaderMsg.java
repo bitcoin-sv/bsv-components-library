@@ -105,43 +105,35 @@ public class CompactBlockHeaderMsg extends Message {
         return result;
     }
 
-    public HashMsg getHash() {
-        return this.hash;
-    }
-
-    public long getVersion() {
-        return this.version;
-    }
-
-    public HashMsg getPrevBlockHash() {
-        return this.prevBlockHash;
-    }
-
-    public HashMsg getMerkleRoot() {
-        return this.merkleRoot;
-    }
-
-    public long getCreationTimestamp() {
-        return this.creationTimestamp;
-    }
-
-    public long getDifficultyTarget() {
-        return this.difficultyTarget;
-    }
-
-    public long getNonce() {
-        return this.nonce;
-    }
+    public HashMsg getHash()            { return this.hash; }
+    public long getVersion()            { return this.version; }
+    public HashMsg getPrevBlockHash()   { return this.prevBlockHash; }
+    public HashMsg getMerkleRoot()      { return this.merkleRoot; }
+    public long getCreationTimestamp()  { return this.creationTimestamp; }
+    public long getDifficultyTarget()   { return this.difficultyTarget; }
+    public long getNonce()              { return this.nonce; }
 
     @Override
     public int hashCode() {
         return Objects.hashCode(hash, version, prevBlockHash, merkleRoot, creationTimestamp, difficultyTarget, nonce);
     }
 
+    @Override
+    public CompactBlockHeaderMsgBuilder toBuilder() {
+        return new CompactBlockHeaderMsgBuilder()
+                    .hash(this.hash)
+                    .version(this.version)
+                    .prevBlockHash(this.prevBlockHash)
+                    .merkleRoot(this.merkleRoot)
+                    .creationTimestamp(this.creationTimestamp)
+                    .difficultyTarget(this.difficultyTarget)
+                    .nonce(this.nonce);
+    }
+
     /**
      * Builder
      */
-    public static class CompactBlockHeaderMsgBuilder {
+    public static class CompactBlockHeaderMsgBuilder extends MessageBuilder{
         protected HashMsg hash;
         protected long version;
         protected HashMsg prevBlockHash;

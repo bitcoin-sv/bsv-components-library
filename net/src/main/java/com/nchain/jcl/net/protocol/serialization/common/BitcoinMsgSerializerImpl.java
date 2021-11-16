@@ -24,13 +24,6 @@ import java.util.List;
  */
 public class BitcoinMsgSerializerImpl implements BitcoinMsgSerializer {
 
-    // Same variables defined that might affect Performance:
-
-    // If a Message is BIGGER than this, then its checksum is calculated in batches, instead of loading the whole
-    // byte array in memory. This is safe for memory-consumption standpoint, but it might be slower.
-    // THIS VALUE MUST BE < 2GB
-    private static final int MSG_SIZE_LIMIT_CHECKSUM_IN_BATCHES = 1_000_000_000; // 1GB
-
     // Singleton
     private static BitcoinMsgSerializerImpl instance;
 
@@ -52,6 +45,41 @@ public class BitcoinMsgSerializerImpl implements BitcoinMsgSerializer {
                 return HeaderMsgSerializer.getInstance().deserialize(context, byteReader);
     }
 
+
+
+    @Override
+    public <M extends Message> M deserializeBody(DeserializerContext context, HeaderMsg headerMsg, ByteArrayReader byteReader) {
+        DeserializerContext bodyContext = context.toBuilder()
+                .maxBytesToRead(headerMsg.getMsgLength())
+                .build();
+        MessageSerializer<M> bodySerializer = getBodySerializer(headerMsg.getMsgCommand());
+        M bodyMsg = bodySerializer.deserialize(bodyContext, byteReader);
+        return bodyMsg;
+    }
+
+    // It calculate the checksum of the next Message BODY sotred in the reader
+    private long calculateChecksum(DeserializerContext context, ByteArrayReader reader) {
+
+        final int MAX_BYTES_TO_READ = 2_000_000_000; // 2GB
+
+        // Optimization: (message < 2GB)
+        if (context.getMaxBytesToRead() <= MAX_BYTES_TO_READ) {
+            return Utils.readUint32(Sha256Hash.hashTwice(reader.get(context.getMaxBytesToRead().intValue())), 0);
+        }
+
+        // For the rest of messages >= 2GB:
+        Sha256HashIncremental shaIncremental = new Sha256HashIncremental();
+        long numBytesRead = 0;
+        long maxBytesToRead = context.getMaxBytesToRead();
+        while (numBytesRead < maxBytesToRead) {
+            int numBytesToRead = (int) Math.min(MAX_BYTES_TO_READ, (maxBytesToRead - numBytesRead));
+            shaIncremental.add(reader.get(numBytesRead, numBytesToRead));
+            numBytesRead += numBytesToRead;
+        }
+        return Utils.readUint32(shaIncremental.hashTwice(), 0);
+    }
+
+
     @Override
     public <M extends Message> BitcoinMsg<M> deserialize(DeserializerContext context, ByteArrayReader byteReader,
                                                          String msgType) {
@@ -60,26 +88,16 @@ public class BitcoinMsgSerializerImpl implements BitcoinMsgSerializer {
         HeaderMsg headerMsg = HeaderMsgSerializer.getInstance().deserialize(context, byteReader);
 
         // Now we deserialize the Body:
-        DeserializerContext bodyContext = context.toBuilder()
-                .maxBytesToRead(headerMsg.getMsgLength())
-                .build();
-        MessageSerializer<M> bodySerializer = getBodySerializer(msgType);
-        M bodyMsg = bodySerializer.deserialize(bodyContext, byteReader);
+        // If we need to calculate the checksum, we do it ann inject it to the message:
+        M bodyMsg = deserializeBody(context, headerMsg, byteReader);
+        if (context.isCalculateChecksum()) {
+            long checksum = calculateChecksum(context, byteReader);
+            bodyMsg = (M) bodyMsg.toBuilder().checksum(checksum).build();
+        }
+
+        // We build a whole BTC Message and return it:
         BitcoinMsg<M> result = new BitcoinMsg<>(headerMsg, bodyMsg);
         return result;
-    }
-
-
-    public long calculateChecksumOfBigMessage(ByteArrayReader reader) {
-        int CHUNK_SIZE = 1_000_000; // 10 MB added at a time
-
-        Sha256HashIncremental shaIncremental = new Sha256HashIncremental();
-        while (!reader.isEmpty()) {
-            int numBytesToRead = (int) Math.min(reader.size(), CHUNK_SIZE);
-            byte[] bytesToAdd = reader.read(numBytesToRead);
-            shaIncremental.add(bytesToAdd);
-        }
-        return Utils.readUint32(shaIncremental.hashTwice(), 0);
     }
 
     @Override
@@ -87,8 +105,7 @@ public class BitcoinMsgSerializerImpl implements BitcoinMsgSerializer {
                                                          String msgType) {
 
         // Some Notes about Deserialization:
-        // If the message is >=4GB, the checksum must NOT be calculated. We just Serialize the message as it
-        // is
+        // If the message is >=4GB, the checksum must NOT be calculated. We just Serialize the message as it is
         // If the message is <4GB, then we need to calculate and populate the CHECKSUM in the HEADER of
         // the message, so we need to:
         //  1 - Serialize the Message BODY

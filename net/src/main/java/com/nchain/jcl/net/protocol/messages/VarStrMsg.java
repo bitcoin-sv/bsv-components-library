@@ -75,10 +75,15 @@ public final class VarStrMsg extends Message {
         return new VarStrMsgBuilder();
     }
 
+    @Override
+    public VarStrMsgBuilder toBuilder() {
+        return new VarStrMsgBuilder().str(this.str);
+    }
+
     /**
      * Builder
      */
-    public static class VarStrMsgBuilder {
+    public static class VarStrMsgBuilder extends MessageBuilder {
         private String str;
 
         VarStrMsgBuilder() {

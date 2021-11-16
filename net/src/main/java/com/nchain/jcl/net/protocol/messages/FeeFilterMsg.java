@@ -65,10 +65,15 @@ public class FeeFilterMsg extends Message {
         return new FeeFilterMsgBuilder();
     }
 
+    @Override
+    public FeeFilterMsgBuilder toBuilder() {
+        return new FeeFilterMsgBuilder().fee(this.fee);
+    }
+
     /**
      * Builder
      */
-    public static class FeeFilterMsgBuilder {
+    public static class FeeFilterMsgBuilder extends MessageBuilder {
         private Long fee;
 
         FeeFilterMsgBuilder() {

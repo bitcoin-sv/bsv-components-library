@@ -77,4 +77,30 @@ public class RawTxMsg extends RawMsg {
     public String toString() {
         return "RawTxMsg(hash=" + this.hash + ")";
     }
+
+    @Override
+    public RawTxMsgBuilder toBuilder() {
+        return new RawTxMsgBuilder()
+                    .content(this.content)
+                    .hsh(this.hash);
+    }
+
+    public static class RawTxMsgBuilder extends MessageBuilder {
+        private byte[] content;
+        private Sha256Hash hash;
+
+        public RawTxMsgBuilder content(byte[] content) {
+            this.content = content;
+            return this;
+        }
+
+        public RawTxMsgBuilder hsh(Sha256Hash hash) {
+            this.hash = hash;
+            return this;
+        }
+
+        public RawMsg build() {
+            return new RawTxMsg(content, hash);
+        }
+    }
 }

@@ -54,10 +54,15 @@ public final class SendHeadersMsg extends Message {
         return new SendHeadersMsgBuilder();
     }
 
+    @Override
+    public SendHeadersMsgBuilder toBuilder() {
+        return new SendHeadersMsgBuilder();
+    }
+
     /**
      * Builder
      */
-    public static class SendHeadersMsgBuilder {
+    public static class SendHeadersMsgBuilder extends MessageBuilder {
         SendHeadersMsgBuilder() { }
 
         public SendHeadersMsg build() {

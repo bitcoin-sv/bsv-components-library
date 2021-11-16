@@ -17,7 +17,7 @@ public interface ByteArray {
     boolean isEmpty();
     void add(byte[] data);
     void add(byte[] data, int offset, int length);
-    byte[] get(int offset, int length);
+    byte[] get(long offset, int length);
     byte[] get(int length);
     byte[] get();
     byte[] extract(int length);

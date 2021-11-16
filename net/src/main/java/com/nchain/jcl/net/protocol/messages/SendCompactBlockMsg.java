@@ -47,7 +47,14 @@ public class SendCompactBlockMsg extends Message {
     protected void validateMessage() {
     }
 
-    public static class SendCompactBlockMsgBuilder {
+    @Override
+    public SendCompactBlockMsgBuilder toBuilder() {
+        return new SendCompactBlockMsgBuilder()
+                        .highBandwidthRelaying(this.highBandwidthRelaying)
+                        .version(this.version);
+    }
+
+    public static class SendCompactBlockMsgBuilder extends MessageBuilder {
         private boolean highBandwidthRelaying;
         private long version;
 

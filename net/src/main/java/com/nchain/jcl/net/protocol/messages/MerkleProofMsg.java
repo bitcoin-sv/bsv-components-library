@@ -29,7 +29,20 @@ public class MerkleProofMsg extends Message {
     private VarIntMsg nodeCount;
     private List<MerkleNode> nodes;
 
-    public MerkleProofMsg() {
+    public MerkleProofMsg(MerkleProofMsgFlags flags,
+                          VarIntMsg transactionIndex,
+                          VarIntMsg transactionLength,
+                          TxMsg transaction,
+                          HashMsg target,
+                          VarIntMsg nodeCount,
+                          List<MerkleNode> nodes) {
+        this.flags = flags;
+        this.transactionIndex = transactionIndex;
+        this.transactionLength = transactionLength;
+        this.transaction = transaction;
+        this.target = target;
+        this.nodeCount = nodeCount;
+        this.nodes = nodes;
         init();
     }
 
@@ -38,76 +51,36 @@ public class MerkleProofMsg extends Message {
     }
 
     @Override
-    public String getMessageType() {
-        return MESSAGE_TYPE;
-    }
+    public String getMessageType()                  { return MESSAGE_TYPE; }
+    @Override
+    protected long calculateLength()                { return 0; }
+    @Override
+    protected void validateMessage()                {}
+
+    public MerkleProofMsgFlags getFlags()           { return flags; }
+    public VarIntMsg getTransactionIndex()          { return transactionIndex; }
+    public VarIntMsg getTransactionLength()         { return transactionLength; }
+    public TxMsg getTransaction()                   { return transaction; }
+    public HashMsg getTarget()                      { return target; }
+    public VarIntMsg getNodeCount()                 { return nodeCount; }
+    public void setNodeCount(VarIntMsg nodeCount)   { this.nodeCount = nodeCount; }
+    public List<MerkleNode> getNodes()              { return nodes; }
+
+
 
     @Override
-    protected long calculateLength() {
-        return 0;
+    public MerkleProofMsgBuilder toBuilder() {
+        return new MerkleProofMsgBuilder()
+                    .withFlags(this.flags)
+                    .withTransactionIndex(this.transactionIndex)
+                    .withTransactionLength(this.transactionLength)
+                    .withTransaction(this.transaction)
+                    .withTarget(this.target)
+                    .withNodeCount(this.nodeCount)
+                    .withNodes(this.nodes);
     }
 
-    @Override
-    protected void validateMessage() {
-    }
-
-    public MerkleProofMsgFlags getFlags() {
-        return flags;
-    }
-
-    public void setFlags(MerkleProofMsgFlags flags) {
-        this.flags = flags;
-    }
-
-    public VarIntMsg getTransactionIndex() {
-        return transactionIndex;
-    }
-
-    public void setTransactionIndex(VarIntMsg transactionIndex) {
-        this.transactionIndex = transactionIndex;
-    }
-
-    public VarIntMsg getTransactionLength() {
-        return transactionLength;
-    }
-
-    public void setTransactionLength(VarIntMsg transactionLength) {
-        this.transactionLength = transactionLength;
-    }
-
-    public TxMsg getTransaction() {
-        return transaction;
-    }
-
-    public void setTransaction(TxMsg transaction) {
-        this.transaction = transaction;
-    }
-
-    public HashMsg getTarget() {
-        return target;
-    }
-
-    public void setTarget(HashMsg target) {
-        this.target = target;
-    }
-
-    public VarIntMsg getNodeCount() {
-        return nodeCount;
-    }
-
-    public void setNodeCount(VarIntMsg nodeCount) {
-        this.nodeCount = nodeCount;
-    }
-
-    public List<MerkleNode> getNodes() {
-        return nodes;
-    }
-
-    public void setNodes(List<MerkleNode> nodes) {
-        this.nodes = nodes;
-    }
-
-    public static final class MerkleProofMsgBuilder {
+    public static final class MerkleProofMsgBuilder extends MessageBuilder{
         private MerkleProofMsgFlags flags;
         private VarIntMsg transactionIndex;
         private VarIntMsg transactionLength;
@@ -117,10 +90,6 @@ public class MerkleProofMsg extends Message {
         private List<MerkleNode> nodes;
 
         private MerkleProofMsgBuilder() {
-        }
-
-        public static MerkleProofMsgBuilder aMerkleProofMsg() {
-            return new MerkleProofMsgBuilder();
         }
 
         public MerkleProofMsgBuilder withFlags(MerkleProofMsgFlags flags) {
@@ -159,14 +128,15 @@ public class MerkleProofMsg extends Message {
         }
 
         public MerkleProofMsg build() {
-            MerkleProofMsg merkleProofMsg = new MerkleProofMsg();
-            merkleProofMsg.setFlags(flags);
-            merkleProofMsg.setTransactionIndex(transactionIndex);
-            merkleProofMsg.setTransactionLength(transactionLength);
-            merkleProofMsg.setTransaction(transaction);
-            merkleProofMsg.setTarget(target);
-            merkleProofMsg.setNodeCount(nodeCount);
-            merkleProofMsg.setNodes(nodes);
+            MerkleProofMsg merkleProofMsg = new MerkleProofMsg(
+                    this.flags,
+                    this.transactionIndex,
+                    this.transactionLength,
+                    this.transaction,
+                    this.target,
+                    this.nodeCount,
+                    this.nodes
+            );
             return merkleProofMsg;
         }
     }

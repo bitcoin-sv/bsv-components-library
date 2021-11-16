@@ -89,10 +89,18 @@ public final class NetAddressMsg extends Message {
         return new NetAddressMsgBuilder();
     }
 
+    @Override
+    public NetAddressMsgBuilder toBuilder() {
+        return new NetAddressMsgBuilder()
+                        .timestamp(this.timestamp)
+                        .services(this.services)
+                        .address(this.address);
+    }
+
     /**
      * Builder
      */
-    public static class NetAddressMsgBuilder {
+    public static class NetAddressMsgBuilder extends MessageBuilder {
         private Long timestamp;
         private long services;
         private PeerAddress address;

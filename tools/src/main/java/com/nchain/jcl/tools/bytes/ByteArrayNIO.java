@@ -57,14 +57,14 @@ public class ByteArrayNIO implements ByteArray {
 
     @GuardedBy("this")
     @Override
-    public byte[] get(int offset, int length) {
+    public byte[] get(long offset, int length) {
         checkArgument(offset >= 0, "wrong value for 'pos'");
         checkArgument(length >= 0, "'length' must be >= zero");
         checkArgument(size() >= (offset + length),
                 "not enough data in the buffer: actual data: " + size() + " bytes,"
                         + " , requested: " + length + " bytes");
         try {
-            return get_bytes(offset, length);
+            return get_bytes((int)offset, length);
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
         }

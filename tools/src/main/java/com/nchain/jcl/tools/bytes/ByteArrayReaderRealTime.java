@@ -96,6 +96,11 @@ public class ByteArrayReaderRealTime extends ByteArrayReaderOptimized {
         return super.get(length);
     }
 
+    public byte[] get(long offset, int length) {
+        waitForBytes(offset + length);
+        return super.get(offset, length);
+    }
+
     public long readUint32() {
         waitForBytes(4);
         return super.readUint32();
@@ -128,7 +133,7 @@ public class ByteArrayReaderRealTime extends ByteArrayReaderOptimized {
     /*
      * Waits for the bytes to be written before returning. This will cause the thread to be blocked.
      */
-    public void waitForBytes(int length) throws RuntimeException {
+    public void waitForBytes(long length) throws RuntimeException {
         long millisecsToWait = getWaitingTime(length).toMillis();
 
         long timeout = System.currentTimeMillis() + millisecsToWait;

@@ -20,7 +20,10 @@ public class DsDetectedMsg extends Message {
     private VarIntMsg blockCount;
     private List<BlockDetailsMsg> blockList;
 
-    public DsDetectedMsg() {
+    public DsDetectedMsg(int version, VarIntMsg blockCount, List<BlockDetailsMsg> blockList) {
+        this.version = version;
+        this.blockCount = blockCount;
+        this.blockList = blockList;
         init();
     }
 
@@ -38,36 +41,20 @@ public class DsDetectedMsg extends Message {
     protected void validateMessage() {
     }
 
+    public VarIntMsg getBlockCount()            { return blockCount; }
+    public List<BlockDetailsMsg> getBlockList() { return blockList; }
+    public int getVersion()                     { return version; }
 
-    public VarIntMsg getBlockCount() {
-        return blockCount;
+    public static DsDetectedMsg.DsDetectedMsgBuilder builder() { return new DsDetectedMsg.DsDetectedMsgBuilder(); }
+
+    @Override public DsDetectedMsgBuilder toBuilder() {
+        return new DsDetectedMsgBuilder()
+                    .withVersion(this.version)
+                    .withBlockCount(this.blockCount)
+                    .withBlockList(this.blockList);
     }
 
-    public void setBlockCount(VarIntMsg blockCount) {
-        this.blockCount = blockCount;
-    }
-
-    public List<BlockDetailsMsg> getBlockList() {
-        return blockList;
-    }
-
-    public void setBlockList(List<BlockDetailsMsg> blockList) {
-        this.blockList = blockList;
-    }
-
-    public int getVersion() {
-        return version;
-    }
-
-    public void setVersion(int version) {
-        this.version = version;
-    }
-
-    public static DsDetectedMsg.DsDetectedMsgBuilder builder() {
-        return new DsDetectedMsg.DsDetectedMsgBuilder();
-    }
-
-    public static final class DsDetectedMsgBuilder {
+    public static final class DsDetectedMsgBuilder extends MessageBuilder {
         private int version;
         private VarIntMsg blockCount;
         private List<BlockDetailsMsg> blockList;
@@ -95,10 +82,7 @@ public class DsDetectedMsg extends Message {
         }
 
         public DsDetectedMsg build() {
-            DsDetectedMsg dsDetectedMsg = new DsDetectedMsg();
-            dsDetectedMsg.setVersion(version);
-            dsDetectedMsg.setBlockCount(blockCount);
-            dsDetectedMsg.setBlockList(blockList);
+            DsDetectedMsg dsDetectedMsg = new DsDetectedMsg(this.version, this.blockCount, this.blockList);
             return dsDetectedMsg;
         }
     }

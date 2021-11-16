@@ -57,10 +57,15 @@ public final class GetHeadersMsg extends Message {
         return new GetHeadersMsgBuilder();
     }
 
+    @Override
+    public GetHeadersMsgBuilder toBuilder() {
+        return new GetHeadersMsgBuilder().baseGetDataAndHeaderMsg(this.baseGetDataAndHeaderMsg);
+    }
+
     /**
      * Builder
      */
-    public static class GetHeadersMsgBuilder {
+    public static class GetHeadersMsgBuilder extends MessageBuilder {
         private BaseGetDataAndHeaderMsg baseGetDataAndHeaderMsg;
 
         GetHeadersMsgBuilder() {}

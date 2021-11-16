@@ -82,10 +82,18 @@ public final class PartialBlockTXsMsg extends Message {
             && Objects.equal(this.txsOrderNumber, other.txsOrderNumber);
     }
 
+    @Override
+    public PartialBlockTXsMsgBuilder toBuilder() {
+        return new PartialBlockTXsMsgBuilder()
+                        .blockHeader(this.blockHeader)
+                        .txs(this.txs)
+                        .txsOrdersNumber(this.txsOrderNumber);
+    }
+
     /**
      * Builder
      */
-    public static class PartialBlockTXsMsgBuilder {
+    public static class PartialBlockTXsMsgBuilder extends MessageBuilder {
         private BlockHeaderMsg blockHeader;
         private List<TxMsg> txs;
         private VarIntMsg txsOrderNumber;
@@ -105,6 +113,11 @@ public final class PartialBlockTXsMsg extends Message {
 
         public PartialBlockTXsMsg.PartialBlockTXsMsgBuilder txsOrdersNumber(long orderNumber) {
             this.txsOrderNumber = VarIntMsg.builder().value(orderNumber).build();
+            return this;
+        }
+
+        public PartialBlockTXsMsg.PartialBlockTXsMsgBuilder txsOrdersNumber(VarIntMsg orderNumber) {
+            this.txsOrderNumber = orderNumber;
             return this;
         }
 

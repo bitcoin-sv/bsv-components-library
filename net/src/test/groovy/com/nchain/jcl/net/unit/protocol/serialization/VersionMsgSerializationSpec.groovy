@@ -120,6 +120,7 @@ class VersionMsgSerializationSpec extends Specification {
             DeserializerContext context = DeserializerContext.builder()
                 .protocolBasicConfig(config.getBasicConfig())
                 .insideVersionMsg(true)
+                .calculateChecksum(true)
                 .build()
 
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_ADDRESS_MSG), byteInterval, delayMs);

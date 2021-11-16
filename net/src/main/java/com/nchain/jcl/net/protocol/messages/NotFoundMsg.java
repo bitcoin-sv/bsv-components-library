@@ -72,10 +72,17 @@ public final class NotFoundMsg extends Message {
         return new NotFoundMsgBuilder();
     }
 
+    @Override
+    public NotFoundMsgBuilder toBuilder() {
+        return new NotFoundMsgBuilder()
+                    .count(this.count)
+                    .invVectorMsgList(this.invVectorList);
+    }
+
     /**
      * Builder
      */
-    public static class NotFoundMsgBuilder {
+    public static class NotFoundMsgBuilder extends MessageBuilder {
         private VarIntMsg count;
         private List<InventoryVectorMsg> invVectorMsgList;
 

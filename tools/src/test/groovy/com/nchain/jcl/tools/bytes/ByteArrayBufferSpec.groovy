@@ -2,7 +2,7 @@ package com.nchain.jcl.tools.bytes
 
 import spock.lang.Specification
 
-class ByteArrayBuilderSpec extends Specification {
+class ByteArrayBufferSpec extends Specification {
 
     /**
      * We check the complete behaviour of the Builder. Given some parameters, like the size of each

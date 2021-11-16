@@ -36,9 +36,10 @@ public final class AddrMsg extends Message {
     /**
      * Creates the AddrMsg Object.Use the corresponding byteArray to create the instance.
      */
-    protected AddrMsg( List<NetAddressMsg> addrList) {
+    protected AddrMsg( List<NetAddressMsg> addrList, long checksum) {
         this.addrList = ImmutableList.copyOf(addrList);
         this.count = VarIntMsg.builder().value(this.addrList.size()).build();
+        super.updateChecksum(checksum);
         init();
     }
 
@@ -86,10 +87,15 @@ public final class AddrMsg extends Message {
         return new AddrMsgBuilder();
     }
 
+    @Override
+    public AddrMsgBuilder toBuilder() {
+        return new AddrMsgBuilder().addrList(this.addrList);
+    }
+
     /**
      * Builder
      */
-    public static class AddrMsgBuilder {
+    public static class AddrMsgBuilder extends MessageBuilder {
         private List<NetAddressMsg> addrList;
 
         AddrMsgBuilder() {}
@@ -100,7 +106,7 @@ public final class AddrMsg extends Message {
         }
 
         public AddrMsg build() {
-            return new AddrMsg(addrList);
+            return new AddrMsg(addrList, super.checksum);
         }
     }
 }

@@ -67,7 +67,15 @@ public class BlockDetailsMsg extends Message {
         return new BlockDetailsMsgBuilder();
     }
 
-    public static final class BlockDetailsMsgBuilder {
+    @Override
+    public BlockDetailsMsgBuilder toBuilder() {
+        return new BlockDetailsMsgBuilder()
+                    .headerCount(this.headerCount)
+                    .headerMsg(this.headerMsg)
+                    .merkleProofMsg(this.merkleProofMsg);
+    }
+
+    public static final class BlockDetailsMsgBuilder extends  MessageBuilder{
         private VarIntMsg headerCount;
         private List<BlockHeaderMsg> headerMsg;
         private MerkleProofMsg merkleProofMsg;

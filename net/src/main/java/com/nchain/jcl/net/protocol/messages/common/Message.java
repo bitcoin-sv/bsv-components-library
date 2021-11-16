@@ -30,15 +30,24 @@ public abstract class Message implements Serializable {
     // serialized.
     protected long lengthInBytes;
 
+    // checksum calculated out of the Message bytes. Its NOT part of the physical message on the wire
+    protected long checksum;
+
     // getter
     public long getLengthInBytes() {
         return lengthInBytes;
     }
 
+    // getter
+    public long getChecksum() { return this.checksum;}
+
     // updates the length
     public void updateLength(long length) {
          lengthInBytes = length;
     }
+
+    // updates the checksum
+    public void updateChecksum(long checksum) { this.checksum = checksum;}
 
     // initialize the message length and validate its values
     public void init() {
@@ -61,4 +70,20 @@ public abstract class Message implements Serializable {
     // calculates the length of the message
     abstract protected void  validateMessage();
 
+    // Returns the builder if we want to modify the content (it will crate a new instance)
+    abstract public MessageBuilder toBuilder();
+
+    /**
+     * Abstract Builder that can be extended by sub-classes
+     */
+    public static abstract class MessageBuilder {
+        protected long checksum;
+
+        public MessageBuilder checksum(long checksum) {
+            this.checksum = checksum;
+            return this;
+        }
+
+        public abstract Message build();
+    }
 }

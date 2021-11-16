@@ -174,10 +174,20 @@ public class RejectMsg extends Message {
         return new RejectMsgBuilder();
     }
 
+    @Override
+    public RejectMsgBuilder toBuilder() {
+        return new RejectMsgBuilder()
+                    .message(this.message)
+                    .ccode(this.ccode)
+                    .reason(this.reason)
+                    .dataHash(this.dataHash)
+                    .data(this.data);
+    }
+
     /**
      * Builder
      */
-    public static class RejectMsgBuilder {
+    public static class RejectMsgBuilder extends MessageBuilder{
         private VarStrMsg message;
         private RejectCode ccode;
         private VarStrMsg reason;

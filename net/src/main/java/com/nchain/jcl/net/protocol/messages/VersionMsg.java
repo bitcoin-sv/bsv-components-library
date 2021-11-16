@@ -53,7 +53,7 @@ import java.io.Serializable;
 public final class VersionMsg extends Message implements Serializable {
     // The only field which a variable length in the Version Message is the "getHandshakeUserAgent" field.
     // The rest of the Message has a fixed length of 85 bytes.
-    private static final int FIXED_MESSAGE_LENGTH = 84; // need to addBytes the "getHandshakeUserAgent"  and RELAY length to this.
+    private static final int FIXED_MESSAGE_LENGTH = 84; // need to add the "getHandshakeUserAgent"  and RELAY length to this.
     public static final String MESSAGE_TYPE = "version";
 
     private final long version;
@@ -68,7 +68,8 @@ public final class VersionMsg extends Message implements Serializable {
 
     protected VersionMsg(long version, long services, long timestamp,
                          NetAddressMsg addr_recv, NetAddressMsg addr_from,
-                         long nonce, VarStrMsg user_agent, long start_height, Boolean relay ) {
+                         long nonce, VarStrMsg user_agent, long start_height, Boolean relay,
+                         long checksum) {
         this.version = version;
         this.services = services;
         this.timestamp = timestamp;
@@ -78,6 +79,7 @@ public final class VersionMsg extends Message implements Serializable {
         this.user_agent = user_agent;
         this.start_height = start_height;
         this.relay = relay;
+        super.updateChecksum(checksum);
         init();
     }
 
@@ -105,7 +107,17 @@ public final class VersionMsg extends Message implements Serializable {
     public Boolean getRelay()           { return this.relay; }
 
     public String toString() {
-        return "VersionMsg(version=" + this.getVersion() + ", services=" + this.getServices() + ", timestamp=" + this.getTimestamp() + ", addr_recv=" + this.getAddr_recv() + ", addr_from=" + this.getAddr_from() + ", nonce=" + this.getNonce() + ", user_agent=" + this.getUser_agent() + ", start_height=" + this.getStart_height() + ", relay=" + this.getRelay() + ")";
+        return "VersionMsg(version=" + this.getVersion()
+                + ", services=" + this.getServices()
+                + ", timestamp=" + this.getTimestamp()
+                + ", addr_recv=" + this.getAddr_recv()
+                + ", addr_from=" + this.getAddr_from()
+                + ", nonce=" + this.getNonce()
+                + ", user_agent=" + this.getUser_agent()
+                + ", start_height=" + this.getStart_height()
+                + ", relay=" + this.getRelay()
+                + ", CHECKSUM=" + this.getChecksum()
+                + ")";
     }
 
     @Override
@@ -134,10 +146,24 @@ public final class VersionMsg extends Message implements Serializable {
         return new VersionMsgBuilder();
     }
 
+    @Override
+    public VersionMsgBuilder toBuilder() {
+        return new VersionMsgBuilder()
+                        .version(this.version)
+                        .services(this.services)
+                        .timestamp(this.timestamp)
+                        .addr_recv(this.addr_recv)
+                        .addr_from(this.addr_from)
+                        .nonce(this.nonce)
+                        .user_agent(this.user_agent)
+                        .start_height(this.start_height)
+                        .relay(this.relay);
+    }
+
     /**
      * Builder
      */
-    public static class VersionMsgBuilder {
+    public static class VersionMsgBuilder extends MessageBuilder {
         private long version;
         private long services;
         private long timestamp;
@@ -196,7 +222,7 @@ public final class VersionMsg extends Message implements Serializable {
         }
 
         public VersionMsg build() {
-            return new VersionMsg(version, services, timestamp, addr_recv, addr_from, nonce, user_agent, start_height, relay);
+            return new VersionMsg(version, services, timestamp, addr_recv, addr_from, nonce, user_agent, start_height, relay, super.checksum);
         }
     }
 }

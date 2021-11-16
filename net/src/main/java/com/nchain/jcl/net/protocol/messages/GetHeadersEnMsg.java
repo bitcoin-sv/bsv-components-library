@@ -65,10 +65,18 @@ public final class GetHeadersEnMsg extends Message {
         return new GetHeadersEnMsgBuilder();
     }
 
+    @Override
+    public GetHeadersEnMsgBuilder toBuilder() {
+        return new GetHeadersEnMsgBuilder()
+                        .version(this.version)
+                        .blockLocatorHash(this.blockLocatorHash)
+                        .hashStop(this.hashStop);
+    }
+
     /**
      * Builder
      */
-    public static class GetHeadersEnMsgBuilder {
+    public static class GetHeadersEnMsgBuilder extends MessageBuilder {
         private long version;
         private HashMsg blockLocatorHash;
         private HashMsg hashStop;

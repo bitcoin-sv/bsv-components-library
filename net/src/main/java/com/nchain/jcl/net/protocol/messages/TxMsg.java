@@ -184,10 +184,20 @@ public class TxMsg extends Message {
         return new TxMsgBuilder();
     }
 
+    @Override
+    public TxMsgBuilder toBuilder() {
+        return new TxMsgBuilder()
+                    .hash(this.hash)
+                    .version(this.version)
+                    .tx_in(this.tx_in)
+                    .tx_out(this.tx_out)
+                    .lockTime(this.lockTime);
+    }
+
     /**
      * Builder
      */
-    public static class TxMsgBuilder {
+    public static class TxMsgBuilder extends MessageBuilder {
         private Optional<HashMsg> hash;
         private long version;
         private List<TxInputMsg> tx_in;

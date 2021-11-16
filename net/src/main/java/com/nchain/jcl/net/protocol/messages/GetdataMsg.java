@@ -85,10 +85,15 @@ public final class GetdataMsg extends Message {
         return new GetdataMsgBuilder();
     }
 
+    @Override
+    public GetdataMsgBuilder toBuilder() {
+        return new GetdataMsgBuilder().invVectorList(this.invVectorList);
+    }
+
     /**
      * Builder
      */
-    public static class GetdataMsgBuilder {
+    public static class GetdataMsgBuilder extends MessageBuilder {
         private List<InventoryVectorMsg> invVectorList;
 
         GetdataMsgBuilder() {}
