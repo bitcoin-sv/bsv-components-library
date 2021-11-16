@@ -4,7 +4,7 @@ package com.nchain.jcl.net.protocol.serialization.common;
 import com.nchain.jcl.net.protocol.messages.*;
 import com.nchain.jcl.net.protocol.serialization.*;
 import com.nchain.jcl.net.protocol.serialization.largeMsgs.BigBlockDeserializer;
-import com.nchain.jcl.net.protocol.serialization.largeMsgs.BigBlockRawDeserializer;
+import com.nchain.jcl.net.protocol.serialization.largeMsgs.BigBlockRawTxDeserializer;
 import com.nchain.jcl.net.protocol.serialization.largeMsgs.BigBlockTxnDeserializer;
 import com.nchain.jcl.net.protocol.serialization.largeMsgs.LargeMessageDeserializer;
 
