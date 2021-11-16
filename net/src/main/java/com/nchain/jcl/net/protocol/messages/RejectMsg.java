@@ -5,6 +5,8 @@ import com.google.common.base.Objects;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 import io.bitcoinj.core.Sha256Hash;
 
+import java.io.Serializable;
+
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
@@ -29,7 +31,7 @@ import io.bitcoinj.core.Sha256Hash;
  *    with the TXID or block header hash of the object being rejected, so the field is 32 bytes.
  *
  */
-public class RejectMsg extends Message {
+public class RejectMsg extends Message implements Serializable {
 
     /**
      * Reference of all the possible values for the MESSAGE field:

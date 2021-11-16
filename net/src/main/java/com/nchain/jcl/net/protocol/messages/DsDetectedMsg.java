@@ -20,7 +20,10 @@ public class DsDetectedMsg extends Message {
     private VarIntMsg blockCount;
     private List<BlockDetailsMsg> blockList;
 
-    public DsDetectedMsg() {
+    public DsDetectedMsg(int version, VarIntMsg blockCount, List<BlockDetailsMsg> blockList) {
+        this.version = version;
+        this.blockCount = blockCount;
+        this.blockList = blockList;
         init();
     }
 
@@ -31,7 +34,7 @@ public class DsDetectedMsg extends Message {
 
     @Override
     protected long calculateLength() {
-        return 0;
+        return 2 + blockCount.getLengthInBytes() + blockList.stream().mapToLong(b -> b.getLengthInBytes()).sum();
     }
 
     @Override
@@ -95,11 +98,7 @@ public class DsDetectedMsg extends Message {
         }
 
         public DsDetectedMsg build() {
-            DsDetectedMsg dsDetectedMsg = new DsDetectedMsg();
-            dsDetectedMsg.setVersion(version);
-            dsDetectedMsg.setBlockCount(blockCount);
-            dsDetectedMsg.setBlockList(blockList);
-            return dsDetectedMsg;
+            return new DsDetectedMsg(version, blockCount, blockList);
         }
     }
 }

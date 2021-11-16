@@ -1,11 +1,15 @@
 package com.nchain.jcl.net.protocol.handlers.discovery;
 
 
+import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig;
 import com.nchain.jcl.tools.handlers.HandlerConfig;
 import io.bitcoinj.params.NetworkParameters;
 
+import java.net.UnknownHostException;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
 
@@ -58,8 +62,21 @@ public class DiscoveryHandlerConfig extends HandlerConfig {
     private Optional<Duration> recoveryHandshakeThreshold = DEFAULT_HANDSHAKE_RECOVERY_THRESHOLD;
     private boolean checkingPeerReachability = true;
 
+    /** Initial set of Peers. If defined, these peers will be the first ones to connect to */
+    private List<PeerAddress> initialConnections = new ArrayList<>();
 
-    public DiscoveryHandlerConfig(ProtocolBasicConfig basicConfig, String[] dns, DiscoveryMethod discoveryMethod, Optional<Duration> ADDRFrequency, OptionalInt ADDRPercentage, OptionalInt maxAddresses, OptionalInt minVersion, OptionalInt relayMinAddresses, Optional<Duration> recoveryHandshakeFrequency, Optional<Duration> recoveryHandshakeThreshold, boolean checkingPeerReachability) {
+    public DiscoveryHandlerConfig(ProtocolBasicConfig basicConfig,
+                                  String[] dns,
+                                  DiscoveryMethod discoveryMethod,
+                                  Optional<Duration> ADDRFrequency,
+                                  OptionalInt ADDRPercentage,
+                                  OptionalInt maxAddresses,
+                                  OptionalInt minVersion,
+                                  OptionalInt relayMinAddresses,
+                                  Optional<Duration> recoveryHandshakeFrequency,
+                                  Optional<Duration> recoveryHandshakeThreshold,
+                                  boolean checkingPeerReachability,
+                                  List<PeerAddress> initialConnections) {
         this.basicConfig = basicConfig;
         this.dns = dns;
         if (discoveryMethod != null)            this.discoveryMethod = discoveryMethod;
@@ -71,6 +88,7 @@ public class DiscoveryHandlerConfig extends HandlerConfig {
         if (recoveryHandshakeFrequency != null) this.recoveryHandshakeFrequency = recoveryHandshakeFrequency;
         if (recoveryHandshakeThreshold != null) this.recoveryHandshakeThreshold = recoveryHandshakeThreshold;
         this.checkingPeerReachability = checkingPeerReachability;
+        this.initialConnections = initialConnections;
     }
 
     public DiscoveryHandlerConfig() {}
@@ -86,9 +104,21 @@ public class DiscoveryHandlerConfig extends HandlerConfig {
     public Optional<Duration> getRecoveryHandshakeFrequency()   { return this.recoveryHandshakeFrequency; }
     public Optional<Duration> getRecoveryHandshakeThreshold()   { return this.recoveryHandshakeThreshold; }
     public boolean isCheckingPeerReachability()                 { return this.checkingPeerReachability; }
+    public List<PeerAddress> getInitialConnections()            { return this.initialConnections;}
 
     public DiscoveryHandlerConfigBuilder toBuilder() {
-        return new DiscoveryHandlerConfigBuilder().basicConfig(this.basicConfig).dns(this.dns).discoveryMethod(this.discoveryMethod).ADDRFrequency(this.ADDRFrequency).ADDRPercentage(this.ADDRPercentage).maxAddresses(this.maxAddresses).minVersion(this.minVersion).relayMinAddresses(this.relayMinAddresses).recoveryHandshakeFrequency(this.recoveryHandshakeFrequency).recoveryHandshakeThreshold(this.recoveryHandshakeThreshold).checkingPeerReachability(this.checkingPeerReachability);
+        return new DiscoveryHandlerConfigBuilder().basicConfig(this.basicConfig)
+                .dns(this.dns)
+                .discoveryMethod(this.discoveryMethod)
+                .ADDRFrequency(this.ADDRFrequency)
+                .ADDRPercentage(this.ADDRPercentage)
+                .maxAddresses(this.maxAddresses)
+                .minVersion(this.minVersion)
+                .relayMinAddresses(this.relayMinAddresses)
+                .recoveryHandshakeFrequency(this.recoveryHandshakeFrequency)
+                .recoveryHandshakeThreshold(this.recoveryHandshakeThreshold)
+                .checkingPeerReachability(this.checkingPeerReachability)
+                .addInitialConnections(this.initialConnections);
     }
 
     public static DiscoveryHandlerConfigBuilder builder() {
@@ -110,6 +140,7 @@ public class DiscoveryHandlerConfig extends HandlerConfig {
         private Optional<Duration> recoveryHandshakeFrequency;
         private Optional<Duration> recoveryHandshakeThreshold;
         private boolean checkingPeerReachability;
+        private List<PeerAddress> initialConnections = new ArrayList<>();
 
         DiscoveryHandlerConfigBuilder() { }
 
@@ -168,8 +199,43 @@ public class DiscoveryHandlerConfig extends HandlerConfig {
             return this;
         }
 
+        public DiscoveryHandlerConfig.DiscoveryHandlerConfigBuilder addInitialConnection(PeerAddress peerAddress) {
+            this.initialConnections.add(peerAddress);
+            return this;
+        }
+
+        public DiscoveryHandlerConfig.DiscoveryHandlerConfigBuilder addInitialConnection(String peerAddressStr) {
+            try {
+                this.initialConnections.add(PeerAddress.fromIp(peerAddressStr));
+                return this;
+            } catch (UnknownHostException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        public DiscoveryHandlerConfig.DiscoveryHandlerConfigBuilder addInitialConnections(List<PeerAddress> initialConnections) {
+            this.initialConnections.addAll(initialConnections);
+            return this;
+        }
+
+        public DiscoveryHandlerConfig.DiscoveryHandlerConfigBuilder addInitialConnectionsStr(List<String> initialConnections) {
+            initialConnections.forEach(p -> addInitialConnection(p));
+            return this;
+        }
+
         public DiscoveryHandlerConfig build() {
-            return new DiscoveryHandlerConfig(basicConfig, dns, discoveryMethod, ADDRFrequency, ADDRPercentage, maxAddresses, minVersion, relayMinAddresses, recoveryHandshakeFrequency, recoveryHandshakeThreshold, checkingPeerReachability);
+            return new DiscoveryHandlerConfig(basicConfig,
+                    dns,
+                    discoveryMethod,
+                    ADDRFrequency,
+                    ADDRPercentage,
+                    maxAddresses,
+                    minVersion,
+                    relayMinAddresses,
+                    recoveryHandshakeFrequency,
+                    recoveryHandshakeThreshold,
+                    checkingPeerReachability,
+                    initialConnections);
         }
     }
 }

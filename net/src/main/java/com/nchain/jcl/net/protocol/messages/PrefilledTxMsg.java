@@ -2,11 +2,13 @@ package com.nchain.jcl.net.protocol.messages;
 
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
+import java.io.Serializable;
+
 /**
  * @author j.pomer@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  */
-public class PrefilledTxMsg extends Message {
+public class PrefilledTxMsg extends Message implements Serializable {
 
     public static final String MESSAGE_TYPE = "prefilledTransaction";
 

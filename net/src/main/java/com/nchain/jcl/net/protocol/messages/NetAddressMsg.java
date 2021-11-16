@@ -4,6 +4,8 @@ import com.google.common.base.Objects;
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
+import java.io.Serializable;
+
 
 /**
  * @author i.fernandez@nchain.com
@@ -30,7 +32,7 @@ import com.nchain.jcl.net.protocol.messages.common.Message;
  *  - field: "getPort" (2 bytes) uint16_t
  *    getPort number, network byte order
  */
-public final class NetAddressMsg extends Message {
+public final class NetAddressMsg extends Message implements Serializable {
     // An NetAddressMsg has a length of 30 Bytes or 26 bytes, depending whether it has a timestamp or not.
     public static final int MESSAGE_LENGTH = 30;
     public static final int MESSAGE_LENGTH_NO_TIMESTAMP = 26;

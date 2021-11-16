@@ -270,13 +270,36 @@ public class P2PRequestHandler {
     public class BlocksToDownloadRequestBuilder extends RequestBuilder {
         private List<String> blockHash;
         private boolean withPriority;
+        private PeerAddress fromThisPeerOnly;
+        private PeerAddress fromThisPeerPreferably;
 
         public BlocksToDownloadRequestBuilder(List<String> blockHash, boolean withPriority)   {
             this.blockHash = blockHash;
             this.withPriority = withPriority;
         }
+
+        public BlocksToDownloadRequestBuilder fromThisPeerOnly(PeerAddress fromThisPeerOnly) {
+            this.fromThisPeerOnly = fromThisPeerOnly;
+            return this;
+        }
+
+        public BlocksToDownloadRequestBuilder fromThisPeerOnly(String fromThisPeerOnly) throws Exception {
+            this.fromThisPeerOnly = PeerAddress.fromIp(fromThisPeerOnly);
+            return this;
+        }
+
+        public BlocksToDownloadRequestBuilder fromThisPeerPreferably(PeerAddress fromThisPeerPreferably) {
+            this.fromThisPeerPreferably = fromThisPeerPreferably;
+            return this;
+        }
+
+        public BlocksToDownloadRequestBuilder fromThisPeerPreferably(String fromThisPeerPreferably) throws Exception {
+            this.fromThisPeerPreferably = PeerAddress.fromIp(fromThisPeerPreferably);
+            return this;
+        }
+
         public BlocksDownloadRequest buildRequest() {
-            return new BlocksDownloadRequest(blockHash, withPriority);
+            return new BlocksDownloadRequest(blockHash, withPriority, fromThisPeerOnly, fromThisPeerPreferably);
         }
     }
 

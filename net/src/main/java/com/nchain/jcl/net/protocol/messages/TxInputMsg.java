@@ -4,6 +4,8 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
+import java.io.Serializable;
+
 /**
  * @author m.jose@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
@@ -22,7 +24,7 @@ import com.nchain.jcl.net.protocol.messages.common.Message;
  *   - field: "sequence"  (4 bytes) int
  *   Transaction version as defined by the sender.
  */
-public final class TxInputMsg extends Message {
+public final class TxInputMsg extends Message implements Serializable {
     private static final int sequence_len = 4;
     public static final String MESSAGE_TYPE = "TxIn";
 

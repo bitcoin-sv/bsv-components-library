@@ -90,7 +90,6 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     String KEY_PREFFIX_PATHS         = "chain_paths";
     String KEY_SUFFIX_PATHS_LAST     = "last";
     String KEY_PREFFIX_PATH          = "chain_path";
-
     /* Functions to generate Simple Keys in String format: */
 
     default String keyForBlockNext(String blockHash)        { return KEY_PREFFIX_BLOCK_PROP + blockHash + KEY_SEPARATOR + KEY_SUFFIX_BLOCK_NEXT + KEY_SEPARATOR; }
@@ -100,6 +99,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     default String keyForChainPathsLast()                   { return KEY_PREFFIX_PATHS + KEY_SEPARATOR + KEY_SUFFIX_PATHS_LAST + KEY_SEPARATOR;}
     default String keyForChainPath(int branchId)            { return KEY_PREFFIX_PATH + KEY_SEPARATOR + branchId + KEY_SEPARATOR;}
 
+
     /* Functions to generate WHOLE Keys, from the root up to the item. to be implemented by specific DB provider */
 
     byte[] fullKeyForBlockNext(String blockHash);
@@ -108,6 +108,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     byte[] fullKeyForChainTips();
     byte[] fullKeyForChainPathsLast();
     byte[] fullKeyForChainPath(int branchId);
+
 
     /* Functions to serialize Objects:  */
 
@@ -353,6 +354,8 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                 if (childBlock.isPresent()) {
                     try {
                         blocksConnected.addAll(_connectBlock(tr, childBlock.get(), blockChainInfo));
+                        //The child block is no longer an orphan as it's been connected to the main chain
+                        BlockStoreKeyValue.super._removeOrphanBlockHash(tr, childHashHex);
                     } catch (BlockChainRuleFailureException ex) {
                         //child could not be connected, ignore as it has been deleted when _connectBlock is called
                     }
@@ -426,7 +429,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
        BlockStoreKeyValue.super._saveBlock(tr, blockHeader);
 
         // and its relation with its parent (ONLY If this is NOT the GENESIS Block)
-        if (!blockHeader.getPrevBlockHash().equals(Sha256Hash.ZERO_HASH)) {
+        if (!blockHeader.getHash().equals(getConfig().getGenesisBlock().getHash())) {
             _addChildToBlock(tr, parentHashHex, blockHeader.getHash().toString());
         }
 
@@ -448,6 +451,11 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                 if (parentChilds != null && parentChilds.size() > 1) {
                     ChainForkEvent event = new ChainForkEvent(blockHeader.getPrevBlockHash(), blockHeader.getHash());
                     getEventBus().publish(event);
+                }
+            } else {
+                //Only the genesis block should have ZERO hash, genesis is not an orphan
+                if(!blockHeader.getHash().equals(getConfig().getGenesisBlock().getHash())) {
+                    _saveOrphanBlockHash(tr, blockHeader.getHash().toString());
                 }
             }
         }
@@ -713,7 +721,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                         BlockChainInfo rootNodeBlockChainInfo;
 
                         //secial handling for genesis branch, as genesis blocks parent is itself
-                        if(firstNodeBlock.getPrevBlockHash().equals(Sha256Hash.ZERO_HASH)){
+                        if(firstNodeBlock.getHash().equals(getConfig().getGenesisBlock().getHash())){
                             rootNodeBlockChainInfo = _getBlockChainInfo(tr, firstNodeBlock.getHash().toString());
                         } else {
                             rootNodeBlockChainInfo = _getBlockChainInfo(tr, firstNodeBlock.getPrevBlockHash().toString());
@@ -924,27 +932,14 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         // We configure the parameters for creating an Iterator that loops over the ORPHAN Blocks:
 
         // The iterator will loop over that Keys that belong to the "blocks" folder and start with the preffix
-        // used for storing blocks:
-        byte[] startingWithKey = fullKey(fullKeyForBlocks(), KEY_PREFFIX_BLOCK);
+        // used for storing orphans:
+        byte[] startingWithKey = fullKey(fullKeyForBlocks(), KEY_PREFFIX_ORPHAN_HASH);
+
 
         // The keyVerifier Function will check that each Key we loop over is a Valid Key: A Valid Key is a key that
         // references a Block that has NO parent block stored in the DB:
 
-        BiPredicate<T, byte[]> keyVerifier = (tr, key) -> {
-            boolean result = false;
-            try {
-                String blockHash = extractBlockHashFromKey(key).get();
-                if (blockHash.equals(getConfig().getGenesisBlock().getHash().toString())) return false;
-                HeaderReadOnly block = _getBlock(tr, blockHash);
-                if (block != null) {
-                    HeaderReadOnly parent = _getBlock(tr, block.getPrevBlockHash().toString());
-                    result = (parent == null);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return result;
-        };
+        BiPredicate<T, byte[]> keyVerifier = (tr, key) -> true;
 
         // The "buildItemBy" is the function used to take a Key and return each Item of the Iterator. The iterator
         // will returns a series of BlockHeader, so this function will build a BlockHeader out of a Key:

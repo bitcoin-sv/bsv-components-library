@@ -3,6 +3,7 @@ package com.nchain.jcl.net.protocol.messages;
 import com.google.common.base.Objects;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -14,7 +15,7 @@ import java.util.stream.Collectors;
  * the addition of fields for actual number of transactions that are included in the block and proof of inclusion
  * for coinbase transaction along with the whole coinbase transaction.
  */
-public final class BlockHeaderEnMsg extends Message {
+public final class BlockHeaderEnMsg extends Message implements Serializable {
     public static final String MESSAGE_TYPE = "blockHeaderEn";
     public static final int TIMESTAMP_LENGTH = 4;
     public static final int NBITS_LENGTH = 4;

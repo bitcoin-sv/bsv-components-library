@@ -4,6 +4,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,7 +24,7 @@ import java.util.stream.Collectors;
  * - field: "block_header_ enriched" (90+ * MAX_ADDRESS bytes) block_header[]
  *   Array of headeren messages.
  */
-public final class HeadersEnMsg extends Message {
+public final class HeadersEnMsg extends Message implements Serializable {
     private static final long MAX_ADDRESSES = 2000;
     public static final String MESSAGE_TYPE = "headersen";
 
