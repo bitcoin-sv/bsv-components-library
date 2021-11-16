@@ -53,7 +53,15 @@ public class MerkleProofMsg extends Message {
     @Override
     public String getMessageType()                  { return MESSAGE_TYPE; }
     @Override
-    protected long calculateLength()                { return 0; }
+    protected long calculateLength() {
+        return  1
+                + transactionIndex.getLengthInBytes()
+                + transactionLength.getLengthInBytes()
+                + transaction.getLengthInBytes()
+                + target.getLengthInBytes()
+                + nodeCount.getLengthInBytes()
+                + nodes.stream().mapToLong(n -> n.getType().getLengthInBytes() + n.getHash().getLengthInBytes()).sum();
+    }
     @Override
     protected void validateMessage()                {}
 

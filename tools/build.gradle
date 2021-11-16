@@ -36,12 +36,12 @@ repositories {
 dependencies {
 
     // Compile Dependencies:
-    implementation "io.bitcoinsv.bitcoinjsv:bitcoinj-base:1.0.0"
+    implementation "io.bitcoinj:bitcoinj-base:1.0.0-ds"
     implementation 'org.slf4j:slf4j-api:1.7.26'
     implementation 'com.madgag.spongycastle:core:1.51.0.0'
 
     // Testing
-    testImplementation "io.bitcoinj:bitcoinj-base:2.0-SNAPSHOT"
+    testImplementation "io.bitcoinj:bitcoinj-base:1.0.0-ds"
     testImplementation 'org.codehaus.groovy:groovy'
     testImplementation "org.spockframework:spock-core:1.2-groovy-2.5"
     testImplementation "ch.qos.logback:logback-classic:1.2.3"

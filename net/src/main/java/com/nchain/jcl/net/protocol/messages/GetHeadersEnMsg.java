@@ -3,6 +3,8 @@ package com.nchain.jcl.net.protocol.messages;
 import com.google.common.base.Objects;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
+import java.io.Serializable;
+
 /**
  * @author m.jose@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
@@ -11,7 +13,7 @@ import com.nchain.jcl.net.protocol.messages.common.Message;
  * getheaders message with the addition of fields for actual number of transactions that are included in the block
  * and proof of inclussion for coinbase transaction along with the whole coinbase transaction.
  */
-public final class GetHeadersEnMsg extends Message {
+public final class GetHeadersEnMsg extends Message implements Serializable {
     public static final String MESSAGE_TYPE = "getheadersen";
     private final long version;
     private final HashMsg blockLocatorHash;

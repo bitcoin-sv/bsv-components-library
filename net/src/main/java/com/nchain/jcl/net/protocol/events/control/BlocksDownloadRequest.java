@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.protocol.events.control;
 
 
+import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.events.P2PRequest;
 import com.nchain.jcl.tools.events.Event;
 
@@ -15,19 +16,42 @@ import java.util.List;
  * A Request for Downloading a Block
  */
 public final class BlocksDownloadRequest extends P2PRequest {
+    // List of Block Hashes (HEX) to download
     private final List<String> blockHashes;
+    // If true, these Blocks will be pushed to the BEGINNING of the Pending Pool, so they are picked up sooner
     private final boolean withPriority;
+    // If specified, the blocks
+    private final PeerAddress fromThisPeerOnly;
+    private final PeerAddress fromThisPeerPreferably;
 
-    public BlocksDownloadRequest(List<String> blockHashes, boolean withPriority) {
+    public BlocksDownloadRequest(List<String> blockHashes, boolean withPriority,
+                                 PeerAddress fromThisPeerOnly,
+                                 PeerAddress fromThisPeerPreferably) {
         this.blockHashes = blockHashes;
         this.withPriority = withPriority;
+        this.fromThisPeerOnly = fromThisPeerOnly;
+        this.fromThisPeerPreferably = fromThisPeerPreferably;
     }
 
-    public List<String> getBlockHashes() { return this.blockHashes; }
-    public boolean isWithPriority() { return this.withPriority;}
+    public BlocksDownloadRequest(List<String> blockHashes, boolean withPriority) {
+        this(blockHashes, withPriority, null, null);
+    }
+
+    public List<String> getBlockHashes()            { return this.blockHashes; }
+    public boolean isWithPriority()                 { return this.withPriority;}
+    public PeerAddress getFromThisPeerOnly()        { return this.fromThisPeerOnly;}
+    public PeerAddress getFromThisPeerPreferably()  { return this.fromThisPeerPreferably;}
 
     @Override
     public String toString() {
-        return "BlocksDownloadRequest(blockHashes=" + this.getBlockHashes() + ", withPriority=" + withPriority + ")";
+        String result = "BlocksDownloadRequest(blockHashes=" + this.getBlockHashes() + ", withPriority=" + withPriority;
+        if (this.fromThisPeerOnly != null) {
+            result += ", fromThisPeerOnly: " + this.fromThisPeerOnly;
+        }
+        if (this.fromThisPeerPreferably != null) {
+            result += ". fromThisPeerPreferable: " + this.fromThisPeerPreferably;
+        }
+        result += ")";
+        return result;
     }
 }

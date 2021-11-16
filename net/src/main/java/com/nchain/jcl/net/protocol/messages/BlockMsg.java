@@ -3,6 +3,7 @@ package com.nchain.jcl.net.protocol.messages;
 import com.google.common.base.Objects;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
+import java.io.Serializable;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkState;
@@ -16,7 +17,7 @@ import static com.google.common.base.Preconditions.checkState;
  * * chain, and proves that a difficult calculation was done over its contents. <p/>
  * *
  */
-public final class BlockMsg extends Message {
+public final class BlockMsg extends Message implements Serializable {
 
     public static final String MESSAGE_TYPE = "Block";
 

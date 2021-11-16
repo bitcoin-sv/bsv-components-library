@@ -5,6 +5,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -23,7 +24,7 @@ import java.util.List;
  * - field: "inv_vect[]" (36*count) array of inventory vectors
  *   Inventory vectors.
  */
-public final class GetdataMsg extends Message {
+public final class GetdataMsg extends Message implements Serializable {
     private static final long MAX_ADDRESSES = 50000;
     public static final String MESSAGE_TYPE = "getdata";
 

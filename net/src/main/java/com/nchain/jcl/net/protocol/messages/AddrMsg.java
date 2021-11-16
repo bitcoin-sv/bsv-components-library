@@ -5,6 +5,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -25,7 +26,7 @@ import java.util.List;
  *   Address of other nodes on the network.
  *
  */
-public final class AddrMsg extends Message {
+public final class AddrMsg extends Message implements Serializable {
 
     private static final long MAX_ADDRESSES = 1000;
     public static final String MESSAGE_TYPE = "addr";

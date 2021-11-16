@@ -4,6 +4,8 @@ package com.nchain.jcl.net.protocol.messages;
 import com.google.common.base.Objects;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
+import java.io.Serializable;
+
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
@@ -15,7 +17,7 @@ import com.nchain.jcl.net.protocol.messages.common.Message;
  * not deserialized.
  *
  */
-public abstract class RawMsg extends Message {
+public abstract class RawMsg extends Message implements Serializable {
 
     protected byte[] content;
 

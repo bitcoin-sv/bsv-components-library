@@ -6,6 +6,7 @@ import com.google.common.primitives.Bytes;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 import io.bitcoinj.core.Utils;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
 /**
@@ -16,7 +17,7 @@ import java.util.Arrays;
  * messages in the Bitcoin P2P. It represents a char array that store as many bytes
  * to represent hash of the object.
  */
-public class HashMsg extends Message {
+public class HashMsg extends Message implements Serializable {
     public static final String MESSAGE_TYPE = "hash";
     public static final int HASH_LENGTH = 32;//32 bits
 

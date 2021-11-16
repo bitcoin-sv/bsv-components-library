@@ -4,6 +4,8 @@ package com.nchain.jcl.net.protocol.messages;
 import com.google.common.base.Objects;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
+import java.io.Serializable;
+
 /**
  * @author m.jose@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
@@ -11,7 +13,7 @@ import com.nchain.jcl.net.protocol.messages.common.Message;
  * The getaddr message sends a request to a node asking for information about known active peers to help with
  * finding potential nodes in the network. This message consists of only a message  header with the command  "getaddr".
  */
-public final class GetAddrMsg extends Message {
+public final class GetAddrMsg extends Message implements Serializable {
 
     // Message Type (stored in the "command" field in the HeaderMsg of a Bitcoin Message
     public static final String MESSAGE_TYPE = "getaddr";

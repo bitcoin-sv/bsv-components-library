@@ -126,6 +126,7 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
         return result.toString().getBytes();
     }
 
+
     @Override public void   save(Object tr, byte[] key, byte[] value){levelDBStore.put(key, value);}
     @Override public void   remove(Object tr, byte[] key)                                   { levelDBStore.delete(key); }
     @Override public byte[] read(Object tr, byte[] key)                                     { return levelDBStore.get(key); }
@@ -157,6 +158,7 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
 
     @Override public byte[] fullKeyForBlocks()                                              { return fullKey(DIR_BLOCKCHAIN, config.getNetworkId(), DIR_BLOCKS);}
     @Override public byte[] fullKeyForTxs()                                                 { return fullKey(DIR_BLOCKCHAIN, config.getNetworkId(), DIR_TXS);}
+    @Override public byte[] fullKeyForOrphanBlockHash(Object tr, String blockHash)          { return fullKey(this.fullKeyForBlocks(), keyForOrphanBlockHash(blockHash));}
     @Override public BlockStoreStreamer EVENTS()                                            { return this.blockStoreStreamer; }
 
     @Override public Class<? extends Metadata>  getMetadataClassForBlocks()                 { return this.blockMetadataClass; }

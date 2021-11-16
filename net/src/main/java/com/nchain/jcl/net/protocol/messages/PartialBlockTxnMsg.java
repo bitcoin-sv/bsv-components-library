@@ -2,13 +2,14 @@ package com.nchain.jcl.net.protocol.messages;
 
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * @author j.pomer@nchain.com
  * Copyright (c) 2018-2021 nChain Ltd
  */
-public class PartialBlockTxnMsg extends Message {
+public class PartialBlockTxnMsg extends Message implements Serializable {
     public static final String MESSAGE_TYPE = "PartialBockTxn";
 
     private final HashMsg blockHash;

@@ -15,7 +15,6 @@ import com.nchain.jcl.tools.config.RuntimeConfig
 import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault
 import com.nchain.jcl.tools.thread.ThreadUtils
 import io.bitcoinj.core.Utils
-import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.time.Duration
@@ -181,9 +180,11 @@ class BlockDownloadTest extends Specification {
             })
 
             // Every time a set of RAW TXs is downloaded, we increase the counter of Txs for this block:
-            p2p.EVENTS.BLOCKS.BLOCK_RAW_TXS_DOWNLOADED.forEach({e ->
+            p2p.EVENTS.BLOCKS.BLOCK_RAW_TXS_DOWNLOADED.forEach({ e ->
                 String hash = Utils.HEX.encode(Utils.reverseBytes(e.getBtcMsg().body.getBlockHeader().getHash().getHashBytes()))
-                Long currentTxsBytes = blockTxsBytes.containsKey(hash)? (blockTxsBytes.get(hash) + e.getBtcMsg().body.getTxs().length) : e.getBtcMsg().body.getTxs().length
+                Long currentTxsBytes = blockTxsBytes.containsKey(hash)
+                        ? (blockTxsBytes.get(hash) + e.getBtcMsg().body.getTxs().stream().mapToInt({tx -> (int) tx.getLengthInBytes()}).sum())
+                        : e.getBtcMsg().body.getTxs().stream().mapToInt({tx -> (int) tx.getLengthInBytes()}).sum()
                 println(currentTxsBytes + " bytes of Txs downloaded of the block " + hash + " from " + e.getPeerAddress());
                 blockTxs.put(hash, currentTxsBytes)
             })

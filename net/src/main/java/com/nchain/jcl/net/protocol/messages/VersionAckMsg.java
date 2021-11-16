@@ -2,6 +2,8 @@ package com.nchain.jcl.net.protocol.messages;
 
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
+import java.io.Serializable;
+
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
@@ -11,7 +13,7 @@ import com.nchain.jcl.net.protocol.messages.common.Message;
  * header with the command string "verack".
  *
  */
-public final class VersionAckMsg extends Message {
+public final class VersionAckMsg extends Message implements Serializable {
 
     // Message Type (stored in the "command" field in the HeaderMsg of a Bitcoin Message
     public static final String MESSAGE_TYPE = "verack";

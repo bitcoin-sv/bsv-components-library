@@ -94,8 +94,9 @@ abstract class BlockChainStoreOrphanSpecBase extends BlockChainStoreSpecBase {
             }
 
         then:
-            orphanBlocks.size() == 2
+            orphanBlocks.size() == 3
             orphanBlocks.contains(block4.hash)
+            orphanBlocks.contains(block5.hash)
             orphanBlocks.contains(block7.hash)
 
             orphanBlocksAfterConnecting.size() == 0
@@ -222,7 +223,7 @@ abstract class BlockChainStoreOrphanSpecBase extends BlockChainStoreSpecBase {
             tipsBeforePrunning.size() == 1
             tipsBeforePrunning.contains(block2.hash)
 
-            orphansBeforePrunning.size() == 1
+            orphansBeforePrunning.size() == 2
             orphansBeforePrunning.contains(block4.hash)
 
             tipsAfterFirstPrunning.size() == 1
@@ -243,7 +244,7 @@ abstract class BlockChainStoreOrphanSpecBase extends BlockChainStoreSpecBase {
             db.printKeys()
             db.clear()
             db.stop()
-            println(" - Test Done.")
+            println(" - Cleanup...")
     }
 
 

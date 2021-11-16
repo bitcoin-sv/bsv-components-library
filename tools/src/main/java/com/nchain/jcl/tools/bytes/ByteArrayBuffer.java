@@ -175,12 +175,17 @@ public class ByteArrayBuffer implements ByteArray {
         buffers.clear();
     }
 
-
-    private byte[] getBytes(int bufferIndex, int length) {
+    /**
+     * It returns a piece of data from the buffer, but it does NOT consume it.
+     * @param length    length of the data
+     */
+    public synchronized byte[] get(int length) {
+        checkArgument(length <= this.size(),
+                " trying to extractReader too much data (not enough in the byteArray)");
 
         byte[] result = new byte[length];
         long bytesRemaining = length;
-        int index = bufferIndex;
+        int index = 0;
         while (bytesRemaining > 0) {
             ByteArray buffer = buffers.get(index);
             long bytesToWriteLength = (buffer.size() >= bytesRemaining) ? bytesRemaining : (buffer.size());
@@ -193,38 +198,44 @@ public class ByteArrayBuffer implements ByteArray {
         return result;
     }
 
-    /**
-     * It returns a piece of data from the buffer, but it does NOT consume it.
-     * @param length    length of the data
-     */
-    public synchronized byte[] get(int length) {
-        checkArgument(length <= this.size(),
-                " trying to extract too much data (not enough in the byteArray)");
-
-        byte[] result = getBytes(0, length);
-        return result;
-    }
-
-    // It returns the Buffer ordinal that contains the offset given:
-    private int getBufferIndexContainingOffset(long offset) {
-        int result = 0;
-        int relativeOffset = 0;
-        while ((relativeOffset + buffers.get(result).size()) <= offset) {
-            relativeOffset += buffers.get(result).size();
-            result++;
-        }
-        return result;
-    }
-
     /** Returns a Byte Array starting at the given position with the given length */
-    public synchronized byte[] get(long offset, int length) {
-        checkArgument((offset + length) <= size(), " trying to get too many bytes");
-        checkArgument(length <= 2_000_000_000, "no more than 2GB can be get at a time");
+    public synchronized byte[] get(int offset, int length) {
+        checkArgument(length + offset <= this.size(),
+                " trying to extractReader too much data (not enough in the byteArray)");
 
-        // First we locate the offset:
-        int bufferIndex = getBufferIndexContainingOffset(offset);
-        // Now we get the bytes:
-        byte[] result = getBytes(bufferIndex, length);
+        byte[] result = new byte[length];
+        int size = 0;
+        int bytesRemaining = length;
+
+        boolean initialBufferOffsetFound = false;
+        int bufferOffset;
+        for(ByteArray buffer : buffers){
+
+            if(size + buffer.size() < offset){
+                size += buffer.size();
+                continue;
+            }
+
+            if(bytesRemaining == 0){
+                break;
+            }
+
+            //we only need to offset the first buffer, the rest of the buffers data will be sequential
+            if(initialBufferOffsetFound){
+                bufferOffset = 0;
+            } else {
+                bufferOffset = offset - size;
+                initialBufferOffsetFound = true;
+            }
+
+            long availableDataInBuffer = buffer.size() - bufferOffset;
+            long bytesToWriteLength = (availableDataInBuffer >= bytesRemaining) ? bytesRemaining : availableDataInBuffer;
+            byte[] bytesToAdd = buffer.get(bufferOffset, (int) bytesToWriteLength);
+            System.arraycopy(bytesToAdd, 0, result, length - bytesRemaining, (int) bytesToWriteLength);
+            bytesRemaining -= bytesToWriteLength;
+
+        }
+
         return result;
     }
 

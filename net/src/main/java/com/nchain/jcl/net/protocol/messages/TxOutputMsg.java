@@ -4,6 +4,8 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
+import java.io.Serializable;
+
 /**
  * @author m.jose@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
@@ -19,7 +21,7 @@ import com.nchain.jcl.net.protocol.messages.common.Message;
  * - field: "pk_script"  uchar[]
  *   Usually contains the public key as a Bitcoin script setting up conditions to claim this output.
  */
-public final class TxOutputMsg extends Message {
+public final class TxOutputMsg extends Message implements Serializable {
     public static final String MESSAGE_TYPE = "TxOut";
     private static final int txValue_length = 8;
 

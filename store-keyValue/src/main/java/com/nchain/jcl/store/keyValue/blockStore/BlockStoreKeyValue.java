@@ -117,7 +117,7 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     String KEY_SUFFIX_BLOCK_NUMTXS   = KEY_SEPARATOR + "numTxs" + KEY_SEPARATOR;      // Property suffix: the number of Txs in a Block
     String KEY_SUFFIX_BLOCK_TXINDEX  = KEY_SEPARATOR + "txIndex" + KEY_SEPARATOR;     // Property suffix: Last txIndex used for this Block (to preserve Tx ordering)
     String KEY_PREFFIX_TX_BLOCK      = "tx_block_link" + KEY_SEPARATOR;               // Property suffix: The list of blocks this Tx is linked to
-
+    String KEY_PREFFIX_ORPHAN_HASH = "orphan_h" + KEY_SEPARATOR;
     String KEY_PREFFIX_BLOCK_META    = "block_m" + KEY_SEPARATOR;    // Metadata linked to a Block
 
 
@@ -177,6 +177,7 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     byte[] fullKeyForBlocks();
     byte[] fullKeyForTxs();
     byte[] fullKey(Object ...subKeys);      // Returns a FULL Key that is a concatenation of the subKeys provided
+    byte[] fullKeyForOrphanBlockHash(T tr, String blockHash);
     void printKeys();                       // For logging:
 
 
@@ -218,7 +219,7 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     default String keyForTxBlock(String txHash, String blockHash)   { return KEY_PREFFIX_TX_BLOCK + txHash + KEY_SEPARATOR + blockHash + KEY_SEPARATOR; }
     default String keyForBlockTx(String txHash, long txIndex)       { return KEY_PREFFIX_TX_LINK + txIndex + KEY_SEPARATOR + txHash + KEY_SEPARATOR; }
     default String keyForBlockDir(String blockHash)                 { return blockHash;}
-
+    default String keyForOrphanBlockHash(String blockHash)          { return KEY_PREFFIX_ORPHAN_HASH + blockHash + KEY_SEPARATOR;}
     default String keyForBlockMetadata(String blockHash)            { return KEY_PREFFIX_BLOCK_META + blockHash + KEY_SEPARATOR + getMetadataClassForBlocks().getSimpleName();}
 
     @Override
@@ -315,19 +316,24 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
         if (key == null || key.length == 0) return Optional.empty();
         Optional<String> result = Optional.empty();
         String keyStr = new String(key);
+
         if (keyStr.contains(KEY_PREFFIX_BLOCK))
             result = Optional.of(keyStr.substring(keyStr.indexOf(KEY_PREFFIX_BLOCK) + KEY_PREFFIX_BLOCK.length(),
                     keyStr.lastIndexOf(KEY_SEPARATOR)));
-        if (keyStr.contains(KEY_PREFFIX_BLOCK_PROP)) {
+        else if (keyStr.contains(KEY_PREFFIX_BLOCK_PROP)) {
             String subKey = keyStr.substring(keyStr.indexOf(KEY_PREFFIX_BLOCK_PROP) + KEY_PREFFIX_BLOCK_PROP.length());
             result = Optional.of(subKey.substring(0, subKey.indexOf(KEY_SEPARATOR)));
         }
-
-        if (keyStr.contains(KEY_PREFFIX_TX_BLOCK)) {
+        else if (keyStr.contains(KEY_PREFFIX_TX_BLOCK)) {
             String keyStrAfterSeparator = keyStr.substring(keyStr.indexOf(KEY_PREFFIX_TX_BLOCK) + KEY_PREFFIX_TX_BLOCK.length());
             result = Optional.of(keyStrAfterSeparator.substring(keyStrAfterSeparator.indexOf(KEY_SEPARATOR) + KEY_SEPARATOR.length(),
                     keyStrAfterSeparator.lastIndexOf(KEY_SEPARATOR)));
         }
+        else if(keyStr.contains(KEY_PREFFIX_ORPHAN_HASH)) {
+            result = Optional.of(keyStr.substring(keyStr.indexOf(KEY_PREFFIX_ORPHAN_HASH) + KEY_PREFFIX_ORPHAN_HASH.length(),
+                    keyStr.lastIndexOf(KEY_SEPARATOR)));
+        }
+
         return result;
     }
 
@@ -446,6 +452,9 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
         remove(tr, fullKeyForBlockNumTxs(tr, blockHash));
         remove(tr, fullKeyForBlockTxIndex(tr, blockHash));
 
+        //If the block is an orphan, remove it
+        _removeOrphanBlockHash(tr, blockHash);
+
         // IF a metadata class has been defined, we remove it too
         if (getMetadataClassForBlocks() != null) {
             _removeBlockMetadata(tr, blockHash);
@@ -458,6 +467,17 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
             _unlinkBlock(h);
         });
     }
+
+    default void _saveOrphanBlockHash(T tr, String blockHash) {
+        byte[] key = fullKeyForOrphanBlockHash(tr, blockHash);
+        save(tr, key, new byte[0]);
+        getLogger().trace("Orphan Block Saved/Updated [block: " + blockHash + "]");
+    }
+
+    default void _removeOrphanBlockHash(T tr, String blockHash) {
+        remove(tr, fullKeyForOrphanBlockHash(tr, blockHash));
+    }
+
 
     default byte[] _getBlockBytes(T tr, String blockHash) {
         return read(tr, fullKeyForBlock(tr, blockHash));

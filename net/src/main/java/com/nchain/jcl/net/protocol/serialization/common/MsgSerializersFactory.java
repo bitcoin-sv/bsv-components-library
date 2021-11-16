@@ -75,8 +75,7 @@ public class MsgSerializersFactory {
         serializers.put(DsDetectedMsg.MESSAGE_TYPE.toUpperCase(), DsDetectedMsgSerializer.getInstance());
 
         rawSerializers.put(RawTxMsg.MESSAGE_TYPE.toUpperCase(), RawTxMsgSerializer.getInstance());
-        rawSerializers.put(RawBlockMsg.MESSAGE_TYPE.toUpperCase(), RawBlockMsgSerializer.getInstance());
-
+        rawSerializers.put(RawTxBlockMsg.MESSAGE_TYPE.toUpperCase(), RawTxBlockMsgSerializer.getInstance());
     }
 
     private MsgSerializersFactory() {
@@ -115,7 +114,7 @@ public class MsgSerializersFactory {
         // are already running in their own Thread.
 
         if (command.equalsIgnoreCase(BlockMsg.MESSAGE_TYPE)) {
-            result = (RAW_SERIALIZERS_ENABLED) ? new BigBlockRawDeserializer() : new BigBlockDeserializer();
+            result = (RAW_SERIALIZERS_ENABLED) ? new BigBlockRawTxDeserializer() : new BigBlockDeserializer();
         } else if (command.equalsIgnoreCase(BlockTxnMsg.MESSAGE_TYPE)) {
             result = new BigBlockTxnDeserializer();
         } else {

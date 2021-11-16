@@ -4,6 +4,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,7 +24,7 @@ import java.util.stream.Collectors;
  *   Array of header messages.
  *
  */
-public final class HeadersMsg extends Message {
+public final class HeadersMsg extends Message implements Serializable {
     private static final long MAX_ADDRESSES = 2000;
     public static final String MESSAGE_TYPE = "headers";
 

@@ -4,6 +4,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -13,7 +14,7 @@ import java.util.stream.Collectors;
  *
  * notfound is a response to a getdata, sent if any requested data items could not be relayed.
  */
-public final class NotFoundMsg extends Message {
+public final class NotFoundMsg extends Message implements Serializable {
 
     public static final String MESSAGE_TYPE = "notfound";
     private static final long MAX_ADDRESSES = 50000;

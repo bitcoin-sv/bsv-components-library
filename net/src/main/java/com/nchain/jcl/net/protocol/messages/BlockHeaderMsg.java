@@ -7,6 +7,8 @@ import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
 import io.bitcoinj.bitcoin.bean.base.HeaderBean;
 import io.bitcoinj.core.Sha256Hash;
 
+import java.io.Serializable;
+
 import static java.util.Optional.ofNullable;
 
 /**
@@ -16,7 +18,7 @@ import static java.util.Optional.ofNullable;
  * The Block Header represents the Header of information wihtint a Block.
  * It's also used in the HEADERS and GETHEADERS packages.
  */
-public final class BlockHeaderMsg extends Message {
+public final class BlockHeaderMsg extends Message implements Serializable {
 
     public static final String MESSAGE_TYPE = "BlockHeader";
 

@@ -4,6 +4,8 @@ package com.nchain.jcl.net.protocol.messages;
 import com.google.common.base.Objects;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
+import java.io.Serializable;
+
 
 /**
  * @author m.jose@nchain.com
@@ -17,7 +19,7 @@ import com.nchain.jcl.net.protocol.messages.common.Message;
  *  - field: "index" (4 bytes) uint32_t
  *    The index of the specific output in the transaction. The first output is 0, etc.
  */
-public final class TxOutPointMsg extends Message {
+public final class TxOutPointMsg extends Message implements Serializable {
 
     public static final String MESSAGE_TYPE = "OutPoint";
 

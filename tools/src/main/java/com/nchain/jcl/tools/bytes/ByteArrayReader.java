@@ -60,6 +60,8 @@ public class ByteArrayReader {
     public void closeAndClear()                 { byteArray.clear(); }
     public byte[] getFullContent()              { return byteArray.get(); }
     public long getBytesReadCount()             { return bytesReadCount; }
+    public long getUint32(int offset)                 { return Utils.readUint32(get(offset, 4), 0);}
+    public long getInt64LE(int offset)                 { return Utils.readInt64(get(offset, 8), 0); }
 
     public byte[] getFullContentAndClose() {
         byte[] result = byteArray.get();

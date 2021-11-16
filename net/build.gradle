@@ -38,7 +38,7 @@ dependencies {
     //compileOnly 'org.projectlombok:lombok'
 
     // Compile Dependencies:
-    implementation "io.bitcoinsv.bitcoinjsv:bitcoinj-base:1.0.0"
+    implementation "io.bitcoinj:bitcoinj-base:1.0.0-ds"
     implementation(project(":tools"))
 
     implementation 'org.slf4j:slf4j-api:1.7.26'

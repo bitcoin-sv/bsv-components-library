@@ -242,6 +242,7 @@ public class BlockStoreFDB implements BlockStoreKeyValue<KeyValue, Transaction>,
     @Override public byte[] fullKeyForBlockMetadata(Transaction tr, String blockHash)           { return fullKey(fullKeyForBlocksMetadata(tr), keyForBlockMetadata(blockHash)); }
     @Override public byte[] fullKeyForBlocks()                                                  { return blocksDir.getKey();}
     @Override public byte[] fullKeyForTxs()                                                     { return txsDir.getKey();}
+    @Override public byte[] fullKeyForOrphanBlockHash(Transaction tr, String blockHash)         { return  fullKey(fullKeyForBlocks(), keyForOrphanBlockHash(blockHash));}
     @Override public BlockStoreStreamer EVENTS()                                                { return this.blockStoreStreamer; }
 
     @Override public Class<? extends Metadata>  getMetadataClassForBlocks()                     { return this.blockMetadataClass; }

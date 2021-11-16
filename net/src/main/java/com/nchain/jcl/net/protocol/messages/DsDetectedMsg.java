@@ -34,7 +34,7 @@ public class DsDetectedMsg extends Message {
 
     @Override
     protected long calculateLength() {
-        return 0;
+        return 2 + blockCount.getLengthInBytes() + blockList.stream().mapToLong(b -> b.getLengthInBytes()).sum();
     }
 
     @Override
