@@ -6,6 +6,7 @@ import com.nchain.jcl.net.protocol.messages.HeaderMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 import com.nchain.jcl.net.protocol.serialization.HeaderMsgSerializer;
+import com.nchain.jcl.tools.bytes.ByteArrayConfig;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.tools.bytes.ByteArrayWriter;
 import com.nchain.jcl.tools.bytes.Sha256HashIncremental;
@@ -98,9 +99,14 @@ public class BitcoinMsgSerializerImpl implements BitcoinMsgSerializer {
         HeaderMsg header = bitcoinMessage.getHeader();
 
         // Writer use for final deserialization:
-        ByteArrayWriter finalWriter = new ByteArrayWriter();
+        // NOTE: If the Message is BIG, we configure the ByteArrayWriter accordingly for the sake of performance.
+        // For now this is hardcoded here, bu tin the future we¡ll define a proper "SerializerConfig" or a similar
+        // approach.
+        boolean IS_BIG_MSG = (header.getMsgLength() >= 10_000_000); // 10 MB
+        ByteArrayConfig byteArrayConfig = new ByteArrayConfig((IS_BIG_MSG) ? ByteArrayConfig.ARRAY_SIZE_BIG : ByteArrayConfig.ARRAY_SIZE_NORMAL);
+        ByteArrayWriter finalWriter = new ByteArrayWriter(byteArrayConfig);
 
-        if (!(header.getMsgLength() < 4_000_000_000L)) {
+        if (header.isExtendedMsg()) {
             // We serialize the Header and the BODY as they are, without any changes...
             HeaderMsgSerializer.getInstance().serialize(context, header, finalWriter);
             getBodySerializer(msgType).serialize(context, bitcoinMessage.getBody(), finalWriter);
@@ -114,7 +120,6 @@ public class BitcoinMsgSerializerImpl implements BitcoinMsgSerializer {
             // bigger than 2GB it can NOT be stored in a byte array. So in order to make it generic, we store the
             // message bytes in a list of byte arrays, so we can fit it whatever the size:
 
-            // We store the Message Bytes in a list of byte arrays:
             final int SIZE_2GB = 2_000_000_000;
             List<byte[]> msgBytes = new ArrayList<>();
             while (!bodyByteReader.isEmpty()) {

@@ -260,6 +260,10 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
                     HeaderMsg partialMsgHeader = headerMsg.toBuilder()
                             .command(partialMessage.getMessageType())
                             .length(partialMessage.getLengthInBytes())
+                            // the "extXXX" fields are used for Messages bigger than 4GB (after 70016), but the Partial
+                            // messages returned by the Large Serialziers are smaller than that, so we set empty values
+                            .extCommand(null)
+                            .extLength(0)
                             .build();
                     BitcoinMsg<?> bitcoinMsg = new BitcoinMsg(partialMsgHeader, (Message) e.getData());
                     DeserializerStreamState stateResult = this.processOK(isThisADedicatedThread, bitcoinMsg, state);

@@ -15,6 +15,7 @@ import java.util.OptionalInt;
  */
 public class ProtocolBasicConfig extends HandlerConfig {
 
+    private static long THRESHOLD_SIZE_EXT_MSGS = 4_000_000_000L;
     private String id;
     private long magicPackage;
     private int  port;
@@ -23,31 +24,45 @@ public class ProtocolBasicConfig extends HandlerConfig {
     private OptionalInt maxPeers = OptionalInt.empty();
     private OptionalInt minPeers = OptionalInt.empty();
 
-    public ProtocolBasicConfig(String id, long magicPackage, int port, Integer protocolVersion, OptionalInt maxPeers, OptionalInt minPeers) {
+    // protocol 70016 upgrade supports msgs this big or bigger
+    private long thresholdSizeExtMsgs = THRESHOLD_SIZE_EXT_MSGS;
+
+    public ProtocolBasicConfig(String id, long magicPackage, int port,
+                               Integer protocolVersion, OptionalInt maxPeers, OptionalInt minPeers,
+                               long msgSizeSupportedIn70016) {
         this.id = id;
         this.magicPackage = magicPackage;
         this.port = port;
         if (protocolVersion != null) this.protocolVersion = protocolVersion;
         if (maxPeers != null) this.maxPeers = maxPeers;
         if (minPeers != null) this.minPeers = minPeers;
+        this.thresholdSizeExtMsgs = msgSizeSupportedIn70016;
     }
 
     public ProtocolBasicConfig() {}
 
 
-    public String getId()               { return this.id; }
-    public long getMagicPackage()       { return this.magicPackage; }
-    public int getPort()                { return this.port; }
-    public int getProtocolVersion()     { return this.protocolVersion; }
-    public OptionalInt getMaxPeers()    { return this.maxPeers; }
-    public OptionalInt getMinPeers()    { return this.minPeers; }
+    public String getId()                       { return this.id; }
+    public long getMagicPackage()               { return this.magicPackage; }
+    public int getPort()                        { return this.port; }
+    public int getProtocolVersion()             { return this.protocolVersion; }
+    public OptionalInt getMaxPeers()            { return this.maxPeers; }
+    public OptionalInt getMinPeers()            { return this.minPeers; }
+    public long getThresholdSizeExtMsgs()       { return this.thresholdSizeExtMsgs;}
 
     public static ProtocolBasicConfigBuilder builder() {
         return new ProtocolBasicConfigBuilder();
     }
 
     public ProtocolBasicConfigBuilder toBuilder() {
-        return new ProtocolBasicConfigBuilder().id(this.id).magicPackage(this.magicPackage).port(this.port).protocolVersion(this.protocolVersion).maxPeers(this.maxPeers).minPeers(this.minPeers);
+        return new ProtocolBasicConfigBuilder()
+                .id(this.id)
+                .magicPackage(this.magicPackage)
+                .port(this.port)
+                .protocolVersion(this.protocolVersion)
+                .maxPeers(this.maxPeers)
+                .minPeers(this.minPeers)
+                .thresholdSizeExtMsgs(this.thresholdSizeExtMsgs);
     }
 
     /**
@@ -60,6 +75,7 @@ public class ProtocolBasicConfig extends HandlerConfig {
         private Integer protocolVersion;
         private OptionalInt maxPeers;
         private OptionalInt minPeers;
+        private long thresholdSizeExtMsgs = THRESHOLD_SIZE_EXT_MSGS;
 
         ProtocolBasicConfigBuilder() {}
 
@@ -93,8 +109,13 @@ public class ProtocolBasicConfig extends HandlerConfig {
             return this;
         }
 
+        public ProtocolBasicConfig.ProtocolBasicConfigBuilder thresholdSizeExtMsgs(long thresholdSizeExtMsgs) {
+            this.thresholdSizeExtMsgs = thresholdSizeExtMsgs;
+            return this;
+        }
+
         public ProtocolBasicConfig build() {
-            return new ProtocolBasicConfig(id, magicPackage, port, protocolVersion, maxPeers, minPeers);
+            return new ProtocolBasicConfig(id, magicPackage, port, protocolVersion, maxPeers, minPeers, thresholdSizeExtMsgs);
         }
     }
 }

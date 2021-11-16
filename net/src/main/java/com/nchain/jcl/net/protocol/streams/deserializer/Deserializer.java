@@ -185,6 +185,7 @@ public class Deserializer {
         LargeMessageDeserializer largeMsgDeserializer =  MsgSerializersFactory.getLargeMsgDeserializer(
                 headerMsg.getMsgCommand(),
                 config.getMinBytesPerSecForLargeMessages());
+        largeMsgDeserializer.setPartialMsgSize(config.getPartialSerializationMsgSize());
         largeMsgDeserializer.onError(onErrorHandler);
         largeMsgDeserializer.onDeserialized(onPartDeserializedHandler);
 

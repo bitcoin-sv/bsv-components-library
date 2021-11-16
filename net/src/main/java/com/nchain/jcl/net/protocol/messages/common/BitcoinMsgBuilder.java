@@ -39,7 +39,7 @@ public class BitcoinMsgBuilder<M extends Message> {
     public BitcoinMsg<M> build() {
 
         // Sanity check for >4GB Messages:
-        if (bodyMsg.getLengthInBytes() >= 4_000_000_000L && config.getProtocolVersion() < ProtocolVersion.SUPPORT_4GB_MSGS.getBitcoinProtocolVersion())
+        if (bodyMsg.getLengthInBytes() >= config.getThresholdSizeExtMsgs() && config.getProtocolVersion() < ProtocolVersion.SUPPORT_EXT_MSGS.getVersion())
             throw new RuntimeException("Trying to build a message bigger than 4GB with a wrong protocol Version");
 
         // We build the header (the header must be built after the body, since some of its
@@ -47,12 +47,12 @@ public class BitcoinMsgBuilder<M extends Message> {
         HeaderMsg.HeaderMsgBuilder headerMsgBuilder = HeaderMsg.builder();
         headerMsgBuilder.magic(config.getMagicPackage());
 
-        // If the message is longer than 4GB, we use extra fields (enabled after 70016)
-        if (bodyMsg.getLengthInBytes() >= 4_000_000_000L) {
+        // If the message is a Big one, we use extra fields (enabled after 70016)
+        if (bodyMsg.getLengthInBytes() >= config.getThresholdSizeExtMsgs()) {
             headerMsgBuilder.command(HeaderMsg.EXT_COMMAND);
             headerMsgBuilder.length(HeaderMsg.EXT_LENGTH);
             headerMsgBuilder.extCommand(bodyMsg.getMessageType());
-            headerMsgBuilder.extLength((int) bodyMsg.getLengthInBytes());
+            headerMsgBuilder.extLength(bodyMsg.getLengthInBytes());
         } else {
             headerMsgBuilder.command(bodyMsg.getMessageType());
             headerMsgBuilder.length((int) bodyMsg.getLengthInBytes());

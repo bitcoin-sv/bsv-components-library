@@ -93,6 +93,9 @@ public final class HeaderMsg extends Message {
     public String getExtCommand()   { return this.extCommand;}
     public long getExtLength()      { return this.extLength;}
 
+    // Convenience:
+    public boolean isExtendedMsg() { return command.equalsIgnoreCase(EXT_COMMAND);}
+
     /**
      * It returns the type of message, which has been historically stored in the "command" field of the header.
      * After 70016, the type of the message might be stored in the "command" of "extCommand" field depending on its

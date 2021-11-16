@@ -16,7 +16,8 @@ import java.util.HashMap;
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  *
- * It soes the configuration variables needed by the Message Handler
+ * It soes the configuration variables needed by the Message Handler.
+ * This handler is the handler responsable for the message Serialization/Deserialization
  */
 public final class MessageHandlerConfig extends HandlerConfig {
 
@@ -32,18 +33,20 @@ public final class MessageHandlerConfig extends HandlerConfig {
     private boolean rawTxsEnabled = false;
 
     /**
-     * A Map containing Batch Message Configurations. If for example we want to Deserialize the "RawTxMsg" messages
-     * in batches, then an entry with "RawTxMsg.class" as a Key should be included here.
-     */
-    private HashMap<Class, MessageBatchConfig> msgBatchConfigs = new HashMap<>();
-
-    /**
      * Maximun number of Connections to other Peers that can use a dedicated thread to manage its connections.
      * By default, all the connections to remote peers are managed by a single Thread, that's why JCL can connect to
      * so many peers in parallel. but sometimes its worth it to manage an individual connection with a dedicated Thread
      * , for example when there is a big Message coming from that connection.
      */
     private int maxNumberDedicatedConnections = 10;
+
+    /**
+     * A Map containing Batch Message Configurations. If for example we want to Deserialize the "RawTxMsg" messages
+     * in batches, then an entry with "RawTxMsg.class" as a Key should be included here.
+     */
+    private HashMap<Class, MessageBatchConfig> msgBatchConfigs = new HashMap<>();
+
+
 
     MessageHandlerConfig(ProtocolBasicConfig basicConfig,
                          MessagePreSerializer preSerializer,
@@ -71,7 +74,10 @@ public final class MessageHandlerConfig extends HandlerConfig {
 
     @Override
     public String toString() {
-        return "MessageHandlerConfig(basicConfig=" + this.getBasicConfig() + ", preSerializer=" + this.getPreSerializer() + ", deserializerConfig=" + this.getDeserializerConfig() + ", maxNumberDedicatedConnections=" + maxNumberDedicatedConnections + ", msgBatchConfigs=" + msgBatchConfigs + ")";
+        return "MessageHandlerConfig(basicConfig=" + this.getBasicConfig()
+                + ", preSerializer=" + this.getPreSerializer() + ", deserializerConfig="
+                + this.getDeserializerConfig() + ", maxNumberDedicatedConnections=" + maxNumberDedicatedConnections
+                + ", msgBatchConfigs=" + msgBatchConfigs + ")";
     }
 
     public MessageHandlerConfigBuilder toBuilder() {

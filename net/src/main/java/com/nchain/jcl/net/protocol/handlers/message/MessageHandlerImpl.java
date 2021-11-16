@@ -12,7 +12,6 @@ import com.nchain.jcl.net.protocol.events.control.BroadcastMsgRequest;
 import com.nchain.jcl.net.protocol.events.data.MsgReceivedBatchEvent;
 import com.nchain.jcl.net.protocol.events.data.MsgReceivedEvent;
 import com.nchain.jcl.net.protocol.events.control.SendMsgRequest;
-import com.nchain.jcl.net.protocol.events.data.MsgSentEvent;
 import com.nchain.jcl.net.protocol.messages.HeaderMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
@@ -178,7 +177,7 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
         String msgType = btcMsg.getHeader().getMsgCommand().toUpperCase();
         logger.trace(peerAddress, msgType + " Msg received.");
 
-        // We only broadcast the MSg to JCK if it's RIGHT...
+        // We only broadcast the MSg to JCL if it's RIGHT...
         String validationError = findErrorInMsg(btcMsg);
         if (validationError == null) {
 
@@ -292,10 +291,10 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
         if (msg.getHeader().getMagic() != config.getBasicConfig().getMagicPackage()) return "Network Id is incorrect";
 
         // Checks for 4GB Support:
-        if (msg.getLengthInbytes() >= 4_000_000_000L) {
+        if (msg.getLengthInbytes() >= config.getBasicConfig().getThresholdSizeExtMsgs()) {
             if (msg.getHeader().getCommand().equalsIgnoreCase(HeaderMsg.EXT_COMMAND))
                 return "Message Larger than 4GB but wrong Command";
-            if (this.config.getBasicConfig().getProtocolVersion() < ProtocolVersion.SUPPORT_4GB_MSGS.getBitcoinProtocolVersion())
+            if (this.config.getBasicConfig().getProtocolVersion() < ProtocolVersion.SUPPORT_EXT_MSGS.getVersion())
                 return "Message Larger than 4GB but we are running a Protocol < 70016";
         }
         return null;

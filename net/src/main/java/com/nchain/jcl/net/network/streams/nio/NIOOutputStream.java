@@ -99,9 +99,17 @@ public class NIOOutputStream extends PeerOutputStreamImpl<ByteArrayReader, ByteA
 
     public void send(StreamDataEvent<ByteArrayReader> event) {
         //logger.trace("Sending " + event.getData().size() + " bytes : " + HEX.encode(event.getData().get()));
-        // We get all the data from this Reader and we addBytes it to the buffer of ByteBuffers.
+        // We get all the data from this Reader and we add it to the buffer of ByteBuffers.
         bytesToWriteRemaining += event.getData().size();
-        buffersToWrite.offer(ByteBuffer.wrap(event.getData().getFullContentAndClose())); // TODO: CAREFUL
+
+        // The bytes to write in this event might be any size, even bigger than 2GB, so we send them in batches...
+        int BATCH_SIZE = 100_000;
+        ByteArrayReader reader = event.getData();
+        while (!reader.isEmpty()) {
+            int numBytesToRead = (int) Math.min(BATCH_SIZE, reader.size());
+            buffersToWrite.offer(ByteBuffer.wrap(reader.read(numBytesToRead)));
+        }
+        //buffersToWrite.offer(ByteBuffer.wrap(event.getData().getFullContentAndClose())); // TODO: CAREFUL
         notifyChannelWritable();
     }
 

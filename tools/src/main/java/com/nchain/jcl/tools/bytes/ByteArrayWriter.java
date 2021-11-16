@@ -26,6 +26,10 @@ public class ByteArrayWriter {
         this.buffer = new ByteArrayBuffer();
     }
 
+    public ByteArrayWriter(ByteArrayConfig byteArrayConfig) {
+        this.buffer = new ByteArrayBuffer(byteArrayConfig);
+    }
+
     public void write(byte data) {
         buffer.add(new byte[]{data});
     }

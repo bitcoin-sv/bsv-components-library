@@ -31,7 +31,7 @@ public class ProtocolBSVStnConfig extends ProtocolConfigImpl implements Protocol
     private static long magicPackage           = 0xf9c4cefbL;
     private static int services                = ProtocolServices.NODE_BLOOM.getProtocolServices();
     private static int port                    = 9333;
-    private static int protocolVersion         = ProtocolVersion.CURRENT.getBitcoinProtocolVersion();
+    private static int protocolVersion         = ProtocolVersion.CURRENT.getVersion();
 
     private static String[] userAgentBlacklist = new String[] {"Bitcoin ABC:", "BUCash:" };
     private static String[] userAgentWhitelist = new String[] {"Bitcoin SV:", HandshakeHandlerConfig.DEFAULT_USER_AGENT };

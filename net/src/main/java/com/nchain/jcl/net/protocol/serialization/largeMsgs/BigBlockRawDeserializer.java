@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.protocol.serialization.largeMsgs;
 
 
+import com.google.common.base.Preconditions;
 import com.nchain.jcl.net.protocol.messages.*;
 import com.nchain.jcl.net.protocol.serialization.BlockHeaderMsgSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
@@ -23,9 +24,6 @@ import java.util.concurrent.ExecutorService;
  */
 public class BigBlockRawDeserializer extends LargeMessageDeserializerImpl {
 
-    // Size of each Chunk of TXs in byte array format:
-    private static final int TX_CHUNK_SIZE = 10_000_000;    // 10 MB
-
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(BigBlockRawDeserializer.class);
 
     // Once the Block Header is deserialzed, we keep a reference here, since we include it as well when we
@@ -45,6 +43,9 @@ public class BigBlockRawDeserializer extends LargeMessageDeserializerImpl {
     @Override
     public void deserialize(DeserializerContext context, ByteArrayReader byteReader) {
         try {
+            // Sanity Check:
+            Preconditions.checkState(super.partialMsgSize != null, "The Size of partial Msgs must be defined before using a Large Deserializer");
+
             // We update the reader:
             adjustReaderSpeed(byteReader);
 
@@ -62,7 +63,7 @@ public class BigBlockRawDeserializer extends LargeMessageDeserializerImpl {
             log.trace("Deserializing TXs...");
             long txsBytesSize = context.getMaxBytesToRead() - blockHeader.getLengthInBytes();
             long txsBytesRemaining = txsBytesSize;
-            int numChunks = (int) Math.ceil((double) txsBytesSize / TX_CHUNK_SIZE);
+            int numChunks = (int) Math.ceil((double) txsBytesSize / super.partialMsgSize);
 
             // Order of each batch of Txs within the Block
             long txsOrderNumber = 0;
@@ -71,11 +72,11 @@ public class BigBlockRawDeserializer extends LargeMessageDeserializerImpl {
             Instant deserializingTime = Instant.now();
 
             for (int i = 0; i < numChunks; i++) {
-                int numBytesToRead = (int) Math.min(txsBytesRemaining, TX_CHUNK_SIZE);
+                int numBytesToRead = (int) Math.min(txsBytesRemaining, super.partialMsgSize);
                 byte[] chunk = byteReader.read(numBytesToRead);
 
                 // We notify about a new Batch of TX Deserialized...
-                log.trace("Batch of " + TX_CHUNK_SIZE + " bytes of Txs deserialized :: "
+                log.trace("Batch of " + super.partialMsgSize + " bytes of Txs deserialized :: "
                         + Duration.between(deserializingTime, Instant.now()).toMillis() + " milissecs...");
                 PartialBlockRawTXsMsg partialBlockRawTXs = PartialBlockRawTXsMsg.builder()
                         .blockHeader(blockHeader)

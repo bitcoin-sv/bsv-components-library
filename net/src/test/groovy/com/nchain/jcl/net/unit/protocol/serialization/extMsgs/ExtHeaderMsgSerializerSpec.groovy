@@ -26,12 +26,15 @@ import spock.lang.Specification
  */
 class ExtHeaderMsgSerializerSpec extends Specification {
 
+    /**
+     * We serialize a Header including "ext" fields and deserialize it, comparing both
+     */
     def "testing Serialization & Deserialization"() {
         given:
-            // We use MAINNET with 70016Protocol Version:
+            // We use MAINNET with 70016 Protocol Version:
             ProtocolConfig protocolConfig = ProtocolConfigBuilder.get(MainNetParams.get());
             ProtocolBasicConfig protocolBasicConfig = protocolConfig.getBasicConfig().toBuilder()
-                .protocolVersion(ProtocolVersion.SUPPORT_4GB_MSGS.getBitcoinProtocolVersion())
+                .protocolVersion(ProtocolVersion.SUPPORT_EXT_MSGS.getVersion())
                 .build();
 
             // We create a Dummy Header
@@ -59,7 +62,7 @@ class ExtHeaderMsgSerializerSpec extends Specification {
             ByteArrayReader reader = new ByteArrayReader(headerBytes)
             HeaderMsg headerMsgDes = HeaderMsgSerializer.getInstance().deserialize(deserializerContext, reader)
         then:
-            // And we compare both: The original Header and the one deserialized shod be equals
+            // And we compare both: The original Header and the one deserialized should be equal
             headerMsg.equals(headerMsgDes)
     }
 
