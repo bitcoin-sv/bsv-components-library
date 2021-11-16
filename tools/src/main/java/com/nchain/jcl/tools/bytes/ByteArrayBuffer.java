@@ -199,7 +199,7 @@ public class ByteArrayBuffer implements ByteArray {
     }
 
     /** Returns a Byte Array starting at the given position with the given length */
-    public synchronized byte[] get(int offset, int length) {
+    public synchronized byte[] get(long offset, int length) {
         checkArgument(length + offset <= this.size(),
                 " trying to extractReader too much data (not enough in the byteArray)");
 
@@ -208,7 +208,7 @@ public class ByteArrayBuffer implements ByteArray {
         int bytesRemaining = length;
 
         boolean initialBufferOffsetFound = false;
-        int bufferOffset;
+        long bufferOffset;
         for(ByteArray buffer : buffers){
 
             if(size + buffer.size() < offset){

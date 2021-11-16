@@ -150,11 +150,11 @@ public class ByteArrayReaderOptimized extends ByteArrayReader {
     }
 
     @Override
-    public byte[] get(int offset, int length) {
+    public byte[] get(long offset, int length) {
         byte[] result = new byte[length];
 
         if (bytesConsumed + offset + length <= bufferDataSize) {
-            System.arraycopy(buffer, bytesConsumed + offset, result, 0, length);
+            System.arraycopy(buffer, (int) (bytesConsumed + offset), result, 0, length);
         } else {
             result = super.get(bytesConsumed + offset, length);
         }
