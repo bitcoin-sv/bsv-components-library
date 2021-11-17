@@ -21,21 +21,21 @@ import java.util.concurrent.ExecutorService;
  * "notify" provided by the parent Class. Those notifications will trigger callbacks that previously must have been
  * fed by the client of this class. All notifications will contain Raw Tx Data.
  */
-public class BigBlockRawTxDeserializer extends LargeMessageDeserializerImpl {
+public class RawBigBlockDeserializer extends LargeMessageDeserializerImpl {
 
-    private static final Logger log = org.slf4j.LoggerFactory.getLogger(BigBlockRawTxDeserializer.class);
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(RawBigBlockDeserializer.class);
 
     // Once the Block Header is deserialzed, we keep a reference here, since we include it as well when we
     // deserialize each set of TXs:
     private BlockHeaderMsg blockHeader;
 
     /** Constructor */
-    public BigBlockRawTxDeserializer(ExecutorService executor) {
+    public RawBigBlockDeserializer(ExecutorService executor) {
         super(executor);
     }
 
     /** Constructor. Callbacks will be blocking */
-    public BigBlockRawTxDeserializer() {
+    public RawBigBlockDeserializer() {
         super(null);
     }
 
@@ -111,7 +111,7 @@ public class BigBlockRawTxDeserializer extends LargeMessageDeserializerImpl {
                 //if we have enough space then add it
                 if(totalSizeInBatch + totalBytesInTx <= super.partialMsgSize){
                     totalSizeInBatch += totalBytesInTx;
-                    rawTxBatch.add(new RawTxMsg(byteReader.read(totalBytesInTx)));
+                    rawTxBatch.add(new RawTxMsg(byteReader.read(totalBytesInTx), 0)); // checksum ZERO
                 } else {
                     // We do not Have enough space in this Batch for this Tx. push the batch we have so far down the pipeline
                     PartialBlockRawTxMsg partialBlockRawTXs = PartialBlockRawTxMsg.builder()
@@ -127,7 +127,7 @@ public class BigBlockRawTxDeserializer extends LargeMessageDeserializerImpl {
                     totalSizeInBatch = 0;
 
                     // We add this Tx tot he next Batch:
-                    rawTxBatch.add(new RawTxMsg(byteReader.read(totalBytesInTx)));
+                    rawTxBatch.add(new RawTxMsg(byteReader.read(totalBytesInTx), 0)); // checksum ZERO
 
                     // If the size of this individual Tx is already bigger than our Max Batch size, this Txs will be
                     // pushed down in the next iteration, but we warm of this situation here...

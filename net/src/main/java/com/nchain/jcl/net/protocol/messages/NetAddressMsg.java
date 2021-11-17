@@ -44,7 +44,8 @@ public final class NetAddressMsg extends Message implements Serializable {
     private final long services;
 
     // Constructor
-    protected NetAddressMsg(Long timestamp, long services, PeerAddress address) {
+    protected NetAddressMsg(Long timestamp, long services, PeerAddress address, long payloadChecksum) {
+        super(payloadChecksum);
         this.timestamp = timestamp;
         this.services = services;
         this.address = address;
@@ -125,7 +126,7 @@ public final class NetAddressMsg extends Message implements Serializable {
         }
 
         public NetAddressMsg build() {
-            return new NetAddressMsg(timestamp, services, address);
+            return new NetAddressMsg(timestamp, services, address, super.payloadChecksum);
         }
     }
 }

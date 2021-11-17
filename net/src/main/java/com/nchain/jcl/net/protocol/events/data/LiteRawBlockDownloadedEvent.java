@@ -4,7 +4,7 @@ package com.nchain.jcl.net.protocol.events.data;
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.events.P2PEvent;
 import com.nchain.jcl.net.protocol.events.control.BlockDownloadedEvent;
-import com.nchain.jcl.net.protocol.messages.RawTxBlockMsg;
+import com.nchain.jcl.net.protocol.messages.RawBlockMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 
 import java.time.Duration;
@@ -27,17 +27,17 @@ import java.time.Duration;
  */
 public final class LiteRawBlockDownloadedEvent extends P2PEvent {
     private final PeerAddress peerAddress;
-    private final BitcoinMsg<RawTxBlockMsg> block; // Whole Downloaded Block.
+    private final BitcoinMsg<RawBlockMsg> block; // Whole Downloaded Block.
     private final Duration downloadingTime;
 
-    public LiteRawBlockDownloadedEvent(PeerAddress peerAddress, BitcoinMsg<RawTxBlockMsg> block, Duration downloadingTime) {
+    public LiteRawBlockDownloadedEvent(PeerAddress peerAddress, BitcoinMsg<RawBlockMsg> block, Duration downloadingTime) {
         this.peerAddress = peerAddress;
         this.block = block;
         this.downloadingTime = downloadingTime;
     }
 
     public PeerAddress getPeerAddress()         { return this.peerAddress; }
-    public BitcoinMsg<RawTxBlockMsg> getBlock()   { return this.block; }
+    public BitcoinMsg<RawBlockMsg> getBlock()   { return this.block; }
     public Duration getDownloadingTime()        { return this.downloadingTime; }
 
     @Override

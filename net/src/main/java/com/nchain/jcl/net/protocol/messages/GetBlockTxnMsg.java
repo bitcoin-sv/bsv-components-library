@@ -16,28 +16,17 @@ public class GetBlockTxnMsg extends Message implements Serializable {
     private final VarIntMsg indexesLength;
     private final List<VarIntMsg> indexes;
 
-    public GetBlockTxnMsg(HashMsg blockHash, VarIntMsg indexesLength, List<VarIntMsg> indexes) {
+    public GetBlockTxnMsg(HashMsg blockHash, VarIntMsg indexesLength, List<VarIntMsg> indexes, long payloadChecksum) {
+        super(payloadChecksum);
         this.blockHash = blockHash;
         this.indexesLength = indexesLength;
         this.indexes = indexes;
         init();
     }
 
-    public static BlockTransactionsRequestMsgBuilder builder() {
-        return new BlockTransactionsRequestMsgBuilder();
-    }
-
-    public HashMsg getBlockHash() {
-        return blockHash;
-    }
-
-    public VarIntMsg getIndexesLength() {
-        return indexesLength;
-    }
-
-    public List<VarIntMsg> getIndexes() {
-        return indexes;
-    }
+    public HashMsg getBlockHash()       { return blockHash; }
+    public VarIntMsg getIndexesLength() { return indexesLength; }
+    public List<VarIntMsg> getIndexes() { return indexes; }
 
     @Override
     public String getMessageType() {
@@ -55,7 +44,6 @@ public class GetBlockTxnMsg extends Message implements Serializable {
 
     @Override
     protected void validateMessage() {
-
     }
 
     @Override
@@ -66,6 +54,13 @@ public class GetBlockTxnMsg extends Message implements Serializable {
                     .indexes(this.indexes);
     }
 
+    public static BlockTransactionsRequestMsgBuilder builder() {
+        return new BlockTransactionsRequestMsgBuilder();
+    }
+
+    /**
+     * Builder
+     */
     public static class BlockTransactionsRequestMsgBuilder extends MessageBuilder{
         private HashMsg blockHash;
         private VarIntMsg indexesLength;
@@ -87,7 +82,7 @@ public class GetBlockTxnMsg extends Message implements Serializable {
         }
 
         public GetBlockTxnMsg build() {
-            return new GetBlockTxnMsg(blockHash, indexesLength, indexes);
+            return new GetBlockTxnMsg(blockHash, indexesLength, indexes, super.payloadChecksum);
         }
     }
 }

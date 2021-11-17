@@ -28,7 +28,7 @@ public class SendHeadersMsgSerializer implements MessageSerializer<SendHeadersMs
 
     @Override
     public SendHeadersMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
-        return new SendHeadersMsg().builder().build();
+        return new SendHeadersMsg.SendHeadersMsgBuilder().build();
     }
 
     @Override

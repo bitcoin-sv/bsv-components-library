@@ -31,7 +31,8 @@ public final class TxOutputMsg extends Message implements Serializable {
 
 
 
-    protected TxOutputMsg(long txValue, byte[] pk_script) {
+    protected TxOutputMsg(long txValue, byte[] pk_script, long payloadChecksum) {
+        super(payloadChecksum);
         this.txValue = txValue;
         this.pk_script = pk_script;
         this.pk_script_length = VarIntMsg.builder().value(pk_script.length).build();
@@ -107,7 +108,7 @@ public final class TxOutputMsg extends Message implements Serializable {
         }
 
         public TxOutputMsg build() {
-            return new TxOutputMsg(txValue, pk_script);
+            return new TxOutputMsg(txValue, pk_script, super.payloadChecksum);
         }
     }
 }

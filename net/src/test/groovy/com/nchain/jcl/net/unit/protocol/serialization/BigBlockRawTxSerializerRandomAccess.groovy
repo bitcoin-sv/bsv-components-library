@@ -2,34 +2,19 @@ package com.nchain.jcl.net.unit.protocol.serialization
 
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg
 import com.nchain.jcl.net.protocol.messages.HashMsg
-import com.nchain.jcl.net.protocol.messages.HeaderMsg
 import com.nchain.jcl.net.protocol.messages.PartialBlockRawTxMsg
 import com.nchain.jcl.net.protocol.messages.TxInputMsg
 import com.nchain.jcl.net.protocol.messages.TxMsg
 import com.nchain.jcl.net.protocol.messages.TxOutPointMsg
 import com.nchain.jcl.net.protocol.messages.TxOutputMsg
 import com.nchain.jcl.net.protocol.serialization.BlockHeaderMsgSerializer
-import com.nchain.jcl.net.protocol.serialization.HeaderMsgSerializer
 import com.nchain.jcl.net.protocol.serialization.TxMsgSerializer
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
-import com.nchain.jcl.net.protocol.serialization.largeMsgs.BigBlockRawTxDeserializer
+import com.nchain.jcl.net.protocol.serialization.largeMsgs.RawBigBlockDeserializer
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayReaderRealTime
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
-import io.bitcoinj.bitcoin.api.base.Header
-import io.bitcoinj.bitcoin.api.base.Tx
-import io.bitcoinj.bitcoin.api.base.TxInput
-import io.bitcoinj.bitcoin.api.base.TxOutPoint
-import io.bitcoinj.bitcoin.api.base.TxOutput
-import io.bitcoinj.bitcoin.api.extended.LiteBlock
-import io.bitcoinj.bitcoin.bean.base.HeaderBean
-import io.bitcoinj.bitcoin.bean.base.TxBean
-import io.bitcoinj.bitcoin.bean.base.TxInputBean
-import io.bitcoinj.bitcoin.bean.base.TxOutputBean
-import io.bitcoinj.bitcoin.bean.extended.LiteBlockBean
-import io.bitcoinj.core.Coin
-import io.bitcoinj.core.Sha256Hash
 import io.bitcoinj.core.Utils
 import spock.lang.Specification
 
@@ -125,7 +110,7 @@ class BigBlockRawTxSerializerRandomAccess extends Specification {
             String BIG_BLOCK_HEX = headerHex + txsHex
 
             // Now we prepare for deserializing it using the BigBlockRawTxDeserializer:
-            BigBlockRawTxDeserializer bigBlockDeserializer = new BigBlockRawTxDeserializer()
+            RawBigBlockDeserializer bigBlockDeserializer = new RawBigBlockDeserializer()
             DeserializerContext desContext = new DeserializerContext.DeserializerContextBuilder()
                 .maxBytesToRead(headerBytes.length + txsBytes.length)
                 .build()

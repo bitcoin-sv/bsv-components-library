@@ -36,10 +36,9 @@ public final class DeserializerContext {
     private final Integer batchSize;
 
     // If true, the checksum of the message is calculated out of its bytes and populated in the message itself
-    // This field is only informative: each serializer can calculate the checksum or not regardless of this. But
-    // in some cases, a Serializer does NOT know if it should calculate the checksum or not, for example the
-    // TxMsgSerializer: this serializer should calculate the checksum when deserializing individual Txs, but it
-    // should NOT calculate it when deserializing Txs WITHIN a BlockMsg.
+    // The logic to calculate or not the checksum also takes into consideration other factors, like the size of the
+    // message (messages bigger than 4GB do NOT calculate checksum).
+    // If its FALSE, checksum is NOT calculated in any case
     private boolean calculateChecksum;
 
     public DeserializerContext(boolean calculateHashes,

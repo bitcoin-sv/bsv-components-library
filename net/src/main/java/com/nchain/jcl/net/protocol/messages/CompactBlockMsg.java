@@ -21,7 +21,12 @@ public class CompactBlockMsg extends Message implements Serializable {
     private final List<Long> shortTxIds;
     private final List<PrefilledTxMsg> prefilledTransactions;
 
-    public CompactBlockMsg(CompactBlockHeaderMsg header, long nonce, List<Long> shortTxIds, List<PrefilledTxMsg> prefilledTransactions) {
+    public CompactBlockMsg(CompactBlockHeaderMsg header,
+                           long nonce,
+                           List<Long> shortTxIds,
+                           List<PrefilledTxMsg> prefilledTransactions,
+                           long payloadChecksum) {
+        super(payloadChecksum);
         this.header = header;
         this.nonce = nonce;
         this.shortTxIds = shortTxIds;
@@ -29,30 +34,13 @@ public class CompactBlockMsg extends Message implements Serializable {
         init();
     }
 
-    public static CompactBlockMsgBuilder builder() {
-        return new CompactBlockMsgBuilder();
-    }
-
-    public CompactBlockHeaderMsg getHeader() {
-        return header;
-    }
-
-    public long getNonce() {
-        return nonce;
-    }
-
-    public List<Long> getShortTxIds() {
-        return shortTxIds;
-    }
-
-    public List<PrefilledTxMsg> getPrefilledTransactions() {
-        return prefilledTransactions;
-    }
-
     @Override
-    public String getMessageType() {
-        return MESSAGE_TYPE;
-    }
+    public String getMessageType()                          { return MESSAGE_TYPE; }
+
+    public CompactBlockHeaderMsg getHeader()                { return header; }
+    public long getNonce()                                  { return nonce; }
+    public List<Long> getShortTxIds()                       { return shortTxIds; }
+    public List<PrefilledTxMsg> getPrefilledTransactions()  { return prefilledTransactions; }
 
     @Override
     protected long calculateLength() {
@@ -77,6 +65,13 @@ public class CompactBlockMsg extends Message implements Serializable {
                     .prefilledTransactions(this.prefilledTransactions);
     }
 
+    public static CompactBlockMsgBuilder builder() {
+        return new CompactBlockMsgBuilder();
+    }
+
+    /**
+     * Builder
+     */
     public static class CompactBlockMsgBuilder extends MessageBuilder {
         private CompactBlockHeaderMsg header;
         private long nonce;
@@ -104,7 +99,7 @@ public class CompactBlockMsg extends Message implements Serializable {
         }
 
         public CompactBlockMsg build() {
-            return new CompactBlockMsg(header, nonce, shortTxIds, prefilledTransactions);
+            return new CompactBlockMsg(header, nonce, shortTxIds, prefilledTransactions, super.payloadChecksum);
         }
     }
 }

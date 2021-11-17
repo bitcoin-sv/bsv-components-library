@@ -2,7 +2,7 @@ package com.nchain.jcl.net.protocol.serialization;
 
 
 import com.nchain.jcl.net.protocol.messages.BlockMsg;
-import com.nchain.jcl.net.protocol.messages.RawTxBlockMsg;
+import com.nchain.jcl.net.protocol.messages.RawBlockMsg;
 import com.nchain.jcl.net.protocol.messages.RawTxMsg;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.net.protocol.serialization.common.MessageSerializer;
@@ -22,21 +22,21 @@ import java.util.List;
  * <p>
  * * A Serializer for {@link BlockMsg} messages
  */
-public class RawTxBlockMsgSerializer implements MessageSerializer<RawTxBlockMsg> {
+public class RawBlockMsgSerializer implements MessageSerializer<RawBlockMsg> {
 
-    private static final Logger log = org.slf4j.LoggerFactory.getLogger(RawTxBlockMsgSerializer.class);
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(RawBlockMsgSerializer.class);
 
-    private RawTxBlockMsgSerializer() { }
+    private RawBlockMsgSerializer() { }
 
     /**
      * Returns the instance of this Serializer (Singleton)
      */
-    public static RawTxBlockMsgSerializer getInstance() {
-        return new RawTxBlockMsgSerializer();
+    public static RawBlockMsgSerializer getInstance() {
+        return new RawBlockMsgSerializer();
     }
 
     @Override
-    public RawTxBlockMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
+    public RawBlockMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
 
         // First we deserialize the Block Header:
         var blockHeader = BlockHeaderMsgSerializer.getInstance().deserialize(context, byteReader);
@@ -92,16 +92,16 @@ public class RawTxBlockMsgSerializer implements MessageSerializer<RawTxBlockMsg>
             totalBytesInTx += 4; //lock time
 
 
-            txs.add(new RawTxMsg(byteReader.read(totalBytesInTx)));
+            txs.add(new RawTxMsg(byteReader.read(totalBytesInTx), 0)); // checksum ZERO
 
             totalBytesRemaining -= totalBytesInTx;
         }
 
-        return RawTxBlockMsg.builder().blockHeader(blockHeader).txs(txs).build();
+        return RawBlockMsg.builder().blockHeader(blockHeader).txs(txs).build();
     }
 
     @Override
-    public void serialize(SerializerContext context, RawTxBlockMsg blockRawMsg, ByteArrayWriter byteWriter) {
+    public void serialize(SerializerContext context, RawBlockMsg blockRawMsg, ByteArrayWriter byteWriter) {
         BlockHeaderMsgSerializer.getInstance().serialize(context, blockRawMsg.getBlockHeader(), byteWriter);
         blockRawMsg.getTxs().forEach(t -> {
             byteWriter.write(t.getContent());

@@ -35,7 +35,15 @@ public class CompactBlockHeaderMsg extends Message implements Serializable {
     protected final long difficultyTarget;
     protected final long nonce;
 
-    public CompactBlockHeaderMsg(HashMsg hash, long version, HashMsg prevBlockHash, HashMsg merkleRoot, long creationTimestamp, long difficultyTarget, long nonce) {
+    public CompactBlockHeaderMsg(HashMsg hash,
+                                 long version,
+                                 HashMsg prevBlockHash,
+                                 HashMsg merkleRoot,
+                                 long creationTimestamp,
+                                 long difficultyTarget,
+                                 long nonce,
+                                 long payloadChecksum) {
+        super(payloadChecksum);
         this.hash = hash;
         this.version = version;
         this.prevBlockHash = prevBlockHash;
@@ -95,6 +103,9 @@ public class CompactBlockHeaderMsg extends Message implements Serializable {
             && Objects.equal(this.nonce, other.nonce);
     }
 
+    /**
+     * Returns a Domain Class.
+     */
     public HeaderReadOnly toBean() {
         HeaderBean result = new HeaderBean((AbstractBlock) null);
         result.setTime(this.creationTimestamp);
@@ -180,7 +191,7 @@ public class CompactBlockHeaderMsg extends Message implements Serializable {
         }
 
         public CompactBlockHeaderMsg build() {
-            return new CompactBlockHeaderMsg(hash, version, prevBlockHash, merkleRoot, creationTimestamp, difficultyTarget, nonce);
+            return new CompactBlockHeaderMsg(hash, version, prevBlockHash, merkleRoot, creationTimestamp, difficultyTarget, nonce, super.payloadChecksum);
         }
     }
 }

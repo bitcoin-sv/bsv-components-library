@@ -15,7 +15,8 @@ public class BlockTxnMsg extends Message implements Serializable {
     private final HashMsg blockHash;
     private final List<TxMsg> transactions;
 
-    public BlockTxnMsg(HashMsg blockHash, List<TxMsg> transactions) {
+    public BlockTxnMsg(HashMsg blockHash, List<TxMsg> transactions, long payloadChecksum) {
+        super(payloadChecksum);
         this.blockHash = blockHash;
         this.transactions = transactions;
         init();
@@ -51,6 +52,9 @@ public class BlockTxnMsg extends Message implements Serializable {
                     .transactions(this.transactions);
     }
 
+    /**
+     * Builder
+     */
     public static class BlockTxnMsgBuilder extends MessageBuilder {
         private HashMsg blockHash;
         private List<TxMsg> transactions;
@@ -66,7 +70,7 @@ public class BlockTxnMsg extends Message implements Serializable {
         }
 
         public BlockTxnMsg build() {
-            return new BlockTxnMsg(blockHash, transactions);
+            return new BlockTxnMsg(blockHash, transactions, super.payloadChecksum);
         }
     }
 }

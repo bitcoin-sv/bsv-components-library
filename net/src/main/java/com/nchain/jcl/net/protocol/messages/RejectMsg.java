@@ -120,7 +120,13 @@ public class RejectMsg extends Message implements Serializable {
     private Sha256Hash dataHash;
 
 
-    protected RejectMsg(VarStrMsg message, RejectCode ccode, VarStrMsg reason ,Sha256Hash dataHash, byte[] data) {
+    protected RejectMsg(VarStrMsg message,
+                        RejectCode ccode,
+                        VarStrMsg reason ,
+                        Sha256Hash dataHash,
+                        byte[] data,
+                        long payloadChecksum) {
+        super(payloadChecksum);
         this.message = message;
         this.ccode = ccode;
         this.reason = reason;
@@ -130,7 +136,7 @@ public class RejectMsg extends Message implements Serializable {
     }
 
     @Override
-    public String getMessageType() { return MESSAGE_TYPE; }
+    public String getMessageType()  { return MESSAGE_TYPE; }
     public VarStrMsg getMessage()   { return this.message; }
     public RejectCode getCcode()    { return this.ccode; }
     public VarStrMsg getReason()    { return this.reason; }
@@ -224,7 +230,7 @@ public class RejectMsg extends Message implements Serializable {
         }
 
         public RejectMsg build() {
-            return new RejectMsg(message, ccode, reason, dataHash, data);
+            return new RejectMsg(message, ccode, reason, dataHash, data, super.payloadChecksum);
         }
     }
 }

@@ -41,7 +41,16 @@ public final class BlockHeaderMsg extends Message implements Serializable {
     protected final long nonce;
     private final VarIntMsg transactionCount;
 
-    public BlockHeaderMsg(HashMsg hash, long version, HashMsg prevBlockHash, HashMsg merkleRoot, long creationTimestamp, long difficultyTarget, long nonce, VarIntMsg transactionCount) {
+    public BlockHeaderMsg(HashMsg hash,
+                          long version,
+                          HashMsg prevBlockHash,
+                          HashMsg merkleRoot,
+                          long creationTimestamp,
+                          long difficultyTarget,
+                          long nonce,
+                          VarIntMsg transactionCount,
+                          long payloadChecksum) {
+        super(payloadChecksum);
         this.hash = hash;
         this.version = version;
         this.prevBlockHash = prevBlockHash;
@@ -200,7 +209,7 @@ public final class BlockHeaderMsg extends Message implements Serializable {
         }
 
         public BlockHeaderMsg build() {
-            return new BlockHeaderMsg(hash, version, prevBlockHash, merkleRoot, creationTimestamp, difficultyTarget, nonce, transactionCount);
+            return new BlockHeaderMsg(hash, version, prevBlockHash, merkleRoot, creationTimestamp, difficultyTarget, nonce, transactionCount, super.payloadChecksum);
         }
     }
 }

@@ -17,7 +17,8 @@ public class SendCompactBlockMsg extends Message implements Serializable {
     private final boolean highBandwidthRelaying;
     private final long version;
 
-    public SendCompactBlockMsg(boolean highBandwidthRelaying, long version) {
+    public SendCompactBlockMsg(boolean highBandwidthRelaying, long version, long payloadChecksum) {
+        super(payloadChecksum);
         this.highBandwidthRelaying = highBandwidthRelaying;
         this.version = version;
         init();
@@ -55,7 +56,15 @@ public class SendCompactBlockMsg extends Message implements Serializable {
                         .highBandwidthRelaying(this.highBandwidthRelaying)
                         .version(this.version);
     }
+    @Override
+    public String toString() {
+        return "SendCompactBlockMsg(highBandwidthRelaying=" + isHighBandwidthRelaying() +
+            ", version=" + getVersion() + ")";
+    }
 
+    /**
+     * Builder
+     */
     public static class SendCompactBlockMsgBuilder extends MessageBuilder {
         private boolean highBandwidthRelaying;
         private long version;
@@ -71,13 +80,7 @@ public class SendCompactBlockMsg extends Message implements Serializable {
         }
 
         public SendCompactBlockMsg build() {
-            return new SendCompactBlockMsg(highBandwidthRelaying, version);
+            return new SendCompactBlockMsg(highBandwidthRelaying, version, super.payloadChecksum);
         }
-    }
-
-    @Override
-    public String toString() {
-        return "SendCompactBlockMsg(highBandwidthRelaying=" + isHighBandwidthRelaying() +
-            ", version=" + getVersion() + ")";
     }
 }

@@ -16,7 +16,8 @@ public final class MemPoolMsg extends Message implements Serializable {
     public static final String MESSAGE_TYPE = "mempool";
     private static final int MESSAGE_LENGTH = 0;
 
-    public MemPoolMsg(){
+    public MemPoolMsg(long payloadChecksum){
+        super(payloadChecksum);
         init();
     }
 
@@ -63,10 +64,10 @@ public final class MemPoolMsg extends Message implements Serializable {
      * Builder
      */
     public static class MemPoolMsgBuilder extends MessageBuilder{
-        MemPoolMsgBuilder() {}
+        public MemPoolMsgBuilder() {}
 
         public MemPoolMsg build() {
-            return new MemPoolMsg();
+            return new MemPoolMsg(super.payloadChecksum);
         }
     }
 }

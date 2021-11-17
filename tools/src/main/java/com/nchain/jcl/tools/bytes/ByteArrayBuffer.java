@@ -201,7 +201,7 @@ public class ByteArrayBuffer implements ByteArray {
     /** Returns a Byte Array starting at the given position with the given length */
     public synchronized byte[] get(long offset, int length) {
         checkArgument(length + offset <= this.size(),
-                " trying to extractReader too much data (not enough in the byteArray)");
+                " trying to extract too much data (not enough in the byteArray)");
 
         byte[] result = new byte[length];
         int size = 0;

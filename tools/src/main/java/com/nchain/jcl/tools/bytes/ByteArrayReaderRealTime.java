@@ -91,8 +91,8 @@ public class ByteArrayReaderRealTime extends ByteArrayReaderOptimized {
         return super.read(length);
     }
 
-    public byte[] get(int offset, int length) {
-        waitForBytes(offset + length);
+    public byte[] get(long offset, int length) {
+        waitForBytes((int) (offset + length));
         return super.get(offset, length);
     }
 

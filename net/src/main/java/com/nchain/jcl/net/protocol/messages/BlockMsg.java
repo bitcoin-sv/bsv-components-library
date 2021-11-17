@@ -25,7 +25,8 @@ public final class BlockMsg extends Message implements Serializable {
     private final List<TxMsg> transactionMsg;
 
     // Constructor (specifying the Block Header and All Txs
-    protected BlockMsg(BlockHeaderMsg blockHeader, List<TxMsg> transactionMsgs) {
+    protected BlockMsg(BlockHeaderMsg blockHeader, List<TxMsg> transactionMsgs, long payloadChecksum) {
+        super(payloadChecksum);
         this.blockHeader = blockHeader;
         this.transactionMsg = transactionMsgs;
         init();
@@ -107,7 +108,7 @@ public final class BlockMsg extends Message implements Serializable {
         }
 
         public BlockMsg build() {
-            return new BlockMsg(blockHeader, transactionMsgs);
+            return new BlockMsg(blockHeader, transactionMsgs, super.payloadChecksum);
         }
 
     }

@@ -288,7 +288,16 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
     // If the Message is OK, it returns NULL
     private String findErrorInMsg(BitcoinMsg<?> msg) {
         if (msg == null) return "Msg is Empty";
-        if (msg.getHeader().getMagic() != config.getBasicConfig().getMagicPackage()) return "Network Id is incorrect";
+
+        // Checks the checksum:
+        if (config.isVerifyChecksum() && msg.getHeader().getChecksum() != msg.getBody().getPayloadChecksum()) {
+            return "Checksum is Wrong";
+        }
+
+        // Checks the network specified in magic number:
+        if (msg.getHeader().getMagic() != config.getBasicConfig().getMagicPackage()) {
+            return "Network Id is incorrect";
+        }
 
         // Checks for 4GB Support:
         if (msg.getLengthInbytes() >= config.getBasicConfig().getThresholdSizeExtMsgs()) {

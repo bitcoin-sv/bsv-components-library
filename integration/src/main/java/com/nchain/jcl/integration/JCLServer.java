@@ -17,6 +17,7 @@ import com.nchain.jcl.net.protocol.messages.GetdataMsg;
 import com.nchain.jcl.net.protocol.messages.InventoryVectorMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
+import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerConfig;
 import com.nchain.jcl.net.protocol.wrapper.P2P;
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder;
 import com.nchain.jcl.tools.config.RuntimeConfigImpl;
@@ -61,13 +62,13 @@ public class JCLServer {
         boolean useCachedThreadPool;
         boolean useTxsBatch;
         int txsBatchSize;
+        boolean calculateChecksum = true; // default
 
         public JCLServerConfig(Net net, int minPeers, int maxPeers, boolean pingEnabled) {
             this.net = net;
             this.minPeers = minPeers;
             this.maxPeers = maxPeers;
             this.pingEnabled = pingEnabled;
-            this.timeLimit = timeLimit;
         }
     }
 
@@ -180,6 +181,13 @@ public class JCLServer {
                     .build();
         }
 
+        // If the checksum is disabled in the config, we disable it in JCL
+        if (!config.calculateChecksum) {
+            DeserializerConfig deserializerConfig = messageConfig.getDeserializerConfig().toBuilder()
+                    .calculateChecksum(false)
+                    .build();
+            messageConfig = messageConfig.toBuilder().deserializerConfig(deserializerConfig).build();
+        }
         // We build the P2P Service
         P2PBuilder p2pBuilder = new P2PBuilder("JCLServer")
                 .config(runtimeConfig)
@@ -309,12 +317,17 @@ public class JCLServer {
         String txsBatchSizeStr = getParamValue("txsBatchSize", args);
         int txsBatchSize = (txsBatchSizeStr != null) ? Integer.parseInt(txsBatchSizeStr) : 100;
 
+        // We get the "calculateChecksum' parameter:
+        String calculateChecksumStr = getParamValue("calculateChecksum", args);
+        boolean calculateChecksum = (calculateChecksumStr != null) ? Boolean.valueOf(calculateChecksumStr) : false;
+
         JCLServerConfig result = CONFIGS.get(net);
         result.timeLimit = timeLimit;
         result.maxThreads = maxThreads;
         result.useCachedThreadPool = useCachedThreadPool;
         result.useTxsBatch = useTxsBatch;
         result.txsBatchSize = txsBatchSize;
+        result.calculateChecksum = calculateChecksum;
         return result;
     }
 

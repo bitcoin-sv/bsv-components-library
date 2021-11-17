@@ -27,7 +27,8 @@ public final class PartialBlockHeaderMsg extends Message implements Serializable
     // Indicates the format that the Txs of this block will be notified with:
     private final BlockTxsFormat blockTxsFormat;
 
-    public PartialBlockHeaderMsg(BlockHeaderMsg blockHeader, VarIntMsg txsSizeInBytes, BlockTxsFormat blockTxsFormat) {
+    public PartialBlockHeaderMsg(BlockHeaderMsg blockHeader, VarIntMsg txsSizeInBytes, BlockTxsFormat blockTxsFormat, long payloadChecksum) {
+        super(payloadChecksum);
         this.blockHeader = blockHeader;
         this.txsSizeInBytes = txsSizeInBytes;
         this.blockTxsFormat = blockTxsFormat;
@@ -109,7 +110,7 @@ public final class PartialBlockHeaderMsg extends Message implements Serializable
         }
 
         public PartialBlockHeaderMsg build() {
-            return new PartialBlockHeaderMsg(blockHeader, txsSizeInBytes, blockTxsFormat);
+            return new PartialBlockHeaderMsg(blockHeader, txsSizeInBytes, blockTxsFormat, super.payloadChecksum);
         }
     }
 }

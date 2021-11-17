@@ -19,7 +19,8 @@ public final class GetBlocksMsg extends Message implements Serializable {
     public static final String MESSAGE_TYPE = "getblocks";
     private final BaseGetDataAndHeaderMsg baseGetDataAndHeaderMsg;
 
-    protected GetBlocksMsg(BaseGetDataAndHeaderMsg baseGetDataAndHeaderMsg) {
+    protected GetBlocksMsg(BaseGetDataAndHeaderMsg baseGetDataAndHeaderMsg, long payloadChecksum) {
+        super(payloadChecksum);
         this.baseGetDataAndHeaderMsg = baseGetDataAndHeaderMsg;
         init();
     }
@@ -80,7 +81,7 @@ public final class GetBlocksMsg extends Message implements Serializable {
         }
 
         public GetBlocksMsg build() {
-            return new GetBlocksMsg(baseGetDataAndHeaderMsg);
+            return new GetBlocksMsg(baseGetDataAndHeaderMsg, super.payloadChecksum);
         }
     }
 }

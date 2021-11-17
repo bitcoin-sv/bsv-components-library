@@ -2,12 +2,10 @@ package com.nchain.jcl.net.unit.protocol.serialization.streams
 
 import com.nchain.jcl.net.network.PeerAddress
 import com.nchain.jcl.net.network.streams.PeerOutputStream
-import com.nchain.jcl.net.network.streams.PeerOutputStreamImpl
 import com.nchain.jcl.net.network.streams.StreamDataEvent
 import com.nchain.jcl.net.network.streams.StreamState
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
-import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.messages.HeaderMsg
 import com.nchain.jcl.net.protocol.messages.NetAddressMsg
 import com.nchain.jcl.net.protocol.messages.VarStrMsg
@@ -97,7 +95,7 @@ class SerializerStreamSpec extends Specification {
                     .command(versionMsg.getMessageType())
                     .length((int) versionMsg.getLengthInBytes())
                     .magic(config.getBasicConfig().getMagicPackage())
-                    .checksum(checksum)
+                    .payloadChecksum(checksum)
                     .build();
 
             //build the bitcoin message from the constructed header and version message

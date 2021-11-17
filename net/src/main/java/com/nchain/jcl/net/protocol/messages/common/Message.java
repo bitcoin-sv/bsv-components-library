@@ -30,30 +30,26 @@ public abstract class Message implements Serializable {
     // serialized.
     protected long lengthInBytes;
 
-    // checksum calculated out of the Message bytes. Its NOT part of the physical message on the wire
-    protected long checksum;
+    // checksum calculated out of the Message bytes. Its NOT part of the physical message on the wire and it
+    // might ne or not populated based on configuration
+    protected long payloadChecksum;
 
-    // getter
-    public long getLengthInBytes() {
-        return lengthInBytes;
-    }
+    /** Constructor */
+    public Message() {}
 
-    // getter
-    public long getChecksum() { return this.checksum;}
+    /** Constructor */
+    public Message(long payloadChecksum) { this.payloadChecksum = payloadChecksum; }
 
-    // updates the length
-    public void updateLength(long length) {
-         lengthInBytes = length;
-    }
+    // getters:
+    public long getLengthInBytes()   { return lengthInBytes; }
+    public long getPayloadChecksum() { return this.payloadChecksum;}
 
-    // updates the checksum
-    public void updateChecksum(long checksum) { this.checksum = checksum;}
 
-    // initialize the message length and validate its values
+
+    /** initialize the message length and validate its values */
     public void init() {
         validateMessage();
-        long length = calculateLength();
-        updateLength(length);
+        this.lengthInBytes = calculateLength();
     }
 
     /**
@@ -64,23 +60,23 @@ public abstract class Message implements Serializable {
      */
     abstract public String getMessageType();
 
-    // calculates the length of the message
+    /** calculates the length of the message. To override in extending classes */
     abstract protected long calculateLength();
 
-    // calculates the length of the message
+    /** calculates the length of the message. To override in extending classes */
     abstract protected void  validateMessage();
 
-    // Returns the builder if we want to modify the content (it will crate a new instance)
+    /** Returns the builder if we want to modify the content (it will crate a new instance) */
     abstract public MessageBuilder toBuilder();
 
     /**
      * Abstract Builder that can be extended by sub-classes
      */
     public static abstract class MessageBuilder {
-        protected long checksum;
+        protected long payloadChecksum;
 
-        public MessageBuilder checksum(long checksum) {
-            this.checksum = checksum;
+        public MessageBuilder payloadChecksum(long payloadChecksum) {
+            this.payloadChecksum = payloadChecksum;
             return this;
         }
 

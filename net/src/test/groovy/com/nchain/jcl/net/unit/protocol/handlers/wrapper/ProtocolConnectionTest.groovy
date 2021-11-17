@@ -51,10 +51,22 @@ class ProtocolConnectionTest extends Specification {
             AtomicInteger numConnections = new AtomicInteger()
             AtomicInteger numDisconnections = new AtomicInteger()
 
-            server.EVENTS.PEERS.CONNECTED.forEach({ e -> numConnections.incrementAndGet()})
-            client.EVENTS.PEERS.CONNECTED.forEach({ e -> numConnections.incrementAndGet()})
-            server.EVENTS.PEERS.DISCONNECTED.forEach({ e -> numDisconnections.incrementAndGet()})
-            client.EVENTS.PEERS.DISCONNECTED.forEach({ e -> numDisconnections.incrementAndGet()})
+            server.EVENTS.PEERS.CONNECTED.forEach({ e ->
+            println(" Server > Connection Event")
+                numConnections.incrementAndGet()
+            })
+            client.EVENTS.PEERS.CONNECTED.forEach({ e ->
+                println(" Client > Connection Event")
+                numConnections.incrementAndGet()
+            })
+            server.EVENTS.PEERS.DISCONNECTED.forEach({ e ->
+                println(" Server > Disconnection Event")
+                numDisconnections.incrementAndGet()
+            })
+            client.EVENTS.PEERS.DISCONNECTED.forEach({ e ->
+                println(" Client > Disconnection Event")
+                numDisconnections.incrementAndGet()
+            })
 
 
         when:

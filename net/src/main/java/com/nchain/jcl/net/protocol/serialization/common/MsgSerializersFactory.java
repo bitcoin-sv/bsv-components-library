@@ -4,7 +4,7 @@ package com.nchain.jcl.net.protocol.serialization.common;
 import com.nchain.jcl.net.protocol.messages.*;
 import com.nchain.jcl.net.protocol.serialization.*;
 import com.nchain.jcl.net.protocol.serialization.largeMsgs.BigBlockDeserializer;
-import com.nchain.jcl.net.protocol.serialization.largeMsgs.BigBlockRawDeserializer;
+import com.nchain.jcl.net.protocol.serialization.largeMsgs.RawBigBlockDeserializer;
 import com.nchain.jcl.net.protocol.serialization.largeMsgs.BigBlockTxnDeserializer;
 import com.nchain.jcl.net.protocol.serialization.largeMsgs.LargeMessageDeserializer;
 
@@ -75,7 +75,7 @@ public class MsgSerializersFactory {
         serializers.put(DsDetectedMsg.MESSAGE_TYPE.toUpperCase(), DsDetectedMsgSerializer.getInstance());
 
         rawSerializers.put(RawTxMsg.MESSAGE_TYPE.toUpperCase(), RawTxMsgSerializer.getInstance());
-        rawSerializers.put(RawTxBlockMsg.MESSAGE_TYPE.toUpperCase(), RawTxBlockMsgSerializer.getInstance());
+        rawSerializers.put(RawBlockMsg.MESSAGE_TYPE.toUpperCase(), RawBlockMsgSerializer.getInstance());
     }
 
     private MsgSerializersFactory() {
@@ -114,7 +114,7 @@ public class MsgSerializersFactory {
         // are already running in their own Thread.
 
         if (command.equalsIgnoreCase(BlockMsg.MESSAGE_TYPE)) {
-            result = (RAW_SERIALIZERS_ENABLED) ? new BigBlockRawTxDeserializer() : new BigBlockDeserializer();
+            result = (RAW_SERIALIZERS_ENABLED) ? new RawBigBlockDeserializer() : new BigBlockDeserializer();
         } else if (command.equalsIgnoreCase(BlockTxnMsg.MESSAGE_TYPE)) {
             result = new BigBlockTxnDeserializer();
         } else {

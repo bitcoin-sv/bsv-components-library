@@ -8,9 +8,9 @@ import java.util.List;
 /**
  * @author m.fletcher@nchain.com
  * Copyright (c) 2018-2021 nChain Ltd
- * @date 24/08/2021
  *
- * This message is used by the BlockDetailsMsg, and contains a list of ancestor histories up to the point of the fork, along with the merkle proof msg of the block that contains the double spend.
+ * This message is used by the DsDetectedMsg, and contains a list of ancestor histories up to the point of the fork,
+ * along with the merkle proof msg of the block that contains the double spend.
  */
 public class BlockDetailsMsg extends Message {
 
@@ -20,16 +20,12 @@ public class BlockDetailsMsg extends Message {
     private List<BlockHeaderMsg> headerMsg;
     private MerkleProofMsg merkleProofMsg;
 
-    public BlockDetailsMsg(VarIntMsg headerCount, List<BlockHeaderMsg> headerMsg, MerkleProofMsg merkleProofMsg) {
+    public BlockDetailsMsg(VarIntMsg headerCount, List<BlockHeaderMsg> headerMsg, MerkleProofMsg merkleProofMsg, long payloadChecksum) {
+        super(payloadChecksum);
         this.headerCount = headerCount;
         this.headerMsg = headerMsg;
         this.merkleProofMsg = merkleProofMsg;
         init();
-    }
-
-    @Override
-    public String getMessageType() {
-        return MESSAGE_TYPE;
     }
 
     @Override
@@ -40,33 +36,14 @@ public class BlockDetailsMsg extends Message {
     }
 
     @Override
-    protected void validateMessage() {
-    }
+    protected void validateMessage() {}
 
+    @Override
+    public String getMessageType()              { return MESSAGE_TYPE; }
+    public List<BlockHeaderMsg> getHeaderMsg()  { return headerMsg; }
+    public VarIntMsg getHeaderCount()           { return headerCount; }
+    public MerkleProofMsg getMerkleProofMsg()   { return merkleProofMsg; }
 
-    public List<BlockHeaderMsg> getHeaderMsg() {
-        return headerMsg;
-    }
-
-    public void setHeaderMsg(List<BlockHeaderMsg> headerMsg) {
-        this.headerMsg = headerMsg;
-    }
-
-    public VarIntMsg getHeaderCount() {
-        return headerCount;
-    }
-
-    public void setHeaderCount(VarIntMsg headerCount) {
-        this.headerCount = headerCount;
-    }
-
-    public MerkleProofMsg getMerkleProofMsg() {
-        return merkleProofMsg;
-    }
-
-    public void setMerkleProofMsg(MerkleProofMsg merkleProofMsg) {
-        this.merkleProofMsg = merkleProofMsg;
-    }
 
     public static BlockDetailsMsgBuilder builder(){
         return new BlockDetailsMsgBuilder();
@@ -80,6 +57,9 @@ public class BlockDetailsMsg extends Message {
                     .merkleProofMsg(this.merkleProofMsg);
     }
 
+    /**
+     * Builder
+     */
     public static final class BlockDetailsMsgBuilder extends  MessageBuilder{
         private VarIntMsg headerCount;
         private List<BlockHeaderMsg> headerMsg;
@@ -108,7 +88,7 @@ public class BlockDetailsMsg extends Message {
         }
 
         public BlockDetailsMsg build() {
-            return new BlockDetailsMsg(headerCount, headerMsg, merkleProofMsg);
+            return new BlockDetailsMsg(headerCount, headerMsg, merkleProofMsg, super.payloadChecksum);
         }
     }
 }

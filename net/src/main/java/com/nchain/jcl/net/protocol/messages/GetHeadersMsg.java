@@ -18,7 +18,8 @@ public final class GetHeadersMsg extends Message implements Serializable {
     public static final String MESSAGE_TYPE = "getheaders";
     private final BaseGetDataAndHeaderMsg baseGetDataAndHeaderMsg;
 
-    protected GetHeadersMsg(BaseGetDataAndHeaderMsg baseGetDataAndHeaderMsg) {
+    protected GetHeadersMsg(BaseGetDataAndHeaderMsg baseGetDataAndHeaderMsg, long payloadChecksum) {
+        super(payloadChecksum);
         this.baseGetDataAndHeaderMsg = baseGetDataAndHeaderMsg;
         init();
     }
@@ -78,7 +79,7 @@ public final class GetHeadersMsg extends Message implements Serializable {
         }
 
         public GetHeadersMsg build() {
-            return new GetHeadersMsg(baseGetDataAndHeaderMsg);
+            return new GetHeadersMsg(baseGetDataAndHeaderMsg, super.payloadChecksum);
         }
     }
 }

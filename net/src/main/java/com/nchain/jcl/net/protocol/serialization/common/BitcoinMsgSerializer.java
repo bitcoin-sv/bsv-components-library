@@ -39,6 +39,11 @@ public interface BitcoinMsgSerializer {
 
 
     /**
+     * It calculates the checksum of the bytes contained in the reader. The checksum follows the bitcoin format
+     */
+    long calculateChecksum(ByteArrayReader byteReader, long numBytes);
+
+    /**
      * It takes a Byte Source and returns the Bitcoin Message contained in it. It assumes that the Byte source contains
      * a full valid Bitcoin Message, including Header + Body.
      *

@@ -23,7 +23,7 @@ import static com.google.common.base.Preconditions.checkState;
  * In this case, we use {@link RawMsg} to store the Raw part, which is ONLY the Txs. The Header is stored separately
  * ion this Class.
  */
-public final class RawTxBlockMsg extends Message implements Serializable {
+public final class RawBlockMsg extends Message implements Serializable {
 
     public static final String MESSAGE_TYPE = "Block";
     // Txs in raw format (it might contains partial Txs (broken in the middle):
@@ -34,7 +34,8 @@ public final class RawTxBlockMsg extends Message implements Serializable {
     private long txsByteLength;
 
     // Constructor (specifying the Block Header and All Txs
-    protected RawTxBlockMsg(BlockHeaderMsg blockHeader, List<RawTxMsg> txs) {
+    protected RawBlockMsg(BlockHeaderMsg blockHeader, List<RawTxMsg> txs, long payloadChecksum) {
+        super(payloadChecksum);
         this.blockHeader = blockHeader;
         txsByteLength = txs.stream().collect(Collectors.summingLong(t -> t.getLengthInBytes()));
         this.txs = txs;
@@ -88,15 +89,22 @@ public final class RawTxBlockMsg extends Message implements Serializable {
         if (obj.getClass() != getClass()) {
             return false;
         }
-        RawTxBlockMsg other = (RawTxBlockMsg) obj;
+        RawBlockMsg other = (RawBlockMsg) obj;
         return Objects.equal(this.blockHeader, other.blockHeader)
                 && Objects.equal(this.txs, other.txs);
+    }
+
+    @Override
+    public RawTxBlockMsgBuilder toBuilder() {
+        return new RawTxBlockMsgBuilder()
+                    .blockHeader(this.blockHeader)
+                    .txs(this.txs);
     }
 
     /**
      * Builder
      */
-    public static class RawTxBlockMsgBuilder {
+    public static class RawTxBlockMsgBuilder extends MessageBuilder {
         private BlockHeaderMsg blockHeader;
         private List<RawTxMsg> txs;
 
@@ -113,8 +121,8 @@ public final class RawTxBlockMsg extends Message implements Serializable {
             return this;
         }
 
-        public RawTxBlockMsg build() {
-            return new RawTxBlockMsg(blockHeader, txs);
+        public RawBlockMsg build() {
+            return new RawBlockMsg(blockHeader, txs, super.payloadChecksum);
         }
 
     }

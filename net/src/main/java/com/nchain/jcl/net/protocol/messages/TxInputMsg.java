@@ -34,7 +34,8 @@ public final class TxInputMsg extends Message implements Serializable {
     private final long sequence;
 
 
-    protected TxInputMsg(TxOutPointMsg pre_outpoint, byte[] signature_script, long sequence) {
+    protected TxInputMsg(TxOutPointMsg pre_outpoint, byte[] signature_script, long sequence, long payloadChecksum) {
+        super(payloadChecksum);
         this.pre_outpoint = pre_outpoint;
         this.signature_script = signature_script;
         this.script_length = VarIntMsg.builder().value(signature_script.length).build();
@@ -126,7 +127,7 @@ public final class TxInputMsg extends Message implements Serializable {
         }
 
         public TxInputMsg build() {
-            return new TxInputMsg(pre_outpoint, signature_script, sequence);
+            return new TxInputMsg(pre_outpoint, signature_script, sequence, super.payloadChecksum);
         }
     }
 }

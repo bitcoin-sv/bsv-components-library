@@ -38,7 +38,8 @@ public final class VarIntMsg extends Message implements Serializable {
 
     private final long value;
 
-    protected VarIntMsg(long value) {
+    protected VarIntMsg(long value, long payloadChecksum) {
+        super(payloadChecksum);
         this.value = value;
         init();
     }
@@ -114,7 +115,7 @@ public final class VarIntMsg extends Message implements Serializable {
         }
 
         public VarIntMsg build() {
-            return new VarIntMsg(value);
+            return new VarIntMsg(value, super.payloadChecksum);
         }
     }
 }

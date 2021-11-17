@@ -17,10 +17,14 @@ public final class GetAddrMsg extends Message implements Serializable {
 
     // Message Type (stored in the "command" field in the HeaderMsg of a Bitcoin Message
     public static final String MESSAGE_TYPE = "getaddr";
+
     // The  GetAddr is an empty message
     private static final int MESSAGE_LENGTH = 0;
 
-   protected GetAddrMsg() { init();}
+   protected GetAddrMsg(long payloadChecksum) {
+       super(payloadChecksum);
+       init();
+   }
 
     @Override
     public String getMessageType() { return MESSAGE_TYPE; }
@@ -34,6 +38,7 @@ public final class GetAddrMsg extends Message implements Serializable {
     @Override
     protected void validateMessage() {}
 
+    @Override
     public String toString() {
         return "GetAddrMsg()";
     }
@@ -65,7 +70,7 @@ public final class GetAddrMsg extends Message implements Serializable {
     public static class GetAddrMsgBuilder extends MessageBuilder{
         GetAddrMsgBuilder() {}
         public GetAddrMsg build() {
-            return new GetAddrMsg();
+            return new GetAddrMsg(super.payloadChecksum);
         }
     }
 }

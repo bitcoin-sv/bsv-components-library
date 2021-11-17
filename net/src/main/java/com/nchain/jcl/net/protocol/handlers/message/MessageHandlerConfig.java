@@ -47,13 +47,24 @@ public final class MessageHandlerConfig extends HandlerConfig {
     private HashMap<Class, MessageBatchConfig> msgBatchConfigs = new HashMap<>();
 
 
+    /**
+     * If TRUe, then the CHECKSuM of all the INCOMING messages is calculated and checked against the "checksum" field
+     * in them, i order to verity they are correct.
+     *
+     * NOTE: If this is TRUE, then the  "calculateChecksum" FLAG in the "DeserializerConfig" within this class must be
+     * also set to TRUE.
+     *
+     * NOTE: This only accepts checksum for Incoming Messages. For OUTCOMING Messages, checksum is ALWAYS generated.
+     */
+    private boolean verifyChecksum;
 
     MessageHandlerConfig(ProtocolBasicConfig basicConfig,
                          MessagePreSerializer preSerializer,
                          DeserializerConfig deserializerConfig,
                          boolean rawTxsEnabled,
                          int maxNumberDedicatedConnections,
-                         HashMap<Class, MessageBatchConfig> msgBatchConfigs
+                         HashMap<Class, MessageBatchConfig> msgBatchConfigs,
+                         boolean verifyChecksum
     ) {
         if (basicConfig != null)
             this.basicConfig = basicConfig;
@@ -63,6 +74,7 @@ public final class MessageHandlerConfig extends HandlerConfig {
         this.rawTxsEnabled = rawTxsEnabled;
         this.maxNumberDedicatedConnections = maxNumberDedicatedConnections;
         this.msgBatchConfigs = msgBatchConfigs;
+        this.verifyChecksum = verifyChecksum;
     }
 
     public ProtocolBasicConfig getBasicConfig()                     { return this.basicConfig; }
@@ -71,13 +83,15 @@ public final class MessageHandlerConfig extends HandlerConfig {
     public boolean isRawTxsEnabled()                                { return this.rawTxsEnabled; }
     public int getMaxNumberDedicatedConnections()                   { return this.maxNumberDedicatedConnections;}
     public HashMap<Class, MessageBatchConfig> getMsgBatchConfigs()  { return this.msgBatchConfigs;}
+    public boolean isVerifyChecksum()                               { return this.verifyChecksum;}
 
     @Override
     public String toString() {
         return "MessageHandlerConfig(basicConfig=" + this.getBasicConfig()
                 + ", preSerializer=" + this.getPreSerializer() + ", deserializerConfig="
                 + this.getDeserializerConfig() + ", maxNumberDedicatedConnections=" + maxNumberDedicatedConnections
-                + ", msgBatchConfigs=" + msgBatchConfigs + ")";
+                + ", msgBatchConfigs=" + msgBatchConfigs
+                + ", verifyChecksum=" + this.verifyChecksum + ")";
     }
 
     public MessageHandlerConfigBuilder toBuilder() {
@@ -104,6 +118,7 @@ public final class MessageHandlerConfig extends HandlerConfig {
         private boolean rawTxsEnabled = false;
         private int maxNumberDedicatedConnections = 10;
         private HashMap<Class, MessageBatchConfig> msgBatchConfigs = new HashMap<>();
+        private boolean verifyChecksum;
 
         MessageHandlerConfigBuilder() { }
 
@@ -152,8 +167,13 @@ public final class MessageHandlerConfig extends HandlerConfig {
             return this;
         }
 
+        public MessageHandlerConfig.MessageHandlerConfigBuilder verifyChecksum(boolean verifyChecksum) {
+            this.verifyChecksum = verifyChecksum;
+            return this;
+        }
+
         public MessageHandlerConfig build() {
-            return new MessageHandlerConfig(basicConfig, preSerializer, deserializerConfig, rawTxsEnabled, maxNumberDedicatedConnections, msgBatchConfigs);
+            return new MessageHandlerConfig(basicConfig, preSerializer, deserializerConfig, rawTxsEnabled, maxNumberDedicatedConnections, msgBatchConfigs, verifyChecksum);
         }
     }
 }

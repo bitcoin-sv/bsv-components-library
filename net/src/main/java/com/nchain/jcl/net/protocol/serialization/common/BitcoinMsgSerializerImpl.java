@@ -1,7 +1,6 @@
 package com.nchain.jcl.net.protocol.serialization.common;
 
 
-import com.nchain.jcl.net.protocol.config.ProtocolVersion;
 import com.nchain.jcl.net.protocol.messages.HeaderMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.Message;
@@ -45,40 +44,51 @@ public class BitcoinMsgSerializerImpl implements BitcoinMsgSerializer {
                 return HeaderMsgSerializer.getInstance().deserialize(context, byteReader);
     }
 
-
-
     @Override
     public <M extends Message> M deserializeBody(DeserializerContext context, HeaderMsg headerMsg, ByteArrayReader byteReader) {
+
+        // We check if the checksum of the BODY needs to be calculated first. A checksum needs to be calculated if:
+        // - The context says so AND:
+        // - The message is NOT "extended" (extended msgs were introduced in 70016) AND:
+        boolean needToCalculateChecksum = context.isCalculateChecksum() && !headerMsg.isExtendedMsg();
+        long checksum = needToCalculateChecksum ? calculateChecksum(byteReader, headerMsg.getMsgLength()) : 0;
+
+        // We deserialize the Body:
         DeserializerContext bodyContext = context.toBuilder()
                 .maxBytesToRead(headerMsg.getMsgLength())
                 .build();
         MessageSerializer<M> bodySerializer = getBodySerializer(headerMsg.getMsgCommand());
         M bodyMsg = bodySerializer.deserialize(bodyContext, byteReader);
+
+        // We inject the checksum if needed:
+        if (needToCalculateChecksum) {
+            bodyMsg = (M) bodyMsg.toBuilder().payloadChecksum(checksum).build();
+        }
         return bodyMsg;
     }
 
-    // It calculate the checksum of the next Message BODY sotred in the reader
-    private long calculateChecksum(DeserializerContext context, ByteArrayReader reader) {
-
+    @Override
+    public long calculateChecksum(ByteArrayReader byteReader, long numBytes) {
         final int MAX_BYTES_TO_READ = 2_000_000_000; // 2GB
 
+        // In case the message is empty:
+        if (numBytes == 0) { return 0;}
+
         // Optimization: (message < 2GB)
-        if (context.getMaxBytesToRead() <= MAX_BYTES_TO_READ) {
-            return Utils.readUint32(Sha256Hash.hashTwice(reader.get(context.getMaxBytesToRead().intValue())), 0);
+        if (numBytes <= MAX_BYTES_TO_READ) {
+            return Utils.readUint32(Sha256Hash.hashTwice(byteReader.get((int)numBytes)), 0);
         }
 
         // For the rest of messages >= 2GB:
         Sha256HashIncremental shaIncremental = new Sha256HashIncremental();
         long numBytesRead = 0;
-        long maxBytesToRead = context.getMaxBytesToRead();
-        while (numBytesRead < maxBytesToRead) {
-            int numBytesToRead = (int) Math.min(MAX_BYTES_TO_READ, (maxBytesToRead - numBytesRead));
-            shaIncremental.add(reader.get(numBytesRead, numBytesToRead));
+        while (numBytesRead < numBytes) {
+            int numBytesToRead = (int) Math.min(MAX_BYTES_TO_READ, (numBytes - numBytesRead));
+            shaIncremental.add(byteReader.get(numBytesRead, numBytesToRead));
             numBytesRead += numBytesToRead;
         }
         return Utils.readUint32(shaIncremental.hashTwice(), 0);
     }
-
 
     @Override
     public <M extends Message> BitcoinMsg<M> deserialize(DeserializerContext context, ByteArrayReader byteReader,
@@ -88,12 +98,7 @@ public class BitcoinMsgSerializerImpl implements BitcoinMsgSerializer {
         HeaderMsg headerMsg = HeaderMsgSerializer.getInstance().deserialize(context, byteReader);
 
         // Now we deserialize the Body:
-        // If we need to calculate the checksum, we do it ann inject it to the message:
         M bodyMsg = deserializeBody(context, headerMsg, byteReader);
-        if (context.isCalculateChecksum()) {
-            long checksum = calculateChecksum(context, byteReader);
-            bodyMsg = (M) bodyMsg.toBuilder().checksum(checksum).build();
-        }
 
         // We build a whole BTC Message and return it:
         BitcoinMsg<M> result = new BitcoinMsg<>(headerMsg, bodyMsg);

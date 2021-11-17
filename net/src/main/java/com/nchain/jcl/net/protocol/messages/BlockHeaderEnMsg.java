@@ -46,9 +46,21 @@ public final class BlockHeaderEnMsg extends Message implements Serializable {
     // Block for the first time, so its available for further use.
     private final HashMsg hash;
 
-    public BlockHeaderEnMsg(HashMsg hash, long version, HashMsg prevBlockHash, HashMsg merkleRoot, long creationTimestamp,
-                            long nBits, long nonce, long transactionCount, boolean noMoreHeaders,
-                            boolean hasCoinbaseData, List<HashMsg> coinbaseMerkleProof, VarStrMsg coinbase, TxMsg coinbaseTX) {
+    public BlockHeaderEnMsg(HashMsg hash,
+                            long version,
+                            HashMsg prevBlockHash,
+                            HashMsg merkleRoot,
+                            long creationTimestamp,
+                            long nBits,
+                            long nonce,
+                            long transactionCount,
+                            boolean noMoreHeaders,
+                            boolean hasCoinbaseData,
+                            List<HashMsg> coinbaseMerkleProof,
+                            VarStrMsg coinbase,
+                            TxMsg coinbaseTX,
+                            long payloadChecksum) {
+        super(payloadChecksum);
         this.hash = hash;
         this.version = version;
         this.prevBlockHash = prevBlockHash;
@@ -134,10 +146,6 @@ public final class BlockHeaderEnMsg extends Message implements Serializable {
                 && Objects.equal(this.hash, other.hash);
     }
 
-    public static BlockHeaderEnMsgBuilder builder() {
-        return new BlockHeaderEnMsgBuilder();
-    }
-
     @Override
     public BlockHeaderEnMsgBuilder toBuilder() {
         return new BlockHeaderEnMsgBuilder()
@@ -154,6 +162,10 @@ public final class BlockHeaderEnMsg extends Message implements Serializable {
                     .coinbaseMerkleProof(this.coinbaseMerkleProof)
                     .coinbase(this.coinbase)
                     .coinbaseTX(this.coinbaseTX);
+    }
+
+    public static BlockHeaderEnMsgBuilder builder() {
+        return new BlockHeaderEnMsgBuilder();
     }
 
     /**
@@ -242,7 +254,7 @@ public final class BlockHeaderEnMsg extends Message implements Serializable {
         }
 
         public BlockHeaderEnMsg build() {
-            return new BlockHeaderEnMsg(hash, version, prevBlockHash, merkleRoot, creationTimestamp, nBits, nonce, transactionCount, noMoreHeaders, hasCoinbaseData, coinbaseMerkleProof, coinbase, coinbaseTX);
+            return new BlockHeaderEnMsg(hash, version, prevBlockHash, merkleRoot, creationTimestamp, nBits, nonce, transactionCount, noMoreHeaders, hasCoinbaseData, coinbaseMerkleProof, coinbase, coinbaseTX, super.payloadChecksum);
         }
     }
 }

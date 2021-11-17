@@ -5,6 +5,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheStats;
 import com.nchain.jcl.net.protocol.messages.HeaderMsg;
 import com.nchain.jcl.net.protocol.messages.common.Message;
+import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.net.protocol.serialization.common.MsgSerializersFactory;
 import com.nchain.jcl.net.protocol.serialization.largeMsgs.LargeMessageDeserializer;
@@ -112,7 +113,7 @@ public class Deserializer {
     /** Expensive Operation. It deserializes a Message from the pipeline using the Bitcoin Serializers */
     private Message deserialize(CacheMsgKey key) {
         //System.out.println("DESERIALIZING " + key.headerMsg.getCommand() + " !!!!!!!!!");
-        return MsgSerializersFactory.getSerializer(key.headerMsg.getMsgCommand()).deserialize(key.desContext, key.reader);
+        return BitcoinMsgSerializerImpl.getInstance().deserializeBody(key.desContext, key.headerMsg, key.reader);
     }
 
     /**

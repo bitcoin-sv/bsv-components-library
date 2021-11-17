@@ -23,7 +23,8 @@ public class HashMsg extends Message implements Serializable {
 
     private final byte[] hashBytes;
 
-  protected HashMsg(byte[] hash) {
+  protected HashMsg(byte[] hash, long payloadChecksum) {
+      super(payloadChecksum);
         this.hashBytes = hash;
         init();
     }
@@ -85,7 +86,7 @@ public class HashMsg extends Message implements Serializable {
         }
 
         public HashMsg build() {
-            return new HashMsg(hash);
+            return new HashMsg(hash, super.payloadChecksum);
         }
 
     }

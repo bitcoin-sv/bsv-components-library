@@ -37,10 +37,11 @@ public final class AddrMsg extends Message implements Serializable {
     /**
      * Creates the AddrMsg Object.Use the corresponding byteArray to create the instance.
      */
-    protected AddrMsg( List<NetAddressMsg> addrList, long checksum) {
+    protected AddrMsg( List<NetAddressMsg> addrList, long payloadChecksum) {
+        super(payloadChecksum);
         this.addrList = ImmutableList.copyOf(addrList);
         this.count = VarIntMsg.builder().value(this.addrList.size()).build();
-        super.updateChecksum(checksum);
+        super.payloadChecksum = payloadChecksum;
         init();
     }
 
@@ -84,13 +85,13 @@ public final class AddrMsg extends Message implements Serializable {
                 && Objects.equal(this.count, other.count);
     }
 
-    public static AddrMsgBuilder builder() {
-        return new AddrMsgBuilder();
-    }
-
     @Override
     public AddrMsgBuilder toBuilder() {
         return new AddrMsgBuilder().addrList(this.addrList);
+    }
+
+    public static AddrMsgBuilder builder() {
+        return new AddrMsgBuilder();
     }
 
     /**
@@ -107,7 +108,7 @@ public final class AddrMsg extends Message implements Serializable {
         }
 
         public AddrMsg build() {
-            return new AddrMsg(addrList, super.checksum);
+            return new AddrMsg(addrList, super.payloadChecksum);
         }
     }
 }

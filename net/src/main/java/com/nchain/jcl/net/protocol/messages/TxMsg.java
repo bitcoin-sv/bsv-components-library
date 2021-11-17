@@ -60,7 +60,13 @@ public class TxMsg extends Message implements Serializable {
     private List<TxOutputMsg> tx_out;
     private long lockTime;
 
-    protected TxMsg(Optional<HashMsg> hash, long version, List<TxInputMsg> tx_in, List<TxOutputMsg> tx_out, long lockTime) {
+    protected TxMsg(Optional<HashMsg> hash,
+                    long version,
+                    List<TxInputMsg> tx_in,
+                    List<TxOutputMsg> tx_out,
+                    long lockTime,
+                    long payloadChecksum) {
+        super(payloadChecksum);
         this.hash = hash;
         this.version = version;
         this.tx_in = ImmutableList.copyOf(tx_in);
@@ -74,9 +80,6 @@ public class TxMsg extends Message implements Serializable {
     public TxMsg(Optional<HashMsg> hash) {
         this.hash = hash;
     }
-
-
-
 
     @Override
     protected long calculateLength() {
@@ -234,9 +237,10 @@ public class TxMsg extends Message implements Serializable {
         }
 
         public TxMsg build() {
-            return new TxMsg(hash, version, tx_in, tx_out, lockTime);
+            return new TxMsg(hash, version, tx_in, tx_out, lockTime, super.payloadChecksum);
         }
 
+        @Override
         public String toString() {
             return "TxMsg.TxMsgBuilder(hash=" + this.hash + ", version=" + this.version + ", tx_in=" + this.tx_in + ", tx_out=" + this.tx_out + ", lockTime=" + this.lockTime + ")";
         }

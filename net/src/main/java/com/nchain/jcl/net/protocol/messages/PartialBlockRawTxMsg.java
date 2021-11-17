@@ -21,7 +21,8 @@ public final class PartialBlockRawTxMsg extends Message {
 
     private final long txsByteLength;
 
-    public PartialBlockRawTxMsg(BlockHeaderMsg blockHeader, List<RawTxMsg> txs, VarIntMsg txsOrderNumber) {
+    public PartialBlockRawTxMsg(BlockHeaderMsg blockHeader, List<RawTxMsg> txs, VarIntMsg txsOrderNumber, long payloadChecksum) {
+        super(payloadChecksum);
         this.blockHeader = blockHeader;
         this.txs = txs;
         this.txsOrderNumber = txsOrderNumber;
@@ -44,21 +45,14 @@ public final class PartialBlockRawTxMsg extends Message {
         if (txsOrderNumber.getValue() < 0) throw new RuntimeException("the txs Order Number must be >= 0");
     }
 
+    @Override
     public String getMessageType() {
         return MESSAGE_TYPE;
     }
 
-    public BlockHeaderMsg getBlockHeader() {
-        return this.blockHeader;
-    }
-
-    public VarIntMsg getTxsOrderNumber() {
-        return this.txsOrderNumber;
-    }
-
-    public List<RawTxMsg> getTxs() {
-        return this.txs;
-    }
+    public BlockHeaderMsg getBlockHeader()  { return this.blockHeader; }
+    public VarIntMsg getTxsOrderNumber()    { return this.txsOrderNumber; }
+    public List<RawTxMsg> getTxs()          { return this.txs; }
 
     @Override
     public String toString() {
@@ -87,10 +81,18 @@ public final class PartialBlockRawTxMsg extends Message {
             && Objects.equal(this.txsOrderNumber, other.txsOrderNumber);
     }
 
+    @Override
+    public PartialBlockRawTxMsgBuilder toBuilder() {
+        return new PartialBlockRawTxMsgBuilder()
+                        .blockHeader(this.blockHeader)
+                        .txs(this.txs)
+                        .txsOrdersNumber(this.txsOrderNumber);
+    }
+
     /**
      * Builder
      */
-    public static class PartialBlockTXsMsgBuilder extends MessageBuilder {
+    public static class PartialBlockRawTxMsgBuilder extends MessageBuilder {
         private BlockHeaderMsg blockHeader;
         private List<RawTxMsg> txs;
         private VarIntMsg txsOrderNumber;
@@ -113,13 +115,13 @@ public final class PartialBlockRawTxMsg extends Message {
             return this;
         }
 
-        public PartialBlockRawTXsMsg.PartialBlockTXsMsgBuilder txsOrdersNumber(VarIntMsg orderNumber) {
+        public PartialBlockRawTxMsgBuilder txsOrdersNumber(VarIntMsg orderNumber) {
             this.txsOrderNumber = orderNumber;
             return this;
         }
 
         public PartialBlockRawTxMsg build() {
-            return new PartialBlockRawTxMsg(blockHeader, txs, txsOrderNumber);
+            return new PartialBlockRawTxMsg(blockHeader, txs, txsOrderNumber, super.payloadChecksum);
         }
     }
 }

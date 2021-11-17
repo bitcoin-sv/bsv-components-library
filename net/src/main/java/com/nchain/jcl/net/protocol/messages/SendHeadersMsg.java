@@ -1,6 +1,5 @@
 package com.nchain.jcl.net.protocol.messages;
 
-import com.google.common.base.Objects;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
 import java.io.Serializable;
@@ -16,7 +15,8 @@ public final class SendHeadersMsg extends Message implements Serializable {
     public static final String MESSAGE_TYPE = "sendheaders";
     private static final int MESSAGE_LENGTH = 0;
 
-    public SendHeadersMsg(){
+    public SendHeadersMsg(long payloadChecksum){
+        super(payloadChecksum);
         init();
     }
 
@@ -65,10 +65,10 @@ public final class SendHeadersMsg extends Message implements Serializable {
      * Builder
      */
     public static class SendHeadersMsgBuilder extends MessageBuilder {
-        SendHeadersMsgBuilder() { }
+        public SendHeadersMsgBuilder() { }
 
         public SendHeadersMsg build() {
-            return new SendHeadersMsg();
+            return new SendHeadersMsg(super.payloadChecksum);
         }
     }
 }

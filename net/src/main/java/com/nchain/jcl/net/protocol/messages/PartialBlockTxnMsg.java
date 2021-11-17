@@ -16,7 +16,8 @@ public class PartialBlockTxnMsg extends Message implements Serializable {
     private final List<TxMsg> transactions;
     private final int order;
 
-    public PartialBlockTxnMsg(HashMsg blockHash, List<TxMsg> transactions, int order) {
+    public PartialBlockTxnMsg(HashMsg blockHash, List<TxMsg> transactions, int order, long payloadChecksum) {
+        super(payloadChecksum);
         this.blockHash = blockHash;
         this.transactions = transactions;
         this.order = order;
@@ -27,17 +28,9 @@ public class PartialBlockTxnMsg extends Message implements Serializable {
         return new PartialBlockTxnBuilder();
     }
 
-    public HashMsg getBlockHash() {
-        return blockHash;
-    }
-
-    public List<TxMsg> getTransactions() {
-        return transactions;
-    }
-
-    public int getOrder() {
-        return order;
-    }
+    public HashMsg getBlockHash()           { return blockHash; }
+    public List<TxMsg> getTransactions()    { return transactions; }
+    public int getOrder()                   { return order; }
 
     @Override
     public String getMessageType() {
@@ -68,6 +61,9 @@ public class PartialBlockTxnMsg extends Message implements Serializable {
                         .order(this.order);
     }
 
+    /**
+     * Builder
+     */
     public static class PartialBlockTxnBuilder extends MessageBuilder{
         private HashMsg blockHash;
         private List<TxMsg> transactions;
@@ -89,7 +85,7 @@ public class PartialBlockTxnMsg extends Message implements Serializable {
         }
 
         public PartialBlockTxnMsg build() {
-            return new PartialBlockTxnMsg(blockHash, transactions, order);
+            return new PartialBlockTxnMsg(blockHash, transactions, order, super.payloadChecksum);
         }
     }
 }

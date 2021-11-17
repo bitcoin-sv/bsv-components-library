@@ -28,9 +28,9 @@ public final class PingMsg extends Message implements Serializable {
 
     private final long nonce;
 
-    protected PingMsg(long nonce, long checksum) {
+    protected PingMsg(long nonce, long payloadChecksum) {
+        super(payloadChecksum);
         this.nonce = nonce;
-        super.updateChecksum(checksum);
         init();
     }
 
@@ -88,7 +88,7 @@ public final class PingMsg extends Message implements Serializable {
         }
 
         public PingMsg build() {
-            return new PingMsg(nonce, super.checksum);
+            return new PingMsg(nonce, super.payloadChecksum);
         }
     }
 }

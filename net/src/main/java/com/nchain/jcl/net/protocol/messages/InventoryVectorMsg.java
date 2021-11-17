@@ -22,9 +22,14 @@ public final class InventoryVectorMsg extends Message implements Serializable {
     public static final long VECTOR_TYPE_LENGTH = 4;
 
     public static enum VectorType {
-        ERROR(0), //	Any data of with this number may be ignored
-        MSG_TX(1), // Hash is related to a transaction
-        MSG_BLOCK(2),//Hash is related to a data block
+        //	Any data of with this number may be ignored
+        ERROR(0),
+
+        // Hash is related to a transaction
+        MSG_TX(1),
+
+        // Hash is related to a data block
+        MSG_BLOCK(2),
 
         //   Hash of a block header; identical to MSG_BLOCK. Only to be used in getdata message.
         //   Indicates the reply should be a merkleblock message rather than a block message;
@@ -56,7 +61,8 @@ public final class InventoryVectorMsg extends Message implements Serializable {
     private final VectorType type;
     private final HashMsg hashMsg;
 
-    protected InventoryVectorMsg( VectorType type, HashMsg hashMsg) {
+    protected InventoryVectorMsg( VectorType type, HashMsg hashMsg, long payloadChecksum) {
+        super(payloadChecksum);
         this.type = type;
         this.hashMsg = hashMsg;
         init();
@@ -127,7 +133,7 @@ public final class InventoryVectorMsg extends Message implements Serializable {
         }
 
         public InventoryVectorMsg build() {
-            return new InventoryVectorMsg(type, hashMsg);
+            return new InventoryVectorMsg(type, hashMsg, super.payloadChecksum);
         }
     }
 }

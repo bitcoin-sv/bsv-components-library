@@ -16,7 +16,8 @@ public class PrefilledTxMsg extends Message implements Serializable {
     private final TxMsg transaction;
 
 
-    public PrefilledTxMsg(VarIntMsg index, TxMsg transaction) {
+    public PrefilledTxMsg(VarIntMsg index, TxMsg transaction, long payloadChecksum) {
+        super(payloadChecksum);
         this.index = index;
         this.transaction = transaction;
         init();
@@ -70,7 +71,7 @@ public class PrefilledTxMsg extends Message implements Serializable {
         }
 
         public PrefilledTxMsg build() {
-            return new PrefilledTxMsg(index, transaction);
+            return new PrefilledTxMsg(index, transaction, super.payloadChecksum);
         }
     }
 }

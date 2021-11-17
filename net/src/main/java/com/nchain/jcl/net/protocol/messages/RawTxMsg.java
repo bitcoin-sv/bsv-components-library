@@ -28,14 +28,14 @@ public class RawTxMsg extends RawMsg implements Serializable {
     // Tx Hash in readable format (reversed)
     private Sha256Hash hash;
 
-    public RawTxMsg(byte[] content, Sha256Hash hash) {
-        super(content);
+    public RawTxMsg(byte[] content, Sha256Hash hash, long payloadChecksum) {
+        super(content, payloadChecksum);
         this.hash = hash;
         init();
     }
 
-    public RawTxMsg(byte[] content) {
-        this(content, null);
+    public RawTxMsg(byte[] content, long payloadChecksum) {
+        this(content, null, payloadChecksum);
     }
 
     // Calculate the Hash...
@@ -84,9 +84,12 @@ public class RawTxMsg extends RawMsg implements Serializable {
     public RawTxMsgBuilder toBuilder() {
         return new RawTxMsgBuilder()
                     .content(this.content)
-                    .hsh(this.hash);
+                    .hash(this.hash);
     }
 
+    /**
+     * Builder
+     */
     public static class RawTxMsgBuilder extends MessageBuilder {
         private byte[] content;
         private Sha256Hash hash;
@@ -96,13 +99,13 @@ public class RawTxMsg extends RawMsg implements Serializable {
             return this;
         }
 
-        public RawTxMsgBuilder hsh(Sha256Hash hash) {
+        public RawTxMsgBuilder hash(Sha256Hash hash) {
             this.hash = hash;
             return this;
         }
 
         public RawMsg build() {
-            return new RawTxMsg(content, hash);
+            return new RawTxMsg(content, hash, super.payloadChecksum);
         }
     }
 }

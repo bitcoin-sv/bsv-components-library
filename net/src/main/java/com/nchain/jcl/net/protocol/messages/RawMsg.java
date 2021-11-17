@@ -21,7 +21,8 @@ public abstract class RawMsg extends Message implements Serializable {
 
     protected byte[] content;
 
-    public RawMsg(byte[] content) {
+    public RawMsg(byte[] content, long payloadChecksum) {
+        super(payloadChecksum);
         this.content = content;
     }
 

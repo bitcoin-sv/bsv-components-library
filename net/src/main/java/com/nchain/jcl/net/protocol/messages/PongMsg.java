@@ -25,9 +25,9 @@ public final class PongMsg extends Message implements Serializable {
 
     private final long nonce;
 
-    public PongMsg(long nonce, long checksum) {
+    public PongMsg(long nonce, long payloadChecksum) {
+        super(payloadChecksum);
         this.nonce = nonce;
-        super.updateChecksum(checksum);
         init();
     }
 
@@ -86,7 +86,7 @@ public final class PongMsg extends Message implements Serializable {
         }
 
         public PongMsg build() {
-            return new PongMsg(nonce, super.checksum);
+            return new PongMsg(nonce, super.payloadChecksum);
         }
     }
 }

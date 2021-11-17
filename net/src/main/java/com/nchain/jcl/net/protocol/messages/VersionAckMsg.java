@@ -19,8 +19,8 @@ public final class VersionAckMsg extends Message implements Serializable {
     public static final String MESSAGE_TYPE = "verack";
     private static final int MESSAGE_LENGTH = 0;
 
-    protected VersionAckMsg() {
-        super.updateChecksum(0);
+    protected VersionAckMsg(long payloadChecksum) {
+        super(payloadChecksum);
         init();
     }
 
@@ -70,7 +70,7 @@ public final class VersionAckMsg extends Message implements Serializable {
         VersionAckMsgBuilder() {}
 
         public VersionAckMsg build() {
-            return new VersionAckMsg();
+            return new VersionAckMsg(super.payloadChecksum);
         }
     }
 }

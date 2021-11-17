@@ -35,7 +35,8 @@ public final class GetdataMsg extends Message implements Serializable {
     /**
      * Creates the InvMessage Object.Use the corresponding byteArray to create the instance.
      */
-    protected GetdataMsg(List<InventoryVectorMsg> invVectorList) {
+    protected GetdataMsg(List<InventoryVectorMsg> invVectorList, long payloadChecksum) {
+        super(payloadChecksum);
         this.invVectorList = ImmutableList.copyOf(invVectorList);
         //count value is calculated from the inv vector list
         long count =  this.invVectorList.size();
@@ -105,7 +106,7 @@ public final class GetdataMsg extends Message implements Serializable {
         }
 
         public GetdataMsg build() {
-            return new GetdataMsg(invVectorList);
+            return new GetdataMsg(invVectorList, super.payloadChecksum);
         }
     }
 }

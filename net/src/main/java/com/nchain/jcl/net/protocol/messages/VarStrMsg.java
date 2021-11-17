@@ -31,13 +31,12 @@ public final class VarStrMsg extends Message implements Serializable {
     private final VarIntMsg strLength;
     private final String str;
 
-    protected VarStrMsg(String str) {
+    protected VarStrMsg(String str, long payloadChecksum) {
+        super(payloadChecksum);
         this.str = str;
         this.strLength = VarIntMsg.builder().value(str.length()).build();
         init();
     }
-
-
 
     @Override
     protected long calculateLength() {
@@ -97,9 +96,10 @@ public final class VarStrMsg extends Message implements Serializable {
         }
 
         public VarStrMsg build() {
-            return new VarStrMsg(str);
+            return new VarStrMsg(str, super.payloadChecksum);
         }
 
+        @Override
         public String toString() {
             return "VarStrMsg.VarStrMsgBuilder(str=" + this.str + ")";
         }

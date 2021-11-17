@@ -28,11 +28,11 @@ class ChainMemStorePerformanceSpec extends Specification {
             final long FORK_HEIGHT = 200_000;
 
             // Metrics/Thresholds we need to Meet to consider the Test a Success:
-            final Duration TIME_TO_BUILD_MAIN_CHAIN = Duration.ofMillis(2000)
-            final Duration TIME_TO_CREATE_FORK = Duration.ofMillis(6000)
+            final Duration TIME_TO_BUILD_MAIN_CHAIN = Duration.ofMillis(3000)
+            final Duration TIME_TO_CREATE_FORK = Duration.ofMillis(7000)
             final Duration TIME_TO_BUILD_FORK_CHAIN = Duration.ofMillis(100)
             final Duration TIME_TO_PRUNE_FORK = Duration.ofMillis(100)
-            final Duration TIME_TO_GET_PATHS = Duration.ofMillis(5)
+            final Duration TIME_TO_GET_PATHS = Duration.ofMillis(10)
             final Duration TIME_TO_GET_LASTNODE = Duration.ofMillis(5)
 
             // Tree initialization:

@@ -30,6 +30,7 @@ import java.util.List;
  *   hash of the last desired block; set to zero to get as many blocks as possible (500)
  */
 public final class BaseGetDataAndHeaderMsg extends Message implements Serializable {
+
     private final long version;
     private final VarIntMsg hashCount;
     private final ImmutableList<HashMsg> blockLocatorHash;
@@ -37,7 +38,8 @@ public final class BaseGetDataAndHeaderMsg extends Message implements Serializab
     public static final String MESSAGE_TYPE = "baseGetDataAndHeaderMsg";
     public static final int VERSION_LENGTH = 4;
 
-    protected BaseGetDataAndHeaderMsg( long version, VarIntMsg hashCount, List<HashMsg>  blockLocatorHash, HashMsg hashStop) {
+    protected BaseGetDataAndHeaderMsg( long version, VarIntMsg hashCount, List<HashMsg>  blockLocatorHash, HashMsg hashStop, long payloadChecksum) {
+        super(payloadChecksum);
         this.version = version;
         this.hashCount = hashCount;
         this.blockLocatorHash = ImmutableList.copyOf(blockLocatorHash);
@@ -81,10 +83,6 @@ public final class BaseGetDataAndHeaderMsg extends Message implements Serializab
                 && Objects.equal(this.hashStop, other.hashStop);
     }
 
-    public static BaseGetDataAndHeaderMsgBuilder builder() {
-        return new BaseGetDataAndHeaderMsgBuilder();
-    }
-
     @Override
     public BaseGetDataAndHeaderMsgBuilder toBuilder() {
         return new BaseGetDataAndHeaderMsgBuilder()
@@ -92,6 +90,10 @@ public final class BaseGetDataAndHeaderMsg extends Message implements Serializab
                     .hashCount(this.hashCount)
                     .hashStop(this.hashStop)
                     .blockLocatorHash(this.blockLocatorHash);
+    }
+
+    public static BaseGetDataAndHeaderMsgBuilder builder() {
+        return new BaseGetDataAndHeaderMsgBuilder();
     }
 
     /**
@@ -126,7 +128,7 @@ public final class BaseGetDataAndHeaderMsg extends Message implements Serializab
         }
 
         public BaseGetDataAndHeaderMsg build() {
-            return new BaseGetDataAndHeaderMsg(version, hashCount, blockLocatorHash, hashStop);
+            return new BaseGetDataAndHeaderMsg(version, hashCount, blockLocatorHash, hashStop, super.payloadChecksum);
         }
     }
 }

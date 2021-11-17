@@ -119,6 +119,7 @@ class ProtocolHandshakeOKTest extends Specification {
             AtomicReference<MinHandshakedPeersReachedEvent> reachedEvent = new AtomicReference<>()
             AtomicReference<MinHandshakedPeersLostEvent> lostEvent = new AtomicReference<>()
 
+            server.EVENTS.PEERS.HANDSHAKED.forEach({ e -> println(e)})
             server.EVENTS.PEERS.HANDSHAKED_MIN_REACHED.forEach({ e ->
                 println(" >> Event: Min Handshaked Peers Reached (" + e.getNumPeers() + " peers)")
                 numReachedEvents.incrementAndGet()

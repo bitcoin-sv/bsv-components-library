@@ -69,7 +69,8 @@ public final class VersionMsg extends Message implements Serializable {
     protected VersionMsg(long version, long services, long timestamp,
                          NetAddressMsg addr_recv, NetAddressMsg addr_from,
                          long nonce, VarStrMsg user_agent, long start_height, Boolean relay,
-                         long checksum) {
+                         long payloadChecksum) {
+        super(payloadChecksum);
         this.version = version;
         this.services = services;
         this.timestamp = timestamp;
@@ -79,7 +80,6 @@ public final class VersionMsg extends Message implements Serializable {
         this.user_agent = user_agent;
         this.start_height = start_height;
         this.relay = relay;
-        super.updateChecksum(checksum);
         init();
     }
 
@@ -116,7 +116,7 @@ public final class VersionMsg extends Message implements Serializable {
                 + ", user_agent=" + this.getUser_agent()
                 + ", start_height=" + this.getStart_height()
                 + ", relay=" + this.getRelay()
-                + ", CHECKSUM=" + this.getChecksum()
+                + ", CHECKSUM=" + this.getPayloadChecksum()
                 + ")";
     }
 
@@ -222,7 +222,7 @@ public final class VersionMsg extends Message implements Serializable {
         }
 
         public VersionMsg build() {
-            return new VersionMsg(version, services, timestamp, addr_recv, addr_from, nonce, user_agent, start_height, relay, super.checksum);
+            return new VersionMsg(version, services, timestamp, addr_recv, addr_from, nonce, user_agent, start_height, relay, super.payloadChecksum);
         }
     }
 }

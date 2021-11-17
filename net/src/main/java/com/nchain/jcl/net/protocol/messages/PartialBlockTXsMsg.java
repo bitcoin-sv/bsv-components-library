@@ -18,7 +18,8 @@ public final class PartialBlockTXsMsg extends Message implements Serializable {
     // This field stores the order of this Batch of Txs within the Block (zero-based)
     private final VarIntMsg txsOrderNumber;
 
-    public PartialBlockTXsMsg(BlockHeaderMsg blockHeader, List<TxMsg> txs, VarIntMsg txsOrderNumber) {
+    public PartialBlockTXsMsg(BlockHeaderMsg blockHeader, List<TxMsg> txs, VarIntMsg txsOrderNumber, long payloadChecksum) {
+        super(payloadChecksum);
         this.blockHeader = blockHeader;
         this.txs = txs;
         this.txsOrderNumber = txsOrderNumber;
@@ -123,7 +124,7 @@ public final class PartialBlockTXsMsg extends Message implements Serializable {
         }
 
         public PartialBlockTXsMsg build() {
-            return new PartialBlockTXsMsg(blockHeader, txs, txsOrderNumber);
+            return new PartialBlockTXsMsg(blockHeader, txs, txsOrderNumber, super.payloadChecksum);
         }
     }
 }

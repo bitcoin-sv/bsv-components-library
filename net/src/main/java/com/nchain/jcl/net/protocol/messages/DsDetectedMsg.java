@@ -20,7 +20,8 @@ public class DsDetectedMsg extends Message {
     private VarIntMsg blockCount;
     private List<BlockDetailsMsg> blockList;
 
-    public DsDetectedMsg(int version, VarIntMsg blockCount, List<BlockDetailsMsg> blockList) {
+    public DsDetectedMsg(int version, VarIntMsg blockCount, List<BlockDetailsMsg> blockList, long payloadChecksum) {
+        super(payloadChecksum);
         this.version = version;
         this.blockCount = blockCount;
         this.blockList = blockList;
@@ -54,16 +55,15 @@ public class DsDetectedMsg extends Message {
                     .withBlockList(this.blockList);
     }
 
+    /**
+     * Builder
+     */
     public static final class DsDetectedMsgBuilder extends MessageBuilder {
         private int version;
         private VarIntMsg blockCount;
         private List<BlockDetailsMsg> blockList;
 
         private DsDetectedMsgBuilder() {
-        }
-
-        public static DsDetectedMsgBuilder DsDetectedMsgBuilder() {
-            return new DsDetectedMsgBuilder();
         }
 
         public DsDetectedMsgBuilder withVersion(int version) {
@@ -82,7 +82,7 @@ public class DsDetectedMsg extends Message {
         }
 
         public DsDetectedMsg build() {
-            DsDetectedMsg dsDetectedMsg = new DsDetectedMsg(this.version, this.blockCount, this.blockList);
+            DsDetectedMsg dsDetectedMsg = new DsDetectedMsg(this.version, this.blockCount, this.blockList, super.payloadChecksum);
             return dsDetectedMsg;
         }
     }

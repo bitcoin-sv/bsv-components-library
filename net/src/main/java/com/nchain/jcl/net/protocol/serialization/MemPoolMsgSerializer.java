@@ -27,7 +27,7 @@ public class MemPoolMsgSerializer implements MessageSerializer<MemPoolMsg> {
 
     @Override
     public MemPoolMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
-        return new MemPoolMsg().builder().build();
+        return new MemPoolMsg.MemPoolMsgBuilder().build();
     }
 
     @Override

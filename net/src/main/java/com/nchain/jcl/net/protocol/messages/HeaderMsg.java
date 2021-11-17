@@ -1,7 +1,6 @@
 package com.nchain.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
-import com.nchain.jcl.net.protocol.config.ProtocolVersion;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
 import java.io.Serializable;
@@ -69,7 +68,9 @@ public final class HeaderMsg extends Message implements Serializable {
     // Constructor. to create instance  of this class, use the Builder
     protected HeaderMsg(long magic, String command,
                         long length, long checksum,
-                        String extCommand, long extLength) {
+                        String extCommand, long extLength,
+                        long payloadChecksum) {
+        super(payloadChecksum);
         this.magic = magic;
         this.command = command;
         this.length = length;
@@ -193,7 +194,7 @@ public final class HeaderMsg extends Message implements Serializable {
         }
 
         public HeaderMsg build() {
-            return new HeaderMsg(magic, command, length, checksum, extCommand, extLength);
+            return new HeaderMsg(magic, command, length, checksum, extCommand, extLength, super.payloadChecksum);
         }
     }
 }

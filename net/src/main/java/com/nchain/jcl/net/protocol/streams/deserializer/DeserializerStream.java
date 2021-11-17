@@ -219,7 +219,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
                     .protocolBasicConfig(protocolBasicConfig)
                     .maxBytesToRead(headerMsg.getMsgLength())
                     .insideVersionMsg(headerMsg.getMsgCommand().equalsIgnoreCase(VersionMsg.MESSAGE_TYPE))
-                    .calculateHashes(!realTime) // We only pre-calculate Hashes if we are NOT in Real-Timeprocessing
+                    .calculateChecksum(deserializer.getConfig().isCalculateChecksum())
                     .build();
 
             // We instantiate a ByteArrayReader that will be used to read the bytes from the buffer during deserialization

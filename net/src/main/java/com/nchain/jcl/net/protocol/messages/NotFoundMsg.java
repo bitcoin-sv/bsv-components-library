@@ -26,7 +26,8 @@ public final class NotFoundMsg extends Message implements Serializable {
     /**
      * Creates the InvMessage Object.Use the corresponding byteArray to create the instance.
      */
-    protected NotFoundMsg(VarIntMsg count, List<InventoryVectorMsg> invVectorMsgList) {
+    protected NotFoundMsg(VarIntMsg count, List<InventoryVectorMsg> invVectorMsgList, long payloadChecksum) {
+        super(payloadChecksum);
         this.count = count;
         this.invVectorList = invVectorMsgList.stream().collect(Collectors.toUnmodifiableList());
         init();
@@ -100,7 +101,7 @@ public final class NotFoundMsg extends Message implements Serializable {
         }
 
         public NotFoundMsg build() {
-            return new NotFoundMsg(count, invVectorMsgList);
+            return new NotFoundMsg(count, invVectorMsgList, super.payloadChecksum);
         }
 
     }

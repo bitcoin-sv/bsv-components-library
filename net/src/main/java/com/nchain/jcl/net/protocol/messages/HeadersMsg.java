@@ -37,7 +37,8 @@ public final class HeadersMsg extends Message implements Serializable {
      *
      * @param blockHeaderMsgList
      */
-    protected HeadersMsg(List<BlockHeaderMsg> blockHeaderMsgList) {
+    protected HeadersMsg(List<BlockHeaderMsg> blockHeaderMsgList, long payloadChecksum) {
+        super(payloadChecksum);
         this.blockHeaderMsgList = blockHeaderMsgList.stream().collect(Collectors.toUnmodifiableList());
         this.count = VarIntMsg.builder().value(blockHeaderMsgList.size()).build();
         init();
@@ -103,7 +104,7 @@ public final class HeadersMsg extends Message implements Serializable {
         }
 
         public HeadersMsg build() {
-            return new HeadersMsg(blockHeaderMsgList);
+            return new HeadersMsg(blockHeaderMsgList, super.payloadChecksum);
         }
     }
 }

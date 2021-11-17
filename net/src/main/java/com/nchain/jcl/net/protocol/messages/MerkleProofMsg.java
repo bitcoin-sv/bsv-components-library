@@ -35,7 +35,9 @@ public class MerkleProofMsg extends Message {
                           TxMsg transaction,
                           HashMsg target,
                           VarIntMsg nodeCount,
-                          List<MerkleNode> nodes) {
+                          List<MerkleNode> nodes,
+                          long payloadChecksum) {
+        super(payloadChecksum);
         this.flags = flags;
         this.transactionIndex = transactionIndex;
         this.transactionLength = transactionLength;
@@ -88,6 +90,9 @@ public class MerkleProofMsg extends Message {
                     .withNodes(this.nodes);
     }
 
+    /**
+     * Builder
+     */
     public static final class MerkleProofMsgBuilder extends MessageBuilder{
         private MerkleProofMsgFlags flags;
         private VarIntMsg transactionIndex;
@@ -143,7 +148,8 @@ public class MerkleProofMsg extends Message {
                     this.transaction,
                     this.target,
                     this.nodeCount,
-                    this.nodes
+                    this.nodes,
+                    super.payloadChecksum
             );
             return merkleProofMsg;
         }

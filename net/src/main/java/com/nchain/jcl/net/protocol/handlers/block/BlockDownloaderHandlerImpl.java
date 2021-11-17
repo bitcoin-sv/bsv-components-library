@@ -576,7 +576,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
         }
     }
 
-    private void processWholeRawBlockReceived(BlockPeerInfo peerInfo, BitcoinMsg<RawTxBlockMsg> rawBlockMessage) {
+    private void processWholeRawBlockReceived(BlockPeerInfo peerInfo, BitcoinMsg<RawBlockMsg> rawBlockMessage) {
 
         // We just received a Block.
         // We publish an specific event for this Lite Block being downloaded:

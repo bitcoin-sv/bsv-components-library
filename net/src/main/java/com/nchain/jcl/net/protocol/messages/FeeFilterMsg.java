@@ -24,30 +24,18 @@ public class FeeFilterMsg extends Message implements Serializable {
 
     private Long fee;
 
-    public FeeFilterMsg(Long fee) {
+    public FeeFilterMsg(Long fee, long payloadChecksum) {
+        super(payloadChecksum);
         this.fee = fee;
         init();
     }
 
-    @Override
-    public String getMessageType() { return MESSAGE_TYPE; }
+    public Long getFee()                          { return this.fee; }
 
-    @Override
-    protected long calculateLength() {
-        return 8;
-    }
-
-    @Override
-    protected void validateMessage() {}
-
-    public Long getFee() {
-        return this.fee;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(fee);
-    }
+    @Override public String getMessageType()      { return MESSAGE_TYPE; }
+    @Override protected long calculateLength()    { return 8; }
+    @Override protected void validateMessage()    {}
+    @Override public int hashCode()               { return Objects.hashCode(fee); }
 
     @Override
     public boolean equals(Object obj) {
@@ -87,7 +75,7 @@ public class FeeFilterMsg extends Message implements Serializable {
         }
 
         public FeeFilterMsg build() {
-            return new FeeFilterMsg(fee);
+            return new FeeFilterMsg(fee, super.payloadChecksum);
         }
     }
 }

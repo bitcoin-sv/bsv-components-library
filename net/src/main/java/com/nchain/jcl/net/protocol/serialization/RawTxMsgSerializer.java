@@ -44,7 +44,7 @@ public class RawTxMsgSerializer extends RawMsgSerializer<RawTxMsg> {
         //Sha256Hash txHash =  Sha256Hash.wrapReversed(hashFunction.hashBytes(hashFunction.hashBytes(content).asBytes()).asBytes());
 
         // We return the object
-        return new RawTxMsg(content);
+        return new RawTxMsg(content, 0); // checksum ZERO
     }
 
 }

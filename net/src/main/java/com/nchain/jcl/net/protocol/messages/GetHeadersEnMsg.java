@@ -20,7 +20,8 @@ public final class GetHeadersEnMsg extends Message implements Serializable {
     private final HashMsg hashStop;
     public static final int VERSION_LENGTH = 4;
 
-    public GetHeadersEnMsg(long version, HashMsg blockLocatorHash, HashMsg hashStop) {
+    public GetHeadersEnMsg(long version, HashMsg blockLocatorHash, HashMsg hashStop, long payloadChecksum) {
+        super(payloadChecksum);
         this.version = version;
         this.blockLocatorHash = blockLocatorHash;
         this.hashStop = hashStop;
@@ -101,7 +102,7 @@ public final class GetHeadersEnMsg extends Message implements Serializable {
         }
 
         public GetHeadersEnMsg build() {
-            return new GetHeadersEnMsg(version, blockLocatorHash, hashStop);
+            return new GetHeadersEnMsg(version, blockLocatorHash, hashStop, super.payloadChecksum);
         }
     }
 }

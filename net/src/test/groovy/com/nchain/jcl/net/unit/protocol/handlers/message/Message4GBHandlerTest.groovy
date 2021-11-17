@@ -21,6 +21,7 @@ import io.bitcoinj.params.RegTestParams
 import spock.lang.Specification
 
 import java.time.Duration
+import java.time.Instant
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -104,6 +105,7 @@ class Message4GBHandlerTest extends Specification {
             MessageHandlerConfig messageHandlerConfig = protocolConfig.getMessageConfig()
             DeserializerConfig deserializerConfig = messageHandlerConfig.getDeserializerConfig().toBuilder()
                 .partialSerializationMsgSize(100_000_000)
+                .calculateChecksum(false)
                 .build()
             messageHandlerConfig = messageHandlerConfig.toBuilder().deserializerConfig(deserializerConfig).build()
             BlockDownloaderHandlerConfig downloadConfig = protocolConfig.getBlockDownloaderConfig().toBuilder()
@@ -156,8 +158,11 @@ class Message4GBHandlerTest extends Specification {
             println(">>>  SERIALIZING AND SENDING BLOCK TO SERVER...");
             server.REQUESTS.BLOCKS.download(Sha256Hash.ZERO_HASH.toString()).submit()
             Thread.sleep(100)
+            Instant begin = Instant.now()
             client.REQUESTS.MSGS.send(server.getPeerAddress(), bigBlock).submit()
-            Thread.sleep(60_000)
+            while (!blockDownloaded.get()) { Thread.sleep(100)}
+            Duration duration = Duration.between(begin, Instant.now())
+            println("Time to Serialize, send Big Block, receive it adn deserialize it: " + duration.toMillis() + " millisecs");
         then:
             blockDownloaded.get()
     }

@@ -2,7 +2,7 @@ package com.nchain.jcl.net.protocol.events.data;
 
 
 import com.nchain.jcl.net.network.PeerAddress;
-import com.nchain.jcl.net.protocol.messages.RawTxBlockMsg;
+import com.nchain.jcl.net.protocol.messages.RawBlockMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 
 /**
@@ -11,8 +11,8 @@ import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
  *
  * An Event triggered when a BLOCK Message is received from a Remote Peer.
  */
-public final class RawBlockMsgReceivedEvent extends MsgReceivedEvent<RawTxBlockMsg> {
-    public RawBlockMsgReceivedEvent(PeerAddress peerAddress, BitcoinMsg<RawTxBlockMsg> btcMsg) {
+public final class RawBlockMsgReceivedEvent extends MsgReceivedEvent<RawBlockMsg> {
+    public RawBlockMsgReceivedEvent(PeerAddress peerAddress, BitcoinMsg<RawBlockMsg> btcMsg) {
         super(peerAddress, btcMsg);
     }
 }

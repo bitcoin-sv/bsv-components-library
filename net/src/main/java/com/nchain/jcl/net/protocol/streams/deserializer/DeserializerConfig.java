@@ -25,8 +25,8 @@ public final class DeserializerConfig {
     /** Size in byte sof each "partial" message returned by a "Large" Deserialized when the message is big */
     private int partialSerializationMsgSize = DEFAULT_PARTIAL_SERIALIZATION_MSG_SIZE;
 
-    /** If FALSE; the checksum is not calculated nor verified */
-    private boolean verifyChecksum = true;
+    /** If FALSE; the checksum is not calculated */
+    private boolean calculateChecksum;
 
     /**
      *  Initial size of each Buffer assigned to each Peer for Deserialization.
@@ -92,7 +92,7 @@ public final class DeserializerConfig {
         if (generateStats != null)                  this.generateStats = generateStats;
         if (messagesToCache != null)                this.messagesToCache = messagesToCache;
         this.partialSerializationMsgSize = partialSerializationMsgSize;
-        this.verifyChecksum = verifyChecksum;
+        this.calculateChecksum = verifyChecksum;
     }
 
     public static DeserializerConfigBuilder builder()   { return new DeserializerConfigBuilder(); }
@@ -106,7 +106,7 @@ public final class DeserializerConfig {
     public boolean isGenerateStats()                    { return this.generateStats; }
     public Set<String> getMessagesToCache()             { return this.messagesToCache; }
     public int getPartialSerializationMsgSize()         { return this.partialSerializationMsgSize;}
-    public boolean isVerifyChecksum()                   { return this.verifyChecksum;}
+    public boolean isCalculateChecksum()                { return this.calculateChecksum;}
 
     @Override
     public String toString() {
@@ -117,7 +117,7 @@ public final class DeserializerConfig {
                 + ", generateStats=" + this.generateStats
                 + ", messagesToCache=" + this.messagesToCache
                 + ", partialSerializationMsgSize=" + this.partialSerializationMsgSize
-                + ", verifyChecksum=" + this.verifyChecksum
+                + ", calculateChecksum=" + this.calculateChecksum
                 + ")";
     }
 
@@ -133,7 +133,7 @@ public final class DeserializerConfig {
                 .generateStats(this.generateStats)
                 .messagesToCache(this.messagesToCache)
                 .partialSerializationMsgSize(this.partialSerializationMsgSize)
-                .verifyChecksum(this.verifyChecksum);
+                .calculateChecksum(this.calculateChecksum);
     }
 
     /**
@@ -150,7 +150,7 @@ public final class DeserializerConfig {
         private boolean generateStats;
         private Set<String> messagesToCache;
         private int partialSerializationMsgSize = DEFAULT_PARTIAL_SERIALIZATION_MSG_SIZE;
-        private boolean verifyChecksum = true;
+        private boolean calculateChecksum;
 
         DeserializerConfigBuilder() { }
 
@@ -205,8 +205,8 @@ public final class DeserializerConfig {
             return this;
         }
 
-        public DeserializerConfig.DeserializerConfigBuilder verifyChecksum(boolean verifyChecksum) {
-            this.verifyChecksum = verifyChecksum;
+        public DeserializerConfig.DeserializerConfigBuilder calculateChecksum(boolean calculateChecksum) {
+            this.calculateChecksum = calculateChecksum;
             return this;
         }
 
@@ -222,7 +222,7 @@ public final class DeserializerConfig {
                     generateStats,
                     messagesToCache,
                     partialSerializationMsgSize,
-                    verifyChecksum);
+                    calculateChecksum);
         }
     }
 }

@@ -21,6 +21,11 @@
         <appender-ref ref="STDOUT" />
     </logger>
 
+    <logger name="com.nchain.jcl.net.protocol.streams" additivity="false">
+        <level value="INFO" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+
 
 
     <logger name="com.nchain.jcl.net.protocol.discovery" additivity="false">

@@ -35,7 +35,8 @@ public class InvMessage extends Message implements Serializable {
     /**
      * Creates the InvMessage Object.Use the corresponding byteArray to create the instance.
      */
-    protected InvMessage(List<InventoryVectorMsg> invVectorMsgList) {
+    protected InvMessage(List<InventoryVectorMsg> invVectorMsgList, long payloadChecksum) {
+        super(payloadChecksum);
         this.invVectorList = invVectorMsgList.stream().collect(Collectors.toUnmodifiableList());
         this.count = VarIntMsg.builder().value(invVectorMsgList.size()).build();
         init();
@@ -101,7 +102,7 @@ public class InvMessage extends Message implements Serializable {
         }
 
         public InvMessage build() {
-            return new InvMessage(invVectorMsgList);
+            return new InvMessage(invVectorMsgList, super.payloadChecksum);
         }
 
     }
