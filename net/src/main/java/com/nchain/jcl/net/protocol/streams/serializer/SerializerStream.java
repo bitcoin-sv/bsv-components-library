@@ -71,14 +71,6 @@ public class SerializerStream extends PeerOutputStreamImpl<BitcoinMsg<?>, ByteAr
                         data.getData(),
                         data.getData().getHeader().getCommand())));
 
-        // HACK:
-        // We print out the HEX Version of the DS_DETECTED MSG:
-        if (data.getData().getHeader().getCommand().equalsIgnoreCase(DsDetectedMsg.MESSAGE_TYPE)) {
-            byte[] msgBytes = result.get(0).getData().getFullContent();
-            String msgHEX = Utils.HEX.encode(msgBytes);
-            logger.trace("Sending DS_DETECTED Msg: " + msgHEX) ;
-        }
-
         return result;
     }
 
