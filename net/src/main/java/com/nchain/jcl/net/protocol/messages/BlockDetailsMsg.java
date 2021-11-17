@@ -17,10 +17,10 @@ public class BlockDetailsMsg extends Message {
     public static final String MESSAGE_TYPE = "blockdetails";
 
     private VarIntMsg headerCount;
-    private List<BlockHeaderMsg> headerMsg;
+    private List<BlockHeaderSimpleMsg> headerMsg;
     private MerkleProofMsg merkleProofMsg;
 
-    public BlockDetailsMsg(VarIntMsg headerCount, List<BlockHeaderMsg> headerMsg, MerkleProofMsg merkleProofMsg) {
+    public BlockDetailsMsg(VarIntMsg headerCount, List<BlockHeaderSimpleMsg> headerMsg, MerkleProofMsg merkleProofMsg) {
         this.headerCount = headerCount;
         this.headerMsg = headerMsg;
         this.merkleProofMsg = merkleProofMsg;
@@ -44,11 +44,11 @@ public class BlockDetailsMsg extends Message {
     }
 
 
-    public List<BlockHeaderMsg> getHeaderMsg() {
+    public List<BlockHeaderSimpleMsg> getHeaderMsg() {
         return headerMsg;
     }
 
-    public void setHeaderMsg(List<BlockHeaderMsg> headerMsg) {
+    public void setHeaderMsg(List<BlockHeaderSimpleMsg> headerMsg) {
         this.headerMsg = headerMsg;
     }
 
@@ -74,7 +74,7 @@ public class BlockDetailsMsg extends Message {
 
     public static final class BlockDetailsMsgBuilder {
         private VarIntMsg headerCount;
-        private List<BlockHeaderMsg> headerMsg;
+        private List<BlockHeaderSimpleMsg> headerMsg;
         private MerkleProofMsg merkleProofMsg;
 
         private BlockDetailsMsgBuilder() {
@@ -89,7 +89,7 @@ public class BlockDetailsMsg extends Message {
             return this;
         }
 
-        public BlockDetailsMsgBuilder headerMsg(List<BlockHeaderMsg> headerMsg) {
+        public BlockDetailsMsgBuilder headerMsg(List<BlockHeaderSimpleMsg> headerMsg) {
             this.headerMsg = headerMsg;
             return this;
         }

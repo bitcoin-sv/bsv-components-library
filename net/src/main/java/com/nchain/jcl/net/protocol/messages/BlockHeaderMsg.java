@@ -2,10 +2,7 @@ package com.nchain.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
 import com.nchain.jcl.net.protocol.messages.common.Message;
-import io.bitcoinj.bitcoin.api.base.AbstractBlock;
 import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
-import io.bitcoinj.bitcoin.bean.base.HeaderBean;
-import io.bitcoinj.core.Sha256Hash;
 
 import java.io.Serializable;
 
@@ -22,33 +19,11 @@ public final class BlockHeaderMsg extends Message implements Serializable {
 
     public static final String MESSAGE_TYPE = "BlockHeader";
 
-    public static final int TIMESTAMP_LENGTH = 4;
-
-    public static final int NONCE_LENGTH = 4;
-
-    // IMPORTANT: This field (hash) is NOT SERIALIZED.
-    // The hash of the block is NOT part of the BLOCK Message itself: its external to it.
-    // In order to calculate a Block Hash we need to serialize the Block first, so instead of doing
-    // that avery time we need a Hash, we store the Hash here, at the moment when we deserialize the
-    // Block for the first time, so its available for further use.
-    protected final HashMsg hash;
-
-    protected final long version;
-    protected final HashMsg prevBlockHash;
-    protected final HashMsg merkleRoot;
-    protected final long creationTimestamp;
-    protected final long difficultyTarget;
-    protected final long nonce;
+    private BlockHeaderSimpleMsg blockHeaderSimpleMsg;
     private final VarIntMsg transactionCount;
 
     public BlockHeaderMsg(HashMsg hash, long version, HashMsg prevBlockHash, HashMsg merkleRoot, long creationTimestamp, long difficultyTarget, long nonce, VarIntMsg transactionCount) {
-        this.hash = hash;
-        this.version = version;
-        this.prevBlockHash = prevBlockHash;
-        this.merkleRoot = merkleRoot;
-        this.creationTimestamp = creationTimestamp;
-        this.difficultyTarget = difficultyTarget;
-        this.nonce = nonce;
+        this.blockHeaderSimpleMsg = new BlockHeaderSimpleMsg(hash, version, prevBlockHash, merkleRoot, creationTimestamp, difficultyTarget, nonce);
         this.transactionCount = ofNullable(transactionCount).orElse(VarIntMsg.builder().value(0).build());
         init();
     }
@@ -64,8 +39,7 @@ public final class BlockHeaderMsg extends Message implements Serializable {
 
     @Override
     protected long calculateLength() {
-        return 4 + prevBlockHash.getLengthInBytes() + merkleRoot.getLengthInBytes() +
-            TIMESTAMP_LENGTH + TIMESTAMP_LENGTH + NONCE_LENGTH + transactionCount.calculateLength();
+        return this.blockHeaderSimpleMsg.calculateLength() + transactionCount.calculateLength();
     }
 
     @Override
@@ -76,17 +50,7 @@ public final class BlockHeaderMsg extends Message implements Serializable {
      * Returns a Domain Class. It alos reverses the PrevBlockHash and merkle tree into human-readable format
      */
     public HeaderReadOnly toBean() {
-        HeaderBean result = new HeaderBean((AbstractBlock) null);
-
-        result.setTime(this.creationTimestamp);
-        result.setDifficultyTarget(this.difficultyTarget);
-        result.setNonce(this.nonce);
-        result.setPrevBlockHash(Sha256Hash.wrapReversed(this.prevBlockHash.getHashBytes()));
-        result.setVersion(this.version);
-        result.setMerkleRoot(Sha256Hash.wrapReversed(this.merkleRoot.getHashBytes()));
-        //result.setHash(Sha256Hash.wrapReversed(this.hash.getHashBytes()));
-
-        return result;
+        return blockHeaderSimpleMsg.toBean();
     }
 
     @Override
@@ -95,32 +59,34 @@ public final class BlockHeaderMsg extends Message implements Serializable {
     }
 
     public HashMsg getHash() {
-        return hash;
+        return blockHeaderSimpleMsg.getHash();
     }
 
     public long getVersion() {
-        return version;
+        return blockHeaderSimpleMsg.getVersion();
     }
 
     public HashMsg getPrevBlockHash() {
-        return prevBlockHash;
+        return blockHeaderSimpleMsg.getPrevBlockHash();
     }
 
     public HashMsg getMerkleRoot() {
-        return merkleRoot;
+        return blockHeaderSimpleMsg.getMerkleRoot();
     }
 
     public long getCreationTimestamp() {
-        return creationTimestamp;
+        return blockHeaderSimpleMsg.getCreationTimestamp();
     }
 
     public long getDifficultyTarget() {
-        return difficultyTarget;
+        return blockHeaderSimpleMsg.getDifficultyTarget();
     }
 
     public long getNonce() {
-        return nonce;
+        return blockHeaderSimpleMsg.getNonce();
     }
+
+    public BlockHeaderSimpleMsg getBlockHeaderSimple() { return this.blockHeaderSimpleMsg; }
 
     public VarIntMsg getTransactionCount() {
         return transactionCount;
@@ -142,13 +108,7 @@ public final class BlockHeaderMsg extends Message implements Serializable {
 
         BlockHeaderMsg other = (BlockHeaderMsg) obj;
 
-        return Objects.equal(this.hash, other.hash)
-            && Objects.equal(this.version, other.version)
-            && Objects.equal(this.prevBlockHash, other.prevBlockHash)
-            && Objects.equal(this.merkleRoot, other.merkleRoot)
-            && Objects.equal(this.creationTimestamp, other.creationTimestamp)
-            && Objects.equal(this.difficultyTarget, other.difficultyTarget)
-            && Objects.equal(this.nonce, other.nonce)
+        return Objects.equal(this.blockHeaderSimpleMsg, other.blockHeaderSimpleMsg)
             && Objects.equal(this.transactionCount, other.transactionCount);
     }
 
