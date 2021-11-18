@@ -51,14 +51,6 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
     /** Maximum total Size of Blocks taht can be download in parallel */
     private long maxMBinParallel = DEFAULT_MAX_MB_IN_PARALLEL;
 
-    /** If TRUE, Blocks are downloaded ONLY from those Peers that announced them */
-    private boolean onlyDownloadAfterAnnouncement = false;
-    /**
-     * If TRUE, block are downloaded from Peers that have announced them, but if there are no such peers they are
-     * downloaded by any other Peer
-     */
-    private boolean downloadFromAnnouncersFirst = false;
-
     /**
      * When a block download fails for whatever reason (idle peer, early disconnection, etc), the block is
      * moved to a LIMBO state, and it will remain there for some time before we definitely acknowledge that
@@ -66,6 +58,53 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
      * The time a Block remains in LIMBO is determined by this variable.
      */
     private Duration inactivityTimeoutToFail = DEFAULT_INACTIVITY_TO_FAIL_TIMEOUT;
+
+    // The Following ENUMS store different Criteria/Strategies to follow when Choosing the right Peer to download
+    // a Block from or what to do if there is no clear match:
+    // NOTE:
+    // - We assume that we are connected to one Peer or more: Of these Peres, some might be already downloading blocks
+    //   and others might be idle:
+    //      - The Peers downloading are NOT AVAILABLE for Download at this moment
+    //      - The idle Peers are AVAILABLE for Downloading.
+    //
+    // In order to download another Block, some Peers need to be AVAILABLE. So the CRITERIA and ACTIONS defined below
+    // are only used when we need to download a new Block and we DO have some AVAILABLE Peers.
+    //
+    // From all the Available Peers, some are a BEST MATCH, which means that are a better fit than others, based on the
+    // Criteria defined. Sometimes a BEST MATCH cannot be found, but we can STILL download the block from another Peer
+    // that might not be as good as a BEST MATCH, but good enough.
+    //
+    // The Criteria and Actions to follow on each scenario are defined in the structures below:
+
+
+    /** Different ways to choose the BEST MATCH of a Peer to download a Block from */
+    public enum BestMatchCriteria {
+        FROM_ANYONE,        // From first Peer available
+        FROM_ANNOUNCERS     // From a Peer that has announce (INV) the Block
+    }
+
+    /**
+     * In case a Match has been found BUT its NOT AVAILABLE because its downloading another Block,
+     * here we specify what to do:
+     */
+    public enum BestMatchNotAvailableAction {
+        DOWNLOAD_FROM_ANYONE,   // We download it from first other available peer if possible
+        WAIT                    // We do NOT download it yet, we wait instead for the Match to be available
+    }
+
+    /** In case there is no Best Match, here we specify what do to */
+    public enum NoBestMatchAction {
+        DOWNLOAD_FROM_ANYONE, // We download it from first other available peer if possible
+        WAIT                  // We do NOT download it yet, we wait instead for next Match
+    }
+
+    // Default values for BestMatch strategies:
+    // - We download from ANY PEER (First available)
+    // - Rest of configurations are NOT really needed
+
+    private BestMatchCriteria           bestMatchCriteria = BestMatchCriteria.FROM_ANYONE;
+    private BestMatchNotAvailableAction bestMatchNotAvailableAction = BestMatchNotAvailableAction.DOWNLOAD_FROM_ANYONE;
+    private NoBestMatchAction           noBestMatchAction = NoBestMatchAction.DOWNLOAD_FROM_ANYONE;
 
     public BlockDownloaderHandlerConfig(ProtocolBasicConfig basicConfig,
                                         Duration maxDownloadTimeout,
@@ -76,9 +115,10 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
                                         boolean removeBlockHistoryAfterDownload,
                                         long maxMBinParallel,
                                         Duration blockHistoryTimeout,
-                                        boolean onlyDownloadAfterAnnouncement,
-                                        boolean downloadFromAnnouncersFirst,
-                                        Duration inactivityTimeoutToFail) {
+                                        Duration inactivityTimeoutToFail,
+                                        BestMatchCriteria bestMatchCriteria,
+                                        BestMatchNotAvailableAction bestMatchNotAvailableAction,
+                                        NoBestMatchAction noBestMatchAction) {
         this.basicConfig = basicConfig;
         if (maxDownloadTimeout != null)             this.maxDownloadTimeout = maxDownloadTimeout;
         if (maxIdleTimeout != null)                 this.maxIdleTimeout = maxIdleTimeout;
@@ -88,25 +128,28 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
         this.removeBlockHistoryAfterDownload = removeBlockHistoryAfterDownload;
         this.maxMBinParallel = maxMBinParallel;
         this.blockHistoryTimeout = blockHistoryTimeout;
-        this.onlyDownloadAfterAnnouncement = onlyDownloadAfterAnnouncement;
-        this.downloadFromAnnouncersFirst = downloadFromAnnouncersFirst;
         this.inactivityTimeoutToFail = inactivityTimeoutToFail;
+        this.bestMatchCriteria = bestMatchCriteria;
+        this.bestMatchNotAvailableAction = bestMatchNotAvailableAction;
+        this.noBestMatchAction = noBestMatchAction;
     }
 
     public BlockDownloaderHandlerConfig() {}
 
-    public ProtocolBasicConfig getBasicConfig()         { return this.basicConfig; }
-    public Duration getMaxDownloadTimeout()             { return this.maxDownloadTimeout; }
-    public Duration getMaxIdleTimeout()                 { return this.maxIdleTimeout; }
-    public Duration getRetryDiscardedBlocksTimeout()    { return this.retryDiscardedBlocksTimeout; }
-    public int getMaxDownloadAttempts()                 { return this.maxDownloadAttempts; }
-    public int getMaxBlocksInParallel()                 { return this.maxBlocksInParallel; }
-    public boolean isRemoveBlockHistoryAfterDownload()  { return this.removeBlockHistoryAfterDownload; }
-    public long getMaxMBinParallel()                    { return this.maxMBinParallel;}
-    public Duration getBlockHistoryTimeout()            { return this.blockHistoryTimeout;}
-    public boolean isOnlyDownloadAfterAnnouncement()    { return this.onlyDownloadAfterAnnouncement;}
-    public boolean isDownloadFromAnnouncersFirst()      { return this.downloadFromAnnouncersFirst;}
-    public Duration getInactivityTimeoutToFail()         { return this.inactivityTimeoutToFail;}
+    public ProtocolBasicConfig getBasicConfig()             { return this.basicConfig; }
+    public Duration getMaxDownloadTimeout()                 { return this.maxDownloadTimeout; }
+    public Duration getMaxIdleTimeout()                     { return this.maxIdleTimeout; }
+    public Duration getRetryDiscardedBlocksTimeout()        { return this.retryDiscardedBlocksTimeout; }
+    public int getMaxDownloadAttempts()                     { return this.maxDownloadAttempts; }
+    public int getMaxBlocksInParallel()                     { return this.maxBlocksInParallel; }
+    public boolean isRemoveBlockHistoryAfterDownload()      { return this.removeBlockHistoryAfterDownload; }
+    public long getMaxMBinParallel()                        { return this.maxMBinParallel;}
+    public Duration getBlockHistoryTimeout()                { return this.blockHistoryTimeout;}
+    public Duration getInactivityTimeoutToFail()            { return this.inactivityTimeoutToFail;}
+
+    public BestMatchCriteria getBestMatchCriteria()                     { return this.bestMatchCriteria;}
+    public BestMatchNotAvailableAction getBestMatchNotAvailableAction() { return this.bestMatchNotAvailableAction;}
+    public NoBestMatchAction getNoBestMatchAction()                     { return this.noBestMatchAction;}
 
     public BlockDownloaderHandlerConfigBuilder toBuilder() {
         return new BlockDownloaderHandlerConfigBuilder()
@@ -119,9 +162,10 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
                 .removeBlockHistoryAfterDownload(this.removeBlockHistoryAfterDownload)
                 .maxMBinParallel(this.maxMBinParallel)
                 .removeBlockHistoryAfter(this.blockHistoryTimeout)
-                .onlyDownloadAfterAnnouncement(this.onlyDownloadAfterAnnouncement)
-                .downloadFromAnnouncersFirst(this.downloadFromAnnouncersFirst)
-                .inactivityTimeoutToFail(this.inactivityTimeoutToFail);
+                .inactivityTimeoutToFail(this.inactivityTimeoutToFail)
+                .bestMatchCriteria(this.bestMatchCriteria)
+                .bestMatchNotAvailableAction(this.bestMatchNotAvailableAction)
+                .noBestMatchAction(this.noBestMatchAction);
     }
 
     public static BlockDownloaderHandlerConfigBuilder builder() {
@@ -141,9 +185,11 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
         private boolean removeBlockHistoryAfterDownload = true;
         private long maxMBinParallel = DEFAULT_MAX_MB_IN_PARALLEL;
         private Duration blockHistoryTimeout = DEFAULT_CLEANING_HISTORY_TIMEOUT;
-        private boolean onlyDownloadAfterAnnouncement = false;
-        private boolean downloadFromAnnouncersFirst = false;
         private Duration inactivityTimeoutToFail = DEFAULT_INACTIVITY_TO_FAIL_TIMEOUT;
+
+        private BestMatchCriteria           bestMatchCriteria = BestMatchCriteria.FROM_ANYONE;
+        private BestMatchNotAvailableAction bestMatchNotAvailableAction = BestMatchNotAvailableAction.DOWNLOAD_FROM_ANYONE;
+        private NoBestMatchAction           noBestMatchAction = NoBestMatchAction.DOWNLOAD_FROM_ANYONE;
 
         BlockDownloaderHandlerConfigBuilder() { }
 
@@ -192,24 +238,23 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
             return this;
         }
 
-        public BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder onlyDownloadAfterAnnouncement(boolean onlyDownloadAfterAnnouncement) {
-            this.onlyDownloadAfterAnnouncement = onlyDownloadAfterAnnouncement;
-            if (onlyDownloadAfterAnnouncement) {
-                this.downloadFromAnnouncersFirst = false; // mutual exclusive
-            }
-            return this;
-        }
-
-        public BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder downloadFromAnnouncersFirst(boolean downloadFromAnnouncersFirst) {
-            this.downloadFromAnnouncersFirst = downloadFromAnnouncersFirst;
-            if (downloadFromAnnouncersFirst) {
-                this.onlyDownloadAfterAnnouncement = false; // mutual exclusive
-            }
-            return this;
-        }
-
         public BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder inactivityTimeoutToFail(Duration inactivityTimeoutToFail) {
             this.inactivityTimeoutToFail = inactivityTimeoutToFail;
+            return this;
+        }
+
+        public BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder bestMatchCriteria(BestMatchCriteria bestMatchCriteria) {
+            this.bestMatchCriteria = bestMatchCriteria;
+            return this;
+        }
+
+        public BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder bestMatchNotAvailableAction(BestMatchNotAvailableAction bestMatchNotAvailableAction) {
+            this.bestMatchNotAvailableAction = bestMatchNotAvailableAction;
+            return this;
+        }
+
+        public BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder noBestMatchAction(NoBestMatchAction noBestMatchAction) {
+            this.noBestMatchAction = noBestMatchAction;
             return this;
         }
 
@@ -224,9 +269,10 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
                     removeBlockHistoryAfterDownload,
                     maxMBinParallel,
                     blockHistoryTimeout,
-                    onlyDownloadAfterAnnouncement,
-                    downloadFromAnnouncersFirst,
-                    inactivityTimeoutToFail);
+                    inactivityTimeoutToFail,
+                    bestMatchCriteria,
+                    bestMatchNotAvailableAction,
+                    noBestMatchAction);
         }
     }
 }
