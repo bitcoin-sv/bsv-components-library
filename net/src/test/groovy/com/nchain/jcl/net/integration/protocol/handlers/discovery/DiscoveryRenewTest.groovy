@@ -63,8 +63,13 @@ class DiscoveryRenewTest extends Specification {
             // We keep track of the GET_ADDR and ADDR messages exchanged:
             AtomicInteger numGET_ADDR = new AtomicInteger()
             AtomicInteger numADDR = new AtomicInteger()
+            server.EVENTS.PEERS.HANDSHAKED.forEach({e -> println(e)})
+            server.EVENTS.PEERS.HANDSHAKED_MAX_REACHED.forEach({e -> println(e)})
             server.EVENTS.MSGS.ADDR.forEach({ e -> numADDR.incrementAndGet()})
-            server.EVENTS.MSGS.GETADDR_SENT.forEach({ e -> numGET_ADDR.incrementAndGet()})
+            server.EVENTS.MSGS.GETADDR_SENT.forEach({ e ->
+                numGET_ADDR.incrementAndGet()
+                println(e)
+            })
 
         when:
             // We start the Service. The Discovery Handler will load an initial set of Peers and the service will

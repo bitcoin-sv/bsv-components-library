@@ -27,6 +27,6 @@ public class MsgReceivedEvent<T extends Message> extends P2PEvent {
 
     @Override
     public String toString() {
-        return "Event[" + btcMsg.getHeader().getCommand().toUpperCase() + " Received]: from " + peerAddress.toString();
+        return "Event[" + btcMsg.getHeader().getMsgCommand().toUpperCase() + " Received]: from " + peerAddress.toString();
     }
 }

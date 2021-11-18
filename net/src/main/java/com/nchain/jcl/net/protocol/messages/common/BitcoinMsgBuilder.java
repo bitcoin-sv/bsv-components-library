@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.protocol.messages.common;
 
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig;
+import com.nchain.jcl.net.protocol.config.ProtocolVersion;
 import com.nchain.jcl.net.protocol.messages.HeaderMsg;
 
 
@@ -37,14 +38,29 @@ public class BitcoinMsgBuilder<M extends Message> {
      */
     public BitcoinMsg<M> build() {
 
+        // Sanity check for >4GB Messages:
+        if (bodyMsg.getLengthInBytes() >= config.getThresholdSizeExtMsgs() && config.getProtocolVersion() < ProtocolVersion.SUPPORT_EXT_MSGS.getVersion())
+            throw new RuntimeException("Trying to build a message bigger than 4GB with a wrong protocol Version");
+
         // We build the header (the header must be built after the body, since some of its
-        // fields depend on the body content:
-        HeaderMsg header = HeaderMsg.builder()
-                .command(bodyMsg.getMessageType())
-                .length((int) bodyMsg.getLengthInBytes())
-                .magic(config.getMagicPackage())
-                .build();
-        // NOTE: The CHECKSUM field is NOT Calculated here, only when we SERIALIZE the Message just before sending it...
+        // fields depend on the body content.
+        HeaderMsg.HeaderMsgBuilder headerMsgBuilder = HeaderMsg.builder();
+        headerMsgBuilder.magic(config.getMagicPackage());
+
+        // If the message is a Big one, we use extra fields (enabled after 70016)
+        if (bodyMsg.getLengthInBytes() >= config.getThresholdSizeExtMsgs()) {
+            headerMsgBuilder.command(HeaderMsg.EXT_COMMAND);
+            headerMsgBuilder.length(HeaderMsg.EXT_LENGTH);
+            headerMsgBuilder.extCommand(bodyMsg.getMessageType());
+            headerMsgBuilder.extLength(bodyMsg.getLengthInBytes());
+        } else {
+            headerMsgBuilder.command(bodyMsg.getMessageType());
+            headerMsgBuilder.length((int) bodyMsg.getLengthInBytes());
+        }
+
+        HeaderMsg header = headerMsgBuilder.build();
+        // NOTE: The CHECKSUM field is NOT Calculated here, only when we SERIALIZE the Message just before sending it,
+        // in the BitcoinMsgSerializerImpl...
         BitcoinMsg<M> result = new BitcoinMsg<>(header, bodyMsg);
         return result;
     }

@@ -112,7 +112,7 @@ public class Deserializer {
     /** Expensive Operation. It deserializes a Message from the pipeline using the Bitcoin Serializers */
     private Message deserialize(CacheMsgKey key) {
         //System.out.println("DESERIALIZING " + key.headerMsg.getCommand() + " !!!!!!!!!");
-        return MsgSerializersFactory.getSerializer(key.headerMsg.getCommand()).deserialize(key.desContext, key.reader);
+        return MsgSerializersFactory.getSerializer(key.headerMsg.getMsgCommand()).deserialize(key.desContext, key.reader);
     }
 
     /**
@@ -136,14 +136,14 @@ public class Deserializer {
         CacheMsgKey key = new CacheMsgKey(headerMsg, desContext, reader);
 
         // We only use the Cache if the cache is enabled AND the requested message is "cacheable"...
-        boolean isCacheable = config.isCacheEnabled() && config.getMessagesToCache().contains(headerMsg.getCommand().toUpperCase()) &&
-                (headerMsg.getLength() < config.getCacheMaxMsgSizeInBytes());
+        boolean isCacheable = config.isCacheEnabled() && config.getMessagesToCache().contains(headerMsg.getMsgCommand().toUpperCase()) &&
+                (headerMsg.getMsgLength() < config.getCacheMaxMsgSizeInBytes());
 
         if (isCacheable) {
             result = cache.getIfPresent(key);
             if (result != null)
                 // we read and discard the bytes from the pipeline...
-                reader.read((int) headerMsg.getLength());
+                reader.read((int) headerMsg.getMsgLength());
             else
                 result = cache.get(key, () -> deserialize(key));
         }
@@ -183,8 +183,9 @@ public class Deserializer {
         // We set up the callbacks that wil be trigger as the message is deserialized...
 
         LargeMessageDeserializer largeMsgDeserializer =  MsgSerializersFactory.getLargeMsgDeserializer(
-                headerMsg.getCommand(),
+                headerMsg.getMsgCommand(),
                 config.getMinBytesPerSecForLargeMessages());
+        largeMsgDeserializer.setPartialMsgSize(config.getPartialSerializationMsgSize());
         largeMsgDeserializer.onError(onErrorHandler);
         largeMsgDeserializer.onDeserialized(onPartDeserializedHandler);
 

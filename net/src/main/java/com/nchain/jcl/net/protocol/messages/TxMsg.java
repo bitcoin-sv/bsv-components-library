@@ -44,7 +44,6 @@ public class TxMsg extends Message implements Serializable {
 
     public static final String MESSAGE_TYPE = "tx";
 
-
     // TX HASH:
     // This field is NOT part of the specification of a Bitcoin Transaction Message, so its not either
     // Serialized or Deserialized. But it's ver conveniente to have it here, since this field is the most

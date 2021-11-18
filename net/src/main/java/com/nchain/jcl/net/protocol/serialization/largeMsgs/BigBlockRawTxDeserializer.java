@@ -23,9 +23,6 @@ import java.util.concurrent.ExecutorService;
  */
 public class BigBlockRawTxDeserializer extends LargeMessageDeserializerImpl {
 
-    // Size of each Chunk of TXs in byte array format:
-    private static final int TX_LIST_TOTAL_BYTES = 10_000_000;    // 10 MB
-
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(BigBlockRawTxDeserializer.class);
 
     // Once the Block Header is deserialzed, we keep a reference here, since we include it as well when we
@@ -112,7 +109,7 @@ public class BigBlockRawTxDeserializer extends LargeMessageDeserializerImpl {
                 totalBytesInTx += 4; //lock time
 
                 //if we have enough space then add it
-                if(totalSizeInBatch + totalBytesInTx <= TX_LIST_TOTAL_BYTES){
+                if(totalSizeInBatch + totalBytesInTx <= super.partialMsgSize){
                     totalSizeInBatch += totalBytesInTx;
                     rawTxBatch.add(new RawTxMsg(byteReader.read(totalBytesInTx)));
                 } else {
@@ -134,7 +131,7 @@ public class BigBlockRawTxDeserializer extends LargeMessageDeserializerImpl {
 
                     // If the size of this individual Tx is already bigger than our Max Batch size, this Txs will be
                     // pushed down in the next iteration, but we warm of this situation here...
-                    if(totalBytesInTx > TX_LIST_TOTAL_BYTES){
+                    if(totalBytesInTx > super.partialMsgSize){
                         log.warn("Tx bigger than the current max Batch size has been added to the Batch, it will be pushed next.");
                     }
 

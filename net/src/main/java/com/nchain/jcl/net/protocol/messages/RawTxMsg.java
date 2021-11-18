@@ -22,6 +22,7 @@ import java.io.Serializable;
 public class RawTxMsg extends RawMsg implements Serializable {
 
     public static final String MESSAGE_TYPE = "tx";
+
     private static HashFunction hashFunction = Hashing.sha256();
 
     // Tx Hash in readable format (reversed)

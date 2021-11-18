@@ -19,7 +19,9 @@ import com.nchain.jcl.tools.bytes.*;
 import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.log.LoggerUtil;
 
+import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -215,8 +217,8 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
             HeaderMsg headerMsg = state.getCurrentHeaderMsg();
             DeserializerContext desContext = DeserializerContext.builder()
                     .protocolBasicConfig(protocolBasicConfig)
-                    .maxBytesToRead(headerMsg.getLength())
-                    .insideVersionMsg(headerMsg.getCommand().equalsIgnoreCase(VersionMsg.MESSAGE_TYPE))
+                    .maxBytesToRead(headerMsg.getMsgLength())
+                    .insideVersionMsg(headerMsg.getMsgCommand().equalsIgnoreCase(VersionMsg.MESSAGE_TYPE))
                     .calculateHashes(!realTime) // We only pre-calculate Hashes if we are NOT in Real-Timeprocessing
                     .build();
 
@@ -258,6 +260,10 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
                     HeaderMsg partialMsgHeader = headerMsg.toBuilder()
                             .command(partialMessage.getMessageType())
                             .length(partialMessage.getLengthInBytes())
+                            // the "extXXX" fields are used for Messages bigger than 4GB (after 70016), but the Partial
+                            // messages returned by the Large Serialziers are smaller than that, so we set empty values
+                            .extCommand(null)
+                            .extLength(0)
                             .build();
                     BitcoinMsg<?> bitcoinMsg = new BitcoinMsg(partialMsgHeader, (Message) e.getData());
                     DeserializerStreamState stateResult = this.processOK(isThisADedicatedThread, bitcoinMsg, state);
@@ -276,7 +282,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
                     HeaderMsgSerializer.getInstance().serialize(null, headerMsg, writer);
                     byte[] headerBytes = writer.reader().getFullContentAndClose();
                     // We deserialize the body Bytes:
-                    byte[] bodyBytes = byteReader.get((int)headerMsg.getLength());
+                    byte[] bodyBytes = byteReader.get((int)headerMsg.getMsgLength());
                     // we put them together and we launch the Pre-Serializer...
                     byte[] completeMsg = new byte[headerBytes.length + bodyBytes.length];
                     System.arraycopy(headerBytes, 0, completeMsg, 0, headerBytes.length);
@@ -319,6 +325,25 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
         }
     }
 
+    // It check is the content of the buffer contains a complete header.
+    // The length of a Header might be different depending on whether its a REGULAR header (24 bytes) or an
+    // EXTENDED one (44 bytes). And the type of the header depends on the COMMAND field
+
+    private boolean isIncomingHeaderInBufferAlready(ByteArrayBuffer buffer) {
+        boolean result = false;
+        // If the number of bytes is 44, then it contains a HEADER for sure:
+        if (buffer.size() >= HeaderMsg.MESSAGE_LENGTH_EXT) {
+            result = true;
+        } else if (buffer.size() >= 16){ // at least we have the first 2 fields: magic(4) + command(12)
+            try {
+                byte[] commandBytes = Arrays.copyOfRange(buffer.get(16), 4, 15);
+                String command = new String(commandBytes, "UTF-8");
+                result = (!command.equalsIgnoreCase(HeaderMsg.EXT_COMMAND) && (buffer.size() >= HeaderMsg.MESSAGE_LENGTH));
+            } catch (UnsupportedEncodingException e) { throw new RuntimeException(e); }
+        }
+        return result;
+    }
+
     /**
      * This method assumes that we are in the process of receiving a new Message HEADER. It will check if we already
      * have those bytes in our buffer and deserializes them if so.
@@ -332,8 +357,8 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
     private DeserializerStreamState processSeekingHead(boolean isThisADedicatedThread, DeserializerStreamState state, ByteArrayBuffer buffer) {
         DeserializerStreamState.DeserializerStreamStateBuilder result = state.toBuilder();
 
-        // If we got all the bytes from the Header, we deserialize it, otherwise we just keep waiting...
-        if (buffer.size() < HeaderMsg.MESSAGE_LENGTH) {
+        // If the full header is not here yet, we wait...
+        if (!isIncomingHeaderInBufferAlready(buffer)) {
             log(isThisADedicatedThread, "Seeking Header :: Waiting for more Bytes...");
             result.workToDoInBuffer(false);
         }
@@ -342,7 +367,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
             log(isThisADedicatedThread, "Seeking Header :: Deserializing Header...");
 
             DeserializerContext desContext = DeserializerContext.builder()
-                    .maxBytesToRead(HeaderMsg.MESSAGE_LENGTH)
+                    .protocolBasicConfig(this.protocolBasicConfig)
                     .insideVersionMsg(false)
                     .build();
             ByteArrayReader byteReader = new ByteArrayReader(buffer);
@@ -351,8 +376,8 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
 
             // Now we need to figure out if this incoming Message is one we need to Deserialize, or just Ignore, and that
             // depends on whether we have a Serializer Implementation for it...
-            boolean doWeNeedRealTimeProcessing = headerMsg.getLength() >= runtimeConfig.getMsgSizeInBytesForRealTimeProcessing();
-            boolean ignoreMsg = !MsgSerializersFactory.hasSerializerFor(headerMsg.getCommand(), doWeNeedRealTimeProcessing);
+            boolean doWeNeedRealTimeProcessing = headerMsg.getMsgLength() >= runtimeConfig.getMsgSizeInBytesForRealTimeProcessing();
+            boolean ignoreMsg = !MsgSerializersFactory.hasSerializerFor(headerMsg.getMsgCommand(), doWeNeedRealTimeProcessing);
 
             // The Header has been processed. After the HEAD a BODY must ALWAYS come, so there is still work todo...
             boolean stillWorkToDoInBuffer = true;
@@ -372,14 +397,14 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
 
             // If the next Step is TO IGNORE the incoming Body, we initialize the variable that will help us keep track of
             // how many bytes we still need to ignore (they might come in different batches)
-            if (ignoreMsg) result.reminingBytestoIgnore(headerMsg.getLength());
+            if (ignoreMsg) result.reminingBytestoIgnore(headerMsg.getMsgLength());
 
             // Some logging:
 
             if (!ignoreMsg)
-                log(isThisADedicatedThread,"Header Deserialized, now expecting a BODY for " + headerMsg.getCommand() + "...");
+                log(isThisADedicatedThread,"Header Deserialized, now expecting a BODY for " + headerMsg.getMsgCommand() + "...");
             else
-                log(isThisADedicatedThread,"Ignoring BODY for " + headerMsg.getCommand() + "...");
+                log(isThisADedicatedThread,"Ignoring BODY for " + headerMsg.getMsgCommand() + "...");
         }
         return result.build();
     }
@@ -409,9 +434,9 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
         // The following variables will control what to do next:
 
         HeaderMsg currentHeaderMsg              = state.getCurrentHeaderMsg();
-        long bodySize                           = currentHeaderMsg.getLength();
+        long bodySize                           = currentHeaderMsg.getMsgLength();
         boolean isABigMessage                   = (bodySize > runtimeConfig.getMsgSizeInBytesForRealTimeProcessing());
-        boolean allBytesMessageReceived         = (buffer.size() >= currentHeaderMsg.getLength());
+        boolean allBytesMessageReceived         = (buffer.size() >= currentHeaderMsg.getMsgLength());
 
 
         //log(isThisADedicatedThread, "Reading Body : " + HEX.encode(new ByteArrayReader(buffer).get()));
@@ -420,22 +445,22 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
         if (isABigMessage && !realTimeProcessingEnabled) {
             //buffer.extract((int) bodySize); // We discard the bytes:
             return processError(isThisADedicatedThread,
-                    new RuntimeException("Big Message Received (" + currentHeaderMsg.getCommand() + ") but Not allowed to Process"),
+                    new RuntimeException("Big Message Received (" + currentHeaderMsg.getMsgCommand() + ") but Not allowed to Process"),
                     state);
         }
 
         if (!isABigMessage) {
             if (allBytesMessageReceived) {
-                log(isThisADedicatedThread, "Seeking Body :: Deserializing " + currentHeaderMsg.getCommand() + "...");
+                log(isThisADedicatedThread, "Seeking Body :: Deserializing " + currentHeaderMsg.getMsgCommand() + "...");
                 result = deserialize(isThisADedicatedThread,false, state, buffer).toBuilder();
 
             } else {
                 log(isThisADedicatedThread, "Seeking Body :: Not possible to Deserialize yet...");
-                result.workToDoInBuffer(buffer.size() >= currentHeaderMsg.getLength());
+                result.workToDoInBuffer(buffer.size() >= currentHeaderMsg.getMsgLength());
             }
         } else {
             if (isThisADedicatedThread) {
-                log(isThisADedicatedThread, "Seeking Body :: Deserializing " + currentHeaderMsg.getCommand() + " in REAL-TIME...");
+                log(isThisADedicatedThread, "Seeking Body :: Deserializing " + currentHeaderMsg.getMsgCommand() + " in REAL-TIME...");
                 result = deserialize(isThisADedicatedThread, true, state, buffer).toBuilder();
 
             } else {

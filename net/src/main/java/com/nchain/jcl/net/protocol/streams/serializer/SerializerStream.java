@@ -6,14 +6,12 @@ import com.nchain.jcl.net.network.streams.PeerOutputStream;
 import com.nchain.jcl.net.network.streams.PeerOutputStreamImpl;
 import com.nchain.jcl.net.network.streams.StreamDataEvent;
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig;
-import com.nchain.jcl.net.protocol.messages.DsDetectedMsg;
 import com.nchain.jcl.net.protocol.messages.VersionMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl;
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.tools.log.LoggerUtil;
-import io.bitcoinj.core.Utils;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -59,7 +57,7 @@ public class SerializerStream extends PeerOutputStreamImpl<BitcoinMsg<?>, ByteAr
 
     @Override
     public List<StreamDataEvent<ByteArrayReader>> transform(StreamDataEvent<BitcoinMsg<?>> data) {
-        logger.trace("Serializing " + data.getData().getHeader().getCommand() + " Message...");
+        logger.trace("Serializing " + data.getData().getHeader().getMsgCommand() + " Message...");
 
         SerializerContext serializerContext = SerializerContext.builder()
                 .protocolBasicConfig(ProtocolBasicConfig)
@@ -69,8 +67,7 @@ public class SerializerStream extends PeerOutputStreamImpl<BitcoinMsg<?>, ByteAr
                 BitcoinMsgSerializerImpl.getInstance().serialize(
                         serializerContext,
                         data.getData(),
-                        data.getData().getHeader().getCommand())));
-
+                        data.getData().getHeader().getMsgCommand())));
         return result;
     }
 

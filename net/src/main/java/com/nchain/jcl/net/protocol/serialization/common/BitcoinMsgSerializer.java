@@ -17,11 +17,6 @@ import com.nchain.jcl.tools.bytes.ByteArrayReader;
 public interface BitcoinMsgSerializer {
 
     /**
-     * It returns the Length of the Header.
-     */
-    int getHeaderLength();
-
-    /**
      * It takes a Byte soruce and returns the Header contained in it. Other bytes in the ByteRader are not procesed.
      * The same ByteReader could be used later to keep reading data from it.
      *

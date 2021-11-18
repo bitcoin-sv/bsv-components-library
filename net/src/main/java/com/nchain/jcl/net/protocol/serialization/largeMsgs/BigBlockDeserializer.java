@@ -1,12 +1,12 @@
 package com.nchain.jcl.net.protocol.serialization.largeMsgs;
 
 
+import com.google.common.base.Preconditions;
 import com.nchain.jcl.net.protocol.messages.*;
 import com.nchain.jcl.net.protocol.serialization.BlockHeaderMsgSerializer;
 import com.nchain.jcl.net.protocol.serialization.TxMsgSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
-import com.nchain.jcl.tools.bytes.ByteArrayReaderRealTime;
 import org.slf4j.Logger;
 
 import java.time.Duration;
@@ -26,11 +26,9 @@ import java.util.concurrent.ExecutorService;
  */
 public class BigBlockDeserializer extends LargeMessageDeserializerImpl {
 
-    // The TX are Deserialized and notified in batches:
-    private static final int TX_BATCH = 10_000;
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(BigBlockDeserializer.class);
 
-    // Once the Block Header is deserialzed, we keep a reference here, since we include it as well when we
+    // Once the Block Header is deserialized, we keep a reference here, since we include it as well when we
     // deserialize each set of TXs:
     private BlockHeaderMsg blockHeader;
 
@@ -44,6 +42,9 @@ public class BigBlockDeserializer extends LargeMessageDeserializerImpl {
     @Override
     public void deserialize(DeserializerContext context, ByteArrayReader byteReader) {
         try {
+            // Sanity Check:
+            Preconditions.checkState(super.partialMsgSize != null, "The Size of partial Msgs must be defined before using a Large Deserializer");
+
             // We first deserialize the Block Header:
             log.trace("Deserializing the Block Header...");
             blockHeader = BlockHeaderMsgSerializer.getInstance().deserialize(context, byteReader);
@@ -62,18 +63,18 @@ public class BigBlockDeserializer extends LargeMessageDeserializerImpl {
             // Order of each batch of Txs within the Block
             long txsOrderNumber = 0;
 
-            // We keep track of some statistics:
-            int totalTxsSize = 0;
+            // We keep track of some values:
+            int currentBatchSize = 0;
             Instant deserializingTime = Instant.now();
 
             for (int i = 0; i < numTxs; i++) {
                 TxMsg txMsg = TxMsgSerializer.getInstance().deserialize(context, byteReader);
+                currentBatchSize += txMsg.getLengthInBytes();
                 txList.add(txMsg);
-                totalTxsSize += txMsg.getLengthInBytes();
-                if (i > 0 && i % TX_BATCH == 0) {
+                if (i > 0 && currentBatchSize > super.partialMsgSize) {
                     // We notify about a new Batch of TX Deserialized...
-                    log.trace("Batch of " + TX_BATCH + " Txs deserialized :: "
-                            + totalTxsSize + " bytes, "
+                    log.trace("Batch of " + txList.size() + " Txs deserialized :: "
+                            + currentBatchSize + " bytes, "
                             + Duration.between(deserializingTime, Instant.now()).toMillis() + " milissecs...");
                     PartialBlockTXsMsg partialBlockTXs = PartialBlockTXsMsg.builder()
                             .blockHeader(blockHeader)
@@ -83,8 +84,8 @@ public class BigBlockDeserializer extends LargeMessageDeserializerImpl {
                     txList = new ArrayList<>();
                     notifyDeserialization(partialBlockTXs);
 
-                    // We reset the counters for logging...
-                    totalTxsSize = 0;
+                    // We reset the counters...
+                    currentBatchSize = 0;
                     deserializingTime = Instant.now();
                     txsOrderNumber++;
                 }

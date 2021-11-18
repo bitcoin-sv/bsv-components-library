@@ -7,7 +7,6 @@ import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandlerConfig
 import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandlerState
 import com.nchain.jcl.net.protocol.handlers.block.BlocksDownloadHistory
-import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandlerConfig
 import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerConfig
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg
 import com.nchain.jcl.net.protocol.wrapper.P2P
@@ -121,14 +120,9 @@ class BlockDownloadTest extends Specification {
 
             // Basic Config:
             ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
-                .minPeers(OptionalInt.of(10))
-                .maxPeers(OptionalInt.of(15))
+                .minPeers(OptionalInt.of(20))
+                .maxPeers(OptionalInt.of(22))
                 .build()
-
-            // We enable the Tx Relay:
-            HandshakeHandlerConfig handshakeConfig = config.getHandshakeConfig().toBuilder()
-                .relayTxs(true)
-                .build();
 
             // Serialization Config:
             MessageHandlerConfig messageConfig = config.getMessageConfig().toBuilder()
@@ -141,9 +135,7 @@ class BlockDownloadTest extends Specification {
                 .maxIdleTimeout(Duration.ofSeconds(10))
                 .removeBlockHistoryAfterDownload(false)
                 .removeBlockHistoryAfter(Duration.ofMinutes(10))
-                //.downloadFromAnnouncersFirst(true)
                 .build()
-
 
             // We configure the P2P Service:
             P2P p2p = new P2PBuilder("testing")
@@ -151,7 +143,6 @@ class BlockDownloadTest extends Specification {
                 .config(networkConfig)
                 .config(config)
                 .config(basicConfig)
-                .config(handshakeConfig)
                 .config(messageConfig)
                 .config(blockConfig)
                 .publishStates(Duration.ofMillis(500))
@@ -231,11 +222,7 @@ class BlockDownloadTest extends Specification {
             // We do NOT start downloading until we reach the MAX Number of Peers:
             while (!connReady.get()) Thread.sleep(100)
 
-            p2p.REQUESTS.BLOCKS
-                    .download(block_hashes)
-                    //.fromThisPeerOnly("104.248.245.82:8333")
-                    //.fromThisPeerPreferably("104.248.245.82:8333")
-                    .submit()
+            p2p.REQUESTS.BLOCKS.download(block_hashes).submit()
 
             // Connections are Ready. We submit the Request to start downloading...
             println("Connection Ready...")

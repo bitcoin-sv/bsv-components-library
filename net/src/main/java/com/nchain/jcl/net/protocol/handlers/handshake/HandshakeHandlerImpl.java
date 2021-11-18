@@ -23,10 +23,6 @@ import com.nchain.jcl.tools.thread.ThreadUtils;
 
 import java.math.BigInteger;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -186,7 +182,7 @@ public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeer
         // If this message is coming from a Peer we don't have anymore, we just discard it
         HandshakePeerInfo peerInfo = handlerInfo.get(event.getPeerAddress());
         if (peerInfo == null) {
-            logger.debug(event.getPeerAddress(), event.getBtcMsg().getHeader().getCommand().toUpperCase(), " message discarded (Peer already discarded)");
+            logger.debug(event.getPeerAddress(), event.getBtcMsg().getHeader().getMsgCommand().toUpperCase(), " message discarded (Peer already discarded)");
             return;
         }
         logger.debug( peerInfo.getPeerAddress(), " received VersionMsg :: " + event.getBtcMsg().getBody().toString());
@@ -204,7 +200,7 @@ public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeer
             }
 
             // We check the Version number:
-            if (versionMsg.getVersion() < ProtocolVersion.ENABLE_VERSION.getBitcoinProtocolVersion()) {
+            if (versionMsg.getVersion() < ProtocolVersion.ENABLE_VERSION.getVersion()) {
                 rejectHandshake(peerInfo, PeerHandshakeRejectedEvent.HandshakedRejectedReason.WRONG_VERSION, null);
                 return;
             }
@@ -267,7 +263,7 @@ public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeer
         // If this message is coming from a Peer we don't have anymore, we just discard it
         HandshakePeerInfo peerInfo = handlerInfo.get(event.getPeerAddress());
         if (peerInfo == null) {
-            logger.debug(event.getPeerAddress(), event.getBtcMsg().getHeader().getCommand().toUpperCase(), " message discarded (Peer already discarded)");
+            logger.debug(event.getPeerAddress(), event.getBtcMsg().getHeader().getMsgCommand().toUpperCase(), " message discarded (Peer already discarded)");
             return;
         }
         logger.debug( peerInfo.getPeerAddress(), " received VersionACK...");

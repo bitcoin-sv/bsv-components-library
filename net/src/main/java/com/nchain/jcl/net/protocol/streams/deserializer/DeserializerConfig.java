@@ -16,6 +16,15 @@ import java.util.Set;
  */
 public final class DeserializerConfig {
 
+    // In case a message needs to be deserialized using a "large" Deserializer, that Deserializer will break down the
+    // message into small parts and return ech "partial" part separately. This value is the default size (in bytes) of
+    // each "partial" part.
+    // If the message is deserialized by a "regular" deserialized, this property takes no effect.
+    private static Integer DEFAULT_PARTIAL_SERIALIZATION_MSG_SIZE = 10_000_000; // 10MB
+
+    /** Size in byte sof each "partial" message returned by a "Large" Deserialized when the message is big */
+    private int partialSerializationMsgSize = DEFAULT_PARTIAL_SERIALIZATION_MSG_SIZE;
+
     /**
      *  Initial size of each Buffer assigned to each Peer for Deserialization.
      *  The Buffer can still expand/collapse over time if needed, this is just the initial size
@@ -67,7 +76,8 @@ public final class DeserializerConfig {
                               Duration expirationTime,
                               Long maxMsgSizeInBytes,
                               Boolean generateStats,
-                              Set<String> messagesToCache) {
+                              Set<String> messagesToCache,
+                              int partialSerializationMsgSize) {
         if (bufferInitialSizeInBytes != null)       this.bufferInitialSizeInBytes = bufferInitialSizeInBytes;
         if (minBytesPerSecForLargeMessages != null) this.minBytesPerSecForLargeMessages = minBytesPerSecForLargeMessages;
         if (cacheEnabled != null)                   this.cacheEnabled = cacheEnabled;
@@ -77,6 +87,7 @@ public final class DeserializerConfig {
         if (maxMsgSizeInBytes != null)              this.cacheMaxMsgSizeInBytes = maxMsgSizeInBytes;
         if (generateStats != null)                  this.generateStats = generateStats;
         if (messagesToCache != null)                this.messagesToCache = messagesToCache;
+        this.partialSerializationMsgSize = partialSerializationMsgSize;
     }
 
     public static DeserializerConfigBuilder builder()   { return new DeserializerConfigBuilder(); }
@@ -89,11 +100,17 @@ public final class DeserializerConfig {
     public Long getCacheMaxMsgSizeInBytes()             { return this.cacheMaxMsgSizeInBytes; }
     public boolean isGenerateStats()                    { return this.generateStats; }
     public Set<String> getMessagesToCache()             { return this.messagesToCache; }
-
+    public int getPartialSerializationMsgSize()         { return this.partialSerializationMsgSize;}
 
     @Override
     public String toString() {
-        return "DeserializerConfig(bufferInitialSizeInBytes=" + bufferInitialSizeInBytes + ",minBytesPerSecForLargeMessages=" + minBytesPerSecForLargeMessages + ", maxCacheSizeInBytes=" + this.maxCacheSizeInBytes + ", maxMsgSizeInBytes=" + this.cacheMaxMsgSizeInBytes + ", generateStats=" + this.generateStats + ", messagesToCache=" + this.messagesToCache + ")";
+        return "DeserializerConfig(bufferInitialSizeInBytes=" + bufferInitialSizeInBytes
+                + ",minBytesPerSecForLargeMessages=" + minBytesPerSecForLargeMessages
+                + ", maxCacheSizeInBytes=" + this.maxCacheSizeInBytes
+                + ", maxMsgSizeInBytes=" + this.cacheMaxMsgSizeInBytes
+                + ", generateStats=" + this.generateStats
+                + ", messagesToCache=" + this.messagesToCache
+                + ", partialSerializationMsgSize=" + this.partialSerializationMsgSize + ")";
     }
 
     public DeserializerConfigBuilder toBuilder() {
@@ -106,7 +123,8 @@ public final class DeserializerConfig {
                 .maxMsgSizeInBytes(this.cacheMaxMsgSizeInBytes)
                 .cacheExpirationTime(this.cacheExpirationTime)
                 .generateStats(this.generateStats)
-                .messagesToCache(this.messagesToCache);
+                .messagesToCache(this.messagesToCache)
+                .partialSerializationMsgSize(this.partialSerializationMsgSize);
     }
 
     /**
@@ -122,6 +140,7 @@ public final class DeserializerConfig {
         private Long maxMsgSizeInBytes;
         private boolean generateStats;
         private Set<String> messagesToCache;
+        private int partialSerializationMsgSize = DEFAULT_PARTIAL_SERIALIZATION_MSG_SIZE;
 
         DeserializerConfigBuilder() { }
 
@@ -171,6 +190,11 @@ public final class DeserializerConfig {
             return this;
         }
 
+        public DeserializerConfig.DeserializerConfigBuilder partialSerializationMsgSize(int partialSerializationMsgSize) {
+            this.partialSerializationMsgSize = partialSerializationMsgSize;
+            return this;
+        }
+
         public DeserializerConfig build() {
             return new DeserializerConfig(
                     bufferInitialSizeInBytes,
@@ -181,7 +205,8 @@ public final class DeserializerConfig {
                     cacheExpirationTime,
                     maxMsgSizeInBytes,
                     generateStats,
-                    messagesToCache);
+                    messagesToCache,
+                    partialSerializationMsgSize);
         }
     }
 }

@@ -19,6 +19,12 @@ import java.util.function.Consumer;
 public interface LargeMessageDeserializer {
 
     /**
+     * It specifies the size of each chunk or partial message returned by the Large Deserializer.
+     * Each specific Deserializer might use this property in a different way
+     */
+    void setPartialMsgSize(int partialMsgSize);
+
+    /**
      * After calling this method, the Deserializer will trigger an error if the bytes coming from the remote Peer
      * come in a slower rate than this (in bytes per Sec)
      */

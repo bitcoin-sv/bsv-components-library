@@ -42,6 +42,7 @@ class BigBlockDeserializerTest extends Specification {
             ByteArrayReader reader = new ByteArrayReader(Utils.HEX.decode(BLOCK_HEX))
             ByteArrayReader optimizedReader = new ByteArrayReaderOptimized(reader)
             BigBlockDeserializer bigBlockDeserializer = new BigBlockDeserializer()
+            bigBlockDeserializer.setPartialMsgSize(1_000_000) // 1MB
 
             DeserializerContext deserializedContext = DeserializerContext.builder()
                 .protocolBasicConfig(protocolConfig.getBasicConfig())

@@ -29,7 +29,7 @@ public class ProtocolBTCMainConfig extends ProtocolConfigImpl implements Protoco
     private static long magicPackage           = 0xd9b4bef9L;
     private static int services                = ProtocolServices.NODE_BLOOM.getProtocolServices();
     private static int port                    = 8333;
-    private static int protocolVersion         = ProtocolVersion.CURRENT.getBitcoinProtocolVersion();
+    private static int protocolVersion         = ProtocolVersion.CURRENT.getVersion();
 
     private static String[] userAgentBlacklist = new String[] {"Bitcoin SV:", "BUCash:" };
     private static String[] userAgentWhitelist = null;

@@ -27,7 +27,7 @@ public class MsgSerializersFactory {
     // Raw Message Serializers:
     private static final Map<String, MessageSerializer> rawSerializers = new HashMap<>();
 
-    // Indicates if some Serializer have benn overwriten with their RAW Versions:
+    // Indicates if some Serializer have benn overwritten with their RAW Versions:
     private static boolean RAW_SERIALIZERS_ENABLED = false;
 
     static {

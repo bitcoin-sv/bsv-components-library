@@ -6,11 +6,13 @@ import com.nchain.jcl.net.network.events.*;
 import com.nchain.jcl.net.network.streams.StreamDataEvent;
 import com.nchain.jcl.net.network.streams.StreamErrorEvent;
 
+import com.nchain.jcl.net.protocol.config.ProtocolVersion;
 import com.nchain.jcl.net.protocol.events.control.*;
 import com.nchain.jcl.net.protocol.events.control.BroadcastMsgRequest;
 import com.nchain.jcl.net.protocol.events.data.MsgReceivedBatchEvent;
 import com.nchain.jcl.net.protocol.events.data.MsgReceivedEvent;
 import com.nchain.jcl.net.protocol.events.control.SendMsgRequest;
+import com.nchain.jcl.net.protocol.messages.HeaderMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
 import com.nchain.jcl.net.protocol.messages.common.Message;
@@ -19,6 +21,7 @@ import com.nchain.jcl.net.protocol.streams.MessageStream;
 import com.nchain.jcl.net.protocol.streams.deserializer.Deserializer;
 import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStream;
 import com.nchain.jcl.tools.config.RuntimeConfig;
+import com.nchain.jcl.tools.events.Event;
 import com.nchain.jcl.tools.handlers.HandlerImpl;
 import com.nchain.jcl.tools.log.LoggerUtil;
 import com.nchain.jcl.tools.thread.ThreadUtils;
@@ -171,10 +174,10 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
 
     // Event Handler:
     private void onStreamMsgReceived(PeerAddress peerAddress, BitcoinMsg<?> btcMsg) {
-        String msgType = btcMsg.getHeader().getCommand().toUpperCase();
+        String msgType = btcMsg.getHeader().getMsgCommand().toUpperCase();
         logger.trace(peerAddress, msgType + " Msg received.");
 
-        // We only broadcast the MSg to JCK if it's RIGHT...
+        // We only broadcast the MSg to JCL if it's RIGHT...
         String validationError = findErrorInMsg(btcMsg);
         if (validationError == null) {
 
@@ -232,16 +235,20 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
     public void send(PeerAddress peerAddress, BitcoinMsg<?> btcMessage) {
         if (handlerInfo.containsKey(peerAddress)) {
             handlerInfo.get(peerAddress).getStream().output().send(new StreamDataEvent<>(btcMessage));
-            logger.trace(peerAddress.toString() + " :: " + btcMessage.getHeader().getCommand() + " Msg sent.");
+            logger.trace(peerAddress.toString() + " :: " + btcMessage.getHeader().getMsgCommand() + " Msg sent.");
 
             // We propagate this message to the Bus, so other handlers can pick them up if they are subscribed to:
-            /* NOTE: WE DISABLE THESE EVENT; IN ORDER TO REDUCE MULTI-THREAD PRESSURE
+            // NOTE: These Events related to messages sent might not be necessary, and they add some multi-thread
+            // pressure, so in the future they might be disabled (for noe we need them for some unit tests):
+
             Event event = EventFactory.buildOutcomingEvent(peerAddress, btcMessage);
             super.eventBus.publish(event);
 
+            /*
             // we also publish a more "general" event, valid for any outcoming message
             super.eventBus.publish(new MsgSentEvent<>(peerAddress, btcMessage));
             */
+
             // We update the state:
             updateState(0, 1);
         } else logger.trace(peerAddress, " Request to Send Msg Discarded (unknown Peer)");
@@ -282,6 +289,14 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
     private String findErrorInMsg(BitcoinMsg<?> msg) {
         if (msg == null) return "Msg is Empty";
         if (msg.getHeader().getMagic() != config.getBasicConfig().getMagicPackage()) return "Network Id is incorrect";
+
+        // Checks for 4GB Support:
+        if (msg.getLengthInbytes() >= config.getBasicConfig().getThresholdSizeExtMsgs()) {
+            if (msg.getHeader().getCommand().equalsIgnoreCase(HeaderMsg.EXT_COMMAND))
+                return "Message Larger than 4GB but wrong Command";
+            if (this.config.getBasicConfig().getProtocolVersion() < ProtocolVersion.SUPPORT_EXT_MSGS.getVersion())
+                return "Message Larger than 4GB but we are running a Protocol < 70016";
+        }
         return null;
     }
 
