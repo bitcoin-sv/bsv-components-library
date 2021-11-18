@@ -54,6 +54,7 @@ dependencies {
     testImplementation "ch.qos.logback:logback-classic:1.2.3"
     testImplementation 'org.projectlombok:lombok'
     testImplementation 'com.madgag.spongycastle:core:1.51.0.0'
+    testImplementation 'org.iq80.leveldb:leveldb:0.12'
 }
 
 bootJar {
