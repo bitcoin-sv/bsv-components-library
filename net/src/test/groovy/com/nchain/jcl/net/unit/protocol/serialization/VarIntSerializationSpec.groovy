@@ -65,4 +65,32 @@ class VarIntSerializationSpec extends Specification {
         then:
             messageBytesStr.equals(REF_VARINT_MSG)
     }
+
+    /**
+     * We test that the VarIntMsg Serializer works fine for numbers higher than 4GB
+     */
+    def "Testing big number (>4GB)"() {
+        given:
+            long number = 5_000_000_000; // 5GB
+        when:
+            // We Serialize the MSg:
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            SerializerContext serContext = SerializerContext.builder()
+                .protocolBasicConfig(config.getBasicConfig())
+                .build()
+            VarIntMsg msg = VarIntMsg.builder().value(number).build()
+            ByteArrayWriter writer = new ByteArrayWriter()
+            VarIntMsgSerializer.getInstance().serialize(serContext, msg, writer)
+            byte[] numberBytes = writer.reader().getFullContentAndClose()
+
+            // We deserialize the msg:
+            DeserializerContext desContext = DeserializerContext.builder()
+                .protocolBasicConfig(config.getBasicConfig())
+                .build()
+            ByteArrayReader reader = new ByteArrayReader(numberBytes)
+            VarIntMsg msgDes = VarIntMsgSerializer.getInstance().deserialize(desContext, reader)
+
+        then:
+            msg.equals(msgDes)
+    }
 }
