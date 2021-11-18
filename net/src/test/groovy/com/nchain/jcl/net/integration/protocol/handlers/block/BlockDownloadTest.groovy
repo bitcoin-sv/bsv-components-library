@@ -15,6 +15,7 @@ import com.nchain.jcl.tools.config.RuntimeConfig
 import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault
 import com.nchain.jcl.tools.thread.ThreadUtils
 import io.bitcoinj.core.Utils
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.time.Duration
@@ -99,7 +100,7 @@ class BlockDownloadTest extends Specification {
      *
      */
     // We disable this test, since it's very time-consuming
-    //@Ignore
+    @Ignore
     def "Testing Block Downloading"() {
         given:
             // The longest Timeout we'll wait for to run the test:
