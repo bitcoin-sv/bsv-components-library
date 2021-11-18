@@ -4,6 +4,7 @@ import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
 import com.nchain.jcl.net.protocol.config.ProtocolVersion
+import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandler
 import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandlerConfig
 import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerConfig
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg
@@ -33,7 +34,7 @@ class Message4GBHandlerTest extends Specification {
     // 4GB. But if the local environment is limited in RAM and we can not afford to use that much memory to test, we
     // can "simulate" the "extended msgs" logic by using a lower value.
 
-    private long BLOCK_SIZE_TO_TEST = 2_000_000_000L; // 2 GB
+    private long BLOCK_SIZE_TO_TEST = 3_000_000_000L; // 2 GB
 
     // It builds a Big Block (extended message)
     private BlockMsg buildBigBlock() {
@@ -109,7 +110,7 @@ class Message4GBHandlerTest extends Specification {
                 .build()
             messageHandlerConfig = messageHandlerConfig.toBuilder().deserializerConfig(deserializerConfig).build()
             BlockDownloaderHandlerConfig downloadConfig = protocolConfig.getBlockDownloaderConfig().toBuilder()
-                .maxIdleTimeout(Duration.ofSeconds(50))
+                .maxIdleTimeout(Duration.ofSeconds(40))
                 .build()
 
             // Server Configuration:
@@ -118,10 +119,12 @@ class Message4GBHandlerTest extends Specification {
                 .config(protocolBasicConfig)
                 .config(messageHandlerConfig)
                 .config(downloadConfig)
+                .publishState(BlockDownloaderHandler.HANDLER_ID, Duration.ofSeconds(5))
                 .build()
 
             AtomicBoolean blockDownloaded = new AtomicBoolean(false)
 
+            server.EVENTS.STATE.BLOCKS.forEach({ e -> println(e)})
             server.EVENTS.PEERS.HANDSHAKED.forEach({e ->
                 println("SERVER >> " + e)
             })
@@ -130,6 +133,7 @@ class Message4GBHandlerTest extends Specification {
             })
             server.EVENTS.BLOCKS.BLOCK_TXS_DOWNLOADED.forEach{e ->
                 println("SERVER >> BATCH OF " +e.getBtcMsg().getBody().getTxs().size() + " Txs RECEIVED")
+                Thread.sleep(100000) // WE simulate some work being done here
             }
             server.EVENTS.BLOCKS.BLOCK_DOWNLOADED.forEach({ e ->
                 println("SERVER >> BLOCK DOWNLOADED")
@@ -155,9 +159,10 @@ class Message4GBHandlerTest extends Specification {
             // Now we send a BIG Block from the Client to the Server, and we check that is being received properly:
             BlockMsg bigBlock = buildBigBlock();
             println(">>>  BLOCK OF " + bigBlock.getTransactionMsg().size() + " TXS AND " + ((int) (bigBlock.getLengthInBytes() / 1_000_000)) + " MBs created.")
-            println(">>>  SERIALIZING AND SENDING BLOCK TO SERVER...");
+            println(">>>  SERVER REQUESTING BLOCK FOM CLIENT...");
             server.REQUESTS.BLOCKS.download(Sha256Hash.ZERO_HASH.toString()).submit()
             Thread.sleep(100)
+            println(">>>  CLIENT SERIALIZING AND SENDING BLOCK TO SERVER...");
             client.REQUESTS.MSGS.send(server.getPeerAddress(), bigBlock).submit()
             Thread.sleep(60_000)
         then:
