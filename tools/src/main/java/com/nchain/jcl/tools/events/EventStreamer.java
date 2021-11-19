@@ -57,19 +57,6 @@ public class EventStreamer<E extends Event> {
         this.eventBus = eventBus;
         this.eventClass = eventClass;
         this.numThreads = numThreads;
-
-        // We configure our own executor responsible for consuming the QUEUE of events:
-        String queueThreadName = "EventStreamerQueue[" + eventClass.getSimpleName() + "]";
-        this.queueExecutor = ThreadUtils.getSingleThreadExecutorService(queueThreadName);
-        this.queueExecutor.execute(this::processEventsQueue);
-
-        // We configure the executor responsible for processing the Events:
-        String eventThreadName = "EventStreamerProcessor[" + eventClass.getSimpleName() + "]";
-        this.eventExecutor = ThreadUtils.getCachedThreadExecutorService(eventThreadName, this.numThreads);
-
-        // Every time an event is triggered by the Source EventBus, we add it to our eventQueue:
-        eventBus.subscribe(eventClass, e -> this.events.offer(e));
-
     }
 
     public EventStreamer(EventBus eventBus, Class<E> eventClass) {
@@ -111,7 +98,27 @@ public class EventStreamer<E extends Event> {
     }
 
     public void forEach(Consumer<E> eventHandler) {
+
+        // Sanity check:
+        if (eventHandler == null) return;
+
         // We are defining the Consumer/Handler that will be triggered for any Event.
         this.eventHandler = eventHandler;
+
+        // Now that we have a handler, we start the EventsQueue processing:
+
+        // We configure our own executor responsible for consuming the QUEUE of events:
+        String queueThreadName = "EventStreamerQueue[" + eventClass.getSimpleName() + "]";
+        this.queueExecutor = ThreadUtils.getSingleThreadExecutorService(queueThreadName);
+        this.queueExecutor.execute(this::processEventsQueue);
+
+        // We configure the executor responsible for processing the Events:
+        String eventThreadName = "EventStreamerProcessor[" + eventClass.getSimpleName() + "]";
+        this.eventExecutor = ThreadUtils.getCachedThreadExecutorService(eventThreadName, this.numThreads);
+
+        // Every time an event is triggered by the Source EventBus, we add it to our eventQueue:
+        eventBus.subscribe(eventClass, e -> {
+                this.events.offer(e);
+        });
     }
 }
