@@ -2,7 +2,6 @@ package com.nchain.jcl.tools.bytes;
 
 
 import javax.annotation.concurrent.GuardedBy;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;

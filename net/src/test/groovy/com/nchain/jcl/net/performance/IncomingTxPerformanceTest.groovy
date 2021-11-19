@@ -188,7 +188,7 @@ class IncomingTxPerformanceTest extends Specification {
     /**
      * Main TEst.
      */
-    //@Ignore
+    @Ignore
     def "Testing Incoming TX in real Mainnet"() {
         given:
             // We set up the Network we are connecting to...

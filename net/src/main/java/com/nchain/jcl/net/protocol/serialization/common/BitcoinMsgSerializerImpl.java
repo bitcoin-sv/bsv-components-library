@@ -1,7 +1,6 @@
 package com.nchain.jcl.net.protocol.serialization.common;
 
 
-import com.nchain.jcl.net.protocol.config.ProtocolVersion;
 import com.nchain.jcl.net.protocol.messages.HeaderMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.Message;
@@ -10,7 +9,6 @@ import com.nchain.jcl.tools.bytes.ByteArrayConfig;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.tools.bytes.ByteArrayWriter;
 import com.nchain.jcl.tools.bytes.Sha256HashIncremental;
-import io.bitcoinj.core.Sha256Hash;
 import io.bitcoinj.core.Utils;
 
 import java.util.ArrayList;

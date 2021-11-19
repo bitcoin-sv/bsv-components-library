@@ -10,7 +10,6 @@ import com.nchain.jcl.net.protocol.messages.InventoryVectorMsg;
 import com.nchain.jcl.net.protocol.messages.VarIntMsg;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.tools.bytes.ByteArrayWriter;
-import io.bitcoinj.core.Utils;
 
 import java.util.ArrayList;
 import java.util.List;

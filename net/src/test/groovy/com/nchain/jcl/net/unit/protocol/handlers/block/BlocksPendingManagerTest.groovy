@@ -6,7 +6,6 @@ import com.nchain.jcl.net.protocol.handlers.block.BlocksPendingManager
 import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandlerConfig
 import spock.lang.Specification
 
-import java.util.stream.Collectors
 
 /**
  * A Testing class to check that the Download CRITERIA and ACTIONS defined work well and the right Peers are choosen

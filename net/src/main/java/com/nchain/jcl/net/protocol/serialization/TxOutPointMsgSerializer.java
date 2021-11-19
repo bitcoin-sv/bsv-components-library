@@ -9,7 +9,6 @@ import com.nchain.jcl.net.protocol.messages.HashMsg;
 import com.nchain.jcl.net.protocol.messages.TxOutPointMsg;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.tools.bytes.ByteArrayWriter;
-import io.bitcoinj.core.Utils;
 
 /**
  * @author m.jose@nchain.com

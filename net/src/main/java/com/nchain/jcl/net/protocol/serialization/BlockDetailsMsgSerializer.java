@@ -1,7 +1,6 @@
 package com.nchain.jcl.net.protocol.serialization;
 
 import com.nchain.jcl.net.protocol.messages.BlockDetailsMsg;
-import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.BlockHeaderSimpleMsg;
 import com.nchain.jcl.net.protocol.messages.VarIntMsg;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;

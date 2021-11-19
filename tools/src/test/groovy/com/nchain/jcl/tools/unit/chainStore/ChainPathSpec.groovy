@@ -1,5 +1,6 @@
-package com.nchain.jcl.tools.chainStore
+package com.nchain.jcl.tools.unit.chainStore
 
+import com.nchain.jcl.tools.chainStore.ChainPath
 import spock.lang.Specification
 
 /**
@@ -15,7 +16,7 @@ class ChainPathSpec extends Specification {
             // A list of 3 nodes:
             List<String> path = Arrays.asList("A", "B", "C")
         when:
-            ChainPath<String> chainPath = new ChainPath<>(path, 0)
+        ChainPath<String> chainPath = new ChainPath<>(path, 0)
             // Found:
             boolean oneFoundAt0 = chainPath.isInChain("A", 0)
             // Not Found (wrong height)

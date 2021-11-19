@@ -33,6 +33,7 @@ import io.bitcoinj.core.Utils
 import io.bitcoinj.params.Net
 import io.bitcoinj.params.NetworkParameters
 import org.iq80.leveldb.table.Block
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.time.Duration
@@ -217,6 +218,7 @@ class ChainDownloadTest extends Specification {
     /**
      * It downloads the Blockchain
      */
+    @Ignore
     def downloadChainSpec() {
         given:
 
