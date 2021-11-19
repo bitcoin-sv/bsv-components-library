@@ -41,6 +41,7 @@ public class P2PEventStreamer {
     private EventBus eventBus;
 
 
+    /** Base class for the Event Streamers */
     public class BaseEventStreamer {
         protected int numThreads;
         public BaseEventStreamer(int numThreads) { this.numThreads = numThreads;}
