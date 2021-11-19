@@ -1,6 +1,9 @@
-package com.nchain.jcl.tools.chainStore
+package com.nchain.jcl.tools.performance.chainStore
 
-
+import com.nchain.jcl.tools.chainStore.ChainMemStore
+import com.nchain.jcl.tools.chainStore.ChainPath
+import com.nchain.jcl.tools.unit.chainStore.NodeTest
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.time.Duration
@@ -20,6 +23,7 @@ class ChainMemStorePerformanceSpec extends Specification {
      * We expect each operation to be performed before some threshod that can also be configured. If any of the tasks
      * take loner the test fails.
      */
+    @Ignore
     def "testing forking & prunning with long trunks"() {
         given:
             // Size of the TREE
@@ -36,8 +40,8 @@ class ChainMemStorePerformanceSpec extends Specification {
             final Duration TIME_TO_GET_LASTNODE = Duration.ofMillis(5)
 
             // Tree initialization:
-            NodeTest genesis = new NodeTest("0", "genesis")
-            ChainMemStore<String, NodeTest> treeNode = new ChainMemStore<>(genesis)
+        NodeTest genesis = new NodeTest("0", "genesis")
+        ChainMemStore<String, NodeTest> treeNode = new ChainMemStore<>(genesis)
 
         when:
 

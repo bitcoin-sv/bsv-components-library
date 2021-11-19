@@ -1,8 +1,9 @@
-package com.nchain.jcl.tools.chainStore
+package com.nchain.jcl.tools.unit.chainStore
 
-
+import com.nchain.jcl.tools.chainStore.ChainMemStore
+import com.nchain.jcl.tools.chainStore.ChainPath
 import spock.lang.Specification
-import static com.nchain.jcl.tools.chainStore.NodeTestFactory.*
+import static NodeTestFactory.*
 
 
 /**
@@ -16,7 +17,7 @@ class ChainMemStoreAddRemoveSpec extends Specification {
      */
     def "adding Nodes to Trunk"() {
         given:
-            ChainMemStore<String, NodeTest> treeNode = new ChainMemStore<>(genesis())
+        ChainMemStore<String, NodeTest> treeNode = new ChainMemStore<>(genesis())
         when:
             boolean node1Saved = treeNode.addNode(genesis().getId(), node("1"))
             boolean node2Saved = treeNode.addNode(node("1").getId(), node("2"))
@@ -33,7 +34,7 @@ class ChainMemStoreAddRemoveSpec extends Specification {
 
             // We extract a couple of Chain of Nodes:
             // Only Up to the Node:
-            ChainPath<NodeTest> wholePath = treeNode.getPath(0, "3", false)
+        ChainPath<NodeTest> wholePath = treeNode.getPath(0, "3", false)
             ChainPath<NodeTest> partialPath = treeNode.getPath(1, "2", false)
             ChainPath<NodeTest> notFoundPath = treeNode.getPath(2, "6", false)
 

@@ -4,8 +4,6 @@ package com.nchain.jcl.tools.config;
 import com.nchain.jcl.tools.bytes.ByteArrayConfig;
 import com.nchain.jcl.tools.files.FileUtils;
 
-import java.time.Duration;
-
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd

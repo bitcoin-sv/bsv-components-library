@@ -3,13 +3,11 @@ package com.nchain.jcl.net.protocol.serialization;
 
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.BlockHeaderSimpleMsg;
-import com.nchain.jcl.net.protocol.messages.HashMsg;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.net.protocol.serialization.common.MessageSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.tools.bytes.ByteArrayWriter;
-import io.bitcoinj.core.Sha256Hash;
 
 /**
  * @author j.pomer@nchain.com

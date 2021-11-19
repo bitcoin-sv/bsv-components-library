@@ -1,5 +1,8 @@
-package com.nchain.jcl.tools.bytes
+package com.nchain.jcl.tools.unit.bytes
 
+import com.nchain.jcl.tools.bytes.ByteArrayBuffer
+import com.nchain.jcl.tools.bytes.ByteArrayConfig
+import com.nchain.jcl.tools.bytes.ByteArrayReader
 import spock.lang.Specification
 
 class ByteArrayBuilderSpec extends Specification {
@@ -22,9 +25,9 @@ class ByteArrayBuilderSpec extends Specification {
                                      byte[] _result,
                                      int _bufferSize) {
         given:
-            ByteArrayConfig memoryConfig = new ByteArrayConfig(byteArraySize)
+        ByteArrayConfig memoryConfig = new ByteArrayConfig(byteArraySize)
 
-            ByteArrayBuffer builder = new ByteArrayBuffer(memoryConfig);
+        ByteArrayBuffer builder = new ByteArrayBuffer(memoryConfig);
             builder.add(toAdd)
 
             int bufferSize = builder.buffers.size()

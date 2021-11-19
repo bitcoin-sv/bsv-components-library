@@ -3,8 +3,6 @@ package com.nchain.jcl.net.unit.protocol.tools;
 
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.streams.PeerInputStream;
-import com.nchain.jcl.net.network.streams.PeerInputStreamImpl;
-import com.nchain.jcl.net.network.streams.StreamDataEvent;
 import com.nchain.jcl.net.network.streams.StreamState;
 import com.nchain.jcl.net.protocol.config.ProtocolConfig;
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig;
@@ -18,8 +16,6 @@ import com.nchain.jcl.tools.bytes.ByteArrayReader;
 
 import io.bitcoinj.core.Utils;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 

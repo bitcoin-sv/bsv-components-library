@@ -1,5 +1,8 @@
-package com.nchain.jcl.tools.bytes
+package com.nchain.jcl.tools.unit.bytes
 
+import com.nchain.jcl.tools.bytes.ByteArray
+import com.nchain.jcl.tools.bytes.ByteArrayConfig
+import com.nchain.jcl.tools.bytes.ByteArrayNIO
 import groovy.util.logging.Slf4j
 import spock.lang.Specification
 
@@ -16,7 +19,7 @@ class ByteArrayImplSpec extends Specification {
      */
     def "testing adding and extracting"(int byteArraySize, byte[] bytesAdded, int toExtract, byte[] result) {
         given:
-            ByteArrayNIO byteArray = new ByteArrayNIO(byteArraySize)
+        ByteArrayNIO byteArray = new ByteArrayNIO(byteArraySize)
             byteArray.add(bytesAdded)
 
             byte[] extracted = byteArray.extract(toExtract)
@@ -35,9 +38,9 @@ class ByteArrayImplSpec extends Specification {
      */
     def "testing capacity limits"() {
         given:
-            ByteArrayConfig memoryConfig = new ByteArrayConfig(2)
+        ByteArrayConfig memoryConfig = new ByteArrayConfig(2)
 
-            ByteArray byteArray = new ByteArrayNIO(memoryConfig.getByteArraySize())
+        ByteArray byteArray = new ByteArrayNIO(memoryConfig.getByteArraySize())
         when:
             byteArray.add([1,2] as byte[])
             byteArray.add([3] as byte[])

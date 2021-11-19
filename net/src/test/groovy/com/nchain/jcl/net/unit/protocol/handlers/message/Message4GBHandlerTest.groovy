@@ -17,6 +17,8 @@ import com.nchain.jcl.net.protocol.messages.TxOutputMsg
 import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerConfig
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
+import com.nchain.jcl.tools.config.RuntimeConfig
+import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault
 import io.bitcoinj.core.Sha256Hash
 import io.bitcoinj.params.RegTestParams
 import spock.lang.Ignore
@@ -93,10 +95,13 @@ class Message4GBHandlerTest extends Specification {
      * We use 2 JCL instances (2 PSP instances: server and client). We build a Big Block as an extended message and
      * then we send it from the client to the server, and check that the message is received properly by the Server.
      */
-    @Ignore
+    //@Ignore
     def "testing 4GBBlock"() {
         given:
             // Configuration:
+            RuntimeConfig runtimeConfig = new RuntimeConfigDefault().toBuilder()
+                .maxNumThreadsForP2P(50)
+                .build()
             ProtocolConfig protocolConfig = ProtocolConfigBuilder.get(RegTestParams.get())
             ProtocolBasicConfig protocolBasicConfig = protocolConfig.getBasicConfig().toBuilder()
                 .protocolVersion(ProtocolVersion.SUPPORT_EXT_MSGS.getVersion())
@@ -106,7 +111,7 @@ class Message4GBHandlerTest extends Specification {
                 .build()
             MessageHandlerConfig messageHandlerConfig = protocolConfig.getMessageConfig()
             DeserializerConfig deserializerConfig = messageHandlerConfig.getDeserializerConfig().toBuilder()
-                .partialSerializationMsgSize(100_000_000)
+                .partialSerializationMsgSize(10_000_000)
                 .build()
             messageHandlerConfig = messageHandlerConfig.toBuilder().deserializerConfig(deserializerConfig).build()
             BlockDownloaderHandlerConfig downloadConfig = protocolConfig.getBlockDownloaderConfig().toBuilder()
@@ -115,6 +120,7 @@ class Message4GBHandlerTest extends Specification {
 
             // Server Configuration:
             P2P server = new P2PBuilder("server")
+                .config(runtimeConfig)
                 .config(protocolConfig)
                 .config(protocolBasicConfig)
                 .config(messageHandlerConfig)
@@ -133,7 +139,7 @@ class Message4GBHandlerTest extends Specification {
             })
             server.EVENTS.BLOCKS.BLOCK_TXS_DOWNLOADED.forEach{e ->
                 println("SERVER >> BATCH OF " +e.getBtcMsg().getBody().getTxs().size() + " Txs RECEIVED")
-                Thread.sleep(100000) // WE simulate some work being done here
+                Thread.sleep(30000) // WE simulate some work being done here
             }
             server.EVENTS.BLOCKS.BLOCK_DOWNLOADED.forEach({ e ->
                 println("SERVER >> BLOCK DOWNLOADED")
