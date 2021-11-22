@@ -187,7 +187,7 @@ public class P2PBuilder {
             // NOTE: The "maxNumberDedicatedConnections" in the MessageHandler is very related to the
             // "maxBlocksInParallel" property of the BlockDownloaderHandler Config, so we assign its value...
             BlockDownloaderHandlerConfig blockConfigTmp = (BlockDownloaderHandlerConfig) handlerConfigs.get(BlockDownloaderHandler.HANDLER_ID);
-            messageConfig = messageConfig.toBuilder().basicConfig(this.basicConfig).maxNumberDedicatedConnections(blockConfigTmp.getMaxBlocksInParallel()) .build();
+            messageConfig = messageConfig.toBuilder().basicConfig(this.basicConfig).maxNumberDedicatedConnections(blockConfigTmp.getMaxBlocksInParallel()).build();
 
             Handler messageHandler = new MessageHandlerImpl(id, runtimeConfig, messageConfig);
             result.put(messageHandler.getId(), messageHandler);
@@ -252,14 +252,14 @@ public class P2PBuilder {
             // Now we addBytes all the Handlers to this P2P: The set of handlers to addBytes is a combination of the
             // default ones, plus the custom ones, minus the ones specifically excluded...
 
-            // First, we calculate which Handlers we should addBytes...
+            // First, we calculate which Handlers we should add...
             Map<String, Handler> finalHandlersToAdd = new HashMap<>(defaultHandlers);
             for (String handlerId : this.handlersToAdd.keySet())
                 finalHandlersToAdd.put(handlerId, this.handlersToAdd.get(handlerId));
             for (String handlerId : handlersToExclude)
                 finalHandlersToAdd.remove(handlerId);
 
-            // Now, we just addBytes them, along with their "status Refresh Frequency", if it has been configured:
+            // Now, we just addBy them, along with their "status Refresh Frequency", if it has been configured:
             for (Handler handler : finalHandlersToAdd.values()) {
                 String handlerId = handler.getId();
                 Duration handlerStateFrequency = stateRefreshFrequencies.containsKey(handlerId)
