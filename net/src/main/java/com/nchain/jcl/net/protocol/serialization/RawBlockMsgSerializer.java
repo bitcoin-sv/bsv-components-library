@@ -4,6 +4,7 @@ package com.nchain.jcl.net.protocol.serialization;
 import com.nchain.jcl.net.protocol.messages.BlockMsg;
 import com.nchain.jcl.net.protocol.messages.RawBlockMsg;
 import com.nchain.jcl.net.protocol.messages.RawTxMsg;
+import com.nchain.jcl.net.protocol.messages.TxMsg;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.net.protocol.serialization.common.MessageSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext;
@@ -44,60 +45,68 @@ public class RawBlockMsgSerializer implements MessageSerializer<RawBlockMsg> {
         // The transactions are taken from the Block Body...since the Block Header has been already extracted
         // from the "byteReader", the information remaining in there are the Block Transactions...
 
-        int numBytesToRead = (int) (context.getMaxBytesToRead() - blockHeader.getLengthInBytes());
-        long totalBytesRemaining = numBytesToRead;
-
-
-        //record each tx in this batch
+        long numTxs = blockHeader.getTransactionCount().getValue();
         List<RawTxMsg> txs = new ArrayList<>();
 
-        while (totalBytesRemaining > 0) {
-            int totalBytesInTx = 0;
-
-            //deserialize tx
-            totalBytesInTx += 4; //version
-
-            //input count
-            long inputCount =  BitcoinSerializerUtils.deserializeVarIntWithoutExtraction(byteReader, totalBytesInTx);
-            totalBytesInTx += BitcoinSerializerUtils.getVarIntSizeInBytes(inputCount);
-
-            //calculate total bytes in txInput
-            for (int i = 0; i < inputCount; i++) {
-                totalBytesInTx += 36; //outpoint;
-
-                //script length
-                long scriptLen = BitcoinSerializerUtils.deserializeVarIntWithoutExtraction(byteReader, totalBytesInTx);
-                totalBytesInTx += BitcoinSerializerUtils.getVarIntSizeInBytes(scriptLen);
-
-                //script
-                totalBytesInTx += scriptLen;
-
-                totalBytesInTx += 4; //sequence
-            }
-
-            long outputCount = BitcoinSerializerUtils.deserializeVarIntWithoutExtraction(byteReader, totalBytesInTx);
-            totalBytesInTx += BitcoinSerializerUtils.getVarIntSizeInBytes(outputCount);
-
-            for (int i = 0; i < outputCount; i++) {
-                totalBytesInTx += 8; //value
-
-                //script length
-                long scriptLen = BitcoinSerializerUtils.deserializeVarIntWithoutExtraction(byteReader, totalBytesInTx);
-                totalBytesInTx += BitcoinSerializerUtils.getVarIntSizeInBytes(scriptLen);
-
-                //script
-                totalBytesInTx += scriptLen;
-            }
-
-            totalBytesInTx += 4; //lock time
-
-
-            txs.add(new RawTxMsg(byteReader.read(totalBytesInTx), 0)); // checksum ZERO
-
-            totalBytesRemaining -= totalBytesInTx;
+        while (txs.size() < numTxs) {
+            RawTxMsg tx = deserializeNextTx(context, byteReader);
+            txs.add(tx);
         }
 
         return RawBlockMsg.builder().blockHeader(blockHeader).txs(txs).build();
+    }
+
+    /**
+     * It deserializes a single Tx of this block from the Byte Array Reader, and returns it
+     */
+    public RawTxMsg deserializeNextTx(DeserializerContext context, ByteArrayReader byteReader) {
+        RawTxMsg result = null;
+
+        // We need to locate the position in this Reader that marks te end of the Txs, and then we just "extract" all
+        // the bytes from the beginning and up to that point:
+        int numBytesInTx = 0;
+
+        // Version
+        numBytesInTx += 4;
+
+        // input count
+        long inputCount =  BitcoinSerializerUtils.deserializeVarIntWithoutExtraction(byteReader, numBytesInTx);
+        numBytesInTx += BitcoinSerializerUtils.getVarIntSizeInBytes(inputCount);
+
+        // txInputs
+        for (int i = 0; i < inputCount; i++) {
+            // output
+            numBytesInTx += 36;
+            //script length
+            long scriptLen = BitcoinSerializerUtils.deserializeVarIntWithoutExtraction(byteReader, numBytesInTx);
+            numBytesInTx += BitcoinSerializerUtils.getVarIntSizeInBytes(scriptLen);
+            // script
+            numBytesInTx += scriptLen;
+            // sequence
+            numBytesInTx += 4;
+        }
+
+        // output count
+        long outputCount = BitcoinSerializerUtils.deserializeVarIntWithoutExtraction(byteReader, numBytesInTx);
+        numBytesInTx += BitcoinSerializerUtils.getVarIntSizeInBytes(outputCount);
+
+        // txOutputs
+        for (int i = 0; i < outputCount; i++) {
+            // Value
+            numBytesInTx += 8;
+            //script length
+            long scriptLen = BitcoinSerializerUtils.deserializeVarIntWithoutExtraction(byteReader, numBytesInTx);
+            numBytesInTx += BitcoinSerializerUtils.getVarIntSizeInBytes(scriptLen);
+
+            //script
+            numBytesInTx += scriptLen;
+        }
+        // locktime
+        numBytesInTx += 4;
+
+        result = new RawTxMsg(byteReader.read(numBytesInTx), 0); // checksum ZERO
+        return result;
+
     }
 
     @Override

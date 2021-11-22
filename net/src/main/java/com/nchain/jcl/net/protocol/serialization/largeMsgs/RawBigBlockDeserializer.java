@@ -3,6 +3,7 @@ package com.nchain.jcl.net.protocol.serialization.largeMsgs;
 
 import com.nchain.jcl.net.protocol.messages.*;
 import com.nchain.jcl.net.protocol.serialization.BlockHeaderMsgSerializer;
+import com.nchain.jcl.net.protocol.serialization.RawBlockMsgSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.tools.serialization.BitcoinSerializerUtils;
@@ -55,8 +56,11 @@ public class RawBigBlockDeserializer extends LargeMessageDeserializerImpl {
                     .build();
             notifyDeserialization(partialBlockHeader);
 
-            // Now we Deserialize the Txs, in batches..
+            // Now we Deserialize the Txs, in batches...
             log.trace("Deserializing TXs...");
+
+            // We use a RawBlockMsgSerializer, which already contains the logic for this:
+            RawBlockMsgSerializer rawBlockMsgSerializer = RawBlockMsgSerializer.getInstance();
 
             long txsBytesSize = context.getMaxBytesToRead() - blockHeader.getLengthInBytes();
             long totalBytesRemaining = txsBytesSize;
@@ -69,49 +73,14 @@ public class RawBigBlockDeserializer extends LargeMessageDeserializerImpl {
             List<RawTxMsg> rawTxBatch = new ArrayList<>();
 
             while (totalBytesRemaining > 0) {
-                int totalBytesInTx = 0;
 
-                //deserialize tx
-                totalBytesInTx += 4; //version
-
-                //input count
-                long inputCount =  BitcoinSerializerUtils.deserializeVarIntWithoutExtraction(byteReader, totalBytesInTx);
-                totalBytesInTx += BitcoinSerializerUtils.getVarIntSizeInBytes(inputCount);
-
-                //calculate total bytes in txInput
-                for (int i = 0; i < inputCount; i++) {
-                    totalBytesInTx += 36; //outpoint;
-
-                    //script length
-                    long scriptLen = BitcoinSerializerUtils.deserializeVarIntWithoutExtraction(byteReader, totalBytesInTx);
-                    totalBytesInTx += BitcoinSerializerUtils.getVarIntSizeInBytes(scriptLen);
-
-                    //script
-                    totalBytesInTx += scriptLen;
-
-                    totalBytesInTx += 4; //sequence
-                }
-
-                long outputCount = BitcoinSerializerUtils.deserializeVarIntWithoutExtraction(byteReader, totalBytesInTx);
-                totalBytesInTx += BitcoinSerializerUtils.getVarIntSizeInBytes(outputCount);
-
-                for (int i = 0; i < outputCount; i++) {
-                    totalBytesInTx += 8; //value
-
-                    //script length
-                    long scriptLen = BitcoinSerializerUtils.deserializeVarIntWithoutExtraction(byteReader, totalBytesInTx);
-                    totalBytesInTx += BitcoinSerializerUtils.getVarIntSizeInBytes(scriptLen);
-
-                    //script
-                    totalBytesInTx += scriptLen;
-                }
-
-                totalBytesInTx += 4; //lock time
+                RawTxMsg tx = rawBlockMsgSerializer.deserializeNextTx(context, byteReader);
+                long totalBytesInTx = tx.getLengthInBytes();
 
                 //if we have enough space then add it
                 if(totalSizeInBatch + totalBytesInTx <= super.partialMsgSize){
                     totalSizeInBatch += totalBytesInTx;
-                    rawTxBatch.add(new RawTxMsg(byteReader.read(totalBytesInTx), 0)); // checksum ZERO
+                    rawTxBatch.add(tx);
                 } else {
                     // We do not Have enough space in this Batch for this Tx. push the batch we have so far down the pipeline
                     PartialBlockRawTxMsg partialBlockRawTXs = PartialBlockRawTxMsg.builder()
@@ -127,7 +96,7 @@ public class RawBigBlockDeserializer extends LargeMessageDeserializerImpl {
                     totalSizeInBatch = 0;
 
                     // We add this Tx to the next Batch:
-                    rawTxBatch.add(new RawTxMsg(byteReader.read(totalBytesInTx), 0)); // checksum ZERO
+                    rawTxBatch.add(tx);
 
                     // If the size of this individual Tx is already bigger than our Max Batch size, this Txs will be
                     // pushed down in the next iteration, but we warm of this situation here...
