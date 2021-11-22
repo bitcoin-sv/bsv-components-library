@@ -23,6 +23,9 @@ import java.util.List;
  */
 public class BitcoinMsgSerializerImpl implements BitcoinMsgSerializer {
 
+    // for performance sake:
+    private static long CHECKSUM_EMPTY_MSG = Utils.readUint32(new Sha256HashIncremental().hashTwice(), 0);
+
     // Singleton
     private static BitcoinMsgSerializerImpl instance;
 
@@ -72,9 +75,9 @@ public class BitcoinMsgSerializerImpl implements BitcoinMsgSerializer {
         final int MAX_BYTES_TO_READ = 2_000_000_000; // 2GB
 
         // In case the message is empty:
-        if (numBytes == 0) { return 0;}
+        if (numBytes == 0) { return CHECKSUM_EMPTY_MSG;}
 
-        // Optimization: (message < 2GB)
+        // Optimization: (message <= 2GB)
         if (numBytes <= MAX_BYTES_TO_READ) {
             return Utils.readUint32(Sha256Hash.hashTwice(byteReader.get((int)numBytes)), 0);
         }
@@ -138,25 +141,18 @@ public class BitcoinMsgSerializerImpl implements BitcoinMsgSerializer {
             getBodySerializer(msgType).serialize(context, bitcoinMessage.getBody(), bodyByteWriter);
             ByteArrayReader bodyByteReader = bodyByteWriter.reader(); // BODY Content
 
-            // In order to calculate the Checksum, we need to calculate Sha256 on the Message bytes, but if the message is
-            // bigger than 2GB it can NOT be stored in a byte array. So in order to make it generic, we store the
-            // message bytes in a list of byte arrays, so we can fit it whatever the size:
-
-            final int SIZE_2GB = 2_000_000_000;
-            List<byte[]> msgBytes = new ArrayList<>();
-            while (!bodyByteReader.isEmpty()) {
-                msgBytes.add(bodyByteReader.read((int)Math.min(bodyByteReader.size(), SIZE_2GB)));
-            }
-
-            // We calculate the checksum:
-            Sha256HashIncremental shaIncremental = new Sha256HashIncremental();
-            for (byte[] partialBytes : msgBytes) { shaIncremental.add(partialBytes);}
-            long checksum = Utils.readUint32(shaIncremental.hashTwice(), 0);
-
-            // We inject the checksum into the header and we serialize everything (HEAD + BODY):
+            // We calculate the checksum and inject it back into the header:
+            long checksum = calculateChecksum(bodyByteReader, header.getMsgLength());
             HeaderMsg headerWithChecksum = header.toBuilder().checksum(checksum).build();
+
+            // We serialize the HEADER:
             HeaderMsgSerializer.getInstance().serialize(context, headerWithChecksum, finalWriter);
-            for (byte[] partialBytes : msgBytes) { finalWriter.write(partialBytes);}
+
+            // We serialize the BODY:
+            final int SIZE_2GB = 2_000_000_000;
+            while (!bodyByteReader.isEmpty()) {
+                finalWriter.write(bodyByteReader.read((int) Math.min(SIZE_2GB, bodyByteReader.size())));
+            }
         }
 
         return finalWriter.reader();
