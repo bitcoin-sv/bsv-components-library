@@ -40,7 +40,7 @@ public class HeaderMsgSerializer implements MessageSerializer<HeaderMsg> {
         headerBuilder.magic(magic);
         headerBuilder.command(command);
         headerBuilder.length(byteReader.readUint32());
-        headerBuilder.payloadChecksum(byteReader.readUint32());
+        headerBuilder.checksum(byteReader.readUint32());
 
         // Messages bigger than 4GB use an special command, and extra fields are used:
         if (command.equalsIgnoreCase(HeaderMsg.EXT_COMMAND)) {
