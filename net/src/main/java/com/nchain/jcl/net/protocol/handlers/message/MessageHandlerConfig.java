@@ -69,12 +69,19 @@ public final class MessageHandlerConfig extends HandlerConfig {
         if (basicConfig != null)
             this.basicConfig = basicConfig;
         this.preSerializer = preSerializer;
-        if (deserializerConfig != null)
+        if (deserializerConfig != null) {
             this.deserializerConfig = deserializerConfig;
+        }
+
         this.rawTxsEnabled = rawTxsEnabled;
         this.maxNumberDedicatedConnections = maxNumberDedicatedConnections;
         this.msgBatchConfigs = msgBatchConfigs;
         this.verifyChecksum = verifyChecksum;
+
+        // We set up the checksum management so its consistent:
+        if (verifyChecksum != this.deserializerConfig.isCalculateChecksum()) {
+            this.deserializerConfig = this.deserializerConfig.toBuilder().calculateChecksum(verifyChecksum).build();
+        }
     }
 
     public ProtocolBasicConfig getBasicConfig()                     { return this.basicConfig; }
@@ -101,7 +108,8 @@ public final class MessageHandlerConfig extends HandlerConfig {
                 .deserializerConfig(this.deserializerConfig)
                 .rawTxsEnabled(rawTxsEnabled)
                 .maxNumberDedicatedConnections(this.maxNumberDedicatedConnections)
-                .msgBatchConfigs(this.msgBatchConfigs);
+                .msgBatchConfigs(this.msgBatchConfigs)
+                .verifyChecksum(this.verifyChecksum);
     }
 
     public static MessageHandlerConfigBuilder builder() {
