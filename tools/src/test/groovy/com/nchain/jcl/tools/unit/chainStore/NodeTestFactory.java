@@ -1,4 +1,4 @@
-package com.nchain.jcl.tools.chainStore;
+package com.nchain.jcl.tools.unit.chainStore;
 
 /**
  * @author i.fernandez@nchain.com

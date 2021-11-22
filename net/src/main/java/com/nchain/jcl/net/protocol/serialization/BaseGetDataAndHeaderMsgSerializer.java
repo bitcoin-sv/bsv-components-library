@@ -10,8 +10,6 @@ import com.nchain.jcl.net.protocol.serialization.common.MessageSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.tools.bytes.ByteArrayWriter;
-import io.bitcoinj.core.Sha256Hash;
-import io.bitcoinj.core.Utils;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -2,8 +2,6 @@ package com.nchain.jcl.tools.bytes;
 
 import io.bitcoinj.core.Utils;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 
 /**

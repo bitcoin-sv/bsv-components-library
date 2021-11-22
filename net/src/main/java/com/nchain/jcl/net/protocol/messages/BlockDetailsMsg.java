@@ -17,10 +17,10 @@ public class BlockDetailsMsg extends Message {
     public static final String MESSAGE_TYPE = "blockdetails";
 
     private VarIntMsg headerCount;
-    private List<BlockHeaderMsg> headerMsg;
+    private List<BlockHeaderSimpleMsg> headerMsg;
     private MerkleProofMsg merkleProofMsg;
 
-    public BlockDetailsMsg(VarIntMsg headerCount, List<BlockHeaderMsg> headerMsg, MerkleProofMsg merkleProofMsg, long payloadChecksum) {
+    public BlockDetailsMsg(VarIntMsg headerCount, List<BlockHeaderSimpleMsg> headerMsg, MerkleProofMsg merkleProofMsg, long payloadChecksum) {
         super(payloadChecksum);
         this.headerCount = headerCount;
         this.headerMsg = headerMsg;
@@ -39,10 +39,10 @@ public class BlockDetailsMsg extends Message {
     protected void validateMessage() {}
 
     @Override
-    public String getMessageType()              { return MESSAGE_TYPE; }
-    public List<BlockHeaderMsg> getHeaderMsg()  { return headerMsg; }
-    public VarIntMsg getHeaderCount()           { return headerCount; }
-    public MerkleProofMsg getMerkleProofMsg()   { return merkleProofMsg; }
+    public String getMessageType()                      { return MESSAGE_TYPE; }
+    public List<BlockHeaderSimpleMsg> getHeaderMsg()    { return headerMsg; }
+    public VarIntMsg getHeaderCount()                   { return headerCount; }
+    public MerkleProofMsg getMerkleProofMsg()           { return merkleProofMsg; }
 
 
     public static BlockDetailsMsgBuilder builder(){
@@ -62,7 +62,7 @@ public class BlockDetailsMsg extends Message {
      */
     public static final class BlockDetailsMsgBuilder extends  MessageBuilder{
         private VarIntMsg headerCount;
-        private List<BlockHeaderMsg> headerMsg;
+        private List<BlockHeaderSimpleMsg> headerMsg;
         private MerkleProofMsg merkleProofMsg;
 
         private BlockDetailsMsgBuilder() {
@@ -77,7 +77,7 @@ public class BlockDetailsMsg extends Message {
             return this;
         }
 
-        public BlockDetailsMsgBuilder headerMsg(List<BlockHeaderMsg> headerMsg) {
+        public BlockDetailsMsgBuilder headerMsg(List<BlockHeaderSimpleMsg> headerMsg) {
             this.headerMsg = headerMsg;
             return this;
         }

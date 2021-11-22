@@ -126,7 +126,7 @@ public class RawBigBlockDeserializer extends LargeMessageDeserializerImpl {
                     txsOrderNumber++;
                     totalSizeInBatch = 0;
 
-                    // We add this Tx tot he next Batch:
+                    // We add this Tx to the next Batch:
                     rawTxBatch.add(new RawTxMsg(byteReader.read(totalBytesInTx), 0)); // checksum ZERO
 
                     // If the size of this individual Tx is already bigger than our Max Batch size, this Txs will be

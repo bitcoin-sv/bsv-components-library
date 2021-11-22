@@ -1,5 +1,8 @@
-package com.nchain.jcl.tools.bytes
+package com.nchain.jcl.tools.unit.bytes
 
+import com.nchain.jcl.tools.bytes.ByteArrayReader
+import com.nchain.jcl.tools.bytes.ByteArrayReaderRealTime
+import com.nchain.jcl.tools.bytes.ByteArrayWriter
 import spock.lang.Specification
 
 import java.util.concurrent.ExecutorService

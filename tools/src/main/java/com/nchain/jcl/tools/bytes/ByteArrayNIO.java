@@ -4,7 +4,6 @@ package com.nchain.jcl.tools.bytes;
 import javax.annotation.concurrent.GuardedBy;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkArgument;
 

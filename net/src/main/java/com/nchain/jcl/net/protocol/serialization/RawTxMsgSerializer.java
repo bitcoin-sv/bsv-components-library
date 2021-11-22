@@ -4,16 +4,6 @@ package com.nchain.jcl.net.protocol.serialization;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import com.nchain.jcl.net.protocol.messages.*;
-import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
-import com.nchain.jcl.net.protocol.serialization.common.MessageSerializer;
-import com.nchain.jcl.net.protocol.serialization.common.SerializerContext;
-import com.nchain.jcl.tools.bytes.ByteArrayReader;
-import com.nchain.jcl.tools.bytes.ByteArrayWriter;
-import io.bitcoinj.core.Sha256Hash;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
 /**
  * @author i.fernandez@nchain.com

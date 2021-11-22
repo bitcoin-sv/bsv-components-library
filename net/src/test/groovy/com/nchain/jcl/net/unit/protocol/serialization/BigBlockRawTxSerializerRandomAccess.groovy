@@ -111,6 +111,7 @@ class BigBlockRawTxSerializerRandomAccess extends Specification {
 
             // Now we prepare for deserializing it using the BigBlockRawTxDeserializer:
             RawBigBlockDeserializer bigBlockDeserializer = new RawBigBlockDeserializer()
+            bigBlockDeserializer.setPartialMsgSize(1_000_000) // 1 MB
             DeserializerContext desContext = new DeserializerContext.DeserializerContextBuilder()
                 .maxBytesToRead(headerBytes.length + txsBytes.length)
                 .build()

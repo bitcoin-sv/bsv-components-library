@@ -1,7 +1,10 @@
-package com.nchain.jcl.tools.chainStore
+package com.nchain.jcl.tools.unit.chainStore
 
+import com.nchain.jcl.tools.chainStore.ChainMemStore
+import com.nchain.jcl.tools.chainStore.ChainPath
+import com.nchain.jcl.tools.chainStore.Node
 import spock.lang.Specification
-import static com.nchain.jcl.tools.chainStore.NodeTestFactory.*
+import static NodeTestFactory.*
 
 /**
  * Testing class for the "getPath()" method
@@ -16,7 +19,7 @@ class ChainMemStorePathSpec extends Specification {
     def "Simple Path"() {
         given:
             // We build the Chain at height zero:
-            ChainMemStore<String, NodeTest> chain = new ChainMemStore<>(genesis(), 0)
+        ChainMemStore<String, NodeTest> chain = new ChainMemStore<>(genesis(), 0)
             chain.addNode(null, genesis())
             chain.addNode(genesis().getId(), node("1"))
             chain.addNode(node("1").getId(), node("2"))
@@ -29,7 +32,7 @@ class ChainMemStorePathSpec extends Specification {
             // we get different Paths:
 
             // Path to node3, from genesis, NOT including descendents
-            ChainPath<NodeTest> path3 = chain.getPath(0, node("3").getId(), false)
+        ChainPath<NodeTest> path3 = chain.getPath(0, node("3").getId(), false)
             ChainPath<NodeTest> path3Expected = new ChainPath<>(
                     Arrays.asList(genesis(), node("1"), node("2"), node("3")), 0)
 

@@ -1,4 +1,6 @@
-package com.nchain.jcl.tools.chainStore;
+package com.nchain.jcl.tools.unit.chainStore;
+
+import com.nchain.jcl.tools.chainStore.Node;
 
 import java.util.Objects;
 

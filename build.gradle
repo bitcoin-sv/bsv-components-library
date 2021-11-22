@@ -8,7 +8,6 @@ plugins {
  ****************************************/
 jclGroup = "$jclGroup"
 jclVersion = "$jclVersion"
-jclNetName = "$jclNetName"
 
 sourceCompatibility = "11"
 targetCompatibility = "11"
@@ -43,59 +42,4 @@ dependencies {
 jar {
     dependsOn configurations.childJars
     from { configurations.childJars.collect { zipTree(it) } }
-}
-
-
-/****************************************
- * Publish the JAR
- ****************************************/
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-
-            artifactId = "$jclNetName"
-            groupId = "$jclGroup"
-            version = "$jclVersion"
-
-            from components.java
-
-            pom {
-                name = "$jclNetName"
-                description = 'Java implementation of Bitcoin components'
-                url = 'https://bitbucket.org/nchteamnch/java-component-library'
-
-                licenses {
-                    license {
-                        name = ''
-                        url = ''
-                    }
-                }
-                developers {
-                    developer {
-                        name = 'Ivan Fernandez'
-                        email = 'i.fernandez@nchain.com'
-                    }
-                    developer {
-                        name = 'Michael Fletcher'
-                        email = 'm.fletcher@nchain.com'
-                    }
-                }
-                scm {
-                    url = 'https://bitbucket.org/nchteamnch/java-component-library'
-                }
-            }
-        }
-    }
-
-    repositories {
-        mavenLocal()
-        maven {
-            url = "http://161.35.175.46:8081/repository/maven-releases/"
-            allowInsecureProtocol = true
-            credentials {
-                username = "$nexusUser"
-                password = "$nexusPassword"
-            }
-        }
-    }
 }

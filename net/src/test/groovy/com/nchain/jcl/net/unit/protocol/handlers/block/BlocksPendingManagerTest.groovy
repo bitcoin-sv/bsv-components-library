@@ -6,7 +6,6 @@ import com.nchain.jcl.net.protocol.handlers.block.BlocksPendingManager
 import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandlerConfig
 import spock.lang.Specification
 
-import java.util.stream.Collectors
 
 /**
  * A Testing class to check that the Download CRITERIA and ACTIONS defined work well and the right Peers are choosen
@@ -25,7 +24,7 @@ class BlocksPendingManagerTest extends Specification {
     String blockC = "Block-C";
     List<String> pendingBlocks = Arrays.asList(blockA, blockB, blockC);
 
-     /** A Tuple meaning this Peer is assigned to download this Block */
+    /** A Tuple meaning this Peer is assigned to download this Block */
     class PeerBlockAssignment {
         PeerAddress peer;
         String block;
@@ -97,23 +96,23 @@ class BlocksPendingManagerTest extends Specification {
      */
     def "default criteria and Actions, all peers available. "() {
         given:
-            BlocksPendingManager blocksPendingManager = new BlocksPendingManager();
-            // Expected Assignment:
-            List<PeerBlockAssignment> expected = Arrays.asList(
+        BlocksPendingManager blocksPendingManager = new BlocksPendingManager();
+        // Expected Assignment:
+        List<PeerBlockAssignment> expected = Arrays.asList(
                 new PeerBlockAssignment(peer1,blockA),
                 new PeerBlockAssignment(peer2,blockB),
                 new PeerBlockAssignment(peer3,blockC)
-            )
+        )
         when:
-            List<PeerBlockAssignment> assignments = runAndGetAssignments(
-                    BlockDownloaderHandlerConfig.BestMatchCriteria.FROM_ANYONE,
-                    BlockDownloaderHandlerConfig.BestMatchNotAvailableAction.DOWNLOAD_FROM_ANYONE,  // not relevant
-                    BlockDownloaderHandlerConfig.NoBestMatchAction.DOWNLOAD_FROM_ANYONE,            // not relevant
-                    blocksPendingManager,
-                    Arrays.asList(peer1, peer2, peer3),     // Peers available
-                    new ArrayList<>())                      // Pers NOT available
+        List<PeerBlockAssignment> assignments = runAndGetAssignments(
+                BlockDownloaderHandlerConfig.BestMatchCriteria.FROM_ANYONE,
+                BlockDownloaderHandlerConfig.BestMatchNotAvailableAction.DOWNLOAD_FROM_ANYONE,  // not relevant
+                BlockDownloaderHandlerConfig.NoBestMatchAction.DOWNLOAD_FROM_ANYONE,            // not relevant
+                blocksPendingManager,
+                Arrays.asList(peer1, peer2, peer3),     // Peers available
+                new ArrayList<>())                      // Pers NOT available
         then:
-            assignments.equals(expected)
+        assignments.equals(expected)
     }
 
     /**
@@ -122,19 +121,19 @@ class BlocksPendingManagerTest extends Specification {
      */
     def "default criteria and Actions, 1 peers available. "() {
         given:
-            BlocksPendingManager blocksPendingManager = new BlocksPendingManager();
-            // Expected Assignment:
-            List<PeerBlockAssignment> expected = Arrays.asList(new PeerBlockAssignment(peer1, blockA))
+        BlocksPendingManager blocksPendingManager = new BlocksPendingManager();
+        // Expected Assignment:
+        List<PeerBlockAssignment> expected = Arrays.asList(new PeerBlockAssignment(peer1, blockA))
         when:
-            List<PeerBlockAssignment> assignments = runAndGetAssignments(
-                    BlockDownloaderHandlerConfig.BestMatchCriteria.FROM_ANYONE,
-                    BlockDownloaderHandlerConfig.BestMatchNotAvailableAction.DOWNLOAD_FROM_ANYONE,  // not relevant
-                    BlockDownloaderHandlerConfig.NoBestMatchAction.DOWNLOAD_FROM_ANYONE,            // not relevant
-                    blocksPendingManager,
-                    Arrays.asList(peer1),               // Peers available
-                    Arrays.asList(peer2, peer3))        // Peers NOR available
+        List<PeerBlockAssignment> assignments = runAndGetAssignments(
+                BlockDownloaderHandlerConfig.BestMatchCriteria.FROM_ANYONE,
+                BlockDownloaderHandlerConfig.BestMatchNotAvailableAction.DOWNLOAD_FROM_ANYONE,  // not relevant
+                BlockDownloaderHandlerConfig.NoBestMatchAction.DOWNLOAD_FROM_ANYONE,            // not relevant
+                blocksPendingManager,
+                Arrays.asList(peer1),               // Peers available
+                Arrays.asList(peer2, peer3))        // Peers NOR available
         then:
-            assignments.equals(expected)
+        assignments.equals(expected)
     }
 
     /**
@@ -152,26 +151,26 @@ class BlocksPendingManagerTest extends Specification {
      */
     def "fromAnnouncers-test1"() {
         given:
-            BlocksPendingManager blocksPendingManager = new BlocksPendingManager();
-            blocksPendingManager.registerBlockAnnouncement(blockA, peer3)
-            blocksPendingManager.registerBlockAnnouncement(blockB, peer1)
+        BlocksPendingManager blocksPendingManager = new BlocksPendingManager();
+        blocksPendingManager.registerBlockAnnouncement(blockA, peer3)
+        blocksPendingManager.registerBlockAnnouncement(blockB, peer1)
 
-            // Expected Assignment:
-            List<PeerBlockAssignment> expected = Arrays.asList(
-                    new PeerBlockAssignment(peer1, blockB),
-                    new PeerBlockAssignment(peer2, blockC),
-                    new PeerBlockAssignment(peer3, blockA),
-            )
+        // Expected Assignment:
+        List<PeerBlockAssignment> expected = Arrays.asList(
+                new PeerBlockAssignment(peer1, blockB),
+                new PeerBlockAssignment(peer2, blockC),
+                new PeerBlockAssignment(peer3, blockA),
+        )
         when:
-            List<PeerBlockAssignment> assignments = runAndGetAssignments(
-                    BlockDownloaderHandlerConfig.BestMatchCriteria.FROM_ANNOUNCERS,
-                    BlockDownloaderHandlerConfig.BestMatchNotAvailableAction.DOWNLOAD_FROM_ANYONE,
-                    BlockDownloaderHandlerConfig.NoBestMatchAction.DOWNLOAD_FROM_ANYONE,
-                    blocksPendingManager,
-                    Arrays.asList(peer1, peer2, peer3),     // Peers available
-                    Arrays.asList())                        // Peers NOR available
+        List<PeerBlockAssignment> assignments = runAndGetAssignments(
+                BlockDownloaderHandlerConfig.BestMatchCriteria.FROM_ANNOUNCERS,
+                BlockDownloaderHandlerConfig.BestMatchNotAvailableAction.DOWNLOAD_FROM_ANYONE,
+                BlockDownloaderHandlerConfig.NoBestMatchAction.DOWNLOAD_FROM_ANYONE,
+                blocksPendingManager,
+                Arrays.asList(peer1, peer2, peer3),     // Peers available
+                Arrays.asList())                        // Peers NOR available
         then:
-            assignments.equals(expected)
+        assignments.equals(expected)
     }
 
     /**
@@ -190,9 +189,9 @@ class BlocksPendingManagerTest extends Specification {
      */
     def "fromAnnouncers-test2"() {
         given:
-            BlocksPendingManager blocksPendingManager = new BlocksPendingManager();
-            blocksPendingManager.registerBlockAnnouncement(blockA, peer3)
-            blocksPendingManager.registerBlockAnnouncement(blockB, peer1)
+        BlocksPendingManager blocksPendingManager = new BlocksPendingManager();
+        blocksPendingManager.registerBlockAnnouncement(blockA, peer3)
+        blocksPendingManager.registerBlockAnnouncement(blockB, peer1)
 
         // Expected Assignment:
         List<PeerBlockAssignment> expected = Arrays.asList(
@@ -200,15 +199,15 @@ class BlocksPendingManagerTest extends Specification {
                 new PeerBlockAssignment(peer2, blockC)
         )
         when:
-            List<PeerBlockAssignment> assignments = runAndGetAssignments(
-                    BlockDownloaderHandlerConfig.BestMatchCriteria.FROM_ANNOUNCERS,
-                    BlockDownloaderHandlerConfig.BestMatchNotAvailableAction.WAIT,
-                    BlockDownloaderHandlerConfig.NoBestMatchAction.DOWNLOAD_FROM_ANYONE,
-                    blocksPendingManager,
-                    Arrays.asList(peer1, peer2),    // Peers available
-                    Arrays.asList(peer3))           // Peers NOT available
+        List<PeerBlockAssignment> assignments = runAndGetAssignments(
+                BlockDownloaderHandlerConfig.BestMatchCriteria.FROM_ANNOUNCERS,
+                BlockDownloaderHandlerConfig.BestMatchNotAvailableAction.WAIT,
+                BlockDownloaderHandlerConfig.NoBestMatchAction.DOWNLOAD_FROM_ANYONE,
+                blocksPendingManager,
+                Arrays.asList(peer1, peer2),    // Peers available
+                Arrays.asList(peer3))           // Peers NOT available
         then:
-            assignments.equals(expected)
+        assignments.equals(expected)
     }
 
     /**
@@ -272,25 +271,25 @@ class BlocksPendingManagerTest extends Specification {
      */
     def "fromAnnouncers-test4"() {
         given:
-            BlocksPendingManager blocksPendingManager = new BlocksPendingManager();
-            blocksPendingManager.registerBlockAnnouncement(blockA, peer3)
-            blocksPendingManager.registerBlockAnnouncement(blockB, peer1)
+        BlocksPendingManager blocksPendingManager = new BlocksPendingManager();
+        blocksPendingManager.registerBlockAnnouncement(blockA, peer3)
+        blocksPendingManager.registerBlockAnnouncement(blockB, peer1)
 
-            // Expected Assignment:
-            List<PeerBlockAssignment> expected = Arrays.asList(
-                    new PeerBlockAssignment(peer1, blockA),
-                    new PeerBlockAssignment(peer2, blockB)
-            )
+        // Expected Assignment:
+        List<PeerBlockAssignment> expected = Arrays.asList(
+                new PeerBlockAssignment(peer1, blockA),
+                new PeerBlockAssignment(peer2, blockB)
+        )
         when:
-            List<PeerBlockAssignment> assignments = runAndGetAssignments(
-                    BlockDownloaderHandlerConfig.BestMatchCriteria.FROM_ANNOUNCERS,
-                    BlockDownloaderHandlerConfig.BestMatchNotAvailableAction.DOWNLOAD_FROM_ANYONE,
-                    BlockDownloaderHandlerConfig.NoBestMatchAction.DOWNLOAD_FROM_ANYONE,
-                    blocksPendingManager,
-                    Arrays.asList(peer1, peer2),    // Peers available
-                    Arrays.asList())                // Peers NOT available
+        List<PeerBlockAssignment> assignments = runAndGetAssignments(
+                BlockDownloaderHandlerConfig.BestMatchCriteria.FROM_ANNOUNCERS,
+                BlockDownloaderHandlerConfig.BestMatchNotAvailableAction.DOWNLOAD_FROM_ANYONE,
+                BlockDownloaderHandlerConfig.NoBestMatchAction.DOWNLOAD_FROM_ANYONE,
+                blocksPendingManager,
+                Arrays.asList(peer1, peer2),    // Peers available
+                Arrays.asList())                // Peers NOT available
         then:
-            assignments.equals(expected)
+        assignments.equals(expected)
     }
 
     /**
@@ -314,25 +313,25 @@ class BlocksPendingManagerTest extends Specification {
      */
     def "fromAnnouncers-test5"() {
         given:
-            BlocksPendingManager blocksPendingManager = new BlocksPendingManager();
-            blocksPendingManager.registerBlockAnnouncement(blockA, peer3)
-            blocksPendingManager.registerBlockAnnouncement(blockB, peer1)
+        BlocksPendingManager blocksPendingManager = new BlocksPendingManager();
+        blocksPendingManager.registerBlockAnnouncement(blockA, peer3)
+        blocksPendingManager.registerBlockAnnouncement(blockB, peer1)
 
-            // Expected Assignment:
-            List<PeerBlockAssignment> expected = Arrays.asList(
-                    new PeerBlockAssignment(peer1, blockA),
-                    new PeerBlockAssignment(peer2, blockC)
-            )
+        // Expected Assignment:
+        List<PeerBlockAssignment> expected = Arrays.asList(
+                new PeerBlockAssignment(peer1, blockA),
+                new PeerBlockAssignment(peer2, blockC)
+        )
         when:
-            List<PeerBlockAssignment> assignments = runAndGetAssignments(
-                    BlockDownloaderHandlerConfig.BestMatchCriteria.FROM_ANNOUNCERS,
-                    BlockDownloaderHandlerConfig.BestMatchNotAvailableAction.WAIT,
-                    BlockDownloaderHandlerConfig.NoBestMatchAction.DOWNLOAD_FROM_ANYONE,
-                    blocksPendingManager,
-                    Arrays.asList(peer1, peer2),    // Peers available
-                    Arrays.asList())                // Peers NOT available
+        List<PeerBlockAssignment> assignments = runAndGetAssignments(
+                BlockDownloaderHandlerConfig.BestMatchCriteria.FROM_ANNOUNCERS,
+                BlockDownloaderHandlerConfig.BestMatchNotAvailableAction.WAIT,
+                BlockDownloaderHandlerConfig.NoBestMatchAction.DOWNLOAD_FROM_ANYONE,
+                blocksPendingManager,
+                Arrays.asList(peer1, peer2),    // Peers available
+                Arrays.asList())                // Peers NOT available
         then:
-            assignments.equals(expected)
+        assignments.equals(expected)
     }
 
 }

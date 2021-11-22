@@ -12,6 +12,7 @@ import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
 import io.bitcoinj.params.MainNetParams
 import io.bitcoinj.params.Net
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicBoolean
@@ -74,6 +75,7 @@ class ProtocolHandshakeOKTest extends Specification {
      * We connect a set of Clients and a Server, and we test that when we reach the minimum number of Peers, an
      * Event is triggered and another is also triggered when that number drops.
      */
+    @Ignore
     def "testing Min and Max Handshakes Threshold"() {
         given:
             int MIN_PEERS = 2

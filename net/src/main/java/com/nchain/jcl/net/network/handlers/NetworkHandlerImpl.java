@@ -435,6 +435,13 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
 
             // We publish the event so you can notified when the Network stuff is stopped:
             eventBus.publish(new NetStopEvent());
+
+            // We close all our connections:
+            this.keep_connecting = false;
+            List<PeerAddress> peersToDisconnect = this.activeConns.keySet().stream().collect(Collectors.toList());
+            this.disconnect(peersToDisconnect);
+            Thread.sleep(100); // we wait a bit, so Disconnected Events can be triggered...
+
             selector.wakeup();
             super.stopAsync();
             super.awaitTerminated(5_000, TimeUnit.MILLISECONDS);

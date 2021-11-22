@@ -9,6 +9,7 @@ import com.nchain.jcl.net.protocol.handlers.blacklist.BlacklistHandler
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
 import io.bitcoinj.params.MainNetParams
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -35,6 +36,7 @@ class HandshakeOKTest extends Specification {
      *  - At some point, the MIN number of Handshaked Peers is Lost.
      *
      */
+    @Ignore
     def "Testing Handshake Range Peers"() {
         given:
             final int MIN_PEERS = 3

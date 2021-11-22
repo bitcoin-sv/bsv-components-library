@@ -1,6 +1,7 @@
-package com.nchain.jcl.tools.bytes
+package com.nchain.jcl.tools.unit.bytes
 
 import com.google.common.collect.Lists
+import com.nchain.jcl.tools.bytes.Sha256HashIncremental
 import io.bitcoinj.core.Sha256Hash
 import spock.lang.Specification
 
@@ -20,7 +21,7 @@ class Sha256HashIncrementalSpec extends Specification {
             // We hash it using the regular Hash:
             Sha256Hash regularHashResult = Sha256Hash.wrap(Sha256Hash.hashTwice(data))
             // We hash it using the incremental hash
-            Sha256HashIncremental incrementalHash = new Sha256HashIncremental()
+        Sha256HashIncremental incrementalHash = new Sha256HashIncremental()
             List partialBytes = Lists.partition(Arrays.asList(data), 5)
             partialBytes.forEach({bytes -> incrementalHash.add(bytes.toArray(new byte[bytes.size()]))})
             Sha256Hash incrementalHashResult = Sha256Hash.wrap(incrementalHash.hashTwice())

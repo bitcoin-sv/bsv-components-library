@@ -1,7 +1,6 @@
 package com.nchain.jcl.net.protocol.serialization;
 
-
-import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
+import com.nchain.jcl.net.protocol.messages.BlockHeaderSimpleMsg;
 import com.nchain.jcl.net.protocol.messages.HashMsg;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.net.protocol.serialization.common.MessageSerializer;
@@ -16,26 +15,26 @@ import io.bitcoinj.core.Sha256Hash;
  *
  * This is the same as the regular BH serializer, except it doesn't include tx count.
  */
-public class DsDetectedBlockHeaderMsgSerializer implements MessageSerializer<BlockHeaderMsg> {
+public class BlockHeaderSimpleMsgSerializer implements MessageSerializer<BlockHeaderSimpleMsg> {
 
     protected static final int HEADER_LENGTH = 80; // Block header length (up to the "nonce" field, included)
 
-    private static DsDetectedBlockHeaderMsgSerializer instance;
+    private static BlockHeaderSimpleMsgSerializer instance;
 
-    protected DsDetectedBlockHeaderMsgSerializer() {
+    protected BlockHeaderSimpleMsgSerializer() {
     }
 
-    public static DsDetectedBlockHeaderMsgSerializer getInstance() {
+    public static BlockHeaderSimpleMsgSerializer getInstance() {
         if (instance == null) {
-            synchronized (DsDetectedBlockHeaderMsgSerializer.class) {
-                instance = new DsDetectedBlockHeaderMsgSerializer();
+            synchronized (BlockHeaderSimpleMsgSerializer.class) {
+                instance = new BlockHeaderSimpleMsgSerializer();
             }
         }
         return instance;
     }
 
     @Override
-    public BlockHeaderMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
+    public BlockHeaderSimpleMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
 
         byte[] blockHeaderBytes = byteReader.read(HEADER_LENGTH);
 
@@ -53,7 +52,7 @@ public class DsDetectedBlockHeaderMsgSerializer implements MessageSerializer<Blo
         long difficultyTarget = headerReader.readUint32();
         long nonce = headerReader.readUint32();
 
-        return BlockHeaderMsg.builder()
+        return BlockHeaderSimpleMsg.builder()
             .hash(hash)
             .version(version)
             .prevBlockHash(prevBlockHash)
@@ -61,12 +60,11 @@ public class DsDetectedBlockHeaderMsgSerializer implements MessageSerializer<Blo
             .creationTimestamp(creationTime)
             .difficultyTarget(difficultyTarget)
             .nonce(nonce)
-            .transactionCount(0)
             .build();
     }
 
     @Override
-    public void serialize(SerializerContext context, BlockHeaderMsg message, ByteArrayWriter byteWriter) {
+    public void serialize(SerializerContext context, BlockHeaderSimpleMsg message, ByteArrayWriter byteWriter) {
         byteWriter.writeUint32LE(message.getVersion());
         byteWriter.write(message.getPrevBlockHash().getHashBytes());
         byteWriter.write(message.getMerkleRoot().getHashBytes());

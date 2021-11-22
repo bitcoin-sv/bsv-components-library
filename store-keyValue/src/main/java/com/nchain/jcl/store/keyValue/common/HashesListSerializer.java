@@ -1,15 +1,7 @@
 package com.nchain.jcl.store.keyValue.common;
 
 
-import com.nchain.jcl.tools.bytes.ByteArrayReader;
-import com.nchain.jcl.tools.bytes.ByteArrayWriter;
-import com.nchain.jcl.tools.serialization.BitcoinSerializerUtils;
-import io.bitcoinj.core.Utils;
-
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Collectors;
 
 /**

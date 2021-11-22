@@ -16,6 +16,7 @@ public final class NetStartEvent extends P2PEvent {
     public NetStartEvent(PeerAddress localAddress)  { this.localAddress = localAddress; }
     public PeerAddress getLocalAddress()            { return this.localAddress; }
 
+    @Override
     public String toString() {
         return "NetStartEvent(localAddress=" + this.getLocalAddress() + ")";
     }
