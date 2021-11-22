@@ -181,10 +181,10 @@ public class JCLServer {
                     .build();
         }
 
-        // If the checksum is disabled in the config, we disable it in JCL
-        if (!config.calculateChecksum) {
+        // If the checksum is enabled in the config, we enable it in JCL
+        if (config.calculateChecksum) {
             DeserializerConfig deserializerConfig = messageConfig.getDeserializerConfig().toBuilder()
-                    .calculateChecksum(false)
+                    .calculateChecksum(true)
                     .build();
             messageConfig = messageConfig.toBuilder().deserializerConfig(deserializerConfig).build();
         }
