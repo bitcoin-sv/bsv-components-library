@@ -90,7 +90,7 @@ publishing {
     repositories {
         mavenLocal()
         maven {
-            url = "http://161.35.175.46:8081/repository/maven-releases/"
+            url = "http://aire.sleepingsalmon.com:2095/repository/maven-releases/"
             allowInsecureProtocol = true
             credentials {
                 username = "$nexusUser"
