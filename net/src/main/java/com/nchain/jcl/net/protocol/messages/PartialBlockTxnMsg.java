@@ -1,6 +1,6 @@
 package com.nchain.jcl.net.protocol.messages;
 
-import com.nchain.jcl.net.protocol.messages.common.Message;
+import com.nchain.jcl.net.protocol.messages.common.PartialMessage;
 
 import java.io.Serializable;
 import java.util.List;
@@ -9,15 +9,18 @@ import java.util.List;
  * @author j.pomer@nchain.com
  * Copyright (c) 2018-2021 nChain Ltd
  */
-public class PartialBlockTxnMsg extends Message implements Serializable {
+public class PartialBlockTxnMsg extends PartialMessage implements Serializable {
     public static final String MESSAGE_TYPE = "PartialBockTxn";
 
+    // Original Header Msg: Included here in case the client of JCL receiving the partial Messages
+    // wants to calculate and verify the checksum of the original message:
+    private final HeaderMsg headerMsg;
     private final HashMsg blockHash;
     private final List<TxMsg> transactions;
     private final int order;
 
-    public PartialBlockTxnMsg(HashMsg blockHash, List<TxMsg> transactions, int order, long payloadChecksum) {
-        super(payloadChecksum);
+    public PartialBlockTxnMsg(HeaderMsg headerMsg,  HashMsg blockHash, List<TxMsg> transactions, int order) {
+        this.headerMsg = headerMsg;
         this.blockHash = blockHash;
         this.transactions = transactions;
         this.order = order;
@@ -28,6 +31,7 @@ public class PartialBlockTxnMsg extends Message implements Serializable {
         return new PartialBlockTxnBuilder();
     }
 
+    public HeaderMsg getHeaderMsg()         { return this.headerMsg;}
     public HashMsg getBlockHash()           { return blockHash; }
     public List<TxMsg> getTransactions()    { return transactions; }
     public int getOrder()                   { return order; }
@@ -39,14 +43,15 @@ public class PartialBlockTxnMsg extends Message implements Serializable {
 
     @Override
     protected long calculateLength() {
-        return blockHash.calculateLength()
-            + VarIntMsg.builder()
-            .value(transactions.size())
-            .build()
-            .calculateLength()
-            + transactions.stream()
-            .mapToLong(TxMsg::calculateLength)
-            .sum();
+        return headerMsg.getLengthInBytes()
+                + blockHash.calculateLength()
+                + VarIntMsg.builder()
+                    .value(transactions.size())
+                    .build()
+                    .calculateLength()
+                + transactions.stream()
+                    .mapToLong(TxMsg::calculateLength)
+                    .sum();
     }
 
     @Override
@@ -56,6 +61,7 @@ public class PartialBlockTxnMsg extends Message implements Serializable {
     @Override
     public PartialBlockTxnBuilder toBuilder() {
         return new PartialBlockTxnBuilder()
+                        .headerMsg(this.headerMsg)
                         .blockHash(this.blockHash)
                         .transactions(this.transactions)
                         .order(this.order);
@@ -64,10 +70,16 @@ public class PartialBlockTxnMsg extends Message implements Serializable {
     /**
      * Builder
      */
-    public static class PartialBlockTxnBuilder extends MessageBuilder{
+    public static class PartialBlockTxnBuilder extends MessageBuilder {
+        private HeaderMsg headerMsg;
         private HashMsg blockHash;
         private List<TxMsg> transactions;
         private int order;
+
+        public PartialBlockTxnBuilder headerMsg(HeaderMsg headerMsg) {
+            this.headerMsg = headerMsg;
+            return this;
+        }
 
         public PartialBlockTxnBuilder blockHash(HashMsg blockHash) {
             this.blockHash = blockHash;
@@ -85,7 +97,7 @@ public class PartialBlockTxnMsg extends Message implements Serializable {
         }
 
         public PartialBlockTxnMsg build() {
-            return new PartialBlockTxnMsg(blockHash, transactions, order, super.payloadChecksum);
+            return new PartialBlockTxnMsg(headerMsg, blockHash, transactions, order);
         }
     }
 }

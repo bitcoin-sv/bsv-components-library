@@ -2,6 +2,7 @@ package com.nchain.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
 import com.nchain.jcl.net.protocol.messages.common.Message;
+import com.nchain.jcl.net.protocol.messages.common.PartialMessage;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -10,7 +11,7 @@ import java.util.stream.Collectors;
  * @author m.fletcher@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  */
-public final class PartialBlockRawTxMsg extends Message {
+public final class PartialBlockRawTxMsg extends PartialMessage {
 
     public static final String MESSAGE_TYPE = "PartialBlockRawTxMsg";
     private final BlockHeaderMsg blockHeader;
@@ -21,8 +22,7 @@ public final class PartialBlockRawTxMsg extends Message {
 
     private final long txsByteLength;
 
-    public PartialBlockRawTxMsg(BlockHeaderMsg blockHeader, List<RawTxMsg> txs, VarIntMsg txsOrderNumber, long payloadChecksum) {
-        super(payloadChecksum);
+    public PartialBlockRawTxMsg(BlockHeaderMsg blockHeader, List<RawTxMsg> txs, VarIntMsg txsOrderNumber) {
         this.blockHeader = blockHeader;
         this.txs = txs;
         this.txsOrderNumber = txsOrderNumber;
@@ -121,7 +121,7 @@ public final class PartialBlockRawTxMsg extends Message {
         }
 
         public PartialBlockRawTxMsg build() {
-            return new PartialBlockRawTxMsg(blockHeader, txs, txsOrderNumber, super.payloadChecksum);
+            return new PartialBlockRawTxMsg(blockHeader, txs, txsOrderNumber);
         }
     }
 }

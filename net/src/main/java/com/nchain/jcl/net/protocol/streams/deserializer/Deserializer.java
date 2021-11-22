@@ -191,7 +191,7 @@ public class Deserializer {
         largeMsgDeserializer.onDeserialized(onPartDeserializedHandler);
 
         // Adn we run it. This call is blocking
-        largeMsgDeserializer.deserialize(desContext, reader);
+        largeMsgDeserializer.deserializeBody(desContext, headerMsg, reader);
 
         // we reset the Reader now that it's done... (needed by the OptimizedReader)
         ((ByteArrayReaderOptimized) reader).refreshBuffer();

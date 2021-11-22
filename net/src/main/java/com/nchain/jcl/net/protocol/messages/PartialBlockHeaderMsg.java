@@ -2,6 +2,7 @@ package com.nchain.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
 import com.nchain.jcl.net.protocol.messages.common.Message;
+import com.nchain.jcl.net.protocol.messages.common.PartialMessage;
 
 import java.io.Serializable;
 
@@ -10,7 +11,7 @@ import java.io.Serializable;
  * Copyright (c) 2018-2020 nChain Ltd
  *
  */
-public final class PartialBlockHeaderMsg extends Message implements Serializable {
+public final class PartialBlockHeaderMsg extends PartialMessage implements Serializable {
     public static final String MESSAGE_TYPE = "PartialBlockHeader";
 
     /**
@@ -20,6 +21,9 @@ public final class PartialBlockHeaderMsg extends Message implements Serializable
         DESERIALIZED, RAW
     }
 
+    // Original Header Msg: Included here in case the client of JCL receiving the partial Messages
+    // wants to calculate and verify the checksum of the original message:
+    private final HeaderMsg headerMsg;
     // Block Header
     private final BlockHeaderMsg blockHeader;
     // Total Size of the Original Block
@@ -27,8 +31,8 @@ public final class PartialBlockHeaderMsg extends Message implements Serializable
     // Indicates the format that the Txs of this block will be notified with:
     private final BlockTxsFormat blockTxsFormat;
 
-    public PartialBlockHeaderMsg(BlockHeaderMsg blockHeader, VarIntMsg txsSizeInBytes, BlockTxsFormat blockTxsFormat, long payloadChecksum) {
-        super(payloadChecksum);
+    public PartialBlockHeaderMsg(HeaderMsg headerMsg, BlockHeaderMsg blockHeader, VarIntMsg txsSizeInBytes, BlockTxsFormat blockTxsFormat) {
+        this.headerMsg = headerMsg;
         this.blockHeader = blockHeader;
         this.txsSizeInBytes = txsSizeInBytes;
         this.blockTxsFormat = blockTxsFormat;
@@ -48,13 +52,14 @@ public final class PartialBlockHeaderMsg extends Message implements Serializable
     @Override
     protected void validateMessage() {}
 
+    public HeaderMsg getHeaderMsg()             { return this.headerMsg;}
     public BlockHeaderMsg getBlockHeader()      { return this.blockHeader; }
     public VarIntMsg getTxsSizeInbytes()        { return this.txsSizeInBytes;}
     public BlockTxsFormat getBlockTxsFormat()   { return this.blockTxsFormat;}
 
     @Override
     public String toString() {
-        return "PartialBlockHeaderMsg(blockHeader=" + this.getBlockHeader() + ", blockSizeInBytes = " + this.getTxsSizeInbytes() + ", nextTxsInRawFormat)";
+        return "PartialBlockHeaderMsg(headerMsg=" + this.headerMsg + ", blockHeader=" + this.getBlockHeader() + ", blockSizeInBytes = " + this.getTxsSizeInbytes() + ", nextTxsInRawFormat)";
     }
 
     @Override
@@ -73,6 +78,7 @@ public final class PartialBlockHeaderMsg extends Message implements Serializable
 
     public PartialBlockHeaderMsgBuilder toBuilder() {
         return new PartialBlockHeaderMsgBuilder()
+                .headerMsg(this.headerMsg)
                 .blockHeader(this.blockHeader)
                 .txsSizeInBytes(this.txsSizeInBytes.getValue())
                 .blockTxsFormat(this.blockTxsFormat);
@@ -85,12 +91,18 @@ public final class PartialBlockHeaderMsg extends Message implements Serializable
     /**
      * Builder
      */
-    public static class PartialBlockHeaderMsgBuilder extends MessageBuilder{
+    public static class PartialBlockHeaderMsgBuilder extends MessageBuilder {
+        private HeaderMsg headerMsg;
         private BlockHeaderMsg blockHeader;
         private VarIntMsg txsSizeInBytes;
         private BlockTxsFormat blockTxsFormat;
 
         PartialBlockHeaderMsgBuilder() { }
+
+        public PartialBlockHeaderMsg.PartialBlockHeaderMsgBuilder headerMsg(HeaderMsg headerMsg) {
+            this.headerMsg = headerMsg;
+            return this;
+        }
 
         public PartialBlockHeaderMsg.PartialBlockHeaderMsgBuilder blockHeader(BlockHeaderMsg blockHeader) {
             this.blockHeader = blockHeader;
@@ -110,7 +122,7 @@ public final class PartialBlockHeaderMsg extends Message implements Serializable
         }
 
         public PartialBlockHeaderMsg build() {
-            return new PartialBlockHeaderMsg(blockHeader, txsSizeInBytes, blockTxsFormat, super.payloadChecksum);
+            return new PartialBlockHeaderMsg(headerMsg, blockHeader, txsSizeInBytes, blockTxsFormat);
         }
     }
 }

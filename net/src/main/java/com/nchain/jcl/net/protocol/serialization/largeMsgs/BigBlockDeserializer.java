@@ -40,7 +40,7 @@ public class BigBlockDeserializer extends LargeMessageDeserializerImpl {
     public BigBlockDeserializer() { super(); }
 
     @Override
-    public void deserialize(DeserializerContext context, ByteArrayReader byteReader) {
+    public void deserializeBody(DeserializerContext context, HeaderMsg headerMsg, ByteArrayReader byteReader) {
         try {
             // Sanity Check:
             Preconditions.checkState(super.partialMsgSize != null, "The Size of partial Msgs must be defined before using a Large Deserializer");
@@ -49,6 +49,7 @@ public class BigBlockDeserializer extends LargeMessageDeserializerImpl {
             log.trace("Deserializing the Block Header...");
             blockHeader = BlockHeaderMsgSerializer.getInstance().deserialize(context, byteReader);
             PartialBlockHeaderMsg partialBlockHeader = PartialBlockHeaderMsg.builder()
+                    .headerMsg(headerMsg)
                     .blockHeader(blockHeader)
                     .txsSizeInBytes(context.getMaxBytesToRead() - blockHeader.getLengthInBytes())
                     .blockTxsFormat(PartialBlockHeaderMsg.BlockTxsFormat.DESERIALIZED)

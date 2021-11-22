@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.protocol.serialization.largeMsgs;
 
 
+import com.nchain.jcl.net.protocol.messages.HeaderMsg;
 import com.nchain.jcl.net.protocol.messages.PartialBlockTxnMsg;
 import com.nchain.jcl.net.protocol.messages.TxMsg;
 import com.nchain.jcl.net.protocol.serialization.HashMsgSerializer;
@@ -32,7 +33,7 @@ public class BigBlockTxnDeserializer extends LargeMessageDeserializerImpl {
     }
 
     @Override
-    public void deserialize(DeserializerContext context, ByteArrayReader byteReader) {
+    public void deserializeBody(DeserializerContext context, HeaderMsg headerMsg, ByteArrayReader byteReader) {
         var blockHash = HashMsgSerializer.getInstance().deserialize(context, byteReader);
         var numOfTxs = VarIntMsgSerializer.getInstance().deserialize(context, byteReader).getValue();
 
@@ -49,6 +50,7 @@ public class BigBlockTxnDeserializer extends LargeMessageDeserializerImpl {
             if (transactions.size() == batchSize) {
                 notifyDeserialization(
                     PartialBlockTxnMsg.builder()
+                        .headerMsg(headerMsg)
                         .blockHash(blockHash)
                         .transactions(new ArrayList<>(transactions))
                         .order(order)

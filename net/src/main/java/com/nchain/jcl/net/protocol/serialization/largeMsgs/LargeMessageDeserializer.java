@@ -1,5 +1,6 @@
 package com.nchain.jcl.net.protocol.serialization.largeMsgs;
 
+import com.nchain.jcl.net.protocol.messages.HeaderMsg;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 
@@ -31,10 +32,13 @@ public interface LargeMessageDeserializer {
     void setMinSpeedBytesPerSec(int minSpeedBytesPerSec);
 
     /**
-     * It starts the Deserialization. The diffrent Results will be notified through the callbacks fed in the
+     * It starts the Deserialization. The different Results will be notified through the callbacks fed in the
      * "onDeserialized" methods.
+     * @param context    Deserialization Context
+     * @param headerMsg  Header of the message to Deserialize
+     * @param byteReader Reader containing the BODY of the message
      */
-    void deserialize(DeserializerContext context, ByteArrayReader byteReader);
+    void deserializeBody(DeserializerContext context, HeaderMsg headerMsg, ByteArrayReader byteReader);
 
     /** It provides a callback that wil be triggered when a new part is deserialized */
     void onDeserialized(Consumer<MsgPartDeserializedEvent> eventHandler);

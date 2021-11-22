@@ -41,7 +41,7 @@ public class RawBigBlockDeserializer extends LargeMessageDeserializerImpl {
     }
 
     @Override
-    public void deserialize(DeserializerContext context, ByteArrayReader byteReader) {
+    public void deserializeBody(DeserializerContext context, HeaderMsg headerMsg, ByteArrayReader byteReader) {
         try {
             // We update the reader:
             adjustReaderSpeed(byteReader);
@@ -50,6 +50,7 @@ public class RawBigBlockDeserializer extends LargeMessageDeserializerImpl {
             log.trace("Deserializing the Block Header...");
             blockHeader = BlockHeaderMsgSerializer.getInstance().deserialize(context, byteReader);
             PartialBlockHeaderMsg partialBlockHeader = PartialBlockHeaderMsg.builder()
+                    .headerMsg(headerMsg)
                     .blockHeader(blockHeader)
                     .txsSizeInBytes(context.getMaxBytesToRead() - blockHeader.getLengthInBytes())
                     .blockTxsFormat(PartialBlockHeaderMsg.BlockTxsFormat.RAW)

@@ -2,6 +2,7 @@ package com.nchain.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
 import com.nchain.jcl.net.protocol.messages.common.Message;
+import com.nchain.jcl.net.protocol.messages.common.PartialMessage;
 
 import java.io.Serializable;
 import java.util.List;
@@ -10,7 +11,7 @@ import java.util.List;
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  */
-public final class PartialBlockTXsMsg extends Message implements Serializable {
+public final class PartialBlockTXsMsg extends PartialMessage implements Serializable {
 
     public static final String MESSAGE_TYPE = "PartialBlockTxs";
     private final BlockHeaderMsg blockHeader;
@@ -18,8 +19,7 @@ public final class PartialBlockTXsMsg extends Message implements Serializable {
     // This field stores the order of this Batch of Txs within the Block (zero-based)
     private final VarIntMsg txsOrderNumber;
 
-    public PartialBlockTXsMsg(BlockHeaderMsg blockHeader, List<TxMsg> txs, VarIntMsg txsOrderNumber, long payloadChecksum) {
-        super(payloadChecksum);
+    public PartialBlockTXsMsg(BlockHeaderMsg blockHeader, List<TxMsg> txs, VarIntMsg txsOrderNumber) {
         this.blockHeader = blockHeader;
         this.txs = txs;
         this.txsOrderNumber = txsOrderNumber;
@@ -124,7 +124,7 @@ public final class PartialBlockTXsMsg extends Message implements Serializable {
         }
 
         public PartialBlockTXsMsg build() {
-            return new PartialBlockTXsMsg(blockHeader, txs, txsOrderNumber, super.payloadChecksum);
+            return new PartialBlockTXsMsg(blockHeader, txs, txsOrderNumber);
         }
     }
 }
