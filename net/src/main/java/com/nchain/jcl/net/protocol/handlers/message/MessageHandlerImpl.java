@@ -289,6 +289,14 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
     private String findErrorInMsg(BitcoinMsg<?> msg) {
         if (msg == null) return "Msg is Empty";
 
+        // Check the Msg length:
+        if (msg.getHeader().getMsgLength() < msg.getBody().getLengthInBytes()) {
+            return "Header is undersized";
+        }
+        if (msg.getHeader().getMsgLength() > msg.getBody().getLengthInBytes()) {
+            return "Header is oversized";
+        }
+
         // Checks the checksum:
         if (config.isVerifyChecksum() && msg.getHeader().getChecksum() != msg.getBody().getPayloadChecksum()) {
             return "Checksum is Wrong";
