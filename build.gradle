@@ -8,7 +8,7 @@ plugins {
  ****************************************/
 jclGroup = "$jclGroup"
 jclVersion = "$jclVersion"
-jclNetName = "$jclNetName"
+jclName = "$jclName"
 
 sourceCompatibility = "11"
 targetCompatibility = "11"
@@ -53,14 +53,14 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
 
-            artifactId = "$jclNetName"
+            artifactId = "$jclName"
             groupId = "$jclGroup"
             version = "$jclVersion"
 
             from components.java
 
             pom {
-                name = "$jclNetName"
+                name = "$jclName"
                 description = 'Java implementation of Bitcoin components'
                 url = 'https://bitbucket.org/nchteamnch/java-component-library'
 
