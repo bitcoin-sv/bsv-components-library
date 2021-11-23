@@ -39,7 +39,7 @@ public class BitcoinMsgBuilder<M extends Message> {
     public BitcoinMsg<M> build() {
 
         // Sanity check for >4GB Messages:
-        if (bodyMsg.getLengthInBytes() >= config.getThresholdSizeExtMsgs() && config.getProtocolVersion() < ProtocolVersion.SUPPORT_EXT_MSGS.getVersion())
+        if (bodyMsg.getLengthInBytes() >= config.getThresholdSizeExtMsgs() && config.getProtocolVersion() < ProtocolVersion.ENABLE_EXT_MSGS.getVersion())
             throw new RuntimeException("Trying to build a message bigger than 4GB with a wrong protocol Version");
 
         // We build the header (the header must be built after the body, since some of its

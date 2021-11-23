@@ -34,7 +34,7 @@ class ExtHeaderMsgSerializerSpec extends Specification {
             // We use MAINNET with 70016 Protocol Version:
             ProtocolConfig protocolConfig = ProtocolConfigBuilder.get(MainNetParams.get());
             ProtocolBasicConfig protocolBasicConfig = protocolConfig.getBasicConfig().toBuilder()
-                .protocolVersion(ProtocolVersion.SUPPORT_EXT_MSGS.getVersion())
+                .protocolVersion(ProtocolVersion.ENABLE_EXT_MSGS.getVersion())
                 .build();
 
             // We create a Dummy Header

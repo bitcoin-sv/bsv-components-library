@@ -2,6 +2,7 @@ package com.nchain.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
 import com.nchain.jcl.net.protocol.messages.common.Message;
+import io.bitcoinj.core.Utils;
 
 import java.io.Serializable;
 
@@ -66,9 +67,13 @@ public final class VersionMsg extends Message implements Serializable {
     private final long start_height;
     private final Boolean relay;
 
+    // Multi-Streams support: We do NOT process this yet, so we store it in raw data
+    private byte[] associationId = Utils.EMPTY_BYTE_ARRAY;
+
     protected VersionMsg(long version, long services, long timestamp,
                          NetAddressMsg addr_recv, NetAddressMsg addr_from,
                          long nonce, VarStrMsg user_agent, long start_height, Boolean relay,
+                         byte[] associationId,
                          long payloadChecksum) {
         super(payloadChecksum);
         this.version = version;
@@ -80,6 +85,7 @@ public final class VersionMsg extends Message implements Serializable {
         this.user_agent = user_agent;
         this.start_height = start_height;
         this.relay = relay;
+        this.associationId = associationId;
         init();
     }
 
@@ -88,6 +94,7 @@ public final class VersionMsg extends Message implements Serializable {
         long length = FIXED_MESSAGE_LENGTH;
         length += (user_agent != null) ? user_agent.getLengthInBytes(): 0;
         length += (relay != null) ? 1 : 0;
+        length += associationId.length;
         return length;
     }
 
@@ -105,6 +112,7 @@ public final class VersionMsg extends Message implements Serializable {
     public VarStrMsg getUser_agent()    { return this.user_agent; }
     public long getStart_height()       { return this.start_height; }
     public Boolean getRelay()           { return this.relay; }
+    public byte[] getAssociationId()    { return this.associationId;}
 
     public String toString() {
         return "VersionMsg(version=" + this.getVersion()
@@ -116,6 +124,7 @@ public final class VersionMsg extends Message implements Serializable {
                 + ", user_agent=" + this.getUser_agent()
                 + ", start_height=" + this.getStart_height()
                 + ", relay=" + this.getRelay()
+                + ", associationId=" + this.associationId
                 + ", CHECKSUM=" + this.getPayloadChecksum()
                 + ")";
     }
@@ -157,7 +166,8 @@ public final class VersionMsg extends Message implements Serializable {
                         .nonce(this.nonce)
                         .user_agent(this.user_agent)
                         .start_height(this.start_height)
-                        .relay(this.relay);
+                        .relay(this.relay)
+                        .associationId(this.associationId);
     }
 
     /**
@@ -173,6 +183,7 @@ public final class VersionMsg extends Message implements Serializable {
         private VarStrMsg user_agent;
         private long start_height;
         private Boolean relay;
+        private byte[] associationId = Utils.EMPTY_BYTE_ARRAY;
 
         VersionMsgBuilder() {}
 
@@ -221,8 +232,13 @@ public final class VersionMsg extends Message implements Serializable {
             return this;
         }
 
+        public VersionMsg.VersionMsgBuilder associationId(byte[] associationId) {
+            this.associationId = associationId;
+            return this;
+        }
+
         public VersionMsg build() {
-            return new VersionMsg(version, services, timestamp, addr_recv, addr_from, nonce, user_agent, start_height, relay, super.payloadChecksum);
+            return new VersionMsg(version, services, timestamp, addr_recv, addr_from, nonce, user_agent, start_height, relay, associationId, super.payloadChecksum);
         }
     }
 }

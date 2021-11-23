@@ -104,7 +104,7 @@ class Message4GBHandlerTest extends Specification {
                 .build()
             ProtocolConfig protocolConfig = ProtocolConfigBuilder.get(RegTestParams.get())
             ProtocolBasicConfig protocolBasicConfig = protocolConfig.getBasicConfig().toBuilder()
-                .protocolVersion(ProtocolVersion.SUPPORT_EXT_MSGS.getVersion())
+                .protocolVersion(ProtocolVersion.ENABLE_EXT_MSGS.getVersion())
                 .thresholdSizeExtMsgs(BLOCK_SIZE_TO_TEST)
                 .minPeers(OptionalInt.of(1))
                 .maxPeers(OptionalInt.of(1))

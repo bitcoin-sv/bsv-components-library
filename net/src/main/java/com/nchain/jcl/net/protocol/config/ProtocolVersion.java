@@ -11,7 +11,8 @@ public enum ProtocolVersion {
     ENABLE_VERSION(31800),
     CURRENT(70013),
     ENABLE_RELAY(70001),
-    SUPPORT_EXT_MSGS(70016);
+    ENABLE_ASSOCIATION_ID(70015),
+    ENABLE_EXT_MSGS(70016);
 
     private final int version;
     
