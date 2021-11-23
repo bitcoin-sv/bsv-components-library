@@ -36,12 +36,11 @@ repositories {
 dependencies {
 
     // Compile Dependencies:
-    implementation "io.bitcoinj:bitcoinj-base:1.0.0-ds"
+    implementation "io.bitcoinj:bitcoinj-base:1.0.1-ds"
     implementation 'org.slf4j:slf4j-api:1.7.26'
     implementation 'com.madgag.spongycastle:core:1.51.0.0'
 
     // Testing
-    testImplementation "io.bitcoinj:bitcoinj-base:1.0.0-ds"
     testImplementation 'org.codehaus.groovy:groovy'
     testImplementation "org.spockframework:spock-core:1.2-groovy-2.5"
     testImplementation "ch.qos.logback:logback-classic:1.2.3"
@@ -100,7 +99,6 @@ publishing {
     repositories {
         maven {
             url = "http://aire.sleepingsalmon.com:2095/repository/maven-releases/"
-            //url = "http://161.35.175.46:8081/repository/maven-snapshots/"
             allowInsecureProtocol = true
             credentials {
                 username = "$nexusUser"
