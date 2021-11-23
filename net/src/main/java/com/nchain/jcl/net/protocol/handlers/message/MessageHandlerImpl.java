@@ -16,6 +16,7 @@ import com.nchain.jcl.net.protocol.messages.HeaderMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
 import com.nchain.jcl.net.protocol.messages.common.Message;
+import com.nchain.jcl.net.protocol.messages.common.PartialMessage;
 import com.nchain.jcl.net.protocol.serialization.common.MsgSerializersFactory;
 import com.nchain.jcl.net.protocol.streams.MessageStream;
 import com.nchain.jcl.net.protocol.streams.deserializer.Deserializer;
@@ -298,7 +299,10 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
         }
 
         // Checks the checksum:
-        if (config.isVerifyChecksum() && msg.getHeader().getChecksum() != msg.getBody().getPayloadChecksum()) {
+        if (config.isVerifyChecksum()
+                && msg.getHeader().getMsgLength() > 0
+                && !(msg.getBody() instanceof PartialMessage) // Partial Messages do NOT have checksum
+                && msg.getHeader().getChecksum() != msg.getBody().getPayloadChecksum()) {
             return "Checksum is Wrong";
         }
 
@@ -311,7 +315,7 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
         if (msg.getLengthInbytes() >= config.getBasicConfig().getThresholdSizeExtMsgs()) {
             if (msg.getHeader().getCommand().equalsIgnoreCase(HeaderMsg.EXT_COMMAND))
                 return "Message Larger than 4GB but wrong Command";
-            if (this.config.getBasicConfig().getProtocolVersion() < ProtocolVersion.SUPPORT_EXT_MSGS.getVersion())
+            if (this.config.getBasicConfig().getProtocolVersion() < ProtocolVersion.ENABLE_EXT_MSGS.getVersion())
                 return "Message Larger than 4GB but we are running a Protocol < 70016";
         }
         return null;
