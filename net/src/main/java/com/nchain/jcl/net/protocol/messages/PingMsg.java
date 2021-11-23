@@ -71,7 +71,7 @@ public final class PingMsg extends Message implements Serializable {
 
     @Override
     public PingMsgBuilder toBuilder() {
-        return new PingMsgBuilder().nonce(this.nonce);
+        return new PingMsgBuilder(super.extraBytes, super.payloadChecksum).nonce(this.nonce);
     }
 
     /**
@@ -80,7 +80,8 @@ public final class PingMsg extends Message implements Serializable {
     public static class PingMsgBuilder extends MessageBuilder{
         private long nonce;
 
-        PingMsgBuilder() { }
+        public PingMsgBuilder() { }
+        public PingMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public PingMsg.PingMsgBuilder nonce(long nonce) {
             this.nonce = nonce;

@@ -69,7 +69,7 @@ public class HashMsg extends Message implements Serializable {
 
     @Override
     public HashMsgBuilder toBuilder() {
-      return new HashMsgBuilder().hash(this.hashBytes);
+      return new HashMsgBuilder(super.extraBytes, super.payloadChecksum).hash(this.hashBytes);
     }
 
     /**
@@ -78,7 +78,8 @@ public class HashMsg extends Message implements Serializable {
     public static class HashMsgBuilder extends MessageBuilder{
         private byte[] hash;
 
-        HashMsgBuilder() {}
+        public HashMsgBuilder() {}
+        public HashMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public HashMsg.HashMsgBuilder hash(byte[] hash) {
             this.hash = hash;

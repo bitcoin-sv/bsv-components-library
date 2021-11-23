@@ -76,7 +76,7 @@ public final class NotFoundMsg extends Message implements Serializable {
 
     @Override
     public NotFoundMsgBuilder toBuilder() {
-        return new NotFoundMsgBuilder()
+        return new NotFoundMsgBuilder(super.extraBytes, super.payloadChecksum)
                     .count(this.count)
                     .invVectorMsgList(this.invVectorList);
     }
@@ -88,7 +88,8 @@ public final class NotFoundMsg extends Message implements Serializable {
         private VarIntMsg count;
         private List<InventoryVectorMsg> invVectorMsgList;
 
-        NotFoundMsgBuilder() {}
+        public NotFoundMsgBuilder() {}
+        public NotFoundMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public NotFoundMsg.NotFoundMsgBuilder count(VarIntMsg count) {
             this.count = count;

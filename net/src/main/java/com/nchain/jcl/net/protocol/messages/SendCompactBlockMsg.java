@@ -52,7 +52,7 @@ public class SendCompactBlockMsg extends Message implements Serializable {
 
     @Override
     public SendCompactBlockMsgBuilder toBuilder() {
-        return new SendCompactBlockMsgBuilder()
+        return new SendCompactBlockMsgBuilder(super.extraBytes, super.payloadChecksum)
                         .highBandwidthRelaying(this.highBandwidthRelaying)
                         .version(this.version);
     }
@@ -68,6 +68,9 @@ public class SendCompactBlockMsg extends Message implements Serializable {
     public static class SendCompactBlockMsgBuilder extends MessageBuilder {
         private boolean highBandwidthRelaying;
         private long version;
+
+        public SendCompactBlockMsgBuilder() {}
+        public SendCompactBlockMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public SendCompactBlockMsgBuilder highBandwidthRelaying(boolean highBandwidthRelaying) {
             this.highBandwidthRelaying = highBandwidthRelaying;

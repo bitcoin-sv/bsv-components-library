@@ -133,7 +133,7 @@ public class CompactBlockHeaderMsg extends Message implements Serializable {
 
     @Override
     public CompactBlockHeaderMsgBuilder toBuilder() {
-        return new CompactBlockHeaderMsgBuilder()
+        return new CompactBlockHeaderMsgBuilder(super.extraBytes, super.payloadChecksum)
                     .hash(this.hash)
                     .version(this.version)
                     .prevBlockHash(this.prevBlockHash)
@@ -154,6 +154,9 @@ public class CompactBlockHeaderMsg extends Message implements Serializable {
         protected long creationTimestamp;
         protected long difficultyTarget;
         protected long nonce;
+
+        public CompactBlockHeaderMsgBuilder() {}
+        public CompactBlockHeaderMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public CompactBlockHeaderMsgBuilder hash(HashMsg hash) {
             this.hash = hash;

@@ -57,7 +57,7 @@ public class FeeFilterMsg extends Message implements Serializable {
 
     @Override
     public FeeFilterMsgBuilder toBuilder() {
-        return new FeeFilterMsgBuilder().fee(this.fee);
+        return new FeeFilterMsgBuilder(super.extraBytes, super.payloadChecksum).fee(this.fee);
     }
 
     /**
@@ -66,8 +66,8 @@ public class FeeFilterMsg extends Message implements Serializable {
     public static class FeeFilterMsgBuilder extends MessageBuilder {
         private Long fee;
 
-        FeeFilterMsgBuilder() {
-        }
+        FeeFilterMsgBuilder() {}
+        FeeFilterMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public FeeFilterMsg.FeeFilterMsgBuilder fee(Long fee) {
             this.fee = fee;

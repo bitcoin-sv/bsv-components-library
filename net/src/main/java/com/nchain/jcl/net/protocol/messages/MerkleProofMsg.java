@@ -80,7 +80,7 @@ public class MerkleProofMsg extends Message {
 
     @Override
     public MerkleProofMsgBuilder toBuilder() {
-        return new MerkleProofMsgBuilder()
+        return new MerkleProofMsgBuilder(super.extraBytes, super.payloadChecksum)
                     .withFlags(this.flags)
                     .withTransactionIndex(this.transactionIndex)
                     .withTransactionLength(this.transactionLength)
@@ -102,8 +102,8 @@ public class MerkleProofMsg extends Message {
         private VarIntMsg nodeCount;
         private List<MerkleNode> nodes;
 
-        private MerkleProofMsgBuilder() {
-        }
+        private MerkleProofMsgBuilder() {}
+        private MerkleProofMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public MerkleProofMsgBuilder withFlags(MerkleProofMsgFlags flags) {
             this.flags = flags;

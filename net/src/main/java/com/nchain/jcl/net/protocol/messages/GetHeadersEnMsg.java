@@ -70,7 +70,7 @@ public final class GetHeadersEnMsg extends Message implements Serializable {
 
     @Override
     public GetHeadersEnMsgBuilder toBuilder() {
-        return new GetHeadersEnMsgBuilder()
+        return new GetHeadersEnMsgBuilder(super.extraBytes, super.payloadChecksum)
                         .version(this.version)
                         .blockLocatorHash(this.blockLocatorHash)
                         .hashStop(this.hashStop);
@@ -84,7 +84,8 @@ public final class GetHeadersEnMsg extends Message implements Serializable {
         private HashMsg blockLocatorHash;
         private HashMsg hashStop;
 
-        GetHeadersEnMsgBuilder() {}
+        public GetHeadersEnMsgBuilder() {}
+        public GetHeadersEnMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public GetHeadersEnMsg.GetHeadersEnMsgBuilder version(long version) {
             this.version = version;

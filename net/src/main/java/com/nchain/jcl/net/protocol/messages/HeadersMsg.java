@@ -87,7 +87,7 @@ public final class HeadersMsg extends Message implements Serializable {
 
     @Override
     public HeadersMsgBuilder toBuilder() {
-        return new HeadersMsgBuilder().blockHeaderMsgList(this.blockHeaderMsgList);
+        return new HeadersMsgBuilder(super.extraBytes, super.payloadChecksum).blockHeaderMsgList(this.blockHeaderMsgList);
     }
 
     /**
@@ -96,7 +96,8 @@ public final class HeadersMsg extends Message implements Serializable {
     public static class HeadersMsgBuilder extends MessageBuilder {
         private List<BlockHeaderMsg> blockHeaderMsgList;
 
-        HeadersMsgBuilder() {}
+        public HeadersMsgBuilder() {}
+        public HeadersMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public HeadersMsg.HeadersMsgBuilder blockHeaderMsgList(List<BlockHeaderMsg> blockHeaderMsgList) {
             this.blockHeaderMsgList = blockHeaderMsgList;

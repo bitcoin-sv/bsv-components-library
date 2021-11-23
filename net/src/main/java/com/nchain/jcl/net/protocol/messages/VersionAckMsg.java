@@ -60,14 +60,15 @@ public final class VersionAckMsg extends Message implements Serializable {
 
     @Override
     public VersionAckMsgBuilder toBuilder() {
-        return new VersionAckMsgBuilder();
+        return new VersionAckMsgBuilder(super.extraBytes, super.payloadChecksum);
     }
 
     /**
      * Builder
      */
     public static class VersionAckMsgBuilder extends MessageBuilder{
-        VersionAckMsgBuilder() {}
+        public VersionAckMsgBuilder() {}
+        public VersionAckMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public VersionAckMsg build() {
             return new VersionAckMsg(super.payloadChecksum);

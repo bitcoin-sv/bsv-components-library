@@ -51,14 +51,20 @@ public class PrefilledTxMsg extends Message implements Serializable {
 
     @Override
     public PrefilledTransactionMsgBuilder toBuilder() {
-        return new PrefilledTransactionMsgBuilder()
+        return new PrefilledTransactionMsgBuilder(super.extraBytes, super.payloadChecksum)
                         .index(this.index)
                         .transaction(this.transaction);
     }
 
+    /**
+     * Builder
+     */
     public static class PrefilledTransactionMsgBuilder extends MessageBuilder {
         private VarIntMsg index;
         private TxMsg transaction;
+
+        public PrefilledTransactionMsgBuilder() {}
+        public PrefilledTransactionMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public PrefilledTransactionMsgBuilder index(VarIntMsg index) {
             this.index = index;

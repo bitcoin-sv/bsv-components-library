@@ -58,7 +58,7 @@ public final class SendHeadersMsg extends Message implements Serializable {
 
     @Override
     public SendHeadersMsgBuilder toBuilder() {
-        return new SendHeadersMsgBuilder();
+        return new SendHeadersMsgBuilder(super.extraBytes, super.payloadChecksum);
     }
 
     /**
@@ -66,6 +66,7 @@ public final class SendHeadersMsg extends Message implements Serializable {
      */
     public static class SendHeadersMsgBuilder extends MessageBuilder {
         public SendHeadersMsgBuilder() { }
+        public SendHeadersMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public SendHeadersMsg build() {
             return new SendHeadersMsg(super.payloadChecksum);

@@ -148,7 +148,7 @@ public final class BlockHeaderEnMsg extends Message implements Serializable {
 
     @Override
     public BlockHeaderEnMsgBuilder toBuilder() {
-        return new BlockHeaderEnMsgBuilder()
+        return new BlockHeaderEnMsgBuilder(super.extraBytes, super.payloadChecksum)
                     .hash(this.hash)
                     .version(this.version)
                     .prevBlockHash(this.prevBlockHash)
@@ -187,6 +187,7 @@ public final class BlockHeaderEnMsg extends Message implements Serializable {
         private TxMsg coinbaseTX;
 
         BlockHeaderEnMsgBuilder() {}
+        BlockHeaderEnMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public BlockHeaderEnMsg.BlockHeaderEnMsgBuilder hash(HashMsg hash) {
             this.hash = hash;

@@ -61,14 +61,15 @@ public final class GetAddrMsg extends Message implements Serializable {
 
     @Override
     public GetAddrMsgBuilder toBuilder() {
-       return new GetAddrMsgBuilder();
+       return new GetAddrMsgBuilder(super.extraBytes, super.payloadChecksum);
     }
 
     /**
      * Builder
      */
     public static class GetAddrMsgBuilder extends MessageBuilder{
-        GetAddrMsgBuilder() {}
+        public GetAddrMsgBuilder() {}
+        public GetAddrMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
         public GetAddrMsg build() {
             return new GetAddrMsg(super.payloadChecksum);
         }

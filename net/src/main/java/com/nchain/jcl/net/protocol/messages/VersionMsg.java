@@ -157,7 +157,7 @@ public final class VersionMsg extends Message implements Serializable {
 
     @Override
     public VersionMsgBuilder toBuilder() {
-        return new VersionMsgBuilder()
+        return new VersionMsgBuilder(super.extraBytes, super.payloadChecksum)
                         .version(this.version)
                         .services(this.services)
                         .timestamp(this.timestamp)
@@ -186,6 +186,7 @@ public final class VersionMsg extends Message implements Serializable {
         private byte[] associationId = Utils.EMPTY_BYTE_ARRAY;
 
         VersionMsgBuilder() {}
+        VersionMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public VersionMsg.VersionMsgBuilder version(long version) {
             this.version = version;

@@ -85,7 +85,7 @@ public final class BaseGetDataAndHeaderMsg extends Message implements Serializab
 
     @Override
     public BaseGetDataAndHeaderMsgBuilder toBuilder() {
-        return new BaseGetDataAndHeaderMsgBuilder()
+        return new BaseGetDataAndHeaderMsgBuilder(super.extraBytes, super.payloadChecksum)
                     .version(this.version)
                     .hashCount(this.hashCount)
                     .hashStop(this.hashStop)
@@ -106,6 +106,7 @@ public final class BaseGetDataAndHeaderMsg extends Message implements Serializab
         private HashMsg hashStop;
 
         BaseGetDataAndHeaderMsgBuilder() {}
+        BaseGetDataAndHeaderMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public BaseGetDataAndHeaderMsg.BaseGetDataAndHeaderMsgBuilder version(long version) {
             this.version = version;

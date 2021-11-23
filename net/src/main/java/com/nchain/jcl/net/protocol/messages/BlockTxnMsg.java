@@ -47,7 +47,7 @@ public class BlockTxnMsg extends Message implements Serializable {
 
     @Override
     public BlockTxnMsgBuilder toBuilder() {
-        return new BlockTxnMsgBuilder()
+        return new BlockTxnMsgBuilder(super.extraBytes, super.payloadChecksum)
                     .blockHash(this.blockHash)
                     .transactions(this.transactions);
     }
@@ -58,6 +58,9 @@ public class BlockTxnMsg extends Message implements Serializable {
     public static class BlockTxnMsgBuilder extends MessageBuilder {
         private HashMsg blockHash;
         private List<TxMsg> transactions;
+
+        public BlockTxnMsgBuilder() {}
+        public BlockTxnMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public BlockTxnMsgBuilder blockHash(HashMsg blockHash) {
             this.blockHash = blockHash;

@@ -69,7 +69,7 @@ public final class PongMsg extends Message implements Serializable {
 
     @Override
     public PongMsgBuilder toBuilder() {
-        return new PongMsgBuilder().nonce(this.nonce);
+        return new PongMsgBuilder(super.extraBytes, super.payloadChecksum).nonce(this.nonce);
     }
 
     /**
@@ -78,7 +78,8 @@ public final class PongMsg extends Message implements Serializable {
     public static class PongMsgBuilder extends MessageBuilder {
         private long nonce;
 
-        PongMsgBuilder() {}
+        public PongMsgBuilder() {}
+        public PongMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public PongMsg.PongMsgBuilder nonce(long nonce) {
             this.nonce = nonce;

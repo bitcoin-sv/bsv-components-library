@@ -58,7 +58,7 @@ public class CompactBlockMsg extends Message implements Serializable {
 
     @Override
     public CompactBlockMsgBuilder toBuilder() {
-        return new CompactBlockMsgBuilder()
+        return new CompactBlockMsgBuilder(super.extraBytes, super.payloadChecksum)
                     .header(this.header)
                     .nonce(this.nonce)
                     .shortTxIds(this.shortTxIds)
@@ -77,6 +77,9 @@ public class CompactBlockMsg extends Message implements Serializable {
         private long nonce;
         private List<Long> shortTxIds;
         private List<PrefilledTxMsg> prefilledTransactions;
+
+        public CompactBlockMsgBuilder() {}
+        public CompactBlockMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public CompactBlockMsgBuilder header(CompactBlockHeaderMsg header) {
             this.header = header;

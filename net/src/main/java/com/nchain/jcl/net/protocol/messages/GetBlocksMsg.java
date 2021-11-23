@@ -63,7 +63,7 @@ public final class GetBlocksMsg extends Message implements Serializable {
 
     @Override
     public GetBlocksMsgBuilder toBuilder() {
-        return new GetBlocksMsgBuilder()
+        return new GetBlocksMsgBuilder(super.extraBytes, super.payloadChecksum)
                     .baseGetDataAndHeaderMsg(this.baseGetDataAndHeaderMsg);
     }
 
@@ -73,7 +73,8 @@ public final class GetBlocksMsg extends Message implements Serializable {
     public static class GetBlocksMsgBuilder extends MessageBuilder{
         private BaseGetDataAndHeaderMsg baseGetDataAndHeaderMsg;
 
-        GetBlocksMsgBuilder() {}
+        public GetBlocksMsgBuilder() {}
+        public GetBlocksMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public GetBlocksMsg.GetBlocksMsgBuilder baseGetDataAndHeaderMsg(BaseGetDataAndHeaderMsg baseGetDataAndHeaderMsg) {
             this.baseGetDataAndHeaderMsg = baseGetDataAndHeaderMsg;

@@ -39,6 +39,7 @@ public final class RawBlockMsg extends Message implements Serializable {
         this.blockHeader = blockHeader;
         txsByteLength = txs.stream().collect(Collectors.summingLong(t -> t.getLengthInBytes()));
         this.txs = txs;
+        init();
     }
 
     public static RawTxBlockMsgBuilder builder() {

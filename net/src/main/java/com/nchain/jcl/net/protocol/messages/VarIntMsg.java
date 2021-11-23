@@ -98,7 +98,7 @@ public final class VarIntMsg extends Message implements Serializable {
 
     @Override
     public VarIntMsgBuilder toBuilder() {
-        return new VarIntMsgBuilder().value(this.value);
+        return new VarIntMsgBuilder(super.extraBytes, super.payloadChecksum).value(this.value);
     }
 
     /**
@@ -107,7 +107,8 @@ public final class VarIntMsg extends Message implements Serializable {
     public static class VarIntMsgBuilder extends MessageBuilder {
         private long value;
 
-        VarIntMsgBuilder() {}
+        public VarIntMsgBuilder() {}
+        public VarIntMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public VarIntMsg.VarIntMsgBuilder value(long value) {
             this.value = value;

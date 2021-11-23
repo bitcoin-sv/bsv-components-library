@@ -1,5 +1,7 @@
 package com.nchain.jcl.net.protocol.messages.common;
 
+import io.bitcoinj.core.Utils;
+
 import java.io.Serializable;
 
 /**
@@ -30,8 +32,13 @@ public abstract class Message implements Serializable {
     // serialized.
     protected long lengthInBytes;
 
+    // Bytes received from the network but NOT used during the Deserialization. They usually come at the end
+    // of the message, if any. We store them here in case we ned to Serialize the message keeping the original
+    // structure.
+    protected byte[] extraBytes = Utils.EMPTY_BYTE_ARRAY;
+
     // checksum calculated out of the Message bytes. Its NOT part of the physical message on the wire and it
-    // might ne or not populated based on configuration
+    // might be or not populated based on configuration
     protected long payloadChecksum;
 
     /** Constructor */
@@ -40,10 +47,16 @@ public abstract class Message implements Serializable {
     /** Constructor */
     public Message(long payloadChecksum) { this.payloadChecksum = payloadChecksum; }
 
+    /** Constructor */
+    public Message(byte[] extraBytes, long payloadChecksum) {
+        this(payloadChecksum);
+        this.extraBytes = extraBytes;
+    }
+
     // getters:
     public long getLengthInBytes()   { return lengthInBytes; }
     public long getPayloadChecksum() { return this.payloadChecksum;}
-
+    public byte[] getExtraBytes()    { return this.extraBytes;}
 
 
     /** initialize the message length and validate its values */
@@ -73,10 +86,23 @@ public abstract class Message implements Serializable {
      * Abstract Builder that can be extended by sub-classes
      */
     public static abstract class MessageBuilder {
+        protected byte[] extraBytes = Utils.EMPTY_BYTE_ARRAY;
         protected long payloadChecksum;
+
+        public MessageBuilder() {}
+
+        public MessageBuilder(byte[] extraBytes, long payloadChecksum) {
+            this.payloadChecksum = payloadChecksum;
+            this.extraBytes = extraBytes;
+        }
 
         public MessageBuilder payloadChecksum(long payloadChecksum) {
             this.payloadChecksum = payloadChecksum;
+            return this;
+        }
+
+        public MessageBuilder extraBytes(byte[] extraBytes) {
+            this.extraBytes = extraBytes;
             return this;
         }
 

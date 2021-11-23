@@ -84,7 +84,7 @@ public final class TxOutputMsg extends Message implements Serializable {
 
     @Override
     public TxOutputMsgBuilder toBuilder() {
-        return new TxOutputMsgBuilder()
+        return new TxOutputMsgBuilder(super.extraBytes, super.payloadChecksum)
                         .txValue(this.txValue)
                         .pk_script(this.pk_script);
     }
@@ -95,7 +95,8 @@ public final class TxOutputMsg extends Message implements Serializable {
         private long txValue;
         private byte[] pk_script;
 
-        TxOutputMsgBuilder() {}
+        public TxOutputMsgBuilder() {}
+        public TxOutputMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public TxOutputMsg.TxOutputMsgBuilder txValue(long txValue) {
             this.txValue = txValue;

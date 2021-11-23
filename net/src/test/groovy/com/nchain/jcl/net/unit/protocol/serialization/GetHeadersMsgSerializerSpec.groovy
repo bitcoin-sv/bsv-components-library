@@ -6,7 +6,6 @@ import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
-import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.messages.BaseGetDataAndHeaderMsg
 import com.nchain.jcl.net.protocol.messages.GetHeadersMsg
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg

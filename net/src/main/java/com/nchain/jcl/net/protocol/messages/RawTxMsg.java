@@ -82,7 +82,7 @@ public class RawTxMsg extends RawMsg implements Serializable {
 
     @Override
     public RawTxMsgBuilder toBuilder() {
-        return new RawTxMsgBuilder()
+        return new RawTxMsgBuilder(super.extraBytes, super.payloadChecksum)
                     .content(this.content)
                     .hash(this.hash);
     }
@@ -94,6 +94,8 @@ public class RawTxMsg extends RawMsg implements Serializable {
         private byte[] content;
         private Sha256Hash hash;
 
+        public RawTxMsgBuilder() {}
+        public RawTxMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
         public RawTxMsgBuilder content(byte[] content) {
             this.content = content;
             return this;

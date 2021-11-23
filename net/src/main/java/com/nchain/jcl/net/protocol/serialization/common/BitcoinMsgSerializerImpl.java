@@ -4,6 +4,7 @@ package com.nchain.jcl.net.protocol.serialization.common;
 import com.nchain.jcl.net.protocol.messages.HeaderMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.Message;
+import com.nchain.jcl.net.protocol.messages.common.PartialMessage;
 import com.nchain.jcl.net.protocol.serialization.HeaderMsgSerializer;
 import com.nchain.jcl.tools.bytes.ByteArrayConfig;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
@@ -11,9 +12,6 @@ import com.nchain.jcl.tools.bytes.ByteArrayWriter;
 import com.nchain.jcl.tools.bytes.Sha256HashIncremental;
 import io.bitcoinj.core.Sha256Hash;
 import io.bitcoinj.core.Utils;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author i.fernandez@nchain.com
@@ -66,6 +64,15 @@ public class BitcoinMsgSerializerImpl implements BitcoinMsgSerializer {
         // We inject the checksum if needed:
         if (needToCalculateChecksum) {
             bodyMsg = (M) bodyMsg.toBuilder().payloadChecksum(checksum).build();
+        }
+
+        // In case there are still some bytes in the buffer left AFTER Deserializing the Body, we just read them and
+        // store them within the message.
+        // NOTE: PartialMessages do NEVER have "extraBytes"
+        if (!(bodyMsg instanceof PartialMessage) && (bodyMsg.getLengthInBytes() < context.getMaxBytesToRead())) {
+            int numExtraBytes = (int) (context.getMaxBytesToRead() - bodyMsg.getLengthInBytes());
+            byte[] extraBytes = byteReader.read(numExtraBytes);
+            bodyMsg = (M) bodyMsg.toBuilder().extraBytes(extraBytes).build();
         }
         return bodyMsg;
     }
@@ -153,6 +160,11 @@ public class BitcoinMsgSerializerImpl implements BitcoinMsgSerializer {
             while (!bodyByteReader.isEmpty()) {
                 finalWriter.write(bodyByteReader.read((int) Math.min(SIZE_2GB, bodyByteReader.size())));
             }
+        }
+
+        // After serializing the message, if the msgs has some "extraBytes" we also serialize them:
+        if (bitcoinMessage.getBody().getExtraBytes().length > 0) {
+            finalWriter.write(bitcoinMessage.getBody().getExtraBytes());
         }
 
         return finalWriter.reader();

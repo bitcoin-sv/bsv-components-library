@@ -184,7 +184,7 @@ public class RejectMsg extends Message implements Serializable {
 
     @Override
     public RejectMsgBuilder toBuilder() {
-        return new RejectMsgBuilder()
+        return new RejectMsgBuilder(super.extraBytes, super.payloadChecksum)
                     .message(this.message)
                     .ccode(this.ccode)
                     .reason(this.reason)
@@ -202,7 +202,8 @@ public class RejectMsg extends Message implements Serializable {
         private Sha256Hash dataHash;
         private byte[] data;
 
-        RejectMsgBuilder() { }
+        public RejectMsgBuilder() { }
+        public RejectMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public RejectMsg.RejectMsgBuilder message(VarStrMsg message) {
             this.message = message;

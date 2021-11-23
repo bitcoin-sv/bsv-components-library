@@ -94,7 +94,7 @@ public final class NetAddressMsg extends Message implements Serializable {
 
     @Override
     public NetAddressMsgBuilder toBuilder() {
-        return new NetAddressMsgBuilder()
+        return new NetAddressMsgBuilder(super.extraBytes, super.payloadChecksum)
                         .timestamp(this.timestamp)
                         .services(this.services)
                         .address(this.address);
@@ -108,7 +108,8 @@ public final class NetAddressMsg extends Message implements Serializable {
         private long services;
         private PeerAddress address;
 
-        NetAddressMsgBuilder() {}
+        public NetAddressMsgBuilder() {}
+        public NetAddressMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public NetAddressMsg.NetAddressMsgBuilder timestamp(Long timestamp) {
             this.timestamp = timestamp;

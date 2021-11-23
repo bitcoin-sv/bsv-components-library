@@ -78,7 +78,7 @@ public final class VarStrMsg extends Message implements Serializable {
 
     @Override
     public VarStrMsgBuilder toBuilder() {
-        return new VarStrMsgBuilder().str(this.str);
+        return new VarStrMsgBuilder(super.extraBytes, super.payloadChecksum).str(this.str);
     }
 
     /**
@@ -87,8 +87,8 @@ public final class VarStrMsg extends Message implements Serializable {
     public static class VarStrMsgBuilder extends MessageBuilder {
         private String str;
 
-        VarStrMsgBuilder() {
-        }
+        public VarStrMsgBuilder() {}
+        public VarStrMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public VarStrMsg.VarStrMsgBuilder str(String str) {
             this.str = str;

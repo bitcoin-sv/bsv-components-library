@@ -89,7 +89,7 @@ public final class GetdataMsg extends Message implements Serializable {
 
     @Override
     public GetdataMsgBuilder toBuilder() {
-        return new GetdataMsgBuilder().invVectorList(this.invVectorList);
+        return new GetdataMsgBuilder(super.extraBytes, super.payloadChecksum).invVectorList(this.invVectorList);
     }
 
     /**
@@ -98,7 +98,8 @@ public final class GetdataMsg extends Message implements Serializable {
     public static class GetdataMsgBuilder extends MessageBuilder {
         private List<InventoryVectorMsg> invVectorList;
 
-        GetdataMsgBuilder() {}
+        public GetdataMsgBuilder() {}
+        public GetdataMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public GetdataMsg.GetdataMsgBuilder invVectorList(List<InventoryVectorMsg> invVectorList) {
             this.invVectorList = invVectorList;

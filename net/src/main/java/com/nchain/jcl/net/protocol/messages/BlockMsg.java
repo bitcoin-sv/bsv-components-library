@@ -82,7 +82,7 @@ public final class BlockMsg extends Message implements Serializable {
 
     @Override
     public BlockMsgBuilder toBuilder() {
-        return new BlockMsgBuilder()
+        return new BlockMsgBuilder(super.extraBytes, super.payloadChecksum)
                     .blockHeader(this.blockHeader)
                     .transactionMsgs(this.transactionMsg);
     }
@@ -94,8 +94,8 @@ public final class BlockMsg extends Message implements Serializable {
         private BlockHeaderMsg blockHeader;
         private List<TxMsg> transactionMsgs;
 
-        BlockMsgBuilder() {
-        }
+        BlockMsgBuilder() {}
+        BlockMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public BlockMsg.BlockMsgBuilder blockHeader(BlockHeaderMsg blockHeader) {
             this.blockHeader = blockHeader;

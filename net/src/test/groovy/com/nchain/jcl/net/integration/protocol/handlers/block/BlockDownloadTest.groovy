@@ -4,6 +4,7 @@ import com.nchain.jcl.net.network.config.NetworkConfig
 import com.nchain.jcl.net.network.config.provided.NetworkDefaultConfig
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
+import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVStnConfig
 import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandlerConfig
 import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandlerState
 import com.nchain.jcl.net.protocol.handlers.block.BlocksDownloadHistory
@@ -100,7 +101,7 @@ class BlockDownloadTest extends Specification {
      *
      */
     // We disable this test, since it's very time-consuming
-    @Ignore
+    //@Ignore
     def "Testing Block Downloading"() {
         given:
             // The longest Timeout we'll wait for to run the test:
@@ -121,13 +122,14 @@ class BlockDownloadTest extends Specification {
 
             // Basic Config:
             ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
-                .minPeers(OptionalInt.of(20))
-                .maxPeers(OptionalInt.of(22))
+                .minPeers(OptionalInt.of(8))
+                .maxPeers(OptionalInt.of(10))
                 .build()
 
             // Serialization Config:
             MessageHandlerConfig messageConfig = config.getMessageConfig().toBuilder()
                 .rawTxsEnabled(true)
+                .verifyChecksum(true)
                 .build();
 
             // We set up the Download configuration:
@@ -264,9 +266,9 @@ class BlockDownloadTest extends Specification {
 
         where:
             config                     |   block_hashes     | block_hashes_to_cancel
-            new ProtocolBSVMainConfig()      |   BLOCKS_BSV_MAIN    | BLOCKS_BSV_MAIN_TO_CANCEL
+           new ProtocolBSVMainConfig()      |   BLOCKS_BSV_MAIN    | BLOCKS_BSV_MAIN_TO_CANCEL
            //com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder.get(MainNetParams.get()) |   BLOCKS_BSV_MAIN
-           //new ProtocolBSVStnConfig()      |   BLOCKS_BSV_STN
+           //new ProtocolBSVStnConfig() |   BLOCKS_BSV_STN | BLOCKS_BSV_MAIN_TO_CANCEL
            //new ProtocolBTCMainConfig() |   BLOCKS_BTC_MAIN
     }
 

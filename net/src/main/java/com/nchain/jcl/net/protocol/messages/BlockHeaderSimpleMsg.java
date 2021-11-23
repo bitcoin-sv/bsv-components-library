@@ -135,7 +135,7 @@ public class BlockHeaderSimpleMsg extends Message implements Serializable {
 
     @Override
     public BlockHeaderSimpleMsgBuilder toBuilder() {
-        return new BlockHeaderSimpleMsgBuilder()
+        return new BlockHeaderSimpleMsgBuilder(super.extraBytes, super.payloadChecksum)
                     .hash(this.hash)
                     .version(this.version)
                     .prevBlockHash(this.prevBlockHash)
@@ -155,6 +155,9 @@ public class BlockHeaderSimpleMsg extends Message implements Serializable {
         protected long creationTimestamp;
         protected long difficultyTarget;
         protected long nonce;
+
+        public BlockHeaderSimpleMsgBuilder() {}
+        public BlockHeaderSimpleMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public BlockHeaderSimpleMsgBuilder hash(HashMsg hash) {
             this.hash = hash;

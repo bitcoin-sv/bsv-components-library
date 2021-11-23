@@ -190,7 +190,7 @@ public class TxMsg extends Message implements Serializable {
 
     @Override
     public TxMsgBuilder toBuilder() {
-        return new TxMsgBuilder()
+        return new TxMsgBuilder(super.extraBytes, super.payloadChecksum)
                     .hash(this.hash)
                     .version(this.version)
                     .tx_in(this.tx_in)
@@ -208,8 +208,8 @@ public class TxMsg extends Message implements Serializable {
         private List<TxOutputMsg> tx_out;
         private long lockTime;
 
-        TxMsgBuilder() {
-        }
+        public TxMsgBuilder() {}
+        public TxMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public TxMsg.TxMsgBuilder hash(Optional<HashMsg> hash) {
             this.hash = hash;

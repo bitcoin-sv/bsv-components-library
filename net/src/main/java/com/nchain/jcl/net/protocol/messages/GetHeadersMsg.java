@@ -62,7 +62,7 @@ public final class GetHeadersMsg extends Message implements Serializable {
 
     @Override
     public GetHeadersMsgBuilder toBuilder() {
-        return new GetHeadersMsgBuilder().baseGetDataAndHeaderMsg(this.baseGetDataAndHeaderMsg);
+        return new GetHeadersMsgBuilder(super.extraBytes, super.payloadChecksum).baseGetDataAndHeaderMsg(this.baseGetDataAndHeaderMsg);
     }
 
     /**
@@ -71,7 +71,8 @@ public final class GetHeadersMsg extends Message implements Serializable {
     public static class GetHeadersMsgBuilder extends MessageBuilder {
         private BaseGetDataAndHeaderMsg baseGetDataAndHeaderMsg;
 
-        GetHeadersMsgBuilder() {}
+        public GetHeadersMsgBuilder() {}
+        public GetHeadersMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public GetHeadersMsg.GetHeadersMsgBuilder baseGetDataAndHeaderMsg(BaseGetDataAndHeaderMsg baseGetDataAndHeaderMsg) {
             this.baseGetDataAndHeaderMsg = baseGetDataAndHeaderMsg;

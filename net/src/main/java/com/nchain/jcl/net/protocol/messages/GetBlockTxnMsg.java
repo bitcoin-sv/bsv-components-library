@@ -48,7 +48,7 @@ public class GetBlockTxnMsg extends Message implements Serializable {
 
     @Override
     public BlockTransactionsRequestMsgBuilder toBuilder() {
-        return new BlockTransactionsRequestMsgBuilder()
+        return new BlockTransactionsRequestMsgBuilder(super.extraBytes, super.payloadChecksum)
                     .blockHash(this.blockHash)
                     .indexesLength(this.indexesLength)
                     .indexes(this.indexes);
@@ -66,6 +66,8 @@ public class GetBlockTxnMsg extends Message implements Serializable {
         private VarIntMsg indexesLength;
         private List<VarIntMsg> indexes;
 
+        public BlockTransactionsRequestMsgBuilder() {}
+        public BlockTransactionsRequestMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
         public BlockTransactionsRequestMsgBuilder blockHash(HashMsg blockHash) {
             this.blockHash = blockHash;
             return this;

@@ -51,7 +51,7 @@ public class BlockDetailsMsg extends Message {
 
     @Override
     public BlockDetailsMsgBuilder toBuilder() {
-        return new BlockDetailsMsgBuilder()
+        return new BlockDetailsMsgBuilder(super.extraBytes, super.payloadChecksum)
                     .headerCount(this.headerCount)
                     .headerMsg(this.headerMsg)
                     .merkleProofMsg(this.merkleProofMsg);
@@ -65,8 +65,8 @@ public class BlockDetailsMsg extends Message {
         private List<BlockHeaderSimpleMsg> headerMsg;
         private MerkleProofMsg merkleProofMsg;
 
-        private BlockDetailsMsgBuilder() {
-        }
+        private BlockDetailsMsgBuilder() {}
+        private BlockDetailsMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public static BlockDetailsMsgBuilder BlockDetailsMsgBuilder() {
             return new BlockDetailsMsgBuilder();

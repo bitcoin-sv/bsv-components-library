@@ -49,7 +49,7 @@ public class DsDetectedMsg extends Message {
     public static DsDetectedMsg.DsDetectedMsgBuilder builder() { return new DsDetectedMsg.DsDetectedMsgBuilder(); }
 
     @Override public DsDetectedMsgBuilder toBuilder() {
-        return new DsDetectedMsgBuilder()
+        return new DsDetectedMsgBuilder(super.extraBytes, super.payloadChecksum)
                     .withVersion(this.version)
                     .withBlockCount(this.blockCount)
                     .withBlockList(this.blockList);
@@ -63,8 +63,8 @@ public class DsDetectedMsg extends Message {
         private VarIntMsg blockCount;
         private List<BlockDetailsMsg> blockList;
 
-        private DsDetectedMsgBuilder() {
-        }
+        private DsDetectedMsgBuilder() {}
+        private DsDetectedMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public DsDetectedMsgBuilder withVersion(int version) {
             this.version = version;

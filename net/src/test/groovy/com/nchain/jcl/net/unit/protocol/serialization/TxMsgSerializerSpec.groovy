@@ -3,11 +3,8 @@ package com.nchain.jcl.net.unit.protocol.serialization
 
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
-import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
-import com.nchain.jcl.net.protocol.messages.HashMsg
 import com.nchain.jcl.net.protocol.messages.TxMsg
 import com.nchain.jcl.net.protocol.messages.TxInputMsg
-import com.nchain.jcl.net.protocol.messages.TxOutPointMsg
 import com.nchain.jcl.net.protocol.messages.TxOutputMsg
 import com.nchain.jcl.net.protocol.messages.VersionMsg
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg
@@ -18,20 +15,13 @@ import com.nchain.jcl.net.protocol.serialization.TxOutputMsgSerializer
 import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializer
 import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
-import com.nchain.jcl.net.protocol.serialization.common.MsgSerializersFactory
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
 import com.nchain.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
-import io.bitcoinj.bitcoin.api.base.Tx
-import io.bitcoinj.bitcoin.api.base.TxInput
-import io.bitcoinj.bitcoin.api.base.TxOutPoint
-import io.bitcoinj.bitcoin.bean.base.FullBlockBean
-import io.bitcoinj.bitcoin.bean.base.TxBean
 import io.bitcoinj.core.Utils
 import io.bitcoinj.params.MainNetParams
 import io.bitcoinj.params.Net
-import org.spongycastle.crypto.tls.DefaultTlsServer
 import spock.lang.Specification
 
 /**

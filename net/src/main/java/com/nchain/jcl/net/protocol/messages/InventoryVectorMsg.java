@@ -108,7 +108,7 @@ public final class InventoryVectorMsg extends Message implements Serializable {
 
     @Override
     public InventoryVectorMsgBuilder toBuilder() {
-        return new InventoryVectorMsgBuilder()
+        return new InventoryVectorMsgBuilder(super.extraBytes, super.payloadChecksum)
                     .type(this.type)
                     .hashMsg(this.hashMsg);
     }
@@ -120,7 +120,8 @@ public final class InventoryVectorMsg extends Message implements Serializable {
         private VectorType type;
         private HashMsg hashMsg;
 
-        InventoryVectorMsgBuilder() {}
+        public InventoryVectorMsgBuilder() {}
+        public InventoryVectorMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public InventoryVectorMsg.InventoryVectorMsgBuilder type(VectorType type) {
             this.type = type;

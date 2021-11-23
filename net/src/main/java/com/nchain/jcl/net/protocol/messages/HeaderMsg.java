@@ -141,7 +141,7 @@ public final class HeaderMsg extends Message implements Serializable {
 
     @Override
     public HeaderMsgBuilder toBuilder() {
-        return new HeaderMsgBuilder()
+        return new HeaderMsgBuilder(super.extraBytes, super.payloadChecksum)
                     .magic(this.magic)
                     .command(this.command)
                     .length(this.length)
@@ -161,7 +161,8 @@ public final class HeaderMsg extends Message implements Serializable {
         private String extCommand;
         private long extLength;
 
-        HeaderMsgBuilder() {}
+        public HeaderMsgBuilder() {}
+        public HeaderMsgBuilder(byte[] extraBytes, long payloadchecksum) { super(extraBytes, payloadchecksum);}
 
         public HeaderMsg.HeaderMsgBuilder magic(long magic) {
             this.magic = magic;

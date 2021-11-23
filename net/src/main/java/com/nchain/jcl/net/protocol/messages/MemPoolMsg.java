@@ -57,7 +57,7 @@ public final class MemPoolMsg extends Message implements Serializable {
 
     @Override
     public MemPoolMsgBuilder toBuilder() {
-        return new MemPoolMsgBuilder();
+        return new MemPoolMsgBuilder(super.extraBytes, super.payloadChecksum);
     }
 
     /**
@@ -65,6 +65,7 @@ public final class MemPoolMsg extends Message implements Serializable {
      */
     public static class MemPoolMsgBuilder extends MessageBuilder{
         public MemPoolMsgBuilder() {}
+        public MemPoolMsgBuilder(byte[] extraBuild, long payloadChecksum) { super(extraBuild, payloadChecksum);}
 
         public MemPoolMsg build() {
             return new MemPoolMsg(super.payloadChecksum);

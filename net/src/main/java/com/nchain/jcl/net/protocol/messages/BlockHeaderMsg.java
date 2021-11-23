@@ -100,7 +100,7 @@ public final class BlockHeaderMsg extends Message implements Serializable {
     }
 
     public BlockHeaderMsgBuilder toBuilder() {
-        return new BlockHeaderMsgBuilder()
+        return new BlockHeaderMsgBuilder(super.extraBytes, super.payloadChecksum)
                     .hash(this.blockHeaderSimpleMsg.getHash())
                     .version(this.blockHeaderSimpleMsg.getVersion())
                     .prevBlockHash(this.blockHeaderSimpleMsg.getPrevBlockHash())
@@ -122,6 +122,9 @@ public final class BlockHeaderMsg extends Message implements Serializable {
         protected long difficultyTarget;
         protected long nonce;
         private VarIntMsg transactionCount;
+
+        public BlockHeaderMsgBuilder() {}
+        public BlockHeaderMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public BlockHeaderMsgBuilder hash(HashMsg hash) {
             this.hash = hash;

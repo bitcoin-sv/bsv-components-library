@@ -87,7 +87,7 @@ public final class AddrMsg extends Message implements Serializable {
 
     @Override
     public AddrMsgBuilder toBuilder() {
-        return new AddrMsgBuilder().addrList(this.addrList);
+        return new AddrMsgBuilder(super.extraBytes, super.payloadChecksum).addrList(this.addrList);
     }
 
     public static AddrMsgBuilder builder() {
@@ -101,6 +101,7 @@ public final class AddrMsg extends Message implements Serializable {
         private List<NetAddressMsg> addrList;
 
         AddrMsgBuilder() {}
+        AddrMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public AddrMsg.AddrMsgBuilder addrList(List<NetAddressMsg> addrList) {
             this.addrList = addrList;
