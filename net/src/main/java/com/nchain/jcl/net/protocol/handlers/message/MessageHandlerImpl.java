@@ -87,8 +87,8 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
         // The Executor responsible for the deserialization of large messages is a cached one, so Threads are created
         // as we need. For a Stream to be able to use a dedicated Thread, its "realTimeProcessingEnabled" property
         // must be set to TRUE.
-        //this.dedicateConnsExecutor = ThreadUtils.getCachedThreadExecutorService("JclDeserializer");
-        this.dedicateConnsExecutor = Executors.newCachedThreadPool(ThreadUtils.getThreadFactory("jclDeserializer", Thread.MAX_PRIORITY, true));
+        this.dedicateConnsExecutor = ThreadUtils.getCachedThreadExecutorService("JclDeserializer");
+        //this.dedicateConnsExecutor = Executors.newCachedThreadPool(ThreadUtils.getThreadFactory("jclDeserializer", Thread.MAX_PRIORITY, true));
 
         // If some Batch Config has been specified, we instantiate the classes to keep track of their state:
         this.config.getMsgBatchConfigs().entrySet().forEach(entry -> msgsBatchManagers.put(entry.getKey(), new MessageBatchManager(entry.getKey(), entry.getValue())));
