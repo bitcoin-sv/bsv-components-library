@@ -17,11 +17,14 @@ import com.nchain.jcl.net.protocol.messages.GetdataMsg;
 import com.nchain.jcl.net.protocol.messages.InventoryVectorMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
+import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl;
 import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerConfig;
 import com.nchain.jcl.net.protocol.wrapper.P2P;
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder;
 import com.nchain.jcl.tools.config.RuntimeConfigImpl;
 import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault;
+import com.nchain.jcl.tools.events.EventBus;
+import com.nchain.jcl.tools.events.EventStreamer;
 import com.nchain.jcl.tools.thread.ThreadUtils;
 import io.bitcoinj.core.Utils;
 import io.bitcoinj.params.Net;
@@ -268,7 +271,7 @@ public class JCLServer {
     }
 
     private void processRawTxsBatch(RawTxsBatchMsgReceivedEvent event) {
-        long txsSize = event.getEvents().stream().mapToLong(e -> e.getBtcMsg().getLengthInbytes()).sum();
+        long txsSize = event.getEvents().stream().mapToLong(e -> e.getBtcMsg().getBody().getLengthInBytes()).sum();
         if (firstTxInstant == null)
             firstTxInstant = Instant.now();
         lastTxInstant = Instant.now();
@@ -350,19 +353,22 @@ public class JCLServer {
         log.info("\n--------------------------------------------------------------------------------------------------");
         if (firstTxInstant != null) {
             Duration effectiveTime = Duration.between(firstTxInstant, lastTxInstant);
+            log.info("JCL Server :: HACK > Events lost: " + EventBus.NUM_MSGS_LOST.get());
+            log.info("JCL Server :: HACK > EventStreamer lost: " + EventStreamer.NUM_MSGS_LOST.get());
             log.info("JCL Server :: Statistics > " + Duration.between(firstTxInstant, Instant.now()).toSeconds() + " secs of Test");
             log.info("JCL Server :: Statistics > " + effectiveTime.toSeconds() + " secs processing Txs");
             log.info("JCL Server :: Statistics > performance: " + (numTxs.get() / effectiveTime.toSeconds()) + " txs/sec");
         }
         log.info("JCL Server :: Statistics > " + numINVs.get() + " INVs processed");
         log.info("JCL Server :: Statistics > " + numTxs.get() + " Txs processed");
+        log.info("JCL Server :: Statistics > " + formatSize(sizeTxs.get()) + " (" + sizeTxs.get() + " bytes) of Txs processed");
 
         log.info("\n--------------------------------------------------------------------------------------------------");
         log.info(" JCL Event Bus Summary: \n" + p2p.getEventBus().getStatus());
     }
 
     private String formatSize(long numBytes) {
-        String result = (sizeTxsLog.get() < 1000)
+        String result = (numBytes < 1000)
                 ? numBytes + " bytes"
                 : (numBytes < 1_000_000)
                 ? (numBytes / 1000) + " KB"

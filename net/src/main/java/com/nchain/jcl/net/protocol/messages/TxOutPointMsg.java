@@ -26,8 +26,7 @@ public final class TxOutPointMsg extends Message implements Serializable {
     private final HashMsg hash;
     private final long index;
 
-    protected TxOutPointMsg(HashMsg hash, long index, long payloadChecksum) {
-        super(payloadChecksum);
+    protected TxOutPointMsg(HashMsg hash, long index) {
         this.hash = hash;
         this.index = index;
         init();
@@ -72,21 +71,19 @@ public final class TxOutPointMsg extends Message implements Serializable {
         return new TxOutPointMsgBuilder();
     }
 
-    @Override
     public TxOutPointMsgBuilder toBuilder() {
-        return new TxOutPointMsgBuilder(super.extraBytes, super.payloadChecksum)
+        return new TxOutPointMsgBuilder()
                         .hash(this.hash)
                         .index(this.index);
     }
     /**
      * Builder
      */
-    public static class TxOutPointMsgBuilder extends MessageBuilder {
+    public static class TxOutPointMsgBuilder{
         private HashMsg hash;
         private long index;
 
         public TxOutPointMsgBuilder() { }
-        public TxOutPointMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public TxOutPointMsg.TxOutPointMsgBuilder hash(HashMsg hash) {
             this.hash = hash;
@@ -99,7 +96,7 @@ public final class TxOutPointMsg extends Message implements Serializable {
         }
 
         public TxOutPointMsg build() {
-            return new TxOutPointMsg(hash, index, super.payloadChecksum);
+            return new TxOutPointMsg(hash, index);
         }
 
     }

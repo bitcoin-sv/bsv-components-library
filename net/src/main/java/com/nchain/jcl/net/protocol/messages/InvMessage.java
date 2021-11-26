@@ -2,6 +2,7 @@ package com.nchain.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
 import java.io.Serializable;
@@ -24,7 +25,7 @@ import java.util.stream.Collectors;
  *   Inventory vectors.
  *
  */
-public class InvMessage extends Message implements Serializable {
+public class InvMessage extends BodyMessage implements Serializable {
     private static final long MAX_ADDRESSES = 50000;
     public static final String MESSAGE_TYPE = "inv";
 
@@ -35,8 +36,9 @@ public class InvMessage extends Message implements Serializable {
     /**
      * Creates the InvMessage Object.Use the corresponding byteArray to create the instance.
      */
-    protected InvMessage(List<InventoryVectorMsg> invVectorMsgList, long payloadChecksum) {
-        super(payloadChecksum);
+    protected InvMessage(List<InventoryVectorMsg> invVectorMsgList,
+                         byte[] extraBytes, long checksum) {
+        super(extraBytes, checksum);
         this.invVectorList = invVectorMsgList.stream().collect(Collectors.toUnmodifiableList());
         this.count = VarIntMsg.builder().value(invVectorMsgList.size()).build();
         init();
@@ -85,17 +87,17 @@ public class InvMessage extends Message implements Serializable {
 
     @Override
     public InvMessageBuilder toBuilder() {
-        return new InvMessageBuilder(super.extraBytes, super.payloadChecksum).invVectorMsgList(this.invVectorList);
+        return new InvMessageBuilder(super.extraBytes, super.checksum).invVectorMsgList(this.invVectorList);
     }
 
     /**
      * Builder
      */
-    public static class InvMessageBuilder extends MessageBuilder{
+    public static class InvMessageBuilder extends BodyMessageBuilder {
         private List<InventoryVectorMsg> invVectorMsgList;
 
         public InvMessageBuilder() {}
-        public InvMessageBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
+        public InvMessageBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public InvMessage.InvMessageBuilder invVectorMsgList(List<InventoryVectorMsg> invVectorMsgList) {
             this.invVectorMsgList = invVectorMsgList;
@@ -103,7 +105,7 @@ public class InvMessage extends Message implements Serializable {
         }
 
         public InvMessage build() {
-            return new InvMessage(invVectorMsgList, super.payloadChecksum);
+            return new InvMessage(invVectorMsgList, super.extraBytes, super.checksum);
         }
 
     }

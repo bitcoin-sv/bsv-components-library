@@ -1,8 +1,8 @@
 package com.nchain.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
-import com.nchain.jcl.net.protocol.messages.common.PartialMessage;
 
 import java.io.Serializable;
 
@@ -11,7 +11,7 @@ import java.io.Serializable;
  * Copyright (c) 2018-2020 nChain Ltd
  *
  */
-public final class PartialBlockHeaderMsg extends PartialMessage implements Serializable {
+public final class PartialBlockHeaderMsg extends BodyMessage implements Serializable {
     public static final String MESSAGE_TYPE = "PartialBlockHeader";
 
     /**
@@ -31,7 +31,10 @@ public final class PartialBlockHeaderMsg extends PartialMessage implements Seria
     // Indicates the format that the Txs of this block will be notified with:
     private final BlockTxsFormat blockTxsFormat;
 
-    public PartialBlockHeaderMsg(HeaderMsg headerMsg, BlockHeaderMsg blockHeader, VarIntMsg txsSizeInBytes, BlockTxsFormat blockTxsFormat) {
+    public PartialBlockHeaderMsg(HeaderMsg headerMsg, BlockHeaderMsg blockHeader,
+                                 VarIntMsg txsSizeInBytes, BlockTxsFormat blockTxsFormat,
+                                 byte[] extraBytes, long checksum) {
+        super(extraBytes, checksum);
         this.headerMsg = headerMsg;
         this.blockHeader = blockHeader;
         this.txsSizeInBytes = txsSizeInBytes;
@@ -76,8 +79,9 @@ public final class PartialBlockHeaderMsg extends PartialMessage implements Seria
         return Objects.equal(this.blockHeader, other.blockHeader);
     }
 
+    @Override
     public PartialBlockHeaderMsgBuilder toBuilder() {
-        return new PartialBlockHeaderMsgBuilder()
+        return new PartialBlockHeaderMsgBuilder(super.extraBytes, super.checksum)
                 .headerMsg(this.headerMsg)
                 .blockHeader(this.blockHeader)
                 .txsSizeInBytes(this.txsSizeInBytes.getValue())
@@ -91,13 +95,14 @@ public final class PartialBlockHeaderMsg extends PartialMessage implements Seria
     /**
      * Builder
      */
-    public static class PartialBlockHeaderMsgBuilder extends MessageBuilder {
+    public static class PartialBlockHeaderMsgBuilder extends BodyMessageBuilder {
         private HeaderMsg headerMsg;
         private BlockHeaderMsg blockHeader;
         private VarIntMsg txsSizeInBytes;
         private BlockTxsFormat blockTxsFormat;
 
-        PartialBlockHeaderMsgBuilder() { }
+        public PartialBlockHeaderMsgBuilder() { }
+        public PartialBlockHeaderMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public PartialBlockHeaderMsg.PartialBlockHeaderMsgBuilder headerMsg(HeaderMsg headerMsg) {
             this.headerMsg = headerMsg;
@@ -122,7 +127,7 @@ public final class PartialBlockHeaderMsg extends PartialMessage implements Seria
         }
 
         public PartialBlockHeaderMsg build() {
-            return new PartialBlockHeaderMsg(headerMsg, blockHeader, txsSizeInBytes, blockTxsFormat);
+            return new PartialBlockHeaderMsg(headerMsg, blockHeader, txsSizeInBytes, blockTxsFormat, super.extraBytes, super.checksum);
         }
     }
 }

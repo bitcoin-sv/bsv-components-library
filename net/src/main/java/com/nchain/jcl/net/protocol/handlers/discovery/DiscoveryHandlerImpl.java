@@ -379,7 +379,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
                 return;
             }
 
-            // If we reach this far, we addBytes the Addresses to the Main Pool and request a connection Request:
+            // If we reach this far, we add the Addresses to the Main Pool and request a connection Request:
             List<PeerAddress> peersToConnect = new ArrayList<>();
             for (NetAddressMsg netAddressMsg : msg.getAddrList()) {
                 DiscoveryPeerInfo addPeerInfo = new DiscoveryPeerInfo(netAddressMsg.getAddress(), netAddressMsg.getTimestamp());
@@ -433,7 +433,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
     /**
      * Adds a new Address + Timestamp to the MAIN POOL.
      * It performs some changes on the timestamp, based on the Satoshi client Implementation.
-     * Some verifications are alos performed, the Peer is only added when it meets them all. The result of this method
+     * Some verifications are also performed, the Peer is only added when it meets them all. The result of this method
      * will indicate whether the Peer has been successfully added.
      */
     private boolean addToPool(DiscoveryPeerInfo peerInfo) {
@@ -452,7 +452,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
         if (config.getMaxAddresses().isPresent() && handlerInfo.size() >= config.getMaxAddresses().getAsInt())
             result =  false;
 
-        // Finally, we either addBytes it to the mainPool or not:
+        // Finally, we either add it to the mainPool or not:
         if (result) {
             // We update the Status:
             updateState(1, 0, 0, 0, 0,null);

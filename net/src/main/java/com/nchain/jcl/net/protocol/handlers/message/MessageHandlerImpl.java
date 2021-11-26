@@ -15,8 +15,7 @@ import com.nchain.jcl.net.protocol.events.control.SendMsgRequest;
 import com.nchain.jcl.net.protocol.messages.HeaderMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
-import com.nchain.jcl.net.protocol.messages.common.Message;
-import com.nchain.jcl.net.protocol.messages.common.PartialMessage;
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.serialization.common.MsgSerializersFactory;
 import com.nchain.jcl.net.protocol.streams.MessageStream;
 import com.nchain.jcl.net.protocol.streams.deserializer.Deserializer;
@@ -33,6 +32,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * @author i.fernandez@nchain.com
@@ -57,11 +57,14 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
     // An instance of a Deserializer. There is ONLY ONE Deserializer for all the Streams in the System.
     private Deserializer deserializer;
 
-    // A Executor Service to manage dedicated Connections with dedicated Threads:
+    // This executor will take care of the Deserializing of Big Messages, which are the ones big enough so they are
+    // managed by "Large" DeSerialisers and ech one runs in a dedicated Thread wo they don't slow down the
+    // communication with the rest of the peers:
     private ExecutorService dedicateConnsExecutor;
 
-    // A Executor Service to run Jobs in this Handler
-    private ExecutorService executor;
+    // This executor will take care of monitoring th batches of messages that are being stored in the background
+    // adn it will push them down he pipeline if the timeout is reached.
+    private ExecutorService msgBatchesExecutor;
 
 
     // Messages BATCH Configuration:
@@ -80,8 +83,12 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
         if (config.isRawTxsEnabled()) {
             MsgSerializersFactory.enableRawSerializers();
         }
-        this.executor = ThreadUtils.getSingleThreadExecutorService("JclMessageHandler-Job");
-        this.dedicateConnsExecutor = ThreadUtils.getFixedThreadExecutorService( "JclDeserializer", config.getMaxNumberDedicatedConnections());
+        this.msgBatchesExecutor = ThreadUtils.getSingleThreadExecutorService("JclMessageHandler-Job");
+        // The Executor responsible for the deserialization of large messages is a cached one, so Threads are created
+        // as we need. For a Stream to be able to use a dedicated Thread, its "realTimeProcessingEnabled" property
+        // must be set to TRUE.
+        //this.dedicateConnsExecutor = ThreadUtils.getCachedThreadExecutorService("JclDeserializer");
+        this.dedicateConnsExecutor = Executors.newCachedThreadPool(ThreadUtils.getThreadFactory("jclDeserializer", Thread.MAX_PRIORITY, true));
 
         // If some Batch Config has been specified, we instantiate the classes to keep track of their state:
         this.config.getMsgBatchConfigs().entrySet().forEach(entry -> msgsBatchManagers.put(entry.getKey(), new MessageBatchManager(entry.getKey(), entry.getValue())));
@@ -105,12 +112,12 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
     // Event Handler:
     private void onNetStart(NetStartEvent event) {
         logger.debug("Starting...");
-        this.executor.submit(this::checkPendingBatchesToBroadcast);
+        this.msgBatchesExecutor.submit(this::checkPendingBatchesToBroadcast);
     }
 
     // Event Handler:
     private void onNetStop(NetStopEvent event) {
-        this.executor.shutdownNow();
+        this.msgBatchesExecutor.shutdownNow();
         logger.debug("Stop.");
     }
 
@@ -256,7 +263,7 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
     }
 
     @Override
-    public void send(PeerAddress peerAddress, Message msgBody) {
+    public void send(PeerAddress peerAddress, BodyMessage msgBody) {
         if (handlerInfo.containsKey(peerAddress)) {
             BitcoinMsg<?> btcMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), msgBody).build();
             send(peerAddress, btcMsg);
@@ -270,7 +277,7 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
     }
 
     @Override
-    public void broadcast(Message msgBody) {
+    public void broadcast(BodyMessage msgBody) {
         BitcoinMsg<?> btcMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), msgBody).build();
         handlerInfo.values().forEach(p -> p.getStream().output().send(new StreamDataEvent<>(btcMsg)));
         updateState(0, handlerInfo.size());
@@ -301,8 +308,7 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
         // Checks the checksum:
         if (config.isVerifyChecksum()
                 && msg.getHeader().getMsgLength() > 0
-                && !(msg.getBody() instanceof PartialMessage) // Partial Messages do NOT have checksum
-                && msg.getHeader().getChecksum() != msg.getBody().getPayloadChecksum()) {
+                && msg.getHeader().getChecksum() != msg.getBody().getChecksum()) {
             return "Checksum is Wrong";
         }
 

@@ -15,7 +15,7 @@ public class HandshakeHandlerConfig extends HandlerConfig {
 
     // Default Values:
     public static final String DEFAULT_USER_AGENT       = "/bitcoin-jcl:" + "1.0.0" + "/";
-    public static String[] DEFAULT_USER_AGENT_BLACKLIST = new String[] {"Bitcoin ABC", "BUCash" };
+    public static String[] DEFAULT_USER_AGENT_BLACKLIST = new String[] {"Bitcoin ABC", "BUCash", "Bitcoin Cash", "BCH Unlimited", "bchd:" };
 
     // NOTE: We empty the WHITELIST, so we accept any incoming connection (if its arealdy passed the AGENT_BLACKLIST validation)
     public static String[] DEFAULT_USER_AGENT_WHITELIST = new String[0];

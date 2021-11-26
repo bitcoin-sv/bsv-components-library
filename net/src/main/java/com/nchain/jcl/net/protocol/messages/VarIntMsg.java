@@ -38,8 +38,7 @@ public final class VarIntMsg extends Message implements Serializable {
 
     private final long value;
 
-    protected VarIntMsg(long value, long payloadChecksum) {
-        super(payloadChecksum);
+    protected VarIntMsg(long value) {
         this.value = value;
         init();
     }
@@ -96,19 +95,17 @@ public final class VarIntMsg extends Message implements Serializable {
         return new VarIntMsgBuilder();
     }
 
-    @Override
     public VarIntMsgBuilder toBuilder() {
-        return new VarIntMsgBuilder(super.extraBytes, super.payloadChecksum).value(this.value);
+        return new VarIntMsgBuilder().value(this.value);
     }
 
     /**
      * Builder
      */
-    public static class VarIntMsgBuilder extends MessageBuilder {
+    public static class VarIntMsgBuilder {
         private long value;
 
         public VarIntMsgBuilder() {}
-        public VarIntMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public VarIntMsg.VarIntMsgBuilder value(long value) {
             this.value = value;
@@ -116,7 +113,7 @@ public final class VarIntMsg extends Message implements Serializable {
         }
 
         public VarIntMsg build() {
-            return new VarIntMsg(value, super.payloadChecksum);
+            return new VarIntMsg(value);
         }
     }
 }

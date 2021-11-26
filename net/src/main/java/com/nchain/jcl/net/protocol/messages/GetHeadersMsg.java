@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
 import java.io.Serializable;
@@ -14,12 +15,13 @@ import java.io.Serializable;
  * locator object, up to hash_stop or 2000 blocks, whichever comes first.
  *
  */
-public final class GetHeadersMsg extends Message implements Serializable {
+public final class GetHeadersMsg extends BodyMessage implements Serializable {
     public static final String MESSAGE_TYPE = "getheaders";
     private final BaseGetDataAndHeaderMsg baseGetDataAndHeaderMsg;
 
-    protected GetHeadersMsg(BaseGetDataAndHeaderMsg baseGetDataAndHeaderMsg, long payloadChecksum) {
-        super(payloadChecksum);
+    protected GetHeadersMsg(BaseGetDataAndHeaderMsg baseGetDataAndHeaderMsg,
+                            byte[] extraBytes, long checksum) {
+        super(extraBytes, checksum);
         this.baseGetDataAndHeaderMsg = baseGetDataAndHeaderMsg;
         init();
     }
@@ -62,17 +64,17 @@ public final class GetHeadersMsg extends Message implements Serializable {
 
     @Override
     public GetHeadersMsgBuilder toBuilder() {
-        return new GetHeadersMsgBuilder(super.extraBytes, super.payloadChecksum).baseGetDataAndHeaderMsg(this.baseGetDataAndHeaderMsg);
+        return new GetHeadersMsgBuilder(super.extraBytes, super.checksum).baseGetDataAndHeaderMsg(this.baseGetDataAndHeaderMsg);
     }
 
     /**
      * Builder
      */
-    public static class GetHeadersMsgBuilder extends MessageBuilder {
+    public static class GetHeadersMsgBuilder extends BodyMessageBuilder {
         private BaseGetDataAndHeaderMsg baseGetDataAndHeaderMsg;
 
         public GetHeadersMsgBuilder() {}
-        public GetHeadersMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
+        public GetHeadersMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public GetHeadersMsg.GetHeadersMsgBuilder baseGetDataAndHeaderMsg(BaseGetDataAndHeaderMsg baseGetDataAndHeaderMsg) {
             this.baseGetDataAndHeaderMsg = baseGetDataAndHeaderMsg;
@@ -80,7 +82,7 @@ public final class GetHeadersMsg extends Message implements Serializable {
         }
 
         public GetHeadersMsg build() {
-            return new GetHeadersMsg(baseGetDataAndHeaderMsg, super.payloadChecksum);
+            return new GetHeadersMsg(baseGetDataAndHeaderMsg, super.extraBytes, super.checksum);
         }
     }
 }

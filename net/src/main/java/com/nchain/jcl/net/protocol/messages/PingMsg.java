@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
 import java.io.Serializable;
@@ -22,14 +23,14 @@ import java.io.Serializable;
  *   identify the ping message to which it is replying.
  *
  */
-public final class PingMsg extends Message implements Serializable {
+public final class PingMsg extends BodyMessage implements Serializable {
     public static final String MESSAGE_TYPE = "ping";
     protected static final int FIXED_MESSAGE_LENGTH = 8;
 
     private final long nonce;
 
-    protected PingMsg(long nonce, long payloadChecksum) {
-        super(payloadChecksum);
+    protected PingMsg(long nonce, byte[] extraBytes, long checksum) {
+        super(extraBytes, checksum);
         this.nonce = nonce;
         init();
     }
@@ -71,17 +72,17 @@ public final class PingMsg extends Message implements Serializable {
 
     @Override
     public PingMsgBuilder toBuilder() {
-        return new PingMsgBuilder(super.extraBytes, super.payloadChecksum).nonce(this.nonce);
+        return new PingMsgBuilder(super.extraBytes, super.checksum).nonce(this.nonce);
     }
 
     /**
      * Builder
      */
-    public static class PingMsgBuilder extends MessageBuilder{
+    public static class PingMsgBuilder extends BodyMessageBuilder{
         private long nonce;
 
         public PingMsgBuilder() { }
-        public PingMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
+        public PingMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public PingMsg.PingMsgBuilder nonce(long nonce) {
             this.nonce = nonce;
@@ -89,7 +90,7 @@ public final class PingMsg extends Message implements Serializable {
         }
 
         public PingMsg build() {
-            return new PingMsg(nonce, super.payloadChecksum);
+            return new PingMsg(nonce, super.extraBytes, super.checksum);
         }
     }
 }

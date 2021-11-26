@@ -1,10 +1,11 @@
 package com.nchain.jcl.net.protocol.serialization.common;
 
 
+import com.nchain.jcl.net.protocol.messages.GetdataMsg;
 import com.nchain.jcl.net.protocol.messages.HeaderMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
-import com.nchain.jcl.net.protocol.messages.common.PartialMessage;
 import com.nchain.jcl.net.protocol.serialization.HeaderMsgSerializer;
 import com.nchain.jcl.tools.bytes.ByteArrayConfig;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
@@ -46,7 +47,7 @@ public class BitcoinMsgSerializerImpl implements BitcoinMsgSerializer {
     }
 
     @Override
-    public <M extends Message> M deserializeBody(DeserializerContext context, HeaderMsg headerMsg, ByteArrayReader byteReader) {
+    public <M extends BodyMessage> M deserializeBody(DeserializerContext context, HeaderMsg headerMsg, ByteArrayReader byteReader) {
 
         // We check if the checksum of the BODY needs to be calculated first. A checksum needs to be calculated if:
         // - The context says so AND:
@@ -55,25 +56,22 @@ public class BitcoinMsgSerializerImpl implements BitcoinMsgSerializer {
         long checksum = needToCalculateChecksum ? calculateChecksum(byteReader, headerMsg.getMsgLength()) : 0;
 
         // We deserialize the Body:
-        DeserializerContext bodyContext = context.toBuilder()
-                .maxBytesToRead(headerMsg.getMsgLength())
-                .build();
         MessageSerializer<M> bodySerializer = getBodySerializer(headerMsg.getMsgCommand());
-        M bodyMsg = bodySerializer.deserialize(bodyContext, byteReader);
+        M bodyMsg = bodySerializer.deserialize(context, byteReader);
 
         // We inject the checksum if needed:
         if (needToCalculateChecksum) {
-            bodyMsg = (M) bodyMsg.toBuilder().payloadChecksum(checksum).build();
+            bodyMsg = (M) bodyMsg.toBuilder().checksum(checksum).build();
         }
 
         // In case there are still some bytes in the buffer left AFTER Deserializing the Body, we just read them and
         // store them within the message.
-        // NOTE: PartialMessages do NEVER have "extraBytes"
-        if (!(bodyMsg instanceof PartialMessage) && (bodyMsg.getLengthInBytes() < context.getMaxBytesToRead())) {
+        if (context.getMaxBytesToRead() != null && bodyMsg.getLengthInBytes() < context.getMaxBytesToRead()) {
             int numExtraBytes = (int) (context.getMaxBytesToRead() - bodyMsg.getLengthInBytes());
             byte[] extraBytes = byteReader.read(numExtraBytes);
             bodyMsg = (M) bodyMsg.toBuilder().extraBytes(extraBytes).build();
         }
+
         return bodyMsg;
     }
 
@@ -101,13 +99,18 @@ public class BitcoinMsgSerializerImpl implements BitcoinMsgSerializer {
     }
 
     @Override
-    public <M extends Message> BitcoinMsg<M> deserialize(DeserializerContext context, ByteArrayReader byteReader,
+    public <M extends BodyMessage> BitcoinMsg<M> deserialize(DeserializerContext context, ByteArrayReader byteReader,
                                                          String msgType) {
 
         // First we deserialize the Header:
         HeaderMsg headerMsg = HeaderMsgSerializer.getInstance().deserialize(context, byteReader);
 
-        // Now we deserialize the Body:
+        // Now we deserialize the Body: We adjust the number of remaining bytes to read, after deserializing the Header:
+        if (context.getMaxBytesToRead() != null) {
+            long remainingBytes = context.getMaxBytesToRead() - headerMsg.getLengthInBytes();
+            context = context.toBuilder().maxBytesToRead(remainingBytes).build();
+        }
+
         M bodyMsg = deserializeBody(context, headerMsg, byteReader);
 
         // We build a whole BTC Message and return it:
@@ -116,7 +119,7 @@ public class BitcoinMsgSerializerImpl implements BitcoinMsgSerializer {
     }
 
     @Override
-    public <M extends Message> ByteArrayReader serialize(SerializerContext context, BitcoinMsg<M> bitcoinMessage,
+    public <M extends BodyMessage> ByteArrayReader serialize(SerializerContext context, BitcoinMsg<M> bitcoinMessage,
                                                          String msgType) {
 
         // Some Notes about Deserialization:

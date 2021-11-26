@@ -2,6 +2,7 @@ package com.nchain.jcl.net.protocol.messages;
 
 
 import com.google.common.base.Objects;
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
 import java.io.Serializable;
@@ -19,14 +20,14 @@ import java.io.Serializable;
  *   Random nonce assigned to this pong message.
  *   The pong message sends back the same nonce received in the ping message it is replying to.
  */
-public final class PongMsg extends Message implements Serializable {
+public final class PongMsg extends BodyMessage implements Serializable {
     protected static final int FIXED_MESSAGE_LENGTH = 8;
     public static final String MESSAGE_TYPE = "pong";
 
     private final long nonce;
 
-    public PongMsg(long nonce, long payloadChecksum) {
-        super(payloadChecksum);
+    public PongMsg(long nonce, byte[] extraBytes, long checksum) {
+        super(extraBytes, checksum);
         this.nonce = nonce;
         init();
     }
@@ -69,17 +70,17 @@ public final class PongMsg extends Message implements Serializable {
 
     @Override
     public PongMsgBuilder toBuilder() {
-        return new PongMsgBuilder(super.extraBytes, super.payloadChecksum).nonce(this.nonce);
+        return new PongMsgBuilder(super.extraBytes, super.checksum).nonce(this.nonce);
     }
 
     /**
      * Builder
      */
-    public static class PongMsgBuilder extends MessageBuilder {
+    public static class PongMsgBuilder extends BodyMessageBuilder {
         private long nonce;
 
         public PongMsgBuilder() {}
-        public PongMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
+        public PongMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public PongMsg.PongMsgBuilder nonce(long nonce) {
             this.nonce = nonce;
@@ -87,7 +88,7 @@ public final class PongMsg extends Message implements Serializable {
         }
 
         public PongMsg build() {
-            return new PongMsg(nonce, super.payloadChecksum);
+            return new PongMsg(nonce, super.extraBytes, super.checksum);
         }
     }
 }

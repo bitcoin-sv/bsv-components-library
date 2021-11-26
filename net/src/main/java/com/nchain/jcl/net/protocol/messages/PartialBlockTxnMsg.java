@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.protocol.messages;
 
-import com.nchain.jcl.net.protocol.messages.common.PartialMessage;
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
+import com.nchain.jcl.net.protocol.messages.common.Message;
 
 import java.io.Serializable;
 import java.util.List;
@@ -9,7 +10,7 @@ import java.util.List;
  * @author j.pomer@nchain.com
  * Copyright (c) 2018-2021 nChain Ltd
  */
-public class PartialBlockTxnMsg extends PartialMessage implements Serializable {
+public class PartialBlockTxnMsg extends BodyMessage implements Serializable {
     public static final String MESSAGE_TYPE = "PartialBockTxn";
 
     // Original Header Msg: Included here in case the client of JCL receiving the partial Messages
@@ -19,7 +20,9 @@ public class PartialBlockTxnMsg extends PartialMessage implements Serializable {
     private final List<TxMsg> transactions;
     private final int order;
 
-    public PartialBlockTxnMsg(HeaderMsg headerMsg,  HashMsg blockHash, List<TxMsg> transactions, int order) {
+    public PartialBlockTxnMsg(HeaderMsg headerMsg,  HashMsg blockHash, List<TxMsg> transactions, int order,
+                              byte[] extraBytes, long checksum) {
+        super(extraBytes, checksum);
         this.headerMsg = headerMsg;
         this.blockHash = blockHash;
         this.transactions = transactions;
@@ -58,9 +61,8 @@ public class PartialBlockTxnMsg extends PartialMessage implements Serializable {
     protected void validateMessage() {
     }
 
-    @Override
     public PartialBlockTxnBuilder toBuilder() {
-        return new PartialBlockTxnBuilder()
+        return new PartialBlockTxnBuilder(super.extraBytes, super.checksum)
                         .headerMsg(this.headerMsg)
                         .blockHash(this.blockHash)
                         .transactions(this.transactions)
@@ -70,11 +72,14 @@ public class PartialBlockTxnMsg extends PartialMessage implements Serializable {
     /**
      * Builder
      */
-    public static class PartialBlockTxnBuilder extends MessageBuilder {
+    public static class PartialBlockTxnBuilder extends BodyMessageBuilder {
         private HeaderMsg headerMsg;
         private HashMsg blockHash;
         private List<TxMsg> transactions;
         private int order;
+
+        public PartialBlockTxnBuilder() {}
+        public PartialBlockTxnBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public PartialBlockTxnBuilder headerMsg(HeaderMsg headerMsg) {
             this.headerMsg = headerMsg;
@@ -97,7 +102,7 @@ public class PartialBlockTxnMsg extends PartialMessage implements Serializable {
         }
 
         public PartialBlockTxnMsg build() {
-            return new PartialBlockTxnMsg(headerMsg, blockHash, transactions, order);
+            return new PartialBlockTxnMsg(headerMsg, blockHash, transactions, order, super.extraBytes, super.checksum);
         }
     }
 }

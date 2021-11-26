@@ -1,7 +1,7 @@
 package com.nchain.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
-import com.nchain.jcl.net.protocol.messages.common.Message;
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 
 import java.io.Serializable;
 import java.util.List;
@@ -23,7 +23,7 @@ import static com.google.common.base.Preconditions.checkState;
  * In this case, we use {@link RawMsg} to store the Raw part, which is ONLY the Txs. The Header is stored separately
  * ion this Class.
  */
-public final class RawBlockMsg extends Message implements Serializable {
+public final class RawBlockMsg extends BodyMessage implements Serializable {
 
     public static final String MESSAGE_TYPE = "Block";
     // Txs in raw format (it might contains partial Txs (broken in the middle):
@@ -34,16 +34,17 @@ public final class RawBlockMsg extends Message implements Serializable {
     private long txsByteLength;
 
     // Constructor (specifying the Block Header and All Txs
-    protected RawBlockMsg(BlockHeaderMsg blockHeader, List<RawTxMsg> txs, long payloadChecksum) {
-        super(payloadChecksum);
+    protected RawBlockMsg(BlockHeaderMsg blockHeader, List<RawTxMsg> txs,
+                          byte[] extraBytes, long checksum) {
+        super(extraBytes, checksum);
         this.blockHeader = blockHeader;
         txsByteLength = txs.stream().collect(Collectors.summingLong(t -> t.getLengthInBytes()));
         this.txs = txs;
         init();
     }
 
-    public static RawTxBlockMsgBuilder builder() {
-        return new RawTxBlockMsgBuilder();
+    public static RawBlockMsgBuilder builder() {
+        return new RawBlockMsgBuilder();
     }
 
     @Override
@@ -96,8 +97,8 @@ public final class RawBlockMsg extends Message implements Serializable {
     }
 
     @Override
-    public RawTxBlockMsgBuilder toBuilder() {
-        return new RawTxBlockMsgBuilder()
+    public RawBlockMsgBuilder toBuilder() {
+        return new RawBlockMsgBuilder(super.extraBytes, super.checksum)
                     .blockHeader(this.blockHeader)
                     .txs(this.txs);
     }
@@ -105,25 +106,25 @@ public final class RawBlockMsg extends Message implements Serializable {
     /**
      * Builder
      */
-    public static class RawTxBlockMsgBuilder extends MessageBuilder {
+    public static class RawBlockMsgBuilder extends BodyMessageBuilder {
         private BlockHeaderMsg blockHeader;
         private List<RawTxMsg> txs;
 
-        RawTxBlockMsgBuilder() {
-        }
+        public RawBlockMsgBuilder() {}
+        public RawBlockMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
-        public RawTxBlockMsgBuilder blockHeader(BlockHeaderMsg blockHeader) {
+        public RawBlockMsgBuilder blockHeader(BlockHeaderMsg blockHeader) {
             this.blockHeader = blockHeader;
             return this;
         }
 
-        public RawTxBlockMsgBuilder txs(List<RawTxMsg> txs) {
+        public RawBlockMsgBuilder txs(List<RawTxMsg> txs) {
             this.txs = txs;
             return this;
         }
 
         public RawBlockMsg build() {
-            return new RawBlockMsg(blockHeader, txs, super.payloadChecksum);
+            return new RawBlockMsg(blockHeader, txs, super.extraBytes, super.checksum);
         }
 
     }

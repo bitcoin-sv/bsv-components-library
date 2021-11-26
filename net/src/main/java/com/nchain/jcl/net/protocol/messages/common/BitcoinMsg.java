@@ -16,7 +16,7 @@ import com.nchain.jcl.net.protocol.messages.HeaderMsg;
  *
  * This class is immutable nd safe for multithreading
  */
-public class BitcoinMsg<M extends Message> {
+public class BitcoinMsg<M extends BodyMessage> {
     private HeaderMsg header;
     private M body;
 

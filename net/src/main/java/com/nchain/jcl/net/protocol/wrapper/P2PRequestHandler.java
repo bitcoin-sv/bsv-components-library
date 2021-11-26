@@ -6,6 +6,7 @@ import com.nchain.jcl.net.network.events.*;
 import com.nchain.jcl.net.network.events.PeerDisconnectedEvent.DisconnectedReason;
 import com.nchain.jcl.net.protocol.events.control.*;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 import com.nchain.jcl.tools.events.Event;
 import com.nchain.jcl.tools.events.EventBus;
@@ -174,9 +175,9 @@ public class P2PRequestHandler {
     /** A Builder for SendMsgBodyRequest */
     public class SendMsgBodyRequestBuilder extends RequestBuilder {
         private PeerAddress peerAddress;
-        private Message msgBody;
+        private BodyMessage msgBody;
 
-        public SendMsgBodyRequestBuilder(PeerAddress peerAddress, Message msgBody) {
+        public SendMsgBodyRequestBuilder(PeerAddress peerAddress, BodyMessage msgBody) {
             this.peerAddress = peerAddress;
             this.msgBody = msgBody;
         }
@@ -207,9 +208,9 @@ public class P2PRequestHandler {
 
     /** A Builder for BroadcastMsgBodyRequest */
     public class BroadcastMsgBodyRequestBuilder extends RequestBuilder {
-        private Message msgBody;
+        private BodyMessage msgBody;
 
-        public BroadcastMsgBodyRequestBuilder(Message msgBody)  { this.msgBody = msgBody; }
+        public BroadcastMsgBodyRequestBuilder(BodyMessage msgBody)  { this.msgBody = msgBody; }
         public BroadcastMsgBodyRequest buildRequest()           { return new BroadcastMsgBodyRequest(msgBody); }
     }
 
@@ -220,7 +221,7 @@ public class P2PRequestHandler {
         public SendMsgRequestBuilder send(PeerAddress peerAddress, BitcoinMsg<?> btcMsg) {
             return new SendMsgRequestBuilder(peerAddress, btcMsg);
         }
-        public SendMsgBodyRequestBuilder send(PeerAddress peerAddress, Message msgBody) {
+        public SendMsgBodyRequestBuilder send(PeerAddress peerAddress, BodyMessage msgBody) {
             return new SendMsgBodyRequestBuilder(peerAddress, msgBody);
         }
         public SendMsgListRequestBuilder send(PeerAddress peerAddress, List<BitcoinMsg<?>> btcMsgs) {
@@ -229,7 +230,7 @@ public class P2PRequestHandler {
         public BroadcastMsgRequestBuilder broadcast(BitcoinMsg<?> btcMsg) {
             return new BroadcastMsgRequestBuilder(btcMsg);
         }
-        public BroadcastMsgBodyRequestBuilder broadcast(Message msgBody) {
+        public BroadcastMsgBodyRequestBuilder broadcast(BodyMessage msgBody) {
             return new BroadcastMsgBodyRequestBuilder(msgBody);
         }
     }

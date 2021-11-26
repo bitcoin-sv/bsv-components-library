@@ -95,7 +95,7 @@ class SerializerStreamSpec extends Specification {
                     .command(versionMsg.getMessageType())
                     .length((int) versionMsg.getLengthInBytes())
                     .magic(config.getBasicConfig().getMagicPackage())
-                    .payloadChecksum(checksum)
+                    .checksum(checksum)
                     .build();
 
             //build the bitcoin message from the constructed header and version message

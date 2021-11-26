@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
 import java.io.Serializable;
@@ -13,15 +14,16 @@ import java.io.Serializable;
  * getheaders message with the addition of fields for actual number of transactions that are included in the block
  * and proof of inclussion for coinbase transaction along with the whole coinbase transaction.
  */
-public final class GetHeadersEnMsg extends Message implements Serializable {
+public final class GetHeadersEnMsg extends BodyMessage implements Serializable {
     public static final String MESSAGE_TYPE = "getheadersen";
     private final long version;
     private final HashMsg blockLocatorHash;
     private final HashMsg hashStop;
     public static final int VERSION_LENGTH = 4;
 
-    public GetHeadersEnMsg(long version, HashMsg blockLocatorHash, HashMsg hashStop, long payloadChecksum) {
-        super(payloadChecksum);
+    public GetHeadersEnMsg(long version, HashMsg blockLocatorHash, HashMsg hashStop,
+                           byte[] extraBytes, long checksum) {
+        super(extraBytes, checksum);
         this.version = version;
         this.blockLocatorHash = blockLocatorHash;
         this.hashStop = hashStop;
@@ -70,7 +72,7 @@ public final class GetHeadersEnMsg extends Message implements Serializable {
 
     @Override
     public GetHeadersEnMsgBuilder toBuilder() {
-        return new GetHeadersEnMsgBuilder(super.extraBytes, super.payloadChecksum)
+        return new GetHeadersEnMsgBuilder(super.extraBytes, super.checksum)
                         .version(this.version)
                         .blockLocatorHash(this.blockLocatorHash)
                         .hashStop(this.hashStop);
@@ -79,13 +81,13 @@ public final class GetHeadersEnMsg extends Message implements Serializable {
     /**
      * Builder
      */
-    public static class GetHeadersEnMsgBuilder extends MessageBuilder {
+    public static class GetHeadersEnMsgBuilder extends BodyMessageBuilder {
         private long version;
         private HashMsg blockLocatorHash;
         private HashMsg hashStop;
 
         public GetHeadersEnMsgBuilder() {}
-        public GetHeadersEnMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
+        public GetHeadersEnMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public GetHeadersEnMsg.GetHeadersEnMsgBuilder version(long version) {
             this.version = version;
@@ -103,7 +105,7 @@ public final class GetHeadersEnMsg extends Message implements Serializable {
         }
 
         public GetHeadersEnMsg build() {
-            return new GetHeadersEnMsg(version, blockLocatorHash, hashStop, super.payloadChecksum);
+            return new GetHeadersEnMsg(version, blockLocatorHash, hashStop, super.extraBytes, super.checksum);
         }
     }
 }

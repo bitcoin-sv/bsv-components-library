@@ -2,6 +2,7 @@ package com.nchain.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 import io.bitcoinj.bitcoin.api.base.*;
 import io.bitcoinj.bitcoin.bean.base.TxBean;
@@ -40,7 +41,7 @@ import java.util.Random;
  *  - field: "tx_out" (4 bytes) var_int
  *  The block number or timestamp at which this transaction is unlocked:
  */
-public class TxMsg extends Message implements Serializable {
+public class TxMsg extends BodyMessage implements Serializable {
 
     public static final String MESSAGE_TYPE = "tx";
 
@@ -65,8 +66,9 @@ public class TxMsg extends Message implements Serializable {
                     List<TxInputMsg> tx_in,
                     List<TxOutputMsg> tx_out,
                     long lockTime,
-                    long payloadChecksum) {
-        super(payloadChecksum);
+                    byte[] extraBytes,
+                    long checksum) {
+        super(extraBytes, checksum);
         this.hash = hash;
         this.version = version;
         this.tx_in = ImmutableList.copyOf(tx_in);
@@ -75,10 +77,6 @@ public class TxMsg extends Message implements Serializable {
         this.tx_out_count =VarIntMsg.builder().value(tx_out.size()).build();
         this.lockTime = lockTime;
         init();
-    }
-
-    public TxMsg(Optional<HashMsg> hash) {
-        this.hash = hash;
     }
 
     @Override
@@ -190,7 +188,7 @@ public class TxMsg extends Message implements Serializable {
 
     @Override
     public TxMsgBuilder toBuilder() {
-        return new TxMsgBuilder(super.extraBytes, super.payloadChecksum)
+        return new TxMsgBuilder(super.extraBytes, super.checksum)
                     .hash(this.hash)
                     .version(this.version)
                     .tx_in(this.tx_in)
@@ -201,7 +199,7 @@ public class TxMsg extends Message implements Serializable {
     /**
      * Builder
      */
-    public static class TxMsgBuilder extends MessageBuilder {
+    public static class TxMsgBuilder extends BodyMessageBuilder {
         private Optional<HashMsg> hash;
         private long version;
         private List<TxInputMsg> tx_in;
@@ -209,7 +207,7 @@ public class TxMsg extends Message implements Serializable {
         private long lockTime;
 
         public TxMsgBuilder() {}
-        public TxMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
+        public TxMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public TxMsg.TxMsgBuilder hash(Optional<HashMsg> hash) {
             this.hash = hash;
@@ -237,7 +235,7 @@ public class TxMsg extends Message implements Serializable {
         }
 
         public TxMsg build() {
-            return new TxMsg(hash, version, tx_in, tx_out, lockTime, super.payloadChecksum);
+            return new TxMsg(hash, version, tx_in, tx_out, lockTime, super.extraBytes, super.checksum);
         }
 
         @Override

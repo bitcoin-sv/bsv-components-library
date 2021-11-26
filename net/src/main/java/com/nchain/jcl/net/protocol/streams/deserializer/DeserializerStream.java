@@ -8,6 +8,7 @@ import com.nchain.jcl.net.protocol.handlers.message.MessagePreSerializer;
 import com.nchain.jcl.net.protocol.messages.HeaderMsg;
 import com.nchain.jcl.net.protocol.messages.VersionMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 import com.nchain.jcl.net.protocol.serialization.HeaderMsgSerializer;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
@@ -27,6 +28,7 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -108,6 +110,9 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
 
     private static Deserializer deserializer;
 
+    // If this Stream is closed by the remote Peer, we activate this FLAG:
+    private boolean streamClosed = false;
+
     /** Constructor */
     public DeserializerStream(ExecutorService eventBusExecutor,
                               PeerInputStream<ByteArrayReader> source,
@@ -131,13 +136,21 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
 
     }
 
+    @Override
+    public void onClose(Consumer<? extends StreamCloseEvent> eventHandler) {
+        super.onClose(eventHandler);
+        this.streamClosed = true;
+    }
     /**
      * It updates the state of this class to reflect that an error has been thrown. The new State is returned.
      */
     private DeserializerStreamState processError(boolean isThisADedicatedThread, Throwable e, DeserializerStreamState state) {
-        logger.error((e.getMessage() != null)? e.getMessage() : e.getCause().getMessage());
-        // We notify the parent about this Error and return:
-        super.eventBus.publish(new StreamErrorEvent(e));
+        logger.error("Error Deserializing from " + this.peerAddress + ": " + (streamClosed? "Stream was previously closed" : "Stream still open"));
+        if (!streamClosed) {
+            logger.error((e.getMessage() != null)? e.getMessage() : e.getCause().getMessage());
+            // We notify the parent about this Error and return:
+            super.eventBus.publish(new StreamErrorEvent(e));
+        }
         return state.toBuilder()
                 .processState(DeserializerStreamState.ProcessingBytesState.CORRUPTED)
                 .workToDoInBuffer(false)
@@ -260,15 +273,18 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
                 Consumer<MsgPartDeserializedEvent> onPartDeserializedHandler = e -> {
                     // We are notified about a Partial Msg being deserialized. We create the BitcoinMsg and we notify it:
                     Message partialMessage = (Message) e.getData();
-                    HeaderMsg partialMsgHeader = headerMsg.toBuilder()
+                    HeaderMsg partialMsgHeader = HeaderMsg.builder()
+                            .magic(headerMsg.getMagic())
                             .command(partialMessage.getMessageType())
                             .length(partialMessage.getLengthInBytes())
+                            // Checksum is ZERO for Partial Messages:
+                            .checksum(0)
                             // the "extXXX" fields are used for Messages bigger than 4GB (after 70016), but the Partial
-                            // messages returned by the Large Serialziers are smaller than that, so we set empty values
+                            // messages returned by the Large Serializers are smaller than that, so we set empty values
                             .extCommand(null)
                             .extLength(0)
                             .build();
-                    BitcoinMsg<?> bitcoinMsg = new BitcoinMsg(partialMsgHeader, (Message) e.getData());
+                    BitcoinMsg<?> bitcoinMsg = new BitcoinMsg(partialMsgHeader, (BodyMessage) e.getData());
                     DeserializerStreamState stateResult = this.processOK(isThisADedicatedThread, bitcoinMsg, state);
                     stateAfterOK.set(stateResult);
                 };
@@ -294,7 +310,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
                 }
                 // The whole message is deserialized
                 //System.out.println("Deserializing regular message, length: " + headerMsg);
-                Message bodyMsg = deserializer.deserialize(headerMsg, desContext, byteReader);
+                BodyMessage bodyMsg = deserializer.deserialize(headerMsg, desContext, byteReader);
                 BitcoinMsg<?> bitcoinMsg = new BitcoinMsg<>(headerMsg, bodyMsg);
                 // We notify it...
                 DeserializerStreamState stateResult = this.processOK(isThisADedicatedThread, bitcoinMsg, state);
@@ -323,7 +339,8 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
             return resultBuilder.build();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Error Deserializing from " + this.peerAddress, e);
+            if (!streamClosed) { e.printStackTrace();}
             return processError(isThisADedicatedThread, e, state);
         }
     }
@@ -359,6 +376,8 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
 
     private DeserializerStreamState processSeekingHead(boolean isThisADedicatedThread, DeserializerStreamState state, ByteArrayBuffer buffer) {
         DeserializerStreamState.DeserializerStreamStateBuilder result = state.toBuilder();
+
+        //System.out.println(" TRACE:: " + this.peerAddress + " >> " + buffer.size() + " bytes in buffer, Still looking for HEADER...");
 
         // If the full header is not here yet, we wait...
         if (!isIncomingHeaderInBufferAlready(buffer)) {
@@ -442,6 +461,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
         boolean allBytesMessageReceived         = (buffer.size() >= currentHeaderMsg.getMsgLength());
 
 
+        //System.out.println(" TRACE:: " + this.peerAddress + " >> " + buffer.size() + " bytes in buffer, Still looking Body: " + currentHeaderMsg.getMsgCommand() + "...");
         //log(isThisADedicatedThread, "Reading Body : " + HEX.encode(new ByteArrayReader(buffer).get()));
 
         // If it's a Big Msg but we are not Allowed to do real-time processing, that's an error...
@@ -471,9 +491,13 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
                 DeserializerStreamState threadState = state.toBuilder()
                         .treadState(DeserializerStreamState.ThreadState.DEDICATED_THREAD)
                         .build();
-                bigMsgsDeserializersExecutor.submit(() -> this.processBytes(true, threadState));
-                result.treadState(DeserializerStreamState.ThreadState.DEDICATED_THREAD);
-                result.workToDoInBuffer(false);
+                try {
+                    bigMsgsDeserializersExecutor.submit(() -> this.processBytes(true, threadState));
+                    result.treadState(DeserializerStreamState.ThreadState.DEDICATED_THREAD);
+                    result.workToDoInBuffer(false);
+                } catch (RejectedExecutionException e) {
+                    e.printStackTrace();
+                }
             }
         }
 
@@ -519,12 +543,17 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
     private void processBytes(boolean isThisADedicatedThread, DeserializerStreamState state) {
         try {
 
+            //System.out.println(" TRACE:: " + this.peerAddress + " >> processing bytes, state: " + state.getProcessState() + "...");
             // If the State is CORRUPTED, we do thing...
             if (state.getProcessState().isCorrupted()) return;
 
              // If we reach this far, it's because:
             // - there is only the "Shared Thread" running, and we are in it
             // - there is a DEDICATED Thread working, and we are in it
+
+            if (!state.isWorkToDoInBuffer()) {
+                System.out.println("TRACE:: " + this.peerAddress.toString() + " ::  No work to do in Buffer !!!");
+            }
 
             while (state.isWorkToDoInBuffer()) {
                 //log.trace("in the switch...");
@@ -549,12 +578,12 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
 
             if (isThisADedicatedThread) {
                 log(isThisADedicatedThread, "Thread finished.");
-                //System.out.println(" >>>>> FINISHING DESERIALIZER THREAD FOR " + this.peerAddress + "...");
+                System.out.println(" >>>>> FINISHING DESERIALIZER THREAD FOR " + this.peerAddress + "...");
                 this.state = state.toBuilder().treadState(DeserializerStreamState.ThreadState.SHARED_THREAD).build();
             }
 
         } catch (Throwable th) {
-            th.printStackTrace();
+            if (!streamClosed ) {th.printStackTrace();}
             this.state = processError(isThisADedicatedThread, th, state);
         }
     }

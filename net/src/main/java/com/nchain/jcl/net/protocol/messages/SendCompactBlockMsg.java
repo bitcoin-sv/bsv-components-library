@@ -1,5 +1,6 @@
 package com.nchain.jcl.net.protocol.messages;
 
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
 import java.io.Serializable;
@@ -8,7 +9,7 @@ import java.io.Serializable;
  * @author j.pomer@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  */
-public class SendCompactBlockMsg extends Message implements Serializable {
+public class SendCompactBlockMsg extends BodyMessage implements Serializable {
 
     public static final String MESSAGE_TYPE = "sendcmpct";
 
@@ -17,8 +18,9 @@ public class SendCompactBlockMsg extends Message implements Serializable {
     private final boolean highBandwidthRelaying;
     private final long version;
 
-    public SendCompactBlockMsg(boolean highBandwidthRelaying, long version, long payloadChecksum) {
-        super(payloadChecksum);
+    public SendCompactBlockMsg(boolean highBandwidthRelaying, long version,
+                               byte[] extraBytes, long checksum) {
+        super(extraBytes, checksum);
         this.highBandwidthRelaying = highBandwidthRelaying;
         this.version = version;
         init();
@@ -52,7 +54,7 @@ public class SendCompactBlockMsg extends Message implements Serializable {
 
     @Override
     public SendCompactBlockMsgBuilder toBuilder() {
-        return new SendCompactBlockMsgBuilder(super.extraBytes, super.payloadChecksum)
+        return new SendCompactBlockMsgBuilder(super.extraBytes, super.checksum)
                         .highBandwidthRelaying(this.highBandwidthRelaying)
                         .version(this.version);
     }
@@ -65,12 +67,12 @@ public class SendCompactBlockMsg extends Message implements Serializable {
     /**
      * Builder
      */
-    public static class SendCompactBlockMsgBuilder extends MessageBuilder {
+    public static class SendCompactBlockMsgBuilder extends BodyMessageBuilder {
         private boolean highBandwidthRelaying;
         private long version;
 
         public SendCompactBlockMsgBuilder() {}
-        public SendCompactBlockMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
+        public SendCompactBlockMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public SendCompactBlockMsgBuilder highBandwidthRelaying(boolean highBandwidthRelaying) {
             this.highBandwidthRelaying = highBandwidthRelaying;
@@ -83,7 +85,7 @@ public class SendCompactBlockMsg extends Message implements Serializable {
         }
 
         public SendCompactBlockMsg build() {
-            return new SendCompactBlockMsg(highBandwidthRelaying, version, super.payloadChecksum);
+            return new SendCompactBlockMsg(highBandwidthRelaying, version, super.extraBytes, super.checksum);
         }
     }
 }

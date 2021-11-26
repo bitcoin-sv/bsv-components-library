@@ -61,7 +61,7 @@ class MemPoolMsgSerializerSpec extends Specification {
             MemPoolMsg memPoolMsg = MemPoolMsg.builder().build()
 
             HeaderMsg headerMsg = HeaderMsg.builder()
-                    .payloadChecksum(3806393949)
+                    .checksum(3806393949)
                     .command(MemPoolMsg.MESSAGE_TYPE)
                     .length((int)memPoolMsg.getLengthInBytes())
                     .magic(1)

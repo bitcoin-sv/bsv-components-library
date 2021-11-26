@@ -35,9 +35,7 @@ public class MerkleProofMsg extends Message {
                           TxMsg transaction,
                           HashMsg target,
                           VarIntMsg nodeCount,
-                          List<MerkleNode> nodes,
-                          long payloadChecksum) {
-        super(payloadChecksum);
+                          List<MerkleNode> nodes) {
         this.flags = flags;
         this.transactionIndex = transactionIndex;
         this.transactionLength = transactionLength;
@@ -77,10 +75,8 @@ public class MerkleProofMsg extends Message {
     public List<MerkleNode> getNodes()              { return nodes; }
 
 
-
-    @Override
     public MerkleProofMsgBuilder toBuilder() {
-        return new MerkleProofMsgBuilder(super.extraBytes, super.payloadChecksum)
+        return new MerkleProofMsgBuilder()
                     .withFlags(this.flags)
                     .withTransactionIndex(this.transactionIndex)
                     .withTransactionLength(this.transactionLength)
@@ -93,7 +89,7 @@ public class MerkleProofMsg extends Message {
     /**
      * Builder
      */
-    public static final class MerkleProofMsgBuilder extends MessageBuilder{
+    public static final class MerkleProofMsgBuilder {
         private MerkleProofMsgFlags flags;
         private VarIntMsg transactionIndex;
         private VarIntMsg transactionLength;
@@ -103,7 +99,6 @@ public class MerkleProofMsg extends Message {
         private List<MerkleNode> nodes;
 
         private MerkleProofMsgBuilder() {}
-        private MerkleProofMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public MerkleProofMsgBuilder withFlags(MerkleProofMsgFlags flags) {
             this.flags = flags;
@@ -148,12 +143,9 @@ public class MerkleProofMsg extends Message {
                     this.transaction,
                     this.target,
                     this.nodeCount,
-                    this.nodes,
-                    super.payloadChecksum
+                    this.nodes
             );
             return merkleProofMsg;
         }
     }
-
-
 }

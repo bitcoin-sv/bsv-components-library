@@ -20,7 +20,7 @@ public class ProtocolBasicConfig extends HandlerConfig {
     private long magicPackage;
     private int  port;
 
-    private int protocolVersion = NetworkParameters.ProtocolVersion.CURRENT.getBitcoinProtocolVersion();
+    private int protocolVersion = ProtocolVersion.ENABLE_ASSOCIATION_ID.getVersion();
     private OptionalInt maxPeers = OptionalInt.empty();
     private OptionalInt minPeers = OptionalInt.empty();
 

@@ -1,8 +1,8 @@
 package com.nchain.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
-import com.nchain.jcl.net.protocol.messages.common.PartialMessage;
 
 import java.io.Serializable;
 import java.util.List;
@@ -11,7 +11,7 @@ import java.util.List;
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  */
-public final class PartialBlockTXsMsg extends PartialMessage implements Serializable {
+public final class PartialBlockTXsMsg extends BodyMessage implements Serializable {
 
     public static final String MESSAGE_TYPE = "PartialBlockTxs";
     private final BlockHeaderMsg blockHeader;
@@ -19,7 +19,9 @@ public final class PartialBlockTXsMsg extends PartialMessage implements Serializ
     // This field stores the order of this Batch of Txs within the Block (zero-based)
     private final VarIntMsg txsOrderNumber;
 
-    public PartialBlockTXsMsg(BlockHeaderMsg blockHeader, List<TxMsg> txs, VarIntMsg txsOrderNumber) {
+    public PartialBlockTXsMsg(BlockHeaderMsg blockHeader, List<TxMsg> txs, VarIntMsg txsOrderNumber,
+                              byte[] extraBytes, long checksum) {
+        super(extraBytes, checksum);
         this.blockHeader = blockHeader;
         this.txs = txs;
         this.txsOrderNumber = txsOrderNumber;
@@ -84,9 +86,8 @@ public final class PartialBlockTXsMsg extends PartialMessage implements Serializ
             && Objects.equal(this.txsOrderNumber, other.txsOrderNumber);
     }
 
-    @Override
     public PartialBlockTXsMsgBuilder toBuilder() {
-        return new PartialBlockTXsMsgBuilder()
+        return new PartialBlockTXsMsgBuilder(super.extraBytes, super.checksum)
                         .blockHeader(this.blockHeader)
                         .txs(this.txs)
                         .txsOrdersNumber(this.txsOrderNumber);
@@ -95,13 +96,13 @@ public final class PartialBlockTXsMsg extends PartialMessage implements Serializ
     /**
      * Builder
      */
-    public static class PartialBlockTXsMsgBuilder extends MessageBuilder {
+    public static class PartialBlockTXsMsgBuilder extends BodyMessageBuilder{
         private BlockHeaderMsg blockHeader;
         private List<TxMsg> txs;
         private VarIntMsg txsOrderNumber;
 
-        PartialBlockTXsMsgBuilder() {
-        }
+        public PartialBlockTXsMsgBuilder() { }
+        public PartialBlockTXsMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public PartialBlockTXsMsg.PartialBlockTXsMsgBuilder blockHeader(BlockHeaderMsg blockHeader) {
             this.blockHeader = blockHeader;
@@ -124,7 +125,7 @@ public final class PartialBlockTXsMsg extends PartialMessage implements Serializ
         }
 
         public PartialBlockTXsMsg build() {
-            return new PartialBlockTXsMsg(blockHeader, txs, txsOrderNumber);
+            return new PartialBlockTXsMsg(blockHeader, txs, txsOrderNumber, super.extraBytes, super.checksum);
         }
     }
 }

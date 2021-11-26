@@ -1,8 +1,8 @@
 package com.nchain.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
-import com.nchain.jcl.net.protocol.messages.common.PartialMessage;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
  * @author m.fletcher@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  */
-public final class PartialBlockRawTxMsg extends PartialMessage {
+public final class PartialBlockRawTxMsg extends BodyMessage {
 
     public static final String MESSAGE_TYPE = "PartialBlockRawTxMsg";
     private final BlockHeaderMsg blockHeader;
@@ -22,7 +22,9 @@ public final class PartialBlockRawTxMsg extends PartialMessage {
 
     private final long txsByteLength;
 
-    public PartialBlockRawTxMsg(BlockHeaderMsg blockHeader, List<RawTxMsg> txs, VarIntMsg txsOrderNumber) {
+    public PartialBlockRawTxMsg(BlockHeaderMsg blockHeader, List<RawTxMsg> txs, VarIntMsg txsOrderNumber,
+                                byte[] extraBytes, long checksum) {
+        super(extraBytes, checksum);
         this.blockHeader = blockHeader;
         this.txs = txs;
         this.txsOrderNumber = txsOrderNumber;
@@ -81,9 +83,8 @@ public final class PartialBlockRawTxMsg extends PartialMessage {
             && Objects.equal(this.txsOrderNumber, other.txsOrderNumber);
     }
 
-    @Override
     public PartialBlockRawTxMsgBuilder toBuilder() {
-        return new PartialBlockRawTxMsgBuilder()
+        return new PartialBlockRawTxMsgBuilder(super.extraBytes, super.checksum)
                         .blockHeader(this.blockHeader)
                         .txs(this.txs)
                         .txsOrdersNumber(this.txsOrderNumber);
@@ -92,13 +93,13 @@ public final class PartialBlockRawTxMsg extends PartialMessage {
     /**
      * Builder
      */
-    public static class PartialBlockRawTxMsgBuilder extends MessageBuilder {
+    public static class PartialBlockRawTxMsgBuilder extends BodyMessageBuilder {
         private BlockHeaderMsg blockHeader;
         private List<RawTxMsg> txs;
         private VarIntMsg txsOrderNumber;
 
-        PartialBlockRawTxMsgBuilder() {
-        }
+        public PartialBlockRawTxMsgBuilder() {}
+        public PartialBlockRawTxMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public PartialBlockRawTxMsgBuilder blockHeader(BlockHeaderMsg blockHeader) {
             this.blockHeader = blockHeader;
@@ -121,7 +122,7 @@ public final class PartialBlockRawTxMsg extends PartialMessage {
         }
 
         public PartialBlockRawTxMsg build() {
-            return new PartialBlockRawTxMsg(blockHeader, txs, txsOrderNumber);
+            return new PartialBlockRawTxMsg(blockHeader, txs, txsOrderNumber, super.extraBytes, super.checksum);
         }
     }
 }

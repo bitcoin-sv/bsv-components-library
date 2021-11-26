@@ -42,7 +42,7 @@ class ExtHeaderMsgSerializerSpec extends Specification {
                 .magic(1)
                 .command(HeaderMsg.EXT_COMMAND)
                 .length(10)
-                .payloadChecksum(10)
+                .checksum(10)
                 .extCommand(HeaderMsg.MESSAGE_TYPE)
                 .extLength(5_000_000_000) // 5GB
                 .build()

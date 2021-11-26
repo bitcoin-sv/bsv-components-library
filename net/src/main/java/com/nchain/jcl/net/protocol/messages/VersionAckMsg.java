@@ -1,5 +1,6 @@
 package com.nchain.jcl.net.protocol.messages;
 
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
 import java.io.Serializable;
@@ -13,14 +14,14 @@ import java.io.Serializable;
  * header with the command string "verack".
  *
  */
-public final class VersionAckMsg extends Message implements Serializable {
+public final class VersionAckMsg extends BodyMessage implements Serializable {
 
     // Message Type (stored in the "command" field in the HeaderMsg of a Bitcoin Message
     public static final String MESSAGE_TYPE = "verack";
     private static final int MESSAGE_LENGTH = 0;
 
-    protected VersionAckMsg(long payloadChecksum) {
-        super(payloadChecksum);
+    protected VersionAckMsg(byte[] extraBytes, long checksum) {
+        super(extraBytes, checksum);
         init();
     }
 
@@ -60,18 +61,18 @@ public final class VersionAckMsg extends Message implements Serializable {
 
     @Override
     public VersionAckMsgBuilder toBuilder() {
-        return new VersionAckMsgBuilder(super.extraBytes, super.payloadChecksum);
+        return new VersionAckMsgBuilder(super.extraBytes, super.checksum);
     }
 
     /**
      * Builder
      */
-    public static class VersionAckMsgBuilder extends MessageBuilder{
+    public static class VersionAckMsgBuilder extends BodyMessageBuilder {
         public VersionAckMsgBuilder() {}
-        public VersionAckMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
+        public VersionAckMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public VersionAckMsg build() {
-            return new VersionAckMsg(super.payloadChecksum);
+            return new VersionAckMsg(super.extraBytes, super.checksum);
         }
     }
 }

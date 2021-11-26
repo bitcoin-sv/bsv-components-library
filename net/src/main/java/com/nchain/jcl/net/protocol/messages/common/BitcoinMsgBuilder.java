@@ -14,7 +14,7 @@ import com.nchain.jcl.net.protocol.messages.HeaderMsg;
  * This Builder is the best option
  *
  */
-public class BitcoinMsgBuilder<M extends Message> {
+public class BitcoinMsgBuilder<M extends BodyMessage> {
 
     private M bodyMsg;
     private ProtocolBasicConfig config;

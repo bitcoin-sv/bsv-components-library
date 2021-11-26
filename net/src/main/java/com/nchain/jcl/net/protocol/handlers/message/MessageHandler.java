@@ -2,6 +2,7 @@ package com.nchain.jcl.net.protocol.handlers.message;
 
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 import com.nchain.jcl.tools.handlers.Handler;
 
@@ -26,11 +27,11 @@ public interface MessageHandler extends Handler {
     void send(PeerAddress peerAddress, BitcoinMsg<?> btcMessage);
 
     /** Sends a Message to an specific Peer */
-    void send(PeerAddress peerAddress, Message msgBody);
+    void send(PeerAddress peerAddress, BodyMessage msgBody);
 
     /** Broadcasts a Message to all connected Peers */
     void broadcast(BitcoinMsg<?> btcMessage);
 
     /** Broadcasts a Message to all connected Peers */
-    void broadcast(Message msgBody);
+    void broadcast(BodyMessage msgBody);
 }

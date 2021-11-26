@@ -1,5 +1,6 @@
 package com.nchain.jcl.net.protocol.messages;
 
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
 import java.io.Serializable;
@@ -9,15 +10,16 @@ import java.util.List;
  * @author j.pomer@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  */
-public class GetBlockTxnMsg extends Message implements Serializable {
+public class GetBlockTxnMsg extends BodyMessage implements Serializable {
     public static final String MESSAGE_TYPE = "getblocktxn";
 
     private final HashMsg blockHash;
     private final VarIntMsg indexesLength;
     private final List<VarIntMsg> indexes;
 
-    public GetBlockTxnMsg(HashMsg blockHash, VarIntMsg indexesLength, List<VarIntMsg> indexes, long payloadChecksum) {
-        super(payloadChecksum);
+    public GetBlockTxnMsg(HashMsg blockHash, VarIntMsg indexesLength, List<VarIntMsg> indexes,
+                          byte[] extraBytes, long checksum) {
+        super(extraBytes, checksum);
         this.blockHash = blockHash;
         this.indexesLength = indexesLength;
         this.indexes = indexes;
@@ -48,7 +50,7 @@ public class GetBlockTxnMsg extends Message implements Serializable {
 
     @Override
     public BlockTransactionsRequestMsgBuilder toBuilder() {
-        return new BlockTransactionsRequestMsgBuilder(super.extraBytes, super.payloadChecksum)
+        return new BlockTransactionsRequestMsgBuilder(super.extraBytes, super.checksum)
                     .blockHash(this.blockHash)
                     .indexesLength(this.indexesLength)
                     .indexes(this.indexes);
@@ -61,13 +63,13 @@ public class GetBlockTxnMsg extends Message implements Serializable {
     /**
      * Builder
      */
-    public static class BlockTransactionsRequestMsgBuilder extends MessageBuilder{
+    public static class BlockTransactionsRequestMsgBuilder extends BodyMessageBuilder {
         private HashMsg blockHash;
         private VarIntMsg indexesLength;
         private List<VarIntMsg> indexes;
 
         public BlockTransactionsRequestMsgBuilder() {}
-        public BlockTransactionsRequestMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
+        public BlockTransactionsRequestMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
         public BlockTransactionsRequestMsgBuilder blockHash(HashMsg blockHash) {
             this.blockHash = blockHash;
             return this;
@@ -84,7 +86,7 @@ public class GetBlockTxnMsg extends Message implements Serializable {
         }
 
         public GetBlockTxnMsg build() {
-            return new GetBlockTxnMsg(blockHash, indexesLength, indexes, super.payloadChecksum);
+            return new GetBlockTxnMsg(blockHash, indexesLength, indexes, super.extraBytes, super.checksum);
         }
     }
 }

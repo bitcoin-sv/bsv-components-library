@@ -68,9 +68,7 @@ public final class HeaderMsg extends Message implements Serializable {
     // Constructor. to create instance  of this class, use the Builder
     protected HeaderMsg(long magic, String command,
                         long length, long checksum,
-                        String extCommand, long extLength,
-                        long payloadChecksum) {
-        super(payloadChecksum);
+                        String extCommand, long extLength) {
         this.magic = magic;
         this.command = command;
         this.length = length;
@@ -139,9 +137,9 @@ public final class HeaderMsg extends Message implements Serializable {
         return new HeaderMsgBuilder();
     }
 
-    @Override
+
     public HeaderMsgBuilder toBuilder() {
-        return new HeaderMsgBuilder(super.extraBytes, super.payloadChecksum)
+        return new HeaderMsgBuilder()
                     .magic(this.magic)
                     .command(this.command)
                     .length(this.length)
@@ -153,7 +151,7 @@ public final class HeaderMsg extends Message implements Serializable {
     /**
      * Builder
      */
-    public static class HeaderMsgBuilder extends MessageBuilder {
+    public static class HeaderMsgBuilder {
         private long magic;
         private String command;
         private long length;
@@ -162,7 +160,6 @@ public final class HeaderMsg extends Message implements Serializable {
         private long extLength;
 
         public HeaderMsgBuilder() {}
-        public HeaderMsgBuilder(byte[] extraBytes, long payloadchecksum) { super(extraBytes, payloadchecksum);}
 
         public HeaderMsg.HeaderMsgBuilder magic(long magic) {
             this.magic = magic;
@@ -195,7 +192,7 @@ public final class HeaderMsg extends Message implements Serializable {
         }
 
         public HeaderMsg build() {
-            return new HeaderMsg(magic, command, length, checksum, extCommand, extLength, super.payloadChecksum);
+            return new HeaderMsg(magic, command, length, checksum, extCommand, extLength);
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 import io.bitcoinj.bitcoin.api.base.AbstractBlock;
 import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
@@ -18,16 +19,18 @@ import static java.util.Optional.ofNullable;
  * The Block Header represents the Header of information wihtint a Block.
  * It's also used in the HEADERS and GETHEADERS packages.
  */
-public final class BlockHeaderMsg extends Message implements Serializable {
+public final class BlockHeaderMsg extends BodyMessage implements Serializable {
 
     public static final String MESSAGE_TYPE = "BlockHeader";
 
     private BlockHeaderSimpleMsg blockHeaderSimpleMsg;
     private final VarIntMsg transactionCount;
 
-    public BlockHeaderMsg(HashMsg hash, long version, HashMsg prevBlockHash, HashMsg merkleRoot, long creationTimestamp, long difficultyTarget, long nonce, VarIntMsg transactionCount, long payloadChecksum) {
-        super(payloadChecksum);
-        this.blockHeaderSimpleMsg = new BlockHeaderSimpleMsg(hash, version, prevBlockHash, merkleRoot, creationTimestamp, difficultyTarget, nonce, 0); // Dummy checksum
+    public BlockHeaderMsg(HashMsg hash, long version, HashMsg prevBlockHash, HashMsg merkleRoot,
+                          long creationTimestamp, long difficultyTarget, long nonce, VarIntMsg transactionCount,
+                          byte[] extraBytes, long checksum) {
+        super(extraBytes, checksum);
+        this.blockHeaderSimpleMsg = new BlockHeaderSimpleMsg(hash, version, prevBlockHash, merkleRoot, creationTimestamp, difficultyTarget, nonce);
         this.transactionCount = ofNullable(transactionCount).orElse(VarIntMsg.builder().value(0).build());
         init();
     }
@@ -100,7 +103,7 @@ public final class BlockHeaderMsg extends Message implements Serializable {
     }
 
     public BlockHeaderMsgBuilder toBuilder() {
-        return new BlockHeaderMsgBuilder(super.extraBytes, super.payloadChecksum)
+        return new BlockHeaderMsgBuilder(super.extraBytes, super.checksum)
                     .hash(this.blockHeaderSimpleMsg.getHash())
                     .version(this.blockHeaderSimpleMsg.getVersion())
                     .prevBlockHash(this.blockHeaderSimpleMsg.getPrevBlockHash())
@@ -113,7 +116,7 @@ public final class BlockHeaderMsg extends Message implements Serializable {
     /**
      * Builder
      */
-    public static class BlockHeaderMsgBuilder extends MessageBuilder {
+    public static class BlockHeaderMsgBuilder extends BodyMessageBuilder {
         protected HashMsg hash;
         protected long version;
         protected HashMsg prevBlockHash;
@@ -124,7 +127,7 @@ public final class BlockHeaderMsg extends Message implements Serializable {
         private VarIntMsg transactionCount;
 
         public BlockHeaderMsgBuilder() {}
-        public BlockHeaderMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
+        public BlockHeaderMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public BlockHeaderMsgBuilder hash(HashMsg hash) {
             this.hash = hash;
@@ -171,7 +174,7 @@ public final class BlockHeaderMsg extends Message implements Serializable {
         }
 
         public BlockHeaderMsg build() {
-            return new BlockHeaderMsg(hash, version, prevBlockHash, merkleRoot, creationTimestamp, difficultyTarget, nonce, transactionCount, super.payloadChecksum);
+            return new BlockHeaderMsg(hash, version, prevBlockHash, merkleRoot, creationTimestamp, difficultyTarget, nonce, transactionCount, super.extraBytes, super.checksum);
         }
     }
 }

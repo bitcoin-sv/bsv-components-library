@@ -2,6 +2,7 @@ package com.nchain.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
 import java.io.Serializable;
@@ -14,7 +15,7 @@ import java.util.stream.Collectors;
  *
  * notfound is a response to a getdata, sent if any requested data items could not be relayed.
  */
-public final class NotFoundMsg extends Message implements Serializable {
+public final class NotFoundMsg extends BodyMessage implements Serializable {
 
     public static final String MESSAGE_TYPE = "notfound";
     private static final long MAX_ADDRESSES = 50000;
@@ -26,8 +27,9 @@ public final class NotFoundMsg extends Message implements Serializable {
     /**
      * Creates the InvMessage Object.Use the corresponding byteArray to create the instance.
      */
-    protected NotFoundMsg(VarIntMsg count, List<InventoryVectorMsg> invVectorMsgList, long payloadChecksum) {
-        super(payloadChecksum);
+    protected NotFoundMsg(VarIntMsg count, List<InventoryVectorMsg> invVectorMsgList,
+                          byte[] extraBytes, long checksum) {
+        super(extraBytes, checksum);
         this.count = count;
         this.invVectorList = invVectorMsgList.stream().collect(Collectors.toUnmodifiableList());
         init();
@@ -76,7 +78,7 @@ public final class NotFoundMsg extends Message implements Serializable {
 
     @Override
     public NotFoundMsgBuilder toBuilder() {
-        return new NotFoundMsgBuilder(super.extraBytes, super.payloadChecksum)
+        return new NotFoundMsgBuilder(super.extraBytes, super.checksum)
                     .count(this.count)
                     .invVectorMsgList(this.invVectorList);
     }
@@ -84,12 +86,12 @@ public final class NotFoundMsg extends Message implements Serializable {
     /**
      * Builder
      */
-    public static class NotFoundMsgBuilder extends MessageBuilder {
+    public static class NotFoundMsgBuilder extends BodyMessageBuilder {
         private VarIntMsg count;
         private List<InventoryVectorMsg> invVectorMsgList;
 
         public NotFoundMsgBuilder() {}
-        public NotFoundMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
+        public NotFoundMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public NotFoundMsg.NotFoundMsgBuilder count(VarIntMsg count) {
             this.count = count;
@@ -102,7 +104,7 @@ public final class NotFoundMsg extends Message implements Serializable {
         }
 
         public NotFoundMsg build() {
-            return new NotFoundMsg(count, invVectorMsgList, super.payloadChecksum);
+            return new NotFoundMsg(count, invVectorMsgList, super.extraBytes, super.checksum);
         }
 
     }

@@ -3,6 +3,7 @@ package com.nchain.jcl.net.protocol.messages;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
 import java.io.Serializable;
@@ -26,7 +27,7 @@ import java.util.List;
  *   Address of other nodes on the network.
  *
  */
-public final class AddrMsg extends Message implements Serializable {
+public final class AddrMsg extends BodyMessage implements Serializable {
 
     private static final long MAX_ADDRESSES = 1000;
     public static final String MESSAGE_TYPE = "addr";
@@ -37,11 +38,10 @@ public final class AddrMsg extends Message implements Serializable {
     /**
      * Creates the AddrMsg Object.Use the corresponding byteArray to create the instance.
      */
-    protected AddrMsg( List<NetAddressMsg> addrList, long payloadChecksum) {
-        super(payloadChecksum);
+    protected AddrMsg( List<NetAddressMsg> addrList, byte[]extraBytes, long checksum) {
+        super(extraBytes, checksum);
         this.addrList = ImmutableList.copyOf(addrList);
         this.count = VarIntMsg.builder().value(this.addrList.size()).build();
-        super.payloadChecksum = payloadChecksum;
         init();
     }
 
@@ -87,7 +87,7 @@ public final class AddrMsg extends Message implements Serializable {
 
     @Override
     public AddrMsgBuilder toBuilder() {
-        return new AddrMsgBuilder(super.extraBytes, super.payloadChecksum).addrList(this.addrList);
+        return new AddrMsgBuilder(super.extraBytes, super.checksum).addrList(this.addrList);
     }
 
     public static AddrMsgBuilder builder() {
@@ -97,11 +97,11 @@ public final class AddrMsg extends Message implements Serializable {
     /**
      * Builder
      */
-    public static class AddrMsgBuilder extends MessageBuilder {
+    public static class AddrMsgBuilder extends BodyMessageBuilder {
         private List<NetAddressMsg> addrList;
 
         AddrMsgBuilder() {}
-        AddrMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
+        AddrMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public AddrMsg.AddrMsgBuilder addrList(List<NetAddressMsg> addrList) {
             this.addrList = addrList;
@@ -109,7 +109,7 @@ public final class AddrMsg extends Message implements Serializable {
         }
 
         public AddrMsg build() {
-            return new AddrMsg(addrList, super.payloadChecksum);
+            return new AddrMsg(addrList, super.extraBytes, super.checksum);
         }
     }
 }

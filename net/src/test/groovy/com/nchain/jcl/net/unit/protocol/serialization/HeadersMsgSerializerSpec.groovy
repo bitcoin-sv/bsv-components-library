@@ -111,7 +111,7 @@ class HeadersMsgSerializerSpec extends Specification {
             HeadersMsg headersMsg = HeadersMsgSerializer.getInstance().deserialize(deserializerContext, byteArrayWriter.reader())
 
             HeaderMsg headerMsg = HeaderMsg.builder()
-                .payloadChecksum(714299174)
+                .checksum(714299174)
                 .command(HeadersMsg.MESSAGE_TYPE)
                 .length((int) headersMsg.getLengthInBytes())
                 .magic(1)

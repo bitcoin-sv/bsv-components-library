@@ -2,6 +2,7 @@ package com.nchain.jcl.net.unit.protocol.serialization.largeMsgs
 
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
+import com.nchain.jcl.net.protocol.messages.HeaderMsg
 import com.nchain.jcl.net.protocol.messages.PartialBlockTxnMsg
 import com.nchain.jcl.net.protocol.messages.common.Message
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
@@ -36,7 +37,7 @@ class BigBlockTxnDeserializerTest extends Specification {
                 .build()
 
             ExecutorService executor = Executors.newSingleThreadExecutor()
-        BigBlockTxnDeserializer deserializer = Mockito.spy(new BigBlockTxnDeserializer(executor))
+            BigBlockTxnDeserializer deserializer = Mockito.spy(new BigBlockTxnDeserializer(executor))
 
             byte[] bytes = Utils.HEX.decode(BLOCKTXN_BYTES)
             ByteArrayReader reader = ByteArrayArtificalStreamProducer.stream(bytes, byteInterval, delayMs)
@@ -44,7 +45,9 @@ class BigBlockTxnDeserializerTest extends Specification {
             ArgumentCaptor<Message> messageCapture = new ArgumentCaptor<>()
 
         when:
-            deserializer.deserialize(context, reader)
+            // Dummy Header Msg:
+            HeaderMsg header = new HeaderMsg.HeaderMsgBuilder().command(PartialBlockTxnMsg.MESSAGE_TYPE).build()
+            deserializer.deserializeBody(context, header, reader)
             Mockito.verify(deserializer, Mockito.times(8)).notifyDeserialization(messageCapture.capture())
 
             int fullSizeCount = 0

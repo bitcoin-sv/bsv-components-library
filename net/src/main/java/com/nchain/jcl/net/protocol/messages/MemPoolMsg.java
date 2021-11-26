@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
 import java.io.Serializable;
@@ -11,13 +12,13 @@ import java.io.Serializable;
  *
  * This message consists of only a message header with the command string "mempool".
  */
-public final class MemPoolMsg extends Message implements Serializable {
+public final class MemPoolMsg extends BodyMessage implements Serializable {
 
     public static final String MESSAGE_TYPE = "mempool";
     private static final int MESSAGE_LENGTH = 0;
 
-    public MemPoolMsg(long payloadChecksum){
-        super(payloadChecksum);
+    public MemPoolMsg(byte[] extraBytes, long checksum){
+        super(extraBytes, checksum);
         init();
     }
 
@@ -57,18 +58,18 @@ public final class MemPoolMsg extends Message implements Serializable {
 
     @Override
     public MemPoolMsgBuilder toBuilder() {
-        return new MemPoolMsgBuilder(super.extraBytes, super.payloadChecksum);
+        return new MemPoolMsgBuilder(super.extraBytes, super.checksum);
     }
 
     /**
      * Builder
      */
-    public static class MemPoolMsgBuilder extends MessageBuilder{
+    public static class MemPoolMsgBuilder extends BodyMessageBuilder {
         public MemPoolMsgBuilder() {}
-        public MemPoolMsgBuilder(byte[] extraBuild, long payloadChecksum) { super(extraBuild, payloadChecksum);}
+        public MemPoolMsgBuilder(byte[] extraBuild, long checksum) { super(extraBuild, checksum);}
 
         public MemPoolMsg build() {
-            return new MemPoolMsg(super.payloadChecksum);
+            return new MemPoolMsg(super.extraBytes, super.checksum);
         }
     }
 }

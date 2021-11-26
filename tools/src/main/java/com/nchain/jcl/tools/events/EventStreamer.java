@@ -4,10 +4,8 @@ import com.nchain.jcl.tools.thread.ThreadUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -77,6 +75,9 @@ public class EventStreamer<E extends Event> {
         return this;
     }
 
+    // HACK:
+    // UGLY HACK:
+    public static AtomicLong NUM_MSGS_LOST = new AtomicLong();
     private void processEventsQueue() {
         try {
             while (this.eventHandler == null) {Thread.sleep(50);}
@@ -89,7 +90,12 @@ public class EventStreamer<E extends Event> {
 
                 // We process the Event:
                 if (shouldWeProcessIt) {
-                    this.eventExecutor.execute(() -> this.eventHandler.accept(event));
+                    try {
+                        this.eventExecutor.execute(() -> this.eventHandler.accept(event));
+                    } catch (RejectedExecutionException e) {
+                        e.printStackTrace();
+                        NUM_MSGS_LOST.incrementAndGet();
+                    }
                 }
             } // while...
         } catch (InterruptedException ie) {

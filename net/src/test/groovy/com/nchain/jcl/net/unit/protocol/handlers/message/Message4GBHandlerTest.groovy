@@ -4,6 +4,7 @@ import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
 import com.nchain.jcl.net.protocol.config.ProtocolVersion
+import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandler
 import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandlerConfig
 import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerConfig
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg
@@ -36,7 +37,7 @@ class Message4GBHandlerTest extends Specification {
     // 4GB. But if the local environment is limited in RAM and we can not afford to use that much memory to test, we
     // can "simulate" the "extended msgs" logic by using a lower value.
 
-    private long BLOCK_SIZE_TO_TEST = 3_000_000_000L; // 3 GB
+    private long BLOCK_SIZE_TO_TEST = 2_000_000_000L; // 2 GB
 
     // It builds a Big Block (extended message)
     private BlockMsg buildBigBlock() {
@@ -95,7 +96,7 @@ class Message4GBHandlerTest extends Specification {
      * We use 2 JCL instances (2 PSP instances: server and client). We build a Big Block as an extended message and
      * then we send it from the client to the server, and check that the message is received properly by the Server.
      */
-    @Ignore
+    //@Ignore
     def "testing 4GBBlock"() {
         given:
             // Configuration:
@@ -113,7 +114,10 @@ class Message4GBHandlerTest extends Specification {
             DeserializerConfig deserializerConfig = messageHandlerConfig.getDeserializerConfig().toBuilder()
                 .partialSerializationMsgSize(10_000_000)
                 .build()
-            messageHandlerConfig = messageHandlerConfig.toBuilder().deserializerConfig(deserializerConfig).build()
+            messageHandlerConfig = messageHandlerConfig.toBuilder()
+                    .deserializerConfig(deserializerConfig)
+                    .verifyChecksum(true)
+                    .build()
             BlockDownloaderHandlerConfig downloadConfig = protocolConfig.getBlockDownloaderConfig().toBuilder()
                 .maxIdleTimeout(Duration.ofSeconds(40))
                 .build()
@@ -131,9 +135,8 @@ class Message4GBHandlerTest extends Specification {
             AtomicBoolean blockDownloaded = new AtomicBoolean(false)
 
             server.EVENTS.STATE.BLOCKS.forEach({ e -> println(e)})
-            server.EVENTS.PEERS.HANDSHAKED.forEach({e ->
-                println("SERVER >> " + e)
-            })
+            server.EVENTS.PEERS.HANDSHAKED.forEach({e -> println("SERVER >> " + e)})
+            server.EVENTS.PEERS.HANDSHAKED_DISCONNECTED.forEach({e -> println("SERVER >> " + e)})
             server.EVENTS.BLOCKS.BLOCK_HEADER_DOWNLOADED.forEach({ e ->
                 println("SERVER >> BLOCK HEADER RECEIVED :: Msg Header: " + e.getBtcMsg().getHeader().toString() + " , BlockHeader Msg: " + e.getBtcMsg().getBody().getBlockHeader().toString())
             })
@@ -146,12 +149,16 @@ class Message4GBHandlerTest extends Specification {
                 blockDownloaded.set(true)
             })
 
+
+
             // Client Configuration:
             P2P client = new P2PBuilder("client")
                 .config(protocolConfig)
                 .config(protocolBasicConfig)
                 .build()
 
+            client.EVENTS.PEERS.HANDSHAKED.forEach({e -> println("CLIENT >> " + e)})
+            client.EVENTS.PEERS.HANDSHAKED_DISCONNECTED.forEach({e -> println("CLIENT >> " + e)})
             client.EVENTS.MSGS.ALL.forEach({ e -> println("CLIENT >> " + e)})
 
         when:

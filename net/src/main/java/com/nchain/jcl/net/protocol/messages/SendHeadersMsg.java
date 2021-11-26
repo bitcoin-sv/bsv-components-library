@@ -1,5 +1,6 @@
 package com.nchain.jcl.net.protocol.messages;
 
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
 import java.io.Serializable;
@@ -10,13 +11,13 @@ import java.io.Serializable;
  *
  * This message consists of only a message header with the command string "sendheaders".
  */
-public final class SendHeadersMsg extends Message implements Serializable {
+public final class SendHeadersMsg extends BodyMessage implements Serializable {
 
     public static final String MESSAGE_TYPE = "sendheaders";
     private static final int MESSAGE_LENGTH = 0;
 
-    public SendHeadersMsg(long payloadChecksum){
-        super(payloadChecksum);
+    public SendHeadersMsg(byte[] extraBytes, long checksum){
+        super(extraBytes, checksum);
         init();
     }
 
@@ -58,18 +59,18 @@ public final class SendHeadersMsg extends Message implements Serializable {
 
     @Override
     public SendHeadersMsgBuilder toBuilder() {
-        return new SendHeadersMsgBuilder(super.extraBytes, super.payloadChecksum);
+        return new SendHeadersMsgBuilder(super.extraBytes, super.checksum);
     }
 
     /**
      * Builder
      */
-    public static class SendHeadersMsgBuilder extends MessageBuilder {
+    public static class SendHeadersMsgBuilder extends BodyMessageBuilder {
         public SendHeadersMsgBuilder() { }
-        public SendHeadersMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
+        public SendHeadersMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public SendHeadersMsg build() {
-            return new SendHeadersMsg(super.payloadChecksum);
+            return new SendHeadersMsg(super.extraBytes, super.checksum);
         }
     }
 }

@@ -1,7 +1,8 @@
 package com.nchain.jcl.net.protocol.messages;
 
 
-import com.google.common.base.Objects;
+
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
 import java.io.Serializable;
@@ -13,7 +14,7 @@ import java.io.Serializable;
  * The getaddr message sends a request to a node asking for information about known active peers to help with
  * finding potential nodes in the network. This message consists of only a message  header with the command  "getaddr".
  */
-public final class GetAddrMsg extends Message implements Serializable {
+public final class GetAddrMsg extends BodyMessage implements Serializable {
 
     // Message Type (stored in the "command" field in the HeaderMsg of a Bitcoin Message
     public static final String MESSAGE_TYPE = "getaddr";
@@ -21,8 +22,8 @@ public final class GetAddrMsg extends Message implements Serializable {
     // The  GetAddr is an empty message
     private static final int MESSAGE_LENGTH = 0;
 
-   protected GetAddrMsg(long payloadChecksum) {
-       super(payloadChecksum);
+   protected GetAddrMsg(byte[] extraBytes, long checksum) {
+       super(extraBytes, checksum);
        init();
    }
 
@@ -61,17 +62,17 @@ public final class GetAddrMsg extends Message implements Serializable {
 
     @Override
     public GetAddrMsgBuilder toBuilder() {
-       return new GetAddrMsgBuilder(super.extraBytes, super.payloadChecksum);
+       return new GetAddrMsgBuilder(super.extraBytes, super.checksum);
     }
 
     /**
      * Builder
      */
-    public static class GetAddrMsgBuilder extends MessageBuilder{
+    public static class GetAddrMsgBuilder extends BodyMessageBuilder{
         public GetAddrMsgBuilder() {}
-        public GetAddrMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
+        public GetAddrMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
         public GetAddrMsg build() {
-            return new GetAddrMsg(super.payloadChecksum);
+            return new GetAddrMsg(super.extraBytes, super.checksum);
         }
     }
 }

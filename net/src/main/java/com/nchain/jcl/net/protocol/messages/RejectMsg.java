@@ -2,6 +2,7 @@ package com.nchain.jcl.net.protocol.messages;
 
 
 import com.google.common.base.Objects;
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 import io.bitcoinj.core.Sha256Hash;
 
@@ -31,7 +32,7 @@ import java.io.Serializable;
  *    with the TXID or block header hash of the object being rejected, so the field is 32 bytes.
  *
  */
-public class RejectMsg extends Message implements Serializable {
+public class RejectMsg extends BodyMessage implements Serializable {
 
     /**
      * Reference of all the possible values for the MESSAGE field:
@@ -125,8 +126,9 @@ public class RejectMsg extends Message implements Serializable {
                         VarStrMsg reason ,
                         Sha256Hash dataHash,
                         byte[] data,
-                        long payloadChecksum) {
-        super(payloadChecksum);
+                        byte[] extraBytes,
+                        long checksum) {
+        super(extraBytes, checksum);
         this.message = message;
         this.ccode = ccode;
         this.reason = reason;
@@ -184,7 +186,7 @@ public class RejectMsg extends Message implements Serializable {
 
     @Override
     public RejectMsgBuilder toBuilder() {
-        return new RejectMsgBuilder(super.extraBytes, super.payloadChecksum)
+        return new RejectMsgBuilder(super.extraBytes, super.checksum)
                     .message(this.message)
                     .ccode(this.ccode)
                     .reason(this.reason)
@@ -195,7 +197,7 @@ public class RejectMsg extends Message implements Serializable {
     /**
      * Builder
      */
-    public static class RejectMsgBuilder extends MessageBuilder{
+    public static class RejectMsgBuilder extends BodyMessageBuilder{
         private VarStrMsg message;
         private RejectCode ccode;
         private VarStrMsg reason;
@@ -203,7 +205,7 @@ public class RejectMsg extends Message implements Serializable {
         private byte[] data;
 
         public RejectMsgBuilder() { }
-        public RejectMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
+        public RejectMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public RejectMsg.RejectMsgBuilder message(VarStrMsg message) {
             this.message = message;
@@ -231,7 +233,7 @@ public class RejectMsg extends Message implements Serializable {
         }
 
         public RejectMsg build() {
-            return new RejectMsg(message, ccode, reason, dataHash, data, super.payloadChecksum);
+            return new RejectMsg(message, ccode, reason, dataHash, data, super.extraBytes, super.checksum);
         }
     }
 }

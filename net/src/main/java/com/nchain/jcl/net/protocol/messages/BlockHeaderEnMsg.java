@@ -58,9 +58,8 @@ public final class BlockHeaderEnMsg extends Message implements Serializable {
                             boolean hasCoinbaseData,
                             List<HashMsg> coinbaseMerkleProof,
                             VarStrMsg coinbase,
-                            TxMsg coinbaseTX,
-                            long payloadChecksum) {
-        super(payloadChecksum);
+                            TxMsg coinbaseTX) {
+
         this.hash = hash;
         this.version = version;
         this.prevBlockHash = prevBlockHash;
@@ -146,9 +145,8 @@ public final class BlockHeaderEnMsg extends Message implements Serializable {
                 && Objects.equal(this.hash, other.hash);
     }
 
-    @Override
     public BlockHeaderEnMsgBuilder toBuilder() {
-        return new BlockHeaderEnMsgBuilder(super.extraBytes, super.payloadChecksum)
+        return new BlockHeaderEnMsgBuilder()
                     .hash(this.hash)
                     .version(this.version)
                     .prevBlockHash(this.prevBlockHash)
@@ -171,7 +169,7 @@ public final class BlockHeaderEnMsg extends Message implements Serializable {
     /**
      * Builder
      */
-    public static class BlockHeaderEnMsgBuilder extends MessageBuilder {
+    public static class BlockHeaderEnMsgBuilder {
         private HashMsg hash;
         private long version;
         private HashMsg prevBlockHash;
@@ -187,7 +185,6 @@ public final class BlockHeaderEnMsg extends Message implements Serializable {
         private TxMsg coinbaseTX;
 
         BlockHeaderEnMsgBuilder() {}
-        BlockHeaderEnMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public BlockHeaderEnMsg.BlockHeaderEnMsgBuilder hash(HashMsg hash) {
             this.hash = hash;
@@ -255,7 +252,7 @@ public final class BlockHeaderEnMsg extends Message implements Serializable {
         }
 
         public BlockHeaderEnMsg build() {
-            return new BlockHeaderEnMsg(hash, version, prevBlockHash, merkleRoot, creationTimestamp, nBits, nonce, transactionCount, noMoreHeaders, hasCoinbaseData, coinbaseMerkleProof, coinbase, coinbaseTX, super.payloadChecksum);
+            return new BlockHeaderEnMsg(hash, version, prevBlockHash, merkleRoot, creationTimestamp, nBits, nonce, transactionCount, noMoreHeaders, hasCoinbaseData, coinbaseMerkleProof, coinbase, coinbaseTX);
         }
     }
 }

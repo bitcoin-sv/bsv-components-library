@@ -5,6 +5,7 @@ import com.google.common.base.Objects;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import io.bitcoinj.core.Sha256Hash;
+import io.bitcoinj.core.Utils;
 
 import java.io.Serializable;
 
@@ -28,14 +29,14 @@ public class RawTxMsg extends RawMsg implements Serializable {
     // Tx Hash in readable format (reversed)
     private Sha256Hash hash;
 
-    public RawTxMsg(byte[] content, Sha256Hash hash, long payloadChecksum) {
-        super(content, payloadChecksum);
+    public RawTxMsg(byte[] content, Sha256Hash hash, byte[] extraBytes, long checksum) {
+        super(content, extraBytes, checksum);
         this.hash = hash;
         init();
     }
 
-    public RawTxMsg(byte[] content, long payloadChecksum) {
-        this(content, null, payloadChecksum);
+    public RawTxMsg(byte[] content, long checksum) {
+        this(content, null, Utils.EMPTY_BYTE_ARRAY,  checksum);
     }
 
     // Calculate the Hash...
@@ -82,7 +83,7 @@ public class RawTxMsg extends RawMsg implements Serializable {
 
     @Override
     public RawTxMsgBuilder toBuilder() {
-        return new RawTxMsgBuilder(super.extraBytes, super.payloadChecksum)
+        return new RawTxMsgBuilder(super.extraBytes, super.checksum)
                     .content(this.content)
                     .hash(this.hash);
     }
@@ -90,12 +91,12 @@ public class RawTxMsg extends RawMsg implements Serializable {
     /**
      * Builder
      */
-    public static class RawTxMsgBuilder extends MessageBuilder {
+    public static class RawTxMsgBuilder extends BodyMessageBuilder {
         private byte[] content;
         private Sha256Hash hash;
 
         public RawTxMsgBuilder() {}
-        public RawTxMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
+        public RawTxMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
         public RawTxMsgBuilder content(byte[] content) {
             this.content = content;
             return this;
@@ -107,7 +108,7 @@ public class RawTxMsg extends RawMsg implements Serializable {
         }
 
         public RawMsg build() {
-            return new RawTxMsg(content, hash, super.payloadChecksum);
+            return new RawTxMsg(content, hash, super.extraBytes, super.checksum);
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
 import java.io.Serializable;
@@ -17,7 +18,7 @@ import static com.google.common.base.Preconditions.checkState;
  * * chain, and proves that a difficult calculation was done over its contents. <p/>
  * *
  */
-public final class BlockMsg extends Message implements Serializable {
+public final class BlockMsg extends BodyMessage implements Serializable {
 
     public static final String MESSAGE_TYPE = "Block";
 
@@ -25,8 +26,9 @@ public final class BlockMsg extends Message implements Serializable {
     private final List<TxMsg> transactionMsg;
 
     // Constructor (specifying the Block Header and All Txs
-    protected BlockMsg(BlockHeaderMsg blockHeader, List<TxMsg> transactionMsgs, long payloadChecksum) {
-        super(payloadChecksum);
+    protected BlockMsg(BlockHeaderMsg blockHeader, List<TxMsg> transactionMsgs,
+                       byte[] extraBytes, long checksum) {
+        super(extraBytes, checksum);
         this.blockHeader = blockHeader;
         this.transactionMsg = transactionMsgs;
         init();
@@ -82,7 +84,7 @@ public final class BlockMsg extends Message implements Serializable {
 
     @Override
     public BlockMsgBuilder toBuilder() {
-        return new BlockMsgBuilder(super.extraBytes, super.payloadChecksum)
+        return new BlockMsgBuilder(super.extraBytes, super.checksum)
                     .blockHeader(this.blockHeader)
                     .transactionMsgs(this.transactionMsg);
     }
@@ -90,12 +92,12 @@ public final class BlockMsg extends Message implements Serializable {
     /**
      * Builder
      */
-    public static class BlockMsgBuilder extends MessageBuilder {
+    public static class BlockMsgBuilder extends BodyMessageBuilder {
         private BlockHeaderMsg blockHeader;
         private List<TxMsg> transactionMsgs;
 
         BlockMsgBuilder() {}
-        BlockMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
+        BlockMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public BlockMsg.BlockMsgBuilder blockHeader(BlockHeaderMsg blockHeader) {
             this.blockHeader = blockHeader;
@@ -108,7 +110,7 @@ public final class BlockMsg extends Message implements Serializable {
         }
 
         public BlockMsg build() {
-            return new BlockMsg(blockHeader, transactionMsgs, super.payloadChecksum);
+            return new BlockMsg(blockHeader, transactionMsgs, super.extraBytes, super.checksum);
         }
 
     }

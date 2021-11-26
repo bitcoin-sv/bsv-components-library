@@ -60,7 +60,8 @@ class BigBlockDeserializerTest extends Specification {
                 errorThrown.set(true)
                 println("ERROR Received: " + e.getException())
             })
-            bigBlockDeserializer.deserialize(deserializedContext, optimizedReader)
+
+            bigBlockDeserializer.deserializeBody(deserializedContext, null, optimizedReader)
             println("End of Test.")
 
         then:

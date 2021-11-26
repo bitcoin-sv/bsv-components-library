@@ -42,8 +42,7 @@ class GetAddrMsgSerializerSpec extends Specification {
                 BitcoinMsg<GetAddrMsg> getAddrMsg = null
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(GETADDR_MSG), byteInterval, delayMs);
         when:
-            getAddrMsg = bitcoinSerializer.<GetAddrMsg>deserialize(context,
-                    byteReader, GetAddrMsg.MESSAGE_TYPE)
+            getAddrMsg = bitcoinSerializer.<GetAddrMsg>deserialize(context, byteReader, GetAddrMsg.MESSAGE_TYPE)
         then:
             getAddrMsg.getHeader().getCommand().equals(GetAddrMsg.MESSAGE_TYPE)
             getAddrMsg.getHeader().getMagic() == config.getBasicConfig().getMagicPackage()

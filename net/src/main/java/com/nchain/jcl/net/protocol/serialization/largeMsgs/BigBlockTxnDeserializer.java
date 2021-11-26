@@ -65,6 +65,7 @@ public class BigBlockTxnDeserializer extends LargeMessageDeserializerImpl {
         if (!transactions.isEmpty()) {
             notifyDeserialization(
                 PartialBlockTxnMsg.builder()
+                    .headerMsg(headerMsg)
                     .blockHash(blockHash)
                     .transactions(transactions)
                     .order(order)

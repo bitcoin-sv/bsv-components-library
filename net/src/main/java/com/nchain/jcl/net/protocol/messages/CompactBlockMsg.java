@@ -1,5 +1,6 @@
 package com.nchain.jcl.net.protocol.messages;
 
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
 import java.io.Serializable;
@@ -9,7 +10,7 @@ import java.util.List;
  * @author j.pomer@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  */
-public class CompactBlockMsg extends Message implements Serializable {
+public class CompactBlockMsg extends BodyMessage implements Serializable {
 
     public static final String MESSAGE_TYPE = "cmpctblock";
 
@@ -25,8 +26,8 @@ public class CompactBlockMsg extends Message implements Serializable {
                            long nonce,
                            List<Long> shortTxIds,
                            List<PrefilledTxMsg> prefilledTransactions,
-                           long payloadChecksum) {
-        super(payloadChecksum);
+                           byte[] extraBytes, long checksum) {
+        super(extraBytes, checksum);
         this.header = header;
         this.nonce = nonce;
         this.shortTxIds = shortTxIds;
@@ -58,7 +59,7 @@ public class CompactBlockMsg extends Message implements Serializable {
 
     @Override
     public CompactBlockMsgBuilder toBuilder() {
-        return new CompactBlockMsgBuilder(super.extraBytes, super.payloadChecksum)
+        return new CompactBlockMsgBuilder(super.extraBytes, super.checksum)
                     .header(this.header)
                     .nonce(this.nonce)
                     .shortTxIds(this.shortTxIds)
@@ -72,14 +73,14 @@ public class CompactBlockMsg extends Message implements Serializable {
     /**
      * Builder
      */
-    public static class CompactBlockMsgBuilder extends MessageBuilder {
+    public static class CompactBlockMsgBuilder extends BodyMessageBuilder {
         private CompactBlockHeaderMsg header;
         private long nonce;
         private List<Long> shortTxIds;
         private List<PrefilledTxMsg> prefilledTransactions;
 
         public CompactBlockMsgBuilder() {}
-        public CompactBlockMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
+        public CompactBlockMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public CompactBlockMsgBuilder header(CompactBlockHeaderMsg header) {
             this.header = header;
@@ -102,7 +103,7 @@ public class CompactBlockMsg extends Message implements Serializable {
         }
 
         public CompactBlockMsg build() {
-            return new CompactBlockMsg(header, nonce, shortTxIds, prefilledTransactions, super.payloadChecksum);
+            return new CompactBlockMsg(header, nonce, shortTxIds, prefilledTransactions, super.extraBytes, super.checksum);
         }
     }
 }

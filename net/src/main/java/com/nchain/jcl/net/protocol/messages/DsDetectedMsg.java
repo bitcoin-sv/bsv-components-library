@@ -1,5 +1,6 @@
 package com.nchain.jcl.net.protocol.messages;
 
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
 import java.util.List;
@@ -12,7 +13,7 @@ import java.util.List;
  *
  * This message is the main message to be submitted in the event of a double spend. Containing the transaction, block and history information needed in order to verify the double spend.
  */
-public class DsDetectedMsg extends Message {
+public class DsDetectedMsg extends BodyMessage {
 
     public static final String MESSAGE_TYPE = "dsdetected";
 
@@ -20,8 +21,9 @@ public class DsDetectedMsg extends Message {
     private VarIntMsg blockCount;
     private List<BlockDetailsMsg> blockList;
 
-    public DsDetectedMsg(int version, VarIntMsg blockCount, List<BlockDetailsMsg> blockList, long payloadChecksum) {
-        super(payloadChecksum);
+    public DsDetectedMsg(int version, VarIntMsg blockCount, List<BlockDetailsMsg> blockList,
+                         byte[] extraBytes, long checksum) {
+        super(extraBytes, checksum);
         this.version = version;
         this.blockCount = blockCount;
         this.blockList = blockList;
@@ -49,7 +51,7 @@ public class DsDetectedMsg extends Message {
     public static DsDetectedMsg.DsDetectedMsgBuilder builder() { return new DsDetectedMsg.DsDetectedMsgBuilder(); }
 
     @Override public DsDetectedMsgBuilder toBuilder() {
-        return new DsDetectedMsgBuilder(super.extraBytes, super.payloadChecksum)
+        return new DsDetectedMsgBuilder(super.extraBytes, super.checksum)
                     .withVersion(this.version)
                     .withBlockCount(this.blockCount)
                     .withBlockList(this.blockList);
@@ -58,13 +60,13 @@ public class DsDetectedMsg extends Message {
     /**
      * Builder
      */
-    public static final class DsDetectedMsgBuilder extends MessageBuilder {
+    public static final class DsDetectedMsgBuilder extends BodyMessageBuilder {
         private int version;
         private VarIntMsg blockCount;
         private List<BlockDetailsMsg> blockList;
 
         private DsDetectedMsgBuilder() {}
-        private DsDetectedMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
+        private DsDetectedMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public DsDetectedMsgBuilder withVersion(int version) {
             this.version = version;
@@ -82,7 +84,7 @@ public class DsDetectedMsg extends Message {
         }
 
         public DsDetectedMsg build() {
-            DsDetectedMsg dsDetectedMsg = new DsDetectedMsg(this.version, this.blockCount, this.blockList, super.payloadChecksum);
+            DsDetectedMsg dsDetectedMsg = new DsDetectedMsg(this.version, this.blockCount, this.blockList, super.extraBytes, super.checksum);
             return dsDetectedMsg;
         }
     }

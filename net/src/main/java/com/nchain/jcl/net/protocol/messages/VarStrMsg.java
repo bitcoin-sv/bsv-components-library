@@ -31,8 +31,7 @@ public final class VarStrMsg extends Message implements Serializable {
     private final VarIntMsg strLength;
     private final String str;
 
-    protected VarStrMsg(String str, long payloadChecksum) {
-        super(payloadChecksum);
+    protected VarStrMsg(String str) {
         this.str = str;
         this.strLength = VarIntMsg.builder().value(str.length()).build();
         init();
@@ -76,19 +75,17 @@ public final class VarStrMsg extends Message implements Serializable {
         return new VarStrMsgBuilder();
     }
 
-    @Override
     public VarStrMsgBuilder toBuilder() {
-        return new VarStrMsgBuilder(super.extraBytes, super.payloadChecksum).str(this.str);
+        return new VarStrMsgBuilder().str(this.str);
     }
 
     /**
      * Builder
      */
-    public static class VarStrMsgBuilder extends MessageBuilder {
+    public static class VarStrMsgBuilder {
         private String str;
 
         public VarStrMsgBuilder() {}
-        public VarStrMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public VarStrMsg.VarStrMsgBuilder str(String str) {
             this.str = str;
@@ -96,7 +93,7 @@ public final class VarStrMsg extends Message implements Serializable {
         }
 
         public VarStrMsg build() {
-            return new VarStrMsg(str, super.payloadChecksum);
+            return new VarStrMsg(str);
         }
 
         @Override

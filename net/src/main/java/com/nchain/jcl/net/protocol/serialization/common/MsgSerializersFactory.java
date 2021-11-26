@@ -7,6 +7,8 @@ import com.nchain.jcl.net.protocol.serialization.largeMsgs.BigBlockDeserializer;
 import com.nchain.jcl.net.protocol.serialization.largeMsgs.RawBigBlockDeserializer;
 import com.nchain.jcl.net.protocol.serialization.largeMsgs.BigBlockTxnDeserializer;
 import com.nchain.jcl.net.protocol.serialization.largeMsgs.LargeMessageDeserializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,6 +22,8 @@ import java.util.Map;
  * Builders and Serializer Classes for that Message are registered here.
  */
 public class MsgSerializersFactory {
+
+    private static Logger logger = LoggerFactory.getLogger(MsgSerializersFactory.class);
 
     // Regular Message Serializers:
     private static final Map<String, MessageSerializer> serializers = new HashMap<>();
@@ -117,8 +121,6 @@ public class MsgSerializersFactory {
             result = (RAW_SERIALIZERS_ENABLED) ? new RawBigBlockDeserializer() : new BigBlockDeserializer();
         } else if (command.equalsIgnoreCase(BlockTxnMsg.MESSAGE_TYPE)) {
             result = new BigBlockTxnDeserializer();
-        } else {
-            System.out.println("SHOULD NEVER HAPPEN: command=" + command);
         }
 
         if (result != null) {
@@ -133,7 +135,9 @@ public class MsgSerializersFactory {
      */
     public static boolean hasSerializerFor(String command, boolean onlyForLargeMessages) {
         boolean result = (!onlyForLargeMessages) ? serializers.containsKey(command.toUpperCase()) : (getLargeMsgDeserializer(command, 0) != null);
+        if (!result) {
+            logger.warn("No Serializer Found for Msg '" + command + "' " + (onlyForLargeMessages? "(large msg)" : ""));
+        }
         return result;
     }
-
 }

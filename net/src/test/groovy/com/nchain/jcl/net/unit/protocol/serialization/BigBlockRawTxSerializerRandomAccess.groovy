@@ -131,7 +131,8 @@ class BigBlockRawTxSerializerRandomAccess extends Specification {
             })
 
             // We deserialize and wait a bit:
-            bigBlockDeserializer.deserialize(desContext, byteReader)
+            // We pass a NULL HeaderMsg, since we don need it for this test
+            bigBlockDeserializer.deserializeBody(desContext, null, byteReader)
             Thread.sleep(5000)
         then:
             // We ONLY check that number of TXS (It might be worth it checking their content as well)

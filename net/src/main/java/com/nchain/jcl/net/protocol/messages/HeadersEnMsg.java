@@ -2,6 +2,7 @@ package com.nchain.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
 import java.io.Serializable;
@@ -24,7 +25,7 @@ import java.util.stream.Collectors;
  * - field: "block_header_ enriched" (90+ * MAX_ADDRESS bytes) block_header[]
  *   Array of headeren messages.
  */
-public final class HeadersEnMsg extends Message implements Serializable {
+public final class HeadersEnMsg extends BodyMessage implements Serializable {
     private static final long MAX_ADDRESSES = 2000;
     public static final String MESSAGE_TYPE = "headersen";
 
@@ -36,8 +37,9 @@ public final class HeadersEnMsg extends Message implements Serializable {
      *
      * @param blockHeaderEnMsgList
      */
-    public HeadersEnMsg(List<BlockHeaderEnMsg> blockHeaderEnMsgList, long payloadChecksum) {
-        super(payloadChecksum);
+    public HeadersEnMsg(List<BlockHeaderEnMsg> blockHeaderEnMsgList,
+                        byte[] extraBytes, long checksum) {
+        super(extraBytes, checksum);
         this.blockHeaderEnMsgList = blockHeaderEnMsgList.stream().collect(Collectors.toUnmodifiableList());
         this.count = VarIntMsg.builder().value(blockHeaderEnMsgList.size()).build();
         init();
@@ -89,17 +91,17 @@ public final class HeadersEnMsg extends Message implements Serializable {
 
     @Override
     public HeadersEnMsgBuilder toBuilder() {
-        return new HeadersEnMsgBuilder(super.extraBytes, super.payloadChecksum).blockHeaderEnMsgList(this.blockHeaderEnMsgList);
+        return new HeadersEnMsgBuilder(super.extraBytes, super.checksum).blockHeaderEnMsgList(this.blockHeaderEnMsgList);
     }
 
     /**
      * Builder
      */
-    public static class HeadersEnMsgBuilder extends MessageBuilder {
+    public static class HeadersEnMsgBuilder extends BodyMessageBuilder {
         private List<BlockHeaderEnMsg> blockHeaderEnMsgList;
 
         public HeadersEnMsgBuilder() {}
-        public HeadersEnMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
+        public HeadersEnMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public HeadersEnMsg.HeadersEnMsgBuilder blockHeaderEnMsgList(List<BlockHeaderEnMsg> blockHeaderEnMsgList) {
             this.blockHeaderEnMsgList = blockHeaderEnMsgList;
@@ -107,7 +109,7 @@ public final class HeadersEnMsg extends Message implements Serializable {
         }
 
         public HeadersEnMsg build() {
-            return new HeadersEnMsg(blockHeaderEnMsgList, payloadChecksum);
+            return new HeadersEnMsg(blockHeaderEnMsgList, super.extraBytes, super.checksum);
         }
     }
 }

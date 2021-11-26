@@ -33,9 +33,9 @@ public class P2PEventStreamer {
     private static final int DEFAULT_NUM_THREADS_GENERAL    = 1;
     private static final int DEFAULT_NUM_THREADS_GENERIC    = 50; // ONLY FOR TESTING
     private static final int DEFAULT_NUM_THREADS_PEERS      = 1;
-    private static final int DEFAULT_NUM_THREADS_MSGS       = 50;
-    private static final int DEFAULT_NUM_THREADS_STATE      = 10;
-    private static final int DEFAULT_NUM_THREADS_BLOCK      = 10;
+    private static final int DEFAULT_NUM_THREADS_MSGS       = 10;
+    private static final int DEFAULT_NUM_THREADS_STATE      = 1;
+    private static final int DEFAULT_NUM_THREADS_BLOCK      = 5;
 
     // The same EventBus that is used by the underlying P2P
     private EventBus eventBus;

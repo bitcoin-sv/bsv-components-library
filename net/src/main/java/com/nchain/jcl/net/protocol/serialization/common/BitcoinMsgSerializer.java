@@ -3,6 +3,7 @@ package com.nchain.jcl.net.protocol.serialization.common;
 
 import com.nchain.jcl.net.protocol.messages.HeaderMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 
@@ -35,7 +36,7 @@ public interface BitcoinMsgSerializer {
      * @param byteReader        Byte Source
      * @return                  The Header of the Bitcoin Message
      */
-    <M extends Message> M deserializeBody(DeserializerContext context, HeaderMsg headerMsg, ByteArrayReader byteReader);
+    <M extends BodyMessage> M deserializeBody(DeserializerContext context, HeaderMsg headerMsg, ByteArrayReader byteReader);
 
 
     /**
@@ -52,7 +53,7 @@ public interface BitcoinMsgSerializer {
      * @param command                   Type of the message (as it's stored in the "command" field in the Header)
      * @return                          A full Bitcoin-compliant Message
      */
-    <M extends Message> BitcoinMsg<M> deserialize(DeserializerContext context, ByteArrayReader byteReader,
+    <M extends BodyMessage> BitcoinMsg<M> deserialize(DeserializerContext context, ByteArrayReader byteReader,
                                                   String command);
 
 
@@ -65,15 +66,7 @@ public interface BitcoinMsgSerializer {
      * @param command                   Type of the message (as it's stored in the "command" field in the Header)
      * @return                          The content of "bitcoinMessage" serialized
      */
-    <M extends Message> ByteArrayReader serialize(SerializerContext context, BitcoinMsg<M> bitcoinMessage,
+    <M extends BodyMessage> ByteArrayReader serialize(SerializerContext context, BitcoinMsg<M> bitcoinMessage,
                                                   String command);
-
-    /**
-     * It sends a signal to this Serializer so it stops immediately, throwing a RuntimeException. The time when the
-     * Serializer really stops after receiving this signal, depends on the implementation.
-     */
-    default void kill() {}
-    /** Indicates if this Serializer is killable or not */
-    default boolean isKillable() { return false; }
 
 }

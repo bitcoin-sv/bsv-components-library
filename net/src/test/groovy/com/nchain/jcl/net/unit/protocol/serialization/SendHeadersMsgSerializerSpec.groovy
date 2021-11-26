@@ -61,7 +61,7 @@ class SendHeadersMsgSerializerSpec extends Specification {
             SendHeadersMsg sendHeadersMsg = SendHeadersMsg.builder().build()
 
             HeaderMsg headerMsg = HeaderMsg.builder()
-                    .payloadChecksum(3806393949)
+                    .checksum(3806393949)
                     .command(SendHeadersMsg.MESSAGE_TYPE)
                     .length((int)sendHeadersMsg.getLengthInBytes())
                     .magic(1)

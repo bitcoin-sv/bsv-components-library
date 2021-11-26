@@ -2,6 +2,7 @@ package com.nchain.jcl.net.protocol.messages;
 
 
 import com.google.common.base.Objects;
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
 import java.io.Serializable;
@@ -18,14 +19,15 @@ import java.io.Serializable;
  * Structure of the Message:
  * - fee: A long value indicating the Fee (in Satoshis / KB)
  */
-public class FeeFilterMsg extends Message implements Serializable {
+public class FeeFilterMsg extends BodyMessage implements Serializable {
 
     public static final String MESSAGE_TYPE = "feefilter";
 
     private Long fee;
 
-    public FeeFilterMsg(Long fee, long payloadChecksum) {
-        super(payloadChecksum);
+    public FeeFilterMsg(Long fee,
+                        byte[] extraBytes, long checksum) {
+        super(extraBytes, checksum);
         this.fee = fee;
         init();
     }
@@ -57,17 +59,17 @@ public class FeeFilterMsg extends Message implements Serializable {
 
     @Override
     public FeeFilterMsgBuilder toBuilder() {
-        return new FeeFilterMsgBuilder(super.extraBytes, super.payloadChecksum).fee(this.fee);
+        return new FeeFilterMsgBuilder(super.extraBytes, super.checksum).fee(this.fee);
     }
 
     /**
      * Builder
      */
-    public static class FeeFilterMsgBuilder extends MessageBuilder {
+    public static class FeeFilterMsgBuilder extends BodyMessageBuilder {
         private Long fee;
 
         FeeFilterMsgBuilder() {}
-        FeeFilterMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
+        FeeFilterMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public FeeFilterMsg.FeeFilterMsgBuilder fee(Long fee) {
             this.fee = fee;
@@ -75,7 +77,7 @@ public class FeeFilterMsg extends Message implements Serializable {
         }
 
         public FeeFilterMsg build() {
-            return new FeeFilterMsg(fee, super.payloadChecksum);
+            return new FeeFilterMsg(fee, super.extraBytes, super.checksum);
         }
     }
 }

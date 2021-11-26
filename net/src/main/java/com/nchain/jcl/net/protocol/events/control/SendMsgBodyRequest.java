@@ -4,6 +4,7 @@ package com.nchain.jcl.net.protocol.events.control;
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.network.events.P2PRequest;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 import com.nchain.jcl.tools.events.Event;
 
@@ -17,16 +18,16 @@ import com.nchain.jcl.tools.events.Event;
  */
 public final class SendMsgBodyRequest extends P2PRequest {
     private final PeerAddress peerAddress;
-    private final Message msgBody;
+    private final BodyMessage msgBody;
 
-    public SendMsgBodyRequest(PeerAddress peerAddress, Message msgBody
+    public SendMsgBodyRequest(PeerAddress peerAddress, BodyMessage msgBody
     ) {
         this.peerAddress = peerAddress;
         this.msgBody = msgBody;
     }
 
     public PeerAddress getPeerAddress() { return this.peerAddress; }
-    public Message getMsgBody()    { return this.msgBody; }
+    public BodyMessage getMsgBody()    { return this.msgBody; }
 
     @Override
     public String toString() {

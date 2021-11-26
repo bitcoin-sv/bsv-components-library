@@ -3,6 +3,7 @@ package com.nchain.jcl.net.protocol.messages;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
 import java.io.Serializable;
@@ -24,7 +25,7 @@ import java.util.List;
  * - field: "inv_vect[]" (36*count) array of inventory vectors
  *   Inventory vectors.
  */
-public final class GetdataMsg extends Message implements Serializable {
+public final class GetdataMsg extends BodyMessage implements Serializable {
     private static final long MAX_ADDRESSES = 50000;
     public static final String MESSAGE_TYPE = "getdata";
 
@@ -35,8 +36,9 @@ public final class GetdataMsg extends Message implements Serializable {
     /**
      * Creates the InvMessage Object.Use the corresponding byteArray to create the instance.
      */
-    protected GetdataMsg(List<InventoryVectorMsg> invVectorList, long payloadChecksum) {
-        super(payloadChecksum);
+    protected GetdataMsg(List<InventoryVectorMsg> invVectorList,
+                         byte[] extraBytes, long checksum) {
+        super(extraBytes, checksum);
         this.invVectorList = ImmutableList.copyOf(invVectorList);
         //count value is calculated from the inv vector list
         long count =  this.invVectorList.size();
@@ -89,17 +91,17 @@ public final class GetdataMsg extends Message implements Serializable {
 
     @Override
     public GetdataMsgBuilder toBuilder() {
-        return new GetdataMsgBuilder(super.extraBytes, super.payloadChecksum).invVectorList(this.invVectorList);
+        return new GetdataMsgBuilder(super.extraBytes, super.checksum).invVectorList(this.invVectorList);
     }
 
     /**
      * Builder
      */
-    public static class GetdataMsgBuilder extends MessageBuilder {
+    public static class GetdataMsgBuilder extends BodyMessageBuilder {
         private List<InventoryVectorMsg> invVectorList;
 
         public GetdataMsgBuilder() {}
-        public GetdataMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
+        public GetdataMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public GetdataMsg.GetdataMsgBuilder invVectorList(List<InventoryVectorMsg> invVectorList) {
             this.invVectorList = invVectorList;
@@ -107,7 +109,7 @@ public final class GetdataMsg extends Message implements Serializable {
         }
 
         public GetdataMsg build() {
-            return new GetdataMsg(invVectorList, super.payloadChecksum);
+            return new GetdataMsg(invVectorList, super.extraBytes, super.checksum);
         }
     }
 }

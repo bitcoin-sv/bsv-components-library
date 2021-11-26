@@ -46,9 +46,7 @@ public class BlockHeaderSimpleMsg extends Message implements Serializable {
                                 HashMsg merkleRoot,
                                 long creationTimestamp,
                                 long difficultyTarget,
-                                long nonce,
-                                long payloadchecksum) {
-        super(payloadchecksum);
+                                long nonce) {
         this.hash = hash;
         this.version = version;
         this.prevBlockHash = prevBlockHash;
@@ -133,9 +131,8 @@ public class BlockHeaderSimpleMsg extends Message implements Serializable {
             && Objects.equal(this.nonce, other.nonce);
     }
 
-    @Override
     public BlockHeaderSimpleMsgBuilder toBuilder() {
-        return new BlockHeaderSimpleMsgBuilder(super.extraBytes, super.payloadChecksum)
+        return new BlockHeaderSimpleMsgBuilder()
                     .hash(this.hash)
                     .version(this.version)
                     .prevBlockHash(this.prevBlockHash)
@@ -147,7 +144,7 @@ public class BlockHeaderSimpleMsg extends Message implements Serializable {
     /**
      * Builder
      */
-    public static class BlockHeaderSimpleMsgBuilder extends MessageBuilder {
+    public static class BlockHeaderSimpleMsgBuilder {
         protected HashMsg hash;
         protected long version;
         protected HashMsg prevBlockHash;
@@ -157,7 +154,6 @@ public class BlockHeaderSimpleMsg extends Message implements Serializable {
         protected long nonce;
 
         public BlockHeaderSimpleMsgBuilder() {}
-        public BlockHeaderSimpleMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public BlockHeaderSimpleMsgBuilder hash(HashMsg hash) {
             this.hash = hash;
@@ -195,7 +191,7 @@ public class BlockHeaderSimpleMsg extends Message implements Serializable {
         }
 
         public BlockHeaderSimpleMsg build() {
-            return new BlockHeaderSimpleMsg(hash, version, prevBlockHash, merkleRoot, creationTimestamp, difficultyTarget, nonce, super.payloadChecksum);
+            return new BlockHeaderSimpleMsg(hash, version, prevBlockHash, merkleRoot, creationTimestamp, difficultyTarget, nonce);
         }
     }
 }

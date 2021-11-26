@@ -2,6 +2,7 @@ package com.nchain.jcl.net.protocol.messages;
 
 
 import com.google.common.base.Objects;
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
 import java.io.Serializable;
@@ -17,12 +18,12 @@ import java.io.Serializable;
  * not deserialized.
  *
  */
-public abstract class RawMsg extends Message implements Serializable {
+public abstract class RawMsg extends BodyMessage implements Serializable {
 
     protected byte[] content;
 
-    public RawMsg(byte[] content, long payloadChecksum) {
-        super(payloadChecksum);
+    public RawMsg(byte[] content, byte[] extraBytes, long checksum) {
+        super(extraBytes, checksum);
         this.content = content;
     }
 

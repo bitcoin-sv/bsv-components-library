@@ -23,8 +23,7 @@ public class HashMsg extends Message implements Serializable {
 
     private final byte[] hashBytes;
 
-  protected HashMsg(byte[] hash, long payloadChecksum) {
-      super(payloadChecksum);
+  protected HashMsg(byte[] hash) {
         this.hashBytes = hash;
         init();
     }
@@ -67,19 +66,17 @@ public class HashMsg extends Message implements Serializable {
         return Arrays.equals(this.hashBytes, other.hashBytes);
     }
 
-    @Override
     public HashMsgBuilder toBuilder() {
-      return new HashMsgBuilder(super.extraBytes, super.payloadChecksum).hash(this.hashBytes);
+      return new HashMsgBuilder().hash(this.hashBytes);
     }
 
     /**
      * Builder
      */
-    public static class HashMsgBuilder extends MessageBuilder{
+    public static class HashMsgBuilder {
         private byte[] hash;
 
         public HashMsgBuilder() {}
-        public HashMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public HashMsg.HashMsgBuilder hash(byte[] hash) {
             this.hash = hash;
@@ -87,7 +84,7 @@ public class HashMsg extends Message implements Serializable {
         }
 
         public HashMsg build() {
-            return new HashMsg(hash, super.payloadChecksum);
+            return new HashMsg(hash);
         }
 
     }

@@ -125,8 +125,10 @@ public class RawBigBlockDeserializer extends LargeMessageDeserializerImpl {
             resetReaderSpeed(byteReader);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             notifyError(e);
+        } catch (Throwable th) {
+            th.printStackTrace();
         }
     }
 }

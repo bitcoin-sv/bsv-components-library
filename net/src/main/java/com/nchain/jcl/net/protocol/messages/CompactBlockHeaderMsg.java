@@ -41,9 +41,7 @@ public class CompactBlockHeaderMsg extends Message implements Serializable {
                                  HashMsg merkleRoot,
                                  long creationTimestamp,
                                  long difficultyTarget,
-                                 long nonce,
-                                 long payloadChecksum) {
-        super(payloadChecksum);
+                                 long nonce) {
         this.hash = hash;
         this.version = version;
         this.prevBlockHash = prevBlockHash;
@@ -131,9 +129,8 @@ public class CompactBlockHeaderMsg extends Message implements Serializable {
         return Objects.hashCode(hash, version, prevBlockHash, merkleRoot, creationTimestamp, difficultyTarget, nonce);
     }
 
-    @Override
     public CompactBlockHeaderMsgBuilder toBuilder() {
-        return new CompactBlockHeaderMsgBuilder(super.extraBytes, super.payloadChecksum)
+        return new CompactBlockHeaderMsgBuilder()
                     .hash(this.hash)
                     .version(this.version)
                     .prevBlockHash(this.prevBlockHash)
@@ -146,7 +143,7 @@ public class CompactBlockHeaderMsg extends Message implements Serializable {
     /**
      * Builder
      */
-    public static class CompactBlockHeaderMsgBuilder extends MessageBuilder{
+    public static class CompactBlockHeaderMsgBuilder {
         protected HashMsg hash;
         protected long version;
         protected HashMsg prevBlockHash;
@@ -156,7 +153,6 @@ public class CompactBlockHeaderMsg extends Message implements Serializable {
         protected long nonce;
 
         public CompactBlockHeaderMsgBuilder() {}
-        public CompactBlockHeaderMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public CompactBlockHeaderMsgBuilder hash(HashMsg hash) {
             this.hash = hash;
@@ -194,7 +190,7 @@ public class CompactBlockHeaderMsg extends Message implements Serializable {
         }
 
         public CompactBlockHeaderMsg build() {
-            return new CompactBlockHeaderMsg(hash, version, prevBlockHash, merkleRoot, creationTimestamp, difficultyTarget, nonce, super.payloadChecksum);
+            return new CompactBlockHeaderMsg(hash, version, prevBlockHash, merkleRoot, creationTimestamp, difficultyTarget, nonce);
         }
     }
 }

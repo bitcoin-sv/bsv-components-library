@@ -4,6 +4,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheStats;
 import com.nchain.jcl.net.protocol.messages.HeaderMsg;
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl;
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
@@ -69,7 +70,7 @@ public class Deserializer {
         @Override public int hashCode() { return Long.hashCode(headerMsg.getChecksum()); }
     }
 
-    private Cache<CacheMsgKey, Message> cache;
+    private Cache<CacheMsgKey, BodyMessage> cache;
 
 
     // Object instance (Singleton) and configuration:
@@ -111,8 +112,7 @@ public class Deserializer {
     }
 
     /** Expensive Operation. It deserializes a Message from the pipeline using the Bitcoin Serializers */
-    private Message deserialize(CacheMsgKey key) {
-        //System.out.println("DESERIALIZING " + key.headerMsg.getCommand() + " !!!!!!!!!");
+    private BodyMessage deserialize(CacheMsgKey key) {
         return BitcoinMsgSerializerImpl.getInstance().deserializeBody(key.desContext, key.headerMsg, key.reader);
     }
 
@@ -130,8 +130,8 @@ public class Deserializer {
      * @return              The next BODY of the message after deserialization
      * @throws Exception
      */
-    public Message deserialize(HeaderMsg headerMsg, DeserializerContext desContext, ByteArrayReader reader) throws Exception {
-        Message result = null;
+    public BodyMessage deserialize(HeaderMsg headerMsg, DeserializerContext desContext, ByteArrayReader reader) throws Exception {
+        BodyMessage result = null;
 
         // We build the Cache-Key for this Message...
         CacheMsgKey key = new CacheMsgKey(headerMsg, desContext, reader);

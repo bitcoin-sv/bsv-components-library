@@ -31,8 +31,7 @@ public final class TxOutputMsg extends Message implements Serializable {
 
 
 
-    protected TxOutputMsg(long txValue, byte[] pk_script, long payloadChecksum) {
-        super(payloadChecksum);
+    protected TxOutputMsg(long txValue, byte[] pk_script) {
         this.txValue = txValue;
         this.pk_script = pk_script;
         this.pk_script_length = VarIntMsg.builder().value(pk_script.length).build();
@@ -82,21 +81,19 @@ public final class TxOutputMsg extends Message implements Serializable {
         return new TxOutputMsgBuilder();
     }
 
-    @Override
     public TxOutputMsgBuilder toBuilder() {
-        return new TxOutputMsgBuilder(super.extraBytes, super.payloadChecksum)
+        return new TxOutputMsgBuilder()
                         .txValue(this.txValue)
                         .pk_script(this.pk_script);
     }
     /**
      * Builder
      */
-    public static class TxOutputMsgBuilder extends MessageBuilder {
+    public static class TxOutputMsgBuilder {
         private long txValue;
         private byte[] pk_script;
 
         public TxOutputMsgBuilder() {}
-        public TxOutputMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public TxOutputMsg.TxOutputMsgBuilder txValue(long txValue) {
             this.txValue = txValue;
@@ -109,7 +106,7 @@ public final class TxOutputMsg extends Message implements Serializable {
         }
 
         public TxOutputMsg build() {
-            return new TxOutputMsg(txValue, pk_script, super.payloadChecksum);
+            return new TxOutputMsg(txValue, pk_script);
         }
     }
 }

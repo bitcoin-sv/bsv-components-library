@@ -34,8 +34,7 @@ public final class TxInputMsg extends Message implements Serializable {
     private final long sequence;
 
 
-    protected TxInputMsg(TxOutPointMsg pre_outpoint, byte[] signature_script, long sequence, long payloadChecksum) {
-        super(payloadChecksum);
+    protected TxInputMsg(TxOutPointMsg pre_outpoint, byte[] signature_script, long sequence) {
         this.pre_outpoint = pre_outpoint;
         this.signature_script = signature_script;
         this.script_length = VarIntMsg.builder().value(signature_script.length).build();
@@ -93,9 +92,8 @@ public final class TxInputMsg extends Message implements Serializable {
         return new TxInputMsgBuilder();
     }
 
-    @Override
     public TxInputMsgBuilder toBuilder() {
-        return new TxInputMsgBuilder(super.extraBytes, super.payloadChecksum)
+        return new TxInputMsgBuilder()
                     .pre_outpoint(this.pre_outpoint)
                     .signature_script(this.signature_script)
                     .sequence(this.sequence);
@@ -104,13 +102,12 @@ public final class TxInputMsg extends Message implements Serializable {
     /**
      * Builder
      */
-    public static class TxInputMsgBuilder extends MessageBuilder {
+    public static class TxInputMsgBuilder {
         private TxOutPointMsg pre_outpoint;
         private byte[] signature_script;
         private long sequence;
 
         public TxInputMsgBuilder() { }
-        public TxInputMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public TxInputMsg.TxInputMsgBuilder pre_outpoint(TxOutPointMsg pre_outpoint) {
             this.pre_outpoint = pre_outpoint;
@@ -128,7 +125,7 @@ public final class TxInputMsg extends Message implements Serializable {
         }
 
         public TxInputMsg build() {
-            return new TxInputMsg(pre_outpoint, signature_script, sequence, super.payloadChecksum);
+            return new TxInputMsg(pre_outpoint, signature_script, sequence);
         }
     }
 }

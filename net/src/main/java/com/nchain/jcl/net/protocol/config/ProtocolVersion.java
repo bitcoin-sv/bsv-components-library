@@ -9,10 +9,11 @@ package com.nchain.jcl.net.protocol.config;
 public enum ProtocolVersion {
     ENABLE_TIMESTAMP_ADDRESS(31402),
     ENABLE_VERSION(31800),
-    CURRENT(70013),
     ENABLE_RELAY(70001),
     ENABLE_ASSOCIATION_ID(70015),
-    ENABLE_EXT_MSGS(70016);
+    ENABLE_EXT_MSGS(70016),
+    CURRENT(70015)
+    ;
 
     private final int version;
     

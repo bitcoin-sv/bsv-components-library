@@ -732,7 +732,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                 return;
             }
 
-            // If this block is in the "pendingToCancel" list, that means that this Block ha sbeen cencelled, so we do
+            // If this block is in the "pendingToCancel" list, that means that this Block has been cancelled, so we do
             // not try to re-attempts it anymore...
 
             if (this.blocksPendingToCancel.contains(blockHash)) {
@@ -745,7 +745,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                 logger.debug("Download failure for " + blockHash + " :: back to the pending Pool...");
                 blocksDownloadHistory.register(blockHash, "Block moved back to the pending Pool");
                 blocksPendingManager.addWithPriority(blockHash); // we add it to the FRONT of the Queue
-                this.totalReattempts.incrementAndGet();                       // keep track of total re-attempts
+                this.totalReattempts.incrementAndGet();          // keep track of total re-attempts
             } else {
                 logger.debug("Download failure for " + blockHash, numAttempts + " attempts (max " + config.getMaxDownloadAttempts() + ")", "discarding Block...");
                 blocksDownloadHistory.register(blockHash,   "block discarded (max attempts broken, reset to zero)");

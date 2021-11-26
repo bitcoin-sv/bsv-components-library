@@ -20,8 +20,7 @@ public class BlockDetailsMsg extends Message {
     private List<BlockHeaderSimpleMsg> headerMsg;
     private MerkleProofMsg merkleProofMsg;
 
-    public BlockDetailsMsg(VarIntMsg headerCount, List<BlockHeaderSimpleMsg> headerMsg, MerkleProofMsg merkleProofMsg, long payloadChecksum) {
-        super(payloadChecksum);
+    public BlockDetailsMsg(VarIntMsg headerCount, List<BlockHeaderSimpleMsg> headerMsg, MerkleProofMsg merkleProofMsg) {
         this.headerCount = headerCount;
         this.headerMsg = headerMsg;
         this.merkleProofMsg = merkleProofMsg;
@@ -49,9 +48,8 @@ public class BlockDetailsMsg extends Message {
         return new BlockDetailsMsgBuilder();
     }
 
-    @Override
     public BlockDetailsMsgBuilder toBuilder() {
-        return new BlockDetailsMsgBuilder(super.extraBytes, super.payloadChecksum)
+        return new BlockDetailsMsgBuilder()
                     .headerCount(this.headerCount)
                     .headerMsg(this.headerMsg)
                     .merkleProofMsg(this.merkleProofMsg);
@@ -60,13 +58,12 @@ public class BlockDetailsMsg extends Message {
     /**
      * Builder
      */
-    public static final class BlockDetailsMsgBuilder extends  MessageBuilder{
+    public static final class BlockDetailsMsgBuilder{
         private VarIntMsg headerCount;
         private List<BlockHeaderSimpleMsg> headerMsg;
         private MerkleProofMsg merkleProofMsg;
 
         private BlockDetailsMsgBuilder() {}
-        private BlockDetailsMsgBuilder(byte[] extraBytes, long payloadChecksum) { super(extraBytes, payloadChecksum);}
 
         public static BlockDetailsMsgBuilder BlockDetailsMsgBuilder() {
             return new BlockDetailsMsgBuilder();
@@ -88,7 +85,7 @@ public class BlockDetailsMsg extends Message {
         }
 
         public BlockDetailsMsg build() {
-            return new BlockDetailsMsg(headerCount, headerMsg, merkleProofMsg, super.payloadChecksum);
+            return new BlockDetailsMsg(headerCount, headerMsg, merkleProofMsg);
         }
     }
 }

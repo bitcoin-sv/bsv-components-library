@@ -2,6 +2,7 @@ package com.nchain.jcl.net.protocol.events.control;
 
 import com.nchain.jcl.net.network.events.P2PRequest;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
+import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 
 /**
@@ -16,13 +17,13 @@ import com.nchain.jcl.net.protocol.messages.common.Message;
  * be automatically created at the moment of sending the mesage...
  */
 public final class BroadcastMsgBodyRequest extends P2PRequest {
-    private final Message body;
+    private final BodyMessage body;
 
-    public BroadcastMsgBodyRequest(Message body) {
+    public BroadcastMsgBodyRequest(BodyMessage body) {
         this.body = body;
     }
 
-    public Message getMsgBody() { return this.body; }
+    public BodyMessage getMsgBody() { return this.body; }
 
     @Override
     public String toString() {
