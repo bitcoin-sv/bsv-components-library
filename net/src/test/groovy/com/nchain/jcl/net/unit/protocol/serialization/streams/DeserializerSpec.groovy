@@ -49,6 +49,7 @@ class DeserializerSpec extends Specification {
         ByteArrayReader reader = serializer.serialize(serContext, message, command)
 
         DeserializerContext desContext = DeserializerContext.builder()
+                .maxBytesToRead(message.getLengthInbytes())
                 .protocolBasicConfig(protocolConfig)
                 .insideVersionMsg(command.equalsIgnoreCase(VersionMsg.MESSAGE_TYPE))
                 .build()

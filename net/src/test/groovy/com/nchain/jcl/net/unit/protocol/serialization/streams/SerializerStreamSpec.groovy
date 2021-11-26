@@ -63,14 +63,12 @@ class SerializerStreamSpec extends Specification {
      */
     def "Testing Transformation Function with a Bitcoin Version Message"() {
         given:
-            //general test config
+            // general test config
             ExecutorService executor = Executors.newSingleThreadExecutor()
             VarStrMsg userAgentMsg = VarStrMsg.builder().str(REF_BODY_USER_AGENT).build();
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-            DeserializerContext deserializerContext = DeserializerContext.builder().protocolBasicConfig(config.getBasicConfig()).build()
-            SerializerContext serializerContext = SerializerContext.builder().protocolBasicConfig(config.getBasicConfig()).build()
 
-            // generate a serialized version message
+            // We create a VERSION Message:
             NetAddressMsg body_addr = NetAddressMsg.builder()
                     .address(REF_BODY_ADDRESS)
                     .build()
@@ -84,42 +82,43 @@ class SerializerStreamSpec extends Specification {
                     .relay(true)
                     .build()
 
-            // we need to serialize the message so we can calculate the checksum
-            ByteArrayWriter versionByteWriter = new ByteArrayWriter();
-            VersionMsgSerializer.getInstance().serialize(serializerContext, versionMsg, versionByteWriter);
-            byte[] bodyBytes = versionByteWriter.reader().getFullContentAndClose()
-            long checksum = Utils.readUint32(Sha256Hash.hashTwice(bodyBytes), 0);
-
-            //generate the bitcoins header message with the calculated checksum
+            // We Build the whole Message:
             HeaderMsg header = HeaderMsg.builder()
-                    .command(versionMsg.getMessageType())
-                    .length((int) versionMsg.getLengthInBytes())
-                    .magic(config.getBasicConfig().getMagicPackage())
-                    .checksum(checksum)
-                    .build();
+                .command(versionMsg.getMessageType())
+                .length((int) versionMsg.getLengthInBytes())
+                .magic(config.getBasicConfig().getMagicPackage())
+                .build();
 
-            //build the bitcoin message from the constructed header and version message
-            BitcoinMsg<VersionMsg> sentMessage = new BitcoinMsg<>(header, versionMsg);
-            //the received message will be stored here for comparison
-            BitcoinMsg<VersionMsg> receivedMessage;
+            // Now we calculate its checksum and inject it back:
+            long checksum = BitcoinMsgSerializerImpl.getInstance().calculateChecksum(config.getBasicConfig(), versionMsg);
+            header = header.toBuilder().checksum(checksum).build()
 
+            BitcoinMsg<VersionMsg> messageToSent = new BitcoinMsg<>(header, versionMsg);
 
+            // This is the Message that will be received. It will be populated by a callback:
+            BitcoinMsg<VersionMsg> messageReceived;
+
+            // We send the message:
             // We crate our Destination,and some callbacks to deserialize our message
-
+            DeserializerContext deserializerContext = DeserializerContext.builder()
+                .protocolBasicConfig(config.getBasicConfig())
+                .insideVersionMsg(true)
+                .maxBytesToRead(messageToSent.getLengthInbytes())
+                .build()
             PeerOutputStream<ByteArrayReader> destination = new PeerDestination(executor, REF_BODY_ADDRESS)
-            destination.onData({ e -> receivedMessage = BitcoinMsgSerializerImpl.getInstance().deserialize(deserializerContext, e.getData(), VersionMsg.MESSAGE_TYPE) })
+            destination.onData({ e -> messageReceived = BitcoinMsgSerializerImpl.getInstance().deserialize(deserializerContext, e.getData(), VersionMsg.MESSAGE_TYPE) })
 
             // We create our Output Stream:
             PeerOutputStream<BitcoinMsg> myOutputStream = new SerializerStream(executor, destination, config.getBasicConfig())
 
         when:
-            myOutputStream.send(new StreamDataEvent<BitcoinMsg>(sentMessage))
+            myOutputStream.send(new StreamDataEvent<BitcoinMsg>(messageToSent))
 
             // We wait a little bit until all te data has passed through the InputStream:
             Thread.sleep(1000)
 
         then:
-            sentMessage == receivedMessage
+            messageToSent == messageReceived
     }
 
 

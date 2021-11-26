@@ -51,7 +51,7 @@ class BlockDownloadTest extends Specification {
 
             "0000000011139d059a772fb14123a0bbe66b1a6782d4aebe2a6b2c9f92850a7d", // 6MB
             "00000000000000000fc65b3827b997cbce18350b7aa03ac306367e220cb7ad52", // 115MB
-           "0000000000000000052c4236c4c34dc7686f8285e2646a584785b8d3b1eb8779", // 1.25GB
+           //"0000000000000000052c4236c4c34dc7686f8285e2646a584785b8d3b1eb8779", // 1.25GB
             "000000000000000002f5268d72f9c79f29bef494e350e58f624bcf28700a1846", // 369MB
             "0000000000000000027abeb2a2348dac5f953676f6b68a6ed5d92458a1c12cab", // 0.6MB
             "000000000000000000dd6c89655ca27fd2555247232a5ced8376f5bda0d26ec4", // 12MB
@@ -117,7 +117,7 @@ class BlockDownloadTest extends Specification {
      *
      */
     // We disable this test, since it's very time-consuming
-    //@Ignore
+    @Ignore
     def "Testing Block Downloading"() {
         given:
             // The longest Timeout we'll wait for to run the test:

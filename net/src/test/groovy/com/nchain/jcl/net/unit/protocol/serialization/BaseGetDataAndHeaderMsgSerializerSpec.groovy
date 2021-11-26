@@ -3,6 +3,7 @@ package com.nchain.jcl.net.unit.protocol.serialization
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
+import com.nchain.jcl.net.protocol.config.ProtocolVersion
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import com.nchain.jcl.net.protocol.messages.BaseGetDataAndHeaderMsg
 import com.nchain.jcl.net.protocol.messages.HashMsg
@@ -24,9 +25,9 @@ import spock.lang.Specification
  * Copyright (c) 2018-2019 Bitcoin Association
  * Distributed under the Open BSV software license, see the accompanying file LICENSE.
  *
- * @date 17/09/2019
+ * NOTE: The Reference HEX Strings used have been generated using 70013 a the protocol Version
  *
- * * Testing class for the BaseGetDataAndHeaderMsgSerializer Serialization.
+ * Testing class for the BaseGetDataAndHeaderMsgSerializer Serialization.
  */
 class BaseGetDataAndHeaderMsgSerializerSpec extends Specification {
     private static final String REF_MSG_BODY = "7d11010001a69d45e7abc3b8fc363d13b88aaa2f2ec62bf77b6881e8bd" +
@@ -35,11 +36,14 @@ class BaseGetDataAndHeaderMsgSerializerSpec extends Specification {
     def "testing BaseGetDataAndHeaderMsg Deserializing"() {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
+                .protocolVersion(ProtocolVersion.ENABLE_FEE_FILTER.getVersion())
+                .build()
             SerializerContext context = SerializerContext.builder()
-                    .protocolBasicConfig(config.getBasicConfig())
+                    .protocolBasicConfig(basicConfig)
                     .build()
 
-            BaseGetDataAndHeaderMsg baseMsg = buildBaseMsg(config.getBasicConfig())
+            BaseGetDataAndHeaderMsg baseMsg = buildBaseMsg(basicConfig)
             ByteArrayWriter byteWriter = new ByteArrayWriter()
             byte[] messageBytes
             String messageSerialized
@@ -55,8 +59,11 @@ class BaseGetDataAndHeaderMsgSerializerSpec extends Specification {
         given:
 
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
+                .protocolVersion(ProtocolVersion.ENABLE_FEE_FILTER.getVersion())
+                .build()
             DeserializerContext context = DeserializerContext.builder()
-                    .protocolBasicConfig(config.getBasicConfig())
+                    .protocolBasicConfig(basicConfig)
                     .maxBytesToRead((long)(REF_MSG_BODY.length()/2))
                     .build()
 

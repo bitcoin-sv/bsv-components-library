@@ -111,7 +111,7 @@ class RejectMsgSerializationSpec extends Specification {
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
-                    .maxBytesToRead((long) (REF_REJECT_BODY_MSG.length() / 2))
+                    .maxBytesToRead(Utils.HEX.decode(REF_REJECT_MSG).length)
                     .build()
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_REJECT_MSG), byteInterval, delayMs)
             BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()

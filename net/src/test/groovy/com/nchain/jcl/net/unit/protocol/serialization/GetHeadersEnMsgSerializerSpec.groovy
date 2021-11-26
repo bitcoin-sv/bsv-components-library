@@ -1,8 +1,9 @@
 package com.nchain.jcl.net.unit.protocol.serialization
 
-
+import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
+import com.nchain.jcl.net.protocol.config.ProtocolVersion
 import com.nchain.jcl.net.protocol.messages.*
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder
@@ -22,6 +23,8 @@ import spock.lang.Specification
 /**
  * @author m.jose@nchain.com
  * Copyright (c) 2018-2019 Bitcoin Association
+ *
+ * NOTE: The Reference HEX Strings used have been generated using 70013 a the protocol Version
  */
 class GetHeadersEnMsgSerializerSpec extends Specification {
     private static final String REF_GETHEADERSEN_MSG_BODY = "7d110100a69d45e7abc3b8fc363d13b88aaa2f2ec62bf77b6881e8b" +
@@ -32,8 +35,11 @@ class GetHeadersEnMsgSerializerSpec extends Specification {
     def "testing getGetHeadersenMessage BODY Serializing"() {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
+                .protocolVersion(ProtocolVersion.ENABLE_FEE_FILTER.getVersion())
+                .build()
             SerializerContext context  = SerializerContext.builder()
-                .protocolBasicConfig(config.getBasicConfig())
+                .protocolBasicConfig(basicConfig)
                 .build()
 
             // locator Hash reversed (human-read format)
@@ -45,7 +51,7 @@ class GetHeadersEnMsgSerializerSpec extends Specification {
             HashMsg stopHashMsg = HashMsg.builder().hash(stopHash).build()
 
             GetHeadersEnMsg getHeadersEnMsg = GetHeadersEnMsg.builder()
-                    .version(config.basicConfig.protocolVersion)
+                    .version(basicConfig.protocolVersion)
                     .blockLocatorHash(hashMsg)
                     .hashStop(stopHashMsg).build();
 
@@ -62,8 +68,11 @@ class GetHeadersEnMsgSerializerSpec extends Specification {
     def "testing getGetHeadersEnMessage BODY De-Serializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
+                .protocolVersion(ProtocolVersion.ENABLE_FEE_FILTER.getVersion())
+                .build()
             DeserializerContext context = DeserializerContext.builder()
-                    .protocolBasicConfig(config.getBasicConfig())
+                    .protocolBasicConfig(basicConfig)
                     .maxBytesToRead((long) (REF_GETHEADERSEN_MSG_BODY.length()/2))
                     .build()
             GetHeadersEnMsg  getHeadersEnMsg
@@ -85,8 +94,11 @@ class GetHeadersEnMsgSerializerSpec extends Specification {
     def "testing getGetHeadersenMessage COMPLETE Serializing"() {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
+                .protocolVersion(ProtocolVersion.ENABLE_FEE_FILTER.getVersion())
+                .build()
             SerializerContext context = SerializerContext.builder()
-                    .protocolBasicConfig(config.getBasicConfig())
+                    .protocolBasicConfig(basicConfig)
                     .build()
             GetHeadersEnMsg getHeadersEnMsg = buildGetHeadersEnMsg(config)
 
@@ -103,8 +115,11 @@ class GetHeadersEnMsgSerializerSpec extends Specification {
     def "testing getGetHeadersEnMessage COMPLETE De-serializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
+                .protocolVersion(ProtocolVersion.ENABLE_FEE_FILTER.getVersion())
+                .build()
             DeserializerContext context = DeserializerContext.builder()
-                    .protocolBasicConfig(config.getBasicConfig())
+                    .protocolBasicConfig(basicConfig)
                     .maxBytesToRead((long) (REF_GETHEADERSEN_MSG_FULL.length() / 2))
                     .build()
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_GETHEADERSEN_MSG_FULL), byteInterval, delayMs);
@@ -121,6 +136,10 @@ class GetHeadersEnMsgSerializerSpec extends Specification {
     }
 
     private GetHeadersEnMsg buildGetHeadersEnMsg(ProtocolConfig config) {
+        // We make sure we use the same Protocol Version:
+        ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
+                .protocolVersion(ProtocolVersion.ENABLE_FEE_FILTER.getVersion())
+                .build()
         // locator Hash reversed (human-read format)
         byte[] locatorHash = Sha256Hash.wrapReversed(Utils.HEX.decode("2b801dd82f01d17bbde881687bf72bc62e2faa8ab8133d36fcb8c3abe7459da6")).getBytes()
         HashMsg hashMsg = HashMsg.builder().hash(locatorHash).build()
@@ -129,7 +148,7 @@ class GetHeadersEnMsgSerializerSpec extends Specification {
         HashMsg stopHashMsg = HashMsg.builder().hash(stopHash).build()
 
         GetHeadersEnMsg getHeadersEnMsg = GetHeadersEnMsg.builder()
-                .version(config.basicConfig.protocolVersion)
+                .version(basicConfig.protocolVersion)
                 .blockLocatorHash(hashMsg)
                 .hashStop(stopHashMsg).build();
         getHeadersEnMsg

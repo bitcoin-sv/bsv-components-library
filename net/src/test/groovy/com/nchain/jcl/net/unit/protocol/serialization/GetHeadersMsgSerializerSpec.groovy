@@ -1,6 +1,8 @@
 package com.nchain.jcl.net.unit.protocol.serialization
 
+import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
+import com.nchain.jcl.net.protocol.config.ProtocolVersion
 import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializer
 import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
@@ -31,6 +33,8 @@ import spock.lang.Specification
 * The test is taken the assumption that we have already a correct serialization version of this Message, obtained
 * from another source that we trust (in this case the Java BitcoinJ library). So we serialize/deserialize some
 * messages with out code and compare the results with that reference.
+*
+* NOTE: The Reference HEX Strings used have been generated using 70013 as the protocol Version
 */
 class GetHeadersMsgSerializerSpec extends Specification{
     private static final String REF_GETHEADERS_MSG_BODY = "7d11010001a69d45e7abc3b8fc363d13b88aaa2f2ec62bf77b6881e8bd" +
@@ -42,11 +46,14 @@ class GetHeadersMsgSerializerSpec extends Specification{
     def "testing getGetHeadersMessage BODY Serializing"() {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
+                .protocolVersion(ProtocolVersion.ENABLE_FEE_FILTER.getVersion())
+                .build()
             SerializerContext context  = SerializerContext.builder()
-                    .protocolBasicConfig(config.getBasicConfig())
+                    .protocolBasicConfig(basicConfig)
                     .build()
 
-            BaseGetDataAndHeaderMsg baseMsg = BaseGetDataAndHeaderMsgSerializerSpec.buildBaseMsg(config.getBasicConfig())
+            BaseGetDataAndHeaderMsg baseMsg = BaseGetDataAndHeaderMsgSerializerSpec.buildBaseMsg(basicConfig)
 
             GetHeadersMsg getHeadersMsg  =  GetHeadersMsg.builder()
                     .baseGetDataAndHeaderMsg(baseMsg)
@@ -65,8 +72,11 @@ class GetHeadersMsgSerializerSpec extends Specification{
     def "testing getGetHeadersMessage BODY De-Serializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
+                .protocolVersion(ProtocolVersion.ENABLE_FEE_FILTER.getVersion())
+                .build()
             DeserializerContext context = DeserializerContext.builder()
-                    .protocolBasicConfig(config.getBasicConfig())
+                    .protocolBasicConfig(basicConfig)
                     .maxBytesToRead((long) (REF_GETHEADERS_MSG_BODY.length()/2))
                     .build()
             GetHeadersMsg getHeadersMsg
@@ -86,10 +96,13 @@ class GetHeadersMsgSerializerSpec extends Specification{
     def "testing getGetHeadersMessage COMPLETE Serializing"() {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
+                .protocolVersion(ProtocolVersion.ENABLE_FEE_FILTER.getVersion())
+                .build()
             SerializerContext context = SerializerContext.builder()
-                    .protocolBasicConfig(config.getBasicConfig())
+                    .protocolBasicConfig(basicConfig)
                     .build()
-            BaseGetDataAndHeaderMsg baseMsg = BaseGetDataAndHeaderMsgSerializerSpec.buildBaseMsg(config.getBasicConfig())
+            BaseGetDataAndHeaderMsg baseMsg = BaseGetDataAndHeaderMsgSerializerSpec.buildBaseMsg(basicConfig)
             GetHeadersMsg  getHeadersMsg =  GetHeadersMsg.builder().baseGetDataAndHeaderMsg(baseMsg).build();
             ByteArrayReader byteReader = new ByteArrayReader(Utils.HEX.decode(REF_GETHEADERS_MSG_BODY))
 
@@ -106,8 +119,11 @@ class GetHeadersMsgSerializerSpec extends Specification{
     def "testing getGetHeadersMessage COMPLETE De-serializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
+                .protocolVersion(ProtocolVersion.ENABLE_FEE_FILTER.getVersion())
+                .build()
             DeserializerContext context = DeserializerContext.builder()
-                    .protocolBasicConfig(config.getBasicConfig())
+                    .protocolBasicConfig(basicConfig)
                     .maxBytesToRead((long) (REF_GETHEADERS_MSG_FULL.length() / 2))
                     .build()
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_GETHEADERS_MSG_FULL), byteInterval, delayMs);

@@ -1,8 +1,10 @@
 package com.nchain.jcl.net.protocol.serialization.common;
 
 
+import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig;
 import com.nchain.jcl.net.protocol.messages.GetdataMsg;
 import com.nchain.jcl.net.protocol.messages.HeaderMsg;
+import com.nchain.jcl.net.protocol.messages.VersionMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.messages.common.Message;
@@ -75,8 +77,7 @@ public class BitcoinMsgSerializerImpl implements BitcoinMsgSerializer {
         return bodyMsg;
     }
 
-    @Override
-    public long calculateChecksum(ByteArrayReader byteReader, long numBytes) {
+    private long calculateChecksum(ByteArrayReader byteReader, long numBytes) {
         final int MAX_BYTES_TO_READ = 2_000_000_000; // 2GB
 
         // In case the message is empty:
@@ -96,6 +97,20 @@ public class BitcoinMsgSerializerImpl implements BitcoinMsgSerializer {
             numBytesRead += numBytesToRead;
         }
         return Utils.readUint32(shaIncremental.hashTwice(), 0);
+    }
+
+    @Override
+    public <M extends BodyMessage> long calculateChecksum(ProtocolBasicConfig protocolBasicConfig, M bodyMessage) {
+        ByteArrayWriter writer = new ByteArrayWriter();
+        SerializerContext serContext = SerializerContext.builder()
+                .protocolBasicConfig(protocolBasicConfig)
+                .insideVersionMsg(bodyMessage.getMessageType().equalsIgnoreCase(VersionMsg.MESSAGE_TYPE))
+                .build();
+        getBodySerializer(bodyMessage.getMessageType()).serialize(serContext, bodyMessage, writer);
+        ByteArrayReader bodyMessageReader = writer.reader();
+        long checksum = calculateChecksum(bodyMessageReader, bodyMessage.getLengthInBytes());
+        bodyMessageReader.closeAndClear();
+        return checksum;
     }
 
     @Override

@@ -1,8 +1,10 @@
 package com.nchain.jcl.net.unit.protocol.serialization
 
 import com.nchain.jcl.net.network.PeerAddress
+import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
+import com.nchain.jcl.net.protocol.config.ProtocolVersion
 import com.nchain.jcl.net.protocol.messages.NetAddressMsg
 import com.nchain.jcl.net.protocol.messages.VarStrMsg
 import com.nchain.jcl.net.protocol.messages.VersionMsg
@@ -26,6 +28,8 @@ import spock.lang.Specification
  * The test is taken the assumption that we have already a correct serialization version of this Message, obtained
  * from another source that we trust (in this case the Java BitcoinJ library). So we serialize/deserialize some
  * messages with out code and compare the results with that reference.
+ *
+ * NOTE: The Reference HEX Strings used have been generated using 70013 a the protocol Version
  */
 class VersionMsgSerializationSpec extends Specification {
 
@@ -59,8 +63,11 @@ class VersionMsgSerializationSpec extends Specification {
     def "testing VersionMSg BODY De-serializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
+                .protocolVersion(ProtocolVersion.ENABLE_FEE_FILTER.getVersion())
+                .build()
             DeserializerContext context = DeserializerContext.builder()
-                    .protocolBasicConfig(config.getBasicConfig())
+                    .protocolBasicConfig(basicConfig)
                     .maxBytesToRead(Utils.HEX.decode(REF_BODY_ADDRESS_MSG).length)
                     .insideVersionMsg(true)
                     .build()
@@ -84,8 +91,11 @@ class VersionMsgSerializationSpec extends Specification {
     def "testing VersionMsg BODY Serializing"() {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
+                .protocolVersion(ProtocolVersion.ENABLE_FEE_FILTER.getVersion())
+                .build()
             SerializerContext context = SerializerContext.builder()
-                    .protocolBasicConfig(config.getBasicConfig())
+                    .protocolBasicConfig(basicConfig)
                     .insideVersionMsg(true)
                     .build()
             VarStrMsg userAgentMsg = VarStrMsg.builder().str(REF_BODY_USER_AGENT).build();
@@ -95,7 +105,7 @@ class VersionMsgSerializationSpec extends Specification {
                 .build();
 
             VersionMsg message = VersionMsg.builder()
-                    .version(config.getBasicConfig().getProtocolVersion())
+                    .version(basicConfig.getProtocolVersion())
                     .timestamp(REF_BODY_TIMESTAMP)
                     .user_agent(userAgentMsg)
                     .start_height(REF_BODY_START_HEIGHT)
@@ -116,8 +126,12 @@ class VersionMsgSerializationSpec extends Specification {
     def "testing Version Message COMPLETE de-serializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
+                .protocolVersion(ProtocolVersion.ENABLE_FEE_FILTER.getVersion())
+                .build()
             DeserializerContext context = DeserializerContext.builder()
-                .protocolBasicConfig(config.getBasicConfig())
+                .protocolBasicConfig(basicConfig)
+                .maxBytesToRead(Utils.HEX.decode(REF_ADDRESS_MSG).length)
                 .insideVersionMsg(true)
                 .calculateChecksum(true)
                 .build()
@@ -143,8 +157,11 @@ class VersionMsgSerializationSpec extends Specification {
     def "testing Version Message COMPLETE Serializing"() {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
+                .protocolVersion(ProtocolVersion.ENABLE_FEE_FILTER.getVersion())
+                .build()
             SerializerContext context = SerializerContext.builder()
-                    .protocolBasicConfig(config.getBasicConfig())
+                    .protocolBasicConfig(basicConfig)
                     .insideVersionMsg(true)
                     .build()
             VarStrMsg userAgentMsg = VarStrMsg.builder().str(REF_BODY_USER_AGENT).build();
@@ -153,7 +170,7 @@ class VersionMsgSerializationSpec extends Specification {
                 .timestamp(System.currentTimeMillis())
                 .build();
             VersionMsg versionMsg  = VersionMsg.builder()
-                    .version(config.getBasicConfig().protocolVersion)
+                    .version(basicConfig.protocolVersion)
                     .timestamp(REF_TIMESTAMP)
                     .user_agent(userAgentMsg)
                     .start_height(REF_BODY_START_HEIGHT)

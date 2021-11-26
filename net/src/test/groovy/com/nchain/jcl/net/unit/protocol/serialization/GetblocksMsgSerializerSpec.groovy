@@ -1,6 +1,8 @@
 package com.nchain.jcl.net.unit.protocol.serialization
 
+import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
+import com.nchain.jcl.net.protocol.config.ProtocolVersion
 import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializer
 import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
@@ -29,6 +31,8 @@ import spock.lang.Specification
  * The test is taken the assumption that we have already a correct serialization version of this Message, obtained
  * from another source that we trust (in this case the Java BitcoinJ library). So we serialize/deserialize some
  * messages with out code and compare the results with that reference.
+ *
+ * NOTE: The Reference HEX Strings used have been generated using 70013 as the protocol Version
  */
 class GetblocksMsgSerializerSpec extends Specification {
     private static final String REF_GETBLOCKS_MSG_BODY = "7d11010001a69d45e7abc3b8fc363d13b88aaa2f2ec62bf77b6881e8bd" +
@@ -40,11 +44,14 @@ class GetblocksMsgSerializerSpec extends Specification {
     def "testing getBlocksMessage BODY Serializing"() {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
+                .protocolVersion(ProtocolVersion.ENABLE_FEE_FILTER.getVersion())
+                .build()
             SerializerContext context  = SerializerContext.builder()
-                        .protocolBasicConfig(config.getBasicConfig())
+                        .protocolBasicConfig(basicConfig)
                         .build()
 
-            BaseGetDataAndHeaderMsg baseMsg = BaseGetDataAndHeaderMsgSerializerSpec.buildBaseMsg(config.getBasicConfig())
+            BaseGetDataAndHeaderMsg baseMsg = BaseGetDataAndHeaderMsgSerializerSpec.buildBaseMsg(basicConfig)
             GetBlocksMsg getBlocksMsg = GetBlocksMsg.builder().baseGetDataAndHeaderMsg(baseMsg).build()
 
             ByteArrayWriter byteWriter = new ByteArrayWriter()
@@ -60,8 +67,11 @@ class GetblocksMsgSerializerSpec extends Specification {
     def "testing getBlocksMessage Message BODY De-Serializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
+                .protocolVersion(ProtocolVersion.ENABLE_FEE_FILTER.getVersion())
+                .build()
             DeserializerContext context = DeserializerContext.builder()
-                    .protocolBasicConfig(config.getBasicConfig())
+                    .protocolBasicConfig(basicConfig)
                     .maxBytesToRead((long) (REF_GETBLOCKS_MSG_BODY.length()/2))
                     .build()
             GetBlocksMsg getBlocksMsg
@@ -82,10 +92,13 @@ class GetblocksMsgSerializerSpec extends Specification {
     def "testing getBlocksMessage COMPLETE Serializing"() {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
+                .protocolVersion(ProtocolVersion.ENABLE_FEE_FILTER.getVersion())
+                .build()
             SerializerContext context = SerializerContext.builder()
-                    .protocolBasicConfig(config.getBasicConfig())
+                    .protocolBasicConfig(basicConfig)
                     .build()
-            BaseGetDataAndHeaderMsg baseMsg = BaseGetDataAndHeaderMsgSerializerSpec.buildBaseMsg(config.getBasicConfig())
+            BaseGetDataAndHeaderMsg baseMsg = BaseGetDataAndHeaderMsgSerializerSpec.buildBaseMsg(basicConfig)
             GetBlocksMsg getblockMsg  = GetBlocksMsg.builder().baseGetDataAndHeaderMsg(baseMsg).build()
 
          BitcoinMsg<GetBlocksMsg> getBlocksMsgBitcoinMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), getblockMsg).build()
@@ -100,8 +113,11 @@ class GetblocksMsgSerializerSpec extends Specification {
     def "testing getBlocksMessage COMPLETE De-serializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
+                .protocolVersion(ProtocolVersion.ENABLE_FEE_FILTER.getVersion())
+                .build()
             DeserializerContext context = DeserializerContext.builder()
-                    .protocolBasicConfig(config.getBasicConfig())
+                    .protocolBasicConfig(basicConfig)
                     .maxBytesToRead((long) (REF_GETBLOCKS_MSG_FULL.length() / 2))
                     .build()
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_GETBLOCKS_MSG_FULL), byteInterval, delayMs);
