@@ -17,7 +17,6 @@ import com.nchain.jcl.net.protocol.messages.GetdataMsg;
 import com.nchain.jcl.net.protocol.messages.InventoryVectorMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
-import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl;
 import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerConfig;
 import com.nchain.jcl.net.protocol.wrapper.P2P;
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder;
@@ -65,13 +64,21 @@ public class JCLServer {
         boolean useCachedThreadPool;
         boolean useTxsBatch;
         int txsBatchSize;
-        boolean calculateChecksum = true; // default
+        boolean verifyChecksum = true; // default
 
         public JCLServerConfig(Net net, int minPeers, int maxPeers, boolean pingEnabled) {
             this.net = net;
             this.minPeers = minPeers;
             this.maxPeers = maxPeers;
             this.pingEnabled = pingEnabled;
+        }
+
+
+        public void log() {
+            log.info("JCL Server :: Config > useCachedThreadPool: " + useCachedThreadPool);
+            log.info("JCL Server :: Config > useTxsBatch: " + useTxsBatch);
+            log.info("JCL Server :: Config > txsBatchSize: " + txsBatchSize);
+            log.info("JCL Server :: Config > verifyChecksum: " + verifyChecksum);
         }
     }
 
@@ -185,11 +192,10 @@ public class JCLServer {
         }
 
         // If the checksum is enabled in the config, we enable it in JCL
-        if (config.calculateChecksum) {
-            DeserializerConfig deserializerConfig = messageConfig.getDeserializerConfig().toBuilder()
-                    .calculateChecksum(true)
+        if (config.verifyChecksum) {
+            messageConfig = messageConfig.toBuilder()
+                    .verifyChecksum(true)
                     .build();
-            messageConfig = messageConfig.toBuilder().deserializerConfig(deserializerConfig).build();
         }
         // We build the P2P Service
         P2PBuilder p2pBuilder = new P2PBuilder("JCLServer")
@@ -218,7 +224,8 @@ public class JCLServer {
 
     public void start() {
         p2p.startServer();
-        log.info("JCL Server Started.");
+        log.info("JCL Server :: Server Started.");
+        config.log();
         executor.scheduleAtFixedRate(this::log, 0, 1, TimeUnit.SECONDS);
     }
 
@@ -321,8 +328,8 @@ public class JCLServer {
         int txsBatchSize = (txsBatchSizeStr != null) ? Integer.parseInt(txsBatchSizeStr) : 100;
 
         // We get the "calculateChecksum' parameter:
-        String calculateChecksumStr = getParamValue("calculateChecksum", args);
-        boolean calculateChecksum = (calculateChecksumStr != null) ? Boolean.valueOf(calculateChecksumStr) : false;
+        String verifyChecksumStr = getParamValue("verifyChecksum", args);
+        boolean verifyChecksum = (verifyChecksumStr != null) ? Boolean.valueOf(verifyChecksumStr) : false;
 
         JCLServerConfig result = CONFIGS.get(net);
         result.timeLimit = timeLimit;
@@ -330,7 +337,7 @@ public class JCLServer {
         result.useCachedThreadPool = useCachedThreadPool;
         result.useTxsBatch = useTxsBatch;
         result.txsBatchSize = txsBatchSize;
-        result.calculateChecksum = calculateChecksum;
+        result.verifyChecksum = verifyChecksum;
         return result;
     }
 
@@ -342,6 +349,7 @@ public class JCLServer {
         System.out.println(" - (useCachedPool)  : Optional  : (true/false) If True, the Threads used wil come from a CachedThreadPool");
         System.out.println(" - (useTxsBatch)    : Optional  : (true/False)) If True Txs are returned in Batches (default size = 100)");
         System.out.println(" - (txsBatchSize)   : Optional  : Number of Txs within each Batch returned (only if 'useTxsBatch=true')");
+        System.out.println(" - (verifyChecksum) : Optional  : (true/false). false by default)");
         System.out.println("Example:");
         System.out.println(" java -jar jclServer.jar net=mainnet timeLimit=300 maxThreads=500");
         System.out.println("\n\n");
