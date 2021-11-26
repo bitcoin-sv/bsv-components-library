@@ -2,7 +2,6 @@ package com.nchain.jcl.net.protocol.serialization.common;
 
 
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig;
-import com.nchain.jcl.net.protocol.messages.GetdataMsg;
 import com.nchain.jcl.net.protocol.messages.HeaderMsg;
 import com.nchain.jcl.net.protocol.messages.VersionMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
@@ -77,7 +76,8 @@ public class BitcoinMsgSerializerImpl implements BitcoinMsgSerializer {
         return bodyMsg;
     }
 
-    private long calculateChecksum(ByteArrayReader byteReader, long numBytes) {
+    @Override
+    public long calculateChecksum(ByteArrayReader byteReader, long numBytes) {
         final int MAX_BYTES_TO_READ = 2_000_000_000; // 2GB
 
         // In case the message is empty:

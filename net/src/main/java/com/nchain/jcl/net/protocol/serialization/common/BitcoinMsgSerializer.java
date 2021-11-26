@@ -41,7 +41,12 @@ public interface BitcoinMsgSerializer {
 
 
     /**
-     * It calculates the checksum of the bytes contained in the reader. The checksum follows the bitcoin format
+     * It calculates the checksum of the payload provided. The 'numByes' specifies the maximum number of bytes to use
+     */
+    long calculateChecksum(ByteArrayReader byteReader, long numBytes);
+
+    /**
+     * It calculates the checksum of Message, considering the Protocol Configuration given
      */
     <M extends BodyMessage> long calculateChecksum(ProtocolBasicConfig protocolBasicConfig, M bodyMessage);
 
