@@ -21,12 +21,22 @@
         <appender-ref ref="STDOUT" />
     </logger>
 
-    <logger name="com.nchain.jcl.net.protocol.streams" additivity="false">
+    <logger name="com.nchain.jcl.net.protocol.handlers.message" additivity="false">
         <level value="INFO" />
         <appender-ref ref="STDOUT" />
     </logger>
 
+    <logger name="com.nchain.jcl.net.protocol.handlers.block" additivity="false">
+        <level value="TRACE" />
+        <appender-ref ref="STDOUT" />
+    </logger>
 
+    <!--
+    <logger name="com.nchain.jcl.net.protocol.streams.deserializer" additivity="false">
+        <level value="TRACE" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+    -->
 
     <logger name="com.nchain.jcl.net.protocol.discovery" additivity="false">
         <level value="TRACE" />
@@ -39,11 +49,6 @@
     </logger>
 
     <logger name="com.nchain.jcl.base.tools" additivity="false">
-        <level value="INFO" />
-        <appender-ref ref="STDOUT" />
-    </logger>
-
-    <logger name="com.nchain.jcl.net.protocol.handlers.block" additivity="false">
         <level value="INFO" />
         <appender-ref ref="STDOUT" />
     </logger>
