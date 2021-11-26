@@ -46,9 +46,8 @@ public class DsDetectedMsgSerializer implements MessageSerializer<DsDetectedMsg>
         }
 
         return DsDetectedMsg.builder()
-                .withVersion(version)
-                .withBlockCount(blockCount)
-                .withBlockList(blockDetailsMsgList)
+                .version(version)
+                .blockList(blockDetailsMsgList)
                 .build();
     }
 

@@ -1,7 +1,6 @@
 package com.nchain.jcl.net.protocol.messages;
 
 import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
-import com.nchain.jcl.net.protocol.messages.common.Message;
 
 import java.util.List;
 
@@ -21,11 +20,11 @@ public class DsDetectedMsg extends BodyMessage {
     private VarIntMsg blockCount;
     private List<BlockDetailsMsg> blockList;
 
-    public DsDetectedMsg(int version, VarIntMsg blockCount, List<BlockDetailsMsg> blockList,
+    public DsDetectedMsg(int version, List<BlockDetailsMsg> blockList,
                          byte[] extraBytes, long checksum) {
         super(extraBytes, checksum);
         this.version = version;
-        this.blockCount = blockCount;
+        this.blockCount = VarIntMsg.builder().value(blockList.size()).build();
         this.blockList = blockList;
         init();
     }
@@ -52,9 +51,8 @@ public class DsDetectedMsg extends BodyMessage {
 
     @Override public DsDetectedMsgBuilder toBuilder() {
         return new DsDetectedMsgBuilder(super.extraBytes, super.checksum)
-                    .withVersion(this.version)
-                    .withBlockCount(this.blockCount)
-                    .withBlockList(this.blockList);
+                    .version(this.version)
+                    .blockList(this.blockList);
     }
 
     /**
@@ -62,29 +60,23 @@ public class DsDetectedMsg extends BodyMessage {
      */
     public static final class DsDetectedMsgBuilder extends BodyMessageBuilder {
         private int version;
-        private VarIntMsg blockCount;
         private List<BlockDetailsMsg> blockList;
 
         private DsDetectedMsgBuilder() {}
         private DsDetectedMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
-        public DsDetectedMsgBuilder withVersion(int version) {
+        public DsDetectedMsgBuilder version(int version) {
             this.version = version;
             return this;
         }
 
-        public DsDetectedMsgBuilder withBlockCount(VarIntMsg blockCount) {
-            this.blockCount = blockCount;
-            return this;
-        }
-
-        public DsDetectedMsgBuilder withBlockList(List<BlockDetailsMsg> blockList) {
+        public DsDetectedMsgBuilder blockList(List<BlockDetailsMsg> blockList) {
             this.blockList = blockList;
             return this;
         }
 
         public DsDetectedMsg build() {
-            DsDetectedMsg dsDetectedMsg = new DsDetectedMsg(this.version, this.blockCount, this.blockList, super.extraBytes, super.checksum);
+            DsDetectedMsg dsDetectedMsg = new DsDetectedMsg(this.version, this.blockList, super.extraBytes, super.checksum);
             return dsDetectedMsg;
         }
     }
