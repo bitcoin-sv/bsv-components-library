@@ -83,7 +83,7 @@ public class ByteArrayBuffer implements ByteArray {
         while (bytesRemaining > 0) {
 
             // The data is added in the last buffer. if the buffer is already full, we create another one and that one
-            // will become the "new" last one. If the last buffer still has free capacity, we addBytes as many bytes as
+            // will become the "new" last one. If the last buffer still has free capacity, we add as many bytes as
             // possible and leave the rest for the next iteration.
 
             ByteArray buffer = buffers.get(buffers.size()-1);
@@ -106,7 +106,7 @@ public class ByteArrayBuffer implements ByteArray {
     /**
      * "Extracts" data from the beginning and returns it as a byteArray. After this
      * operation, the data size will be reduced in "length" bytes.
-     * If we try to extractReader more bytes than stored in the Builder it will throw an Exception
+     * If we try to extract more bytes than stored in the Builder it will throw an Exception
      * */
     public synchronized byte[] extract(int length) {
         byte[] result = new byte[length];
@@ -180,7 +180,7 @@ public class ByteArrayBuffer implements ByteArray {
      */
     public synchronized byte[] get(int length) {
         checkArgument(length <= this.size(),
-                " trying to extractReader too much data (not enough in the byteArray)");
+                " trying to extract too much data (not enough in the byteArray)");
 
         byte[] result = new byte[length];
         long bytesRemaining = length;

@@ -166,7 +166,7 @@ public class P2PBuilder {
         Map<String, Handler> result = new HashMap<>();
         try {
 
-            // We addBytes different built-in handlers:
+            // We add different built-in handlers:
 
             // Network Handler...
             // IMPORTANT: We use 0.0.0.0 to allow connections from anywhere
@@ -244,7 +244,7 @@ public class P2PBuilder {
             // We set up the P2P (without handlers, for now)
             result = new P2P(id, runtimeConfig, networkConfig, protocolConfig);
 
-            // Now we addBytes all the Handlers to this P2P: The set of handlers to addBytes is a combination of the
+            // Now we add all the Handlers to this P2P: The set of handlers to add is a combination of the
             // default ones, plus the custom ones, minus the ones specifically excluded...
 
             // First, we calculate which Handlers we should add...

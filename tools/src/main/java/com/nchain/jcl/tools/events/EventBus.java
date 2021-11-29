@@ -70,7 +70,7 @@ public class EventBus {
      * executed in sequence.
      */
     public synchronized void subscribe(Class<? extends Event> eventClass, Consumer<? extends Event> eventHandler) {
-        // We addBytes the handler to the list of handlers assigned to this Event Type:
+        // We add the handler to the list of handlers assigned to this Event Type:
         List<Consumer<? extends Event>> consumers = new ArrayList<>();
         consumers.add(eventHandler);
         eventHandlers.merge(eventClass, consumers, (w, prev) -> {prev.addAll(w); return prev;});

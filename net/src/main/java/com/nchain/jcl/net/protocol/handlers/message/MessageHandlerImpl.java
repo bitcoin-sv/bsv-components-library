@@ -168,7 +168,7 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
         if (config.getPreSerializer() != null)
             ((DeserializerStream) msgStream.input()).setPreSerializer(config.getPreSerializer());
 
-        // We use this Stream to build a MessagePeerInfo and addBytes it to our pool...
+        // We use this Stream to build a MessagePeerInfo and add it to our pool...
         handlerInfo.put(event.getStream().getPeerAddress(), new MessagePeerInfo(msgStream));
         // We publish the message to the Bus:
         eventBus.publish(new PeerMsgReadyEvent(msgStream));

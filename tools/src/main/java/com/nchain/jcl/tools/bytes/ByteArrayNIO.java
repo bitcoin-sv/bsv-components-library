@@ -31,7 +31,7 @@ public class ByteArrayNIO implements ByteArray {
     }
 
     // The methods are broken down into 2 parts:
-    // The "regular" methods like "addBytes", "get", etc, perform some parameter verification, so these methods are safe.
+    // The "regular" methods like "add", "get", etc, perform some parameter verification, so these methods are safe.
     // These methods then invoke the "add_bytes" or "get_bytes" method, which do the real work.
     // If you are using ByteArrayImpl directly, you should use the "regular" ones. But if this class is wrapped up in
     // another class that already guarantees the parameters sanity, the "xxx_bytes" can be used directly in order to

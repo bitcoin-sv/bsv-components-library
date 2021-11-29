@@ -293,7 +293,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         try {
             lock.writeLock().lock();
 
-            // First, we addBytes the IpAddress to the Blacklist, to keep a reference to them.
+            // First, we add the IpAddress to the Blacklist, to keep a reference to them.
             blacklist.addAll(ipAddresses.keySet());
 
             // Then, we disconnect all the current Peers already connected to any of those addresses...
@@ -536,7 +536,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
             stream.init();
             keyAttach.stream = stream;
 
-            // We addBytes this connection to the list of active ones (not "in Progress" anymore):
+            // We add this connection to the list of active ones (not "in Progress" anymore):
             inProgressConns.remove(keyAttach.peerAddress);
             activeConns.put(keyAttach.peerAddress, stream);
             logger.trace(keyAttach.peerAddress, "Socket connection established.");
@@ -789,7 +789,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
                     activeConns.remove(keyConnection.peerAddress);
                     logger.trace(keyConnection.peerAddress, "Connection closed");
                 }
-                //failedConns.addBytes(keyConnection.peerAddress);
+                //failedConns.add(keyConnection.peerAddress);
             }
 
         } catch (Exception e) {
@@ -811,7 +811,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
             keyIterator.remove();
             handleKey(key);
         }
-        // We addBytes a Delay, so more keys are accumulated on each iteration and we avoid tight loops:
+        // We add a Delay, so more keys are accumulated on each iteration and we avoid tight loops:
         //Thread.sleep(50);
     }
 

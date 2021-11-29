@@ -9,13 +9,13 @@ class ByteArrayBuilderSpec extends Specification {
 
     /**
      * We check the complete behaviour of the Builder. Given some parameters, like the size of each
-     * ByteArray etc, we addBytes and extractReader some data, and we check that the result is right, and also that the internal
+     * ByteArray etc, we add and extract some data, and we check that the result is right, and also that the internal
      * Buffers created by the Builder are correct in terms of the number of them and that their imlementations are also
      * correct (based on NIO)
      *
      * @param byteArraySize     Capacity of each ByteArray
-     * @param toAdd             Byte of data to addBytes
-     * @param toExtract         Number of bytes to extractReader
+     * @param toAdd             Byte of data to add
+     * @param toExtract         Number of bytes to extract
      * @param _result           Expected result content of the extraction
      * @param _bufferSize       Expected internal buffer size of the byteArray after the extraction
      */

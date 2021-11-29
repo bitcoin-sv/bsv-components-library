@@ -4,7 +4,7 @@ package com.nchain.jcl.tools.bytes;
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  *
- * An abstraction over a regular Byte Array but with limited functionality. It allows to "addBytes" data at
+ * An abstraction over a regular Byte Array but with limited functionality. It allows to "add" data at
  * the end (right), extract data from the beginning (left) and other utility functions.
  *
  * Different implementations may store the data differently.

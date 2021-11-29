@@ -18,7 +18,7 @@ import java.util.function.Consumer;
  *
  *  In both cases we can define callbacks that will be triggered on those scenarios. Each scenario is represented by
  *  an specific event, and the callback is just a Consumer of that Event.
- *  We can addBytes more than one callback/eventHandler to one event, or nothing at all.
+ *  We can add more than one callback/eventHandler to one event, or nothing at all.
  *
  *  An InputStream does NOT provide information about the SOURCE of the data. That information can be specified
  *  when creating instances that implement this class

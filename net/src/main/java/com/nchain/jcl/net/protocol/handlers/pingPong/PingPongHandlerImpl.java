@@ -185,7 +185,7 @@ public class PingPongHandlerImpl extends HandlerImpl<PeerAddress, PingPongPeerIn
         }
 
         // If we reach this far, the Ping-Pong is CORRECT. We update the state and reset the Peer:
-        logger.debug(peerInfo.getPeerAddress(), " Pong Received within time limit.");
+        logger.debug(peerInfo.getPeerAddress(), "PONG Received within time limit.");
         updateState(1);
         peerInfo.reset();
     }

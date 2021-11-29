@@ -49,7 +49,7 @@ class DeserializerMsgsStreamSpec extends Specification {
             // The executor to propagate the Partial Messages in dedicated connections::
             ExecutorService dedicatedConnsExecutor = Executors.newSingleThreadExecutor()
 
-            // The source used to send Bytes to our Stream. This specific implementation will addBytes artificial
+            // The source used to send Bytes to our Stream. This specific implementation will add artificial
             // Delays to the data, to simulate real network activity:
             PeerInputStream<ByteArrayReader> delaySource = MsgTest.getDummyDelayStreamSource(speedBytesPerSec);
 

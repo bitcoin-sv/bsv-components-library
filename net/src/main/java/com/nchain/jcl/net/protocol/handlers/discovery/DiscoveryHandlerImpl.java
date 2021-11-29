@@ -232,11 +232,11 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
     // Event Handler:
     public void onPeerHandshaked(PeerHandshakedEvent event) {
         // This peer might or not be in the Main pool.
-        // In case it's not, we first try to addBytes it. If we couldn't addBytes it (maybe because the main Pool is
+        // In case it's not, we first try to add it. If we couldn't add it (maybe because the main Pool is
         // already full, we try to replace it for other Peer that is not handshaked
 
         PeerAddress peerAddress = event.getPeerAddress();
-        // We addBytes it to our "historic" of handshaked peers:
+        // We add it to our "historic" of handshaked peers:
         peersHandshaked.add(peerAddress);
 
         // Now we add this Peer to our Pool. If it's not possible to Add (most probably because the Pool has already
@@ -313,7 +313,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
         }
 
         // If we reach this far, we prepare the ADDR Message in reply to this GET_ADDR and send it out:
-        // We only addBytes those Addr which Timestamps is within the last Hour.
+        // We only add those Addr which Timestamps is within the last Hour.
         // List of addresses:
         List<NetAddressMsg> netAddressMsgs = new ArrayList<NetAddressMsg>() ;
 
@@ -459,7 +459,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
             // We perform some changes on the timestamp according to the rules specified in the Satoshi client:
             // https://en.bitcoin.it/wiki/Satoshi_Client_Node_Discovery#Ongoing_.22addr.22_advertisements
             // - If the timestamp is too low or too high, it is set to 5 days ago.
-            // - We subtract 2 hours from the timestamp and addBytes the address.
+            // - We subtract 2 hours from the timestamp and add the address.
             // - If the address has been seen in the last 24 hours and the timestamp is currently over 60 minutes old,
             //   then it is updated to 60 minutes ago
             // - If the address has NOT been seen in the last 24 hours, and the timestamp is currently over 24 hours

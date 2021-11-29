@@ -13,8 +13,8 @@ class ByteArrayImplSpec extends Specification {
     /**
      * We test the content of the Byte Array is correct according to the parameters:
      *
-     * @param bytesAdded    Bytes to addBytes to the ByteArray
-     * @param toExtract     Number of Bytes to extractReader from the ByteArray
+     * @param bytesAdded    Bytes to add to the ByteArray
+     * @param toExtract     Number of Bytes to extract from the ByteArray
      * @param result        Result expected in the extraction
      */
     def "testing adding and extracting"(int byteArraySize, byte[] bytesAdded, int toExtract, byte[] result) {

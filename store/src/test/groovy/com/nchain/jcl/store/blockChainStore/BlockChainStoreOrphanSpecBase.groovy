@@ -135,7 +135,7 @@ abstract class BlockChainStoreOrphanSpecBase extends BlockChainStoreSpecBase {
             println("Content of DB Right BEFORE the Test:")
             db.printKeys()
 
-            // We define a chain of Blocks, and we addBytes Orphans at the end, with a delay between them, so the Automatic
+            // We define a chain of Blocks, and we add Orphans at the end, with a delay between them, so the Automatic
             // Orphan pruning process removes them at different times:
 
             // We save a chain of 3 Blocks:
