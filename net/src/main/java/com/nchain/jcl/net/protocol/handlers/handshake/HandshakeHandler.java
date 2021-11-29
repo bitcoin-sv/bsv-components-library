@@ -11,7 +11,7 @@ import com.nchain.jcl.tools.handlers.Handler;
  * Operations provided by the Handshake Handler
  */
 public interface HandshakeHandler extends Handler {
-    String HANDLER_ID = "Handshake-Handler";
+    String HANDLER_ID = "Handshake";
 
     @Override
     default String getId() { return HANDLER_ID; }

@@ -117,7 +117,7 @@ class BlockDownloadTest extends Specification {
      *
      */
     // We disable this test, since it's very time-consuming
-    @Ignore
+    //@Ignore
     def "Testing Block Downloading"() {
         given:
             // The longest Timeout we'll wait for to run the test:
@@ -207,8 +207,6 @@ class BlockDownloadTest extends Specification {
                 connReady.set(true)
             })
 
-            p2p.EVENTS.PEERS.HANDSHAKED.forEach({ e -> println("Peer " + e.getPeerAddress().toString() + " connected : " + e.getVersionMsg().getUser_agent().toString())})
-            p2p.EVENTS.PEERS.HANDSHAKED_DISCONNECTED.forEach({ e -> println("Peer " + e.getPeerAddress().toString() + " disconnected")})
 
             // Every time a Header is downloaded, we store it...
             p2p.EVENTS.BLOCKS.BLOCK_HEADER_DOWNLOADED.forEach({ e ->

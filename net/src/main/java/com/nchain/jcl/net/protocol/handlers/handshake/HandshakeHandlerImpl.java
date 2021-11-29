@@ -18,7 +18,7 @@ import com.nchain.jcl.net.tools.NonceUtils;
 import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.events.EventQueueProcessor;
 import com.nchain.jcl.tools.handlers.HandlerImpl;
-import com.nchain.jcl.tools.log.LoggerUtil;
+import com.nchain.jcl.net.tools.LoggerUtil;
 import com.nchain.jcl.tools.thread.ThreadUtils;
 
 import java.math.BigInteger;
@@ -32,8 +32,6 @@ import java.util.stream.Collectors;
  * Copyright (c) 2018-2020 nChain Ltd
  */
 public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeerInfo> implements HandshakeHandler {
-
-    public static final String HANDLER_ID = "Handshake-Handler";
 
     // For logging:
     private LoggerUtil logger;
@@ -109,7 +107,7 @@ public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeer
 
     // Event Handler:
     private void onNetStart(NetStartEvent event) {
-        logger.debug("Starting...");
+        logger.trace("Starting...");
         this.localAddress = event.getLocalAddress();
 
     }
@@ -118,7 +116,7 @@ public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeer
     private void onNetStop(NetStopEvent event) {
         isStopping = true;
         this.eventQueueProcessor.stop();
-        logger.debug("Stop.");
+        logger.trace("Stop.");
     }
 
     // Event Handler:
@@ -130,10 +128,10 @@ public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeer
 
                 // If the Peer is currently handshaked, we update the status and trigger an specific event:
                 if (peerInfo.isHandshakeAccepted()) {
-                    logger.debug(peerInfo.getPeerAddress(), " Handshaked Peer disconnected : " + event.getReason().toString());
+                    logger.info(peerInfo.getPeerAddress(), "Handshaked Peer disconnected : " + event.getReason().toString());
                     super.eventBus.publish(new PeerHandshakedDisconnectedEvent(peerInfo.getPeerAddress(), peerInfo.getVersionMsgReceived()));
                 } else {
-                    logger.debug(peerInfo.getPeerAddress(), "Not Handshaked Peer Disconnected : " + event.getReason().toString());
+                    logger.trace(peerInfo.getPeerAddress(), "Not Handshaked Peer Disconnected");
                 }
 
                 // We remove if from our Pool:
@@ -182,10 +180,10 @@ public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeer
         // If this message is coming from a Peer we don't have anymore, we just discard it
         HandshakePeerInfo peerInfo = handlerInfo.get(event.getPeerAddress());
         if (peerInfo == null) {
-            logger.debug(event.getPeerAddress(), event.getBtcMsg().getHeader().getMsgCommand().toUpperCase(), " message discarded (Peer already discarded)");
+            logger.debug(event.getPeerAddress(), event.getBtcMsg().getHeader().getMsgCommand().toUpperCase(), "message discarded (Peer already discarded)");
             return;
         }
-        logger.debug( peerInfo.getPeerAddress(), " received VersionMsg :: " + event.getBtcMsg().getBody().toString());
+        logger.debug( peerInfo.getPeerAddress(), "Processing VERSION... ");
         try {
             lock.lock();
             VersionMsg versionMsg = event.getBtcMsg().getBody();
@@ -266,7 +264,7 @@ public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeer
             logger.debug(event.getPeerAddress(), event.getBtcMsg().getHeader().getMsgCommand().toUpperCase(), " message discarded (Peer already discarded)");
             return;
         }
-        logger.debug( peerInfo.getPeerAddress(), " received VersionACK...");
+        logger.debug( peerInfo.getPeerAddress(), "Processing ACK...");
         try {
             lock.lock();
             // If The Handshake has been already processed, then this Message is a Duplicate:
@@ -363,13 +361,13 @@ public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeer
 
                 // If we are still below the minimum range of Handshaked Peers and we had Requested to RESUME the connections, we do it now..
                 if (!doWeHaveEnoughHandshakes() && !state.isMoreConnsRequested()) {
-                    logger.debug("Requesting to Resume Connections...");
+                    logger.debug("minPeers reached, Requesting to Resume Connections...");
                     super.eventBus.publish(new ResumeConnectingRequest());
                     updateStatus( true, false);
                 }
 
                 if (doWeHaveEnoughHandshakes() && !state.isStopConnsRequested()) {
-                    logger.debug("Requesting to Stop Connections...");
+                    logger.debug("maxPeers reached, Requesting to Stop Connections...");
                     super.eventBus.publish(new StopConnectingRequest());
 
                     // Now, in order to keep the number of connections stable and predictable, we are going to disconnect
@@ -479,7 +477,9 @@ public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeer
 
         // We update the State:
         updateStatus(false, false);
-        logger.debug(peerInfo.getPeerAddress(), "Handshake Accepted (" + state.getNumCurrentHandshakes() + " in total)");
+        logger.info(peerInfo.getPeerAddress(), "Peer Handshaked",
+                peerInfo.getVersionMsgReceived().getVersion() + "," + peerInfo.getVersionMsgReceived().getUser_agent().getStr(),
+                "(" + state.getNumCurrentHandshakes() + " in total)");
 
         // We trigger the event:
         super.eventBus.publish(new PeerHandshakedEvent(peerInfo.getPeerAddress(), peerInfo.getVersionMsgReceived()));
@@ -494,7 +494,7 @@ public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeer
     private void rejectHandshake(HandshakePeerInfo peerInfo, PeerHandshakeRejectedEvent.HandshakedRejectedReason reason, String detail) {
 
         peerInfo.rejectHandshake();
-        logger.debug(peerInfo.getPeerAddress(), " Rejecting Handshake", reason, detail);
+        logger.warm(peerInfo.getPeerAddress(), "Handshake Rejected", reason, detail);
 
         // We update the state:
         updateStatus(false, false);

@@ -12,8 +12,6 @@ import com.nchain.jcl.net.protocol.events.control.PeerHandshakedEvent;
 import com.nchain.jcl.net.protocol.events.control.PingPongFailedEvent;
 import com.nchain.jcl.net.protocol.events.control.SendMsgRequest;
 import com.nchain.jcl.net.protocol.events.data.MsgReceivedEvent;
-import com.nchain.jcl.net.protocol.events.data.PingMsgReceivedEvent;
-import com.nchain.jcl.net.protocol.events.data.PongMsgReceivedEvent;
 import com.nchain.jcl.net.protocol.messages.PingMsg;
 import com.nchain.jcl.net.protocol.messages.PongMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
@@ -22,7 +20,7 @@ import com.nchain.jcl.net.tools.NonceUtils;
 import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.events.EventQueueProcessor;
 import com.nchain.jcl.tools.handlers.HandlerImpl;
-import com.nchain.jcl.tools.log.LoggerUtil;
+import com.nchain.jcl.net.tools.LoggerUtil;
 import com.nchain.jcl.tools.thread.ThreadUtils;
 
 import java.time.Duration;
@@ -114,7 +112,7 @@ public class PingPongHandlerImpl extends HandlerImpl<PeerAddress, PingPongPeerIn
 
     // Event Handler
     public void onStart(NetStartEvent event) {
-        logger.debug(" Starting...");
+        logger.trace("Starting...");
         this.executor.submit(this::handlePingPongJob);
     }
 
@@ -122,7 +120,7 @@ public class PingPongHandlerImpl extends HandlerImpl<PeerAddress, PingPongPeerIn
     public void onStop(NetStopEvent event) {
         this.executor.shutdownNow();
         this.eventQueueProcessor.stop();
-        logger.debug("Stop.");
+        logger.trace("Stop.");
     }
 
     // Event Handler:

@@ -14,7 +14,7 @@ import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
 import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStream;
 import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.handlers.HandlerImpl;
-import com.nchain.jcl.tools.log.LoggerUtil;
+import com.nchain.jcl.net.tools.LoggerUtil;
 import com.nchain.jcl.tools.thread.ThreadUtils;
 import io.bitcoinj.core.Sha256Hash;
 import io.bitcoinj.core.Utils;
@@ -311,7 +311,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
 
     // Event Handler:
     public void onNetStart(NetStartEvent event) {
-        logger.debug("Starting...");
+        logger.trace("Starting...");
         this.blocksDownloadHistory.start();
         executor.submit(this::jobProcessCheckDownloadingProcess);
 
@@ -321,7 +321,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
     public void onNetStop(NetStopEvent event) {
         this.blocksDownloadHistory.stop();
         if (this.executor != null) executor.shutdownNow();
-        logger.debug("Stop.");
+        logger.trace("Stop.");
     }
 
     // Event Handler:
@@ -889,7 +889,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                                 if (peerInfo.isDownloadTimeoutBroken(config.getMaxDownloadTimeout()))                     { msgFailure = "Downloading Time expired"; }
                                 if (peerInfo.getConnectionState().equals(BlockPeerInfo.PeerConnectionState.DISCONNECTED)) { msgFailure = "Peer Closed while downloading"; }
                                 if (msgFailure != null) {
-                                    logger.debug(peerAddress.toString(), "Download Failure", peerInfo.getCurrentBlockInfo().hash, msgFailure);
+                                    logger.debug(peerAddress, "Download Failure", peerInfo.getCurrentBlockInfo().hash, msgFailure);
                                     blocksDownloadHistory.register(peerInfo.getCurrentBlockInfo().hash, peerInfo.getPeerAddress(), "Download Issue detected : " + msgFailure);
                                     blocksInLimbo.add(peerInfo.getCurrentBlockInfo().hash);
                                     // We discard this Peer and also send a request to Disconnect from it:

@@ -12,6 +12,7 @@ import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStream;
 import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStreamState;
 import com.nchain.jcl.net.protocol.streams.serializer.SerializerStream;
 import com.nchain.jcl.net.protocol.streams.serializer.SerializerStreamState;
+import com.nchain.jcl.net.tools.LoggerUtil;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.tools.config.RuntimeConfig;
 
@@ -36,27 +37,30 @@ public class MessageStream extends PeerStreamImpl<BitcoinMsg<?>, ByteArrayReader
     private Deserializer deserializer;
     private PeerStream streamOrigin;
     private ExecutorService dedicatedConnectionsExecutor;
+    private LoggerUtil parentLogger;
 
     public MessageStream(ExecutorService eventBusExecutor,
                          RuntimeConfig runtimeConfig,
                          ProtocolBasicConfig protocolBasicConfig,
                          Deserializer deserializer,
                          PeerStream<ByteArrayReader> streamOrigin,
-                         ExecutorService dedicatedConnectionsExecutor) {
+                         ExecutorService dedicatedConnectionsExecutor,
+                         LoggerUtil parentLogger) {
         super(eventBusExecutor, streamOrigin);
         this.runtimeConfig = runtimeConfig;
         this.protocolBasicConfig = protocolBasicConfig;
         this.deserializer = deserializer;
         this.streamOrigin = streamOrigin;
         this.dedicatedConnectionsExecutor = dedicatedConnectionsExecutor;
+        this.parentLogger = parentLogger;
     }
     @Override
     public DeserializerStream buildInputStream() {
-        return new DeserializerStream(super.executor, streamOrigin.input(), runtimeConfig, protocolBasicConfig, deserializer, dedicatedConnectionsExecutor);
+        return new DeserializerStream(super.executor, streamOrigin.input(), runtimeConfig, protocolBasicConfig, deserializer, dedicatedConnectionsExecutor, parentLogger);
     }
     @Override
     public SerializerStream buildOutputStream() {
-        return new SerializerStream(super.executor, streamOrigin.output(), protocolBasicConfig);
+        return new SerializerStream(super.executor, streamOrigin.output(), protocolBasicConfig, parentLogger);
     }
 
     @Override

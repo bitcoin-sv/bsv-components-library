@@ -18,7 +18,7 @@ import com.nchain.jcl.tools.handlers.Handler;
  */
 public interface MessageHandler extends Handler {
 
-    String HANDLER_ID = "Message-Handler";
+    String HANDLER_ID = "Serialization";
 
     @Override
     default String getId() { return HANDLER_ID; }

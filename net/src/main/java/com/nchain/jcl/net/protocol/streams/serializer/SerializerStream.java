@@ -11,7 +11,7 @@ import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl;
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
-import com.nchain.jcl.tools.log.LoggerUtil;
+import com.nchain.jcl.net.tools.LoggerUtil;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -33,6 +33,7 @@ import java.util.concurrent.ExecutorService;
 
 public class SerializerStream extends PeerOutputStreamImpl<BitcoinMsg<?>, ByteArrayReader> implements PeerOutputStream<BitcoinMsg<?>> {
 
+    // Protocol Configuration
     private ProtocolBasicConfig ProtocolBasicConfig;
 
     // We keep track of the num ber of Msgs processed:
@@ -44,9 +45,12 @@ public class SerializerStream extends PeerOutputStreamImpl<BitcoinMsg<?>, ByteAr
     /** Constructor.*/
     public SerializerStream(ExecutorService executor,
                             PeerOutputStream<ByteArrayReader> destination,
-                            ProtocolBasicConfig ProtocolBasicConfig) {
+                            ProtocolBasicConfig ProtocolBasicConfig,
+                            LoggerUtil parentLogger) {
         super(executor, destination);
-        this.logger = new LoggerUtil(this.getPeerAddress().toString(), this.getClass());
+        this.logger = (parentLogger == null)
+                        ? new LoggerUtil(this.getPeerAddress().toString(), this.getClass())
+                        : LoggerUtil.of(parentLogger, "Ser Stream", this.getClass());
         this.ProtocolBasicConfig = ProtocolBasicConfig;
     }
 
@@ -57,7 +61,7 @@ public class SerializerStream extends PeerOutputStreamImpl<BitcoinMsg<?>, ByteAr
 
     @Override
     public List<StreamDataEvent<ByteArrayReader>> transform(StreamDataEvent<BitcoinMsg<?>> data) {
-        logger.trace("Serializing " + data.getData().getHeader().getMsgCommand() + " Message...");
+        logger.trace(this.peerAddress, "Serializing " + data.getData().getHeader().getMsgCommand().toUpperCase() + " Message...");
 
         SerializerContext serializerContext = SerializerContext.builder()
                 .protocolBasicConfig(ProtocolBasicConfig)

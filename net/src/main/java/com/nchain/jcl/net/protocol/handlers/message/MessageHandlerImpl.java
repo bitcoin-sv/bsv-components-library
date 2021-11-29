@@ -23,7 +23,7 @@ import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStream;
 import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.events.Event;
 import com.nchain.jcl.tools.handlers.HandlerImpl;
-import com.nchain.jcl.tools.log.LoggerUtil;
+import com.nchain.jcl.net.tools.LoggerUtil;
 import com.nchain.jcl.tools.thread.ThreadUtils;
 
 import java.math.BigInteger;
@@ -32,7 +32,6 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * @author i.fernandez@nchain.com
@@ -111,14 +110,14 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
 
     // Event Handler:
     private void onNetStart(NetStartEvent event) {
-        logger.debug("Starting...");
+        logger.trace("Starting...");
         this.msgBatchesExecutor.submit(this::checkPendingBatchesToBroadcast);
     }
 
     // Event Handler:
     private void onNetStop(NetStopEvent event) {
         this.msgBatchesExecutor.shutdownNow();
-        logger.debug("Stop.");
+        logger.trace("Stop.");
     }
 
     // Event Handler:
@@ -158,7 +157,8 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
                 config.getBasicConfig(),
                 this.deserializer,
                 event.getStream(),
-                this.dedicateConnsExecutor);
+                this.dedicateConnsExecutor,
+                this.logger);
         msgStream.init();
         // We listen to the Deserializer Events
         msgStream.input().onData(e -> onStreamMsgReceived(peerAddress, e.getData()));
@@ -173,7 +173,7 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
         // We publish the message to the Bus:
         eventBus.publish(new PeerMsgReadyEvent(msgStream));
 
-        logger.trace(event.getStream().getPeerAddress(), " Peer Stream Connected");
+        logger.trace(event.getStream().getPeerAddress(), "Stream Connected");
     }
     // Event Handler:
     private void onPeerDisconnected(PeerDisconnectedEvent event) {
@@ -183,7 +183,7 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
     // Event Handler:
     private void onStreamMsgReceived(PeerAddress peerAddress, BitcoinMsg<?> btcMsg) {
         String msgType = btcMsg.getHeader().getMsgCommand().toUpperCase();
-        logger.trace(peerAddress, msgType + " Msg received.");
+        logger.trace(peerAddress, msgType.toUpperCase() + " Msg received.");
 
         // We only broadcast the MSg to JCL if it's RIGHT...
         String validationError = findErrorInMsg(btcMsg);
@@ -243,7 +243,7 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
     public void send(PeerAddress peerAddress, BitcoinMsg<?> btcMessage) {
         if (handlerInfo.containsKey(peerAddress)) {
             handlerInfo.get(peerAddress).getStream().output().send(new StreamDataEvent<>(btcMessage));
-            logger.trace(peerAddress.toString() + " :: " + btcMessage.getHeader().getMsgCommand() + " Msg sent.");
+            logger.trace(peerAddress, btcMessage.getHeader().getMsgCommand().toUpperCase() + " Msg sent.");
 
             // We propagate this message to the Bus, so other handlers can pick them up if they are subscribed to:
             // NOTE: These Events related to messages sent might not be necessary, and they add some multi-thread

@@ -11,7 +11,7 @@ import com.nchain.jcl.tools.handlers.Handler;
  * The Discovery Handler takes care of implementing the Node Discovery Algorithm.
  */
 public interface DiscoveryHandler extends Handler {
-    String HANDLER_ID = "Discovery-Handler";
+    String HANDLER_ID = "Discovery";
 
     @Override
     default String getId() { return HANDLER_ID; }

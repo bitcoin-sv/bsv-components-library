@@ -7,7 +7,7 @@ import com.nchain.jcl.net.protocol.events.control.PeerHandshakeRejectedEvent;
 import com.nchain.jcl.net.protocol.events.control.PingPongFailedEvent;
 import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.handlers.HandlerImpl;
-import com.nchain.jcl.tools.log.LoggerUtil;
+import com.nchain.jcl.net.tools.LoggerUtil;
 import com.nchain.jcl.tools.thread.ThreadUtils;
 import com.nchain.jcl.tools.util.StringUtils;
 
@@ -16,7 +16,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -78,7 +77,7 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
 
     // Event Handler:
     private void onNetStart(NetStartEvent event) {
-        logger.debug("Starting...");
+        logger.trace("Starting...");
     }
 
     // Event Handler:
@@ -87,7 +86,7 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
         saveBlacklistToDisk();
         // We stop the Whitelist Job...
         if (executor != null) executor.shutdownNow();
-        logger.debug("Stop.");
+        logger.trace("Stop.");
     }
 
     // Event Handler:
@@ -151,7 +150,10 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
 
     /** It blacklists the Host given for the reason specified. */
     private void blacklist(BlacklistHostInfo hostInfo, PeersBlacklistedEvent.BlacklistReason reason) {
-        logger.trace("Blacklisting " + hostInfo.getIp(), reason);
+        if (reason != PeersBlacklistedEvent.BlacklistReason.CONNECTION_REJECTED) {
+            logger.info(hostInfo.getIp(), "IP Blacklisted", reason);
+        } else logger.trace(hostInfo.getIp(), "IP Blacklisted", reason);
+
         hostInfo.blacklist(reason);
         updateState(reason);
     }
@@ -169,11 +171,11 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
      * on the status and the info stored for that Peer.
      *
      * first, it updates the BlacklistHostInfo object related to this Peer, executing the update Expression on it.
-     * Then, it checks if the object (after being updated by the expresion) has any reason to be blacklisted, and if
+     * Then, it checks if the object (after being updated by the expression) has any reason to be blacklisted, and if
      * so it gets blacklisted.
      *
      * @param peerAddress   Peer Address
-     * @param updateExpr     An update expression that will be executed on the BlacklistHostInfo Object sotred for
+     * @param updateExpr    An update expression that will be executed on the BlacklistHostInfo Object stored for
      *                      this Peer.
      */
     private void processHostAndCheckBlacklisting(PeerAddress peerAddress, Consumer<BlacklistHostInfo> updateExpr) {

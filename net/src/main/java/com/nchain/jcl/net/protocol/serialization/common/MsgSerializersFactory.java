@@ -135,9 +135,6 @@ public class MsgSerializersFactory {
      */
     public static boolean hasSerializerFor(String command, boolean onlyForLargeMessages) {
         boolean result = (!onlyForLargeMessages) ? serializers.containsKey(command.toUpperCase()) : (getLargeMsgDeserializer(command, 0) != null);
-        if (!result) {
-            logger.warn("No Serializer Found for Msg '" + command + "' " + (onlyForLargeMessages? "(large msg)" : ""));
-        }
         return result;
     }
 }

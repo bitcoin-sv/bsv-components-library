@@ -14,7 +14,7 @@ import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.events.EventBus;
 import com.nchain.jcl.tools.files.FileUtils;
 import com.nchain.jcl.tools.handlers.HandlerConfig;
-import com.nchain.jcl.tools.log.LoggerUtil;
+import com.nchain.jcl.net.tools.LoggerUtil;
 
 import com.nchain.jcl.tools.thread.ThreadUtils;
 import com.nchain.jcl.tools.thread.TimeoutTask;
@@ -539,7 +539,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
             // We addBytes this connection to the list of active ones (not "in Progress" anymore):
             inProgressConns.remove(keyAttach.peerAddress);
             activeConns.put(keyAttach.peerAddress, stream);
-            logger.debug(keyAttach.peerAddress, "Connection established.");
+            logger.trace(keyAttach.peerAddress, "Socket connection established.");
 
             // We trigger the callbacks, sending the Stream back to the client:
             eventBus.publish(new PeerConnectedEvent(keyAttach.peerAddress));
@@ -689,7 +689,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
                     } // for...
                     // we remove the expired connections...
                     if (!inProgressConnsToRemove.isEmpty()) {
-                        logger.debug("Removing " + inProgressConnsToRemove.size() + " in-progress expired connections");
+                        logger.trace("Removing " + inProgressConnsToRemove.size() + " in-progress expired connections");
                         numConnsInProgressExpired.addAndGet(inProgressConnsToRemove.size());
                         inProgressConnsToRemove.forEach(p -> inProgressConns.remove(p));
                         inProgressConnsToRemove.clear();

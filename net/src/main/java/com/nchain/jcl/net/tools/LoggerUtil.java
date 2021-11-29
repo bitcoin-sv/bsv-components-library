@@ -1,17 +1,24 @@
-package com.nchain.jcl.tools.log;
+package com.nchain.jcl.net.tools;
 
+
+import com.google.common.base.Strings;
+import com.nchain.jcl.net.network.PeerAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.event.Level;
+
+import java.net.InetAddress;
 
 
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  *
- * An utility class for logging. In most classes, all logs are using the same preffix (like the name of
- * the handler, or the class, or any kind of Id, etc). So in this class you can define that preffix once
- * and it wil be automatically used when logging.
+ * An utility class for logging the NET module in JCL. its only meant for improving the log readability,
+ * so it just formats the text in such a way that it easier to read.
+ *
+ * NOTE: The operations performanced in this class might affect performance, since they all involve operations
+ * with Strings. If the log level is high enough in a prouction environment this will not be a problem, but in
+ * DEBUG or TRACE Mode the performance impact should be evaluated.
  */
 public class LoggerUtil {
 
@@ -39,10 +46,19 @@ public class LoggerUtil {
         this.groupId = groupId;
         this.logClass = logClass;
         this.preffix = instanceId;
-        if (groupId != null) {
-            this.preffix = this.preffix + " :: " + groupId;
+
+         if (groupId != null) {
+          this.preffix = this.preffix + " :: " + Strings.padEnd(groupId, 15, ' ');
         }
         logger = LoggerFactory.getLogger(logClass);
+    }
+
+    /**
+     * It returns a new instance of this logger, using the oone given as a template, but replacing the 'groupId' and
+     * the 'logClass' (but keeping the 'instanceId').
+     */
+    public static LoggerUtil of(LoggerUtil parentLogger, String groupId, Class logClass) {
+        return new LoggerUtil(parentLogger.instanceId, groupId, logClass);
     }
 
     // It generates a single String out of a dynamic list of Objects.
@@ -50,7 +66,11 @@ public class LoggerUtil {
         StringBuffer result = new StringBuffer(preffix);
         for (Object obj : objs) {
             if (obj != null) {
-                result.append(" :: ").append(obj);
+                result
+                   .append(" :: ")
+                   .append((obj instanceof PeerAddress || obj instanceof InetAddress)
+                           ? Strings.padEnd(obj.toString(), 36, ' ')
+                           : obj);
             }
         }
         return result.toString();

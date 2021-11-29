@@ -9,7 +9,7 @@ import com.nchain.jcl.net.network.streams.StreamCloseEvent;
 import com.nchain.jcl.net.network.streams.StreamDataEvent;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.tools.config.RuntimeConfig;
-import com.nchain.jcl.tools.log.LoggerUtil;
+import com.nchain.jcl.net.tools.LoggerUtil;
 
 
 import java.io.IOException;

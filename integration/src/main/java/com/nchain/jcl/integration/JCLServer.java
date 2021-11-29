@@ -246,12 +246,12 @@ public class JCLServer {
 
     private void onPeerHandshaked(PeerHandshakedEvent event) {
         numPeersHandshaked.incrementAndGet();
-        log.info("JCL Server :: Peer Connected: " + event.getPeerAddress() + " : " + event.getVersionMsg().getUser_agent().getStr());
+        //log.info("JCL Server :: Peer Connected: " + event.getPeerAddress() + " : " + event.getVersionMsg().getUser_agent().getStr());
     }
 
     private void onPeerDisconnected(PeerHandshakedDisconnectedEvent event) {
         numPeersHandshaked.decrementAndGet();
-        log.info("JCL Server :: Peer Disconnected: " + event.getPeerAddress() + " : " + event.getVersionMsg().getUser_agent().getStr());
+        //log.info("JCL Server :: Peer Disconnected: " + event.getPeerAddress() + " : " + event.getVersionMsg().getUser_agent().getStr());
     }
 
     private void processINV(InvMsgReceivedEvent event) {
@@ -329,7 +329,7 @@ public class JCLServer {
 
         // We get the "calculateChecksum' parameter:
         String verifyChecksumStr = getParamValue("verifyChecksum", args);
-        boolean verifyChecksum = (verifyChecksumStr != null) ? Boolean.valueOf(verifyChecksumStr) : false;
+        boolean verifyChecksum = (verifyChecksumStr != null) ? Boolean.valueOf(verifyChecksumStr) : true;
 
         JCLServerConfig result = CONFIGS.get(net);
         result.timeLimit = timeLimit;

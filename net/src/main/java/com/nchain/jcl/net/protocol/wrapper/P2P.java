@@ -9,18 +9,12 @@ import com.nchain.jcl.net.network.handlers.NetworkHandler;
 import com.nchain.jcl.net.network.handlers.NetworkHandlerImpl;
 import com.nchain.jcl.net.protocol.config.ProtocolConfig;
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig;
-import com.nchain.jcl.net.protocol.events.data.MsgReceivedEvent;
 import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandler;
-import com.nchain.jcl.net.protocol.messages.FeeFilterMsg;
-import com.nchain.jcl.net.protocol.messages.InvMessage;
-import com.nchain.jcl.net.protocol.messages.PingMsg;
-import com.nchain.jcl.net.protocol.messages.TxMsg;
 import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault;
-import com.nchain.jcl.tools.events.Event;
 import com.nchain.jcl.tools.events.EventBus;
 import com.nchain.jcl.tools.handlers.Handler;
-import com.nchain.jcl.tools.log.LoggerUtil;
+import com.nchain.jcl.net.tools.LoggerUtil;
 import com.nchain.jcl.tools.thread.ThreadUtils;
 
 import java.time.Duration;
@@ -29,7 +23,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 
 /**
  * @author i.fernandez@nchain.com

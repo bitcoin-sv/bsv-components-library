@@ -13,7 +13,7 @@ import java.util.List;
  * Operations provided by the BlockDownloader Handler.
  */
 public interface BlockDownloaderHandler extends Handler {
-    String HANDLER_ID = "BlockDownloader-Handler";
+    String HANDLER_ID = "Download";
 
     @Override
     default String getId() { return HANDLER_ID; }

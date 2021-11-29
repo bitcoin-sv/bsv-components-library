@@ -48,7 +48,7 @@ public final class MessageHandlerConfig extends HandlerConfig {
      *
      * NOTE: This only accepts checksum for Incoming Messages. For OUTCOMING Messages, checksum is ALWAYS generated.
      */
-    private boolean verifyChecksum;
+    private boolean verifyChecksum = true; // default
 
     MessageHandlerConfig(ProtocolBasicConfig basicConfig,
                          MessagePreSerializer preSerializer,
@@ -113,7 +113,7 @@ public final class MessageHandlerConfig extends HandlerConfig {
         private DeserializerConfig deserializerConfig;
         private boolean rawTxsEnabled = false;
         private HashMap<Class, MessageBatchConfig> msgBatchConfigs = new HashMap<>();
-        private boolean verifyChecksum;
+        private boolean verifyChecksum = true; // default
 
         MessageHandlerConfigBuilder() { }
 

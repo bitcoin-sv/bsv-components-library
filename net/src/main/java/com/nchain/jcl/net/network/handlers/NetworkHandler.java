@@ -16,7 +16,7 @@ import java.util.List;
  */
 public interface NetworkHandler extends Handler {
 
-    String HANDLER_ID = "Connection-Handler";
+    String HANDLER_ID = "Network";
 
     @Override
     default String getId() { return HANDLER_ID; }

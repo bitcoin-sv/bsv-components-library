@@ -11,7 +11,7 @@ import com.nchain.jcl.tools.handlers.Handler;
  * This handler takes care of blacklisting those Hosts tat missbehave based on some criteria.
  */
 public interface BlacklistHandler extends Handler {
-    String HANDLER_ID = "Blacklist-Handler";
+    String HANDLER_ID = "Blacklist";
 
     @Override
     default String getId() { return HANDLER_ID; }

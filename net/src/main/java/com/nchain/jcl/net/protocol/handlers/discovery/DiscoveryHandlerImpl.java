@@ -16,7 +16,7 @@ import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
 import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.events.EventQueueProcessor;
 import com.nchain.jcl.tools.handlers.HandlerImpl;
-import com.nchain.jcl.tools.log.LoggerUtil;
+import com.nchain.jcl.net.tools.LoggerUtil;
 import com.nchain.jcl.tools.thread.ThreadUtils;
 import com.nchain.jcl.tools.util.DateTimeUtils;
 import com.nchain.jcl.tools.util.StringUtils;
@@ -211,7 +211,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
 
     // Event Handler:
     public void onStart(NetStartEvent event) {
-        logger.debug("Starting...");
+        logger.trace("Starting...");
         initPool();
     }
 
@@ -226,7 +226,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
         // We stop the EventQueueProcessor...
         this.eventQueueProcessor.stop();
 
-        logger.debug("Stop.");
+        logger.trace("Stop.");
         isStopping = true;
     }
     // Event Handler:
@@ -261,7 +261,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
         }
 
         peerInfo.updateHandshake(event.getVersionMsg());
-        logger.trace(peerAddress, "Handshaked Peer added to the Pool (version:" + peerInfo.getVersionMsg().getVersion() + ")");
+        logger.trace(peerAddress, "Handshaked Peer added to the Pool", "(" + handlerInfo.size() + " peers currently in pool)");
 
         // We start the Discovery protocol....
         if (!isStopping && isAccceptingConnections) startDiscovery(peerInfo);
@@ -305,7 +305,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
 
         DiscoveryPeerInfo peerInfo = getOrWaitForHandlerInfo(event.getPeerAddress());
         if (peerInfo == null) return;
-        logger.debug(peerInfo.getPeerAddress().toString() + " :: Processing incoming GET_ADDR...");
+        logger.debug(peerInfo.getPeerAddress(), "Processing incoming GET_ADDR...");
         // We check that we have enough of them to send them out:
         if (config.getRelayMinAddresses().isPresent() && (handlerInfo.size() > config.getRelayMinAddresses().getAsInt())) {
             logger.debug(peerInfo.getPeerAddress(), "GETADDR Ignored (not enough Addresses to send");
@@ -350,7 +350,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
             if (peerInfo == null) return;
 
             AddrMsg msg = event.getBtcMsg().getBody();
-            logger.debug(peerInfo.getPeerAddress().toString() + " :: Processing incoming ADDR...");
+            logger.trace(peerInfo.getPeerAddress(), "Processing incoming ADDR [" + msg.getAddrList().size() + " addresses]...");
 
             // Should never happen!!
             if (peerInfo == null) {
@@ -386,10 +386,9 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
                 addToPool(addPeerInfo);
                 peersToConnect.add(addPeerInfo.getPeerAddress());
             }
+            logger.debug(peerInfo.getPeerAddress(), msg.getCount().getValue() + " addresses received in ADDR, " + peersToConnect.size() + " added to the Pool...");
             super.eventBus.publish(new ConnectPeersRequest(peersToConnect));
 
-
-            logger.debug(peerInfo.getPeerAddress(),msg.getCount().getValue() + " Addresses received via ADDR. ");
         } catch (Exception e) {
             e.printStackTrace();
         }
