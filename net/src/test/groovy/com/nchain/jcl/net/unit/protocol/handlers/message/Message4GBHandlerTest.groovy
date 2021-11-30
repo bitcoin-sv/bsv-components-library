@@ -7,6 +7,7 @@ import com.nchain.jcl.net.protocol.config.ProtocolVersion
 import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandler
 import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandlerConfig
 import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerConfig
+import com.nchain.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerConfig
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg
 import com.nchain.jcl.net.protocol.messages.BlockMsg
 import com.nchain.jcl.net.protocol.messages.HashMsg
@@ -14,7 +15,6 @@ import com.nchain.jcl.net.protocol.messages.TxInputMsg
 import com.nchain.jcl.net.protocol.messages.TxMsg
 import com.nchain.jcl.net.protocol.messages.TxOutPointMsg
 import com.nchain.jcl.net.protocol.messages.TxOutputMsg
-import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerConfig
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
 import com.nchain.jcl.tools.config.RuntimeConfig

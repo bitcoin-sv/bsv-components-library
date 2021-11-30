@@ -66,7 +66,7 @@ public class P2P {
     public P2P(String id, RuntimeConfig runtimeConfig, NetworkConfig networkConfig, ProtocolConfig protocolConfig) {
         try {
             this.id = id;
-            this.logger = new LoggerUtil(id, "P2P-Handler", this.getClass());
+            this.logger = new LoggerUtil(id, "P2P Service", this.getClass());
             // We update the Configurations
             this.runtimeConfig = runtimeConfig;
             this.networkConfig = networkConfig;

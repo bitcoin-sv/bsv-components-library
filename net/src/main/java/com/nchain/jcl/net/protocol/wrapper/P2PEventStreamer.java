@@ -32,7 +32,7 @@ public class P2PEventStreamer {
     // Default Number of Threads to use depending on the Event type:
     private static final int DEFAULT_NUM_THREADS_GENERAL    = 1;
     private static final int DEFAULT_NUM_THREADS_GENERIC    = 50; // ONLY FOR TESTING
-    private static final int DEFAULT_NUM_THREADS_PEERS      = 1;
+    private static final int DEFAULT_NUM_THREADS_PEERS      = 10;
     private static final int DEFAULT_NUM_THREADS_MSGS       = 10;
     private static final int DEFAULT_NUM_THREADS_STATE      = 1;
     private static final int DEFAULT_NUM_THREADS_BLOCK      = 5;

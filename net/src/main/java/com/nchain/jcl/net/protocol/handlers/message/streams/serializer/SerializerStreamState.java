@@ -1,4 +1,4 @@
-package com.nchain.jcl.net.protocol.streams.serializer;
+package com.nchain.jcl.net.protocol.handlers.message.streams.serializer;
 
 import com.nchain.jcl.net.network.streams.StreamState;
 import java.math.BigInteger;

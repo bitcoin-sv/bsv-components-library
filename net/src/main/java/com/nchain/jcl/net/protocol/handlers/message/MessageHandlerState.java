@@ -2,7 +2,7 @@ package com.nchain.jcl.net.protocol.handlers.message;
 
 
 
-import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerState;
+import com.nchain.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerState;
 import com.nchain.jcl.tools.handlers.HandlerState;
 
 import java.math.BigInteger;

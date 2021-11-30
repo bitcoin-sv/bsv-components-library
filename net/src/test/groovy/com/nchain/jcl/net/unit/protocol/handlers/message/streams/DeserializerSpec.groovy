@@ -1,18 +1,18 @@
-package com.nchain.jcl.net.unit.protocol.serialization.streams
+package com.nchain.jcl.net.unit.protocol.handlers.message.streams
 
 import com.nchain.jcl.net.network.PeerAddress
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
+import com.nchain.jcl.net.protocol.handlers.message.streams.deserializer.Deserializer
+import com.nchain.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerConfig
+import com.nchain.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerState
 import com.nchain.jcl.net.protocol.messages.*
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder
 import com.nchain.jcl.net.protocol.messages.common.Message
 import com.nchain.jcl.net.protocol.serialization.HeaderMsgSerializer
 import com.nchain.jcl.net.protocol.serialization.common.*
-import com.nchain.jcl.net.protocol.streams.deserializer.Deserializer
-import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerConfig
-import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerState
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
 import com.nchain.jcl.tools.config.RuntimeConfig

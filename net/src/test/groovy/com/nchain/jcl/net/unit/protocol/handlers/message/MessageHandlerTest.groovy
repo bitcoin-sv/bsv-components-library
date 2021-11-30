@@ -12,9 +12,9 @@ import com.nchain.jcl.net.protocol.events.control.PeerMsgReadyEvent
 import com.nchain.jcl.net.protocol.handlers.message.MessageHandler
 import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerConfig
 import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerImpl
+import com.nchain.jcl.net.protocol.handlers.message.streams.MessageStream
 import com.nchain.jcl.net.protocol.messages.AddrMsg
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg
-import com.nchain.jcl.net.protocol.streams.MessageStream
 import com.nchain.jcl.net.unit.protocol.tools.MsgTest
 import com.nchain.jcl.tools.config.RuntimeConfig
 import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault

@@ -1,4 +1,4 @@
-package com.nchain.jcl.net.protocol.streams.deserializer;
+package com.nchain.jcl.net.protocol.handlers.message.streams.deserializer;
 
 import com.nchain.jcl.net.protocol.messages.*;
 import com.nchain.jcl.tools.bytes.ByteArrayReaderRealTime;
@@ -24,9 +24,6 @@ public final class DeserializerConfig {
 
     /** Size in byte sof each "partial" message returned by a "Large" Deserialized when the message is big */
     private int partialSerializationMsgSize = DEFAULT_PARTIAL_SERIALIZATION_MSG_SIZE;
-
-    /** If FALSE; the checksum is not calculated */
-    private boolean calculateChecksum;
 
     /**
      *  Initial size of each Buffer assigned to each Peer for Deserialization.
@@ -80,8 +77,7 @@ public final class DeserializerConfig {
                               Long maxMsgSizeInBytes,
                               Boolean generateStats,
                               Set<String> messagesToCache,
-                              int partialSerializationMsgSize,
-                              boolean verifyChecksum) {
+                              int partialSerializationMsgSize) {
         if (bufferInitialSizeInBytes != null)       this.bufferInitialSizeInBytes = bufferInitialSizeInBytes;
         if (minBytesPerSecForLargeMessages != null) this.minBytesPerSecForLargeMessages = minBytesPerSecForLargeMessages;
         if (cacheEnabled != null)                   this.cacheEnabled = cacheEnabled;
@@ -92,7 +88,6 @@ public final class DeserializerConfig {
         if (generateStats != null)                  this.generateStats = generateStats;
         if (messagesToCache != null)                this.messagesToCache = messagesToCache;
         this.partialSerializationMsgSize = partialSerializationMsgSize;
-        this.calculateChecksum = verifyChecksum;
     }
 
     public static DeserializerConfigBuilder builder()   { return new DeserializerConfigBuilder(); }
@@ -106,7 +101,6 @@ public final class DeserializerConfig {
     public boolean isGenerateStats()                    { return this.generateStats; }
     public Set<String> getMessagesToCache()             { return this.messagesToCache; }
     public int getPartialSerializationMsgSize()         { return this.partialSerializationMsgSize;}
-    public boolean isCalculateChecksum()                { return this.calculateChecksum;}
 
     @Override
     public String toString() {
@@ -117,7 +111,6 @@ public final class DeserializerConfig {
                 + ", generateStats=" + this.generateStats
                 + ", messagesToCache=" + this.messagesToCache
                 + ", partialSerializationMsgSize=" + this.partialSerializationMsgSize
-                + ", calculateChecksum=" + this.calculateChecksum
                 + ")";
     }
 
@@ -132,8 +125,7 @@ public final class DeserializerConfig {
                 .cacheExpirationTime(this.cacheExpirationTime)
                 .generateStats(this.generateStats)
                 .messagesToCache(this.messagesToCache)
-                .partialSerializationMsgSize(this.partialSerializationMsgSize)
-                .calculateChecksum(this.calculateChecksum);
+                .partialSerializationMsgSize(this.partialSerializationMsgSize);
     }
 
     /**
@@ -150,7 +142,6 @@ public final class DeserializerConfig {
         private boolean generateStats;
         private Set<String> messagesToCache;
         private int partialSerializationMsgSize = DEFAULT_PARTIAL_SERIALIZATION_MSG_SIZE;
-        private boolean calculateChecksum;
 
         DeserializerConfigBuilder() { }
 
@@ -205,11 +196,6 @@ public final class DeserializerConfig {
             return this;
         }
 
-        public DeserializerConfig.DeserializerConfigBuilder calculateChecksum(boolean calculateChecksum) {
-            this.calculateChecksum = calculateChecksum;
-            return this;
-        }
-
         public DeserializerConfig build() {
             return new DeserializerConfig(
                     bufferInitialSizeInBytes,
@@ -221,8 +207,7 @@ public final class DeserializerConfig {
                     maxMsgSizeInBytes,
                     generateStats,
                     messagesToCache,
-                    partialSerializationMsgSize,
-                    calculateChecksum);
+                    partialSerializationMsgSize);
         }
     }
 }

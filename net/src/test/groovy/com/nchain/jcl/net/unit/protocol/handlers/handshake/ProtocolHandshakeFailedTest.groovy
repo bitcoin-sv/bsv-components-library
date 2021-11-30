@@ -11,6 +11,7 @@ import com.nchain.jcl.net.protocol.handlers.pingPong.PingPongHandler
 import com.nchain.jcl.net.unit.protocol.tools.MsgTest
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
+import com.nchain.jcl.tools.thread.ThreadUtils
 import io.bitcoinj.params.MainNetParams
 import io.bitcoinj.params.Net
 import spock.lang.Specification
@@ -48,7 +49,6 @@ class ProtocolHandshakeFailedTest extends Specification {
             // - a random Port ("0")
             // - a wrong protocolNumber.
 
-
             ProtocolConfig wrongConfig = ((ProtocolConfigImpl) protocolConfig).toBuilder()
                 .port(0)
                 .basicConfig(protocolConfig.getBasicConfig().toBuilder().protocolVersion(0).build())
@@ -73,6 +73,8 @@ class ProtocolHandshakeFailedTest extends Specification {
             client.EVENTS.PEERS.HANDSHAKED.forEach({ e -> clientHandshaked.set(true)})
 
         when:
+            println("Server checksum : " + server.getProtocolConfig().getMessageConfig().isVerifyChecksum())
+            println("Client checksum : " + client.getProtocolConfig().getMessageConfig().isVerifyChecksum())
             server.startServer()
             client.start()
             Thread.sleep(100)
@@ -80,6 +82,10 @@ class ProtocolHandshakeFailedTest extends Specification {
             Thread.sleep(1000)
             server.stop()
             client.stop()
+            println("CLIENT THREAD INFO:")
+            println(client.getEventBus().getStatus())
+            println("SERVER THREAD INFO:")
+            println(server.getEventBus().getStatus())
         then:
             // We check that each there has been no handshake
             !serverHandshaked.get()

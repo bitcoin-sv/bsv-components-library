@@ -1,12 +1,12 @@
-package com.nchain.jcl.net.unit.protocol.serialization.streams
+package com.nchain.jcl.net.unit.protocol.handlers.message.streams
 
 import com.nchain.jcl.net.network.streams.PeerInputStream
 import com.nchain.jcl.net.network.streams.StreamDataEvent
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
-import com.nchain.jcl.net.protocol.streams.deserializer.Deserializer
-import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerConfig
-import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStream
+import com.nchain.jcl.net.protocol.handlers.message.streams.deserializer.Deserializer
+import com.nchain.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerConfig
+import com.nchain.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerStream
 import com.nchain.jcl.net.unit.protocol.tools.MsgTest
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.config.RuntimeConfig
@@ -14,7 +14,6 @@ import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault
 import io.bitcoinj.core.Utils
 import spock.lang.Specification
 
-import java.time.Duration
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
@@ -57,7 +56,7 @@ class DeserializerMsgsStreamSpec extends Specification {
             AtomicInteger numMessages = new AtomicInteger()
             AtomicInteger numErrors = new AtomicInteger()
             Deserializer deserialer = Deserializer.getInstance(runtimeConfig, DeserializerConfig.builder().build())
-            DeserializerStream stream = new DeserializerStream(eventBusExecutor, delaySource, runtimeConfig, protocolConfig.getBasicConfig(), deserialer, dedicatedConnsExecutor)
+            DeserializerStream stream = new DeserializerStream(eventBusExecutor, delaySource, runtimeConfig, protocolConfig.getMessageConfig(), deserialer, dedicatedConnsExecutor)
             stream.onData({e ->
                 println( e.getData().getBody().getClass().simpleName + " received")
                 numMessages.incrementAndGet()

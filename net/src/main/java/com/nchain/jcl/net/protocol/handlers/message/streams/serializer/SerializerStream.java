@@ -1,11 +1,11 @@
-package com.nchain.jcl.net.protocol.streams.serializer;
+package com.nchain.jcl.net.protocol.handlers.message.streams.serializer;
 
 import com.nchain.jcl.net.network.PeerAddress;
 
 import com.nchain.jcl.net.network.streams.PeerOutputStream;
 import com.nchain.jcl.net.network.streams.PeerOutputStreamImpl;
 import com.nchain.jcl.net.network.streams.StreamDataEvent;
-import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig;
+import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerConfig;
 import com.nchain.jcl.net.protocol.messages.VersionMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl;
@@ -34,7 +34,7 @@ import java.util.concurrent.ExecutorService;
 public class SerializerStream extends PeerOutputStreamImpl<BitcoinMsg<?>, ByteArrayReader> implements PeerOutputStream<BitcoinMsg<?>> {
 
     // Protocol Configuration
-    private ProtocolBasicConfig ProtocolBasicConfig;
+    private MessageHandlerConfig messageConfig;
 
     // We keep track of the num ber of Msgs processed:
     private BigInteger numMsgs = BigInteger.ZERO;
@@ -45,13 +45,20 @@ public class SerializerStream extends PeerOutputStreamImpl<BitcoinMsg<?>, ByteAr
     /** Constructor.*/
     public SerializerStream(ExecutorService executor,
                             PeerOutputStream<ByteArrayReader> destination,
-                            ProtocolBasicConfig ProtocolBasicConfig,
+                            MessageHandlerConfig messageConfig,
                             LoggerUtil parentLogger) {
         super(executor, destination);
         this.logger = (parentLogger == null)
                         ? new LoggerUtil(this.getPeerAddress().toString(), this.getClass())
-                        : LoggerUtil.of(parentLogger, "Ser Stream", this.getClass());
-        this.ProtocolBasicConfig = ProtocolBasicConfig;
+                        : LoggerUtil.of(parentLogger, "Serializer", this.getClass());
+        this.messageConfig = messageConfig;
+    }
+
+    /** Constructor.*/
+    public SerializerStream(ExecutorService executor,
+                            PeerOutputStream<ByteArrayReader> destination,
+                            MessageHandlerConfig messageConfig) {
+        this(executor, destination, messageConfig, new LoggerUtil("Serializer", SerializerStream.class));
     }
 
     @Override
@@ -64,7 +71,7 @@ public class SerializerStream extends PeerOutputStreamImpl<BitcoinMsg<?>, ByteAr
         logger.trace(this.peerAddress, "Serializing " + data.getData().getHeader().getMsgCommand().toUpperCase() + " Message...");
 
         SerializerContext serializerContext = SerializerContext.builder()
-                .protocolBasicConfig(ProtocolBasicConfig)
+                .protocolBasicConfig(messageConfig.getBasicConfig())
                 .insideVersionMsg(data.getData().is(VersionMsg.MESSAGE_TYPE))
                 .build();
         List<StreamDataEvent<ByteArrayReader>> result = Arrays.asList(new StreamDataEvent<>(

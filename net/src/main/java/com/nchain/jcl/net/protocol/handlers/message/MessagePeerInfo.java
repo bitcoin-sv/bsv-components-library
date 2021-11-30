@@ -1,7 +1,7 @@
 package com.nchain.jcl.net.protocol.handlers.message;
 
 
-import com.nchain.jcl.net.protocol.streams.MessageStream;
+import com.nchain.jcl.net.protocol.handlers.message.streams.MessageStream;
 
 /**
  * @author i.fernande@nchain.com

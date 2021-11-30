@@ -17,7 +17,6 @@ import com.nchain.jcl.net.protocol.messages.GetdataMsg;
 import com.nchain.jcl.net.protocol.messages.InventoryVectorMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
-import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerConfig;
 import com.nchain.jcl.net.protocol.wrapper.P2P;
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder;
 import com.nchain.jcl.tools.config.RuntimeConfigImpl;

@@ -17,7 +17,12 @@
     </appender>
 
     <logger name="com.nchain.jcl.net.protocol" additivity="false">
-        <level value="DEBUG" />
+        <level value="TRACE" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <logger name="com.nchain.jcl.net.protocol.handlers.message.streams" additivity="false">
+        <level value="TRACE" />
         <appender-ref ref="STDOUT" />
     </logger>
 

@@ -7,7 +7,7 @@ import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig;
 
 import com.nchain.jcl.net.protocol.events.data.RawTxMsgReceivedEvent;
 import com.nchain.jcl.net.protocol.events.data.TxMsgReceivedEvent;
-import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerConfig;
+import com.nchain.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerConfig;
 import com.nchain.jcl.tools.handlers.HandlerConfig;
 
 import java.util.HashMap;
@@ -54,7 +54,7 @@ public final class MessageHandlerConfig extends HandlerConfig {
                          MessagePreSerializer preSerializer,
                          DeserializerConfig deserializerConfig,
                          boolean rawTxsEnabled,
-                                HashMap<Class, MessageBatchConfig> msgBatchConfigs,
+                         HashMap<Class, MessageBatchConfig> msgBatchConfigs,
                          boolean verifyChecksum
     ) {
         if (basicConfig != null)
@@ -67,11 +67,6 @@ public final class MessageHandlerConfig extends HandlerConfig {
         this.rawTxsEnabled = rawTxsEnabled;
         this.msgBatchConfigs = msgBatchConfigs;
         this.verifyChecksum = verifyChecksum;
-
-        // We set up the checksum management so its consistent:
-        if (verifyChecksum != this.deserializerConfig.isCalculateChecksum()) {
-            this.deserializerConfig = this.deserializerConfig.toBuilder().calculateChecksum(verifyChecksum).build();
-        }
     }
 
     public ProtocolBasicConfig getBasicConfig()                     { return this.basicConfig; }

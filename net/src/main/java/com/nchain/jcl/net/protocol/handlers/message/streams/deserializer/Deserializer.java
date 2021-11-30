@@ -1,4 +1,4 @@
-package com.nchain.jcl.net.protocol.streams.deserializer;
+package com.nchain.jcl.net.protocol.handlers.message.streams.deserializer;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;

@@ -2,8 +2,7 @@ package com.nchain.jcl.net.protocol.events.control;
 
 
 import com.nchain.jcl.net.network.events.P2PEvent;
-import com.nchain.jcl.net.protocol.streams.MessageStream;
-import com.nchain.jcl.tools.events.Event;
+import com.nchain.jcl.net.protocol.handlers.message.streams.MessageStream;
 
 /**
  * @author i.fernandez@nchain.com

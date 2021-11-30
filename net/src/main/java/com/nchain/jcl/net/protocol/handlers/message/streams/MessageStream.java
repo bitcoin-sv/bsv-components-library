@@ -1,17 +1,17 @@
-package com.nchain.jcl.net.protocol.streams;
+package com.nchain.jcl.net.protocol.handlers.message.streams;
 
 
 import com.nchain.jcl.net.network.streams.PeerStream;
 import com.nchain.jcl.net.network.streams.PeerStreamImpl;
-import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig;
+import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerConfig;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 
 
-import com.nchain.jcl.net.protocol.streams.deserializer.Deserializer;
-import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStream;
-import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStreamState;
-import com.nchain.jcl.net.protocol.streams.serializer.SerializerStream;
-import com.nchain.jcl.net.protocol.streams.serializer.SerializerStreamState;
+import com.nchain.jcl.net.protocol.handlers.message.streams.deserializer.Deserializer;
+import com.nchain.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerStream;
+import com.nchain.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerStreamState;
+import com.nchain.jcl.net.protocol.handlers.message.streams.serializer.SerializerStream;
+import com.nchain.jcl.net.protocol.handlers.message.streams.serializer.SerializerStreamState;
 import com.nchain.jcl.net.tools.LoggerUtil;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.tools.config.RuntimeConfig;
@@ -33,7 +33,7 @@ import java.util.concurrent.ExecutorService;
 public class MessageStream extends PeerStreamImpl<BitcoinMsg<?>, ByteArrayReader> implements PeerStream<BitcoinMsg<?>> {
 
     private RuntimeConfig runtimeConfig;
-    private ProtocolBasicConfig protocolBasicConfig;
+    private MessageHandlerConfig messageConfig;
     private Deserializer deserializer;
     private PeerStream streamOrigin;
     private ExecutorService dedicatedConnectionsExecutor;
@@ -41,14 +41,14 @@ public class MessageStream extends PeerStreamImpl<BitcoinMsg<?>, ByteArrayReader
 
     public MessageStream(ExecutorService eventBusExecutor,
                          RuntimeConfig runtimeConfig,
-                         ProtocolBasicConfig protocolBasicConfig,
+                         MessageHandlerConfig messageConfig,
                          Deserializer deserializer,
                          PeerStream<ByteArrayReader> streamOrigin,
                          ExecutorService dedicatedConnectionsExecutor,
                          LoggerUtil parentLogger) {
         super(eventBusExecutor, streamOrigin);
         this.runtimeConfig = runtimeConfig;
-        this.protocolBasicConfig = protocolBasicConfig;
+        this.messageConfig = messageConfig;
         this.deserializer = deserializer;
         this.streamOrigin = streamOrigin;
         this.dedicatedConnectionsExecutor = dedicatedConnectionsExecutor;
@@ -56,11 +56,11 @@ public class MessageStream extends PeerStreamImpl<BitcoinMsg<?>, ByteArrayReader
     }
     @Override
     public DeserializerStream buildInputStream() {
-        return new DeserializerStream(super.executor, streamOrigin.input(), runtimeConfig, protocolBasicConfig, deserializer, dedicatedConnectionsExecutor, parentLogger);
+        return new DeserializerStream(super.executor, streamOrigin.input(), runtimeConfig, messageConfig, deserializer, dedicatedConnectionsExecutor, parentLogger);
     }
     @Override
     public SerializerStream buildOutputStream() {
-        return new SerializerStream(super.executor, streamOrigin.output(), protocolBasicConfig, parentLogger);
+        return new SerializerStream(super.executor, streamOrigin.output(), messageConfig, parentLogger);
     }
 
     @Override

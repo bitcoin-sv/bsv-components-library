@@ -17,9 +17,9 @@ import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
 import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
 import com.nchain.jcl.net.protocol.serialization.common.MsgSerializersFactory;
-import com.nchain.jcl.net.protocol.streams.MessageStream;
-import com.nchain.jcl.net.protocol.streams.deserializer.Deserializer;
-import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStream;
+import com.nchain.jcl.net.protocol.handlers.message.streams.MessageStream;
+import com.nchain.jcl.net.protocol.handlers.message.streams.deserializer.Deserializer;
+import com.nchain.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerStream;
 import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.events.Event;
 import com.nchain.jcl.tools.handlers.HandlerImpl;
@@ -154,7 +154,7 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
         // Now we are assigning the same Executor as the EventBus (Which is multi-thread)
         MessageStream msgStream = new MessageStream(super.eventBus.getExecutor(),
                 super.runtimeConfig,
-                config.getBasicConfig(),
+                config,
                 this.deserializer,
                 event.getStream(),
                 this.dedicateConnsExecutor,
@@ -202,7 +202,7 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
 
         } else {
             // If the Msg is Incorrect, we disconnect from this Peer
-            logger.trace(peerAddress, " ERROR In incoming msg :: " + validationError);
+            logger.error(peerAddress, "ERROR In incoming " + btcMsg.getHeader().getMsgCommand().toUpperCase() + " msg :: " + validationError);
             super.eventBus.publish(new DisconnectPeerRequest(peerAddress, validationError));
         }
     }
@@ -309,7 +309,7 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
         if (config.isVerifyChecksum()
                 && msg.getHeader().getMsgLength() > 0
                 && msg.getHeader().getChecksum() != msg.getBody().getChecksum()) {
-            return "Checksum is Wrong";
+            return "Checksum is Wrong (" + msg.getHeader().getChecksum() + "/" + msg.getBody().getChecksum() + ")";
         }
 
         // Checks the network specified in magic number:

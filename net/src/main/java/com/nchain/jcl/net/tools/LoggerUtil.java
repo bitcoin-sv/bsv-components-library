@@ -48,7 +48,7 @@ public class LoggerUtil {
         this.preffix = instanceId;
 
          if (groupId != null) {
-          this.preffix = this.preffix + " :: " + Strings.padEnd(groupId, 15, ' ');
+          this.preffix = this.preffix + " :: " + Strings.padEnd(groupId, 14, ' ');
         }
         logger = LoggerFactory.getLogger(logClass);
     }

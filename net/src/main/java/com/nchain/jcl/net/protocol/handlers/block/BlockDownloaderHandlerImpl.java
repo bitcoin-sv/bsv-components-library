@@ -11,7 +11,7 @@ import com.nchain.jcl.net.protocol.events.data.*;
 import com.nchain.jcl.net.protocol.messages.*;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg;
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
-import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStream;
+import com.nchain.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerStream;
 import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.handlers.HandlerImpl;
 import com.nchain.jcl.net.tools.LoggerUtil;

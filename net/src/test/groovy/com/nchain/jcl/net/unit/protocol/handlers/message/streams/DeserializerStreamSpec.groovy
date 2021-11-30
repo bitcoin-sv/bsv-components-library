@@ -1,14 +1,13 @@
-package com.nchain.jcl.net.unit.protocol.serialization.streams
+package com.nchain.jcl.net.unit.protocol.handlers.message.streams
 
 import com.nchain.jcl.net.network.streams.StreamDataEvent
 import com.nchain.jcl.net.protocol.config.ProtocolConfig
 import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
-import com.nchain.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
+import com.nchain.jcl.net.protocol.handlers.message.streams.deserializer.Deserializer
+import com.nchain.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerConfig
+import com.nchain.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerStream
 import com.nchain.jcl.net.protocol.messages.VersionAckMsg
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg
-import com.nchain.jcl.net.protocol.streams.deserializer.Deserializer
-import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerConfig
-import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStream
 import com.nchain.jcl.net.unit.protocol.tools.MsgTest
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.config.RuntimeConfig
@@ -41,7 +40,7 @@ class DeserializerStreamSpec extends Specification {
             // We configure the Streams: The Source and the Deserializer:
             MsgTest.DummyPeerStreamSource source = MsgTest.getDummyStreamSource()
             Deserializer deserializer = new Deserializer(runtimeConfig, DeserializerConfig.builder().build())
-            DeserializerStream stream = new DeserializerStream(eventBusExecutor, source, runtimeConfig, protocolConfig.getBasicConfig(), deserializer, dedicatedConnExecutor)
+            DeserializerStream stream = new DeserializerStream(eventBusExecutor, source, runtimeConfig, protocolConfig.getMessageConfig(), deserializer, dedicatedConnExecutor)
 
             // We store the Msg after being Deserialized:
             AtomicReference<BitcoinMsg> msgReceived = new AtomicReference<>()

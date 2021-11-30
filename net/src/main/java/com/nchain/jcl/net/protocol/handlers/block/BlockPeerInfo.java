@@ -5,8 +5,8 @@ import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.BlockMsg;
 import com.nchain.jcl.net.protocol.messages.HeaderMsg;
-import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStream;
-import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStreamState;
+import com.nchain.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerStream;
+import com.nchain.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerStreamState;
 
 import java.text.DecimalFormat;
 import java.time.Duration;

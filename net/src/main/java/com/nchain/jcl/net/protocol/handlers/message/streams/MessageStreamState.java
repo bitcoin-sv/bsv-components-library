@@ -1,9 +1,9 @@
-package com.nchain.jcl.net.protocol.streams;
+package com.nchain.jcl.net.protocol.handlers.message.streams;
 
 
 import com.nchain.jcl.net.network.streams.StreamState;
-import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerStreamState;
-import com.nchain.jcl.net.protocol.streams.serializer.SerializerStreamState;
+import com.nchain.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerStreamState;
+import com.nchain.jcl.net.protocol.handlers.message.streams.serializer.SerializerStreamState;
 
 /**
  * @author i.fernandez@nchain.com

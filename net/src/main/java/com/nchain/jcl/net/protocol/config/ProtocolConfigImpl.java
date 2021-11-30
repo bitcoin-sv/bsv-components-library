@@ -145,7 +145,18 @@ public class ProtocolConfigImpl implements ProtocolConfig {
     }
 
     public ProtocolConfigImplBuilder toBuilder() {
-        return new ProtocolConfigImplBuilder().port(this.port).minPeers(this.minPeers).maxPeers(this.maxPeers).genesisBlock(this.genesisBlock).basicConfig(this.basicConfig).messageConfig(this.messageConfig).handshakeConfig(this.handshakeConfig).pingPongConfig(this.pingPongConfig).discoveryConfig(this.discoveryConfig).blacklistConfig(this.blacklistConfig).blockDownloaderConfig(this.blockDownloaderConfig);
+        return new ProtocolConfigImplBuilder()
+                .port(this.port)
+                .minPeers(this.minPeers)
+                .maxPeers(this.maxPeers)
+                .genesisBlock(this.genesisBlock)
+                .basicConfig(this.basicConfig)
+                .messageConfig(this.messageConfig)
+                .handshakeConfig(this.handshakeConfig)
+                .pingPongConfig(this.pingPongConfig)
+                .discoveryConfig(this.discoveryConfig)
+                .blacklistConfig(this.blacklistConfig)
+                .blockDownloaderConfig(this.blockDownloaderConfig);
     }
 
     /**

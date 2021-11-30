@@ -11,6 +11,7 @@ import com.nchain.jcl.net.protocol.events.data.TxMsgReceivedEvent
 import com.nchain.jcl.net.protocol.handlers.discovery.DiscoveryHandler
 import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandlerConfig
 import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerConfig
+import com.nchain.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerConfig
 import com.nchain.jcl.net.protocol.messages.HashMsg
 import com.nchain.jcl.net.protocol.messages.RawTxMsg
 import com.nchain.jcl.net.protocol.messages.TxInputMsg
@@ -19,7 +20,6 @@ import com.nchain.jcl.net.protocol.messages.TxOutPointMsg
 import com.nchain.jcl.net.protocol.messages.TxOutputMsg
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg
 import com.nchain.jcl.net.protocol.messages.common.BitcoinMsgBuilder
-import com.nchain.jcl.net.protocol.streams.deserializer.DeserializerConfig
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
 import com.nchain.jcl.tools.events.EventQueueProcessor

@@ -1,4 +1,4 @@
-package com.nchain.jcl.net.protocol.streams.deserializer;
+package com.nchain.jcl.net.protocol.handlers.message.streams.deserializer;
 
 
 import com.nchain.jcl.net.network.streams.StreamState;
