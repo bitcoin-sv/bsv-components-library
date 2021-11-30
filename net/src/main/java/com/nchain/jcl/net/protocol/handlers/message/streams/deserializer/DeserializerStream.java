@@ -162,7 +162,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
      * It updates the state of this class to reflect that an error has been thrown. The new State is returned.
      */
     private DeserializerStreamState processError(boolean isThisADedicatedThread, Throwable e, DeserializerStreamState state) {
-        logger.error("Error Deserializing from " + this.peerAddress + ": " + (streamClosed? "Stream was previously closed" : "Stream still open"));
+        logger.error(this.peerAddress, "Error Deserializing", (streamClosed? "Stream was previously closed" : "Stream still open"));
         if (!streamClosed) {
             logger.error((e.getMessage() != null)? e.getMessage() : e.getCause().getMessage());
             // We notify the parent about this Error and return:
