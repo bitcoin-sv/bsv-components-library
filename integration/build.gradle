@@ -123,11 +123,15 @@ publishing {
 
     repositories {
         maven {
-            url = "http://aire.sleepingsalmon.com:2095/repository/maven-releases/"
             allowInsecureProtocol = true
             credentials {
                 username = "$nexusUser"
                 password = "$nexusPassword"
+            }
+            if(project.version.endsWith('-SNAPSHOT')) {
+                url "http://aire.sleepingsalmon.com:2095/repository/maven-snapshots"
+            } else {
+                url "http://aire.sleepingsalmon.com:2095/repository/maven-releases"
             }
         }
     }
