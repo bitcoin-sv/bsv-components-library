@@ -73,8 +73,6 @@ class ProtocolHandshakeFailedTest extends Specification {
             client.EVENTS.PEERS.HANDSHAKED.forEach({ e -> clientHandshaked.set(true)})
 
         when:
-            println("Server checksum : " + server.getProtocolConfig().getMessageConfig().isVerifyChecksum())
-            println("Client checksum : " + client.getProtocolConfig().getMessageConfig().isVerifyChecksum())
             server.startServer()
             client.start()
             Thread.sleep(100)
