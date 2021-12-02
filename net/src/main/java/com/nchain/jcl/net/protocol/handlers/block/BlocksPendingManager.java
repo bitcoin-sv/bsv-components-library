@@ -13,46 +13,62 @@ import java.util.stream.IntStream;
  * Copyright (c) 2018-2020 nChain Ltd
  * @date 17/09/2021
  *
- * This class encapsulate the pending blocks, and the logic that might be enabled so blocks are assigned for
- * download following some criteria.
+ * This class encapsulate the pending blocks, and the logic to follow to decide WHICH peer downloads from WHICH Block.
  */
 public class BlocksPendingManager {
 
-    // Criteria and Action to perform to chose the BEST MATCH when downloading a Block:
+    // BEST Match Logic:
+    // A block can only be downloaded if there are some Peers connected. So if we have N Peers connected, then each
+    // Peer is a POTENTIAL MATCH for a block to be downloaded from. Depending on Configuration, some Peers are a
+    // better fit tha others. So a BEST MATCH is a Peer which is the Best suitable Peer to download a block.
+    //
+    // So the Logic to decide WHICH Peer to choose is made for EVERY BLOCK.
+
+    // Indicates WHAT it is that defines a BEST Match:
     private BestMatchCriteria           bestMatchCriteria = BestMatchCriteria.FROM_ANYONE;
+
+    // Indicates What to DO in case we have some Peers and also some of them are actually a BEST MATCH, BUT those
+    // BEST MATCH Peers are not available at the moment (they are downloading other blocks):
     private BestMatchNotAvailableAction bestMatchNotAvailableAction = BestMatchNotAvailableAction.DOWNLOAD_FROM_ANYONE;
+
+    // Indicates what to do in case we have some Peers, but none of them is a BEST Match:
     private NoBestMatchAction           noBestMatchAction = NoBestMatchAction.DOWNLOAD_FROM_ANYONE;
 
     // List of pending blocks: It works as a FIFO Queue: First Block to be added are the first ones to be downloaded.
-    // If 'onlyDownloadBlocksAfterAnnouncement' is TRUE, then this behaviour might be a bit different, since some Blocks
-    // might skip validation in that case...
     private List<String> pendingBlocks = new ArrayList<>();
 
-    // We register the Blocks announced by each Peer:
+    // Blocks announced by Peer:
+    // Key: peer. Value: List of Blocks announced by this peer
     private Map<PeerAddress, Set<String>> blockAnnouncements = new ConcurrentHashMap<>();
 
-    // It stores the blocks to download exclusivity from a Peer
+    // Block Peers exclusivity:
+    // Key: block Hash, Value: The only Peers allowed to download this Block
     private Map<String, PeerAddress> blocksPeerExclusivity = new ConcurrentHashMap<>();
 
-    // It stores the Blocks to download from a specific Peers first, if possible:
+    // Block Peers priority:
+    // Key: block Hash, Value: in case of various options, these Peers will be selected first
     private Map<String, Set<PeerAddress>> blocksPeerPriority = new ConcurrentHashMap<>();
 
     /** Constructor */
     public BlocksPendingManager() {
     }
 
+    /** Assigns the Criteria to choose a Best Match to download a Block */
     public void setBestMatchCriteria(BestMatchCriteria bestMatchCriteria) {
         this.bestMatchCriteria = bestMatchCriteria;
     }
 
+    /** Assigns the Action to perform when Best Matches exists but they are Not available at the moment */
     public void setBestMatchNotAvailableAction(BestMatchNotAvailableAction bestMatchNotAvailableAction) {
         this.bestMatchNotAvailableAction = bestMatchNotAvailableAction;
     }
 
+    /** Assigns the Action to perform when there are no Best MAtches at all */
     public void setNoBestMatchAction(NoBestMatchAction noBestMatchAction) {
         this.noBestMatchAction = noBestMatchAction;
     }
 
+    /** It register that a block has been announced by one Peer */
     public void registerBlockAnnouncement(String blockHash, PeerAddress peerAddress) {
         Set<String> blocks = blockAnnouncements.get(peerAddress);
         if (blocks == null) {
@@ -62,10 +78,12 @@ public class BlocksPendingManager {
         blockAnnouncements.put(peerAddress, blocks);
     }
 
+    /** It registers a Block exclusivity, so it can only be downloaded from the peer given */
     public void registerBlockExclusivity(List<String> blockHashes, PeerAddress peerAddress) {
         blockHashes.forEach(blockHash -> blocksPeerExclusivity.put(blockHash, peerAddress));
     }
 
+    /** It registers a Block Priority, so the peer given will be selected first (if present) to download this block */
     public void registerBlockPriority(List<String> blockHashes, PeerAddress peerAddress) {
         blockHashes.forEach(blockHash -> {
             Set<PeerAddress> peers = blocksPeerPriority.get(blockHash);
