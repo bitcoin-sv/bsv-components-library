@@ -86,7 +86,6 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
     private BlocksPendingManager blocksPendingManager;
 
     // Structures to keep track of the download process:
-    private Map<String, Integer>    blocksNumDownloadAttempts = new ConcurrentHashMap<>();
     private List<String>            blocksDownloaded = new CopyOnWriteArrayList<>();
     private Map<String, Instant>    blocksDiscarded = new ConcurrentHashMap<>();
 
@@ -219,9 +218,16 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
     }
 
     // State-related methods:
-    private void pause()        { this.downloadingState = DonwloadingState.PAUSED; }
-    private void resume()       { this.downloadingState = DonwloadingState.RUNNING; }
+    private void pause() {
+        this.downloadingState = DonwloadingState.PAUSED;
+        this.blocksPendingManager.onlyCurrentAttemptedBlocksAllowed();
+    }
+    private void resume() {
+        this.downloadingState = DonwloadingState.RUNNING;
+        this.blocksPendingManager.allBlocksAllowed();
+    }
     private boolean isRunning() { return this.downloadingState.equals(DonwloadingState.RUNNING); }
+    private boolean isPaused()  { return this.downloadingState.equals(DonwloadingState.PAUSED); }
 
     @Override
     public BlockDownloaderHandlerState getState() {
@@ -246,7 +252,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                         .filter(p -> p.getConnectionState().equals(BlockPeerInfo.PeerConnectionState.HANDSHAKED))
                         .collect(Collectors.toList()))
                 .totalReattempts(this.totalReattempts.get())
-                .blocksNumDownloadAttempts(this.blocksNumDownloadAttempts)
+                .blocksNumDownloadAttempts(blocksPendingManager.getBlockDownloadAttempts())
                 .busyPercentage(percentage)
                 .bandwidthRestricted(this.bandwidthRestricted)
                 .blocksDownloadingSize(blocksDownloadingSize)
@@ -373,7 +379,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                     blocksInLimbo.add(peerInfo.getCurrentBlockInfo().hash);
 
                     // We process this failiure right away, no need to wait for the monitorJob to pick it up 1 minutes later
-                    processDownloadFailiure(peerInfo.getCurrentBlockInfo().hash);
+                    processDownloadFailure(peerInfo.getCurrentBlockInfo().hash);
                 }
                 peerInfo.disconnect();
             }
@@ -677,7 +683,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
             peerInfo.getStream().resetBufferSize();
 
             blocksDownloaded.add(blockHash);
-            blocksNumDownloadAttempts.remove(blockHash);
+            blocksPendingManager.registerBlockDownloaded(blockHash);
             blocksInLimbo.remove(blockHash);
             bigBlocksHeaders.remove(blockHash);
             bigBlocksCurrentTxs.remove(blockHash);
@@ -704,9 +710,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
             List<String> blocksBeingDownloaded = getBlocksBeingDownloaded();
             if (!blocksBeingDownloaded.contains(blockHash)) {
                 blocksInLimbo.remove(blockHash);
-                blocksPendingManager.remove(blockHash);
+                blocksPendingManager.registerBlockCancelled(blockHash);
                 blocksDiscarded.remove(blockHash);
-                blocksNumDownloadAttempts.remove(blockHash);
                 bigBlocksHeaders.remove(blockHash);
                 bigBlocksCurrentTxs.remove(blockHash);
                 blocksInLimbo.remove(blockHash);
@@ -721,13 +726,13 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
         }
     }
 
-    private void processDownloadFailiure(String blockHash) {
+    private void processDownloadFailure(String blockHash) {
         try {
             lock.lock();
 
             // if the number of attempts tried for this block is no longer stored, that means that the block has been
             // succcesfully downloaded after all...
-            if (!blocksNumDownloadAttempts.containsKey(blockHash)) {
+            if (!blocksPendingManager.isBlockBeingAttempted(blockHash)) {
                 blocksInLimbo.remove(blockHash);
                 return;
             }
@@ -740,7 +745,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                 return;
             }
 
-            int numAttempts = blocksNumDownloadAttempts.get(blockHash);
+            int numAttempts = blocksPendingManager.getNumDownloadAttempts(blockHash);
             if (numAttempts < config.getMaxDownloadAttempts()) {
                 logger.debug("Download failure for " + blockHash + " :: back to the pending Pool...");
                 blocksDownloadHistory.register(blockHash, "Block moved back to the pending Pool");
@@ -750,8 +755,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                 logger.debug("Download failure for " + blockHash, numAttempts + " attempts (max " + config.getMaxDownloadAttempts() + ")", "discarding Block...");
                 blocksDownloadHistory.register(blockHash,   "block discarded (max attempts broken, reset to zero)");
                 blocksDiscarded.put(blockHash, Instant.now());
-                // We reset the number of attempts, next time we try this block will start from scratch:
-                blocksNumDownloadAttempts.remove(blockHash);
+                blocksPendingManager.registerBlockDiscarded(blockHash);
                 // We publish the event:
                 super.eventBus.publish(new BlockDiscardedEvent(blockHash, BlockDiscardedEvent.DiscardedReason.TIMEOUT));
             }
@@ -775,7 +779,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
             blocksDownloadHistory.register(blockHash, peerInfo.getPeerAddress(), "Starting downloading");
 
             // We update the Peer Info
-            int numAttempts = blocksNumDownloadAttempts.containsKey(blockHash) ? blocksNumDownloadAttempts.get(blockHash) + 1 : 1;
+            int numAttempts = blocksPendingManager.getNumDownloadAttempts(blockHash) + 1;
             peerInfo.startDownloading(blockHash, numAttempts);
             peerInfo.getStream().upgradeBufferSize();
 
@@ -784,8 +788,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
 
             // We update other structures (num Attempts on this block, and blocks pendings, etc):
             blocksLastActivity.put(blockHash, Instant.now());
-            blocksNumDownloadAttempts.put(blockHash,numAttempts);
-            blocksPendingManager.remove(blockHash);
+            blocksPendingManager.registerNewDownloadAttempt(blockHash);
 
             // We update the accumulative "busyPercentage" field:
             this.busyPercentage.set(getUpdatedBusyPercentage());
@@ -911,7 +914,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                     for (String blockHash: blocksFailed) {
                         Duration timePassedSinceLastActivity = Duration.between(blocksLastActivity.get(blockHash), Instant.now());
                         if (timePassedSinceLastActivity.compareTo(config.getInactivityTimeoutToFail()) > 0) {
-                            processDownloadFailiure(blockHash); // This block has definitely failed:
+                            processDownloadFailure(blockHash); // This block has definitely failed:
                         }
                     }
 

@@ -25,14 +25,14 @@ public class BlocksPendingManager {
     // So the Logic to decide WHICH Peer to choose is made for EVERY BLOCK.
 
     // Indicates WHAT it is that defines a BEST Match:
-    private BestMatchCriteria           bestMatchCriteria = BestMatchCriteria.FROM_ANYONE;
+    private BestMatchCriteria bestMatchCriteria = BestMatchCriteria.FROM_ANYONE;
 
     // Indicates What to DO in case we have some Peers and also some of them are actually a BEST MATCH, BUT those
     // BEST MATCH Peers are not available at the moment (they are downloading other blocks):
     private BestMatchNotAvailableAction bestMatchNotAvailableAction = BestMatchNotAvailableAction.DOWNLOAD_FROM_ANYONE;
 
     // Indicates what to do in case we have some Peers, but none of them is a BEST Match:
-    private NoBestMatchAction           noBestMatchAction = NoBestMatchAction.DOWNLOAD_FROM_ANYONE;
+    private NoBestMatchAction noBestMatchAction = NoBestMatchAction.DOWNLOAD_FROM_ANYONE;
 
     // List of pending blocks: It works as a FIFO Queue: First Block to be added are the first ones to be downloaded.
     private List<String> pendingBlocks = new ArrayList<>();
@@ -49,41 +49,45 @@ public class BlocksPendingManager {
     // Key: block Hash, Value: in case of various options, these Peers will be selected first
     private Map<String, Set<PeerAddress>> blocksPeerPriority = new ConcurrentHashMap<>();
 
+    // Blocks download Attempts: (record removed after successful download)
+    // Key: Bock Hash, Value: Number of download Attempts
+    private Map<String, Integer> blocksNumDownloadAttempts = new ConcurrentHashMap<>();
+
+    // If TRUE, then ONLY those blocks that are still being downloaded (not finished yet) are available for download.
+    // If FALSE, al pendings blocks are available (normal performance)
+    // In a regular situation, it will be false (all blocks available), but in some scenarios the Download Process
+    // can be paused, in that situation we still need to download those blocks that have been attempted but not finished
+    // yet.
+    private boolean onlyCurrentAttemptedBlocksAllowed = false;
+
     /** Constructor */
-    public BlocksPendingManager() {
-    }
+    public BlocksPendingManager() { }
 
-    /** Assigns the Criteria to choose a Best Match to download a Block */
-    public void setBestMatchCriteria(BestMatchCriteria bestMatchCriteria) {
-        this.bestMatchCriteria = bestMatchCriteria;
-    }
-
-    /** Assigns the Action to perform when Best Matches exists but they are Not available at the moment */
+    public void setBestMatchCriteria(BestMatchCriteria bestMatchCriteria) { this.bestMatchCriteria = bestMatchCriteria; }
+    public void setNoBestMatchAction(NoBestMatchAction noBestMatchAction) { this.noBestMatchAction = noBestMatchAction; }
     public void setBestMatchNotAvailableAction(BestMatchNotAvailableAction bestMatchNotAvailableAction) {
         this.bestMatchNotAvailableAction = bestMatchNotAvailableAction;
     }
 
-    /** Assigns the Action to perform when there are no Best MAtches at all */
-    public void setNoBestMatchAction(NoBestMatchAction noBestMatchAction) {
-        this.noBestMatchAction = noBestMatchAction;
-    }
 
-    /** It register that a block has been announced by one Peer */
     public void registerBlockAnnouncement(String blockHash, PeerAddress peerAddress) {
-        Set<String> blocks = blockAnnouncements.get(peerAddress);
-        if (blocks == null) {
-            blocks = new HashSet<>();
-        }
+        Set<String> blocks = blockAnnouncements.containsKey(peerAddress) ? blockAnnouncements.get(peerAddress) : new HashSet<>();
         blocks.add(blockHash);
         blockAnnouncements.put(peerAddress, blocks);
     }
 
-    /** It registers a Block exclusivity, so it can only be downloaded from the peer given */
+    private boolean isBlockAnnouncedBy(String blockHash, PeerAddress peerAddress) {
+        return blockAnnouncements.containsKey(peerAddress) && blockAnnouncements.get(peerAddress).contains(blockHash);
+    }
+
+    private boolean isBlockAnnouncedBy(String blockHash, List<PeerAddress> peerAddress) {
+        return peerAddress.stream().anyMatch(p -> isBlockAnnouncedBy (blockHash, p));
+    }
+
     public void registerBlockExclusivity(List<String> blockHashes, PeerAddress peerAddress) {
         blockHashes.forEach(blockHash -> blocksPeerExclusivity.put(blockHash, peerAddress));
     }
 
-    /** It registers a Block Priority, so the peer given will be selected first (if present) to download this block */
     public void registerBlockPriority(List<String> blockHashes, PeerAddress peerAddress) {
         blockHashes.forEach(blockHash -> {
             Set<PeerAddress> peers = blocksPeerPriority.get(blockHash);
@@ -95,47 +99,31 @@ public class BlocksPendingManager {
         });
     }
 
-    private boolean isBlockAnnouncedBy(String blockHash, PeerAddress peerAddress) {
-        return (blockAnnouncements.containsKey(peerAddress)) ? blockAnnouncements.get(peerAddress).contains(blockHash): false;
+    public void registerNewDownloadAttempt(String blockHash)            { blocksNumDownloadAttempts.merge(blockHash, 1, (o, n) -> o + n); }
+    public void registerBlockDownloaded(String blockHash)               { blocksNumDownloadAttempts.remove(blockHash); }
+    public void registerBlockDiscarded(String blockHash)                { blocksNumDownloadAttempts.remove(blockHash); }
+    public void registerBlockCancelled(String blockHash)                {
+        blocksNumDownloadAttempts.remove(blockHash);
+        pendingBlocks.remove(blockHash);
     }
 
-    private boolean isBlockAnnouncedBy(String blockHash, List<PeerAddress> peerAddress) {
-        return peerAddress.stream()
-                .anyMatch(p -> (blockAnnouncements.containsKey(p) && blockAnnouncements.get(p).contains(blockHash)));
-    }
+    public void onlyCurrentAttemptedBlocksAllowed()                     { this.onlyCurrentAttemptedBlocksAllowed = true; }
+    public void allBlocksAllowed()                                      { this.onlyCurrentAttemptedBlocksAllowed = false; }
 
-    public synchronized void add(String blockHash) {
-        this.pendingBlocks.add(blockHash);
-    }
+    // DOWNLOAD ATTEMPTS:
+    public int getNumDownloadAttempts(String blockHash)                 { return blocksNumDownloadAttempts.containsKey(blockHash)? blocksNumDownloadAttempts.get(blockHash) : 0; }
+    public Map<String, Integer> getBlockDownloadAttempts()              { return blocksNumDownloadAttempts; }
+    public boolean isBlockBeingAttempted(String blockHash)              { return blocksNumDownloadAttempts.containsKey(blockHash); }
 
-    public synchronized void add(List<String> blockHashes) {
-        this.pendingBlocks.addAll(blockHashes);
-    }
-
-    public synchronized void addWithPriority(String blockHash) {
-        this.pendingBlocks.add(0, blockHash);
-    }
-
-    public synchronized void addWithPriority(List<String> blockHashes) {
-        this.pendingBlocks.addAll(0, blockHashes);
-    }
-
-    public synchronized void remove(String blockHash) {
-        this.pendingBlocks.remove(blockHash);
-    }
-
-    public synchronized int size() {
-        return this.pendingBlocks.size();
-    }
-
-    public List<String> getPendingBlocks() {
-        return Collections.unmodifiableList(this.pendingBlocks);
-    }
-
-    public boolean contains(String blockHash) {
-        return this.pendingBlocks.contains(blockHash);
-    }
-
+    // PENDING BLOCKS:
+    public synchronized void add(String blockHash)                      { this.pendingBlocks.add(blockHash); }
+    public synchronized void add(List<String> blockHashes)              { this.pendingBlocks.addAll(blockHashes); }
+    public synchronized void addWithPriority(String blockHash)          { this.pendingBlocks.add(0, blockHash); }
+    public synchronized void addWithPriority(List<String> blockHashes)  { this.pendingBlocks.addAll(0, blockHashes); }
+    public synchronized void remove(String blockHash)                   { this.pendingBlocks.remove(blockHash); }
+    public synchronized int size()                                      { return this.pendingBlocks.size(); }
+    public List<String> getPendingBlocks()                              { return Collections.unmodifiableList(this.pendingBlocks); }
+    public boolean contains(String blockHash)                           { return this.pendingBlocks.contains(blockHash); }
 
     /**
      * This methods checks if a given Block can be assigned to the Peer given (currentPeer) to be download from it.
