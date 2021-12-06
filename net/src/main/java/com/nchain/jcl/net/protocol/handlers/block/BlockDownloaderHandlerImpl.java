@@ -245,7 +245,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                 .pendingToCancelBlocks(this.blocksPendingToCancel.stream().collect(Collectors.toList()))
                 .cancelledBlocks(this.blocksCancelled.stream().collect(Collectors.toList()))
                 .blocksInLimbo(this.blocksInLimbo)
-                .blocksHistory(this.blocksDownloadHistory.getBlocksHistory())
+                .blocksHistory(this.blocksDownloadHistory.copyOfBlocksHistory())
                 .peersInfo(this.handlerInfo.values().stream()
                         //.filter( p -> p.getCurrentBlockInfo() != null)
                         //.filter( p -> p.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING))

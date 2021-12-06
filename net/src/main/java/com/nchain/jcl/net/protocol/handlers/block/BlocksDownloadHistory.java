@@ -1,5 +1,6 @@
 package com.nchain.jcl.net.protocol.handlers.block;
 
+import com.google.common.collect.ImmutableMap;
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.tools.thread.ThreadUtils;
 import io.bitcoinj.core.Sha256Hash;
@@ -135,6 +136,11 @@ public class BlocksDownloadHistory {
     /** returns the history of ALL the blocks */
     public Map<String, List<HistoricItem>> getBlocksHistory() {
         return history;
+    }
+
+    /** Returns a COPY of ALL the blocks History */
+    public synchronized Map<String, List<HistoricItem>> copyOfBlocksHistory() {
+        return ImmutableMap.copyOf(history);
     }
 
     /**
