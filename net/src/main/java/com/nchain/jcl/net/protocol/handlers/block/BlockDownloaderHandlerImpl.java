@@ -220,11 +220,11 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
     // State-related methods:
     private void pause() {
         this.downloadingState = DonwloadingState.PAUSED;
-        this.blocksPendingManager.onlyCurrentAttemptedBlocksAllowed();
+        this.blocksPendingManager.switchToRestrictedMode();
     }
     private void resume() {
         this.downloadingState = DonwloadingState.RUNNING;
-        this.blocksPendingManager.allBlocksAllowed();
+        this.blocksPendingManager.switchToNormalMode();
     }
     private boolean isRunning() { return this.downloadingState.equals(DonwloadingState.RUNNING); }
     private boolean isPaused()  { return this.downloadingState.equals(DonwloadingState.PAUSED); }
