@@ -59,44 +59,31 @@ public class BlocksPendingManager {
     /** Constructor */
     public BlocksPendingManager() { }
 
-    /** Assigns the Criteria to find a Best MAtch for downloading a Block */
-    public void setBestMatchCriteria(BestMatchCriteria bestMatchCriteria) {
-        this.bestMatchCriteria = bestMatchCriteria;
-    }
-
-    /** Assigns the Action to perform when there is no Best Match */
-    public void setNoBestMatchAction(NoBestMatchAction noBestMatchAction) {
-        this.noBestMatchAction = noBestMatchAction;
-    }
-
-    /** Assigns the Action to perform if the Best Peers found are NOT available at the moment */
-    public void setBestMatchNotAvailableAction(BestMatchNotAvailableAction bestMatchNotAvailableAction) {
-        this.bestMatchNotAvailableAction = bestMatchNotAvailableAction;
-    }
-
-    /** It registers a Block announcement by a Peer */
+    // Best Match Policies/Criteria Setters:
+    public void setBestMatchCriteria(BestMatchCriteria bestMatchCriteria)   { this.bestMatchCriteria = bestMatchCriteria; }
+    public void setNoBestMatchAction(NoBestMatchAction noBestMatchAction)   { this.noBestMatchAction = noBestMatchAction; }
+    public void setBestMatchNotAvailableAction(BestMatchNotAvailableAction bestMatchNotAvailableAction)
+                                                                            { this.bestMatchNotAvailableAction = bestMatchNotAvailableAction; }
+    // BOCK ANNOUNCEMENTS:
     public void registerBlockAnnouncement(String blockHash, PeerAddress peerAddress) {
         Set<String> blocks = blockAnnouncements.containsKey(peerAddress) ? blockAnnouncements.get(peerAddress) : new HashSet<>();
         blocks.add(blockHash);
         blockAnnouncements.put(peerAddress, blocks);
     }
 
-    /** Returns TRUE if the Block has been announced by the Peer given */
     private boolean isBlockAnnouncedBy(String blockHash, PeerAddress peerAddress) {
         return blockAnnouncements.containsKey(peerAddress) && blockAnnouncements.get(peerAddress).contains(blockHash);
     }
 
-    /** Returns TRUE if the Block has been announced by ANY of the Peers given */
     private boolean isBlockAnnouncedBy(String blockHash, List<PeerAddress> peerAddress) {
         return peerAddress.stream().anyMatch(p -> isBlockAnnouncedBy (blockHash, p));
     }
 
-    /** Registers a Block Exclusivity: This block will only be downloaded by the Peer given */
+    // BLOCK EXCLUSIVITY/PRIORITY:
     public void registerBlockExclusivity(List<String> blockHashes, PeerAddress peerAddress) {
         blockHashes.forEach(blockHash -> blocksPeerExclusivity.put(blockHash, peerAddress));
     }
 
-    /** Registers a Block Priority: If the peer given is available, it will be selected first to download the Block given */
     public void registerBlockPriority(List<String> blockHashes, PeerAddress peerAddress) {
         blockHashes.forEach(blockHash -> {
             Set<PeerAddress> peers = blocksPeerPriority.get(blockHash);
@@ -108,7 +95,7 @@ public class BlocksPendingManager {
         });
     }
 
-
+    // REGISTER OF EVENTS:
     public void registerNewDownloadAttempt(String blockHash)            { blocksNumDownloadAttempts.merge(blockHash, 1, (o, n) -> o + n); }
     public void registerBlockDownloaded(String blockHash)               { blocksNumDownloadAttempts.remove(blockHash); }
     public void registerBlockDiscarded(String blockHash)                { blocksNumDownloadAttempts.remove(blockHash); }
@@ -117,6 +104,7 @@ public class BlocksPendingManager {
         pendingBlocks.remove(blockHash);
     }
 
+    // RESTRICTED MODE:
     public void switchToRestrictedMode()                                { this.restrictedMode = true; }
     public void switchToNormalMode()                                    { this.restrictedMode = false; }
 
