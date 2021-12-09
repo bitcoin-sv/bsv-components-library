@@ -17,7 +17,7 @@ import java.util.OptionalInt;
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  *
- * It stores the Configueation variables needed by the Discovery Handler.
+ * It stores the Configuration variables needed by the Discovery Handler.
  */
 public class DiscoveryHandlerConfig extends HandlerConfig {
 
