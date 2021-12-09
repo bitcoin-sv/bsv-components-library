@@ -52,8 +52,8 @@ public class BlocksPendingManager {
 
     // If "restrictedMode" is TRUE, then ONLY those pending blocks that have been tried already will be candidates for
     // a download. In this "restrictive Mode", no new Blocks are download, only "old" ones are re-tried, and for these
-    // blocks the "BestMatch" Criteria and Actions do NOt apply they are download or any peer available and as soon as
-    // possible:
+    // blocks the "BestMatch" Criteria and Actions do NOt apply: they are download from any peer available and as soon
+    // as possible
     private boolean restrictedMode = false;
 
     /** Constructor */
@@ -201,16 +201,16 @@ public class BlocksPendingManager {
     }
 
     /**
-     * Given the currentPeer, it assigns Block to download from it, from the list of pending Blocks. Since due to the
-     * different CRITERIA or ACTION defined this election might be "complex", we also need exta info about what other
+     * Given the currentPeer, it assigns a Block to download from it, from the list of pending Blocks. Since due to the
+     * different CRITERIA or ACTION defined this election might be "complex", we also need extra info about what other
      * Peers we are currently connected to: available and NOT available.
      *
      * @param currentPeer           Peer we want to assign a Block to download
      * @param availablePeers        List of Peers we are connected to and available for download
      * @param notAvailablePeers     List of Peers we are connected bo but are NOT available (they are already busy
      *                              downloading other blocks).
-     * @return  A block to assign to this PEer, or empty if no assignment is possible (because there are no pending
-     *          blocks anymore, or because due to the CRITERIA and ACTIONS defined there is no match possible.
+     * @return  A block to assign to this Peer, or empty if no assignment is possible (because there are no pending
+     *          blocks anymore, or because due to the CRITERIA and ACTIONS defined there is no match possible).
      */
     public synchronized Optional<String> extractMostSuitableBlockForDownload(PeerAddress currentPeer,
                                                                              List<PeerAddress> availablePeers,
@@ -220,7 +220,7 @@ public class BlocksPendingManager {
         Optional<String> result = Optional.empty();
 
         // Id we aer in NORMAL Mode, we loop over the "pending" list of Blocks checking for each one if this Peer is a
-        // Best MAth. If we are in RESTRICTIVE Mode, we loop instead over the list of ONLY those blocks that have been
+        // Best Match. If we are in RESTRICTIVE Mode, we loop instead over the list of ONLY those blocks that have been
         // tried already...
 
         List<String> blocksToProcess = (!restrictedMode)
