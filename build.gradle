@@ -24,7 +24,7 @@ repositories {
     jcenter()
     mavenLocal()
     maven {
-        url = "http://aire.sleepingsalmon.com:2095/repository/maven-releases/"
+        url = "$nexusReleasesUrl"
         allowInsecureProtocol = true
         credentials {
             username = "$nexusUser"
@@ -95,9 +95,9 @@ publishing {
                 password = "$nexusPassword"
             }
             if(project.version.endsWith('-SNAPSHOT')) {
-                url "http://aire.sleepingsalmon.com:2095/repository/maven-snapshots"
+                url "$nexusSnapshotsUrl"
             } else {
-                url "http://aire.sleepingsalmon.com:2095/repository/maven-releases"
+                url "$nexusReleasesUrl"
             }
         }
     }
