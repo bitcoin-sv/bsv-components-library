@@ -8,7 +8,7 @@ import com.nchain.jcl.store.keyValue.common.KeyValueIterator;
 import com.nchain.jcl.store.levelDB.common.LevelDBIterator;
 import com.nchain.jcl.tools.events.EventBus;
 import com.nchain.jcl.tools.thread.ThreadUtils;
-import io.bitcoinj.bitcoin.api.base.Tx;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.Tx;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.DBIterator;
 import org.iq80.leveldb.Options;

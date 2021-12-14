@@ -19,8 +19,8 @@ import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
 import com.nchain.jcl.tools.config.RuntimeConfig
 import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault
-import io.bitcoinj.core.Sha256Hash
-import io.bitcoinj.params.RegTestParams
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
+import io.bitcoinsv.bitcoinjsv.params.RegTestParams
 import spock.lang.Ignore
 import spock.lang.Specification
 

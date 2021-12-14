@@ -1,10 +1,7 @@
 package com.nchain.jcl.tools.util;
 
-import io.bitcoinj.bitcoin.api.base.Header;
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
-import io.bitcoinj.core.Sha256Hash;
-import io.bitcoinj.core.Utils;
-import io.bitcoinj.exception.VerificationException;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly;
+import io.bitcoinsv.bitcoinjsv.core.Utils;
 
 import java.math.BigInteger;
 

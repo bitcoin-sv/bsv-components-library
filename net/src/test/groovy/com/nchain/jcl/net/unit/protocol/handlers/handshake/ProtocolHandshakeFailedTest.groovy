@@ -11,9 +11,8 @@ import com.nchain.jcl.net.protocol.handlers.pingPong.PingPongHandler
 import com.nchain.jcl.net.unit.protocol.tools.MsgTest
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
-import com.nchain.jcl.tools.thread.ThreadUtils
-import io.bitcoinj.params.MainNetParams
-import io.bitcoinj.params.Net
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import io.bitcoinsv.bitcoinjsv.params.Net
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicBoolean

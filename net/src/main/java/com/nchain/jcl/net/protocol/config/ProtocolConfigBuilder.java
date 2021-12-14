@@ -9,9 +9,9 @@ import com.nchain.jcl.net.protocol.handlers.message.MessageHandlerConfig;
 import com.nchain.jcl.net.protocol.handlers.pingPong.PingPongHandlerConfig;
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.HashMsg;
-import io.bitcoinj.core.Sha256Hash;
-import io.bitcoinj.core.Utils;
-import io.bitcoinj.params.NetworkParameters;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
+import io.bitcoinsv.bitcoinjsv.core.Utils;
+import io.bitcoinsv.bitcoinjsv.params.NetworkParameters;
 
 import java.util.OptionalInt;
 

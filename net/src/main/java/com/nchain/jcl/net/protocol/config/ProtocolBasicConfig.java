@@ -2,7 +2,7 @@ package com.nchain.jcl.net.protocol.config;
 
 
 import com.nchain.jcl.tools.handlers.HandlerConfig;
-import io.bitcoinj.params.NetworkParameters;
+import io.bitcoinsv.bitcoinjsv.params.NetworkParameters;
 
 import java.util.OptionalInt;
 

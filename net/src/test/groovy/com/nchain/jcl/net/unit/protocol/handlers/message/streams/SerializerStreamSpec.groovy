@@ -16,8 +16,8 @@ import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.net.unit.network.streams.PeerStreamInOutSimulator
 import com.nchain.jcl.tools.bytes.ByteArrayReader
-import io.bitcoinj.params.MainNetParams
-import io.bitcoinj.params.Net
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import io.bitcoinsv.bitcoinjsv.params.Net
 import spock.lang.Specification
 
 import java.util.concurrent.ExecutorService

@@ -1,8 +1,8 @@
 package com.nchain.jcl.store.blockStore;
 
 
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
-import io.bitcoinj.core.Sha256Hash;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 
 /**
  * @author i.fernandez@nchain.com

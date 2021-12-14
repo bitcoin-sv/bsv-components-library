@@ -1,6 +1,7 @@
 package com.nchain.jcl.net.protocol.messages.common;
 
-import io.bitcoinj.core.Utils;
+
+import io.bitcoinsv.bitcoinjsv.core.Utils;
 
 /**
  * @author i.fernandez@nchain.com

@@ -1,6 +1,5 @@
 package com.nchain.jcl.net.protocol.messages.common;
 
-import io.bitcoinj.core.Utils;
 
 import java.io.Serializable;
 

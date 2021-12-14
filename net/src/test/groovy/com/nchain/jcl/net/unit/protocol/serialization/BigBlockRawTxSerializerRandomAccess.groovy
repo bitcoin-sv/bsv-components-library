@@ -15,7 +15,7 @@ import com.nchain.jcl.net.protocol.serialization.largeMsgs.RawBigBlockDeserializ
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayReaderRealTime
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
-import io.bitcoinj.core.Utils
+import io.bitcoinsv.bitcoinjsv.core.Utils
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicReference

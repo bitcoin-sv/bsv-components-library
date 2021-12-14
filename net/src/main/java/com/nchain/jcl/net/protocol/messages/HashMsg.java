@@ -4,7 +4,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Bytes;
 import com.nchain.jcl.net.protocol.messages.common.Message;
-import io.bitcoinj.core.Utils;
+import io.bitcoinsv.bitcoinjsv.core.Utils;
 
 import java.io.Serializable;
 import java.util.Arrays;

@@ -7,9 +7,8 @@ import com.nchain.jcl.net.protocol.config.ProtocolConfigBuilder
 import com.nchain.jcl.net.protocol.messages.*
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
-import io.bitcoinj.core.Utils
-import io.bitcoinj.params.MainNetParams
-import io.bitcoinj.params.Net
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import io.bitcoinsv.bitcoinjsv.params.Net
 import spock.lang.Ignore
 import spock.lang.Specification
 

@@ -7,7 +7,7 @@ import com.nchain.jcl.store.foundationDB.blockChainStore.BlockChainStoreFDB
 import com.nchain.jcl.store.foundationDB.blockChainStore.BlockChainStoreFDBConfig
 import com.nchain.jcl.store.foundationDB.blockStore.BlockStoreFDB
 import com.nchain.jcl.store.foundationDB.blockStore.BlockStoreFDBConfig
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly
 
 import java.time.Duration
 

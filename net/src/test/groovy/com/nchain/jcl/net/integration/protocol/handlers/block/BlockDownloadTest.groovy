@@ -19,8 +19,7 @@ import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
 import com.nchain.jcl.tools.config.RuntimeConfig
 import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault
 import com.nchain.jcl.tools.thread.ThreadUtils
-import io.bitcoinj.core.Utils
-import io.bitcoinj.params.RegTestParams
+import io.bitcoinsv.bitcoinjsv.core.Utils
 import spock.lang.Ignore
 import spock.lang.Specification
 

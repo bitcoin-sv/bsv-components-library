@@ -12,7 +12,7 @@ import com.nchain.jcl.net.protocol.messages.common.BitcoinMsg
 import com.nchain.jcl.net.unit.protocol.tools.MsgTest
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
-import io.bitcoinj.params.MainNetParams
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicInteger

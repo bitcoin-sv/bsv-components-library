@@ -13,8 +13,7 @@ import com.nchain.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl
 import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext;
 import com.nchain.jcl.net.unit.network.streams.PeerStreamInOutSimulator;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
-
-import io.bitcoinj.core.Utils;
+import io.bitcoinsv.bitcoinjsv.core.Utils;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

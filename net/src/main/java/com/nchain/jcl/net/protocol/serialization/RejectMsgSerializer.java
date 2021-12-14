@@ -9,7 +9,8 @@ import com.nchain.jcl.net.protocol.messages.RejectMsg;
 import com.nchain.jcl.net.protocol.messages.VarStrMsg;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.tools.bytes.ByteArrayWriter;
-import io.bitcoinj.core.Sha256Hash;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
+
 
 /**
  * @author i.fernandez@nchain.com

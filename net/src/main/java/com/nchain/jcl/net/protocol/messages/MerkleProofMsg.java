@@ -3,7 +3,7 @@ package com.nchain.jcl.net.protocol.messages;
 import com.nchain.jcl.net.protocol.messages.common.Message;
 import com.nchain.jcl.net.protocol.messages.merkle.MerkleNode;
 import com.nchain.jcl.net.protocol.messages.merkle.MerkleProofMsgFlags;
-import io.bitcoinj.core.Sha256Hash;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 
 import java.util.List;
 

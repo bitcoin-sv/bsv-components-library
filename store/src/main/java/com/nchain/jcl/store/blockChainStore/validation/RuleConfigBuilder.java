@@ -3,9 +3,9 @@ package com.nchain.jcl.store.blockChainStore.validation;
 
 import com.nchain.jcl.store.blockChainStore.validation.rules.*;
 import com.nchain.jcl.store.blockChainStore.validation.rules.predicate.*;
-import io.bitcoinj.bitcoin.api.extended.ChainInfo;
-import io.bitcoinj.params.NetworkParameters;
-import io.bitcoinj.params.STNParams;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.extended.ChainInfo;
+import io.bitcoinsv.bitcoinjsv.params.NetworkParameters;
+
 
 import java.util.Date;
 import java.util.function.Predicate;

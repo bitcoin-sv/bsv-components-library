@@ -4,7 +4,7 @@ package com.nchain.jcl.net.protocol.handlers.discovery;
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.net.protocol.config.ProtocolBasicConfig;
 import com.nchain.jcl.tools.handlers.HandlerConfig;
-import io.bitcoinj.params.NetworkParameters;
+import io.bitcoinsv.bitcoinjsv.params.NetworkParameters;
 
 import java.net.UnknownHostException;
 import java.time.Duration;

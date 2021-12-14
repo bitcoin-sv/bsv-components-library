@@ -9,7 +9,7 @@ import com.nchain.jcl.net.protocol.handlers.block.BlockDownloaderHandler
 import com.nchain.jcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
-import io.bitcoinj.params.MainNetParams
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
 import spock.lang.Specification
 
 /**

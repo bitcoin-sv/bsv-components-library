@@ -2,8 +2,8 @@ package com.nchain.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
 import com.nchain.jcl.net.protocol.messages.common.BodyMessage;
-import com.nchain.jcl.net.protocol.messages.common.Message;
-import io.bitcoinj.core.Utils;
+import io.bitcoinsv.bitcoinjsv.core.Utils;
+
 
 import java.io.Serializable;
 

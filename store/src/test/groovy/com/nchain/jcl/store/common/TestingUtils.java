@@ -2,11 +2,12 @@ package com.nchain.jcl.store.common;
 
 
 import com.nchain.jcl.store.blockStore.BlockStore;
-import io.bitcoinj.bitcoin.api.base.*;
-import io.bitcoinj.bitcoin.bean.base.*;
-import io.bitcoinj.core.Coin;
-import io.bitcoinj.core.Sha256Hash;
-import io.bitcoinj.core.Utils;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.*;
+import io.bitcoinsv.bitcoinjsv.bitcoin.bean.base.*;
+import io.bitcoinsv.bitcoinjsv.core.Coin;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
+import io.bitcoinsv.bitcoinjsv.core.Utils;
+
 
 import java.time.Duration;
 import java.time.Instant;

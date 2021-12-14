@@ -20,8 +20,8 @@ import com.nchain.jcl.tools.config.RuntimeConfig
 import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault
 import com.nchain.jcl.tools.events.EventBus
 import com.nchain.jcl.tools.thread.ThreadUtils
-import io.bitcoinj.params.MainNetParams
-import io.bitcoinj.params.Net
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import io.bitcoinsv.bitcoinjsv.params.Net
 import spock.lang.Specification
 
 import java.util.concurrent.ExecutorService

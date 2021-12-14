@@ -8,7 +8,7 @@ import com.nchain.jcl.store.blockStore.metadata.Metadata;
 import com.nchain.jcl.store.keyValue.blockChainStore.BlockChainStoreKeyValue;
 import com.nchain.jcl.store.levelDB.blockStore.BlockStoreLevelDB;
 import com.nchain.jcl.tools.thread.ThreadUtils;
-import io.bitcoinj.bitcoin.api.extended.ChainInfo;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.extended.ChainInfo;
 import org.slf4j.Logger;
 
 import javax.annotation.Nonnull;

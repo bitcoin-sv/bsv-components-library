@@ -20,9 +20,7 @@ import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
 import com.nchain.jcl.tools.events.EventQueueProcessor
 import com.nchain.jcl.tools.thread.ThreadUtils
-import io.bitcoinj.core.Utils
-import io.bitcoinj.params.MainNetParams
-import io.bitcoinj.params.STNParams
+
 import spock.lang.Ignore
 import spock.lang.Specification
 import java.time.Duration

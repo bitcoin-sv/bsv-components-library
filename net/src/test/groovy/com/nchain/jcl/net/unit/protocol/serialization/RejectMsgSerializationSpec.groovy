@@ -14,9 +14,9 @@ import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
 import com.nchain.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
-import io.bitcoinj.core.Utils
-import io.bitcoinj.params.MainNetParams
-import io.bitcoinj.params.Net
+import io.bitcoinsv.bitcoinjsv.core.Utils
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import io.bitcoinsv.bitcoinjsv.params.Net
 import spock.lang.Specification
 
 /**

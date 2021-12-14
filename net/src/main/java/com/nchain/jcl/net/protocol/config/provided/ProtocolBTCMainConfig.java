@@ -5,7 +5,7 @@ import com.nchain.jcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig;
 import com.nchain.jcl.net.protocol.handlers.handshake.HandshakeHandlerConfig;
 import com.nchain.jcl.net.protocol.messages.BlockHeaderMsg;
 import com.nchain.jcl.net.protocol.messages.HashMsg;
-import io.bitcoinj.core.Sha256Hash;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 
 /**
  * @author i.fernandez@nchain.com

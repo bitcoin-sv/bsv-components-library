@@ -10,7 +10,7 @@ import com.nchain.jcl.net.protocol.messages.VarStrMsg;
 import com.nchain.jcl.net.protocol.messages.VersionMsg;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.tools.bytes.ByteArrayWriter;
-import io.bitcoinj.core.Utils;
+import io.bitcoinsv.bitcoinjsv.core.Utils;
 
 /**
  * @author i.fernandez@nchain.com

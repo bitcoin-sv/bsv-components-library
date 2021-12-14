@@ -4,7 +4,7 @@ import com.nchain.jcl.store.blockChainStore.BlockChainStore
 import com.nchain.jcl.store.blockChainStore.BlockChainTipsSpecBase
 import com.nchain.jcl.store.foundationDB.FDBTestUtils
 import com.nchain.jcl.store.foundationDB.StoreFactory
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly
 import spock.lang.Ignore
 
 import java.time.Duration

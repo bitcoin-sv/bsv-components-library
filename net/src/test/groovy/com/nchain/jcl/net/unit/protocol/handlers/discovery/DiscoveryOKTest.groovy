@@ -9,8 +9,8 @@ import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
 import com.nchain.jcl.tools.config.RuntimeConfig
 import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault
-import io.bitcoinj.params.MainNetParams
-import io.bitcoinj.params.Net
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import io.bitcoinsv.bitcoinjsv.params.Net
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicReference

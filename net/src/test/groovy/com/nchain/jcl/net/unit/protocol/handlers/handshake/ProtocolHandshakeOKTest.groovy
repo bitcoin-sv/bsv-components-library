@@ -10,8 +10,8 @@ import com.nchain.jcl.net.protocol.handlers.discovery.DiscoveryHandler
 import com.nchain.jcl.net.protocol.handlers.pingPong.PingPongHandler
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
-import io.bitcoinj.params.MainNetParams
-import io.bitcoinj.params.Net
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import io.bitcoinsv.bitcoinjsv.params.Net
 import spock.lang.Ignore
 import spock.lang.Specification
 

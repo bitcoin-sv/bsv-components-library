@@ -3,8 +3,8 @@ package com.nchain.jcl.store.blockStore
 
 
 import com.nchain.jcl.store.common.TestingUtils
-import io.bitcoinj.bitcoin.api.base.Tx
-import io.bitcoinj.core.Sha256Hash
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.Tx
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
 
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicInteger

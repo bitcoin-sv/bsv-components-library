@@ -25,13 +25,11 @@ import com.nchain.jcl.store.levelDB.blockChainStore.BlockChainStoreLevelDB
 import com.nchain.jcl.store.levelDB.blockChainStore.BlockChainStoreLevelDBConfig
 import com.nchain.jcl.tools.config.RuntimeConfig
 import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault
-import io.bitcoinj.bitcoin.Genesis
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
-import io.bitcoinj.bitcoin.api.extended.ChainInfo
-import io.bitcoinj.core.Sha256Hash
-import io.bitcoinj.core.Utils
-import io.bitcoinj.params.Net
-import io.bitcoinj.params.NetworkParameters
+import io.bitcoinsv.bitcoinjsv.bitcoin.Genesis
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.extended.ChainInfo
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
+import io.bitcoinsv.bitcoinjsv.params.Net
+import io.bitcoinsv.bitcoinjsv.params.NetworkParameters
 import org.iq80.leveldb.table.Block
 import spock.lang.Ignore
 import spock.lang.Specification
@@ -75,7 +73,7 @@ class ChainDownloadTest extends Specification {
             "0000000000000000055de705ef722c11d90c1a52de52c21aa646c6bb46de3770")
 
     // We keep track of headers sync, blocks downloaded... so we do not request the same stuff twice:
-    private static Set<Sha256Hash>  headersRequested = ConcurrentHashMap.newKeySet()
+    private static Set<Sha256Hash> headersRequested = ConcurrentHashMap.newKeySet()
     private static Set<String>      blocksRequested = ConcurrentHashMap.newKeySet()
     private static AtomicLong numBlocksDownloaded = new AtomicLong()
 
@@ -218,7 +216,7 @@ class ChainDownloadTest extends Specification {
     /**
      * It downloads the Blockchain
      */
-    @Ignore
+    //@Ignore
     def downloadChainSpec() {
         given:
 

@@ -2,7 +2,7 @@ package com.nchain.jcl.store.keyValue.blockChainStore;
 
 
 import com.nchain.jcl.store.keyValue.blockStore.BlockStoreKeyValueConfig;
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly;
 
 import java.time.Duration;
 

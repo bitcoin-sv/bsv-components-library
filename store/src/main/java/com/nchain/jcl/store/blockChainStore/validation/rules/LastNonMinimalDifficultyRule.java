@@ -3,8 +3,9 @@ package com.nchain.jcl.store.blockChainStore.validation.rules;
 import com.nchain.jcl.store.blockChainStore.BlockChainStore;
 import com.nchain.jcl.store.blockChainStore.validation.exception.BlockChainRuleFailureException;
 import com.nchain.jcl.tools.util.PowUtil;
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
-import io.bitcoinj.bitcoin.api.extended.ChainInfo;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.extended.ChainInfo;
+
 
 import java.math.BigInteger;
 import java.util.function.Predicate;

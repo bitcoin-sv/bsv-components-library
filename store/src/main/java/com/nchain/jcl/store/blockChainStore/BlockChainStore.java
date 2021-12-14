@@ -3,11 +3,9 @@ package com.nchain.jcl.store.blockChainStore;
 
 import com.nchain.jcl.store.blockChainStore.events.BlockChainStoreStreamer;
 import com.nchain.jcl.store.blockStore.BlockStore;
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
-import io.bitcoinj.bitcoin.api.extended.ChainInfo;
-import io.bitcoinj.core.Sha256Hash;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.extended.ChainInfo;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 
-import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Optional;
 

@@ -17,10 +17,7 @@ import com.nchain.jcl.net.protocol.messages.HashMsg
 import com.nchain.jcl.net.protocol.messages.VarIntMsg
 import com.nchain.jcl.net.protocol.wrapper.P2P
 import com.nchain.jcl.net.protocol.wrapper.P2PBuilder
-import io.bitcoinj.core.Sha256Hash
-import io.bitcoinj.core.Utils
-import io.bitcoinj.params.MainNetParams
-import io.bitcoinj.params.Net
+
 import spock.lang.Ignore
 import spock.lang.Specification
 

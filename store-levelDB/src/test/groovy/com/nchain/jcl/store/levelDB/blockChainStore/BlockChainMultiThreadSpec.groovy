@@ -4,7 +4,7 @@ package com.nchain.jcl.store.levelDB.blockChainStore
 import com.nchain.jcl.store.blockChainStore.BlockChainMultiThreadSpecBase
 import com.nchain.jcl.store.blockChainStore.BlockChainStore
 import com.nchain.jcl.store.levelDB.StoreFactory
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly
 
 import java.time.Duration
 

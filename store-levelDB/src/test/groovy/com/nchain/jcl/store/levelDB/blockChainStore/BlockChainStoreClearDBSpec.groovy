@@ -5,7 +5,7 @@ import com.nchain.jcl.store.blockChainStore.BlockChainClearDBSpecBase
 import com.nchain.jcl.store.blockChainStore.BlockChainStore
 import com.nchain.jcl.store.blockStore.BlockStoreBlocksSpecBase
 import com.nchain.jcl.store.levelDB.StoreFactory
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly
 
 import java.time.Duration
 

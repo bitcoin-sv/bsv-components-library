@@ -2,7 +2,7 @@ package com.nchain.jcl.store.blockStore
 
 import com.nchain.jcl.store.blockStore.metadata.provided.BlockValidationMD
 import com.nchain.jcl.store.common.TestingUtils
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly
 
 /**
  * Testing class for the Metadata that can be linked to one specific Block (Save, remove, etc)
@@ -21,7 +21,7 @@ abstract class BlockStoreBlockMetadataSpecBase extends BlockStoreSpecBase {
         when:
             db.start()
             // We define 2 Blocks:
-            HeaderReadOnly block1 = TestingUtils.buildBlock()
+        HeaderReadOnly block1 = TestingUtils.buildBlock()
             HeaderReadOnly block2 = TestingUtils.buildBlock()
 
             // And 2 metadata, one per each:

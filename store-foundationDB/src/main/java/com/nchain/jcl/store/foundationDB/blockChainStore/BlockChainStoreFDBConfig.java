@@ -4,7 +4,7 @@ package com.nchain.jcl.store.foundationDB.blockChainStore;
 import com.nchain.jcl.store.foundationDB.blockStore.BlockStoreFDBConfig;
 import com.nchain.jcl.store.keyValue.blockChainStore.BlockChainStoreKeyValueConfig;
 import com.nchain.jcl.tools.config.RuntimeConfig;
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly;
 
 import java.time.Duration;
 

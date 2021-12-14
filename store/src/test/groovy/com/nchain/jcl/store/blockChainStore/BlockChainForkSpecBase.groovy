@@ -4,8 +4,8 @@ package com.nchain.jcl.store.blockChainStore
 import com.nchain.jcl.store.blockChainStore.events.ChainForkEvent
 import com.nchain.jcl.store.blockChainStore.events.ChainPruneEvent
 import com.nchain.jcl.store.common.TestingUtils
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
-import io.bitcoinj.core.Sha256Hash
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
 import spock.lang.Ignore
 
 import java.time.Duration

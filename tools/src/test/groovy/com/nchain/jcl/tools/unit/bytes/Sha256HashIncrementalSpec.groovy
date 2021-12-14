@@ -2,7 +2,7 @@ package com.nchain.jcl.tools.unit.bytes
 
 import com.google.common.collect.Lists
 import com.nchain.jcl.tools.bytes.Sha256HashIncremental
-import io.bitcoinj.core.Sha256Hash
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
 import spock.lang.Specification
 
 /**

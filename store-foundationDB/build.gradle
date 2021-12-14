@@ -33,12 +33,8 @@ repositories {
 }
 
 dependencies {
-    // Lombok
-    //annotationProcessor 'org.projectlombok:lombok'
-    //compileOnly 'org.projectlombok:lombok'
-
     // Compile Dependencies:
-    implementation "io.bitcoinj:bitcoinj-base:1.0.1-ds"
+    implementation "io.bitcoinsv.bitcoinjsv:bitcoinj-base:1.0.2"
     implementation(project(":tools"))
     implementation(project(":store"))
     implementation(project(":store-keyValue"))
@@ -59,7 +55,6 @@ dependencies {
     testImplementation 'org.codehaus.groovy:groovy'
     testImplementation "org.spockframework:spock-core:1.2-groovy-2.5"
     testImplementation "ch.qos.logback:logback-classic:1.2.3"
-    testImplementation 'org.projectlombok:lombok'
 
     // TestContainer, to start automatically a FoundationDB running in a Docker container...
     // NOTE: Not used at the moment, since starting and stopping the container is NOT enough: We also need to

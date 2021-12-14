@@ -8,7 +8,7 @@ import com.nchain.jcl.store.levelDB.blockChainStore.BlockChainStoreLevelDB
 import com.nchain.jcl.store.levelDB.blockChainStore.BlockChainStoreLevelDBConfig
 import com.nchain.jcl.store.levelDB.blockStore.BlockStoreLevelDB
 import com.nchain.jcl.store.levelDB.blockStore.BlockStoreLevelDBConfig
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly
 
 import java.nio.file.Path
 import java.time.Duration

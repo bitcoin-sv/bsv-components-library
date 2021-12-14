@@ -24,9 +24,9 @@ import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault;
 import com.nchain.jcl.tools.events.EventBus;
 import com.nchain.jcl.tools.events.EventStreamer;
 import com.nchain.jcl.tools.thread.ThreadUtils;
-import io.bitcoinj.core.Utils;
-import io.bitcoinj.params.Net;
-import io.bitcoinj.params.NetworkParameters;
+import io.bitcoinsv.bitcoinjsv.core.Utils;
+import io.bitcoinsv.bitcoinjsv.params.Net;
+import io.bitcoinsv.bitcoinjsv.params.NetworkParameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

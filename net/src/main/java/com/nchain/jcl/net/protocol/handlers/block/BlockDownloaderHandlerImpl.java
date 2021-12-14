@@ -16,8 +16,8 @@ import com.nchain.jcl.tools.config.RuntimeConfig;
 import com.nchain.jcl.tools.handlers.HandlerImpl;
 import com.nchain.jcl.net.tools.LoggerUtil;
 import com.nchain.jcl.tools.thread.ThreadUtils;
-import io.bitcoinj.core.Sha256Hash;
-import io.bitcoinj.core.Utils;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
+import io.bitcoinsv.bitcoinjsv.core.Utils;
 
 import java.time.Duration;
 import java.time.Instant;

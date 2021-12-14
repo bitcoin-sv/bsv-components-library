@@ -3,7 +3,7 @@ package com.nchain.jcl.net.protocol.handlers.block;
 import com.google.common.collect.ImmutableMap;
 import com.nchain.jcl.net.network.PeerAddress;
 import com.nchain.jcl.tools.thread.ThreadUtils;
-import io.bitcoinj.core.Sha256Hash;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

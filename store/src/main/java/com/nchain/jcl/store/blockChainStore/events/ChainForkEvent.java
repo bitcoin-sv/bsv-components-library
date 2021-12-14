@@ -2,7 +2,8 @@ package com.nchain.jcl.store.blockChainStore.events;
 
 
 import com.nchain.jcl.store.blockStore.events.BlockStoreEvent;
-import io.bitcoinj.core.Sha256Hash;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
+
 
 /**
  * @author i.fernandez@nchain.com

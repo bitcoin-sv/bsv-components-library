@@ -9,7 +9,7 @@ import com.nchain.jcl.net.protocol.serialization.common.SerializerContext;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.tools.bytes.ByteArrayReaderOptimized;
 import com.nchain.jcl.tools.bytes.ByteArrayWriter;
-import io.bitcoinj.core.Utils;
+import io.bitcoinsv.bitcoinjsv.core.Utils;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;

@@ -10,7 +10,7 @@ import com.nchain.jcl.net.protocol.serialization.common.DeserializerContext
 import com.nchain.jcl.net.protocol.serialization.common.SerializerContext
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayWriter
-import io.bitcoinj.params.MainNetParams
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
 import spock.lang.Specification
 
 /**

@@ -5,7 +5,7 @@ package com.nchain.jcl.store.keyValue.blockChainStore;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.tools.bytes.ByteArrayWriter;
 import com.nchain.jcl.tools.serialization.BitcoinSerializerUtils;
-import io.bitcoinj.core.Utils;
+import io.bitcoinsv.bitcoinjsv.core.Utils;
 
 import java.math.BigInteger;
 

@@ -9,7 +9,7 @@ import com.nchain.jcl.net.protocol.serialization.largeMsgs.BigBlockDeserializer
 import com.nchain.jcl.net.unit.protocol.tools.MsgTest
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.bytes.ByteArrayReaderOptimized
-import io.bitcoinj.core.Utils
+import io.bitcoinsv.bitcoinjsv.core.Utils
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicBoolean

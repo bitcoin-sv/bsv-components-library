@@ -1,6 +1,6 @@
 package com.nchain.jcl.tools.bytes;
 
-import io.bitcoinj.core.Utils;
+import io.bitcoinsv.bitcoinjsv.core.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

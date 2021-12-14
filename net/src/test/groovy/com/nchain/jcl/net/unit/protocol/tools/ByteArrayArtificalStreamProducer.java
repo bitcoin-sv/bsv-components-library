@@ -4,10 +4,8 @@ package com.nchain.jcl.net.unit.protocol.tools;
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.tools.bytes.ByteArrayReaderRealTime;
 import com.nchain.jcl.tools.bytes.ByteArrayWriter;
-import lombok.extern.slf4j.Slf4j;
 
 
-@Slf4j
 public class ByteArrayArtificalStreamProducer {
 
     public static ByteArrayReader stream(byte[] streamedData, int streamDelayByteInterval, int streamDelayTimeMs) {

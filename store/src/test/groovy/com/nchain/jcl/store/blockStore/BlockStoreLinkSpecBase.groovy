@@ -3,9 +3,9 @@ package com.nchain.jcl.store.blockStore
 
 
 import com.nchain.jcl.store.common.TestingUtils
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly
-import io.bitcoinj.bitcoin.api.base.Tx
-import io.bitcoinj.core.Sha256Hash
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.Tx
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
 
 import java.time.Duration
 import java.time.Instant

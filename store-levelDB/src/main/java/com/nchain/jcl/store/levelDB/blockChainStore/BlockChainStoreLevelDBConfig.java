@@ -6,8 +6,8 @@ import com.nchain.jcl.store.blockChainStore.validation.rules.BlockChainRule;
 import com.nchain.jcl.store.keyValue.blockChainStore.BlockChainStoreKeyValueConfig;
 import com.nchain.jcl.store.levelDB.blockStore.BlockStoreLevelDBConfig;
 import com.nchain.jcl.tools.config.RuntimeConfig;
-import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
-import io.bitcoinj.blockchain.pow.factory.RuleCheckerFactory;
+
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly;
 import org.slf4j.Logger;
 
 import java.nio.file.Path;

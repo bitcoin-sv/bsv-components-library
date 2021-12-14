@@ -2,7 +2,7 @@ package com.nchain.jcl.store.blockChainStore.validation.rules;
 
 import com.nchain.jcl.store.blockChainStore.BlockChainStore;
 import com.nchain.jcl.store.blockChainStore.validation.exception.BlockChainRuleFailureException;
-import io.bitcoinj.bitcoin.api.extended.ChainInfo;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.extended.ChainInfo;
 
 /**
  * @author m.fletcher@nchain.com

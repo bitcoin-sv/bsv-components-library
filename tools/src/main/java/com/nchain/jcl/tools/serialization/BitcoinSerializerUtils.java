@@ -4,8 +4,8 @@ package com.nchain.jcl.tools.serialization;
 
 import com.nchain.jcl.tools.bytes.ByteArrayReader;
 import com.nchain.jcl.tools.bytes.ByteArrayWriter;
-import io.bitcoinj.core.Sha256Hash;
-import io.bitcoinj.core.Utils;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
+import io.bitcoinsv.bitcoinjsv.core.Utils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

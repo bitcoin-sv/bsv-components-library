@@ -11,7 +11,7 @@ import com.nchain.jcl.net.unit.protocol.tools.MsgTest
 import com.nchain.jcl.tools.bytes.ByteArrayReader
 import com.nchain.jcl.tools.config.RuntimeConfig
 import com.nchain.jcl.tools.config.provided.RuntimeConfigDefault
-import io.bitcoinj.core.Utils
+import io.bitcoinsv.bitcoinjsv.core.Utils
 import spock.lang.Specification
 
 import java.util.concurrent.ExecutorService
