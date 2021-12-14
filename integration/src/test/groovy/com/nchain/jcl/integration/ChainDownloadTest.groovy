@@ -216,7 +216,7 @@ class ChainDownloadTest extends Specification {
     /**
      * It downloads the Blockchain
      */
-    //@Ignore
+    @Ignore
     def downloadChainSpec() {
         given:
 
