@@ -34,7 +34,7 @@ repositories {
 
 dependencies {
     // Compile Dependencies:
-    implementation "io.bitcoinsv.bitcoinjsv:bitcoinj-base:1.0.2"
+    implementation "io.bitcoinsv.bitcoinjsv:bitcoinj-base:$bitcoinJVersion"
     implementation(project(":tools"))
     implementation(project(":store"))
     implementation(project(":store-keyValue"))
@@ -53,7 +53,7 @@ dependencies {
 
     testImplementation 'org.codehaus.groovy:groovy'
     testImplementation "org.spockframework:spock-core:1.2-groovy-2.5"
-    testImplementation "ch.qos.logback:logback-classic:1.2.3"
+    testImplementation "ch.qos.logback:logback-classic"
 }
 
 bootJar {

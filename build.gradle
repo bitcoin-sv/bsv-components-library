@@ -15,6 +15,12 @@ version = "$rootProject.jclVersion"
 sourceCompatibility = "11"
 targetCompatibility = "11"
 
+/****************************************
+ * Dependencies on specific libraries
+ ****************************************/
+ext['logback.version'] = '1.2.8'
+ext['log4j2.version'] = '2.16.0' // Just in Case (log4J vulnerability patch)
+
 configurations {
     childJars
 }
@@ -36,19 +42,15 @@ repositories {
 /****************************************
  * Build the JAR - Include all sub project classes and dependencies
  ****************************************/
-dependencies {
-    subprojects.each {
-        childJars project(it.path)
+jar {
+    from {
+        subprojects.collect { it.sourceSets.main.output }
     }
 }
 
-jar {
-    dependsOn configurations.childJars
-    from { configurations.childJars.collect { zipTree(it) } }
-}
-/****************************************
- * Publish the JAR
- ****************************************/
+/***********************************************************
+ * Publish the FAT JAR (including ALL JCL in one single JAR)
+ ***********************************************************/
 publishing {
     publications {
         mavenJava(MavenPublication) {
