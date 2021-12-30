@@ -18,13 +18,13 @@
     </appender>
     -->
 
-    <logger name="com.nchain.jcl.integration" additivity="false">
+    <logger name="io.bitcoinsv.jcl.integration" additivity="false">
         <level value="INFO" />
         <appender-ref ref="STDOUT" />
     </logger>
 
     <!--
-    <logger name="com.nchain.jcl.net.protocol.handlers" additivity="false">
+    <logger name="io.bitcoinsv.jcl.net.protocol.handlers" additivity="false">
         <level value="INFO" />
         <appender-ref ref="STDOUT" />
     </logger>

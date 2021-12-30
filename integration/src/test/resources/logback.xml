@@ -17,7 +17,7 @@
     </appender>
 
 
-    <logger name="com.nchain.jcl.net" additivity="false">
+    <logger name="io.bitcoinsv.jcl.net" additivity="false">
         <level value="INFO" />
         <appender-ref ref="STDOUT" />
     </logger>

@@ -19,12 +19,12 @@
 
 
 
-    <logger name="com.nchain.jcl.store.foundationDB" additivity="false">
+    <logger name="io.bitcoinsv.jcl.store.foundationDB" additivity="false">
         <level value="TRACE" />
         <appender-ref ref="STDOUT" />
     </logger>
 
-    <logger name="com.nchain.jcl.store.keyValue" additivity="false">
+    <logger name="io.bitcoinsv.jcl.store.keyValue" additivity="false">
         <level value="TRACE" />
         <appender-ref ref="STDOUT" />
     </logger>
@@ -35,7 +35,7 @@
     </logger>
 
 
-    <logger name="com.nchain.jcl.base.tools" additivity="false">
+    <logger name="io.bitcoinsv.jcl.base.tools" additivity="false">
         <level value="INFO" />
         <appender-ref ref="STDOUT" />
     </logger>

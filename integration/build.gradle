@@ -67,7 +67,7 @@ jar {
  ****************************************/
 task packageJclServer(type: Jar) {
     manifest {
-        attributes 'Main-Class': 'com.nchain.jcl.integration.JCLServer'
+        attributes 'Main-Class': 'io.bitcoinsv.jcl.integration.JCLServer'
     }
     archiveFileName = 'jclServer.jar'
     from(configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }) {
