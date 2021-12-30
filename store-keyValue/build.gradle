@@ -22,14 +22,6 @@ targetCompatibility = "11"
 repositories {
     mavenLocal()
     mavenCentral()
-    maven {
-        url = "$nexusReleasesUrl"
-        allowInsecureProtocol = true
-        credentials {
-            username = "$nexusUser"
-            password = "$nexusPassword"
-        }
-    }
 }
 
 dependencies {
@@ -54,6 +46,17 @@ jar {
     enabled = true
 }
 
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+javadoc {
+    if (JavaVersion.current().isJava11Compatible()) {
+        options.addBooleanOption('Xdoclint:none', true)
+    }
+}
+
 /****************************************
  * Publish the JAR
  ****************************************/
@@ -70,43 +73,29 @@ publishing {
             pom {
                 name = "$jclArtifactName"
                 description = 'Java implementation of Bitcoin components'
-                url = 'https://bitbucket.org/nchteamnch/java-component-library'
+                url = 'https://github.com/bitcoin-sv/bsv-components-library'
 
                 licenses {
                     license {
-                        name = ''
-                        url = ''
+                        name = 'Open BSV License'
+                        url = 'https://github.com/bitcoin-sv/bsv-components-library/blob/master/LICENSE'
                     }
                 }
                 developers {
                     developer {
-                        name = 'Ivan Fernandez'
-                        email = 'i.fernandez@nchain.com'
-                    }
-                    developer {
-                        name = 'Michael Fletcher'
-                        email = 'm.fletcher@nchain.com'
+                        organization = 'nChain'
+                        organizationUrl = 'https://nchain.com'
+                        name = 'i.fernandez'
                     }
                 }
                 scm {
-                    url = 'https://bitbucket.org/nchteamnch/java-component-library'
+                    url = 'https://github.com/bitcoin-sv/bsv-components-library'
                 }
             }
         }
     }
 
     repositories {
-        maven {
-            allowInsecureProtocol = true
-            credentials {
-                username = "$nexusUser"
-                password = "$nexusPassword"
-            }
-            if(project.version.endsWith('-SNAPSHOT')) {
-                url "$nexusSnapshotsUrl"
-            } else {
-                url "$nexusReleasesUrl"
-            }
-        }
+        mavenLocal()
     }
 }
