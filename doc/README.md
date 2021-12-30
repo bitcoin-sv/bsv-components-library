@@ -27,10 +27,7 @@ All the libraries within *JCL* make up a hierarchy dependency tree, as shown in 
 
 Since *JCL* is made up of different modules, "importing JCL" actually means "importing a JCL Module". The specific module to import will depends on your needs.
 
-> **NOTE**
-> The JCL Modules are stored in a *Nexus* server in *nChain* premises, so before going any further you'll need a *user* and *password* so you can access it and download the libraries from it. From this moment moving forward, the credentials will be referenced as **NEXUS_USER** and **NEXUS_PASSWORD** in this documentation.
-
-> *JCL-Tools* is an internal Library for use by JCL-Modules, not by the user, but it might be needed to be expecifically imported in the project along the rest of modules (some gradle engines might have some trouble getting transitive dependencies from private Maven repositories, so in those cases we might need to declare this dependency explicitely).  The same can also be applied to the *bitcoinJ* dependency, which must be explicitely declared as a dependency.
+> **NOTE** *JCL-Tools* is an internal Library for use by JCL-Modules, not by the user, but it might be needed to be expecifically imported in the project along the rest of modules (some gradle engines might have some trouble getting transitive dependencies from private Maven repositories, so in those cases we might need to declare this dependency explicitely).  The same can also be applied to the *bitcoinJ* dependency, which must be explicitely declared as a dependency.
 
 ## Import JCL in a *Gradle* project
 
@@ -40,10 +37,10 @@ Edit your *build.gradle* file and include the definition of the Repository:
 repositories {
     ...
     maven {
-        url "http://161.35.175.46:8081/repository/maven-releases/"
+        url "http://ip:port/repository/maven-releases/"
         credentials {
-            username = "NEXUS USER"
-            password = "NEXUS PASSWORD"
+            username = "[library repo] USER"
+            password = "[library repo] PASSWORD"
         }
     }
 }
@@ -75,8 +72,8 @@ You need to define a new Repository in your *pom.xml* file:
             Id in the $HOME/.m2/settings.xml file.
             -->
             <!-- id Must Match the Unique Identifier in settings.xml -->
-            <id>nChain-Nexus-Repository</id>
-            <url>http://161.35.175.46:8081/repository/maven-releases/</url>
+            <id>Your Lib-Repository</id>
+            <url>http://ip:port/repository/maven-releases/</url>
             <releases/>
         </repository>
 	...
@@ -110,9 +107,9 @@ And you must store the credentials in the *settings.xml* file:
   <servers>
     ...
     <server>
-      <id>nChain-Nexus-Repository</id>
-      <username><NEXUS USER></username>
-      <password><NEXUS PASSWORD></password>
+      <id>Your-library-Repository</id>
+      <username><[library repo] USER></username>
+      <password><[library repo] PASSWORD></password>
     </server>
     ...
   </servers>
