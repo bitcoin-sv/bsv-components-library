@@ -55,8 +55,8 @@ then, add the dependency (replace the module with the one you actually need):
 ```
 dependencies {
 ...
-implementation 'com.nchain.bitcoinj:base:2.0'
-implementation 'com.nchain.jcl:jcl-tools:1.0.0'
+implementation 'io.bitcoinsv.jcl..bitcoinj:base:2.0'
+implementation 'io.bitcoinsv.jcl..jcl:jcl-tools:1.0.0'
 ...
 }
 
@@ -89,12 +89,12 @@ then, add the dependency:
 <dependencies>
 	...
 	<dependency>
-      <groupId>com.nchain.bitcoinj</groupId>
+      <groupId>io.bitcoinsv.jcl..bitcoinj</groupId>
       <artifactId>base</artifactId>
       <version>2.0</version>
    </dependency>
 	<dependency>
-      <groupId>com.nchain.jcl</groupId>
+      <groupId>io.bitcoinsv.jcl..jcl</groupId>
       <artifactId>jcl-tools</artifactId>
       <version>1.0.0</version>
    </dependency>
