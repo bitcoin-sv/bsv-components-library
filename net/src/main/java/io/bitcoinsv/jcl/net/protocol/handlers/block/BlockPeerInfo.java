@@ -190,6 +190,13 @@ public class BlockPeerInfo {
     protected void disconnect() {
         reset();
         this.connectionState = PeerConnectionState.DISCONNECTED;
+
+        // IMPORTANT: When a Peer gets disconnected, we need to remove the reference to its Stream here, otherwise
+        // the memory used by the internal ByteArrayBuffer used in that Stream will not be GC-collected, leading
+        // to a Memory Leak and a OutOfMemory Error:
+
+        // we remove the ref, making it eligible for GC:
+        this.stream = null;
     }
 
     /** It updates the Peer to reflect that it's just started to download this block */
