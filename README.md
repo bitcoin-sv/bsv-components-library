@@ -1,6 +1,7 @@
 
 # BSV Component Library for Java (JCL)
 
+[![Java CI with Gradle](https://github.com/Danconnolly/bsv-components-library/actions/workflows/build.yml/badge.svg)](https://github.com/Danconnolly/bsv-components-library/actions/workflows/build.yml)
 
 # Introduction
 
