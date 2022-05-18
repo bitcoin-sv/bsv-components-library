@@ -28,8 +28,9 @@ jobs:
       uses: gradle/gradle-build-action@0d13054264b0bb894ded474f08ebb30921341cee
       with:
         arguments: build
-    - name: Archive test report
+    - name: Archive test report on failure
       uses: actions/upload-artifact@v3
+      if: failure()
       with:
         name: Test Reports
         path: '**/build/reports/tests/test'
