@@ -32,4 +32,4 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: Test Reports
-        path: **/build/reports/tests/test
+        path: '**/build/reports/tests/test'
