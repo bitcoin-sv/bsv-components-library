@@ -108,7 +108,7 @@ class NotFoundMsgSerilaizerSpec extends Specification {
             BitcoinMsg<NotFoundMsg> notFoundMsgBitcoinMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), getdataMsg).build()
             BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
-            byte[] bytes = serializer.serialize(context, notFoundMsgBitcoinMsg, NotFoundMsg.MESSAGE_TYPE).getFullContent()
+            byte[] bytes = serializer.serialize(context, notFoundMsgBitcoinMsg).getFullContent()
             String serialized = Utils.HEX.encode(bytes)
         then:
             serialized.equals(REF_NOTFOUND_MSG_FULL)
@@ -124,7 +124,7 @@ class NotFoundMsgSerilaizerSpec extends Specification {
             BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
             ByteArrayReader byteArrayReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_NOTFOUND_MSG_FULL), byteInterval, delayMs);
         when:
-            BitcoinMsg<NotFoundMsg> getDataMsg = bitcoinSerializer.deserialize(context, byteArrayReader, NotFoundMsg.MESSAGE_TYPE)
+            BitcoinMsg<NotFoundMsg> getDataMsg = bitcoinSerializer.deserialize(context, byteArrayReader)
         then:
             getDataMsg.getHeader().getMagic().equals(config.getBasicConfig().getMagicPackage())
             getDataMsg.getHeader().getCommand().equals(NotFoundMsg.MESSAGE_TYPE)

@@ -48,8 +48,8 @@ public class P2PBuilder {
     private String id;
 
     // Configurations:
-    private RuntimeConfig runtimeConfig = new RuntimeConfigDefault(); // Default...
-    private NetworkConfig networkConfig = new NetworkDefaultConfig(); // Default...
+    private RuntimeConfig runtimeConfig;
+    private NetworkConfig networkConfig;
     // the server Address is 0.0.0.0 by default, which allows for connections from everywhere. If you are running
     // tests with multiple P2P instances connecting to each other in localhost, use the "useLocalhost()" method
     // instead, that will set the address to "127.0.0.1" which is more efficient.
@@ -111,6 +111,7 @@ public class P2PBuilder {
         this.protocolConfig = ((ProtocolConfigImpl) protocolConfig).toBuilder().basicConfig(basicConfig).build();
 
         // We also overwrite the port number on the Network Config:
+        setUpNetworkConfigIfNull();
         this.networkConfig = ((NetworkConfigImpl) this.networkConfig).toBuilder().port(basicConfig.getPort()).build();
         return this;
     }
@@ -160,6 +161,14 @@ public class P2PBuilder {
     public P2PBuilder useLocalhost() {
         this.serverAddress = "127.0.0.1";
         return this;
+    }
+
+    private void setUpRuntimeConfigIfNull() {
+        if (this.runtimeConfig == null) { this.runtimeConfig = new RuntimeConfigDefault();}
+    }
+
+    private void setUpNetworkConfigIfNull() {
+        if (this.networkConfig == null) { this.networkConfig = new NetworkDefaultConfig(); }
     }
 
     private Map<String, Handler> createBuiltInHandlers(RuntimeConfig runtimeConfig, NetworkConfig networkConfig, Map<String, HandlerConfig> handlerConfigs) {
@@ -237,6 +246,10 @@ public class P2PBuilder {
     public P2P build() {
         P2P result = null;
         try {
+
+            // Default values for some configurations, if not defined:
+            setUpRuntimeConfigIfNull();
+            setUpNetworkConfigIfNull();
 
             // We set up the default built-in Handlers:
             Map<String, Handler> defaultHandlers = createBuiltInHandlers(runtimeConfig, networkConfig, this.handlerConfigs);

@@ -71,7 +71,7 @@ class HeadersMsgSerializerSpec extends Specification {
         given:
             BlockHeaderMsg blockHeaderMsg = BlockHeaderMsg.builder()
                 .version(70013)
-                .hash(HashMsg.builder().hash(Sha256Hash.wrap("a9f965385ffd6da76dbf8226ca0f061d6e05737fdf34ba6edb9ea1d012666b16").getBytes()).build())
+                .hash(Sha256Hash.wrap("a9f965385ffd6da76dbf8226ca0f061d6e05737fdf34ba6edb9ea1d012666b16"))
                 .prevBlockHash(HashMsg.builder().hash(Sha256Hash.ZERO_HASH.getBytes()).build())
                 .merkleRoot(HashMsg.builder().hash(Sha256Hash.ZERO_HASH.getBytes()).build())
                 .difficultyTarget(1)
@@ -121,8 +121,8 @@ class HeadersMsgSerializerSpec extends Specification {
 
             BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
-            ByteArrayReader byteArrayReader = serializer.serialize(serializerContext, headersBitcoinMsg, HeadersMsg.MESSAGE_TYPE)
-            BitcoinMsg<HeadersMsg> deserializedHeadersBitcoinMsg = serializer.deserialize(deserializerContext, byteArrayReader, HeadersMsg.MESSAGE_TYPE)
+            ByteArrayReader byteArrayReader = serializer.serialize(serializerContext, headersBitcoinMsg)
+            BitcoinMsg<HeadersMsg> deserializedHeadersBitcoinMsg = serializer.deserialize(deserializerContext, byteArrayReader)
         then:
             headersBitcoinMsg.equals(deserializedHeadersBitcoinMsg)
 

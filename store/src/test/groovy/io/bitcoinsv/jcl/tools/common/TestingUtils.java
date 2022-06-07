@@ -1,4 +1,4 @@
-package io.bitcoinsv.jcl.store.common;
+package io.bitcoinsv.jcl.tools.common;
 
 
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.*;
@@ -45,7 +45,7 @@ public class TestingUtils {
 
     /** Convenience method to build a Block with NO Parent */
     public static HeaderReadOnly buildBlock() {
-        return buildBlock(buildRandomHash());
+        return buildBlock(null);
     }
 
     /** Convenience method to generate a Dummy Tx, specifying a parent Tx */

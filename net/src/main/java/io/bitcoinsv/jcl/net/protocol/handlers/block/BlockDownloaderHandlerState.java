@@ -1,6 +1,7 @@
 package io.bitcoinsv.jcl.net.protocol.handlers.block;
 
 
+import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.tools.handlers.HandlerState;
 
 import java.util.List;
@@ -28,7 +29,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
     private final Set<String> blocksInLimbo;
 
     // Blocks download History:
-    private final Map<String, List<BlocksDownloadHistory.HistoricItem>> blocksHistory;
+    private final Map<String, List<BlocksDownloadHistory.HistoricItem<String, PeerAddress>>> blocksHistory;
 
     // Complete info of all the Peers, but only those who are hanshaked at the moment (they might be idle or not)
     private final List<BlockPeerInfo> peersInfo;
@@ -57,7 +58,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
                                         List<String> pendingToCancelBlocks,
                                         List<String> cancelledBlocks,
                                         Set<String> blocksInLimbo,
-                                        Map<String, List<BlocksDownloadHistory.HistoricItem>> blocksHistory,
+                                        Map<String, List<BlocksDownloadHistory.HistoricItem<String, PeerAddress>>> blocksHistory,
                                         List<BlockPeerInfo> peersInfo,
                                         long totalReattempts,
                                         Map<String, Integer> blocksNumDownloadAttempts,
@@ -138,7 +139,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
     public boolean isPaused()                   { return this.downloadingState.equals(BlockDownloaderHandlerImpl.DonwloadingState.PAUSED);}
     public Map<String, Integer> getBlocksNumDownloadAttempts()
                                                 { return this.blocksNumDownloadAttempts; }
-    public Map<String, List<BlocksDownloadHistory.HistoricItem>> getBlocksHistory()
+    public Map<String, List<BlocksDownloadHistory.HistoricItem<String, PeerAddress>>> getBlocksHistory()
                                                 { return this.blocksHistory;}
 
     public boolean isBandwidthRestricted()      { return bandwidthRestricted; }
@@ -187,7 +188,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         private List<String> pendingToCancelBlocks;
         private List<String> cancelledBlocks;
         private Set<String> blocksInLimbo;
-        private Map<String, List<BlocksDownloadHistory.HistoricItem>> blocksHistory;
+        private Map<String, List<BlocksDownloadHistory.HistoricItem<String, PeerAddress>>> blocksHistory;
         private List<BlockPeerInfo> peersInfo;
         private long totalReattempts;
         private Map<String, Integer> blocksNumDownloadAttempts;
@@ -233,7 +234,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
             return this;
         }
 
-        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder blocksHistory(Map<String, List<BlocksDownloadHistory.HistoricItem>> blocksHistory) {
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder blocksHistory(Map<String, List<BlocksDownloadHistory.HistoricItem<String, PeerAddress>>> blocksHistory) {
             this.blocksHistory = blocksHistory;
             return this;
         }

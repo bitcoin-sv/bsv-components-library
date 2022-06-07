@@ -121,14 +121,12 @@ public final class BlockHeaderEnMsg extends Message implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(version, prevBlockHash, merkleRoot, creationTimestamp, nBits, nonce, transactionCount, noMoreHeaders, hasCoinbaseData, coinbaseMerkleProof, coinbase, coinbaseTX, hash);
+        return Objects.hashCode(super.hashCode(), version, prevBlockHash, merkleRoot, creationTimestamp, nBits, nonce, transactionCount, noMoreHeaders, hasCoinbaseData, coinbaseMerkleProof, coinbase, coinbaseTX, hash);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         BlockHeaderEnMsg other = (BlockHeaderEnMsg) obj;
         return Objects.equal(this.version, other.version)
                 && Objects.equal(this.prevBlockHash, other.prevBlockHash)

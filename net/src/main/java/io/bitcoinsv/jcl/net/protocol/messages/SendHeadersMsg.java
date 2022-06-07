@@ -41,15 +41,12 @@ public final class SendHeadersMsg extends BodyMessage implements Serializable {
 
     @Override
     public int hashCode() {
-        return 1;
+        return super.hashCode();
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
-        return true;
+        return super.equals(obj);
     }
 
     public static SendHeadersMsgBuilder builder() {

@@ -19,11 +19,11 @@ public class PeerStreamSimulator<T> extends PeerStreamImpl<T,T> implements PeerS
 
     @Override
     public PeerStreamInOutSimulator<T> buildInputStream() {
-        return new PeerStreamInOutSimulator<>(peerAddress, executor);
+        return new PeerStreamInOutSimulator<>(peerAddress, super.executor);
     }
     @Override
     public PeerStreamInOutSimulator<T> buildOutputStream() {
-        return new PeerStreamInOutSimulator<>(peerAddress, executor);
+        return new PeerStreamInOutSimulator<>(peerAddress, super.executor);
     }
     @Override
     public PeerStreamInOutSimulator<T> input() {

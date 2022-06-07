@@ -100,7 +100,7 @@ class RejectMsgSerializationSpec extends Specification {
             BitcoinMsg<RejectMsg> rejectBitcoinMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), rejectMsg).build()
             BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
-            byte[] bytes = serializer.serialize(context, rejectBitcoinMsg, RejectMsg.MESSAGE_TYPE).getFullContent()
+            byte[] bytes = serializer.serialize(context, rejectBitcoinMsg).getFullContent()
             String rejectMsgSerialized = Utils.HEX.encode(bytes)
         then:
             rejectMsgSerialized.equals(REF_REJECT_MSG)
@@ -116,7 +116,7 @@ class RejectMsgSerializationSpec extends Specification {
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_REJECT_MSG), byteInterval, delayMs)
             BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
         when:
-            BitcoinMsg<RejectMsg> rejectBitcoinMsg = bitcoinSerializer.deserialize(context, byteReader, RejectMsg.MESSAGE_TYPE)
+            BitcoinMsg<RejectMsg> rejectBitcoinMsg = bitcoinSerializer.deserialize(context, byteReader)
         then:
             rejectBitcoinMsg.getHeader().getMagic().equals(config.getBasicConfig().getMagicPackage())
             rejectBitcoinMsg.getHeader().getCommand().equals(RejectMsg.MESSAGE_TYPE)

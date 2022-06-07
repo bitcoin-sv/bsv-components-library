@@ -39,7 +39,7 @@ import java.util.Optional;
  *  - field: "tx_out" (4 bytes) var_int
  *  The block number or timestamp at which this transaction is unlocked:
  */
-public class TxMsg extends BodyMessage implements Serializable {
+public final class TxMsg extends BodyMessage implements Serializable {
 
     public static final String MESSAGE_TYPE = "tx";
 
@@ -50,7 +50,7 @@ public class TxMsg extends BodyMessage implements Serializable {
     // The calculation of this Field is made during the Serialization/Deserialization. Ïn those cases where
     // performance is very important, the Hash calculation might be disabled, that0's why we are using an Optional.
 
-    private final Optional<HashMsg> hash;
+    private final Optional<Sha256Hash> hash;
 
     private long version;
     private VarIntMsg tx_in_count;
@@ -59,7 +59,7 @@ public class TxMsg extends BodyMessage implements Serializable {
     private List<TxOutputMsg> tx_out;
     private long lockTime;
 
-    protected TxMsg(Optional<HashMsg> hash,
+    protected TxMsg(Optional<Sha256Hash> hash,
                     long version,
                     List<TxInputMsg> tx_in,
                     List<TxOutputMsg> tx_out,
@@ -93,7 +93,7 @@ public class TxMsg extends BodyMessage implements Serializable {
 
     @Override
     public String getMessageType()          { return MESSAGE_TYPE; }
-    public Optional<HashMsg> getHash()      { return this.hash; }
+    public Optional<Sha256Hash> getHash()   { return this.hash; }
     public long getVersion()                { return this.version; }
     public VarIntMsg getTx_in_count()       { return this.tx_in_count; }
     public List<TxInputMsg> getTx_in()      { return this.tx_in; }
@@ -104,14 +104,12 @@ public class TxMsg extends BodyMessage implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(hash, version, tx_in_count, tx_in, tx_out_count, tx_out, lockTime, version);
+        return Objects.hashCode(super.hashCode(), hash, version, tx_in_count, tx_in, tx_out_count, tx_out, lockTime, version);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         TxMsg other = (TxMsg) obj;
         return Objects.equal(this.hash, other.hash)
                 && Objects.equal(this.version, other.version)
@@ -176,6 +174,10 @@ public class TxMsg extends BodyMessage implements Serializable {
         }
 
         result.setOutputs(outputs);
+
+        if (this.hash != null && this.hash.isPresent()) {
+            result.setHash(this.hash.get());
+        }
         result.makeImmutable();
         return result;
     }
@@ -198,7 +200,7 @@ public class TxMsg extends BodyMessage implements Serializable {
      * Builder
      */
     public static class TxMsgBuilder extends BodyMessageBuilder {
-        private Optional<HashMsg> hash;
+        private Optional<Sha256Hash> hash;
         private long version;
         private List<TxInputMsg> tx_in;
         private List<TxOutputMsg> tx_out;
@@ -207,7 +209,7 @@ public class TxMsg extends BodyMessage implements Serializable {
         public TxMsgBuilder() {}
         public TxMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
-        public TxMsg.TxMsgBuilder hash(Optional<HashMsg> hash) {
+        public TxMsg.TxMsgBuilder hash(Optional<Sha256Hash> hash) {
             this.hash = hash;
             return this;
         }

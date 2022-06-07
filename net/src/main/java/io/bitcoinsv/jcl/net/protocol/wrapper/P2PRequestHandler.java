@@ -3,18 +3,21 @@ package io.bitcoinsv.jcl.net.protocol.wrapper;
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.network.events.*;
-import io.bitcoinsv.jcl.net.network.events.*;
 import io.bitcoinsv.jcl.net.network.events.PeerDisconnectedEvent.DisconnectedReason;
-import io.bitcoinsv.jcl.net.protocol.events.control.*;
 import io.bitcoinsv.jcl.net.protocol.events.control.*;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
+import io.bitcoinsv.jcl.net.protocol.messages.common.StreamRequest;
 import io.bitcoinsv.jcl.tools.events.Event;
 import io.bitcoinsv.jcl.tools.events.EventBus;
 
+import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * @author i.fernandez@nchain.com
@@ -89,10 +92,65 @@ public class P2PRequestHandler {
 
     /** A Builder for BlacklistPeerRequest */
     public class BlacklistPeerRequestBuilder extends RequestBuilder {
-        private PeerAddress peerAddress;
+        private InetAddress address;
+        private PeersBlacklistedEvent.BlacklistReason reason;
+        private Optional<Duration> duration;
 
-        public BlacklistPeerRequestBuilder(PeerAddress peerAddress) { this.peerAddress = peerAddress; }
-        public BlacklistPeerRequest buildRequest()                  { return new BlacklistPeerRequest(peerAddress);}
+        public BlacklistPeerRequestBuilder(InetAddress peerAddress, PeersBlacklistedEvent.BlacklistReason reason, Optional<Duration> duration) {
+            this.address = peerAddress;
+            this.reason = reason;
+            this.duration = duration;
+        }
+
+        public BlacklistPeerRequestBuilder(InetAddress peerAddress, PeersBlacklistedEvent.BlacklistReason reason, Duration duration) {
+            this (peerAddress, reason, Optional.ofNullable(duration));
+        }
+
+        public BlacklistPeerRequestBuilder(InetAddress peerAddress, Duration duration) {
+            this(peerAddress, PeersBlacklistedEvent.BlacklistReason.CLIENT, duration);
+        }
+
+        public BlacklistPeerRequestBuilder(InetAddress peerAddress, PeersBlacklistedEvent.BlacklistReason reason) {
+            this(peerAddress, reason, reason.getExpirationTime());
+        }
+
+        public BlacklistPeerRequestBuilder(InetAddress peerAddress) {
+            this.address = peerAddress;
+            this.reason = PeersBlacklistedEvent.BlacklistReason.CLIENT;
+            this.duration = PeersBlacklistedEvent.BlacklistReason.CLIENT.getExpirationTime();
+        }
+
+        public BlacklistPeerRequest buildRequest() {
+            return new BlacklistPeerRequest(address, reason, duration);
+        }
+    }
+
+    /**
+     * A Builder for WhitelistPeerRequest
+     */
+    public class WhitelistPeerRequestBuilder extends RequestBuilder {
+        private final InetAddress address;
+
+        public WhitelistPeerRequestBuilder(PeerAddress peerAddress) {
+            this.address = peerAddress.getIp();
+        }
+
+        public WhitelistPeerRequestBuilder(InetAddress address) {
+            this.address = address;
+        }
+
+        public WhitelistPeerRequest buildRequest() {
+            return new WhitelistPeerRequest(address);
+        }
+    }
+
+    /**
+     * A Builder for ClearBlacklistRequest
+     */
+    public class ClearBlacklistRequestBuilder extends RequestBuilder {
+        public ClearBlacklistRequest buildRequest() {
+            return new ClearBlacklistRequest();
+        }
     }
 
     /** A builder for EnablePeerForBigMessagesRequest */
@@ -140,8 +198,29 @@ public class P2PRequestHandler {
         public DisablePingPongRequestBuilder disablePingPong(PeerAddress peerAddress) {
             return new DisablePingPongRequestBuilder(peerAddress);
         }
+        public BlacklistPeerRequestBuilder blacklist(PeerAddress peerAddress, PeersBlacklistedEvent.BlacklistReason reason) {
+            return new BlacklistPeerRequestBuilder(peerAddress.getIp(), reason);
+        }
+        public BlacklistPeerRequestBuilder blacklist(PeerAddress peerAddress, Duration duration) {
+            return new BlacklistPeerRequestBuilder(peerAddress.getIp(), duration);
+        }
         public BlacklistPeerRequestBuilder blacklist(PeerAddress peerAddress) {
-            return new BlacklistPeerRequestBuilder(peerAddress);
+            return new BlacklistPeerRequestBuilder(peerAddress.getIp());
+        }
+        public BlacklistPeerRequestBuilder blacklist(InetAddress address, PeersBlacklistedEvent.BlacklistReason reason) {
+            return new BlacklistPeerRequestBuilder(address, reason);
+        }
+        public BlacklistPeerRequestBuilder blacklist(InetAddress address,Duration duration) {
+            return new BlacklistPeerRequestBuilder(address, duration);
+        }
+        public BlacklistPeerRequestBuilder blacklist(InetAddress address) {
+            return new BlacklistPeerRequestBuilder(address);
+        }
+        public WhitelistPeerRequestBuilder whitelist(InetAddress address) {
+            return new WhitelistPeerRequestBuilder(address);
+        }
+        public ClearBlacklistRequestBuilder clearBlacklist() {
+            return new ClearBlacklistRequestBuilder();
         }
         public EnablePeerBigMessagesRequestBuilder enableBigMessages(PeerAddress peerAddress) {
             return new EnablePeerBigMessagesRequestBuilder(peerAddress);
@@ -170,7 +249,7 @@ public class P2PRequestHandler {
             this.peerAddress = peerAddress;
             this.btcMsg = btcMsg;
         }
-        public SendMsgRequest buildRequest() { return new SendMsgRequest(peerAddress, btcMsg); }
+        public SendMsgHandshakedRequest buildRequest() { return new SendMsgHandshakedRequest(peerAddress, btcMsg); }
     }
 
     /** A Builder for SendMsgBodyRequest */
@@ -182,7 +261,7 @@ public class P2PRequestHandler {
             this.peerAddress = peerAddress;
             this.msgBody = msgBody;
         }
-        public SendMsgBodyRequest buildRequest() { return new SendMsgBodyRequest(peerAddress, msgBody); }
+        public SendMsgBodyHandshakedRequest buildRequest() { return new SendMsgBodyHandshakedRequest(peerAddress, msgBody); }
     }
 
     /** A Builder for SendMsgListRequest */
@@ -195,7 +274,20 @@ public class P2PRequestHandler {
             this.btcMsgs = btcMsgs;
         }
 
-        public SendMsgListRequest buildRequest() { return new SendMsgListRequest(peerAddress, btcMsgs); }
+        public SendMsgListHandshakeRequest buildRequest() { return new SendMsgListHandshakeRequest(peerAddress, btcMsgs); }
+    }
+
+    /** A Builder for SendMsgListRequest */
+    public class SendMsgStreamHandshakeRequestBuilder extends RequestBuilder {
+        private PeerAddress peerAddress;
+        private StreamRequest streamRequest;
+
+        public SendMsgStreamHandshakeRequestBuilder(PeerAddress peerAddress, StreamRequest streamRequest) {
+            this.peerAddress = peerAddress;
+            this.streamRequest = streamRequest;
+        }
+
+        public SendMsgStreamHandshakeRequest buildRequest() { return new SendMsgStreamHandshakeRequest(peerAddress, streamRequest); }
     }
 
 
@@ -227,6 +319,9 @@ public class P2PRequestHandler {
         }
         public SendMsgListRequestBuilder send(PeerAddress peerAddress, List<BitcoinMsg<?>> btcMsgs) {
             return new SendMsgListRequestBuilder(peerAddress, btcMsgs);
+        }
+        public SendMsgStreamHandshakeRequestBuilder stream(PeerAddress peerAddress, StreamRequest streamRequest) {
+            return new SendMsgStreamHandshakeRequestBuilder(peerAddress, streamRequest);
         }
         public BroadcastMsgRequestBuilder broadcast(BitcoinMsg<?> btcMsg) {
             return new BroadcastMsgRequestBuilder(btcMsg);

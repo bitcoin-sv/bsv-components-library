@@ -1,5 +1,6 @@
 package io.bitcoinsv.jcl.net.protocol.events.control;
 
+import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.network.events.P2PRequest;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg;
 
@@ -11,7 +12,7 @@ import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg;
  *
  * An Event representing a Request to broadcast a Message to all the Peers we are connected to.
  */
-public final class BroadcastMsgRequest extends P2PRequest {
+public class BroadcastMsgRequest extends P2PRequest {
     private final BitcoinMsg<?> btcMsg;
 
     public BroadcastMsgRequest(BitcoinMsg<?> btcMsg) {
@@ -23,5 +24,17 @@ public final class BroadcastMsgRequest extends P2PRequest {
     @Override
     public String toString() {
         return "BroadcastMsgRequest(btcMsg=" + this.getBtcMsg() + ")";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false; }
+        BroadcastMsgRequest other = (BroadcastMsgRequest) obj;
+        return Objects.equal(this.btcMsg, other.btcMsg);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), btcMsg);
     }
 }

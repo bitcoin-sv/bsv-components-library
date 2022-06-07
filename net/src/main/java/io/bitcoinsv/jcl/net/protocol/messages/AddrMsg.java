@@ -71,14 +71,12 @@ public final class AddrMsg extends BodyMessage implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(addrList, count);
+        return Objects.hashCode(super.hashCode(), addrList, count);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false;}
         AddrMsg other = (AddrMsg) obj;
         return Objects.equal(this.addrList, other.addrList)
                 && Objects.equal(this.count, other.count);

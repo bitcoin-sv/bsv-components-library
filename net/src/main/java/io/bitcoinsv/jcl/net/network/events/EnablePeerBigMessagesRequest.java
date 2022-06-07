@@ -1,6 +1,7 @@
 package io.bitcoinsv.jcl.net.network.events;
 
 
+import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 
 /**
@@ -25,5 +26,17 @@ public final class EnablePeerBigMessagesRequest extends P2PRequest {
     @Override
     public String toString() {
         return "ResumeConnectingRequest( peerAddress=" + this.peerAddress + ")";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false; }
+        EnablePeerBigMessagesRequest other = (EnablePeerBigMessagesRequest) obj;
+        return Objects.equal(this.peerAddress, other.peerAddress);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), peerAddress);
     }
 }

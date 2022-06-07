@@ -88,14 +88,12 @@ public final class InventoryVectorMsg extends Message implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(type, hashMsg);
+        return Objects.hashCode(super.hashCode(), type, hashMsg);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         InventoryVectorMsg other = (InventoryVectorMsg) obj;
         return Objects.equal(this.type, other.type)
                 && Objects.equal(this.hashMsg, other.hashMsg);

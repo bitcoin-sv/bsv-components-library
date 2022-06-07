@@ -22,9 +22,9 @@ abstract class BlockStoreSpecBase extends Specification {
 
     /** Returns a concrete implementation of the BlockStore interface. This is implementation-specific */
     BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents) {
-        return getInstance(netId, triggerBlockEvents, triggerTxEvents, null);
+        return getInstance(netId, triggerBlockEvents, triggerTxEvents, null, null);
     }
 
     /** Returns a concrete implementation of the BlockStore interface. This is implementation-specific */
-    abstract BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents, Class<? extends Metadata> blockMetadataClass);
+    abstract BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents, Class<? extends Metadata> blockMetadataClass, Class<? extends Metadata> txMetadataClass);
 }

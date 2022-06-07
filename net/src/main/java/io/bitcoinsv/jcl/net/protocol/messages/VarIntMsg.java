@@ -79,14 +79,12 @@ public final class VarIntMsg extends Message implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(value);
+        return Objects.hashCode(super.hashCode(), value);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         VarIntMsg other = (VarIntMsg) obj;
         return Objects.equal(this.value, other.value);
     }

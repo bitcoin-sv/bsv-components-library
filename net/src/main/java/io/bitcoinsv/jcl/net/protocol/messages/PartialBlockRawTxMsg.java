@@ -62,24 +62,16 @@ public final class PartialBlockRawTxMsg extends BodyMessage {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(blockHeader, txs);
+        return Objects.hashCode(super.hashCode(), blockHeader, txs, txsOrderNumber);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (obj == this) {
-            return true;
-        }
-        if (obj.getClass() != getClass()) {
-            return false;
-        }
+        if (!super.equals(obj)) { return false; }
         PartialBlockRawTxMsg other = (PartialBlockRawTxMsg) obj;
         return Objects.equal(this.blockHeader, other.blockHeader)
-            && Objects.equal(this.txs, other.txs)
-            && Objects.equal(this.txsOrderNumber, other.txsOrderNumber);
+                && Objects.equal(this.txs, other.txs)
+                && Objects.equal(this.txsOrderNumber, other.txsOrderNumber);
     }
 
     public PartialBlockRawTxMsgBuilder toBuilder() {

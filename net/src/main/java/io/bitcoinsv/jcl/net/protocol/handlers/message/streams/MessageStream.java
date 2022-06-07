@@ -12,6 +12,7 @@ import io.bitcoinsv.jcl.net.protocol.handlers.message.streams.deserializer.Deser
 import io.bitcoinsv.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerStreamState;
 import io.bitcoinsv.jcl.net.protocol.handlers.message.streams.serializer.SerializerStream;
 import io.bitcoinsv.jcl.net.protocol.handlers.message.streams.serializer.SerializerStreamState;
+import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
 import io.bitcoinsv.jcl.net.tools.LoggerUtil;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader;
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig;
@@ -30,7 +31,7 @@ import java.util.concurrent.ExecutorService;
  * have to deal with Bitcoin Messages, but all the Deserialization/Serialization/low-level stuff will be
  * hidden from them
  */
-public class MessageStream extends PeerStreamImpl<BitcoinMsg<?>, ByteArrayReader> implements PeerStream<BitcoinMsg<?>> {
+public class MessageStream extends PeerStreamImpl<Message, ByteArrayReader> {
 
     private RuntimeConfig runtimeConfig;
     private MessageHandlerConfig messageConfig;
@@ -39,14 +40,14 @@ public class MessageStream extends PeerStreamImpl<BitcoinMsg<?>, ByteArrayReader
     private ExecutorService dedicatedConnectionsExecutor;
     private LoggerUtil parentLogger;
 
-    public MessageStream(ExecutorService eventBusExecutor,
+    public MessageStream(ExecutorService executor,
                          RuntimeConfig runtimeConfig,
                          MessageHandlerConfig messageConfig,
                          Deserializer deserializer,
                          PeerStream<ByteArrayReader> streamOrigin,
                          ExecutorService dedicatedConnectionsExecutor,
                          LoggerUtil parentLogger) {
-        super(eventBusExecutor, streamOrigin);
+        super(executor, streamOrigin);
         this.runtimeConfig = runtimeConfig;
         this.messageConfig = messageConfig;
         this.deserializer = deserializer;
@@ -60,7 +61,7 @@ public class MessageStream extends PeerStreamImpl<BitcoinMsg<?>, ByteArrayReader
     }
     @Override
     public SerializerStream buildOutputStream() {
-        return new SerializerStream(super.executor, streamOrigin.output(), messageConfig, parentLogger);
+        return new SerializerStream(streamOrigin.output(), messageConfig, parentLogger);
     }
 
     @Override

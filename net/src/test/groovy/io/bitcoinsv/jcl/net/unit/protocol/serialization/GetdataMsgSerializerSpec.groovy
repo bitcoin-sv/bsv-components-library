@@ -98,7 +98,7 @@ class GetdataMsgSerializerSpec extends Specification {
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_GETDATA_MSG_FULL), byteInterval, delayMs);
             BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
         when:
-            BitcoinMsg<GetdataMsg> getDataMsg = bitcoinSerializer.deserialize(context, byteReader, GetdataMsg.MESSAGE_TYPE)
+            BitcoinMsg<GetdataMsg> getDataMsg = bitcoinSerializer.deserialize(context, byteReader)
         then:
             getDataMsg.getHeader().getMagic().equals(config.getBasicConfig().getMagicPackage())
             getDataMsg.getHeader().getCommand().equals(GetdataMsg.MESSAGE_TYPE)
@@ -127,7 +127,7 @@ class GetdataMsgSerializerSpec extends Specification {
             BitcoinMsg<GetdataMsg> getdataMsgBitcoinMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), getdataMsg).build()
             BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
-            byte[] bytes = serializer.serialize(context, getdataMsgBitcoinMsg, GetdataMsg.MESSAGE_TYPE).getFullContent()
+            byte[] bytes = serializer.serialize(context, getdataMsgBitcoinMsg).getFullContent()
             String serialized = Utils.HEX.encode(bytes)
         then:
              serialized.equals(REF_GETDATA_MSG_FULL)

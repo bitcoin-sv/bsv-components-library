@@ -54,14 +54,12 @@ public final class TxOutPointMsg extends Message implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(hash, index);
+        return Objects.hashCode(super.hashCode(), hash, index);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         TxOutPointMsg other = (TxOutPointMsg) obj;
         return Objects.equal(this.hash, other.hash)
                 && Objects.equal(this.index, other.index);

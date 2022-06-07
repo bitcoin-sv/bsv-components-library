@@ -13,7 +13,7 @@ import io.bitcoinsv.jcl.store.blockStore.metadata.Metadata
  */
 class BlockStoreBlocksMetadataSpec extends BlockStoreBlockMetadataSpecBase {
     @Override
-    BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents, Class<? extends Metadata> blockMetadataClass) {
-        return StoreFactory.getInstance(netId, triggerBlockEvents, triggerTxEvents, blockMetadataClass)
+    BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents, Class<? extends Metadata> blockMetadataClass, Class<? extends Metadata> txMetadataClass) {
+        return StoreFactory.getInstance(netId, triggerBlockEvents, triggerTxEvents, blockMetadataClass, txMetadataClass)
     }
 }

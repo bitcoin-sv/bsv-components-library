@@ -104,7 +104,7 @@ class GetblocksMsgSerializerSpec extends Specification {
          BitcoinMsg<GetBlocksMsg> getBlocksMsgBitcoinMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), getblockMsg).build()
             BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
-            byte[] bytes = serializer.serialize(context, getBlocksMsgBitcoinMsg, GetBlocksMsg.MESSAGE_TYPE).getFullContent()
+            byte[] bytes = serializer.serialize(context, getBlocksMsgBitcoinMsg).getFullContent()
             String msgSerialized = Utils.HEX.encode(bytes)
         then:
             msgSerialized.equals(REF_GETBLOCKS_MSG_FULL)
@@ -123,7 +123,7 @@ class GetblocksMsgSerializerSpec extends Specification {
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_GETBLOCKS_MSG_FULL), byteInterval, delayMs);
         BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
         when:
-            BitcoinMsg<GetBlocksMsg> getBlocksMsgBitcoinMsg = bitcoinSerializer.deserialize(context, byteReader, GetBlocksMsg.MESSAGE_TYPE)
+            BitcoinMsg<GetBlocksMsg> getBlocksMsgBitcoinMsg = bitcoinSerializer.deserialize(context, byteReader)
         then:
             getBlocksMsgBitcoinMsg.getHeader().getMagic().equals(config.getBasicConfig().getMagicPackage())
             getBlocksMsgBitcoinMsg.getHeader().getCommand().equals(GetBlocksMsg.MESSAGE_TYPE)

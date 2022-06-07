@@ -5,6 +5,7 @@ import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 /**
  * @author i.fernandez@nchain.com
@@ -28,7 +29,7 @@ public abstract class RawMsg extends BodyMessage implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(content);
+        return Objects.hashCode(super.hashCode(), Arrays.hashCode(content));
     }
 
     public byte[] getContent() {
@@ -37,11 +38,9 @@ public abstract class RawMsg extends BodyMessage implements Serializable {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         RawMsg other = (RawMsg) obj;
-        return Objects.equal(this.content, other.content);
+        return Arrays.equals(this.content, other.content);
     }
 
 }

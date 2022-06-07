@@ -1,5 +1,6 @@
 package io.bitcoinsv.jcl.net.protocol.messages;
 
+import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
 
 import java.io.Serializable;
@@ -8,7 +9,7 @@ import java.io.Serializable;
  * @author j.pomer@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  */
-public class SendCompactBlockMsg extends BodyMessage implements Serializable {
+public final class SendCompactBlockMsg extends BodyMessage implements Serializable {
 
     public static final String MESSAGE_TYPE = "sendcmpct";
 
@@ -49,6 +50,19 @@ public class SendCompactBlockMsg extends BodyMessage implements Serializable {
 
     @Override
     protected void validateMessage() {
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false; }
+        SendCompactBlockMsg other = (SendCompactBlockMsg) obj;
+        return Objects.equal(this.highBandwidthRelaying, other.highBandwidthRelaying)
+                && Objects.equal(this.version, other.version);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), highBandwidthRelaying, version);
     }
 
     @Override

@@ -18,6 +18,8 @@ public class BitcoinMsgBuilder<M extends BodyMessage> {
 
     private M bodyMsg;
     private ProtocolBasicConfig config;
+    private String msgType = null;
+    private Long msgLen = null;
 
     /**
      * Constructor.
@@ -30,6 +32,26 @@ public class BitcoinMsgBuilder<M extends BodyMessage> {
     public BitcoinMsgBuilder(ProtocolBasicConfig config, M bodyMsg) {
         this.config = config;
         this.bodyMsg = bodyMsg;
+    }
+
+    /**
+     * This message may be one of many if we break down the data into a stream of messages, therefore we may want to override the message type in some instances
+     * @param msgType
+     * @return
+     */
+    public BitcoinMsgBuilder overrideHeaderMsgType(String msgType){
+        this.msgType = msgType;
+        return this;
+    }
+
+    /**
+     * This message may be one of many if we break down the data into a stream of messages, therefore we may want to override the length in some instances
+     * @param length
+     * @return
+     */
+    public BitcoinMsgBuilder overrideHeaderMsgLength(long length) {
+        this.msgLen = length;
+        return this;
     }
 
     /**
@@ -47,15 +69,27 @@ public class BitcoinMsgBuilder<M extends BodyMessage> {
         HeaderMsg.HeaderMsgBuilder headerMsgBuilder = HeaderMsg.builder();
         headerMsgBuilder.magic(config.getMagicPackage());
 
+        //check if the header has been overridden
+        String msgType = bodyMsg.getMessageType();
+        long msgLen = bodyMsg.getLengthInBytes();
+
+        if(this.msgType != null) {
+            msgType = this.msgType;
+        }
+
+        if(this.msgLen != null) {
+            msgLen = this.msgLen;
+        }
+
         // If the message is a Big one, we use extra fields (enabled after 70016)
-        if (bodyMsg.getLengthInBytes() >= config.getThresholdSizeExtMsgs()) {
+        if (msgLen>= config.getThresholdSizeExtMsgs()) {
             headerMsgBuilder.command(HeaderMsg.EXT_COMMAND);
             headerMsgBuilder.length(HeaderMsg.EXT_LENGTH);
-            headerMsgBuilder.extCommand(bodyMsg.getMessageType());
-            headerMsgBuilder.extLength(bodyMsg.getLengthInBytes());
+            headerMsgBuilder.extCommand(msgType);
+            headerMsgBuilder.extLength(msgLen);
         } else {
-            headerMsgBuilder.command(bodyMsg.getMessageType());
-            headerMsgBuilder.length((int) bodyMsg.getLengthInBytes());
+            headerMsgBuilder.command(msgType);
+            headerMsgBuilder.length((int) msgLen);
         }
 
         HeaderMsg header = headerMsgBuilder.build();

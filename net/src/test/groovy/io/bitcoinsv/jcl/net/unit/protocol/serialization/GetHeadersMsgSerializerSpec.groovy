@@ -110,7 +110,7 @@ class GetHeadersMsgSerializerSpec extends Specification{
             BitcoinMsg<GetHeadersMsg> getHeadersMsgBitcoinMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), getHeadersMsg).build()
             BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
-            byte[] bytes = serializer.serialize(context, getHeadersMsgBitcoinMsg, GetHeadersMsg.MESSAGE_TYPE).getFullContent()
+            byte[] bytes = serializer.serialize(context, getHeadersMsgBitcoinMsg).getFullContent()
             String msgSerialized = Utils.HEX.encode(bytes)
         then:
             msgSerialized.equals(REF_GETHEADERS_MSG_FULL)
@@ -130,7 +130,7 @@ class GetHeadersMsgSerializerSpec extends Specification{
 
             BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
         when:
-            BitcoinMsg<GetHeadersMsg> getHeaderMsg = bitcoinSerializer.deserialize(context, byteReader, GetHeadersMsg.MESSAGE_TYPE)
+            BitcoinMsg<GetHeadersMsg> getHeaderMsg = bitcoinSerializer.deserialize(context, byteReader)
         then:
             getHeaderMsg.getHeader().getMagic().equals(config.getBasicConfig().getMagicPackage())
             getHeaderMsg.getHeader().getCommand().equals(GetHeadersMsg.MESSAGE_TYPE)

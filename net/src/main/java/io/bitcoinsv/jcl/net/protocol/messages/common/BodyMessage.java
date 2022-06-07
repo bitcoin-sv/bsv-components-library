@@ -1,7 +1,10 @@
 package io.bitcoinsv.jcl.net.protocol.messages.common;
 
 
+import com.google.common.base.Objects;
 import io.bitcoinsv.bitcoinjsv.core.Utils;
+
+import java.util.Arrays;
 
 /**
  * @author i.fernandez@nchain.com
@@ -51,6 +54,17 @@ public abstract class BodyMessage extends Message {
     public byte[] getExtraBytes()   { return this.extraBytes;}
     public long getChecksum()       { return this.checksum;}
 
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false; }
+        BodyMessage other = (BodyMessage) obj;
+        return Arrays.equals(this.extraBytes, other.extraBytes);
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(this.extraBytes);
+    }
 
     /** Returns the builder if we want to modify the content (it will crate a new instance) */
     abstract public BodyMessageBuilder toBuilder();

@@ -3,7 +3,10 @@ package io.bitcoinsv.jcl.net.protocol.handlers.message;
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
+import io.bitcoinsv.jcl.net.protocol.messages.common.StreamRequest;
 import io.bitcoinsv.jcl.tools.handlers.Handler;
+
+import java.util.stream.Stream;
 
 /**
  * @author i.fernandez@nchain.com
@@ -27,6 +30,9 @@ public interface MessageHandler extends Handler {
 
     /** Sends a Message to an specific Peer */
     void send(PeerAddress peerAddress, BodyMessage msgBody);
+
+    /** Streams the given message to the peer, NOTE: this assumes the checksum has been pre-calculated */
+    void stream(PeerAddress peerAddress, StreamRequest streamRequest);
 
     /** Broadcasts a Message to all connected Peers */
     void broadcast(BitcoinMsg<?> btcMessage);

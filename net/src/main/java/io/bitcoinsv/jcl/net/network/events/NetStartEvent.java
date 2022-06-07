@@ -1,6 +1,8 @@
 package io.bitcoinsv.jcl.net.network.events;
 
+import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.network.PeerAddress;
+
 
 /**
  * @author i.fernandez@nchain.com
@@ -18,5 +20,17 @@ public final class NetStartEvent extends P2PEvent {
     @Override
     public String toString() {
         return "NetStartEvent(localAddress=" + this.getLocalAddress() + ")";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false; }
+        NetStartEvent other = (NetStartEvent) obj;
+        return Objects.equal(this.localAddress, other.localAddress);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), localAddress);
     }
 }

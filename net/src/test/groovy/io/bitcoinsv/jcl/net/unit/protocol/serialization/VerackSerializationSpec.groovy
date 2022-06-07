@@ -37,7 +37,7 @@ class VerackSerializationSpec extends Specification {
                 BitcoinMsg<VersionAckMsg> version = null
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(VERACK_MSG), byteInterval, delayMs)
         when:
-            version = bitcoinSerializer.<VersionAckMsg>deserialize(context, byteReader, VersionAckMsg.MESSAGE_TYPE)
+            version = bitcoinSerializer.<VersionAckMsg>deserialize(context, byteReader)
         then:
             version.getHeader().getCommand().equals(VersionAckMsg.MESSAGE_TYPE)
             version.getHeader().getMagic() == config.getBasicConfig().getMagicPackage()
@@ -56,7 +56,7 @@ class VerackSerializationSpec extends Specification {
             BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
             String msgSerializedHex = null
         when:
-            byte[] serializedMsg = bitcoinSerializer.serialize(context, versionAck, VersionAckMsg.MESSAGE_TYPE).getFullContent()
+            byte[] serializedMsg = bitcoinSerializer.serialize(context, versionAck).getFullContent()
             msgSerializedHex = Utils.HEX.encode(serializedMsg)
         then:
             msgSerializedHex.equals(VERACK_MSG)

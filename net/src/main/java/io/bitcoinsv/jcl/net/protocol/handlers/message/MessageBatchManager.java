@@ -66,7 +66,7 @@ class MessageBatchManager<E extends MsgReceivedEvent> {
     /** Adds a new Event */
     public synchronized void addEvent(E event) {
         this.events.add(event);
-        this.currentEventsSize += event.getBtcMsg().getLengthInbytes();
+        this.currentEventsSize += event.getBtcMsg().getLengthInBytes();
     }
 
     /**

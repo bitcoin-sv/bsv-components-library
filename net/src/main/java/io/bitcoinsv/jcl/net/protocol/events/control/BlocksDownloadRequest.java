@@ -1,6 +1,7 @@
 package io.bitcoinsv.jcl.net.protocol.events.control;
 
 
+import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.network.events.P2PRequest;
 
@@ -52,5 +53,20 @@ public final class BlocksDownloadRequest extends P2PRequest {
         }
         result += ")";
         return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false; }
+        BlocksDownloadRequest other = (BlocksDownloadRequest) obj;
+        return Objects.equal(this.blockHashes, other.blockHashes)
+                && Objects.equal(this.withPriority, other.withPriority)
+                && Objects.equal(this.fromThisPeerOnly, other.fromThisPeerOnly)
+                && Objects.equal(this.fromThisPeerPreferably, other.fromThisPeerPreferably);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), blockHashes, withPriority, fromThisPeerOnly, fromThisPeerPreferably);
     }
 }

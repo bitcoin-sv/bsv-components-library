@@ -13,6 +13,7 @@ import java.util.concurrent.ExecutorService;
 public abstract class PeerStreamImpl<S,T> implements PeerStream<S> {
 
     protected ExecutorService executor;
+
     protected PeerAddress peerAddress;
     protected PeerStream<T> streamOrigin;
 

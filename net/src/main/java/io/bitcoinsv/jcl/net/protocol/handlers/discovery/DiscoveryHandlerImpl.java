@@ -416,7 +416,8 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
                                           Integer numAddressInNewADDRMsg) {
 
         DiscoveryHandlerState.DiscoveryHandlerStateBuilder builder = this.state.toBuilder();
-        builder.numNodesAdded(state.getNumNodesAdded() + addedToPool)
+        builder.poolSize(this.handlerInfo.size())
+               .numNodesAdded(state.getNumNodesAdded() + addedToPool)
                .numNodesRemoved(state.getNumNodesRemoved() + removedFromPool)
                .numNodesRejected(state.getNumNodesRejected() + rejectedFromPool)
                .numGetAddrMsgsSent(state.getNumGetAddrMsgsSent() + getAddrMsgsSent)
@@ -449,6 +450,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
         if (peersBlacklisted.contains(peerInfo.getPeerAddress().getIp())) result =  false;
 
         // If the main Pool is already full, we discard it:
+
         if (config.getMaxAddresses().isPresent() && handlerInfo.size() >= config.getMaxAddresses().getAsInt())
             result =  false;
 

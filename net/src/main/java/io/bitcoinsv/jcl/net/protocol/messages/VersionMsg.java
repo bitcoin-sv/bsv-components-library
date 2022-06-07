@@ -132,14 +132,12 @@ public final class VersionMsg extends BodyMessage implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(version, services, timestamp, addr_recv, addr_from, nonce, user_agent, start_height, relay);
+        return Objects.hashCode(super.hashCode(), version, services, timestamp, addr_recv, addr_from, nonce, user_agent, start_height, relay);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         VersionMsg other = (VersionMsg) obj;
         return Objects.equal(this.version, other.version)
                 && Objects.equal(this.services, other.services)

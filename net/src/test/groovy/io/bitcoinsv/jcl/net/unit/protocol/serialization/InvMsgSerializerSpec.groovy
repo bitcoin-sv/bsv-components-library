@@ -103,7 +103,7 @@ class InvMsgSerializerSpec extends Specification {
             BitcoinMsg<InvMessage> inventoryBitcoinMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), invMessage).build()
             BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
-            byte[] bytes = serializer.serialize(context, inventoryBitcoinMsg, InvMessage.MESSAGE_TYPE).getFullContent()
+            byte[] bytes = serializer.serialize(context, inventoryBitcoinMsg).getFullContent()
             String invMsgSerialized = Utils.HEX.encode(bytes)
         then:
            invMsgSerialized.equals(REF_INV_MSG_FULL)
@@ -120,7 +120,7 @@ class InvMsgSerializerSpec extends Specification {
 
             BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
         when:
-            BitcoinMsg<InvMessage> invBitcoinMsg = bitcoinSerializer.deserialize(context, byteReader, InvMessage.MESSAGE_TYPE)
+            BitcoinMsg<InvMessage> invBitcoinMsg = bitcoinSerializer.deserialize(context, byteReader)
         then:
             invBitcoinMsg.getHeader().getMagic().equals(config.getBasicConfig().getMagicPackage())
             invBitcoinMsg.getHeader().getCommand().equals(InvMessage.MESSAGE_TYPE)

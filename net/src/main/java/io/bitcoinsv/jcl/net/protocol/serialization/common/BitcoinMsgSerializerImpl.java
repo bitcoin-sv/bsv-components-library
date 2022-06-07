@@ -114,8 +114,7 @@ public class BitcoinMsgSerializerImpl implements BitcoinMsgSerializer {
     }
 
     @Override
-    public <M extends BodyMessage> BitcoinMsg<M> deserialize(DeserializerContext context, ByteArrayReader byteReader,
-                                                         String msgType) {
+    public <M extends BodyMessage> BitcoinMsg<M> deserialize(DeserializerContext context, ByteArrayReader byteReader) {
 
         // First we deserialize the Header:
         HeaderMsg headerMsg = HeaderMsgSerializer.getInstance().deserialize(context, byteReader);
@@ -134,8 +133,7 @@ public class BitcoinMsgSerializerImpl implements BitcoinMsgSerializer {
     }
 
     @Override
-    public <M extends BodyMessage> ByteArrayReader serialize(SerializerContext context, BitcoinMsg<M> bitcoinMessage,
-                                                         String msgType) {
+    public <M extends BodyMessage> ByteArrayReader serialize(SerializerContext context, BitcoinMsg<M> bitcoinMessage) {
 
         // Some Notes about Deserialization:
         // If the message is >=4GB, the checksum must NOT be calculated. We just Serialize the message as it is
@@ -159,19 +157,21 @@ public class BitcoinMsgSerializerImpl implements BitcoinMsgSerializer {
         if (header.isExtendedMsg()) {
             // We serialize the Header and the BODY as they are, without any changes...
             HeaderMsgSerializer.getInstance().serialize(context, header, finalWriter);
-            getBodySerializer(msgType).serialize(context, bitcoinMessage.getBody(), finalWriter);
+            getBodySerializer(bitcoinMessage.getBody().getMessageType()).serialize(context, bitcoinMessage.getBody(), finalWriter);
         } else {
-            // We calculate the checksum, so we need to Serialize the BODY: We store it in a "bodyByteReader".
+            // We Serialize the Body:
             ByteArrayWriter bodyByteWriter = new ByteArrayWriter();
-            getBodySerializer(msgType).serialize(context, bitcoinMessage.getBody(), bodyByteWriter);
+            getBodySerializer(bitcoinMessage.getBody().getMessageType()).serialize(context, bitcoinMessage.getBody(), bodyByteWriter);
             ByteArrayReader bodyByteReader = bodyByteWriter.reader(); // BODY Content
 
-            // We calculate the checksum and inject it back into the header:
-            long checksum = calculateChecksum(bodyByteReader, header.getMsgLength());
-            HeaderMsg headerWithChecksum = header.toBuilder().checksum(checksum).build();
+            if (context.isCalculateChecksum()) {
+                // We calculate the checksum and inject it back into the header:
+                long checksum = calculateChecksum(bodyByteReader, header.getMsgLength());
+                header = header.toBuilder().checksum(checksum).build();
+            }
 
             // We serialize the HEADER:
-            HeaderMsgSerializer.getInstance().serialize(context, headerWithChecksum, finalWriter);
+            HeaderMsgSerializer.getInstance().serialize(context, header, finalWriter);
 
             // We serialize the BODY:
             final int SIZE_2GB = 2_000_000_000;

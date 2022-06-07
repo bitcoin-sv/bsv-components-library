@@ -110,6 +110,15 @@ public interface BlockStore {
     /** It removes metadata linked to a Block */
     void removeBlockMetadata(Sha256Hash blockHash);
 
+    /** Retrieves the metadata attached to the tx given, if any */
+    Optional<Metadata>  getTxMetadata(Sha256Hash txHash);
+
+    /** It saves some Metadata linked to a Tx */
+    void saveTxMetadata(Sha256Hash txHash, Metadata metadata);
+
+    /** It removes metadata linked to a Tx */
+    void removeTxMetadata(Sha256Hash txHash);
+
     // Tx Storage Operations:
 
     /**

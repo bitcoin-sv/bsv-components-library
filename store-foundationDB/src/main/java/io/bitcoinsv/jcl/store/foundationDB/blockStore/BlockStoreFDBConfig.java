@@ -30,6 +30,22 @@ public class BlockStoreFDBConfig implements BlockStoreKeyValueConfig {
      */
     public static final int TRANSACTION_BATCH_SIZE = 5000;
 
+    /**
+     * The maximum size for a value being saved within FDB is 100 kB. If the value exceeds this size, then it will be broken up into chunks.
+     */
+    public static final int TRANSACTION_MAX_VALUE_SIZE_BYTES = 100_000;
+
+    /**
+     * The size of each chunk we want to split the data into if it exceeds {@value TRANSACTION_MAX_VALUE_SIZE_BYTES}
+     */
+    public static final int TRANSACTION_VALUE_CHUNK_SIZE_BYTES = 100_000;
+
+    /**
+     * The maximum size of each foundationdb tx. Txs cannot exceed 10MB including transaction metadata. The closer this is to 10MB, the better the performance.
+     */
+    public static final int TRANSACTION_MAX_SIZE_BYTES = 9_500_000;
+
+
     /** Java API Version. This might change if the maven dependency is updated, so be careful */
     private static final int API_VERSION = 510;
 

@@ -18,7 +18,7 @@ import java.io.Serializable;
  * number of Txs within the block. That fiel is cinluded in the BlockHeaderMsg class.
  *
  */
-public class BlockHeaderSimpleMsg extends Message implements Serializable {
+public final class BlockHeaderSimpleMsg extends Message implements Serializable {
 
     public static final String MESSAGE_TYPE = "BlockHeaderSimple";
 
@@ -31,7 +31,7 @@ public class BlockHeaderSimpleMsg extends Message implements Serializable {
     // In order to calculate a Block Hash we need to serialize the Block first, so instead of doing
     // that avery time we need a Hash, we store the Hash here, at the moment when we deserialize the
     // Block for the first time, so its available for further use.
-    protected final HashMsg hash;
+    protected final Sha256Hash hash;
 
     protected final long version;
     protected final HashMsg prevBlockHash;
@@ -40,7 +40,7 @@ public class BlockHeaderSimpleMsg extends Message implements Serializable {
     protected final long difficultyTarget;
     protected final long nonce;
 
-    public BlockHeaderSimpleMsg(HashMsg hash,
+    public BlockHeaderSimpleMsg(Sha256Hash hash,
                                 long version,
                                 HashMsg prevBlockHash,
                                 HashMsg merkleRoot,
@@ -88,7 +88,10 @@ public class BlockHeaderSimpleMsg extends Message implements Serializable {
         result.setPrevBlockHash(Sha256Hash.wrapReversed(this.prevBlockHash.getHashBytes()));
         result.setVersion(this.version);
         result.setMerkleRoot(Sha256Hash.wrapReversed(this.merkleRoot.getHashBytes()));
-        //result.setHash(Sha256Hash.wrapReversed(this.hash.getHashBytes()));
+        if (this.hash != null) {
+            result.setHash(this.hash);
+        }
+
 
         return result;
     }
@@ -98,7 +101,7 @@ public class BlockHeaderSimpleMsg extends Message implements Serializable {
         return "BlockHeaderMsg(hash=" + this.getHash() + ", version=" + this.getVersion() + ", prevBlockHash=" + this.getPrevBlockHash() + ", merkleRoot=" + this.getMerkleRoot() + ", creationTimestamp=" + this.getCreationTimestamp() + ", difficultyTarget=" + this.getDifficultyTarget() + ", nonce=" + this.getNonce() + ")";
     }
 
-    public HashMsg getHash()                { return hash; }
+    public Sha256Hash getHash()             { return hash; }
     public long getVersion()                { return version; }
     public HashMsg getPrevBlockHash()       { return prevBlockHash; }
     public HashMsg getMerkleRoot()          { return merkleRoot; }
@@ -108,27 +111,21 @@ public class BlockHeaderSimpleMsg extends Message implements Serializable {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-
-        if (obj == this) {
-            return true;
-        }
-
-        if (obj.getClass() != getClass()) {
-            return false;
-        }
-
+        if (!super.equals(obj)) { return false; }
         BlockHeaderSimpleMsg other = (BlockHeaderSimpleMsg) obj;
+        // The "hash" field is calculated, so its not included here:
+        return Objects.equal(this.version, other.version)
+                && Objects.equal(this.prevBlockHash, other.prevBlockHash)
+                && Objects.equal(this.merkleRoot, other.merkleRoot)
+                && Objects.equal(this.creationTimestamp, other.creationTimestamp)
+                && Objects.equal(this.difficultyTarget, other.difficultyTarget)
+                && Objects.equal(this.nonce, other.nonce);
+    }
 
-        return Objects.equal(this.hash, other.hash)
-            && Objects.equal(this.version, other.version)
-            && Objects.equal(this.prevBlockHash, other.prevBlockHash)
-            && Objects.equal(this.merkleRoot, other.merkleRoot)
-            && Objects.equal(this.creationTimestamp, other.creationTimestamp)
-            && Objects.equal(this.difficultyTarget, other.difficultyTarget)
-            && Objects.equal(this.nonce, other.nonce);
+    @Override
+    public int hashCode() {
+        // The "hash" field is calculated, so its not included here:
+        return Objects.hashCode(super.hashCode(), this.version, this.prevBlockHash, this.merkleRoot, this.creationTimestamp, this.difficultyTarget, this.nonce);
     }
 
     public BlockHeaderSimpleMsgBuilder toBuilder() {
@@ -145,7 +142,7 @@ public class BlockHeaderSimpleMsg extends Message implements Serializable {
      * Builder
      */
     public static class BlockHeaderSimpleMsgBuilder {
-        protected HashMsg hash;
+        protected Sha256Hash hash;
         protected long version;
         protected HashMsg prevBlockHash;
         protected HashMsg merkleRoot;
@@ -155,7 +152,7 @@ public class BlockHeaderSimpleMsg extends Message implements Serializable {
 
         public BlockHeaderSimpleMsgBuilder() {}
 
-        public BlockHeaderSimpleMsgBuilder hash(HashMsg hash) {
+        public BlockHeaderSimpleMsgBuilder hash(Sha256Hash hash) {
             this.hash = hash;
             return this;
         }

@@ -55,11 +55,9 @@ public interface BitcoinMsgSerializer {
      *
      * @param context                   Serializer Context
      * @param byteReader                Byte Source
-     * @param command                   Type of the message (as it's stored in the "command" field in the Header)
      * @return                          A full Bitcoin-compliant Message
      */
-    <M extends BodyMessage> BitcoinMsg<M> deserialize(DeserializerContext context, ByteArrayReader byteReader,
-                                                  String command);
+    <M extends BodyMessage> BitcoinMsg<M> deserialize(DeserializerContext context, ByteArrayReader byteReader);
 
 
     /**
@@ -68,10 +66,8 @@ public interface BitcoinMsgSerializer {
      *
      * @param context                   Serializer Context
      * @param bitcoinMessage            Message to deserialize
-     * @param command                   Type of the message (as it's stored in the "command" field in the Header)
      * @return                          The content of "bitcoinMessage" serialized
      */
-    <M extends BodyMessage> ByteArrayReader serialize(SerializerContext context, BitcoinMsg<M> bitcoinMessage,
-                                                  String command);
+    <M extends BodyMessage> ByteArrayReader serialize(SerializerContext context, BitcoinMsg<M> bitcoinMessage);
 
 }

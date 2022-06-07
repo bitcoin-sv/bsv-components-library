@@ -72,8 +72,8 @@ class SendHeadersMsgSerializerSpec extends Specification {
 
             BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
-            ByteArrayReader byteArrayReader = serializer.serialize(serializerContext, sendHeadersBitcoinMsg, SendHeadersMsg.MESSAGE_TYPE)
-            BitcoinMsg<SendHeadersMsg> deserializedSendHeadersBitcoinMsg = serializer.deserialize(deserializerContext, byteArrayReader, SendHeadersMsg.MESSAGE_TYPE)
+            ByteArrayReader byteArrayReader = serializer.serialize(serializerContext, sendHeadersBitcoinMsg)
+            BitcoinMsg<SendHeadersMsg> deserializedSendHeadersBitcoinMsg = serializer.deserialize(deserializerContext, byteArrayReader)
         then:
             sendHeadersBitcoinMsg.equals(deserializedSendHeadersBitcoinMsg)
 

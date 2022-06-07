@@ -1,5 +1,6 @@
 package io.bitcoinsv.jcl.net.protocol.messages;
 
+import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
 
 import java.util.List;
@@ -12,7 +13,7 @@ import java.util.List;
  *
  * This message is the main message to be submitted in the event of a double spend. Containing the transaction, block and history information needed in order to verify the double spend.
  */
-public class DsDetectedMsg extends BodyMessage {
+public final class DsDetectedMsg extends BodyMessage {
 
     public static final String MESSAGE_TYPE = "dsdetected";
 
@@ -46,6 +47,20 @@ public class DsDetectedMsg extends BodyMessage {
     public VarIntMsg getBlockCount()            { return blockCount; }
     public List<BlockDetailsMsg> getBlockList() { return blockList; }
     public int getVersion()                     { return version; }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false; }
+        DsDetectedMsg other = (DsDetectedMsg) obj;
+        return Objects.equal(this.blockCount, other.blockCount)
+                && Objects.equal(this.blockList, other.blockList)
+                && Objects.equal(this.version, other.version);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), this.blockCount, this.blockList, this.version);
+    }
 
     public static DsDetectedMsg.DsDetectedMsgBuilder builder() { return new DsDetectedMsg.DsDetectedMsgBuilder(); }
 
