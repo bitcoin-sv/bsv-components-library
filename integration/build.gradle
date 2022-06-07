@@ -12,7 +12,7 @@ plugins {
  ****************************************/
 jclGroup = "$jclGroup"
 jclVersion = "$jclVersion"
-jclArtifactName = "$jclArtifactName"
+jclArtifactName = "jcl-integration"
 
 group = "$rootProject.jclGroup"
 version = "$rootProject.jclVersion"
@@ -33,7 +33,7 @@ dependencies {
     implementation(project(":store-keyValue"))
     implementation(project(":store-levelDB"))
 
-    implementation "ch.qos.logback:logback-classic"
+    implementation 'org.slf4j:slf4j-api:1.7.26'
 
     // Testing
     testImplementation(project(":tools"))

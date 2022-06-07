@@ -23,6 +23,7 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
     public static final Integer  DEFAULT_MAX_MB_IN_PARALLEL         = 100;
     public static final Duration DEFAULT_CLEANING_HISTORY_TIMEOUT   = Duration.ofMinutes(10);
     public static final Duration DEFAULT_INACTIVITY_TO_FAIL_TIMEOUT = Duration.ofSeconds(30);
+    public static final int      DEFAULT_MIN_SPEED                  = 10_000;  // (bytes/sec)
 
     // Basic protocol Config:
     private ProtocolBasicConfig basicConfig;
@@ -58,6 +59,12 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
      * The time a Block remains in LIMBO is determined by this variable.
      */
     private Duration inactivityTimeoutToFail = DEFAULT_INACTIVITY_TO_FAIL_TIMEOUT;
+
+    /**
+     * Mininum Download Speed in bytes/Sec. If the download SPeed of a Peer is lower than this, the connection to
+     * the Peer is dropped and its disconnected.
+     */
+    private int minSpeed = DEFAULT_MIN_SPEED;
 
     // The Following ENUMS store different Criteria/Strategies to follow when Choosing the right Peer to download
     // a Block from or what to do if there is no clear match:
@@ -118,7 +125,8 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
                                         Duration inactivityTimeoutToFail,
                                         BestMatchCriteria bestMatchCriteria,
                                         BestMatchNotAvailableAction bestMatchNotAvailableAction,
-                                        NoBestMatchAction noBestMatchAction) {
+                                        NoBestMatchAction noBestMatchAction,
+                                        int minSpeed) {
         this.basicConfig = basicConfig;
         if (maxDownloadTimeout != null)             this.maxDownloadTimeout = maxDownloadTimeout;
         if (maxIdleTimeout != null)                 this.maxIdleTimeout = maxIdleTimeout;
@@ -132,6 +140,7 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
         this.bestMatchCriteria = bestMatchCriteria;
         this.bestMatchNotAvailableAction = bestMatchNotAvailableAction;
         this.noBestMatchAction = noBestMatchAction;
+        this.minSpeed = minSpeed;
     }
 
     public BlockDownloaderHandlerConfig() {}
@@ -146,6 +155,7 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
     public long getMaxMBinParallel()                        { return this.maxMBinParallel;}
     public Duration getBlockHistoryTimeout()                { return this.blockHistoryTimeout;}
     public Duration getInactivityTimeoutToFail()            { return this.inactivityTimeoutToFail;}
+    public int getMinSpeed()                                { return this.minSpeed;}
 
     public BestMatchCriteria getBestMatchCriteria()                     { return this.bestMatchCriteria;}
     public BestMatchNotAvailableAction getBestMatchNotAvailableAction() { return this.bestMatchNotAvailableAction;}
@@ -165,7 +175,8 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
                 .inactivityTimeoutToFail(this.inactivityTimeoutToFail)
                 .bestMatchCriteria(this.bestMatchCriteria)
                 .bestMatchNotAvailableAction(this.bestMatchNotAvailableAction)
-                .noBestMatchAction(this.noBestMatchAction);
+                .noBestMatchAction(this.noBestMatchAction)
+                .minSpeed(this.minSpeed);
     }
 
     public static BlockDownloaderHandlerConfigBuilder builder() {
@@ -186,6 +197,7 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
         private long maxMBinParallel = DEFAULT_MAX_MB_IN_PARALLEL;
         private Duration blockHistoryTimeout = DEFAULT_CLEANING_HISTORY_TIMEOUT;
         private Duration inactivityTimeoutToFail = DEFAULT_INACTIVITY_TO_FAIL_TIMEOUT;
+        private int minSpeed = DEFAULT_MIN_SPEED;
 
         private BestMatchCriteria           bestMatchCriteria = BestMatchCriteria.FROM_ANYONE;
         private BestMatchNotAvailableAction bestMatchNotAvailableAction = BestMatchNotAvailableAction.DOWNLOAD_FROM_ANYONE;
@@ -243,6 +255,11 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
             return this;
         }
 
+        public BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder minSpeed(int minSpeed) {
+            this.minSpeed = minSpeed;
+            return this;
+        }
+
         public BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder bestMatchCriteria(BestMatchCriteria bestMatchCriteria) {
             this.bestMatchCriteria = bestMatchCriteria;
             return this;
@@ -272,7 +289,8 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
                     inactivityTimeoutToFail,
                     bestMatchCriteria,
                     bestMatchNotAvailableAction,
-                    noBestMatchAction);
+                    noBestMatchAction,
+                    minSpeed);
         }
     }
 }

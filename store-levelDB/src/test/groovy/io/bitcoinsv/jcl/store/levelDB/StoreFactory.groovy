@@ -28,11 +28,11 @@ class StoreFactory {
 
     /** It creates an instance of the BlockStore interface */
     static BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents) {
-        return getInstance(netId, triggerBlockEvents, triggerTxEvents, null);
+        return getInstance(netId, triggerBlockEvents, triggerTxEvents, null, null);
     }
 
     /** It creates an instance of the BlockStore interface, including metadata class for Blocks */
-    static BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents, Class<? extends Metadata> blockMetadataClass) {
+    static BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents, Class<? extends Metadata> blockMetadataClass, Class<? extends Metadata> txMetadataClass) {
         Path dbPath = Path.of(buildWorkingFolder())
         BlockStoreLevelDBConfig dbConfig = BlockStoreLevelDBConfig.builder()
                 .workingFolder(dbPath)
@@ -43,6 +43,7 @@ class StoreFactory {
                 .triggerBlockEvents(triggerBlockEvents)
                 .triggerTxEvents(triggerTxEvents)
                 .blockMetadataClass(blockMetadataClass)
+                .txMetadataClass(txMetadataClass)
                 .build()
         return db
     }

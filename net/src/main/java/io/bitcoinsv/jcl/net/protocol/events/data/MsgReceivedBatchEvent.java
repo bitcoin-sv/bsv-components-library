@@ -1,5 +1,6 @@
 package io.bitcoinsv.jcl.net.protocol.events.data;
 
+import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.network.events.P2PEvent;
 
 import java.util.List;
@@ -25,5 +26,17 @@ public class MsgReceivedBatchEvent<T extends MsgReceivedEvent> extends P2PEvent 
     @Override
     public String toString() {
         return "MsgReceivedBatch[" + events.size() + " items]";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false;}
+        MsgReceivedBatchEvent other = (MsgReceivedBatchEvent) obj;
+        return Objects.equal(this.events, other.events);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), events);
     }
 }

@@ -13,7 +13,7 @@ import java.io.Serializable;
  * @author j.pomer@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  */
-public class CompactBlockHeaderMsg extends Message implements Serializable {
+public final class CompactBlockHeaderMsg extends Message implements Serializable {
 
     public static final String MESSAGE_TYPE = "CompactClockHeader";
 
@@ -78,27 +78,17 @@ public class CompactBlockHeaderMsg extends Message implements Serializable {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-
-        if (obj == this) {
-            return true;
-        }
-
-        if (obj.getClass() != getClass()) {
-            return false;
-        }
+        if (!super.equals(obj)) { return false; }
 
         CompactBlockHeaderMsg other = (CompactBlockHeaderMsg) obj;
 
         return Objects.equal(this.hash, other.hash)
-            && Objects.equal(this.version, other.version)
-            && Objects.equal(this.prevBlockHash, other.prevBlockHash)
-            && Objects.equal(this.merkleRoot, other.merkleRoot)
-            && Objects.equal(this.creationTimestamp, other.creationTimestamp)
-            && Objects.equal(this.difficultyTarget, other.difficultyTarget)
-            && Objects.equal(this.nonce, other.nonce);
+                && Objects.equal(this.version, other.version)
+                && Objects.equal(this.prevBlockHash, other.prevBlockHash)
+                && Objects.equal(this.merkleRoot, other.merkleRoot)
+                && Objects.equal(this.creationTimestamp, other.creationTimestamp)
+                && Objects.equal(this.difficultyTarget, other.difficultyTarget)
+                && Objects.equal(this.nonce, other.nonce);
     }
 
     /**
@@ -126,7 +116,7 @@ public class CompactBlockHeaderMsg extends Message implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(hash, version, prevBlockHash, merkleRoot, creationTimestamp, difficultyTarget, nonce);
+        return Objects.hashCode(super.hashCode(), hash, version, prevBlockHash, merkleRoot, creationTimestamp, difficultyTarget, nonce);
     }
 
     public CompactBlockHeaderMsgBuilder toBuilder() {

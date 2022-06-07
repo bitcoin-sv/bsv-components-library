@@ -1,6 +1,7 @@
 package io.bitcoinsv.jcl.net.protocol.events.control;
 
 
+import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.network.events.P2PEvent;
 
 /**
@@ -30,8 +31,22 @@ public final class BlockDiscardedEvent extends P2PEvent {
 
     public String getHash()             { return this.hash; }
     public DiscardedReason getReason()  { return this.reason; }
+
     @Override
     public String toString() {
         return "BlockDiscardedEvent(hash=" + this.getHash() + ", reason=" + this.getReason() + ")";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false; }
+        BlockDiscardedEvent other = (BlockDiscardedEvent) obj;
+        return Objects.equal(this.hash, other.hash)
+                && Objects.equal(this.reason, other.reason);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), hash, hashCode());
     }
 }

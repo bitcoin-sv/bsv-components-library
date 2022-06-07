@@ -46,14 +46,12 @@ public final class GetHeadersEnMsg extends BodyMessage implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(version, blockLocatorHash, hashStop);
+        return Objects.hashCode(super.hashCode(), version, blockLocatorHash, hashStop);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         GetHeadersEnMsg other = (GetHeadersEnMsg) obj;
         return Objects.equal(this.version, other.version)
                 && Objects.equal(this.blockLocatorHash, other.blockLocatorHash)

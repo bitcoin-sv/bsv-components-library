@@ -139,7 +139,7 @@ class VersionMsgSerializationSpec extends Specification {
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_ADDRESS_MSG), byteInterval, delayMs);
             BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
-            BitcoinMsg<VersionMsg> message = bitcoinSerializer.deserialize(context, byteReader, VersionMsg.MESSAGE_TYPE)
+            BitcoinMsg<VersionMsg> message = bitcoinSerializer.deserialize(context, byteReader)
         then:
             message.getHeader().getMagic().equals(config.getBasicConfig().getMagicPackage())
             message.getHeader().getCommand().toUpperCase().equals(VersionMsg.MESSAGE_TYPE.toUpperCase())
@@ -180,7 +180,7 @@ class VersionMsgSerializationSpec extends Specification {
             BitcoinMsg<VersionMsg> bitcoinVersionMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), versionMsg).build()
             BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
-            byte[] versionMsgBytes = bitcoinSerializer.serialize(context, bitcoinVersionMsg, VersionMsg.MESSAGE_TYPE).getFullContent()
+            byte[] versionMsgBytes = bitcoinSerializer.serialize(context, bitcoinVersionMsg).getFullContent()
             String versionMsgDeserialzed = Utils.HEX.encode(versionMsgBytes)
         then:
             versionMsgDeserialzed.equals(REF_ADDRESS_MSG)

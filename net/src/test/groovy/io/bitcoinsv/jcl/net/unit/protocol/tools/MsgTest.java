@@ -59,7 +59,7 @@ public class MsgTest {
                 .maxBytesToRead((long) (ADDR_BODY_HEX.length()/2))
                 .build();
         ByteArrayReader byteReader = new ByteArrayReader(Utils.HEX.decode(ADDR_MSG_HEX));
-        BitcoinMsg<AddrMsg> result = BitcoinMsgSerializerImpl.getInstance().deserialize(context, byteReader, AddrMsg.MESSAGE_TYPE);
+        BitcoinMsg<AddrMsg> result = BitcoinMsgSerializerImpl.getInstance().deserialize(context, byteReader);
         return result;
     }
 
@@ -70,7 +70,7 @@ public class MsgTest {
                 .maxBytesToRead((long) (VERSION_ACK_HEX.length()/2))
                 .build();
         ByteArrayReader byteReader = new ByteArrayReader(Utils.HEX.decode(VERSION_ACK_HEX));
-        BitcoinMsg<VersionAckMsg> result = BitcoinMsgSerializerImpl.getInstance().deserialize(context, byteReader, VersionAckMsg.MESSAGE_TYPE);
+        BitcoinMsg<VersionAckMsg> result = BitcoinMsgSerializerImpl.getInstance().deserialize(context, byteReader);
         return result;
     }
 

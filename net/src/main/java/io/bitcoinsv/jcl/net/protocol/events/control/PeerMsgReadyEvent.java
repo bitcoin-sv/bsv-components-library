@@ -4,6 +4,8 @@ package io.bitcoinsv.jcl.net.protocol.events.control;
 import io.bitcoinsv.jcl.net.network.events.P2PEvent;
 import io.bitcoinsv.jcl.net.protocol.handlers.message.streams.MessageStream;
 
+import java.util.Objects;
+
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
@@ -23,5 +25,17 @@ public final class PeerMsgReadyEvent extends P2PEvent {
     @Override
     public String toString() {
         return "Event[PeerMsgStream Connected]: " + stream.getPeerAddress().toString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false; }
+        PeerMsgReadyEvent other = (PeerMsgReadyEvent) obj;
+        return Objects.equals(this.stream, other.stream);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), stream);
     }
 }

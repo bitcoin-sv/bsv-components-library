@@ -62,23 +62,15 @@ public final class BlockMsg extends BodyMessage implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(blockHeader, transactionMsg);
+        return Objects.hashCode(super.hashCode(), blockHeader, transactionMsg);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (obj == this) {
-            return true;
-        }
-        if (obj.getClass() != getClass()) {
-            return false;
-        }
+        if (!super.equals(obj)) { return false; }
         BlockMsg other = (BlockMsg) obj;
         return Objects.equal(this.blockHeader, other.blockHeader)
-            && Objects.equal(this.transactionMsg, other.transactionMsg);
+                && Objects.equal(this.transactionMsg, other.transactionMsg);
     }
 
     @Override

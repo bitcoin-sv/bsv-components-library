@@ -18,7 +18,7 @@ import java.io.Serializable;
  * Structure of the Message:
  * - fee: A long value indicating the Fee (in Satoshis / KB)
  */
-public class FeeFilterMsg extends BodyMessage implements Serializable {
+public final class FeeFilterMsg extends BodyMessage implements Serializable {
 
     public static final String MESSAGE_TYPE = "feefilter";
 
@@ -36,13 +36,11 @@ public class FeeFilterMsg extends BodyMessage implements Serializable {
     @Override public String getMessageType()      { return MESSAGE_TYPE; }
     @Override protected long calculateLength()    { return 8; }
     @Override protected void validateMessage()    {}
-    @Override public int hashCode()               { return Objects.hashCode(fee); }
+    @Override public int hashCode()               { return Objects.hashCode(super.hashCode(), fee); }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         FeeFilterMsg other = (FeeFilterMsg) obj;
         return Objects.equal(this.fee, other.fee);
     }

@@ -122,7 +122,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     // An executor Service, to trigger jobs in MultiThread...
     ExecutorService jobExecutor = ThreadUtils.getCachedThreadExecutorService("JclNetworkHandler");
     // An executor for triggering new Connections to remote Peers:
-    ExecutorService newConnsExecutor = ThreadUtils.getFixedThreadExecutorService("jclNetworkHandlerRemoteConn", 20);
+    ExecutorService newConnsExecutor;
 
     // General State:
     private NetworkHandlerState state;
@@ -137,7 +137,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     private Map<PeerAddress, NIOStream> activeConns = new ConcurrentHashMap<>();
     private Map<PeerAddress, InProgressConn> inProgressConns = new ConcurrentHashMap<>();
     private BlockingQueue<PeerAddress> pendingToOpenConns = new LinkedBlockingQueue<>();
-    private BlockingQueue<PeerAddress> pendingToCloseConns = new LinkedBlockingQueue<>();
+    private BlockingQueue<DisconnectPeerRequest> pendingToCloseConns = new LinkedBlockingQueue<>();
     private Set<InetAddress> blacklist = ConcurrentHashMap.newKeySet();
     private Set<PeerAddress> failedConns = ConcurrentHashMap.newKeySet();
 
@@ -160,6 +160,8 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         this.config = netConfig;
         this.peerAddress = localAddress;
         this.logger = new LoggerUtil(id, HANDLER_ID, this.getClass());
+        this.newConnsExecutor = ThreadUtils.getFixedThreadExecutorService("JclNetworkHandlerRemoteConn", netConfig.getMaxSocketConnectionsOpeningAtSameTime());
+
     }
 
     @Override
@@ -244,25 +246,25 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
 
 
     @Override
-    public void disconnect(PeerAddress peerAddress) {
-        disconnect(Arrays.asList(peerAddress));
+    public void processDisconnectRequest(DisconnectPeerRequest request) {
+        processDisconnectRequests(Arrays.asList(request));
     }
 
     @Override
-    public void disconnect(List<PeerAddress> peerAddresses) {
-        if (peerAddresses == null) return;
+    public void processDisconnectRequests(List<DisconnectPeerRequest> requests) {
+        if (requests == null) return;
 
         if (super.isRunning()) {
             try {
                 lock.writeLock().lock();
-                List<PeerAddress> newList = peerAddresses.stream()
-                        .filter(p -> !pendingToCloseConns.contains(p))
-                        .filter(p -> (activeConns.containsKey(p) || pendingToOpenConns.contains(p)))
+                List<DisconnectPeerRequest> newList = requests.stream()
+                        .filter(r -> !pendingToCloseConns.contains(r.getPeerAddress()))
+                        .filter(r -> (activeConns.containsKey(r.getPeerAddress()) || pendingToOpenConns.contains(r.getPeerAddress())))
                         .collect(Collectors.toList());
                 if (newList.size() > 0) {
                     logger.trace( "Registering " + newList.size() + " Peers for Disconnection...");
                     pendingToCloseConns.addAll(newList);
-                    pendingToOpenConns.removeAll(newList);
+                    pendingToOpenConns.removeAll(newList.stream().map(r -> r.getPeerAddress()).collect(Collectors.toList()));
                     selector.wakeup();
                 }
             } finally {
@@ -276,8 +278,12 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         try {
             lock.writeLock().lock();
             Predicate<PeerAddress> notToRemove = p -> !peerAddresses.contains(p);
-            List<PeerAddress> activePeersToRemove = activeConns.keySet().stream().filter(notToRemove).collect(Collectors.toList());
-            disconnect(activePeersToRemove);
+            List<DisconnectPeerRequest> activePeersToRemove = activeConns.keySet()
+                    .stream()
+                    .filter(notToRemove)
+                    .map(p -> new DisconnectPeerRequest(p, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL))
+                    .collect(Collectors.toList());
+            processDisconnectRequests(activePeersToRemove);
         } finally {
             lock.writeLock().unlock();
         }
@@ -298,11 +304,12 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
             blacklist.addAll(ipAddresses.keySet());
 
             // Then, we disconnect all the current Peers already connected to any of those addresses...
-            List<PeerAddress> peersToDisconnect = this.activeConns.keySet().stream()
+            List<DisconnectPeerRequest> requestsToDisconnect = this.activeConns.keySet().stream()
                     .filter(p -> ipAddresses.keySet().contains(p.getIp()))
+                    .map(p -> new DisconnectPeerRequest(p, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL_BLACKLIST))
                     .collect(Collectors.toList());
 
-            this.disconnect(peersToDisconnect);
+            this.processDisconnectRequests(requestsToDisconnect);
         } finally {
             lock.writeLock().unlock();
         }
@@ -355,6 +362,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         eventBus.subscribe(StopConnectingRequest.class,     e -> onStopConnecting((StopConnectingRequest) e));
         eventBus.subscribe(DisconnectPeersRequest.class,    e -> onDisconnectPeers((DisconnectPeersRequest) e));
         eventBus.subscribe(BlacklistPeerRequest.class,      e -> onBlacklistPeer((BlacklistPeerRequest) e));
+
     }
 
     // Event Handlers:
@@ -376,12 +384,16 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     }
 
     private void onDisconnectPeers(DisconnectPeersRequest request) {
-        this.disconnect(request.getPeersToDisconnect());
-        this.disconnectAllExcept(request.getPeersToKeep());
+        if (request.getPeersToDisconnect() != null) {
+            this.disconnect(request.getPeersToDisconnect());
+        }
+        if (request.getPeersToKeep() != null) {
+            this.disconnectAllExcept(request.getPeersToKeep());
+        }
     }
 
     private void onBlacklistPeer(BlacklistPeerRequest request) {
-        this.blacklist(request.getPeerAddress().getIp(), PeersBlacklistedEvent.BlacklistReason.CLIENT);
+        this.blacklist(request.getAddress(), PeersBlacklistedEvent.BlacklistReason.CLIENT);
     }
 
     @Override
@@ -647,7 +659,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
                     connectPeerTask.execute();
                     numConnectionsTried++;
                     // We wait a little bit between connections:
-                    Thread.sleep(100);
+                    Thread.sleep(50);
                 } // while...
 
                 // In case there are NO more connections pending to Open, We wait until the Queue of Pending
@@ -716,15 +728,15 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         try {
             // First loop level: This job keeps on forever...
             while (true) {
-                PeerAddress peerAddress;
-                while ((peerAddress = pendingToCloseConns.take()) != null) {
-                    logger.trace(peerAddress, "Processing request to Close...");
+                DisconnectPeerRequest disconnectRequest;
+                while ((disconnectRequest = pendingToCloseConns.take()) != null) {
+                    PeerAddress peerAddress = disconnectRequest.getPeerAddress();
+                    logger.trace(disconnectRequest, "Processing request to Close...");
 
                     // For each connection to closeAndClear, we check that we have already a SelectionKey for it.
                     // If we do, we check the Key, and put back the connection into the "PendingToOpen" Pool...
 
                     Iterator<SelectionKey> keys = selector.keys().iterator();
-                    boolean found = false;
                     while (keys.hasNext()) {
                         SelectionKey key = keys.next();
 
@@ -732,21 +744,14 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
                             KeyConnectionAttach keyAttach = (KeyConnectionAttach) key.attachment();
                             if (peerAddress.equals(keyAttach.peerAddress)) {
                                 logger.trace(peerAddress, "Removing Key... ");
-                                closeKey(key, PeerDisconnectedEvent.DisconnectedReason.UNDEFINED);
+                                closeKey(key, disconnectRequest.getReason());
                                 // The Peer is sent back to the pool of connections to Open, so it can be reused later on
                                 // TODO: DISABLED!!!!
                                 //connect(keyAttach.peerAddress); // back to the Pool
-                                found = true;
+
                             }
                         }
                     } // while...
-
-                    // if we do NOT have a Selection Key for this Peer, that means that the Selection Key has been lost
-                    // somehow. In this case at least we publish the Event...
-                    if (!found) {
-                        logger.trace(peerAddress, "Closing dead connection...", getState());
-                        eventBus.publish(new PeerDisconnectedEvent(peerAddress, PeerDisconnectedEvent.DisconnectedReason.UNDEFINED));
-                    }
 
                 } // while...
 

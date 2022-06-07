@@ -18,7 +18,7 @@ import java.util.concurrent.ExecutorService;
  * the final step in the Stream chain. This Stream is physically connected to the Source/Destination, which
  * in this case is a SocketChannel connected to that Peer.
  */
-public class NIOStream extends PeerStreamImpl<ByteArrayReader, ByteArrayReader> implements PeerStream<ByteArrayReader> {
+public class NIOStream extends PeerStreamImpl<ByteArrayReader, ByteArrayReader> {
 
     private RuntimeConfig runtimeConfig;
     private NetworkConfig networkConfig;
@@ -42,7 +42,7 @@ public class NIOStream extends PeerStreamImpl<ByteArrayReader, ByteArrayReader> 
 
     @Override
     public NIOOutputStream buildOutputStream() {
-        return new NIOOutputStream(peerAddress, super.executor, runtimeConfig, networkConfig, key);
+        return new NIOOutputStream(peerAddress, runtimeConfig, networkConfig, key);
     }
 
     @Override

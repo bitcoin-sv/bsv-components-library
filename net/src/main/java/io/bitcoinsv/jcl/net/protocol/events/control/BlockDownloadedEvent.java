@@ -1,6 +1,7 @@
 package io.bitcoinsv.jcl.net.protocol.events.control;
 
 
+import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.network.events.P2PEvent;
 import io.bitcoinsv.jcl.net.protocol.events.data.LiteBlockDownloadedEvent;
@@ -47,5 +48,20 @@ public final class BlockDownloadedEvent extends P2PEvent {
     @Override
     public String toString() {
         return "BlockDownloadedEvent(peerAddress=" + this.getPeerAddress() + ", blockHeader=" + this.getBlockHeader() + ", downloadingTime=" + this.getDownloadingTime() + ", blockSize=" + this.getBlockSize() + ")";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false; }
+        BlockDownloadedEvent other = (BlockDownloadedEvent) obj;
+        return Objects.equal(this.peerAddress, other.peerAddress)
+                && Objects.equal(this.blockHeader, other.blockHeader)
+                && Objects.equal(this.downloadingTime, other.downloadingTime)
+                && Objects.equal(this.blockSize, other.blockSize);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), peerAddress, blockHeader, downloadingTime, blockSize);
     }
 }

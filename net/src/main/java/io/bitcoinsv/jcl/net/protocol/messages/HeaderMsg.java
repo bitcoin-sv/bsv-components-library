@@ -78,12 +78,12 @@ public final class HeaderMsg extends Message implements Serializable {
         init();
     }
 
-    protected long calculateLength() {
+    public long calculateLength() {
         long lengthInBytes  = (this.command.equalsIgnoreCase(EXT_COMMAND)) ? MESSAGE_LENGTH_EXT : MESSAGE_LENGTH;
         return lengthInBytes;
     }
 
-    protected void validateMessage() {}
+    public void validateMessage() {}
 
     @Override
     public String getMessageType()  { return MESSAGE_TYPE; }
@@ -118,19 +118,19 @@ public final class HeaderMsg extends Message implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(magic, command, length, checksum);
+        return Objects.hashCode(super.hashCode(), magic, command, length, checksum, extCommand, extLength);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         HeaderMsg other = (HeaderMsg) obj;
         return Objects.equal(this.magic, other.magic)
                 && Objects.equal(this.command, other.command)
                 && Objects.equal(this.length, other.length)
-                && Objects.equal(this.checksum, other.checksum);
+                && Objects.equal(this.checksum, other.checksum)
+                && Objects.equal(this.extCommand, other.extCommand)
+                && (Objects.equal(this.extLength, other.extLength));
     }
 
     public static HeaderMsgBuilder builder() {

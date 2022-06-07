@@ -38,29 +38,21 @@ import java.util.function.Consumer;
  */
 public abstract class PeerOutputStreamImpl<O,R> implements PeerOutputStream<O> {
 
-    protected EventBus eventBus;
     protected PeerAddress peerAddress;
     protected PeerOutputStream<R> destination;
 
     /**
      * Constructor.
-     * @param executor  The transformation on the data is executed on blocking/non-blocking mode depending on this. If
-     *                  null, the data is processed in blocking mode. If not null, the data will be processed in
-     *                  a separate Thread/s. on a Single Thread, the data will be processed in the same order its
-     *                  received. With more Threads the data will be processed concurrently and the order cannot be
-     *                  guaranteed.
-     *
+     * @param peerAddress    The peer the output stream is writing too
      * @param destination    The Output Stream that is linked to this OutputStream.
      */
-    public PeerOutputStreamImpl(PeerAddress peerAddress, ExecutorService executor, PeerOutputStream<R> destination) {
-        this.eventBus = EventBus.builder().executor(executor).build();
+    public PeerOutputStreamImpl(PeerAddress peerAddress, PeerOutputStream<R> destination) {
         this.peerAddress = peerAddress;
         this.destination = destination;
-        Consumer<StreamDataEvent<O>> dataConsumer = e -> receiveAndTransform(e);
-        this.eventBus.subscribe(StreamDataEvent.class, dataConsumer);
     }
-    public PeerOutputStreamImpl(ExecutorService executor, PeerOutputStream<R> destination) {
-        this(destination.getPeerAddress(), executor, destination);
+
+    public PeerOutputStreamImpl(PeerOutputStream<R> destination) {
+        this(destination.getPeerAddress(), destination);
     }
 
     @Override
@@ -71,7 +63,7 @@ public abstract class PeerOutputStreamImpl<O,R> implements PeerOutputStream<O> {
     public StreamState getState() { return null; }
     @Override
     public void send(StreamDataEvent<O> event)  {
-        eventBus.publish(event);
+        receiveAndTransform(event);
     }
     @Override
     public void close(StreamCloseEvent event) {

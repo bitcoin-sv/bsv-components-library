@@ -1,5 +1,6 @@
 package io.bitcoinsv.jcl.net.unit.protocol.serialization
 
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
 import io.bitcoinsv.jcl.net.protocol.messages.BlockHeaderMsg
 import io.bitcoinsv.jcl.net.protocol.messages.HashMsg
 import io.bitcoinsv.jcl.net.protocol.messages.PartialBlockRawTxMsg
@@ -92,7 +93,7 @@ class BigBlockRawTxSerializerRandomAccess extends Specification {
             // we serialize a Block Header:
             BlockHeaderMsg blockHeaderMsg = new BlockHeaderMsg.BlockHeaderMsgBuilder()
                 .version(1)
-                .hash(zeroHashMsg)
+                .hash(Sha256Hash.ZERO_HASH)
                 .creationTimestamp(1)
                 .difficultyTarget(1)
                 .merkleRoot(zeroHashMsg)

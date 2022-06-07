@@ -1,7 +1,7 @@
 package io.bitcoinsv.jcl.store.blockStore
 
-
-import io.bitcoinsv.jcl.store.common.TestingUtils
+import io.bitcoinsv.jcl.store.blockStore.metadata.provided.TxValidationMD
+import io.bitcoinsv.jcl.tools.common.TestingUtils
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly
 import io.bitcoinsv.jcl.store.blockStore.metadata.provided.BlockValidationMD
 
@@ -18,11 +18,11 @@ abstract class BlockStoreBlockMetadataSpecBase extends BlockStoreSpecBase {
     def "testing saving Blocks and Metadata"() {
         given:
             println(" - Connecting to the DB...")
-            BlockStore db = getInstance("BSV-Main", true, false, BlockValidationMD.class)
+            BlockStore db = getInstance("BSV-Main", true, false, BlockValidationMD.class, TxValidationMD.class)
         when:
             db.start()
             // We define 2 Blocks:
-        HeaderReadOnly block1 = TestingUtils.buildBlock()
+            HeaderReadOnly block1 = TestingUtils.buildBlock()
             HeaderReadOnly block2 = TestingUtils.buildBlock()
 
             // And 2 metadata, one per each:
@@ -61,7 +61,7 @@ abstract class BlockStoreBlockMetadataSpecBase extends BlockStoreSpecBase {
     def "testing removing Blocks and Metadata"() {
         given:
             println(" - Connecting to the DB...")
-            BlockStore db = getInstance("BSV-Main", true, false, BlockValidationMD.class)
+            BlockStore db = getInstance("BSV-Main", true, false, BlockValidationMD.class, TxValidationMD.class)
         when:
             db.start()
             // We define 2 Blocks:

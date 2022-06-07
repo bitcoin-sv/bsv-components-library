@@ -28,7 +28,7 @@ class StoreFactory {
     }
 
     /** It creates an instance of the BlockStore interface, including block Metadata */
-    static BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents, Class<? extends Metadata> blockMetadataClass) {
+    static BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents, Class<? extends Metadata> blockMetadataClass, Class<? extends Metadata> txMetadataClass) {
         BlockStoreFDBConfig config = BlockStoreFDBConfig.builder()
                 .networkId(netId)
                 .clusterFile(getClusterFile())
@@ -38,6 +38,7 @@ class StoreFactory {
                 .triggerBlockEvents(triggerBlockEvents)
                 .triggerTxEvents(triggerTxEvents)
                 .blockMetadataClass(blockMetadataClass)
+                .txMetadataClass(txMetadataClass)
                 .build()
         return blockStore
     }

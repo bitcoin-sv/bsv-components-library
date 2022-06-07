@@ -3,9 +3,7 @@ package io.bitcoinsv.jcl.net.protocol.handlers.handshake;
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.network.events.*;
-import io.bitcoinsv.jcl.net.network.events.*;
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolVersion;
-import io.bitcoinsv.jcl.net.protocol.events.control.*;
 import io.bitcoinsv.jcl.net.protocol.events.control.*;
 import io.bitcoinsv.jcl.net.protocol.events.data.VersionAckMsgReceivedEvent;
 import io.bitcoinsv.jcl.net.protocol.events.data.VersionMsgReceivedEvent;
@@ -163,7 +161,7 @@ public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeer
                 handlerInfo.put(peerAddress, peerInfo);
 
                 // If we still need Handshakes, we start the process with this Peer:
-                if (!doWeHaveEnoughHandshakes()) startHandshake(peerInfo);
+                if (!doWeHaveMaxPeersHandshakes()) startHandshake(peerInfo);
 
                 checkIfWeNeedMoreHandshakes();
             }
@@ -341,14 +339,25 @@ public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeer
     }
 
     /**
-     * Indicates whether we already have enough Handshakes. This is only TRUE when we've already reached the MAX defined
-     * in the Configuration. until then, we'll always be looking for new Peers to Connect to.
+     * Indicates if we reached maxPeers Handshakes
      */
-    private boolean doWeHaveEnoughHandshakes() {
+    private boolean doWeHaveMaxPeersHandshakes() {
         int numHandshakes = state.getNumCurrentHandshakes();
         OptionalInt max = config.getBasicConfig().getMaxPeers();
         boolean result = max.isPresent()
                 ? numHandshakes >= max.getAsInt()
+                : false;
+        return result;
+    }
+
+    /**
+     * Indicates if we reached minPeers Handshakes
+     */
+    private boolean doWeHaveMinPeersHandshakes() {
+        int numHandshakes = state.getNumCurrentHandshakes();
+        OptionalInt min = config.getBasicConfig().getMinPeers();
+        boolean result = min.isPresent()
+                ? numHandshakes >= min.getAsInt()
                 : false;
         return result;
     }
@@ -360,27 +369,30 @@ public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeer
             // If the service is stopping, we do nothing...
             if (!isStopping) {
 
-                // If we are still below the minimum range of Handshaked Peers and we had Requested to RESUME the connections, we do it now..
-                if (!doWeHaveEnoughHandshakes() && !state.isMoreConnsRequested()) {
-                    logger.debug("minPeers reached, Requesting to Resume Connections...");
-                    super.eventBus.publish(new ResumeConnectingRequest());
-                    updateStatus( true, false);
-                }
+                if (state.isMoreConnsRequested()) {
+                    // We are looking for more Connections:
+                    if (doWeHaveMaxPeersHandshakes() && !state.isStopConnsRequested()) {
+                        logger.debug("maxPeers reached, Requesting to Stop Connections...");
+                        super.eventBus.publish(new StopConnectingRequest());
 
-                if (doWeHaveEnoughHandshakes() && !state.isStopConnsRequested()) {
-                    logger.debug("maxPeers reached, Requesting to Stop Connections...");
-                    super.eventBus.publish(new StopConnectingRequest());
+                        // Now, in order to keep the number of connections stable and predictable, we are going to disconnect
+                        // from those Peers we don't need , since we've already reached the MAX limit:
 
-                    // Now, in order to keep the number of connections stable and predictable, we are going to disconnect
-                    // from those Peers we don't need , since we've already reached the MAX limit:
-
-                    logger.debug("Requesting to disconnect any Peers Except the ones already handshaked...");
-                    List<PeerAddress> peerToKeep = handlerInfo.values().stream()
-                            .filter(p -> p.isHandshakeAccepted())
-                            .map(p -> p.getPeerAddress())
-                            .collect(Collectors.toList());
-                    super.eventBus.publish(DisconnectPeersRequest.builder().peersToKeep(peerToKeep).build());
-                    updateStatus( false, true);
+                        logger.debug("Requesting to disconnect any Peers Except the ones already handshaked...");
+                        List<PeerAddress> peerToKeep = handlerInfo.values().stream()
+                                .filter(p -> p.isHandshakeAccepted())
+                                .map(p -> p.getPeerAddress())
+                                .collect(Collectors.toList());
+                        super.eventBus.publish(new DisconnectPeersRequest(Collections.emptyList(), peerToKeep, null, null));
+                        updateStatus( false, true);
+                    }
+                } else {
+                    // We Have enough Connections. We check if we drop connections below minPeers
+                    if (!doWeHaveMinPeersHandshakes() && !state.isMoreConnsRequested()) {
+                        logger.debug("minPeers lost, Requesting to Resume Connections...");
+                        super.eventBus.publish(new ResumeConnectingRequest());
+                        updateStatus( true, false);
+                    }
                 }
             }
         } finally {
@@ -500,7 +512,7 @@ public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeer
         // We update the state:
         updateStatus(false, false);
 
-        // We notify the event:
+        // We notify that the Handshake has been rejected:
         super.eventBus.publish(
                 new PeerHandshakeRejectedEvent(
                         peerInfo.getPeerAddress(),
@@ -509,13 +521,6 @@ public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeer
                         detail
                 )
         );
-
-        // We request a disconnection from this Peer:
-        DisconnectPeerRequest request = new DisconnectPeerRequest(
-                peerInfo.getPeerAddress(),
-                PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL,
-                detail);
-        super.eventBus.publish(request);
 
         // We remove it from our List of Peers...
         handlerInfo.remove(peerInfo.getPeerAddress());

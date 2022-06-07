@@ -17,6 +17,7 @@ import io.bitcoinsv.jcl.tools.config.RuntimeConfig
 import io.bitcoinsv.jcl.tools.config.provided.RuntimeConfigDefault
 import io.bitcoinsv.jcl.tools.thread.ThreadUtils
 import io.bitcoinsv.bitcoinjsv.core.Utils
+import io.bitcoinsv.jcl.tools.util.EventsHistory
 import spock.lang.Ignore
 import spock.lang.Specification
 
@@ -44,10 +45,11 @@ class BlockDownloadTest extends Specification {
     // BSV MAINNET:
 
     private static final List<String> BLOCKS_BSV_MAIN = Arrays.asList(
-
+ //           "0000000000000000007e2d666ce2045725dda523f744ba426e7900448d71929a", // 340MB
+            "0000000000000000053be5a950485a7d437aaea310dcbe4b63de4b5046928a69", // 49MB
             "0000000011139d059a772fb14123a0bbe66b1a6782d4aebe2a6b2c9f92850a7d", // 6MB
             "00000000000000000fc65b3827b997cbce18350b7aa03ac306367e220cb7ad52", // 115MB
-           //"0000000000000000052c4236c4c34dc7686f8285e2646a584785b8d3b1eb8779", // 1.25GB
+           "0000000000000000052c4236c4c34dc7686f8285e2646a584785b8d3b1eb8779", // 1.25GB
             "000000000000000002f5268d72f9c79f29bef494e350e58f624bcf28700a1846", // 369MB
             "0000000000000000027abeb2a2348dac5f953676f6b68a6ed5d92458a1c12cab", // 0.6MB
             "000000000000000000dd6c89655ca27fd2555247232a5ced8376f5bda0d26ec4", // 12MB
@@ -206,20 +208,20 @@ class BlockDownloadTest extends Specification {
 
             // Every time a Header is downloaded, we store it...
             p2p.EVENTS.BLOCKS.BLOCK_HEADER_DOWNLOADED.forEach({ e ->
-                String hash = Utils.HEX.encode(Utils.reverseBytes(e.getBtcMsg().body.getBlockHeader().getHash().getHashBytes()))
+                String hash = Utils.HEX.encode(Utils.reverseBytes(e.getBtcMsg().body.getBlockHeader().getHash().getBytes()))
                 blockHeaders.put(hash, e.getBtcMsg().getHeader())
             })
 
             // Every time a set of TXs is downloaded, we increase the counter of Txs for this block:
             p2p.EVENTS.BLOCKS.BLOCK_TXS_DOWNLOADED.forEach({e ->
-                String hash = Utils.HEX.encode(Utils.reverseBytes(e.getBtcMsg().body.getBlockHeader().getHash().getHashBytes()))
+                String hash = Utils.HEX.encode(Utils.reverseBytes(e.getBtcMsg().body.getBlockHeader().getHash().getBytes()))
                 Long currentTxs = blockTxs.containsKey(hash)? (blockTxs.get(hash) + e.getBtcMsg().body.getTxs().size()) : e.getBtcMsg().body.getTxs().size()
                 blockTxs.put(hash, currentTxs)
             })
 
             // Every time a set of RAW TXs is downloaded, we increase the counter of Txs for this block:
             p2p.EVENTS.BLOCKS.BLOCK_RAW_TXS_DOWNLOADED.forEach({ e ->
-                String hash = Utils.HEX.encode(Utils.reverseBytes(e.getBtcMsg().body.getBlockHeader().getHash().getHashBytes()))
+                String hash = Utils.HEX.encode(Utils.reverseBytes(e.getBtcMsg().body.getBlockHeader().getHash().getBytes()))
                 Long currentTxsBytes = blockTxsBytes.containsKey(hash)
                         ? (blockTxsBytes.get(hash) + e.getBtcMsg().body.getTxs().stream().mapToInt({tx -> (int) tx.getLengthInBytes()}).sum())
                         : e.getBtcMsg().body.getTxs().stream().mapToInt({tx -> (int) tx.getLengthInBytes()}).sum()
@@ -229,7 +231,7 @@ class BlockDownloadTest extends Specification {
 
             // Blocks fully downloaded
             p2p.EVENTS.BLOCKS.BLOCK_DOWNLOADED.forEach({ e ->
-                String hash = Utils.HEX.encode(Utils.reverseBytes(e.getBlockHeader().getHash().getHashBytes()))
+                String hash = Utils.HEX.encode(Utils.reverseBytes(e.getBlockHeader().getHash().getBytes()))
                 blocksDownloaded.add(hash)
                 println(" > Block " + e.blockHeader.hash.toString() + "(" + e.getBlockSize() + " bytes) Downloaded.")
             })
@@ -289,10 +291,10 @@ class BlockDownloadTest extends Specification {
 
             // Now we show the History of ALL the blocks:
             println(" TEST DONE. Printing the Whole Download Hisatory:\n");
-            Map<String, BlocksDownloadHistory.HistoricItem> history = downloadState.blocksHistory;
+            Map<String, EventsHistory.HistoricItem> history = downloadState.blocksHistory;
             for (String blockHash: history.keySet()) {
                 println(" > block " + blockHash + " :");
-                for (BlocksDownloadHistory.HistoricItem historicItem : history.get(blockHash)) {
+                for (EventsHistory.HistoricItem historicItem : history.get(blockHash)) {
                     println("  - " + historicItem.toString());
                 }
             }

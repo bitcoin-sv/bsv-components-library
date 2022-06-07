@@ -24,6 +24,6 @@ public class NumberStringPeerStream extends PeerStreamImpl<Integer, String> {
     }
     @Override
     public PeerOutputStream<Integer> buildOutputStream() {
-        return new NumberStringOutputStream(peerAddress, super.executor, super.streamOrigin.output());
+        return new NumberStringOutputStream(peerAddress, super.streamOrigin.output());
     }
 }

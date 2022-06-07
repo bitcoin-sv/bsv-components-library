@@ -84,10 +84,7 @@ public class TxMsgSerializer implements MessageSerializer<TxMsg> {
             byte[] txBytes = writer.reader().getFullContentAndClose();
             // Since this Hash is stored in a Field that is NOT part of the real message and
             // its only a convenience field, we are storing it in the human-readable way (reversed)
-            HashMsg txHash =  HashMsg.builder().hash(
-                    Sha256Hash.wrapReversed(
-                            Sha256Hash.twiceOf(txBytes).getBytes()).getBytes())
-                    .build();
+            Sha256Hash txHash = Sha256Hash.wrapReversed(Sha256Hash.twiceOf(txBytes).getBytes());
             txBuilder.hash(Optional.of(txHash));
         } else txBuilder.hash(Optional.empty());
 

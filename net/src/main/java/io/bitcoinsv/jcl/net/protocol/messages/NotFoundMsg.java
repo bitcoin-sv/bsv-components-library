@@ -58,14 +58,12 @@ public final class NotFoundMsg extends BodyMessage implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(count, invVectorList);
+        return Objects.hashCode(super.hashCode(), count, invVectorList);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         NotFoundMsg other = (NotFoundMsg) obj;
         return Objects.equal(this.count, other.count)
                 && Objects.equal(this.invVectorList, other.invVectorList);

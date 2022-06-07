@@ -3,6 +3,7 @@ package io.bitcoinsv.jcl.tools.chainStore;
 import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -23,11 +24,11 @@ import java.util.stream.Collectors;
 public class ChainMemStore<NodeId, NodeData extends Node<NodeId>> {
 
     // A node Locator used ot keep the references to all the Nodes
-    private NodeIndexer<NodeId, NodeData> nodeLocator;
+    private final NodeIndexer<NodeId, NodeData> nodeLocator;
     // Root ChainTree:
-    private ChainTree<NodeId, NodeData> rootNode;
+    private final ChainTree<NodeId, NodeData> rootNode;
     // For Multi-thread sake:
-    private ReadWriteLock lock = new ReentrantReadWriteLock();
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     /**
      * Constructor
@@ -187,12 +188,71 @@ public class ChainMemStore<NodeId, NodeData extends Node<NodeId>> {
     }
 
     // Recursive function to get the Tips.
-    // NOTE: In a blockchain-like structure, number of branches is small so we should not have to worry about StackOverflow
+    // NOTE: In a blockchain-like structure, number of branches is small, so we should not have to worry about StackOverflow
     private List<NodeId> getTips(ChainTree<NodeId, NodeData> tree) {
-        if (tree.branches.size() == 0) {
-            return Arrays.asList(tree.trunk.get(tree.trunk.size() - 1).getId());
+        if (tree.branches.isEmpty()) {
+            return List.of(tree.trunk.get(tree.trunk.size() - 1).getId());
         } else {
-            return tree.branches.stream().map(this::getTips).flatMap(List::stream).collect(Collectors.toList());
+            return tree.branches.stream()
+                .map(this::getTips)
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
+        }
+    }
+
+    /**
+     * This method will return the highest Node that fits the criteria
+     *
+     * @param trunk
+     * @param isPartOfChain these criteria will decide if tip will be included
+     * @return Node that matches criteria
+     */
+    private Optional<NodeId> getTipFromTrunk(List<NodeData> trunk, Predicate<NodeData> isPartOfChain) {
+        for(int i = trunk.size() - 1; i >= 0; i--) {
+            if(isPartOfChain.test(trunk.get(i))) {
+                return Optional.of(trunk.get(i).getId());
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    /**
+     * This method will return based on provided criteria.
+     * Tip fetching will stop when criteria are false and will not continue on same branch.
+     *
+     * @param tree that we are checking tips on
+     * @param isPartOfChain these criteria will decide if tip will be included
+     * @return list of tips that match criteria
+     */
+    private List<NodeId> getTips(ChainTree<NodeId, NodeData> tree, Predicate<NodeData> isPartOfChain) {
+        try {
+            lock.readLock().lock();
+
+            // We check if we contain in any Nodes that do not match criteria
+            var invalidNodes = tree.trunk.stream().filter(nodeData -> !isPartOfChain.test(nodeData)).findAny();
+            if(invalidNodes.isPresent()) {
+                // If we contain any Nodes alike we return the best match as if there is no branches
+                return getTipFromTrunk(tree.trunk, isPartOfChain).map(List::of).orElse(List.of());
+            }
+
+            // If we have branches we check tips on them
+            if (!tree.branches.isEmpty()) {
+                // We make recursive call, so we are checking with same criteria
+                var result = tree.branches.stream()
+                    .map(nodeTree -> getTips(nodeTree, isPartOfChain))
+                    .flatMap(List::stream)
+                    .collect(Collectors.toList());
+
+                if (!result.isEmpty()) {
+                    return result;
+                }
+            }
+
+            // If there are no Nodes matching criteria we try to find them in trunk
+            return getTipFromTrunk(tree.trunk, isPartOfChain).map(List::of).orElse(List.of());
+        } finally {
+            lock.readLock().unlock();
         }
     }
 

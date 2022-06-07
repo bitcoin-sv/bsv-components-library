@@ -1,10 +1,11 @@
 package io.bitcoinsv.jcl.store.foundationDB.blockChainStore;
 
 import com.apple.foundationdb.KeyValue;
-import com.apple.foundationdb.Transaction;
 import io.bitcoinsv.jcl.store.blockChainStore.events.BlockChainStoreStreamer;
 import io.bitcoinsv.jcl.store.blockStore.metadata.Metadata;
 import io.bitcoinsv.jcl.store.foundationDB.blockStore.BlockStoreFDB;
+import io.bitcoinsv.jcl.store.foundationDB.blockStore.BlockStoreFDBConfig;
+import io.bitcoinsv.jcl.store.foundationDB.common.LargeTransaction;
 import io.bitcoinsv.jcl.store.keyValue.blockChainStore.BlockChainStoreKeyValue;
 import io.bitcoinsv.jcl.tools.thread.ThreadUtils;
 
@@ -21,7 +22,7 @@ import java.util.concurrent.TimeUnit;
  * It extends the BlockStoreLevelDB class, so it already contains all the logic in the BlockStore interface and the
  * connection to the LevelDB.
  */
-public class BlockChainStoreFDB extends BlockStoreFDB implements BlockChainStoreKeyValue<KeyValue, Transaction> {
+public class BlockChainStoreFDB extends BlockStoreFDB implements BlockChainStoreKeyValue<KeyValue, LargeTransaction> {
 
     // Configuration
     private BlockChainStoreFDBConfig config;
@@ -46,13 +47,14 @@ public class BlockChainStoreFDB extends BlockStoreFDB implements BlockChainStore
                               boolean triggerBlockEvents,
                               boolean triggerTxEvents,
                               Class<? extends Metadata> blockMetadataClass,
+                              Class<? extends Metadata> txMetadataClasss,
                               Duration statePublishFrequency,
                               Boolean enableAutomaticForkPrunning,
                               Duration forkPrunningFrequency,
                               Boolean enableAutomaticOrphanPrunning,
                               Duration orphanPrunningFrequency) {
 
-        super(config, triggerBlockEvents, triggerTxEvents, blockMetadataClass);
+        super(config, triggerBlockEvents, triggerTxEvents, blockMetadataClass, txMetadataClasss);
         this.config = config;
 
         this.enableAutomaticForkPrunning = (enableAutomaticForkPrunning != null) ? enableAutomaticForkPrunning : false;
@@ -85,7 +87,7 @@ public class BlockChainStoreFDB extends BlockStoreFDB implements BlockChainStore
 
         // If the DB is empty, we initialize it with the Genesis block:
         if (getNumBlocks() == 0) {
-            Transaction tr = createTransaction();
+            LargeTransaction tr = new LargeTransaction(db, incompleteTxRefDir, BlockStoreFDBConfig.TRANSACTION_MAX_SIZE_BYTES);
             executeInTransaction(tr, () -> _initGenesisBlock(tr, config.getGenesisBlock()));
         }
 
@@ -125,7 +127,8 @@ public class BlockChainStoreFDB extends BlockStoreFDB implements BlockChainStore
         super.clear();
         // and we restore the Genesis block:
         db.run(tr -> {
-            _initGenesisBlock(tr, config.getGenesisBlock());
+            LargeTransaction largeTransaction = new LargeTransaction(db, incompleteTxRefDir, tr,  BlockStoreFDBConfig.TRANSACTION_MAX_SIZE_BYTES);
+            _initGenesisBlock(largeTransaction, config.getGenesisBlock());
             return null;
         });
     }
@@ -146,6 +149,7 @@ public class BlockChainStoreFDB extends BlockStoreFDB implements BlockChainStore
         private boolean triggerBlockEvents;
         private boolean triggerTxEvents;
         private Class<? extends Metadata> blockMetadataClass;
+        private Class<? extends Metadata> txMetadataClass;
         private Duration statePublishFrequency;
         private Boolean enableAutomaticForkPrunning;
         private Duration forkPrunningFrequency;
@@ -175,6 +179,11 @@ public class BlockChainStoreFDB extends BlockStoreFDB implements BlockChainStore
             return this;
         }
 
+        public BlockChainStoreFDB.BlockChainStoreFDBBuilder txMetadataClass(Class<? extends Metadata> txMetadataClass) {
+            this.txMetadataClass = txMetadataClass;
+            return this;
+        }
+
         public BlockChainStoreFDB.BlockChainStoreFDBBuilder statePublishFrequency(Duration statePublishFrequency) {
             this.statePublishFrequency = statePublishFrequency;
             return this;
@@ -201,7 +210,7 @@ public class BlockChainStoreFDB extends BlockStoreFDB implements BlockChainStore
         }
 
         public BlockChainStoreFDB build() {
-            return new BlockChainStoreFDB(config, triggerBlockEvents, triggerTxEvents, blockMetadataClass, statePublishFrequency, enableAutomaticForkPrunning, forkPrunningFrequency, enableAutomaticOrphanPrunning, orphanPrunningFrequency);
+            return new BlockChainStoreFDB(config, triggerBlockEvents, triggerTxEvents, blockMetadataClass, txMetadataClass, statePublishFrequency, enableAutomaticForkPrunning, forkPrunningFrequency, enableAutomaticOrphanPrunning, orphanPrunningFrequency);
         }
     }
 }

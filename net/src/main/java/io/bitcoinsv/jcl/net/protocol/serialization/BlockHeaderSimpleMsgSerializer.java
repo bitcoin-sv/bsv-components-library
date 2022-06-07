@@ -38,10 +38,9 @@ public class BlockHeaderSimpleMsgSerializer implements MessageSerializer<BlockHe
 
         byte[] blockHeaderBytes = byteReader.read(HEADER_LENGTH);
 
-        HashMsg hash = HashMsg.builder().hash(
-            Sha256Hash.wrap(
-                Sha256Hash.twiceOf(blockHeaderBytes).getBytes()).getBytes()
-        ).build();
+        // Since this Hash is stored in a Field that is NOT part of the real message and
+        // its only a convenience field, we are storing it in the human-readable way (reversed)
+        Sha256Hash hash = Sha256Hash.wrapReversed(Sha256Hash.twiceOf(blockHeaderBytes).getBytes());
 
         ByteArrayReader headerReader = new ByteArrayReader(blockHeaderBytes);
 

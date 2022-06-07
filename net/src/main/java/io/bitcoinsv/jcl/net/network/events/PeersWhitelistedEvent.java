@@ -1,6 +1,8 @@
 package io.bitcoinsv.jcl.net.network.events;
 
 
+import com.google.common.base.Objects;
+
 import java.net.InetAddress;
 import java.util.List;
 
@@ -29,5 +31,16 @@ public final class PeersWhitelistedEvent extends P2PEvent {
         return this.inetAddresses;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false; }
+        PeersWhitelistedEvent other = (PeersWhitelistedEvent) obj;
+        return Objects.equal(this.inetAddresses, other.inetAddresses);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), inetAddresses);
+    }
 
 }

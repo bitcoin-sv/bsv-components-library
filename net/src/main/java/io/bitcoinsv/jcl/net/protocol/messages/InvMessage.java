@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
  *   Inventory vectors.
  *
  */
-public class InvMessage extends BodyMessage implements Serializable {
+public final class InvMessage extends BodyMessage implements Serializable {
     private static final long MAX_ADDRESSES = 50000;
     public static final String MESSAGE_TYPE = "inv";
 
@@ -62,14 +62,12 @@ public class InvMessage extends BodyMessage implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(count, invVectorList);
+        return Objects.hashCode(super.hashCode(), count, invVectorList);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         InvMessage other = (InvMessage) obj;
         return Objects.equal(this.count, other.count)
                 && Objects.equal(this.invVectorList, other.invVectorList);

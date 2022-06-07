@@ -1,5 +1,6 @@
 package io.bitcoinsv.jcl.net.protocol.messages;
 
+import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
 
 import java.io.Serializable;
@@ -9,7 +10,7 @@ import java.util.List;
  * @author j.pomer@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  */
-public class CompactBlockMsg extends BodyMessage implements Serializable {
+public final class CompactBlockMsg extends BodyMessage implements Serializable {
 
     public static final String MESSAGE_TYPE = "cmpctblock";
 
@@ -54,6 +55,21 @@ public class CompactBlockMsg extends BodyMessage implements Serializable {
 
     @Override
     protected void validateMessage() {
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false; }
+        CompactBlockMsg other = (CompactBlockMsg) obj;
+        return Objects.equal(this.header, other.header)
+                && Objects.equal(this.nonce, other.nonce)
+                && Objects.equal(this.shortTxIds, other.shortTxIds)
+                && Objects.equal(this.prefilledTransactions, other.prefilledTransactions);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), this.header, this.nonce, this.shortTxIds, this.prefilledTransactions);
     }
 
     @Override

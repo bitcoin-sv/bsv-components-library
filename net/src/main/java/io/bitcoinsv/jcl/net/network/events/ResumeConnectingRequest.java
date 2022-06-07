@@ -1,6 +1,8 @@
 package io.bitcoinsv.jcl.net.network.events;
 
 
+import com.google.common.base.Objects;
+
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
@@ -11,7 +13,19 @@ package io.bitcoinsv.jcl.net.network.events;
  */
 public final class ResumeConnectingRequest extends P2PRequest {
     public ResumeConnectingRequest() {}
+
+    @Override
     public String toString() {
         return "ResumeConnectingRequest()";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode());
     }
 }

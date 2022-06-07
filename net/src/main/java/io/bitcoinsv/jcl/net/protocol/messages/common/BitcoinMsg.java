@@ -16,7 +16,10 @@ import io.bitcoinsv.jcl.net.protocol.messages.HeaderMsg;
  *
  * This class is immutable nd safe for multithreading
  */
-public class BitcoinMsg<M extends BodyMessage> {
+public class BitcoinMsg<M extends BodyMessage> extends Message {
+
+    public static final String MESSAGE_TYPE = "bitcoinmsg";
+
     private HeaderMsg header;
     private M body;
 
@@ -45,7 +48,8 @@ public class BitcoinMsg<M extends BodyMessage> {
     public boolean is(String command) { return header.getMsgCommand().equalsIgnoreCase(command);}
 
     /** Returns the Sice in Bytes of the Serialized version of this Message */
-    public long getLengthInbytes() {
+    @Override
+    public long getLengthInBytes() {
         return header.getLengthInBytes() + body.getLengthInBytes();
     }
 
@@ -64,5 +68,21 @@ public class BitcoinMsg<M extends BodyMessage> {
     @Override
     public int hashCode() {
         return Objects.hashCode(this.header, this.body);
+    }
+
+    @Override
+    public String getMessageType() {
+        return MESSAGE_TYPE;
+    }
+
+    @Override
+    protected long calculateLength() {
+        return header.getLengthInBytes() + body.getLengthInBytes();
+    }
+
+    @Override
+    protected void validateMessage() {
+        header.validateMessage();
+        body.validateMessage();
     }
 }

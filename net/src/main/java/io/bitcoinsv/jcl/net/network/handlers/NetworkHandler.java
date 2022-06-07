@@ -1,9 +1,12 @@
 package io.bitcoinsv.jcl.net.network.handlers;
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
+import io.bitcoinsv.jcl.net.network.events.DisconnectPeerRequest;
+import io.bitcoinsv.jcl.net.network.events.PeerDisconnectedEvent;
 import io.bitcoinsv.jcl.tools.handlers.Handler;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author i.fernandez@nchain.com
@@ -42,7 +45,20 @@ public interface NetworkHandler extends Handler {
 
     void connect(PeerAddress peerAddress);
     void connect(List<PeerAddress> peerAddressList);
-    void disconnect(PeerAddress peerAddress);
-    void disconnect(List<PeerAddress> peerAddressList);
+
+    void processDisconnectRequest(DisconnectPeerRequest request);
+    void processDisconnectRequests(List<DisconnectPeerRequest> requests);
+
+    default void disconnect(PeerAddress peerAddress) {
+        processDisconnectRequest(new DisconnectPeerRequest(peerAddress, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL));
+    }
+
+    default void disconnect(List<PeerAddress> peerAddressList) {
+        processDisconnectRequests(peerAddressList
+                .stream()
+                .map(p -> new DisconnectPeerRequest(p, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL))
+                .collect(Collectors.toList()));
+    }
+
     void disconnectAllExcept(List<PeerAddress> peerAddresses);
 }

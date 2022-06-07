@@ -38,13 +38,6 @@ public class BlockMsgSerializer implements MessageSerializer<BlockMsg> {
     @Override
     public BlockMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
 
-        // We wrap the reader around an ByteArrayReaderOptimized, which works faster than a regular ByteArrayReader
-        // (its also more expensive in terms of memory, but it usually pays off):
-        ByteArrayReader reader = byteReader;
-        if (!(byteReader instanceof ByteArrayReaderOptimized)) {
-            reader = new ByteArrayReaderOptimized(byteReader);
-        }
-
         // First we deserialize the Block Header:
         var blockHeader = BlockHeaderMsgSerializer.getInstance().deserialize(context, byteReader);
 
@@ -54,7 +47,7 @@ public class BlockMsgSerializer implements MessageSerializer<BlockMsg> {
         // We are logging the Deserialization process. But we only log every 1% of progress, so no we do some Math
         // to calculate how many Txs we need to process before we log them...
 
-        String blockHash = Utils.HEX.encode(blockHeader.getHash().getHashBytes());
+        String blockHash = Utils.HEX.encode(blockHeader.getHash().getBytes());
         int numTxs = (int) blockHeader.getTransactionCount().getValue();
         int percentageLog = 1; // 1%
         int numTxsForEachLog = (percentageLog * numTxs) / 100;
@@ -67,7 +60,7 @@ public class BlockMsgSerializer implements MessageSerializer<BlockMsg> {
                 int progress = (i * 100) / numTxs;
                 log.trace("Deserializing Block " + blockHash + " " + progress + "% Done...");
             }
-            transactionMsgList.add(TxMsgSerializer.getInstance().deserialize(context, reader));
+            transactionMsgList.add(TxMsgSerializer.getInstance().deserialize(context, byteReader));
         }
         return BlockMsg.builder().blockHeader(blockHeader).transactionMsgs(transactionMsgList).build();
     }

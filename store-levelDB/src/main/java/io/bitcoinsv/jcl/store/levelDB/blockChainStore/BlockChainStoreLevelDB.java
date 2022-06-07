@@ -53,13 +53,14 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
                                   boolean triggerBlockEvents,
                                   boolean triggerTxEvents,
                                   Class<? extends Metadata> blockMetadataClass,
+                                  Class<? extends Metadata> txMetadataClass,
                                   Duration statePublishFrequency,
                                   Boolean enableAutomaticForkPrunning,
                                   Duration forkPrunningFrequency,
                                   Boolean enableAutomaticOrphanPrunning,
                                   Duration orphanPrunningFrequency) {
 
-        super(config, triggerBlockEvents, triggerTxEvents, blockMetadataClass);
+        super(config, triggerBlockEvents, triggerTxEvents, blockMetadataClass, txMetadataClass);
         this.config = config;
 
         this.enableAutomaticForkPrunning = (enableAutomaticForkPrunning != null) ? enableAutomaticForkPrunning : false;
@@ -167,6 +168,7 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
         private boolean triggerBlockEvents;
         private boolean triggerTxEvents;
         private Class<? extends Metadata> blockMetadataClass;
+        private Class<? extends Metadata> txMetadataClass;
 
         private Duration statePublishFrequency;
         private Boolean enableAutomaticForkPrunning;
@@ -197,6 +199,11 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
             return this;
         }
 
+        public BlockChainStoreLevelDB.BlockChainStoreLevelDBBuilder txMetadataClass(Class<? extends Metadata> txMetadataClass) {
+            this.txMetadataClass = txMetadataClass;
+            return this;
+        }
+
         public BlockChainStoreLevelDB.BlockChainStoreLevelDBBuilder statePublishFrequency(Duration statePublishFrequency) {
             this.statePublishFrequency = statePublishFrequency;
             return this;
@@ -223,7 +230,7 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
         }
 
         public BlockChainStoreLevelDB build() {
-            return new BlockChainStoreLevelDB(config, triggerBlockEvents, triggerTxEvents, blockMetadataClass, statePublishFrequency, enableAutomaticForkPrunning, forkPrunningFrequency, enableAutomaticOrphanPrunning, orphanPrunningFrequency);
+            return new BlockChainStoreLevelDB(config, triggerBlockEvents, triggerTxEvents, blockMetadataClass, txMetadataClass, statePublishFrequency, enableAutomaticForkPrunning, forkPrunningFrequency, enableAutomaticOrphanPrunning, orphanPrunningFrequency);
         }
     }
 }

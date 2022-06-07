@@ -85,7 +85,7 @@ class PingMsgSerializerSpec extends Specification {
             ByteArrayReader byteReader = new ByteArrayReader(Utils.HEX.decode(REF_PING_MSG))
             BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
-            BitcoinMsg<PingMsg> message = bitcoinSerializer.deserialize(context, byteReader, PingMsg.MESSAGE_TYPE)
+            BitcoinMsg<PingMsg> message = bitcoinSerializer.deserialize(context, byteReader)
         then:
             message.getHeader().getMagic().equals(config.getBasicConfig().getMagicPackage())
             message.getHeader().getCommand().toUpperCase().equals(PingMsg.MESSAGE_TYPE.toUpperCase())
@@ -105,7 +105,7 @@ class PingMsgSerializerSpec extends Specification {
             BitcoinMsg<PingMsg> bitcoinPingMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), pingBodyMsg).build()
             BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
-            byte[] pingMsgBytes = bitcoinSerializer.serialize(context, bitcoinPingMsg, PingMsg.MESSAGE_TYPE).getFullContent()
+            byte[] pingMsgBytes = bitcoinSerializer.serialize(context, bitcoinPingMsg).getFullContent()
             String pingnMsgDeserialzed = Utils.HEX.encode(pingMsgBytes)
         then:
             pingnMsgDeserialzed.equals(REF_PING_MSG)

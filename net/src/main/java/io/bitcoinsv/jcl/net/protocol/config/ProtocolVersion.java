@@ -13,7 +13,7 @@ public enum ProtocolVersion {
     ENABLE_FEE_FILTER(70013),
     ENABLE_ASSOCIATION_ID(70015),
     ENABLE_EXT_MSGS(70016),
-    CURRENT(70015)
+    CURRENT(70016)
     ;
 
     private final int version;

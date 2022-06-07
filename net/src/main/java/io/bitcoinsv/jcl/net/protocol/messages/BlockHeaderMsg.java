@@ -1,6 +1,7 @@
 package io.bitcoinsv.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly;
 
@@ -22,7 +23,7 @@ public final class BlockHeaderMsg extends BodyMessage implements Serializable {
     private BlockHeaderSimpleMsg blockHeaderSimpleMsg;
     private final VarIntMsg transactionCount;
 
-    public BlockHeaderMsg(HashMsg hash, long version, HashMsg prevBlockHash, HashMsg merkleRoot,
+    public BlockHeaderMsg(Sha256Hash hash, long version, HashMsg prevBlockHash, HashMsg merkleRoot,
                           long creationTimestamp, long difficultyTarget, long nonce, VarIntMsg transactionCount,
                           byte[] extraBytes, long checksum) {
         super(extraBytes, checksum);
@@ -68,7 +69,7 @@ public final class BlockHeaderMsg extends BodyMessage implements Serializable {
                 + ", transactionCount=" + transactionCount + ")";
     }
 
-    public HashMsg getHash()                            { return blockHeaderSimpleMsg.getHash(); }
+    public Sha256Hash getHash()                         { return blockHeaderSimpleMsg.getHash(); }
     public long getVersion()                            { return blockHeaderSimpleMsg.getVersion();}
     public HashMsg getPrevBlockHash()                   { return blockHeaderSimpleMsg.getPrevBlockHash();}
     public HashMsg getMerkleRoot()                      { return blockHeaderSimpleMsg.getMerkleRoot();}
@@ -80,22 +81,15 @@ public final class BlockHeaderMsg extends BodyMessage implements Serializable {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-
-        if (obj == this) {
-            return true;
-        }
-
-        if (obj.getClass() != getClass()) {
-            return false;
-        }
-
+        if (!super.equals(obj)) { return false; }
         BlockHeaderMsg other = (BlockHeaderMsg) obj;
-
         return Objects.equal(this.blockHeaderSimpleMsg, other.blockHeaderSimpleMsg)
-            && Objects.equal(this.transactionCount, other.transactionCount);
+                && Objects.equal(this.transactionCount, other.transactionCount);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), this.blockHeaderSimpleMsg, this.transactionCount);
     }
 
     public BlockHeaderMsgBuilder toBuilder() {
@@ -113,7 +107,7 @@ public final class BlockHeaderMsg extends BodyMessage implements Serializable {
      * Builder
      */
     public static class BlockHeaderMsgBuilder extends BodyMessageBuilder {
-        protected HashMsg hash;
+        protected Sha256Hash hash;
         protected long version;
         protected HashMsg prevBlockHash;
         protected HashMsg merkleRoot;
@@ -125,7 +119,7 @@ public final class BlockHeaderMsg extends BodyMessage implements Serializable {
         public BlockHeaderMsgBuilder() {}
         public BlockHeaderMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
-        public BlockHeaderMsgBuilder hash(HashMsg hash) {
+        public BlockHeaderMsgBuilder hash(Sha256Hash hash) {
             this.hash = hash;
             return this;
         }

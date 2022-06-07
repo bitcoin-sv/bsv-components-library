@@ -1,6 +1,7 @@
 package io.bitcoinsv.jcl.net.protocol.events.control;
 
 
+import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.network.events.P2PRequest;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
@@ -13,7 +14,7 @@ import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
  * Unlike the SendMsgRequest, this Request does not specify the Header of the Message, only the Body. The Header will
  * be automatically created at the moment of sending the mesage...
  */
-public final class SendMsgBodyRequest extends P2PRequest {
+public class SendMsgBodyRequest extends P2PRequest {
     private final PeerAddress peerAddress;
     private final BodyMessage msgBody;
 
@@ -29,5 +30,18 @@ public final class SendMsgBodyRequest extends P2PRequest {
     @Override
     public String toString() {
         return "SendMsgBodyRequest(peerAddress=" + this.getPeerAddress() + ", msgBody=" + this.getMsgBody() + ")";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false; }
+        SendMsgBodyRequest other = (SendMsgBodyRequest) obj;
+        return Objects.equal(this.peerAddress, other.peerAddress)
+                && Objects.equal(this.msgBody, other.msgBody);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), peerAddress, msgBody);
     }
 }

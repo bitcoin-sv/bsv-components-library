@@ -5,6 +5,7 @@ import com.google.common.base.Preconditions;
 import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 /**
  * @author m.jose@nchain.com
@@ -28,8 +29,6 @@ public final class TxOutputMsg extends Message implements Serializable {
     private final long txValue;
     private final VarIntMsg pk_script_length;
     private final byte[] pk_script;
-
-
 
     protected TxOutputMsg(long txValue, byte[] pk_script) {
         this.txValue = txValue;
@@ -62,18 +61,16 @@ public final class TxOutputMsg extends Message implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(txValue, pk_script_length, pk_script);
+        return Objects.hashCode(super.hashCode(), txValue, pk_script_length, Arrays.hashCode(pk_script));
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         TxOutputMsg other = (TxOutputMsg) obj;
         return Objects.equal(this.txValue, other.txValue)
                 && Objects.equal(this.pk_script_length, other.pk_script_length)
-                && Objects.equal(this.pk_script, other.pk_script);
+                && Arrays.equals(this.pk_script, other.pk_script);
     }
 
 

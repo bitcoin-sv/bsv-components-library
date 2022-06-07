@@ -3,6 +3,8 @@ package io.bitcoinsv.jcl.net.protocol.handlers.blacklist;
 
 import io.bitcoinsv.jcl.tools.handlers.Handler;
 
+import java.util.List;
+
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
@@ -15,5 +17,5 @@ public interface BlacklistHandler extends Handler {
 
     @Override
     default String getId() { return HANDLER_ID; }
-
+    List<BlacklistView> getBlacklistedHosts();
 }

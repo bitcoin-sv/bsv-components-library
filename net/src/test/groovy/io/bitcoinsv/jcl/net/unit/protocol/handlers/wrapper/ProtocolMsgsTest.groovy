@@ -33,7 +33,7 @@ class ProtocolMsgsTest extends Specification {
                     .config(config)
                     .useLocalhost()
                     .serverPort(0) // Random Port
-                    .excludeHandler(HandshakeHandler.HANDLER_ID)
+                    //.excludeHandler(HandshakeHandler.HANDLER_ID)
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
@@ -41,7 +41,7 @@ class ProtocolMsgsTest extends Specification {
             P2P client = new P2PBuilder("client")
                     .config(config)
                     .useLocalhost()
-                    .excludeHandler(HandshakeHandler.HANDLER_ID)
+                    //.excludeHandler(HandshakeHandler.HANDLER_ID)
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
@@ -53,11 +53,31 @@ class ProtocolMsgsTest extends Specification {
             AtomicInteger numDisconnections = new AtomicInteger()
             AtomicInteger numMsgs = new AtomicInteger()
 
-            server.EVENTS.PEERS.CONNECTED.forEach({ e -> numConnections.incrementAndGet()})
-            client.EVENTS.PEERS.CONNECTED.forEach({ e -> numConnections.incrementAndGet()})
-            server.EVENTS.PEERS.DISCONNECTED.forEach({ e -> numDisconnections.incrementAndGet()})
-            client.EVENTS.PEERS.DISCONNECTED.forEach({ e -> numDisconnections.incrementAndGet()})
-            server.EVENTS.MSGS.ADDR.forEach({ e -> numMsgs.incrementAndGet()})
+            server.EVENTS.PEERS.CONNECTED.forEach({ e ->
+                println("> Server :: peer connected: " + e.peerAddress)
+            })
+            client.EVENTS.PEERS.CONNECTED.forEach({ e ->
+                println("> Client :: peer connected: " + e.peerAddress)
+            })
+            server.EVENTS.PEERS.HANDSHAKED.forEach({ e ->
+                numConnections.incrementAndGet()
+                println("> Server :: peer handshaked: " + e.peerAddress)
+            })
+            client.EVENTS.PEERS.HANDSHAKED.forEach({ e ->
+                numConnections.incrementAndGet()
+                println("> Client :: peer handshaked: " + e.peerAddress)
+            })
+            server.EVENTS.PEERS.DISCONNECTED.forEach({ e ->
+                numDisconnections.incrementAndGet()
+                println("> Server :: peer disconnected: " + e.peerAddress)
+            })
+            client.EVENTS.PEERS.DISCONNECTED.forEach({ e ->
+                numDisconnections.incrementAndGet()
+                println("> Client :: peer disconnected: " + e.peerAddress)
+            })
+            server.EVENTS.MSGS.ADDR.forEach({ e ->
+                numMsgs.incrementAndGet()
+            })
 
         when:
             server.startServer()
@@ -66,17 +86,22 @@ class ProtocolMsgsTest extends Specification {
             Thread.sleep(100)
             client.REQUESTS.PEERS.connect(server.getPeerAddress()).submit()
 
-            Thread.sleep(100)
+            // We wait until the Handshake is done
+            while (numConnections.get() < 2) {
+                Thread.sleep(10)
+            }
+
+            // We send a few messages from the Client to the Server:
             BitcoinMsg<AddrMsg> msg = MsgTest.getAddrMsg();
             for (int i = 0; i < NUM_MSGS; i++) {
                 println(" >> SENDING ADDR MSG...")
                 client.REQUESTS.MSGS.send(server.getPeerAddress(), msg).submit()
             }
 
-            // NOTE: Here, we wait a little bit before we closeAndClear the connection If we don't wait enough, the Socket
+            // NOTE: Here, we wait a little bit before we close the connection If we don't wait enough, the Socket
             // between the Client and Server will be closed before the message can be serialized/Deserialized and
             // travel between them
-            Thread.sleep(200)
+            Thread.sleep(100)
             println(" >>> DISCONNECTING FROM THE SERVER...")
             client.REQUESTS.PEERS.disconnect(server.getPeerAddress()).submit()
 
@@ -88,7 +113,7 @@ class ProtocolMsgsTest extends Specification {
         then:
             // We check that the Events have been triggered right:
             numConnections.get() == 2
-            numDisconnections.get() == 2
+            numDisconnections.get() >= 2
             numMsgs.get() == NUM_MSGS
     }
 }
