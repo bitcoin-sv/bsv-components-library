@@ -1,6 +1,7 @@
 package io.bitcoinsv.jcl.net.protocol.events.control;
 
 
+import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.network.events.P2PRequest;
 import io.bitcoinsv.jcl.net.protocol.handlers.block.BlockDownloaderHandlerImpl;
 
@@ -30,5 +31,17 @@ public final class BlocksCancelDownloadRequest extends P2PRequest {
     @Override
     public String toString() {
         return "BlocksCancelDownloadRequest(blockHashes=" + this.getBlockHashes() + ")";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false; }
+        BlocksCancelDownloadRequest other = (BlocksCancelDownloadRequest) obj;
+        return Objects.equal(this.blockHashes, other.blockHashes);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), blockHashes);
     }
 }

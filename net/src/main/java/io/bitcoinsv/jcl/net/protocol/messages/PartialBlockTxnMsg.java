@@ -1,5 +1,6 @@
 package io.bitcoinsv.jcl.net.protocol.messages;
 
+import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
 
 import java.io.Serializable;
@@ -9,7 +10,7 @@ import java.util.List;
  * @author j.pomer@nchain.com
  * Copyright (c) 2018-2021 nChain Ltd
  */
-public class PartialBlockTxnMsg extends BodyMessage implements Serializable {
+public final class PartialBlockTxnMsg extends BodyMessage implements Serializable {
     public static final String MESSAGE_TYPE = "PartialBockTxn";
 
     // Original Header Msg: Included here in case the client of JCL receiving the partial Messages
@@ -58,6 +59,21 @@ public class PartialBlockTxnMsg extends BodyMessage implements Serializable {
 
     @Override
     protected void validateMessage() {
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false; }
+        PartialBlockTxnMsg other = (PartialBlockTxnMsg) obj;
+        return Objects.equal(this.headerMsg, other.headerMsg)
+                && Objects.equal(this.blockHash, other.blockHash)
+                && Objects.equal(this.transactions, other.transactions)
+                && Objects.equal(this.order, other.order);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), headerMsg, blockHash, transactions, order);
     }
 
     public PartialBlockTxnBuilder toBuilder() {

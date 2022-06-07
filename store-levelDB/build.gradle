@@ -12,7 +12,7 @@ plugins {
  ****************************************/
 jclGroup = "$jclGroup"
 jclVersion = "$jclVersion"
-jclArtifactName = "$jclArtifactName"
+jclArtifactName = "jcl-store-levelDB"
 
 group = "$rootProject.jclGroup"
 version = "$rootProject.jclVersion"
@@ -42,6 +42,7 @@ dependencies {
     // concrete logic to create instances of those interfaces:
 
     testImplementation project(':store').sourceSets.test.output
+    testImplementation project(':tools').sourceSets.test.output
 
     testImplementation 'org.codehaus.groovy:groovy'
     testImplementation "org.spockframework:spock-core:1.2-groovy-2.5"

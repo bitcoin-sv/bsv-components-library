@@ -1,6 +1,7 @@
 package io.bitcoinsv.jcl.net.protocol.events.control;
 
 
+import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.network.events.P2PEvent;
 
 /**
@@ -24,5 +25,17 @@ public final class MaxHandshakedPeersReachedEvent extends P2PEvent {
     @Override
     public String toString() {
         return "MaxHandshakedPeersReachedEvent(numPeers=" + this.getNumPeers() + ")";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false; }
+        MaxHandshakedPeersReachedEvent other = (MaxHandshakedPeersReachedEvent) obj;
+        return Objects.equal(this.numPeers, other.numPeers);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), numPeers);
     }
 }

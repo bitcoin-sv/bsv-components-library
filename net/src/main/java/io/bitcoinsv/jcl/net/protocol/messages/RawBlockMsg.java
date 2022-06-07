@@ -77,20 +77,12 @@ public final class RawBlockMsg extends BodyMessage implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(blockHeader, txs);
+        return Objects.hashCode(super.hashCode(), blockHeader, txs);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (obj == this) {
-            return true;
-        }
-        if (obj.getClass() != getClass()) {
-            return false;
-        }
+        if (!super.equals(obj)) { return false; }
         RawBlockMsg other = (RawBlockMsg) obj;
         return Objects.equal(this.blockHeader, other.blockHeader)
                 && Objects.equal(this.txs, other.txs);

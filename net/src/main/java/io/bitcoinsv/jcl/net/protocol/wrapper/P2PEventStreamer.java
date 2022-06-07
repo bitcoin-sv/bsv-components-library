@@ -43,6 +43,8 @@ public class P2PEventStreamer {
     // The same EventBus that is used by the underlying P2P
     private EventBus eventBus;
 
+    // An specific Bus for the Handler State Events:
+    private EventBus stateEventBus;
 
     /** Base class for the Event Streamers */
     public class BaseEventStreamer {
@@ -154,14 +156,14 @@ public class P2PEventStreamer {
             return e -> handlerStateClass.isInstance(e.getState());
         }
 
-        public final EventStreamer<HandlerStateEvent> ALL        = new EventStreamer<>(eventBus, HandlerStateEvent.class, numThreads);
-        public final EventStreamer<HandlerStateEvent> NETWORK    = new EventStreamer<>(eventBus, HandlerStateEvent.class, getFilterForHandler(NetworkHandlerState.class), numThreads);
-        public final EventStreamer<HandlerStateEvent> MESSAGES   = new EventStreamer<>(eventBus, HandlerStateEvent.class, getFilterForHandler(MessageHandlerState.class), numThreads);
-        public final EventStreamer<HandlerStateEvent> HANDSHAKE  = new EventStreamer<>(eventBus, HandlerStateEvent.class, getFilterForHandler(HandshakeHandlerState.class), numThreads);
-        public final EventStreamer<HandlerStateEvent> PINGPONG   = new EventStreamer<>(eventBus, HandlerStateEvent.class, getFilterForHandler(PingPongHandlerState.class), numThreads);
-        public final EventStreamer<HandlerStateEvent> DISCOVERY  = new EventStreamer<>(eventBus, HandlerStateEvent.class, getFilterForHandler(DiscoveryHandlerState.class), numThreads);
-        public final EventStreamer<HandlerStateEvent> BLACKLIST  = new EventStreamer<>(eventBus, HandlerStateEvent.class, getFilterForHandler(BlacklistHandlerState.class), numThreads);
-        public final EventStreamer<HandlerStateEvent> BLOCKS     = new EventStreamer<>(eventBus, HandlerStateEvent.class, getFilterForHandler(BlockDownloaderHandlerState.class), numThreads);
+        public final EventStreamer<HandlerStateEvent> ALL        = new EventStreamer<>(stateEventBus, HandlerStateEvent.class, numThreads);
+        public final EventStreamer<HandlerStateEvent> NETWORK    = new EventStreamer<>(stateEventBus, HandlerStateEvent.class, getFilterForHandler(NetworkHandlerState.class), numThreads);
+        public final EventStreamer<HandlerStateEvent> MESSAGES   = new EventStreamer<>(stateEventBus, HandlerStateEvent.class, getFilterForHandler(MessageHandlerState.class), numThreads);
+        public final EventStreamer<HandlerStateEvent> HANDSHAKE  = new EventStreamer<>(stateEventBus, HandlerStateEvent.class, getFilterForHandler(HandshakeHandlerState.class), numThreads);
+        public final EventStreamer<HandlerStateEvent> PINGPONG   = new EventStreamer<>(stateEventBus, HandlerStateEvent.class, getFilterForHandler(PingPongHandlerState.class), numThreads);
+        public final EventStreamer<HandlerStateEvent> DISCOVERY  = new EventStreamer<>(stateEventBus, HandlerStateEvent.class, getFilterForHandler(DiscoveryHandlerState.class), numThreads);
+        public final EventStreamer<HandlerStateEvent> BLACKLIST  = new EventStreamer<>(stateEventBus, HandlerStateEvent.class, getFilterForHandler(BlacklistHandlerState.class), numThreads);
+        public final EventStreamer<HandlerStateEvent> BLOCKS     = new EventStreamer<>(stateEventBus, HandlerStateEvent.class, getFilterForHandler(BlockDownloaderHandlerState.class), numThreads);
     }
 
     /**
@@ -181,18 +183,19 @@ public class P2PEventStreamer {
      * A convenience class that provides Event Streamers for ANY Event
      */
     public class GenericEventStreamer extends BaseEventStreamer {
-        private EventBus eventBus;
-        public GenericEventStreamer(int numThreads, EventBus eventBus) {
+        public GenericEventStreamer(int numThreads) {
             super(numThreads);
-            this.eventBus = eventBus;
         }
         public void forEach(Class<? extends P2PEvent> eventClass, Consumer<? extends P2PEvent> eventHandler) {
             eventBus.subscribe(eventClass, eventHandler);
+            if (HandlerStateEvent.class.isAssignableFrom(eventClass)) {
+                stateEventBus.subscribe(eventClass, eventHandler);
+            }
         }
     }
 
     // Methods to returns builtin EventStreams with a custom number of Threads:
-    public GenericEventStreamer GENERIC(int numThreads) { return new GenericEventStreamer(numThreads, eventBus);}
+    public GenericEventStreamer GENERIC(int numThreads) { return new GenericEventStreamer(numThreads);}
     public GeneralEventStreamer GENERAL(int numThreads) { return new GeneralEventStreamer(numThreads);}
     public PeersEventStreamer   PEERS(int numThreads)   { return new PeersEventStreamer(numThreads);}
     public MsgsEventStreamer    MSGS(int numThreads)    { return new MsgsEventStreamer(numThreads);}
@@ -213,9 +216,12 @@ public class P2PEventStreamer {
     }
 
     /** Constructor */
-    public P2PEventStreamer(EventBus eventBus) {
-        this.eventBus   = eventBus;
-        this.GENERIC    = new GenericEventStreamer(DEFAULT_NUM_THREADS_GENERIC, eventBus);
+    public P2PEventStreamer(EventBus eventBus, EventBus stateEventBus) {
+        this.eventBus       = eventBus;
+        this.stateEventBus  = stateEventBus;
+
+
+        this.GENERIC    = new GenericEventStreamer(DEFAULT_NUM_THREADS_GENERIC);
         this.GENERAL    = new GeneralEventStreamer(DEFAULT_NUM_THREADS_GENERAL);
         this.PEERS      = new PeersEventStreamer(DEFAULT_NUM_THREADS_PEERS);
         this.MSGS       = new MsgsEventStreamer(DEFAULT_NUM_THREADS_MSGS);

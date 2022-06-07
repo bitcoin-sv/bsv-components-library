@@ -1,6 +1,7 @@
 package io.bitcoinsv.jcl.net.network.events;
 
 
+import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.network.streams.nio.NIOStream;
 
 /**
@@ -16,8 +17,21 @@ public final class PeerNIOStreamConnectedEvent extends P2PEvent {
 
     public PeerNIOStreamConnectedEvent(NIOStream stream)    { this.stream = stream; }
     public NIOStream getStream()                            { return this.stream; }
+
     @Override
     public String toString() {
         return "Event[PeerNIOStream Connected]: " + stream.getPeerAddress().toString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false; }
+        PeerNIOStreamConnectedEvent other = (PeerNIOStreamConnectedEvent) obj;
+        return Objects.equal(this.stream, other.stream);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), stream);
     }
 }

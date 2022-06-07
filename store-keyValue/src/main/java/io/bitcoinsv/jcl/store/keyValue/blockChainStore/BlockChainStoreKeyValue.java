@@ -1,6 +1,12 @@
 package io.bitcoinsv.jcl.store.keyValue.blockChainStore;
 
 
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HashProvider;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.extended.ChainInfo;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.extended.ChainInfoReadOnly;
+import io.bitcoinsv.bitcoinjsv.bitcoin.bean.extended.ChainInfoBean;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 import io.bitcoinsv.jcl.store.blockChainStore.BlockChainStore;
 import io.bitcoinsv.jcl.store.blockChainStore.BlockChainStoreState;
 import io.bitcoinsv.jcl.store.blockChainStore.events.ChainForkEvent;
@@ -9,20 +15,19 @@ import io.bitcoinsv.jcl.store.blockChainStore.events.ChainStateEvent;
 import io.bitcoinsv.jcl.store.blockChainStore.validation.exception.BlockChainRuleFailureException;
 import io.bitcoinsv.jcl.store.keyValue.blockStore.BlockStoreKeyValue;
 import io.bitcoinsv.jcl.store.keyValue.common.HashesList;
-import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly;
-import io.bitcoinsv.bitcoinjsv.bitcoin.api.extended.ChainInfo;
-import io.bitcoinsv.bitcoinjsv.bitcoin.bean.extended.ChainInfoBean;
-import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
-
 
 import java.math.BigInteger;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiPredicate;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * @author i.fernandez@nchain.com
@@ -144,7 +149,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         byte[] key = fullKeyForBlockChainInfo(blockChainInfo.getBlockHash());
         byte[] value = bytes(blockChainInfo);
         save(tr, key, value);
-        getLogger().trace("BlockChainInfo Saved/Updated [block: " + blockChainInfo.getBlockHash().toString() + ", path: " + blockChainInfo.getChainPathId() + ", height: " + blockChainInfo.getHeight() + "]");
+        getLogger().trace("BlockChainInfo Saved/Updated [block: {}, path: {}, height: {}]", blockChainInfo.getBlockHash(), blockChainInfo.getChainPathId(), blockChainInfo.getHeight());
     }
 
     private void _removeBlockChainInfo(T tr, String blockHash) {
@@ -238,7 +243,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             childs.add(childBlockHash);
         HashesList childListToStore = HashesList.builder().hashes(childs).build();
         save(tr, fullKeyForBlockNext(parentBlockHash), bytes(childListToStore));
-        getLogger().trace("Block " + childBlockHash + " saved as a CHILD of " + parentBlockHash);
+        getLogger().trace("Block {} saved as a CHILD of {}", childBlockHash, parentBlockHash);
     }
 
     private void _removeChildFromBlock(T tr, String parentBlockHash, String childBlockHash) {
@@ -248,7 +253,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             HashesList childsToStore = HashesList.builder().hashes(childs).build();
             save(tr, fullKeyForBlockNext(parentBlockHash), bytes(childsToStore));
         }  else    remove(tr, fullKeyForBlockNext(parentBlockHash));
-        getLogger().trace("Block " + childBlockHash + " removed as CHILD from parent " + parentBlockHash);
+        getLogger().trace("Block {} removed as CHILD from parent {}", childBlockHash, parentBlockHash);
     }
 
     default List<String> _getChainTips(T tr) {
@@ -266,127 +271,262 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         List<String> tipsChain = _getChainTips(tr);
         if ((blockHashToAdd != null)  && (!tipsChain.contains(blockHashToAdd))) {
             tipsChain.add(blockHashToAdd);
-            getLogger().trace("Block "+ blockHashToAdd + " added to the Tips");
+            getLogger().trace("Block {} added to the Tips", blockHashToAdd);
         }
         if (blockHashToRemove != null && tipsChain.contains(blockHashToRemove))  {
             tipsChain.remove(blockHashToRemove);
-            getLogger().trace("Block "+ blockHashToRemove + " removed from the Tips");
+            getLogger().trace("Block {} removed from the Tips", blockHashToRemove);
         }
         HashesList tipsToSave = HashesList.builder().hashes(tipsChain).build();
         _saveChainTips(tr, tipsToSave);
     }
 
-    private List<HeaderReadOnly> _connectBlock(T tr, HeaderReadOnly blockHeader, BlockChainInfo parentBlockChainInfo) throws BlockChainRuleFailureException {
+    default void connectBlock(Sha256Hash blockHash, Consumer<Sha256Hash> onBlockConnected) throws BlockChainRuleFailureException {
+        try {
+            getLock().writeLock().lock();
+            T tr = createTransaction();
+
+            var header = _getBlock(tr, blockHash.toString());
+
+            _connectBlock(tr, header, null, onBlockConnected);
+        } finally {
+            getLock().writeLock().unlock();
+        }
+    }
+
+    default List<Sha256Hash> connectBlock(Sha256Hash blockHash) throws BlockChainRuleFailureException {
+        try {
+            getLock().writeLock().lock();
+            T tr = createTransaction();
+
+            var header = _getBlock(tr, blockHash.toString());
+
+            return _connectBlock(tr, header, null, null).stream()
+                .map(HashProvider::getHash)
+                .collect(Collectors.toList());
+        } finally {
+            getLock().writeLock().unlock();
+        }
+    }
+
+    private List<HeaderReadOnly> _connectBlock(T tr, HeaderReadOnly blockHeader, BlockChainInfo parentBlockChainInfo, Consumer<Sha256Hash> onBlockConnected) throws BlockChainRuleFailureException {
         List<HeaderReadOnly> blocksConnected = new ArrayList<>();
 
-        getLogger().trace("Connecting Block " + blockHeader.getHash().toString() + " ...");
-        // Block chain Info that will be inserted for this Block:
-        BlockChainInfo blockChainInfo;
+        Deque<HeaderReadOnly> blocksToConnect = new ArrayDeque<>();
+        blocksToConnect.push(blockHeader);
 
+        boolean firstBlockToConnect = true;
 
-        // Special case for the Genesis Block:
-        if (parentBlockChainInfo == null) {
-            blockChainInfo = _getBlockChainInfo(blockHeader, parentBlockChainInfo, 1);
-        } else {
-            // Regular scenario, when connecting a Block to an existing Parent:
-            //  - If the parent has NO children we just connect the Block and REUSE the parent's PathId
-            //  - If the Parent has ONE Child, then this is the First FORk starting from that Parent, so we create
-            //    2 new Paths: 1 is assigned to the old child, and the new one to the block we are connecting now.
-            //  - If the parent has already MOR than 1 child, that means that there is already a FORK starting from this
-            //    parent, so its children are already using different Paths. In this case we only need to create one additional
-            //    path and assign it to the Block we are connecting.
+        while (!blocksToConnect.isEmpty()) {
 
-            int pathIdForNewBlock = parentBlockChainInfo.getChainPathId();
-            List<BlockChainInfo> parentConnectedChildren = _getNextConnectedBlocks(tr, parentBlockChainInfo.getBlockHash());
+            var blockToConnect = blocksToConnect.pop();
+            var blockToConnectHash = blockToConnect.getHash();
+            var blockToConnectHashString = blockToConnectHash.toString();
 
-            if (parentConnectedChildren.size() > 0) {
-                // if there is only ONE Child, we update its PathId with a new one...
-                // If there are MORE than one children, then they must have already different Paths Id, so nothing to do...
+            getLogger().trace("Connecting Block {} ...", blockToConnect.getHash());
+            // Block chain Info that will be inserted for this Block:
 
-                if (parentConnectedChildren.size() == 1) {
-                    int newChainPathToPropagate = _createNewChainPath(tr, parentBlockChainInfo.getChainPathId(), parentConnectedChildren.get(0).getBlockHash()).getId();
-                    _propagateChainPathUnderBlock(tr, parentConnectedChildren.get(0), parentConnectedChildren.get(0).getChainPathId(), newChainPathToPropagate);
-                }
-                // We create a new Path Id for the block we are connecting...
-                pathIdForNewBlock =  _createNewChainPath(tr, parentBlockChainInfo.getChainPathId(), blockHeader.getHash().toString()).getId();
+            if (!firstBlockToConnect) {
+                parentBlockChainInfo = _getBlockChainInfo(tr, blockToConnect.getPrevBlockHash().toString());
             }
-            // connect this block
-            blockChainInfo = _getBlockChainInfo(blockHeader, parentBlockChainInfo, pathIdForNewBlock);
-        }
 
-        //save the block
-        _saveBlockChainInfo(tr, blockChainInfo);
+            BlockChainInfo blockChainInfo = _getBlockChainInfo(tr, blockToConnect, parentBlockChainInfo);
 
-        // We store a Key to link the HEIGHT with its Hash, so we can retrieve it later by its Height in O(1) time...
-        _saveBlockHashByHeight(tr, blockChainInfo.getBlockHash(), blockChainInfo.getHeight());
+            //save the block
+            _saveBlockChainInfo(tr, blockChainInfo);
 
-        try{
-            //we validate block afterwards as the validation will look up state from the blockstore.
-            _validateBlock(blockHeader, blockChainInfo);
-        } catch (BlockChainRuleFailureException ex) {
-            //remove all traces from the block if it's invalid
-            _removeBlock(tr, blockHeader.getHash().toString());
-            // nothing else to process
-            throw ex;
-        }
+            // We store a Key to link the HEIGHT with its Hash, so we can retrieve it later by its Height in O(1) time...
+            _saveBlockHashByHeight(tr, blockChainInfo.getBlockHash(), blockChainInfo.getHeight());
 
-
-        // Now we update the tips of the Chain:
-        List<String> tipsChain = _getChainTips(tr);
-
-        // If the Parent is part of the TIPS of the Chains, then it must be removed from it:
-        if (parentBlockChainInfo != null && tipsChain.contains(parentBlockChainInfo.getBlockHash())) {
-            _updateTipsChain(tr, null, parentBlockChainInfo.getBlockHash()); // we don't add, just remove
-        }
-
-        //We want to return this block as it's been connected
-        blocksConnected.add(blockHeader);
-
-        //Add this block to the chain tips
-        _updateTipsChain(tr, blockHeader.getHash().toString(), null); // We add this block to the Tips
-
-        // Now we look into the CHILDREN (Blocks built on top of this Block), and we connect them as well...
-        // If the Block has NOT Children, then this is the Last Block that can be connected, so we add it to the Tips
-        List<String> children = _getNextBlocks(tr, blockHeader.getHash().toString());
-        if (children != null && children.size() > 0) {
-            for (String childHashHex : children) {
-                Optional<HeaderReadOnly> childBlock = getBlock(Sha256Hash.wrap(childHashHex));
-                if (childBlock.isPresent()) {
-                    try {
-                        blocksConnected.addAll(_connectBlock(tr, childBlock.get(), blockChainInfo));
-                        //The child block is no longer an orphan as it's been connected to the main chain
-                        BlockStoreKeyValue.super._removeOrphanBlockHash(tr, childHashHex);
-                    } catch (BlockChainRuleFailureException ex) {
-                        //child could not be connected, ignore as it has been deleted when _connectBlock is called
-                    }
-                }
+            try {
+                //we validate block afterwards as the validation will look up state from the blockstore.
+                _validateBlock(blockToConnect, blockChainInfo);
+            } catch (BlockChainRuleFailureException ex) {
+                //remove all traces from the block if it's invalid
+                _removeBlock(tr, blockToConnect.getHash().toString());
+                // nothing else to process
+                throw ex;
             }
+
+            // Now we update the tips of the Chain:
+            List<String> tipsChain = _getChainTips(tr);
+
+            // If the Parent is part of the TIPS of the Chains, then it must be removed from it:
+            if (parentBlockChainInfo != null && tipsChain.contains(parentBlockChainInfo.getBlockHash())) {
+                _updateTipsChain(tr, null, parentBlockChainInfo.getBlockHash()); // we don't add, just remove
+            }
+
+            //We want to return this block as it's been connected
+            blocksConnected.add(blockToConnect);
+
+            //Add this block to the chain tips
+            _updateTipsChain(tr, blockToConnectHashString, blockToConnect.getPrevBlockHash().toString()); // We add this block to the Tips
+
+            // Now we look into the CHILDREN (Blocks built on top of this Block), and we connect them as well...
+            // If the Block has NOT Children, then this is the Last Block that can be connected, so we add it to the Tips
+            _getNextBlocks(tr, blockToConnectHashString).forEach(childHashHex ->
+                ofNullable(_getBlock(tr, childHashHex)).ifPresent(header -> {
+                    blocksToConnect.push(header);
+                    BlockStoreKeyValue.super._removeOrphanBlockHash(tr, childHashHex);
+                })
+            );
+
+            ofNullable(onBlockConnected).ifPresent(c -> c.accept(blockToConnectHash));
+
+            firstBlockToConnect = false;
         }
 
         return blocksConnected;
     }
 
+    private BlockChainInfo _getBlockChainInfo(T tr, HeaderReadOnly blockHeader, BlockChainInfo parentBlockChainInfo) {
+        // Special case for the Genesis Block:
+        if (parentBlockChainInfo == null) {
+            return _getBlockChainInfo(blockHeader, parentBlockChainInfo, 1);
+        }
+
+        // Regular scenario, when connecting a Block to an existing Parent:
+        //  - If the parent has NO children we just connect the Block and REUSE the parent's PathId
+        //  - If the Parent has ONE Child, then this is the First FORk starting from that Parent, so we create
+        //    2 new Paths: 1 is assigned to the old child, and the new one to the block we are connecting now.
+        //  - If the parent has already MOR than 1 child, that means that there is already a FORK starting from this
+        //    parent, so its children are already using different Paths. In this case we only need to create one additional
+        //    path and assign it to the Block we are connecting.
+
+        int pathIdForNewBlock = parentBlockChainInfo.getChainPathId();
+        List<BlockChainInfo> parentConnectedChildren = _getNextConnectedBlocks(tr, parentBlockChainInfo.getBlockHash());
+
+        if (!parentConnectedChildren.isEmpty()) {
+            // if there is only ONE Child, we update its PathId with a new one...
+            // If there are MORE than one children, then they must have already different Paths Id, so nothing to do...
+
+            if (parentConnectedChildren.size() == 1) {
+                int newChainPathToPropagate = _createNewChainPath(tr, parentBlockChainInfo.getChainPathId(), parentConnectedChildren.get(0).getBlockHash()).getId();
+                _propagateChainPathUnderBlock(tr, parentConnectedChildren.get(0), parentConnectedChildren.get(0).getChainPathId(), newChainPathToPropagate);
+            }
+            // We create a new Path Id for the block we are connecting...
+            pathIdForNewBlock = _createNewChainPath(tr, parentBlockChainInfo.getChainPathId(), blockHeader.getHash().toString()).getId();
+        }
+        // connect this block
+        return _getBlockChainInfo(blockHeader, parentBlockChainInfo, pathIdForNewBlock);
+    }
+
+    default void disconnectBlock(Sha256Hash blockHash) {
+        disconnectBlock(blockHash, null);
+    }
+
+    default void disconnectBlock(Sha256Hash blockHash, Consumer<Sha256Hash> onDisconnected) {
+        try {
+            getLock().writeLock().lock();
+            T tr = createTransaction();
+
+            _disconnectBlock(tr, blockHash.toString(), onDisconnected);
+        } finally {
+            getLock().writeLock().unlock();
+        }
+    }
 
     private void _disconnectBlock(T tr, String blockHash) {
+       _disconnectBlock(tr, blockHash, null);
+    }
+
+    private void _disconnectBlock(T tr, String blockHash, Consumer<Sha256Hash> onDisconnected) {
         // If this block is already connected we remove the Chain Info:
         BlockChainInfo blockChainInfo = _getBlockChainInfo(tr, blockHash);
-        if (blockChainInfo != null) {
-            HeaderReadOnly block = _getBlock(tr, blockHash);
-            getLogger().trace("Disconnecting Block " + blockChainInfo.getBlockHash() + "(height: " + blockChainInfo.getHeight() + ") (path: " + blockChainInfo.getChainPathId() + ")...");
+
+        if (blockChainInfo == null) {
+            return;
+        }
+
+        getLogger().trace("Disconnecting Block {} (height: {}) (path: {})...", blockChainInfo.getBlockHash(), blockChainInfo.getHeight(), blockChainInfo.getChainPathId());
+
+        Deque<String> blockStack = new ArrayDeque<>();
+
+        // We push first block that we are disconnecting
+        blockStack.push(blockHash);
+
+        // First fetch of next blocks
+        final List<String> nextBlocks = new ArrayList<>(_getNextBlocks(tr, blockHash));
+
+        while (!nextBlocks.isEmpty()) {
+
+            // We add all next blocks to stack for disconnect
+            nextBlocks.forEach(blockStack::push);
+
+            // We put aside all the block we need to check if children exist
+            List<String> checkBlocks = new ArrayList<>(nextBlocks);
+            nextBlocks.clear();
+
+            // We fetch all next blocks that are related to the blocks we are checking for
+            checkBlocks.forEach(block -> nextBlocks.addAll(_getNextBlocks(tr, block)));
+        }
+
+        while (!blockStack.isEmpty()) {
+            // We take out block hash that we are going to disconnect
+            var disBlockHash = blockStack.pop();
 
             // We remove the ChainInfo for this Node (this will disconnect this Block from the Chain):
-            _removeBlockChainInfo(tr, blockHash);
+            _removeBlockChainInfo(tr, disBlockHash);
 
             // We remove the link of this Height with this block Hash...
-            _removeBlockHashFromHeight(tr, blockHash, blockChainInfo.getHeight());
+            _removeBlockHashFromHeight(tr, disBlockHash, blockChainInfo.getHeight());
 
             // We update the tip of the chain (this block is not the tip anymore, if its already)
-            _updateTipsChain(tr, null, blockHash);
+            var block = _getBlock(tr, disBlockHash);
+            // We get previous block
 
-            // We remove all the Chain Info from its Children...
-            List<String> children = _getNextBlocks(tr, blockHash);
-            children.forEach(h -> _disconnectBlock(tr, h));
+            String blockHashToAdd = null;
+
+            // We check if previous block has children, if not it is new tip
+            // If this is the GENESIS Block, we do nothing
+            if (blockStack.isEmpty() && !block.getPrevBlockHash().equals(Sha256Hash.ZERO_HASH)) {
+                var prevBlock = _getBlock(tr, block.getPrevBlockHash().toString());
+
+                if(prevBlock != null) {
+                    var siblings = _getNextBlocks(tr, prevBlock.getHash().toString());
+                    siblings.remove(disBlockHash);
+                    if (siblings.isEmpty()) {
+                        blockHashToAdd = prevBlock.getHash().toString();
+                    }
+                }
+            }
+
+            _updateTipsChain(tr, blockHashToAdd, disBlockHash);
+
+            // notify of successful disconnection of the block
+            ofNullable(onDisconnected).ifPresent(c -> c.accept(Sha256Hash.wrap(disBlockHash)));
         }
+    }
+
+    private List<String> _getBlocks(T tr, String tip, String blockHash) {
+        List<String> blocks = new ArrayList<>();
+
+        var targetHeight =  ofNullable(_getBlockChainInfo(tr, blockHash)).map(BlockChainInfo::getHeight).orElse(-1);
+
+        if(targetHeight == -1) {
+            return blocks;
+        }
+
+        var currentBlockHash = _getBlock(tr, tip).getHash().toString();
+        var info = _getBlockChainInfo(tr, currentBlockHash);
+
+        while (info.getHeight() >= targetHeight) {
+            blocks.add(currentBlockHash);
+
+            currentBlockHash = _getBlock(tr, currentBlockHash).getPrevBlockHash().toString();
+
+            info = _getBlockChainInfo(tr, currentBlockHash);
+
+            if(info == null) {
+                break;
+            }
+        }
+
+        if(!blocks.get(blocks.size() - 1).equals(blockHash)) {
+            return new ArrayList<>();
+        }
+
+        return blocks;
     }
 
     default void _initGenesisBlock(T tr, HeaderReadOnly genesisBlock) {
@@ -397,7 +537,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         // Now we insert (and connect) the Genesis Block:
         _saveBlock(tr, genesisBlock);
         try {
-            _connectBlock(tr, genesisBlock, null); // No parent for this block
+            _connectBlock(tr, genesisBlock, null, null); // No parent for this block
         } catch (BlockChainRuleFailureException e) {
             e.printStackTrace();
         }
@@ -440,15 +580,15 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             if (parentChainInfo != null) {
                 try {
                     //Add
-                    blocksSaved.addAll(_connectBlock(tr, blockHeader, parentChainInfo));
-                } catch (BlockChainRuleFailureException e) {
+                    blocksSaved.addAll(_connectBlock(tr, blockHeader, parentChainInfo, null));
+                } catch (BlockChainRuleFailureException ignored) {
                     //The block we saved above cannot be connected yet. It will be returned later when the parent is connected
                     blocksSaved.remove(blockHeader);
                 }
 
                 // If this is a fork, we trigger a Fork Event:
                 List<String> parentChilds = _getNextBlocks(tr, blockHeader.getPrevBlockHash().toString());
-                if (parentChilds != null && parentChilds.size() > 1) {
+                if (parentChilds.size() > 1) {
                     ChainForkEvent event = new ChainForkEvent(blockHeader.getPrevBlockHash(), blockHeader.getHash());
                     getEventBus().publish(event);
                 }
@@ -473,22 +613,9 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         _removeChildFromBlock(tr, block.getPrevBlockHash().toString(), blockHash);
         _disconnectBlock(tr, blockHash);
 
-        // We update the tip of the chain (the parent is now the tip of the chain, NUT ONLY if the Parent is ALSO
-        // CONNECTED to the Chain)
-
-        BlockChainInfo parentChainInfo = _getBlockChainInfo(tr, block.getPrevBlockHash().toString());
-        if (parentChainInfo != null) {
-            // If the parent has already other children then we do NOT do it, since that would mean that that parent
-            // is already part of other chain
-            List<String> parentChildren = _getNextBlocks(tr, block.getPrevBlockHash().toString());
-            if (parentChildren == null || parentChildren.size() == 0)
-                _updateTipsChain(tr, block.getPrevBlockHash().toString(), null);
-        }
-
         // we remove the Block the usual way:
         BlockStoreKeyValue.super._removeBlock(tr, blockHash);
     }
-
 
     private void _updateLastPathId(T tr, int pathId) {
         byte[] key = fullKeyForChainPathsLast();
@@ -498,8 +625,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     private int _getLastPathId(T tr) {
         byte[] key = fullKeyForChainPathsLast();
         byte[] value = read(tr, key);
-        int result = (value != null)? toInt(read(tr, key)) : 0;
-        return result;
+        return (value != null) ? toInt(read(tr, key)) : 0;
     }
 
     private ChainPathInfo _createNewChainPath(T tr, int parentPathId, String blockHash) {
@@ -521,14 +647,14 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         byte[] key = fullKeyForChainPath(pathId);
         byte[] value = bytes(result);
         save(tr, key, value);
-        getLogger().trace("PathInfo Saved [path id: " + pathId + ", parent path: " + parentId + "]");
+        getLogger().trace("PathInfo Saved [path id: {}, parent path: {}]", pathId, parentId);
         return result;
     }
 
     private void _removeChainPath(T tr, int pathId) {
         byte[] key = fullKeyForChainPath(pathId);
         remove(tr, key);
-        getLogger().trace("PathInfo Removed [path id: " + pathId + "]");
+        getLogger().trace("PathInfo Removed [path id: {}]", pathId);
     }
 
     private ChainPathInfo _getChainPathInfo(T tr, int pathId) {
@@ -544,21 +670,36 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         // We Update the BlockInfoChain info for this block, reflecting the new Path Id its linked to, and also
         // does the same for all its children until it reaches a Block with more than 1 children....
 
-        BlockChainInfo blockChainInfoToUpdate = blockChainInfo;
+        List<BlockChainInfo> blocksToProcess = new ArrayList<>(){{add(blockChainInfo);}};
 
-        while (true) {
-            if (blockChainInfoToUpdate == null) break;
-            if (blockChainInfoToUpdate.getChainPathId() != pathIdToReplace) break;
-            getLogger().trace("Update Path for Block " + blockChainInfo.getBlockHash() + " (height: " + blockChainInfo.getHeight() + ") [ " + pathIdToReplace + " ->  " + newPathId + "]");
+        while(!blocksToProcess.isEmpty()) {
+            List<BlockChainInfo> blocksToProcessNextIteration = new ArrayList<>();
+            for (BlockChainInfo block : blocksToProcess) {
+                ChainPathInfo pathInfo = _getChainPathInfo(tr, block.getChainPathId());
 
-            // We update this Block Chain Info...
-            blockChainInfoToUpdate = blockChainInfoToUpdate.toBuilder().chainPathId(newPathId).build();
-            _saveBlockChainInfo(tr, blockChainInfoToUpdate);
+                // If this Block is assigned to a DIFFERENT PathID AND the PARENT of that Path is DIFFERENT from the
+                // one we try to replace, then this Block is OK:
+                boolean isThisBlockOK = (block.getChainPathId() != pathIdToReplace) && (pathInfo.getParent_id() != pathIdToReplace);
 
-            // We only keep going if this block ONLY has 1 CHILD:
-            List<String> children = _getNextBlocks(tr, blockChainInfoToUpdate.getBlockHash());
-            if (children.size() != 1) break;
-            blockChainInfoToUpdate = _getBlockChainInfo(tr, children.get(0));
+                if (!isThisBlockOK) {
+                    if (block.getChainPathId() == pathIdToReplace) {
+                        // We assign a the new PathId to this Block:
+                        getLogger().trace("Update Path for Block " + blockChainInfo.getBlockHash() + " (height: " + blockChainInfo.getHeight() + ") [ " + pathIdToReplace + " ->  " + newPathId + "]");
+                        block = block.toBuilder().chainPathId(newPathId).build();
+                        _saveBlockChainInfo(tr, block);
+                    }
+                    if (pathInfo.getParent_id() == pathIdToReplace) {
+                        // We Change the parent of this Path:
+                        _saveChainPath(tr, pathInfo.getId(), newPathId, block.getBlockHash());
+                    }
+                    // We process its children:
+                    List<BlockChainInfo> children = _getNextBlocks(tr, block.getBlockHash()).stream()
+                            .map(b -> _getBlockChainInfo(tr, b))
+                            .collect(Collectors.toList());
+                    blocksToProcessNextIteration.addAll(children);
+                } // if !isThisBlockOK...
+            } // for...
+            blocksToProcess = blocksToProcessNextIteration;
         } // while...
 
     }
@@ -593,7 +734,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             T tr = createTransaction();
             executeInTransaction(tr , () -> {
                 List<String> tipsChain = _getChainTips(tr);
-                result.addAll(tipsChain.stream().map(h -> Sha256Hash.wrap(h)).collect(Collectors.toList()));
+                result.addAll(tipsChain.stream().map(Sha256Hash::wrap).collect(Collectors.toList()));
             });
             return result;
         } finally {
@@ -635,6 +776,53 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             return result;
         } finally {
             getLock().readLock().unlock();
+        }
+    }
+
+    /**
+     * Efficiently( O(total_paths) ) Checks whether either hash is within the same chain
+     * @Return True if both hashes share a common path, false if not
+     */
+    default boolean isInChain(Sha256Hash blockHash1, Sha256Hash blockHash2) {
+        try {
+            getLock().readLock().lock();
+            AtomicReference<Boolean> result = new AtomicReference<>(false);
+
+            T tr = createTransaction();
+            executeInTransaction(tr, () -> {
+                BlockChainInfo block1 = _getBlockChainInfo(tr, blockHash1.toString());
+                BlockChainInfo block2 = _getBlockChainInfo(tr, blockHash2.toString());
+
+                if(block1 == null || block2 == null){
+                   return;
+                }
+
+                //get the chain path from the higest block
+                ChainPathInfo highestChainPathInfo;
+                ChainPathInfo targetChainPathInfo;
+                if(block1.getHeight() > block2.getHeight()) {
+                    highestChainPathInfo =  _getChainPathInfo(tr, block1.getChainPathId());
+                    targetChainPathInfo = _getChainPathInfo(tr, block2.getChainPathId());
+                } else {
+                    highestChainPathInfo =  _getChainPathInfo(tr, block2.getChainPathId());
+                    targetChainPathInfo = _getChainPathInfo(tr, block1.getChainPathId());
+                }
+
+                //traverse the chain path back to genesis to see if the target path is on the same path
+                while(highestChainPathInfo != null){
+                    if(highestChainPathInfo.getId() == targetChainPathInfo.getId()){
+                        result.set(true);
+                        return;
+                    }
+
+                    highestChainPathInfo = _getChainPathInfo(tr, highestChainPathInfo.getParent_id());
+                }
+            });
+
+            return result.get();
+
+        } finally {
+                getLock().readLock().unlock();
         }
     }
 
@@ -683,7 +871,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                 result.set(chainInfoResult);
             });
 
-            return Optional.ofNullable(result.get());
+            return ofNullable(result.get());
 
         } finally {
             getLock().readLock().unlock();
@@ -756,7 +944,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                 result.set(chainInfoResult);
             });
 
-            return Optional.ofNullable(result.get());
+            return ofNullable(result.get());
 
         } finally {
             getLock().readLock().unlock();
@@ -812,7 +1000,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                 chainInfoResult.makeImmutable();
                 result.set(chainInfoResult);
             });
-            return Optional.ofNullable(result.get());
+            return ofNullable(result.get());
 
         } finally {
             getLock().readLock().unlock();
@@ -876,7 +1064,60 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                     result.set(chainInfoResult);
                 }
             });
-            return Optional.ofNullable(result.get());
+            return ofNullable(result.get());
+        } finally {
+            getLock().readLock().unlock();
+        }
+    }
+
+    @Override
+    default boolean isConnected(Sha256Hash blockHash) {
+        AtomicBoolean result = new AtomicBoolean();
+        try {
+            getLock().readLock().lock();
+            byte[] key = fullKeyForBlockChainInfo(blockHash.toString());
+            T tr = createTransaction();
+            executeInTransaction(tr, () -> {
+                byte[] value = read(tr, key);
+                result.set(value != null);
+              }
+            );
+        } finally {
+            getLock().readLock().unlock();
+        }
+        return result.get();
+    }
+
+    default boolean isOnLongestChain(Sha256Hash blockHash) {
+        try {
+            getLock().readLock().lock();
+
+            // We get the longest chain
+            var longestChain = getLongestChain();
+
+            // Just to be safe
+            if (longestChain.isEmpty()) {
+                return false;
+            }
+
+            // We get block info if requested block
+            var blockInfo = getBlockChainInfo(blockHash);
+
+            // Just to be safe
+            if (blockInfo.isEmpty()) {
+                return false;
+            }
+
+            // We get block on the same height in the longest chain
+            var ancestor = getAncestorByHeight(
+                longestChain.get().getHeader().getHash(),
+                blockInfo.get().getHeight()
+            );
+
+            // We check if block in the longest chain and the block we are asking for are the same block
+            return ancestor
+                .map(ancestorInfo -> ancestorInfo.getHeader().getHash().equals(blockHash))
+                .orElse(false);
         } finally {
             getLock().readLock().unlock();
         }
@@ -886,14 +1127,9 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     default Optional<ChainInfo> getLongestChain() {
         try {
             getLock().readLock().lock();
-            List<ChainInfo> tips = getState().getTipsChains();
-            if (tips.size() == 0) return Optional.empty();
-            if (tips.size() == 1) return Optional.of(tips.get(0));
 
-            // There are more than one chain ( there is one or more FORKS). So we need to locate the Longest one:
-            int maxHeight = tips.stream().mapToInt(c -> c.getHeight()).max().getAsInt();
-            Optional<ChainInfo> result = tips.stream().filter(c -> c.getHeight() == maxHeight).findFirst();
-            return result;
+            return getState().getTipsChains().stream()
+                .max(Comparator.comparingInt(ChainInfoReadOnly::getHeight));
         } finally {
             getLock().readLock().unlock();
         }
@@ -903,8 +1139,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     default Optional<Sha256Hash> getPrevBlock(Sha256Hash blockHash) {
         try {
             getLock().readLock().lock();
-            Optional<Sha256Hash> result = getBlock(blockHash).map(b -> b.getPrevBlockHash());
-            return result;
+            return getBlock(blockHash).map(HeaderReadOnly::getPrevBlockHash);
         } finally {
             getLock().readLock().unlock();
         }
@@ -918,7 +1153,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             T tr = createTransaction();
             executeInTransaction(tr, () -> {
                 List<String> children = _getNextBlocks(tr, blockHash.toString());
-                result.addAll(children.stream().map(h -> Sha256Hash.wrap(h)).collect(Collectors.toList()));
+                result.addAll(children.stream().map(Sha256Hash::wrap).collect(Collectors.toList()));
             });
             return result;
         } finally {

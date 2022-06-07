@@ -8,6 +8,7 @@ import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 import io.bitcoinsv.bitcoinjsv.core.Utils;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 
 /**
@@ -20,7 +21,7 @@ import java.io.Serializable;
  * Structure of the Message:
  * - hash: Hash of the Tx
  */
-public class RawTxMsg extends RawMsg implements Serializable {
+public final class RawTxMsg extends RawMsg implements Serializable {
 
     public static final String MESSAGE_TYPE = "tx";
 
@@ -64,16 +65,14 @@ public class RawTxMsg extends RawMsg implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(super.content);
+        return Objects.hashCode(super.hashCode());
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
+        if (!super.equals(obj))           { return false; }
         if (obj.getClass() != getClass()) { return false; }
-        RawTxMsg other = (RawTxMsg) obj;
-        return Objects.equal(super.content, super.content);
+        return true;
     }
 
     @Override

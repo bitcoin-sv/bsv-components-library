@@ -69,11 +69,10 @@ public class NIOOutputStream extends PeerOutputStreamImpl<ByteArrayReader, ByteA
     private Queue<ByteBuffer> buffersToWrite = new ConcurrentLinkedQueue<>();
 
     public NIOOutputStream(PeerAddress peerAddress,
-                           ExecutorService executor,
                            RuntimeConfig runtimeConfig,
                            NetworkConfig networkConfig,
                            SelectionKey key) {
-        super(peerAddress, executor, null);
+        super(peerAddress, null);
         this.logger = new LoggerUtil(peerAddress.toString(), this.getClass());
 
         this.runtimeConfig = runtimeConfig;
@@ -97,7 +96,7 @@ public class NIOOutputStream extends PeerOutputStreamImpl<ByteArrayReader, ByteA
                 .build();
     }
 
-    public void send(StreamDataEvent<ByteArrayReader> event) {
+    public synchronized void send(StreamDataEvent<ByteArrayReader> event) {
         //logger.trace("Sending " + event.getData().size() + " bytes : " + HEX.encode(event.getData().get()));
         // We get all the data from this Reader and we add it to the buffer of ByteBuffers.
         bytesToWriteRemaining += event.getData().size();
@@ -123,9 +122,9 @@ public class NIOOutputStream extends PeerOutputStreamImpl<ByteArrayReader, ByteA
             key.interestOps(key.interestOps() | SelectionKey.OP_WRITE);
             key.selector().wakeup();
         } catch (CancelledKeyException e) {
-            logger.debug("Trying to send byte to " + peerAddress + ", but the Key is Cancelled...");
+            logger.trace("Trying to send byte to " + peerAddress + ", but the Key is Cancelled...");
         } catch (Exception e) {
-            logger.debug("Trying to send byte to " + peerAddress + ", but an Exception was thrown " + e.getMessage());
+            logger.trace("Trying to send byte to " + peerAddress + ", but an Exception was thrown " + e.getMessage());
         }
     }
 
@@ -135,7 +134,7 @@ public class NIOOutputStream extends PeerOutputStreamImpl<ByteArrayReader, ByteA
     }
 
 
-    public int writeToSocket() throws IOException {
+    public synchronized int writeToSocket() throws IOException {
         int writeResult = 0;
         Iterator<ByteBuffer> buffersToWriteIterator = buffersToWrite.iterator();
         while (buffersToWriteIterator.hasNext()) {

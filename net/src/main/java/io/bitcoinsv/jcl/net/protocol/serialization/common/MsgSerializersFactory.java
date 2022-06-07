@@ -3,8 +3,6 @@ package io.bitcoinsv.jcl.net.protocol.serialization.common;
 
 import io.bitcoinsv.jcl.net.protocol.messages.*;
 import io.bitcoinsv.jcl.net.protocol.serialization.*;
-import io.bitcoinsv.jcl.net.protocol.messages.*;
-import io.bitcoinsv.jcl.net.protocol.serialization.*;
 import io.bitcoinsv.jcl.net.protocol.serialization.largeMsgs.BigBlockDeserializer;
 import io.bitcoinsv.jcl.net.protocol.serialization.largeMsgs.RawBigBlockDeserializer;
 import io.bitcoinsv.jcl.net.protocol.serialization.largeMsgs.BigBlockTxnDeserializer;
@@ -79,6 +77,7 @@ public class MsgSerializersFactory {
         serializers.put(GetBlockTxnMsg.MESSAGE_TYPE.toUpperCase(), GetBlockTxnMsgSerializer.getInstance());
         serializers.put(BlockTxnMsg.MESSAGE_TYPE.toUpperCase(), BlockTxnMsgSerializer.getInstance());
         serializers.put(DsDetectedMsg.MESSAGE_TYPE.toUpperCase(), DsDetectedMsgSerializer.getInstance());
+        serializers.put(ByteStreamMsg.MESSAGE_TYPE.toUpperCase(), ByteStreamMsgSerializer.getInstance());
 
         rawSerializers.put(RawTxMsg.MESSAGE_TYPE.toUpperCase(), RawTxMsgSerializer.getInstance());
         rawSerializers.put(RawBlockMsg.MESSAGE_TYPE.toUpperCase(), RawBlockMsgSerializer.getInstance());

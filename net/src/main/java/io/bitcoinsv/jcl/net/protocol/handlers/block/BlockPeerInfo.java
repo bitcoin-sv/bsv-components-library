@@ -186,6 +186,13 @@ public class BlockPeerInfo {
     protected void disconnect() {
         reset();
         this.connectionState = PeerConnectionState.DISCONNECTED;
+
+        // IMPORTANT: When a Peer gets disconnected, we need to remove the reference to its Stream here, otherwise
+        // the memory used by the internal ByteArrayBuffer used in that Stream will not be GC-collected, leading
+        // to a Memory Leak and a OutOfMemory Error:
+
+        // we remove the ref, making it eligible for GC:
+        this.stream = null;
     }
 
     /** It updates the Peer to reflect that it's just started to download this block */
@@ -250,8 +257,8 @@ public class BlockPeerInfo {
         }
     }
 
-
-    // The following methods indicates if some thresholds have been broken...
+    // Indicates if this Peer has broken the IDLE time-limit, meaning he has NOT sent any bytes at all during
+    // that time:
     protected boolean isIdleTimeoutBroken(Duration timeout) {
         if (currentBlockInfo == null) return false;
         if (currentBlockInfo.lastBytesReceivedTimestamp == null) return false;
@@ -259,10 +266,32 @@ public class BlockPeerInfo {
                 Instant.now()).compareTo(timeout) > 0);
     }
 
+    // Indicates if this Peer is taking longer than we allow it to download a Block
     protected boolean isDownloadTimeoutBroken(Duration timeout) {
         if (currentBlockInfo == null) return false;
         return (Duration.between(currentBlockInfo.startTimestamp, Instant.now())
                 .compareTo(timeout) > 0);
+    }
+
+    // Indicates if this Peer is too slow. A Peer is considered "too slow" if:
+    // - It already downloaded a minimum number of bytes AND
+    // - Its downloading a Block AND
+    // - the avg Speed (bytes/sec) is lower than the minSpeed given as parameter
+    protected boolean isTooSlow(int minBytesPerSec) {
+        if (minBytesPerSec <= 0) return false;
+        if (currentBlockInfo == null) return false;
+
+        final int MIN_BYTES_READ    = 10_000; // minimum size: 10K
+        HeaderMsg currentHeaderMsg  = stream.getState().getCurrentHeaderMsg();
+        boolean isBlock             = currentHeaderMsg.getMsgCommand().equalsIgnoreCase(BlockMsg.MESSAGE_TYPE);
+        long numBytesSoFar          = stream.getState().getCurrentMsgBytesReceived();
+
+        if (currentHeaderMsg != null && isBlock && (numBytesSoFar >= MIN_BYTES_READ)) {
+            long numMillisSoFar = Duration.between(currentBlockInfo.getStartTimestamp(),Instant.now()).toMillis();
+            long currentSpeed   = (numBytesSoFar / numMillisSoFar) * 1000;
+            return (currentSpeed < minBytesPerSec);
+        }
+        return false;
     }
 
     @Override

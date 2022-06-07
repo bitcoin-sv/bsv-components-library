@@ -1,5 +1,6 @@
 package io.bitcoinsv.jcl.net.network.events;
 
+import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 
 import java.util.List;
@@ -16,7 +17,20 @@ public final class ConnectPeersRequest extends P2PRequest {
     public ConnectPeersRequest(List<PeerAddress> peerAddressList)   { this.peerAddressList = peerAddressList; }
     public List<PeerAddress> getPeerAddressList()                   { return this.peerAddressList; }
 
+    @Override
     public String toString() {
         return "ConnectPeersRequest(" + this.getPeerAddressList().size() + " peers)";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false; }
+        ConnectPeersRequest other = (ConnectPeersRequest) obj;
+        return Objects.equal(this.peerAddressList, other.peerAddressList);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), peerAddressList);
     }
 }

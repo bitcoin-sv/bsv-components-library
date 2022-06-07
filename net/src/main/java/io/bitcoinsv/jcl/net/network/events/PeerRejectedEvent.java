@@ -1,5 +1,6 @@
 package io.bitcoinsv.jcl.net.network.events;
 
+import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 
 /**
@@ -33,5 +34,19 @@ public final class PeerRejectedEvent extends P2PEvent {
     @Override
     public String toString() {
         return "Event[PerRejected]: " + peerAddress.toString() + " : " + reason + " : " + ((detail != null)? detail : " no reason specified");
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false; }
+        PeerRejectedEvent other = (PeerRejectedEvent) obj;
+        return Objects.equal(this.peerAddress, other.peerAddress)
+                && Objects.equal(this.reason, other.reason)
+                && Objects.equal(this.detail, other.detail);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), peerAddress, reason, detail);
     }
 }

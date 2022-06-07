@@ -72,8 +72,7 @@ import java.util.function.Consumer;
  */
 
 
-public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, BitcoinMsg<?>>
-                                implements PeerInputStream<BitcoinMsg<?>> {
+public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Message> {
 
     // State of this Stream. This variable contains all the information about whats going on at any time
     // Along the execution of this Stream this state wil be updated any time we receive new bytes, or we
@@ -163,7 +162,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
      * It updates the state of this class to reflect that an error has been thrown. The new State is returned.
      */
     private DeserializerStreamState processError(boolean isThisADedicatedThread, Throwable e, DeserializerStreamState state) {
-        logger.error(this.peerAddress, "Error Deserializing", (streamClosed? "Stream was previously closed" : "Stream still open"));
+        logger.error(this.peerAddress, "Error Deserializing", e.getMessage(),(streamClosed? "Stream was previously closed" : "Stream still open"));
         if (!streamClosed) {
             logger.error((e.getMessage() != null)? e.getMessage() : e.getCause().getMessage());
             // We notify the parent about this Error and return:
@@ -198,7 +197,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Bit
      * It is called every time new bytes are received by this Stream (see InputStreamImpl.receiveAndTransform()).
      */
     @Override
-    public synchronized List<StreamDataEvent<BitcoinMsg<?>>> transform(StreamDataEvent<ByteArrayReader> dataEvent) {
+    public synchronized List<StreamDataEvent<Message>> transform(StreamDataEvent<ByteArrayReader> dataEvent) {
         try {
             // If some error has occurred already, we don't process any more data...
             if (state.getProcessState().isCorrupted() || dataEvent == null || dataEvent.getData() == null) return null;

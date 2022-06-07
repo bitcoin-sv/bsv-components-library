@@ -56,7 +56,7 @@ class InitialConnectionsTest extends Specification {
             // For example, if percentage is 80, and we define 5 initial Peers, then the test will be a
             // SUCCESS if by the time we connect to MAX_PEERS, 4 of them are from "initialPeers"
             // (80% of 5 initial Peers = 4)
-            final int PERCENTAGE_SUCCESS = 80
+            final int PERCENTAGE_SUCCESS = 60
 
             // We set up the configuration
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams()).toBuilder()

@@ -17,7 +17,7 @@ import java.util.function.Function
 class LevelDBIteratorSpec extends IteratorSpecBase {
 
     @Override
-    BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents, Class<? extends Metadata> blockMetadataClass) {
+    BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents, Class<? extends Metadata> blockMetadataClass, Class<? extends Metadata> txMetadataClass) {
         return StoreFactory.getInstance(netId, triggerBlockEvents, triggerTxEvents)
     }
 

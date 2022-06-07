@@ -66,14 +66,12 @@ public final class PartialBlockHeaderMsg extends BodyMessage implements Serializ
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(blockHeader);
+        return Objects.hashCode(super.hashCode(), blockHeader);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         PartialBlockHeaderMsg other = (PartialBlockHeaderMsg) obj;
         return Objects.equal(this.blockHeader, other.blockHeader);
     }

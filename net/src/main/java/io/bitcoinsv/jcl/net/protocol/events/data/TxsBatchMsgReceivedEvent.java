@@ -1,5 +1,7 @@
 package io.bitcoinsv.jcl.net.protocol.events.data;
 
+import com.google.common.base.Objects;
+
 import java.util.List;
 
 /**
@@ -10,5 +12,15 @@ import java.util.List;
 public class TxsBatchMsgReceivedEvent extends MsgReceivedBatchEvent<TxMsgReceivedEvent> {
     public TxsBatchMsgReceivedEvent(List<TxMsgReceivedEvent> events) {
         super(events);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode());
     }
 }

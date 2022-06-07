@@ -1,5 +1,6 @@
 package io.bitcoinsv.jcl.net.protocol.messages;
 
+import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
 
 import java.io.Serializable;
@@ -9,7 +10,7 @@ import java.util.List;
  * @author j.pomer@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  */
-public class BlockTxnMsg extends BodyMessage implements Serializable {
+public final class BlockTxnMsg extends BodyMessage implements Serializable {
     public static final String MESSAGE_TYPE = "blocktxn";
 
     private final HashMsg blockHash;
@@ -32,8 +33,6 @@ public class BlockTxnMsg extends BodyMessage implements Serializable {
     public HashMsg getBlockHash()           { return blockHash; }
     public List<TxMsg> getTransactions()    { return transactions; }
 
-
-
     @Override
     protected long calculateLength() {
         return blockHash.calculateLength()
@@ -45,6 +44,19 @@ public class BlockTxnMsg extends BodyMessage implements Serializable {
 
     @Override
     protected void validateMessage() {}
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false; }
+        BlockTxnMsg other = (BlockTxnMsg) obj;
+        return Objects.equal(this.blockHash, other.blockHash)
+                && Objects.equal(this.transactions, other.transactions);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), this.blockHash, this.transactions);
+    }
 
     @Override
     public BlockTxnMsgBuilder toBuilder() {

@@ -10,6 +10,7 @@ import java.net.InetAddress;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 import java.util.StringTokenizer;
 
 /**
@@ -27,9 +28,7 @@ public class BlacklistHostInfo implements CSVSerializable {
     // If blacklisted, these variables stores the reason and the time when it was blacklisted:
     private PeersBlacklistedEvent.BlacklistReason blacklistReason;
     private LocalDateTime blacklistTimestamp;
-
-    // This variable indicates if this Blacklisted Peer has been already notitified/published to the rest of the Handlers
-    private boolean published;
+    private LocalDateTime expirationTime;
 
     // We keep track of the number of times this Host has reached specific scenarios:
     private int numFailedHandshakes;
@@ -60,19 +59,20 @@ public class BlacklistHostInfo implements CSVSerializable {
     public void addFailedPingPongs()        { numFailedPingPongs++;}
     public void addConnRejections()         { numConnRejections++;}
     public void addSerializationErrors()    { numSerializationErrors++;}
-    public boolean isPublished()            { return published;}
-    public void publish()                   { this.published = true;}
 
-    public void blacklist(PeersBlacklistedEvent.BlacklistReason reason) {
+    public void blacklist(PeersBlacklistedEvent.BlacklistReason reason, Optional<Duration> duration) {
         this.blacklistReason = reason;
         this.blacklistTimestamp = DateTimeUtils.nowDateTimeUTC();
+        this.expirationTime = duration.isPresent()
+                ? this.blacklistTimestamp.plus(duration.get())
+                : null;
     }
-    // TODO: CAREFUL WITH UTC AND TIMEZONES!!
 
+    // TODO: CAREFUL WITH UTC AND TIMEZONES!!
     public boolean isBlacklistExpired() {
         if (!isBlacklisted()) return false;
-        if (!blacklistReason.getExpirationTime().isPresent()) return false;
-        return (Duration.between(blacklistTimestamp, DateTimeUtils.nowDateTimeUTC()).compareTo(blacklistReason.getExpirationTime().get()) > 0);
+        if (expirationTime == null) return false;
+        return DateTimeUtils.nowDateTimeUTC().isAfter(expirationTime);
     }
 
     public void whitelist() {
@@ -127,6 +127,7 @@ public class BlacklistHostInfo implements CSVSerializable {
     public InetAddress getIp()                                          { return this.ip; }
     public PeersBlacklistedEvent.BlacklistReason getBlacklistReason()   { return this.blacklistReason; }
     public LocalDateTime getBlacklistTimestamp()                        { return this.blacklistTimestamp; }
+    public LocalDateTime getExpirationTime()                            { return this.expirationTime; }
     public int getNumFailedHandshakes()                                 { return this.numFailedHandshakes; }
     public int getNumFailedPingPongs()                                  { return this.numFailedPingPongs; }
     public int getNumConnRejections()                                   { return this.numConnRejections; }

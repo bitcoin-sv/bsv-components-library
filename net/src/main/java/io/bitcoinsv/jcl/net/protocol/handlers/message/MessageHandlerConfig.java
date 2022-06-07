@@ -8,6 +8,7 @@ import io.bitcoinsv.jcl.net.protocol.config.ProtocolBasicConfig;
 import io.bitcoinsv.jcl.net.protocol.events.data.RawTxMsgReceivedEvent;
 import io.bitcoinsv.jcl.net.protocol.events.data.TxMsgReceivedEvent;
 import io.bitcoinsv.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerConfig;
+import io.bitcoinsv.jcl.net.protocol.messages.ByteStreamMsg;
 import io.bitcoinsv.jcl.tools.handlers.HandlerConfig;
 
 import java.util.HashMap;
@@ -149,6 +150,11 @@ public final class MessageHandlerConfig extends HandlerConfig {
 
         public MessageHandlerConfig.MessageHandlerConfigBuilder setRawTxsBatchConfig(MessageBatchConfig batchConfig) {
             this.msgBatchConfigs.put(RawTxMsgReceivedEvent.class, batchConfig);
+            return this;
+        }
+
+        public MessageHandlerConfig.MessageHandlerConfigBuilder setRawBytesBatchConfig(MessageBatchConfig batchConfig) {
+            this.msgBatchConfigs.put(ByteStreamMsg.class, batchConfig);
             return this;
         }
 

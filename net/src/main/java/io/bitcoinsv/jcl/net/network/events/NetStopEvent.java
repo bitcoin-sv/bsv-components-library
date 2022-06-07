@@ -1,7 +1,7 @@
 package io.bitcoinsv.jcl.net.network.events;
 
 
-
+import java.util.Objects;
 
 /**
  * @author i.fernandez@nchain.com
@@ -13,5 +13,15 @@ public class NetStopEvent extends P2PEvent {
     @Override
     public String toString() {
         return "NetStopEvent()";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode());
     }
 }

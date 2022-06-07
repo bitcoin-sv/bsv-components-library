@@ -73,14 +73,12 @@ public final class TxInputMsg extends Message implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(pre_outpoint, script_length, signature_script, sequence);
+        return Objects.hashCode(super.hashCode(), pre_outpoint, script_length, signature_script, sequence);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         TxInputMsg other = (TxInputMsg) obj;
         return Objects.equal(this.pre_outpoint, other.pre_outpoint)
                 && Objects.equal(this.script_length, other.script_length)

@@ -58,14 +58,12 @@ public final class VarStrMsg extends Message implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(strLength, str);
+        return Objects.hashCode(super.hashCode(), strLength, str);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         VarStrMsg other = (VarStrMsg) obj;
         return Objects.equal(this.strLength, other.strLength)
                 && Objects.equal(this.str, other.str);

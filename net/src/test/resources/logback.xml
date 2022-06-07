@@ -16,12 +16,29 @@
         </encoder>
     </appender>
 
-    <logger name="io.bitcoinsv.jcl.net.protocol" additivity="false">
+    <logger name="io.bitcoinsv.jcl.net" additivity="false">
         <level value="INFO" />
         <appender-ref ref="STDOUT" />
     </logger>
 
-    <logger name="io.bitcoinsv.jcl.net.protocol.handlers.message.streams" additivity="false">
+    <logger name="io.bitcoinsv.jcl.net.protocol.handlers.message.MessageHandlerImpl" additivity="false">
+        <level value="ERROR" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <logger name="io.bitcoinsv.jcl.net.protocol.handlers.discovery" additivity="false">
+        <level value="ERROR" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <logger name="io.bitcoinsv.jcl.net.protocol.handlers.block" additivity="false">
+        <level value="ERROR" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+
+
+    <logger name="io.bitcoinsv.jcl.net.protocol.handlers.handshake" additivity="false">
         <level value="INFO" />
         <appender-ref ref="STDOUT" />
     </logger>

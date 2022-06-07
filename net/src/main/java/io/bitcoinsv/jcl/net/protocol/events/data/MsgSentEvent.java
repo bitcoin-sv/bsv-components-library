@@ -1,5 +1,6 @@
 package io.bitcoinsv.jcl.net.protocol.events.data;
 
+import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.network.events.P2PEvent;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg;
@@ -26,5 +27,18 @@ public class MsgSentEvent<T extends BodyMessage> extends P2PEvent {
     @Override
     public String toString() {
         return "Event[" +  btcMsg.getHeader().getMsgCommand().toUpperCase() + " Sent]: to " + peerAddress.toString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false; }
+        MsgSentEvent other = (MsgSentEvent) obj;
+        return Objects.equal(this.peerAddress, other.peerAddress)
+                && Objects.equal(this.btcMsg, other.btcMsg);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), peerAddress, btcMsg);
     }
 }

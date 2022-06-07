@@ -1,14 +1,16 @@
 package io.bitcoinsv.jcl.net.protocol.messages;
 
+import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
 
 import java.io.Serializable;
+
 
 /**
  * @author j.pomer@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  */
-public class PrefilledTxMsg extends Message implements Serializable {
+public final class PrefilledTxMsg extends Message implements Serializable {
 
     public static final String MESSAGE_TYPE = "prefilledTransaction";
 
@@ -46,6 +48,19 @@ public class PrefilledTxMsg extends Message implements Serializable {
 
     @Override
     protected void validateMessage() {
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false; }
+        PrefilledTxMsg other = (PrefilledTxMsg) obj;
+        return Objects.equal(this.index, other.index)
+                && Objects.equal(this.transaction, other.transaction);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), this.index, this.transaction);
     }
 
     public PrefilledTransactionMsgBuilder toBuilder() {

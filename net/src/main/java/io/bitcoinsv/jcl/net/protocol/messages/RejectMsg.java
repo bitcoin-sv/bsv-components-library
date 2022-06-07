@@ -32,7 +32,7 @@ import java.io.Serializable;
  *    with the TXID or block header hash of the object being rejected, so the field is 32 bytes.
  *
  */
-public class RejectMsg extends BodyMessage implements Serializable {
+public final class RejectMsg extends BodyMessage implements Serializable {
 
     /**
      * Reference of all the possible values for the MESSAGE field:
@@ -160,14 +160,12 @@ public class RejectMsg extends BodyMessage implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(message, ccode, reason, data, data);
+        return Objects.hashCode(super.hashCode(), message, ccode, reason, data, data);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         RejectMsg other = (RejectMsg) obj;
         return Objects.equal(this.message, other.message)
                 && Objects.equal(this.ccode, other.ccode)

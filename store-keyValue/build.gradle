@@ -12,7 +12,7 @@ plugins {
  ****************************************/
 jclGroup = "$jclGroup"
 jclVersion = "$jclVersion"
-jclArtifactName = "$jclArtifactName"
+jclArtifactName = "jcl-store-keyValue"
 
 group = "$rootProject.jclGroup"
 version = "$rootProject.jclVersion"

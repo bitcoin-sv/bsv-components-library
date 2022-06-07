@@ -1,5 +1,6 @@
 package io.bitcoinsv.jcl.net.protocol.handlers.block;
 
+import com.google.common.collect.ImmutableList;
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 
 import java.util.*;
@@ -119,7 +120,7 @@ public class BlocksPendingManager {
     public synchronized void addWithPriority(List<String> blockHashes)  { this.pendingBlocks.addAll(0, blockHashes); }
     public synchronized void remove(String blockHash)                   { this.pendingBlocks.remove(blockHash); }
     public synchronized int size()                                      { return this.pendingBlocks.size(); }
-    public List<String> getPendingBlocks()                              { return Collections.unmodifiableList(this.pendingBlocks); }
+    public synchronized List<String> getPendingBlocks()                 { return ImmutableList.copyOf(this.pendingBlocks); }
     public boolean contains(String blockHash)                           { return this.pendingBlocks.contains(blockHash); }
 
     /**
@@ -218,7 +219,7 @@ public class BlocksPendingManager {
         // Default:
         Optional<String> result = Optional.empty();
 
-        // Id we aer in NORMAL Mode, we loop over the "pending" list of Blocks checking for each one if this Peer is a
+        // If we are in NORMAL Mode, we loop over the "pending" list of Blocks checking for each one if this Peer is a
         // Best Match. If we are in RESTRICTIVE Mode, we loop instead over the list of ONLY those blocks that have been
         // tried already...
 

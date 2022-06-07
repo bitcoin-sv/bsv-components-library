@@ -97,13 +97,13 @@ class SerializerStreamSpec extends Specification {
         DeserializerContext deserializerContext = DeserializerContext.builder()
                 .protocolBasicConfig(config.getBasicConfig())
                 .insideVersionMsg(true)
-                .maxBytesToRead(messageToSent.getLengthInbytes())
+                .maxBytesToRead(messageToSent.getLengthInBytes())
                 .build()
             PeerOutputStream<ByteArrayReader> destination = new PeerDestination(executor, REF_BODY_ADDRESS)
-            destination.onData({ e -> messageReceived = BitcoinMsgSerializerImpl.getInstance().deserialize(deserializerContext, e.getData(), VersionMsg.MESSAGE_TYPE) })
+            destination.onData({ e -> messageReceived = BitcoinMsgSerializerImpl.getInstance().deserialize(deserializerContext, e.getData()) })
 
             // We create our Output Stream:
-            PeerOutputStream<BitcoinMsg> myOutputStream = new SerializerStream(executor, destination, config.getMessageConfig())
+            PeerOutputStream<BitcoinMsg> myOutputStream = new SerializerStream(destination, config.getMessageConfig())
 
         when:
             myOutputStream.send(new StreamDataEvent<BitcoinMsg>(messageToSent))

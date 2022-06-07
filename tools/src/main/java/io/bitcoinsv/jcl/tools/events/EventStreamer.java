@@ -35,8 +35,8 @@ public class EventStreamer<E extends Event> {
     // The class that specifies what evens are triggered (only the ones implementing this class)
     private Class<E> eventClass;
 
-    // Callback triggered by each even:
-    private Consumer<E> eventHandler;
+    // Callbacks triggered by each event:
+    private List<Consumer<E>> eventHandlers = new ArrayList<>();
 
     // List of possible Filter that can be injected and applied before an Event is processed:
     private List<Predicate<E>> filters = new ArrayList<>();
@@ -75,12 +75,11 @@ public class EventStreamer<E extends Event> {
         return this;
     }
 
-    // HACK:
     // UGLY HACK:
     public static AtomicLong NUM_MSGS_LOST = new AtomicLong();
     private void processEventsQueue() {
         try {
-            while (this.eventHandler == null) {Thread.sleep(50);}
+            while (this.eventHandlers.isEmpty()) {Thread.sleep(50);}
             while (true) {
                 // We take next event from the Queue:
                 E event = (E) events.take();
@@ -91,7 +90,7 @@ public class EventStreamer<E extends Event> {
                 // We process the Event:
                 if (shouldWeProcessIt) {
                     try {
-                        this.eventExecutor.execute(() -> this.eventHandler.accept(event));
+                        this.eventHandlers.forEach( handler -> this.eventExecutor.execute(() -> handler.accept(event)));
                     } catch (RejectedExecutionException e) {
                         e.printStackTrace();
                         NUM_MSGS_LOST.incrementAndGet();
@@ -109,19 +108,22 @@ public class EventStreamer<E extends Event> {
         if (eventHandler == null) return;
 
         // We are defining the Consumer/Handler that will be triggered for any Event.
-        this.eventHandler = eventHandler;
+        this.eventHandlers.add(eventHandler);
 
-        // Now that we have a handler, we start the EventsQueue processing:
-        // We configure our own executor responsible for consuming the QUEUE of events:
-        String queueThreadName = "EventStreamerQueue[" + eventClass.getSimpleName() + "]";
-        this.queueExecutor = ThreadUtils.getSingleThreadExecutorService(queueThreadName);
-        this.queueExecutor.execute(this::processEventsQueue);
+        // Now that we have one handler at least, we start the EventsQueue processing:
+        if (this.queueExecutor == null) {
+            // We configure our own executor responsible for consuming the QUEUE of events:
+            String queueThreadName = "EventStreamerQueue[" + eventClass.getSimpleName() + "]";
+            this.queueExecutor = ThreadUtils.getSingleThreadExecutorService(queueThreadName);
+            this.queueExecutor.execute(this::processEventsQueue);
 
-        // We configure the executor responsible for processing the Events:
-        String eventThreadName = "EventStreamerProcessor[" + eventClass.getSimpleName() + "]";
-        this.eventExecutor = ThreadUtils.getCachedThreadExecutorService(eventThreadName, this.numThreads);
+            // We configure the executor responsible for processing the Events:
+            String eventThreadName = "EventStreamerProcessor[" + eventClass.getSimpleName() + "]";
+            this.eventExecutor = ThreadUtils.getCachedThreadExecutorService(eventThreadName, this.numThreads);
 
-        // Every time an event is triggered by the Source EventBus, we add it to our eventQueue:
-        eventBus.subscribe(eventClass, e -> this.events.offer(e));
+            // Every time an event is triggered by the Source EventBus, we add it to our eventQueue:
+            eventBus.subscribe(eventClass, e -> this.events.offer(e));
+        }
+
     }
 }

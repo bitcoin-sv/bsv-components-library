@@ -56,14 +56,14 @@ class DeserializerSpec extends Specification {
                 .build()
 
         BitcoinMsgSerializer serializer = new BitcoinMsgSerializerImpl()
-        ByteArrayReader reader = serializer.serialize(serContext, message, command)
+        ByteArrayReader reader = serializer.serialize(serContext, message)
 
         DeserializerContext desContext = DeserializerContext.builder()
-                .maxBytesToRead(message.getLengthInbytes())
+                .maxBytesToRead(message.getLengthInBytes())
                 .protocolBasicConfig(protocolConfig)
                 .insideVersionMsg(command.equalsIgnoreCase(VersionMsg.MESSAGE_TYPE))
                 .build()
-        BitcoinMsg result = serializer.deserialize(desContext, reader, command)
+        BitcoinMsg result = serializer.deserialize(desContext, reader)
         return result
     }
 
@@ -180,7 +180,7 @@ class DeserializerSpec extends Specification {
         BitcoinMsgSerializer serializer = new BitcoinMsgSerializerImpl()
         ByteArrayWriter writer = new ByteArrayWriter()
         for (BitcoinMsg btcMsg : msgs) {
-            byte[] btcMsgBytes = serializer.serialize(serContext, btcMsg, btcMsg.header.command).getFullContentAndClose()
+            byte[] btcMsgBytes = serializer.serialize(serContext, btcMsg).getFullContentAndClose()
             writer.write(btcMsgBytes)
         }
         return writer.reader()

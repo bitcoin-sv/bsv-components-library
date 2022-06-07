@@ -40,14 +40,12 @@ public final class MemPoolMsg extends BodyMessage implements Serializable {
 
     @Override
     public int hashCode() {
-        return 1;
+        return super.hashCode();
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        return true;
+        return super.equals(obj);
     }
 
     public static MemPoolMsgBuilder builder() {

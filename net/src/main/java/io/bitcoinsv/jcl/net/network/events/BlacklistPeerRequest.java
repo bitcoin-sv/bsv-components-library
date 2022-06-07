@@ -1,7 +1,10 @@
 package io.bitcoinsv.jcl.net.network.events;
 
+import com.google.common.base.Objects;
 
-import io.bitcoinsv.jcl.net.network.PeerAddress;
+import java.net.InetAddress;
+import java.time.Duration;
+import java.util.Optional;
 
 /**
  * @author i.fernandez@nchain.com
@@ -12,15 +15,49 @@ import io.bitcoinsv.jcl.net.network.PeerAddress;
  * A Request to Blacklist a Peer
  */
 public final class BlacklistPeerRequest extends P2PRequest {
-    // NOTE: We do NOT Specify a REASON, since this Request will be triggered by the Client, so its up to the Client
-    // to know and keep track of that.
-    private final PeerAddress peerAddress;
+    private final InetAddress address;
+    private PeersBlacklistedEvent.BlacklistReason reason;
+    private Optional<Duration> duration;
 
-    public BlacklistPeerRequest(PeerAddress peerAddress)    { this.peerAddress = peerAddress; }
-    public PeerAddress getPeerAddress()                     { return this.peerAddress; }
-
-    public String toString() {
-        return "BlacklistPeerRequest(peerAddress=" + this.getPeerAddress() + ")";
+    /**
+     * Constructor. The Duration specified will override the default one.
+     */
+    public BlacklistPeerRequest(InetAddress address, PeersBlacklistedEvent.BlacklistReason reason, Optional<Duration> duration) {
+        this.address = address;
+        this.reason = reason;
+        this.duration = duration;
     }
+
+    public InetAddress getAddress() {
+        return this.address;
+    }
+
+    public PeersBlacklistedEvent.BlacklistReason getReason() {
+        return reason;
+    }
+
+    public Optional<Duration> getDuration() {
+        return this.duration;
+    }
+
+    @Override
+    public String toString() {
+        return "BlacklistPeerRequest(address=" + this.address + ", reason=" + reason + ", duration=" + this.duration + ")";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false; }
+        BlacklistPeerRequest other = (BlacklistPeerRequest) obj;
+        return Objects.equal(this.address, other.address)
+                && Objects.equal(this.reason, other.reason)
+                && Objects.equal(this.duration, other.duration);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), address, reason, duration);
+    }
+
 
 }

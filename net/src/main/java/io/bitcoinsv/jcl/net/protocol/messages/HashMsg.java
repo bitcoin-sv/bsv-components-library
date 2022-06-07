@@ -16,7 +16,7 @@ import java.util.Arrays;
  * messages in the Bitcoin P2P. It represents a char array that store as many bytes
  * to represent hash of the object.
  */
-public class HashMsg extends Message implements Serializable {
+public final class HashMsg extends Message implements Serializable {
     public static final String MESSAGE_TYPE = "hash";
     public static final int HASH_LENGTH = 32;//32 bits
 
@@ -52,16 +52,13 @@ public class HashMsg extends Message implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(hashBytes);
+        return Objects.hashCode(super.hashCode(), Arrays.hashCode(hashBytes));
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         HashMsg other = (HashMsg) obj;
-        // IMPORTANT: For array comparison, use "Arrays.equals()" instead of "Objects.equals()"
         return Arrays.equals(this.hashBytes, other.hashBytes);
     }
 

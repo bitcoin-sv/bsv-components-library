@@ -1,5 +1,6 @@
 package io.bitcoinsv.jcl.net.protocol.messages;
 
+import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
 import io.bitcoinsv.jcl.net.protocol.messages.merkle.MerkleNode;
 import io.bitcoinsv.jcl.net.protocol.messages.merkle.MerkleProofMsgFlags;
@@ -16,7 +17,7 @@ import java.util.List;
  * but in this case, it's currently hardcoded and the message structure will not change. But, it's possible to generate similar merkle proof messages that contain different pieces of information by amending the flag,
  * see: https://tsc.bitcoinassociation.net/standards/merkle-proof-standardised-format/
  */
-public class MerkleProofMsg extends Message {
+public final class MerkleProofMsg extends Message {
 
     public static final String MESSAGE_TYPE = "merkleproof";
 
@@ -73,6 +74,23 @@ public class MerkleProofMsg extends Message {
     public void setNodeCount(VarIntMsg nodeCount)   { this.nodeCount = nodeCount; }
     public List<MerkleNode> getNodes()              { return nodes; }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false; }
+        MerkleProofMsg other = (MerkleProofMsg) obj;
+        return Objects.equal(this.flags, other.flags)
+                && Objects.equal(this.transactionIndex, other.transactionIndex)
+                && Objects.equal(this.transactionLength, other.transactionLength)
+                && Objects.equal(this.transaction, other.transaction)
+                && Objects.equal(this.target, other.target)
+                && Objects.equal(this.nodeCount, other.nodeCount)
+                && Objects.equal(this.nodes, other.nodes);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), transactionIndex, transactionLength, transaction, target, nodeCount, nodes);
+    }
 
     public MerkleProofMsgBuilder toBuilder() {
         return new MerkleProofMsgBuilder()

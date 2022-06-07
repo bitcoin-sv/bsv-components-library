@@ -104,7 +104,7 @@ class AddrMsgSerialzerSpec extends Specification {
             BitcoinMsg<AddrMsg> bitcoinVersionMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), addMessages).build()
             BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
-            byte[] addrMsgBytes = bitcoinSerializer.serialize(context, bitcoinVersionMsg, AddrMsg.MESSAGE_TYPE).getFullContent()
+            byte[] addrMsgBytes = bitcoinSerializer.serialize(context, bitcoinVersionMsg).getFullContent()
             String addrMsgDeserialzed = Utils.HEX.encode(addrMsgBytes)
         then:
              addrMsgDeserialzed.equals(REF_COMPLETE_ADDRESS_MSG)
@@ -131,7 +131,7 @@ class AddrMsgSerialzerSpec extends Specification {
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_COMPLETE_ADDRESS_MSG), byteInterval, delayMs)
             BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
-            BitcoinMsg<AddrMsg> message = bitcoinSerializer.deserialize(context, byteReader, AddrMsg.MESSAGE_TYPE)
+            BitcoinMsg<AddrMsg> message = bitcoinSerializer.deserialize(context, byteReader)
         then:
             message.getHeader().getMagic().equals(config.getBasicConfig().getMagicPackage())
             message.getHeader().getCommand().toUpperCase().equals(AddrMsg.MESSAGE_TYPE.toUpperCase())

@@ -122,7 +122,7 @@ class TxMsgSerializerSpec extends Specification {
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_MSG_FULL), byteInterval, delayMs)
             BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
-            BitcoinMsg<TxMsg> message = bitcoinSerializer.deserialize(context, byteReader, TxMsg.MESSAGE_TYPE)
+            BitcoinMsg<TxMsg> message = bitcoinSerializer.deserialize(context, byteReader)
 
         then:
             message.getHeader().getMagic().equals(config.getBasicConfig().getMagicPackage())
@@ -166,7 +166,7 @@ class TxMsgSerializerSpec extends Specification {
             BitcoinMsg<VersionMsg> bitcoinVersionMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), transactionMsg).build()
             BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
-            byte[] msgBytes = bitcoinSerializer.serialize(context, bitcoinVersionMsg, TxMsg.MESSAGE_TYPE).getFullContent()
+            byte[] msgBytes = bitcoinSerializer.serialize(context, bitcoinVersionMsg).getFullContent()
             String msgDeserialized = Utils.HEX.encode(msgBytes)
         then:
             msgDeserialized.equals(REF_MSG_FULL)

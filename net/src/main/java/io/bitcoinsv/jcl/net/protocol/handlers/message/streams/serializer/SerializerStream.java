@@ -8,10 +8,11 @@ import io.bitcoinsv.jcl.net.network.streams.StreamDataEvent;
 import io.bitcoinsv.jcl.net.protocol.handlers.message.MessageHandlerConfig;
 import io.bitcoinsv.jcl.net.protocol.messages.VersionMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg;
-import io.bitcoinsv.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl;
-import io.bitcoinsv.jcl.net.protocol.serialization.common.SerializerContext;
+import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
+import io.bitcoinsv.jcl.net.protocol.serialization.common.*;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader;
 import io.bitcoinsv.jcl.net.tools.LoggerUtil;
+import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -31,7 +32,7 @@ import java.util.concurrent.ExecutorService;
  * returned by this function will be taken by the parent class and sent to the destination of this class.
  */
 
-public class SerializerStream extends PeerOutputStreamImpl<BitcoinMsg<?>, ByteArrayReader> implements PeerOutputStream<BitcoinMsg<?>> {
+public class SerializerStream extends PeerOutputStreamImpl<Message, ByteArrayReader> {
 
     // Protocol Configuration
     private MessageHandlerConfig messageConfig;
@@ -43,11 +44,10 @@ public class SerializerStream extends PeerOutputStreamImpl<BitcoinMsg<?>, ByteAr
     private LoggerUtil logger;
 
     /** Constructor.*/
-    public SerializerStream(ExecutorService executor,
-                            PeerOutputStream<ByteArrayReader> destination,
+    public SerializerStream(PeerOutputStream<ByteArrayReader> destination,
                             MessageHandlerConfig messageConfig,
                             LoggerUtil parentLogger) {
-        super(executor, destination);
+        super(destination);
         this.logger = (parentLogger == null)
                         ? new LoggerUtil(this.getPeerAddress().toString(), this.getClass())
                         : LoggerUtil.of(parentLogger, "Serializer", this.getClass());
@@ -55,10 +55,9 @@ public class SerializerStream extends PeerOutputStreamImpl<BitcoinMsg<?>, ByteAr
     }
 
     /** Constructor.*/
-    public SerializerStream(ExecutorService executor,
-                            PeerOutputStream<ByteArrayReader> destination,
+    public SerializerStream(PeerOutputStream<ByteArrayReader> destination,
                             MessageHandlerConfig messageConfig) {
-        this(executor, destination, messageConfig, new LoggerUtil("Serializer", SerializerStream.class));
+        this(destination, messageConfig, new LoggerUtil("Serializer", SerializerStream.class));
     }
 
     @Override
@@ -67,18 +66,30 @@ public class SerializerStream extends PeerOutputStreamImpl<BitcoinMsg<?>, ByteAr
     }
 
     @Override
-    public List<StreamDataEvent<ByteArrayReader>> transform(StreamDataEvent<BitcoinMsg<?>> data) {
-        logger.trace(this.peerAddress, "Serializing " + data.getData().getHeader().getMsgCommand().toUpperCase() + " Message...");
+    public List<StreamDataEvent<ByteArrayReader>> transform(StreamDataEvent<Message> data) {
+        logger.trace(this.peerAddress, "Serializing " + data.getData().getMessageType().toUpperCase() + " Message...");
 
         SerializerContext serializerContext = SerializerContext.builder()
                 .protocolBasicConfig(messageConfig.getBasicConfig())
-                .insideVersionMsg(data.getData().is(VersionMsg.MESSAGE_TYPE))
+                .insideVersionMsg(data.getData().equals(VersionMsg.MESSAGE_TYPE))
                 .build();
-        List<StreamDataEvent<ByteArrayReader>> result = Arrays.asList(new StreamDataEvent<>(
-                BitcoinMsgSerializerImpl.getInstance().serialize(
-                        serializerContext,
-                        data.getData(),
-                        data.getData().getHeader().getMsgCommand())));
+
+        List<StreamDataEvent<ByteArrayReader>> result;
+        if(data.getData().getMessageType().equals(BitcoinMsg.MESSAGE_TYPE)) {
+            BitcoinMsg<?> bitcoinMsg = (BitcoinMsg<?>) data.getData();
+            result = Arrays.asList(new StreamDataEvent<>(
+                    BitcoinMsgSerializerImpl.getInstance().serialize(
+                            serializerContext,
+                            bitcoinMsg
+                    )));
+        } else {
+            MessageSerializer serializer = MsgSerializersFactory.getSerializer(data.getData().getMessageType());
+            ByteArrayWriter writer = new ByteArrayWriter();
+
+            serializer.serialize(serializerContext, data.getData(), writer);
+            result = Arrays.asList(new StreamDataEvent<>(writer.reader()));
+        }
+
         return result;
     }
 

@@ -72,8 +72,8 @@ class MemPoolMsgSerializerSpec extends Specification {
 
             BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
-            ByteArrayReader byteArrayReader = serializer.serialize(serializerContext, memPoolBitcoinMsg, MemPoolMsg.MESSAGE_TYPE)
-            BitcoinMsg<MemPoolMsg> deserializedMemPoolBitcoinMsg = serializer.deserialize(deserializerContext, byteArrayReader, MemPoolMsg.MESSAGE_TYPE)
+            ByteArrayReader byteArrayReader = serializer.serialize(serializerContext, memPoolBitcoinMsg)
+            BitcoinMsg<MemPoolMsg> deserializedMemPoolBitcoinMsg = serializer.deserialize(deserializerContext, byteArrayReader)
         then:
             memPoolBitcoinMsg.equals(deserializedMemPoolBitcoinMsg)
 
