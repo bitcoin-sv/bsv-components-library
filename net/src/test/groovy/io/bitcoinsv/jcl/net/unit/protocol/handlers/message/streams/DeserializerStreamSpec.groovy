@@ -33,7 +33,7 @@ class DeserializerStreamSpec extends Specification {
     def "Testing Deserializer Empty Messages"() {
         given:
             RuntimeConfig runtimeConfig = new RuntimeConfigDefault()
-        ProtocolConfig protocolConfig = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            ProtocolConfig protocolConfig = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             ExecutorService eventBusExecutor = Executors.newSingleThreadExecutor()
             ExecutorService dedicatedConnExecutor = Executors.newSingleThreadExecutor()
 

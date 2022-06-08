@@ -46,7 +46,7 @@ class HeadersMsgSerializerSpec extends Specification {
                 .protocolBasicConfig(protocolBasicConfig)
                 .build()
 
-        BlockHeaderMsg blockHeaderMsg = BlockHeaderMsg.builder()
+            BlockHeaderMsg blockHeaderMsg = BlockHeaderMsg.builder()
                 .version(70013)
                 .hash(HashMsg.builder().hash(Sha256Hash.wrap("a9f965385ffd6da76dbf8226ca0f061d6e05737fdf34ba6edb9ea1d012666b16").getBytes()).build())
                 .prevBlockHash(HashMsg.builder().hash(Sha256Hash.ZERO_HASH.getBytes()).build())
@@ -57,11 +57,11 @@ class HeadersMsgSerializerSpec extends Specification {
                 .transactionCount(1)
                 .build()
 
-        HeadersMsg headersMsg = HeadersMsg.builder().blockHeaderMsgList(Arrays.asList(blockHeaderMsg)).build()
+            HeadersMsg headersMsg = HeadersMsg.builder().blockHeaderMsgList(Arrays.asList(blockHeaderMsg)).build()
 
             ByteArrayWriter byteWriter = new ByteArrayWriter()
         when:
-        HeadersMsgSerializer.getInstance().serialize(serializerContext, headersMsg, byteWriter)
+            HeadersMsgSerializer.getInstance().serialize(serializerContext, headersMsg, byteWriter)
             HeadersMsg deserializedHeadersMsg = HeadersMsgSerializer.getInstance().deserialize(deserializerContext, byteWriter.reader())
         then:
             blockHeaderMsg.equals(deserializedHeadersMsg.getBlockHeaderMsgList().get(0))
@@ -110,16 +110,16 @@ class HeadersMsgSerializerSpec extends Specification {
 
             HeadersMsg headersMsg = HeadersMsgSerializer.getInstance().deserialize(deserializerContext, byteArrayWriter.reader())
 
-        HeaderMsg headerMsg = HeaderMsg.builder()
+            HeaderMsg headerMsg = HeaderMsg.builder()
                 .checksum(714299174)
                 .command(HeadersMsg.MESSAGE_TYPE)
                 .length((int) headersMsg.getLengthInBytes())
                 .magic(1)
                 .build();
 
-        BitcoinMsg<HeadersMsg> headersBitcoinMsg = new BitcoinMsg<HeadersMsg>(headerMsg, headersMsg);
+            BitcoinMsg<HeadersMsg> headersBitcoinMsg = new BitcoinMsg<HeadersMsg>(headerMsg, headersMsg);
 
-        BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
+            BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
             ByteArrayReader byteArrayReader = serializer.serialize(serializerContext, headersBitcoinMsg)
             BitcoinMsg<HeadersMsg> deserializedHeadersBitcoinMsg = serializer.deserialize(deserializerContext, byteArrayReader)

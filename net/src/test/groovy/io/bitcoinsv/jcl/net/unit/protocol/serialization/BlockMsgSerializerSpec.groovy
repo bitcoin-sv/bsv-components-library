@@ -61,8 +61,8 @@ class BlockMsgSerializerSpec extends Specification {
     def "testing blockMessage BlockMsgSerializer Deserialize"(int byteInterval, int delayMs) {
         given:
 
-        ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        DeserializerContext context = DeserializerContext.builder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            DeserializerContext context = DeserializerContext.builder()
                 .protocolBasicConfig(config.getBasicConfig())
                 .build()
             BlockMsgSerializer serializer = BlockMsgSerializer.getInstance()
@@ -100,7 +100,7 @@ class BlockMsgSerializerSpec extends Specification {
                 .protocolBasicConfig(config.getBasicConfig())
                 .build()
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_MSG_FULL), byteInterval, delayMs);
-        BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
+            BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
             BitcoinMsg<BlockMsg> blockMsgBody = bitcoinSerializer.deserialize(context, byteReader)
 
@@ -130,7 +130,7 @@ class BlockMsgSerializerSpec extends Specification {
     def "testing blockMessage BlockMsgSerializer Serializing"() {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        SerializerContext context = SerializerContext.builder()
+            SerializerContext context = SerializerContext.builder()
                 .protocolBasicConfig(config.getBasicConfig())
                 .build()
             BlockMsgSerializer serializer = BlockMsgSerializer.getInstance()

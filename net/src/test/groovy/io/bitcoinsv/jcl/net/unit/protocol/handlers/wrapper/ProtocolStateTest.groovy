@@ -29,8 +29,8 @@ class ProtocolStateTest extends Specification {
     def "Testing Client/Server Msgs exchange"() {
         given:
             // We disable the Handlers we dont need for this Test:
-        ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams())
-        P2P server = new P2PBuilder("server")
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams())
+            P2P server = new P2PBuilder("server")
                     .config(config)
                     .serverPort(0) // Random Port
                     .excludeHandler(PingPongHandler.HANDLER_ID)

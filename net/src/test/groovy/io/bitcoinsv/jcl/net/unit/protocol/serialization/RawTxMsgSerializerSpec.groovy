@@ -45,13 +45,13 @@ class RawTxMsgSerializerSpec extends Specification {
 
     def "Testing TransactionMsg Deserialize"(int byteInterval, int delayMs) {
         given:
-        ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        DeserializerContext context = DeserializerContext.builder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .maxBytesToRead(Utils.HEX.decode(REF_MSG).length)
                     .build()
-        RawTxMsgSerializer serializer = RawTxMsgSerializer.getInstance()
-        RawTxMsg message
+            RawTxMsgSerializer serializer = RawTxMsgSerializer.getInstance()
+            RawTxMsg message
         when:
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_MSG), byteInterval, delayMs)
             message = serializer.deserialize(context, byteReader)

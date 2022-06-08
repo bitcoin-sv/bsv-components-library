@@ -26,6 +26,7 @@ repositories {
 }
 
 dependencies {
+
     // Compile Dependencies:
     implementation "io.bitcoinsv.bitcoinjsv:bitcoinj-base:$bitcoinJVersion"
     implementation 'org.slf4j:slf4j-api:1.7.26'
@@ -45,20 +46,6 @@ bootJar {
 
 jar {
     enabled = true
-    metaInf {
-        from "${project.rootDir}/LICENSE"
-    }
-}
-
-java {
-    withJavadocJar()
-    withSourcesJar()
-}
-
-javadoc {
-    if (JavaVersion.current().isJava11Compatible()) {
-        options.addBooleanOption('Xdoclint:none', true)
-    }
 }
 
 java {

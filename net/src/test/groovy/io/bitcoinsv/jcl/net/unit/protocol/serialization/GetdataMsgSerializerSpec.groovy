@@ -47,12 +47,12 @@ class GetdataMsgSerializerSpec extends Specification {
 
     def "testing getDataMessage  BODY De-Serializing"(int byteInterval, int delayMs) {
         given:
-        ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        DeserializerContext context = DeserializerContext.builder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .maxBytesToRead((long) (REF_GETDATA_MSG_BODY.length()/2))
                     .build()
-        GetdataMsg inventoryMsg
+                GetdataMsg inventoryMsg
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_GETDATA_MSG_BODY), byteInterval, delayMs);
         when:
             inventoryMsg = GetdataMsgSerializer.getInstance().deserialize(context, byteReader)
@@ -67,10 +67,10 @@ class GetdataMsgSerializerSpec extends Specification {
     def "testing getDataMessage BODY Serializing"() {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        SerializerContext context  = SerializerContext.builder()
+            SerializerContext context  = SerializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
-        InventoryVectorMsg inventoryVectorMsg  =  InventoryVectorMsg.builder()
+            InventoryVectorMsg inventoryVectorMsg  =  InventoryVectorMsg.builder()
                     .type(InventoryVectorMsg.VectorType.MSG_TX)
                     .hashMsg(HashMsg.builder().hash(Utils.HEX.decode(REF_ITEM_HASH)).build())
                     .build()
@@ -96,7 +96,7 @@ class GetdataMsgSerializerSpec extends Specification {
                     .maxBytesToRead((long) (REF_GETDATA_MSG_FULL.length() / 2))
                     .build()
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_GETDATA_MSG_FULL), byteInterval, delayMs);
-        BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
+            BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
         when:
             BitcoinMsg<GetdataMsg> getDataMsg = bitcoinSerializer.deserialize(context, byteReader)
         then:

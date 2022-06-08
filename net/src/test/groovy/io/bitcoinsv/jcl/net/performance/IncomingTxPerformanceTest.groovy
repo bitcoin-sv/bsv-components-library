@@ -37,7 +37,6 @@ import java.util.concurrent.atomic.AtomicLong
  * from it. For each Tx contained in the INV,s we ask for them. Sinc ethis is just a performance testing, we do not
  * care whether we are asking for Txs already processed or not, we just need to check how many Tx/sec we can process..
  */
-@Ignore
 class IncomingTxPerformanceTest extends Specification {
 
     // Duration of the test:
@@ -150,8 +149,8 @@ class IncomingTxPerformanceTest extends Specification {
            if (newTxsInvItems.size() > 0) {
 
                 // Now we send a GetData asking for them....
-               GetdataMsg getDataMsg = GetdataMsg.builder().invVectorList(newTxsInvItems).build()
-               BitcoinMsg<GetdataMsg> btcGetDataMsg = new BitcoinMsgBuilder(p2p.protocolConfig.basicConfig, getDataMsg).build()
+                GetdataMsg getDataMsg = GetdataMsg.builder().invVectorList(newTxsInvItems).build()
+                BitcoinMsg<GetdataMsg> btcGetDataMsg = new BitcoinMsgBuilder(p2p.protocolConfig.basicConfig, getDataMsg).build()
                 p2p.REQUESTS.MSGS.send(event.getPeerAddress(), btcGetDataMsg).submit()
 
             }
@@ -182,13 +181,13 @@ class IncomingTxPerformanceTest extends Specification {
         given:
             // We set up the Network we are connecting to...
             //ProtocolConfig protocolConfig = new ProtocolBSVMainConfig()
-        ProtocolConfig protocolConfig = new ProtocolBSVStnConfig()
+            ProtocolConfig protocolConfig = new ProtocolBSVStnConfig()
             //ProtocolConfig protocolConfig = ProtocolConfigBuilder.get(Net.valueOf("REGTEST").params())
 
             // We disable the Deserialize Cache, so we force it to Deserialize all the TX, even if they are Tx that we
             // already processed...
-        MessageHandlerConfig messageConfig = protocolConfig.getMessageConfig()
-        DeserializerConfig deserializerConfig = messageConfig.deserializerConfig.toBuilder().cacheEnabled(false).build()
+            MessageHandlerConfig messageConfig = protocolConfig.getMessageConfig()
+            DeserializerConfig deserializerConfig = messageConfig.deserializerConfig.toBuilder().cacheEnabled(false).build()
 
             // We also activate the "RawTxs" mode
             messageConfig = messageConfig.toBuilder()
@@ -197,18 +196,18 @@ class IncomingTxPerformanceTest extends Specification {
                     .build()
 
             // We configure the Handshake we get notified of new Txs...
-        HandshakeHandlerConfig handshakeConfig = protocolConfig.getHandshakeConfig().toBuilder()
+            HandshakeHandlerConfig handshakeConfig = protocolConfig.getHandshakeConfig().toBuilder()
                                                         .relayTxs(true)
                                                         .build()
 
             // We raise the Timeot for PING/PONG protocols:
-        PingPongHandlerConfig pingPongConfig = protocolConfig.getPingPongConfig().toBuilder()
+            PingPongHandlerConfig pingPongConfig = protocolConfig.getPingPongConfig().toBuilder()
                 .inactivityTimeout(Duration.ofSeconds(50))
                 .responseTimeout(Duration.ofSeconds(120))
                 .build()
 
             // We define a Range of Peers...
-        ProtocolBasicConfig basicConfig = protocolConfig.getBasicConfig().toBuilder()
+            ProtocolBasicConfig basicConfig = protocolConfig.getBasicConfig().toBuilder()
                                                         .minPeers(OptionalInt.of(15))
                                                         .maxPeers(OptionalInt.of(30))
                                                         .build()

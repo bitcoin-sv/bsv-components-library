@@ -30,10 +30,10 @@ class ProtocolHandshakeFailedTest extends Specification {
         given:
 
             // Server Definition:
-        ProtocolConfig protocolConfig = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            ProtocolConfig protocolConfig = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
 
             // We disable all the Handlers we don't need for this Test:
-        P2P server = new P2PBuilder("server")
+            P2P server = new P2PBuilder("server")
                     .config(protocolConfig)
                     .useLocalhost()
                     .serverPort(0) // Random Port
@@ -114,7 +114,7 @@ class ProtocolHandshakeFailedTest extends Specification {
             // We change the "User Agent" used by the Client, to use an incorrect one (in the protocolBSVMainConfig
             // class, any user_agent containing "ABC" and some other patterns are blacklisted)
 
-        HandshakeHandlerConfig handshakeConfig = protocolConfig.getHandshakeConfig().toBuilder()
+            HandshakeHandlerConfig handshakeConfig = protocolConfig.getHandshakeConfig().toBuilder()
                 .userAgent("Bitcoin ABC")
                 .build()
             // We disable all the Handlers we don't need for this Test:

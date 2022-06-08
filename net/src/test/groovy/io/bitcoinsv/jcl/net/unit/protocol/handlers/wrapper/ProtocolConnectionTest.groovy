@@ -25,9 +25,9 @@ class ProtocolConnectionTest extends Specification {
     def "Testing Client/Server communication"() {
         given:
             // Server Definition:
-        ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams())
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams())
             // We disable all the Handlers we don't need for this Test:
-        P2P server = new P2PBuilder("server")
+            P2P server = new P2PBuilder("server")
                     .config(config)
                     .useLocalhost()
                     .serverPort(0) // Random Port

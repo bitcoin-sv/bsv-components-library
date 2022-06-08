@@ -36,11 +36,11 @@ class SendHeadersMsgSerializerSpec extends Specification {
                     .protocolBasicConfig(protocolBasicConfig)
                     .build()
 
-        SendHeadersMsg sendHeadersMsg = SendHeadersMsg.builder().build()
+            SendHeadersMsg sendHeadersMsg = SendHeadersMsg.builder().build()
 
             ByteArrayWriter byteWriter = new ByteArrayWriter()
         when:
-        SendHeadersMsgSerializer.getInstance().serialize(serializerContext, sendHeadersMsg, byteWriter)
+            SendHeadersMsgSerializer.getInstance().serialize(serializerContext, sendHeadersMsg, byteWriter)
             SendHeadersMsg deserializedSendHeadersMsg = SendHeadersMsgSerializer.getInstance().deserialize(deserializerContext, byteWriter.reader())
         then:
             sendHeadersMsg.equals(deserializedSendHeadersMsg)
@@ -60,7 +60,7 @@ class SendHeadersMsgSerializerSpec extends Specification {
 
             SendHeadersMsg sendHeadersMsg = SendHeadersMsg.builder().build()
 
-        HeaderMsg headerMsg = HeaderMsg.builder()
+            HeaderMsg headerMsg = HeaderMsg.builder()
                     .checksum(3806393949)
                     .command(SendHeadersMsg.MESSAGE_TYPE)
                     .length((int)sendHeadersMsg.getLengthInBytes())
@@ -68,9 +68,9 @@ class SendHeadersMsgSerializerSpec extends Specification {
                     .build();
 
 
-        BitcoinMsg<SendHeadersMsg> sendHeadersBitcoinMsg = new BitcoinMsg<SendHeadersMsg>(headerMsg, sendHeadersMsg);
+            BitcoinMsg<SendHeadersMsg> sendHeadersBitcoinMsg = new BitcoinMsg<SendHeadersMsg>(headerMsg, sendHeadersMsg);
 
-        BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
+            BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
             ByteArrayReader byteArrayReader = serializer.serialize(serializerContext, sendHeadersBitcoinMsg)
             BitcoinMsg<SendHeadersMsg> deserializedSendHeadersBitcoinMsg = serializer.deserialize(deserializerContext, byteArrayReader)

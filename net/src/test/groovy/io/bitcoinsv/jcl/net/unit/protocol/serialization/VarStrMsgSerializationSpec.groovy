@@ -27,12 +27,12 @@ class VarStrMsgSerializationSpec extends Specification {
 
     def "testing De-serializing VarStr"(int byteInterval, int delayMs) {
         given:
-        ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        DeserializerContext context = DeserializerContext.builder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
-        VarStrMsgSerializer serializer = VarStrMsgSerializer.getinstance()
-        VarStrMsg message
+            VarStrMsgSerializer serializer = VarStrMsgSerializer.getinstance()
+            VarStrMsg message
 
         when:
             // We convert the String in a ByteArray, Careful here, since the "VarInt" part is in HEX format,
@@ -54,7 +54,7 @@ class VarStrMsgSerializationSpec extends Specification {
     def "testing Serializing VarStr"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        SerializerContext contextS = SerializerContext.builder()
+            SerializerContext contextS = SerializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
             DeserializerContext contextD = DeserializerContext.builder().protocolBasicConfig(config.getBasicConfig()).build()

@@ -52,13 +52,13 @@ class AddrMsgSerialzerSpec extends Specification {
 
     def "Testing AddrMsg Body Deserializing"(int byteInterval, int delayMs) {
         given:
-        ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        DeserializerContext context = DeserializerContext.builder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            DeserializerContext context = DeserializerContext.builder()
                         .protocolBasicConfig(config.getBasicConfig())
                         .maxBytesToRead((Long) (REF_ADDRESS_MSG.length()/2))
                         .build()
-        AddrMsgSerialzer serializer = AddrMsgSerialzer.getInstance()
-        AddrMsg address = null
+            AddrMsgSerialzer serializer = AddrMsgSerialzer.getInstance()
+            AddrMsg address = null
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_ADDRESS_MSG), byteInterval, delayMs);
         when:
              address = serializer.deserialize(context,byteReader)
@@ -77,7 +77,7 @@ class AddrMsgSerialzerSpec extends Specification {
     def "Testing AddrMsg Body Serializing"() {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        SerializerContext context = SerializerContext.builder()
+            SerializerContext context = SerializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
             AddrMsgSerialzer serializer = AddrMsgSerialzer.getInstance()
@@ -101,8 +101,8 @@ class AddrMsgSerialzerSpec extends Specification {
 
            AddrMsg addMessages = buildAddrMsg()
 
-        BitcoinMsg<AddrMsg> bitcoinVersionMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), addMessages).build()
-        BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
+            BitcoinMsg<AddrMsg> bitcoinVersionMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), addMessages).build()
+            BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
             byte[] addrMsgBytes = bitcoinSerializer.serialize(context, bitcoinVersionMsg).getFullContent()
             String addrMsgDeserialzed = Utils.HEX.encode(addrMsgBytes)

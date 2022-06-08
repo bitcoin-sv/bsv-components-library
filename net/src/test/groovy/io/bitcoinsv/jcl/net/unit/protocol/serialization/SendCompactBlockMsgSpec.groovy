@@ -21,17 +21,17 @@ class SendCompactBlockMsgSpec extends Specification {
 
     def "Testing SendCompactBlockMsg Deserialize"(int byteInterval, int delayMs) {
         given:
-        ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        DeserializerContext context = DeserializerContext.builder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            DeserializerContext context = DeserializerContext.builder()
                 .protocolBasicConfig(config.getBasicConfig())
                 .build()
 
             byte[] highBandwidthBytes = Utils.HEX.decode(HIGH_BANDWIDTH_BYTES)
             byte[] lowBandwidth_bytes = Utils.HEX.decode(LOW_BANDWIDTH_BYTES)
 
-        SendCompactBlockMsgSerializer serializer = SendCompactBlockMsgSerializer.getInstance()
+            SendCompactBlockMsgSerializer serializer = SendCompactBlockMsgSerializer.getInstance()
 
-        SendCompactBlockMsg highBandwidthMessage
+            SendCompactBlockMsg highBandwidthMessage
             SendCompactBlockMsg lowBandwidthMessage
 
         when:
@@ -58,7 +58,7 @@ class SendCompactBlockMsgSpec extends Specification {
     def "Testing SendCompactBlockMsg Serializing"() {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        SerializerContext context = SerializerContext.builder()
+            SerializerContext context = SerializerContext.builder()
                 .protocolBasicConfig(config.getBasicConfig())
                 .build()
 

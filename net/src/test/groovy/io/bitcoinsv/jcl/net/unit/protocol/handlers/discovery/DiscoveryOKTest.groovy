@@ -29,18 +29,18 @@ class DiscoveryOKTest extends Specification {
     def "Testing Initial Peers loaded from CSV"() {
         given:
             // We set up the Configuration to use the Peers hardcoded in a CSV file:
-        ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
 
             // Since the initial peers are in a CSV in our classpath, we need to use a "RuntimeConfig" specifying a
             // classpath, so we instead of using the Default, we use an specific one
             RuntimeConfig runtimeConfig = new RuntimeConfigDefault(this.getClass().getClassLoader());
 
-        DiscoveryHandlerConfig discoveryConfig = config.getDiscoveryConfig()
+            DiscoveryHandlerConfig discoveryConfig = config.getDiscoveryConfig()
                     .toBuilder()
                     .discoveryMethod(DiscoveryHandlerConfig.DiscoveryMethod.PEERS)
                     .build()
 
-        P2P server = new P2PBuilder("testing")
+            P2P server = new P2PBuilder("testing")
                     .config(runtimeConfig)
                     .config(config)
                     .config(discoveryConfig)

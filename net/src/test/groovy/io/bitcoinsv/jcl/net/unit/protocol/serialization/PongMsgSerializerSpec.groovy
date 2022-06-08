@@ -43,11 +43,11 @@ class PongMsgSerializerSpec extends Specification {
 
     def "testing Pong Message Body Deserializing"(int byteInterval, int delayMs) {
         given:
-        ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        DeserializerContext context = DeserializerContext.builder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
-        PongMsg message = null
+            PongMsg message = null
             ByteArrayReader byteReader = new ByteArrayReader(Utils.HEX.decode(REF_BODY_PONG_MSG))
         when:
             message = PongMsgSerializer.getInstance().deserialize(context, byteReader)
@@ -63,7 +63,7 @@ class PongMsgSerializerSpec extends Specification {
     def "testing Pong Message Body Serializing"() {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        SerializerContext context = SerializerContext.builder()
+            SerializerContext context = SerializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
             PongMsg message = PongMsg.builder().nonce(REF_BODY_NONCE).build()
@@ -84,7 +84,7 @@ class PongMsgSerializerSpec extends Specification {
                 .protocolBasicConfig(config.getBasicConfig())
                 .build()
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_PONG_MSG), byteInterval, delayMs)
-        BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
+            BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
             BitcoinMsg<PongMsg> message = bitcoinSerializer.deserialize(context, byteReader)
         then:

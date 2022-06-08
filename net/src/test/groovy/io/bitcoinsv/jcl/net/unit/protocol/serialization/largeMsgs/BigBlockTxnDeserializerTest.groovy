@@ -28,9 +28,9 @@ class BigBlockTxnDeserializerTest extends Specification {
 
     def "Testing BigBlockTxn deserialization"() {
         given:
-        ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
 
-        DeserializerContext context = DeserializerContext.builder()
+            DeserializerContext context = DeserializerContext.builder()
                 .protocolBasicConfig(config.getBasicConfig())
                 .batchSize(2)
                 .build()

@@ -28,7 +28,7 @@ class BigBlockDeserializerTest extends Specification {
             final int NUM_TXS = 2
             String BLOCK_HEX = MsgTest.BLOCK_BODY_HEX
 
-        ProtocolConfig protocolConfig = new ProtocolBSVMainConfig()
+            ProtocolConfig protocolConfig = new ProtocolBSVMainConfig()
 
             // We keep track of the info sent by the callbacks triggered:
             AtomicBoolean headerReceived = new AtomicBoolean(false)
@@ -44,7 +44,7 @@ class BigBlockDeserializerTest extends Specification {
             BigBlockDeserializer bigBlockDeserializer = new BigBlockDeserializer()
             bigBlockDeserializer.setPartialMsgSize(1_000_000) // 1MB
 
-        DeserializerContext deserializedContext = DeserializerContext.builder()
+            DeserializerContext deserializedContext = DeserializerContext.builder()
                 .protocolBasicConfig(protocolConfig.getBasicConfig())
                 .maxBytesToRead(reader.size())
                 .build()

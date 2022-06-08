@@ -37,12 +37,12 @@ class NetAddressSerializationSpec extends Specification {
 
     def "Testing NetAddress Deserializing"(int byteInterval, int delayMs) {
         given:
-        ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        DeserializerContext context = DeserializerContext.builder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
-        NetAddressMsgSerializer serializer = NetAddressMsgSerializer.getInstance()
-        NetAddressMsg address = null
+            NetAddressMsgSerializer serializer = NetAddressMsgSerializer.getInstance()
+            NetAddressMsg address = null
             ByteArrayReader byteArrayReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_ADDRESS_MSG), byteInterval, delayMs);
         when:
             address = serializer.deserialize(context, byteArrayReader)
@@ -58,7 +58,7 @@ class NetAddressSerializationSpec extends Specification {
     def "Testing NetAddress Serializing"() {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        SerializerContext context = SerializerContext.builder()
+            SerializerContext context = SerializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
             NetAddressMsgSerializer serializer = NetAddressMsgSerializer.getInstance()

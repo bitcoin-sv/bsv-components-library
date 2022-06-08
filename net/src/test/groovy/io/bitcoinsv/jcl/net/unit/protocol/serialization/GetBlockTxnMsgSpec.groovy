@@ -30,15 +30,15 @@ class GetBlockTxnMsgSpec extends Specification {
 
     def "Testing BlockTransactionsRequestMsg Deserialize"(int byteInterval, int delayMs) {
         given:
-        ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        DeserializerContext context = DeserializerContext.builder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            DeserializerContext context = DeserializerContext.builder()
                 .protocolBasicConfig(config.getBasicConfig())
                 .build()
 
             byte[] bytes = Utils.HEX.decode(MESSAGE_BYTES)
 
-        GetBlockTxnMsgSerializer serializer = GetBlockTxnMsgSerializer.getInstance()
-        GetBlockTxnMsg message
+            GetBlockTxnMsgSerializer serializer = GetBlockTxnMsgSerializer.getInstance()
+            GetBlockTxnMsg message
 
         when:
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(bytes, byteInterval, delayMs)
@@ -58,7 +58,7 @@ class GetBlockTxnMsgSpec extends Specification {
     def "Testing BlockTransactionsRequestMsg Serializing"() {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        SerializerContext context = SerializerContext.builder()
+            SerializerContext context = SerializerContext.builder()
                 .protocolBasicConfig(config.getBasicConfig())
                 .build()
 
@@ -66,12 +66,12 @@ class GetBlockTxnMsgSpec extends Specification {
 
             GetBlockTxnMsg blockHeaderMsg = GetBlockTxnMsg.builder()
                 .blockHash(
-                        HashMsg.builder()
+                    HashMsg.builder()
                         .hash(Utils.HEX.decode(BLOCK_HASH))
                         .build()
                 )
                 .indexesLength(
-                        VarIntMsg.builder()
+                    VarIntMsg.builder()
                         .value(2)
                         .build()
                 )

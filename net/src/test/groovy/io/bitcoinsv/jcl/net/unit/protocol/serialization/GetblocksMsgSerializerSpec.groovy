@@ -57,7 +57,7 @@ class GetblocksMsgSerializerSpec extends Specification {
             ByteArrayWriter byteWriter = new ByteArrayWriter()
             String messageSerialized
         when:
-        GetblocksMsgSerializer.getInstance().serialize(context, getBlocksMsg, byteWriter)
+            GetblocksMsgSerializer.getInstance().serialize(context, getBlocksMsg, byteWriter)
             byte[] messageBytes = byteWriter.reader().getFullContent()
             messageSerialized = Utils.HEX.encode(messageBytes)
         then:
@@ -101,8 +101,8 @@ class GetblocksMsgSerializerSpec extends Specification {
             BaseGetDataAndHeaderMsg baseMsg = BaseGetDataAndHeaderMsgSerializerSpec.buildBaseMsg(basicConfig)
             GetBlocksMsg getblockMsg  = GetBlocksMsg.builder().baseGetDataAndHeaderMsg(baseMsg).build()
 
-        BitcoinMsg<GetBlocksMsg> getBlocksMsgBitcoinMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), getblockMsg).build()
-        BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
+         BitcoinMsg<GetBlocksMsg> getBlocksMsgBitcoinMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), getblockMsg).build()
+            BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
             byte[] bytes = serializer.serialize(context, getBlocksMsgBitcoinMsg).getFullContent()
             String msgSerialized = Utils.HEX.encode(bytes)

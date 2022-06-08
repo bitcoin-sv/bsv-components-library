@@ -37,12 +37,12 @@ class TxOutPointMsgSerializerSpec extends Specification {
 
    def "Testing HashMsg Deserializing"(int byteInterval, int delayMs) {
        given:
-       ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-       DeserializerContext context = DeserializerContext.builder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
-       TxOutPointMsgSerializer serializer = TxOutPointMsgSerializer.getInstance()
-       TxOutPointMsg message
+            TxOutPointMsgSerializer serializer = TxOutPointMsgSerializer.getInstance()
+            TxOutPointMsg message
        when:
            ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_FULL_MSG), byteInterval, delayMs)
            message = serializer.deserialize(context, byteReader)
@@ -58,10 +58,10 @@ class TxOutPointMsgSerializerSpec extends Specification {
    def "Testing HashMsg Serializing"() {
        given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-       SerializerContext context = SerializerContext.builder()
+            SerializerContext context = SerializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
-       HashMsg hash = HashMsg.builder().hash(REF_HASH).build();
+           HashMsg hash = HashMsg.builder().hash(REF_HASH).build();
 
            TxOutPointMsg message = TxOutPointMsg.builder().hash(hash).index(REF_INDEX).build()
            TxOutPointMsgSerializer serializer = TxOutPointMsgSerializer.getInstance()

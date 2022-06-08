@@ -27,14 +27,14 @@ class FeeFilterMsgSerializerSpec extends Specification {
 
     def "testing Serialization/Deserialization"(int byteInterval, int delayMs) {
         given:
-        FeeFilterMsg msg = FeeFilterMsg.builder().fee(555).build()
-        SerializerContext serializerContext = SerializerContext.builder().build();
-        DeserializerContext deserializerContext = DeserializerContext.builder().build()
+            FeeFilterMsg msg = FeeFilterMsg.builder().fee(555).build()
+            SerializerContext serializerContext = SerializerContext.builder().build();
+            DeserializerContext deserializerContext = DeserializerContext.builder().build()
         when:
 
             // First we Serialize the Message:
             ByteArrayWriter writer = new ByteArrayWriter()
-        FeeFilterMsgSerializer.getInstance().serialize(serializerContext, msg, writer)
+            FeeFilterMsgSerializer.getInstance().serialize(serializerContext, msg, writer)
 
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(writer.reader().getFullContent(), byteInterval, delayMs);
 

@@ -30,9 +30,9 @@ class ProtocolHandshakeOKTest extends Specification {
     def "testing Handshake OK"() {
         given:
             // Server and Client Definition:
-        ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
             // We disable all the Handlers we don't need for this Test:
-        P2P server = new P2PBuilder("server")
+            P2P server = new P2PBuilder("server")
                     .config(config)
                     .serverPort(0) // Random Port
                     .excludeHandler(PingPongHandler.HANDLER_ID)
@@ -87,7 +87,7 @@ class ProtocolHandshakeOKTest extends Specification {
             ProtocolConfig protocolConfig = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
 
             // We set up the MIN and MAX Peers
-        ProtocolBasicConfig basicConfig = protocolConfig.basicConfig.toBuilder()
+            ProtocolBasicConfig basicConfig = protocolConfig.basicConfig.toBuilder()
                     .minPeers(OptionalInt.of(MIN_PEERS))
                     .maxPeers(OptionalInt.of(MAX_PEERS))
                     .build()

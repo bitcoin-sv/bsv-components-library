@@ -40,7 +40,7 @@ class DeserializerMsgsStreamSpec extends Specification {
                     .build()
 
             // We set the protocol configuration (the network does not matter now, so we choose BSV for example)
-        ProtocolConfig protocolConfig = new ProtocolBSVMainConfig()
+            ProtocolConfig protocolConfig = new ProtocolBSVMainConfig()
 
             // The executor to manage the events:
             ExecutorService eventBusExecutor = Executors.newSingleThreadExecutor()
@@ -50,7 +50,7 @@ class DeserializerMsgsStreamSpec extends Specification {
 
             // The source used to send Bytes to our Stream. This specific implementation will add artificial
             // Delays to the data, to simulate real network activity:
-        PeerInputStream<ByteArrayReader> delaySource = MsgTest.getDummyDelayStreamSource(speedBytesPerSec);
+            PeerInputStream<ByteArrayReader> delaySource = MsgTest.getDummyDelayStreamSource(speedBytesPerSec);
 
             // Our Deserialized Stream: We check the number of Messages Deserialized, to check everything is fine
             AtomicInteger numMessages = new AtomicInteger()

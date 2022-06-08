@@ -29,8 +29,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 /**
  * An integration Test for Downloading Blocks.
  */
-//@TODO: time-consuming
-@Ignore
 class BlockDownloadTest extends Specification {
 
     // Several real Block HASHES to download from different Networks:
@@ -133,7 +131,7 @@ class BlockDownloadTest extends Specification {
                 .build()
 
             // Network Config:
-        NetworkConfig networkConfig = new NetworkDefaultConfig().toBuilder()
+            NetworkConfig networkConfig = new NetworkDefaultConfig().toBuilder()
                 .maxSocketConnectionsOpeningAtSameTime(50)
                 .build();
 
@@ -145,7 +143,7 @@ class BlockDownloadTest extends Specification {
                 .build()
 
             // Serialization Config:
-        MessageHandlerConfig messageConfig = config.getMessageConfig().toBuilder()
+            MessageHandlerConfig messageConfig = config.getMessageConfig().toBuilder()
                 .rawTxsEnabled(true)
                 .verifyChecksum(true)
 
@@ -168,7 +166,7 @@ class BlockDownloadTest extends Specification {
                 .build()
 
             // We set up the Download configuration:
-        BlockDownloaderHandlerConfig blockConfig = config.getBlockDownloaderConfig().toBuilder()
+            BlockDownloaderHandlerConfig blockConfig = config.getBlockDownloaderConfig().toBuilder()
                 .maxBlocksInParallel(3)
                 .maxDownloadAttempts(100)
                 .maxDownloadTimeout(Duration.ofMinutes(20))
@@ -178,7 +176,7 @@ class BlockDownloadTest extends Specification {
                 .build()
 
             // We configure the P2P Service:
-        P2P p2p = new P2PBuilder("testing")
+            P2P p2p = new P2PBuilder("testing")
                 .config(runtimeConfig)
                 .config(networkConfig)
                 .config(config)
@@ -198,7 +196,7 @@ class BlockDownloadTest extends Specification {
             Set<String> blocksCancelled = new HashSet<>()                           // Blocks Cancelled...
 
             // We keep track of the last Download STATUS:
-        BlockDownloaderHandlerState downloadState = null;
+            BlockDownloaderHandlerState downloadState = null;
 
             // We capture the state when we reach the min Peers, so we do not start the download until this moment:
             AtomicBoolean connReady = new AtomicBoolean(false);

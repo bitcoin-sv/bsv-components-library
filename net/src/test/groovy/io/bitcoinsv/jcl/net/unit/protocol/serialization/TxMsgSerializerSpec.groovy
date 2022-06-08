@@ -57,12 +57,12 @@ class TxMsgSerializerSpec extends Specification {
 
     def "Testing TransactionMsg Deserialize"(int byteInterval, int delayMs) {
         given:
-        ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        DeserializerContext context = DeserializerContext.builder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
-        TxMsgSerializer serializer = TxMsgSerializer.getInstance()
-        TxMsg message
+            TxMsgSerializer serializer = TxMsgSerializer.getInstance()
+            TxMsg message
         when:
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_MSG), byteInterval, delayMs)
             message = serializer.deserialize(context, byteReader)
@@ -83,17 +83,17 @@ class TxMsgSerializerSpec extends Specification {
     def "Testing TxInputMessage Serializing"() {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        SerializerContext context = SerializerContext.builder()
+            SerializerContext context = SerializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
             TxMsgSerializer serializer = TxMsgSerializer.getInstance()
 
             // We build the inputs and outputs directly from the Hex representation:
             ByteArrayReader reader = new ByteArrayReader(Utils.HEX.decode(REF_INPUT))
-        TxInputMsg txInput = TxInputMsgSerializer.getInstance().deserialize(null, reader)
+            TxInputMsg txInput = TxInputMsgSerializer.getInstance().deserialize(null, reader)
 
             reader = new ByteArrayReader(Utils.HEX.decode(REF_OUTPUT))
-        TxOutputMsg txOutput = TxOutputMsgSerializer.getInstance().deserialize(null, reader)
+            TxOutputMsg txOutput = TxOutputMsgSerializer.getInstance().deserialize(null, reader)
 
             // We build the TX:
             TxMsg transactionMsg = TxMsg.builder()
@@ -120,7 +120,7 @@ class TxMsgSerializerSpec extends Specification {
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_MSG_FULL), byteInterval, delayMs)
-        BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
+            BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
             BitcoinMsg<TxMsg> message = bitcoinSerializer.deserialize(context, byteReader)
 

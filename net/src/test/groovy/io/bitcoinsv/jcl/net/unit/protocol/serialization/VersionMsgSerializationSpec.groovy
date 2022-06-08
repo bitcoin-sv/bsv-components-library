@@ -71,7 +71,7 @@ class VersionMsgSerializationSpec extends Specification {
                     .maxBytesToRead(Utils.HEX.decode(REF_BODY_ADDRESS_MSG).length)
                     .insideVersionMsg(true)
                     .build()
-        VersionMsg message = null
+            VersionMsg message = null
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_BODY_ADDRESS_MSG), byteInterval, delayMs);
 
         when:
@@ -98,8 +98,8 @@ class VersionMsgSerializationSpec extends Specification {
                     .protocolBasicConfig(basicConfig)
                     .insideVersionMsg(true)
                     .build()
-        VarStrMsg userAgentMsg = VarStrMsg.builder().str(REF_BODY_USER_AGENT).build();
-        NetAddressMsg body_addr = NetAddressMsg.builder()
+            VarStrMsg userAgentMsg = VarStrMsg.builder().str(REF_BODY_USER_AGENT).build();
+            NetAddressMsg body_addr = NetAddressMsg.builder()
                 .address(REF_BODY_ADDRESS)
                 .timestamp(System.currentTimeMillis())
                 .build();
@@ -137,7 +137,7 @@ class VersionMsgSerializationSpec extends Specification {
                 .build()
 
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_ADDRESS_MSG), byteInterval, delayMs);
-        BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
+            BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
             BitcoinMsg<VersionMsg> message = bitcoinSerializer.deserialize(context, byteReader)
         then:

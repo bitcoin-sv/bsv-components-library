@@ -31,12 +31,12 @@ class VarIntSerializationSpec extends Specification {
 
     def "Testing VarInt Deserializing"(int byteInterval, int delayMs) {
         given:
-        ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        DeserializerContext context = DeserializerContext.builder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
-        VarIntMsgSerializer serializer = VarIntMsgSerializer.getInstance()
-        VarIntMsg message = null
+            VarIntMsgSerializer serializer = VarIntMsgSerializer.getInstance()
+            VarIntMsg message = null
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_VARINT_MSG), byteInterval, delayMs)
         when:
             message = serializer.deserialize(context, byteReader)
@@ -50,7 +50,7 @@ class VarIntSerializationSpec extends Specification {
     def "Testing VarInt Serializing"() {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        SerializerContext context = SerializerContext.builder()
+            SerializerContext context = SerializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
             VarIntMsg message = VarIntMsg.builder().value(VAR_VALUE).build()

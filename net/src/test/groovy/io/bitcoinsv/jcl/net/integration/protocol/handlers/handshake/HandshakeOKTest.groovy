@@ -45,13 +45,13 @@ class HandshakeOKTest extends Specification {
             // We set the Default Config:
            // ProtocolConfig config = new ProtocolBSVMainConfig()
 
-        ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams()).toBuilder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams()).toBuilder()
                 .minPeers(MIN_PEERS)
                 .maxPeers(MAX_PEERS)
                 .build();
 
             // We disable the Handlers we do NOT need for this test
-        P2P server = new P2PBuilder("testing")
+            P2P server = new P2PBuilder("testing")
                     .config(config)
                     .serverPort(0) // Random Port
                     .excludeHandler(BlacklistHandler.HANDLER_ID)

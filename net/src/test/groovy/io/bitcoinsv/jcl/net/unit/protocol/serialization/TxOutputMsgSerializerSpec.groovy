@@ -39,12 +39,12 @@ class TxOutputMsgSerializerSpec extends Specification {
 
     def "Testing TxOutputMessage Deserializing"(int byteInterval, int delayMs) {
         given:
-        ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        DeserializerContext context = DeserializerContext.builder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
-        TxOutputMsgSerializer serializer = TxOutputMsgSerializer.getInstance()
-        TxOutputMsg message
+            TxOutputMsgSerializer serializer = TxOutputMsgSerializer.getInstance()
+            TxOutputMsg message
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_MSG), byteInterval, delayMs)
         when:
             message = serializer.deserialize(context, byteReader)
@@ -63,7 +63,7 @@ class TxOutputMsgSerializerSpec extends Specification {
     def "Testing TxOutputMessage Serializing"() {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        SerializerContext context = SerializerContext.builder()
+            SerializerContext context = SerializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
             TxOutputMsgSerializer serializer = TxOutputMsgSerializer.getInstance()

@@ -36,12 +36,12 @@ class HashMsgSerializerSpec extends Specification {
 
     def "Testing HashMsg Deserializing"(int byteInterval, int delayMs) {
         given:
-        ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        DeserializerContext context = DeserializerContext.builder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
-        HashMsgSerializer serializer = HashMsgSerializer.getInstance()
-        HashMsg message
+            HashMsgSerializer serializer = HashMsgSerializer.getInstance()
+            HashMsg message
         ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(REF_HASH_BYTES, byteInterval, delayMs);
         when:
 
@@ -57,7 +57,7 @@ class HashMsgSerializerSpec extends Specification {
     def "Testing HashMsg Serializing"() {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        SerializerContext context = SerializerContext.builder()
+            SerializerContext context = SerializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
             HashMsg message = HashMsg.builder().hash(REF_HASH_CONTENT_BYTES).build()

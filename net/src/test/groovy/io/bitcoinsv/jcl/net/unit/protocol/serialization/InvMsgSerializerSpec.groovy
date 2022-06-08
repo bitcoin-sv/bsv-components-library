@@ -44,22 +44,22 @@ class InvMsgSerializerSpec extends Specification {
 
     def "testing invMessage BODY Serializing"() {
         given:
-        ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        SerializerContext context  = SerializerContext.builder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            SerializerContext context  = SerializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
 
             // We build the item by deserializing the content
             ByteArrayReader reader = new ByteArrayReader(Utils.HEX.decode(REF_INV_ITEM))
-        InventoryVectorMsg inventoryVectorMsg  = InventoryVectorMsgSerializer.getInstance().deserialize(null, reader)
+            InventoryVectorMsg inventoryVectorMsg  = InventoryVectorMsgSerializer.getInstance().deserialize(null, reader)
 
-        InvMessage invMessage = InvMessage.builder()
+            InvMessage invMessage = InvMessage.builder()
                     .invVectorMsgList(Arrays.asList(inventoryVectorMsg))
                     .build()
             ByteArrayWriter byteWriter = new ByteArrayWriter()
             String messageSerialized = null
         when:
-        InvMsgSerializer.getInstance().serialize(context, invMessage, byteWriter)
+            InvMsgSerializer.getInstance().serialize(context, invMessage, byteWriter)
             byte[] messageBytes = byteWriter.reader()getFullContent()
             messageSerialized = Utils.HEX.encode(messageBytes)
         then:
@@ -69,7 +69,7 @@ class InvMsgSerializerSpec extends Specification {
     def "testing invMessage BODY De-Serializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        DeserializerContext context = DeserializerContext.builder()
+            DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .maxBytesToRead((long) (REF_INV_MSG_BODY.length()/2))
                     .build()
@@ -100,8 +100,8 @@ class InvMsgSerializerSpec extends Specification {
                     .invVectorMsgList(Arrays.asList(inventoryVectorMsg))
                     .build()
 
-        BitcoinMsg<InvMessage> inventoryBitcoinMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), invMessage).build()
-        BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
+            BitcoinMsg<InvMessage> inventoryBitcoinMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), invMessage).build()
+            BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
             byte[] bytes = serializer.serialize(context, inventoryBitcoinMsg).getFullContent()
             String invMsgSerialized = Utils.HEX.encode(bytes)

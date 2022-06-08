@@ -41,15 +41,15 @@ class CompactBlockMsgSpec extends Specification {
 
     def "Testing CompactBlockMsg Deserialize"(int byteInterval, int delayMs) {
         given:
-        ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        DeserializerContext context = DeserializerContext.builder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            DeserializerContext context = DeserializerContext.builder()
                 .protocolBasicConfig(config.getBasicConfig())
                 .build()
 
             byte[] bytes = Utils.HEX.decode(COMPACT_BLOCK_BYTES)
 
-        CompactBlockMsgSerializer serializer = CompactBlockMsgSerializer.getInstance()
-        CompactBlockMsg message
+            CompactBlockMsgSerializer serializer = CompactBlockMsgSerializer.getInstance()
+            CompactBlockMsg message
 
         when:
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(bytes, byteInterval, delayMs)
@@ -71,13 +71,13 @@ class CompactBlockMsgSpec extends Specification {
     def "Testing CompactBlockMsg Serializing"() {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        SerializerContext context = SerializerContext.builder()
+            SerializerContext context = SerializerContext.builder()
                 .protocolBasicConfig(config.getBasicConfig())
                 .build()
 
             CompactBlockMsgSerializer serializer = CompactBlockMsgSerializer.getInstance()
 
-        CompactBlockHeaderMsg blockHeaderMsg = CompactBlockHeaderMsg.builder()
+            CompactBlockHeaderMsg blockHeaderMsg = CompactBlockHeaderMsg.builder()
                 .hash(HashMsg.builder().hash(Utils.HEX.decode("2f6428543c10f8b30e76f9519b597259e4839e0c91ed278a7eee27f8c014a525")).build())
                 .version(1)
                 .prevBlockHash(HashMsg.builder().hash(Utils.HEX.decode("40f11b68435988807d64dff20261f7d9827825fbb37542601fb94d4500000000")).build())

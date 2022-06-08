@@ -46,11 +46,11 @@ class BlockHeaderEnMsgSpec extends Specification {
 
   @Ignore  def "testing blockMessage BlockHeaderEnrichedMsg Serializing"() {
         given:
-        ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        SerializerContext context = SerializerContext.builder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            SerializerContext context = SerializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
-        BlockHeaderEnMsgSerializer serializer = BlockHeaderEnMsgSerializer.getInstance()
+            BlockHeaderEnMsgSerializer serializer = BlockHeaderEnMsgSerializer.getInstance()
             List<HashMsg> transactionMsgList = new ArrayList<>()
             Optional<HashMsg> transactionMsg1 = makeCoinbaseTransaction().getHash()
             Optional<HashMsg> transactionMsg2 = makeTransaction().getHash()

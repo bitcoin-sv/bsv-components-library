@@ -36,15 +36,15 @@ class ProtocolPingPongOKTest extends Specification {
             Duration waitingTime = Duration.ofMillis(inactivityTimeout.toMillis() * 5) // 3 times as much
 
             // Server Definition:
-        ProtocolConfig serverConfig = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET)).toBuilder().port(0).build()
+            ProtocolConfig serverConfig = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET)).toBuilder().port(0).build()
 
-        PingPongHandlerConfig serverPingConfig = serverConfig.getPingPongConfig()
+            PingPongHandlerConfig serverPingConfig = serverConfig.getPingPongConfig()
                     .toBuilder()
                     .inactivityTimeout(inactivityTimeout)
                     .build()
 
             // We disable the Handlers we dont need for this Test:
-        P2P server = new P2PBuilder("server")
+            P2P server = new P2PBuilder("server")
                     .config(serverConfig)
                     .config(serverPingConfig)
                     .useLocalhost()

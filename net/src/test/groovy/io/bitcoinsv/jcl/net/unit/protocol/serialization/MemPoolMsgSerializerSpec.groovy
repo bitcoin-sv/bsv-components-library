@@ -36,11 +36,11 @@ class MemPoolMsgSerializerSpec extends Specification {
                     .protocolBasicConfig(protocolBasicConfig)
                     .build()
 
-        MemPoolMsg memPoolMsg = MemPoolMsg.builder().build()
+            MemPoolMsg memPoolMsg = MemPoolMsg.builder().build()
 
             ByteArrayWriter byteWriter = new ByteArrayWriter()
         when:
-        MemPoolMsgSerializer.getInstance().serialize(serializerContext, memPoolMsg, byteWriter)
+            MemPoolMsgSerializer.getInstance().serialize(serializerContext, memPoolMsg, byteWriter)
             MemPoolMsg deserializedMemPoolMsg = MemPoolMsgSerializer.getInstance().deserialize(deserializerContext, byteWriter.reader())
         then:
             memPoolMsg.equals(deserializedMemPoolMsg)
@@ -60,7 +60,7 @@ class MemPoolMsgSerializerSpec extends Specification {
 
             MemPoolMsg memPoolMsg = MemPoolMsg.builder().build()
 
-        HeaderMsg headerMsg = HeaderMsg.builder()
+            HeaderMsg headerMsg = HeaderMsg.builder()
                     .checksum(3806393949)
                     .command(MemPoolMsg.MESSAGE_TYPE)
                     .length((int)memPoolMsg.getLengthInBytes())
@@ -68,9 +68,9 @@ class MemPoolMsgSerializerSpec extends Specification {
                     .build();
 
 
-        BitcoinMsg<MemPoolMsg> memPoolBitcoinMsg = new BitcoinMsg<MemPoolMsg>(headerMsg, memPoolMsg);
+            BitcoinMsg<MemPoolMsg> memPoolBitcoinMsg = new BitcoinMsg<MemPoolMsg>(headerMsg, memPoolMsg);
 
-        BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
+            BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
             ByteArrayReader byteArrayReader = serializer.serialize(serializerContext, memPoolBitcoinMsg)
             BitcoinMsg<MemPoolMsg> deserializedMemPoolBitcoinMsg = serializer.deserialize(deserializerContext, byteArrayReader)

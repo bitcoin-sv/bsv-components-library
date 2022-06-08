@@ -43,20 +43,6 @@ bootJar {
 
 jar {
     enabled = true
-    metaInf {
-        from "${project.rootDir}/LICENSE"
-    }
-}
-
-java {
-    withJavadocJar()
-    withSourcesJar()
-}
-
-javadoc {
-    if (JavaVersion.current().isJava11Compatible()) {
-        options.addBooleanOption('Xdoclint:none', true)
-    }
 }
 
 java {

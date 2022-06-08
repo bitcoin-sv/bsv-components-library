@@ -40,16 +40,16 @@ class ProtocolPingPongFailTest extends Specification {
             Duration waitingTime = Duration.ofMillis(responseTimeout.toMillis() * 5) // 3 times as much
 
             // Server Definition:
-        ProtocolConfig serverConfig = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            ProtocolConfig serverConfig = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
 
-        PingPongHandlerConfig serverPingConfig = serverConfig.getPingPongConfig()
+            PingPongHandlerConfig serverPingConfig = serverConfig.getPingPongConfig()
                 .toBuilder()
                 .inactivityTimeout(inactivityTimeout)
                 .responseTimeout(responseTimeout)
                 .build()
 
             // We disable the Handlers we dont need for this Test:
-        P2P server = new P2PBuilder("server")
+            P2P server = new P2PBuilder("server")
                     .config(serverConfig)
                     .config(serverPingConfig)
                     .useLocalhost()

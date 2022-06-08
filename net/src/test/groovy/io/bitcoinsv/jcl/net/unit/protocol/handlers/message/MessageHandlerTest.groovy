@@ -56,23 +56,23 @@ class MessageHandlerTest extends Specification {
             RuntimeConfig runtimeConfig = new RuntimeConfigDefault()
 
 
-        ProtocolConfig serverConfig = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET)).toBuilder().port(0).build()
+            ProtocolConfig serverConfig = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET)).toBuilder().port(0).build()
             ProtocolConfig clientConfig = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET)).toBuilder().port(0).build()
 
-        NetworkConfig networkConfig = new NetworkDefaultConfig()
+            NetworkConfig networkConfig = new NetworkDefaultConfig()
 
             // Server Configuration:
             String serverID = "server"
             ExecutorService serverExecutor = ThreadUtils.getSingleThreadExecutorService("ServerBus")
             EventBus serverBus = new EventBus(serverExecutor)
-            serverBus.subscribe(MsgReceivedEvent.class, { e -> msgs.add(e.getBtcMsg())})
+            serverBus.subscribe(MsgReceivedEvent.class, {e -> msgs.add(e.getBtcMsg())})
 
-        NetworkHandler serverNetworkHandler = new NetworkHandlerImpl(serverID, runtimeConfig, networkConfig,
+            NetworkHandler serverNetworkHandler = new NetworkHandlerImpl(serverID, runtimeConfig, networkConfig,
                 PeerAddress.localhost(0))
             serverNetworkHandler.useEventBus(serverBus)
 
-        MessageHandlerConfig serverMsgConfig = serverConfig.getMessageConfig()
-        MessageHandler serverMsgHandler = new MessageHandlerImpl(serverID, runtimeConfig, serverMsgConfig)
+            MessageHandlerConfig serverMsgConfig = serverConfig.getMessageConfig()
+            MessageHandler serverMsgHandler = new MessageHandlerImpl(serverID, runtimeConfig, serverMsgConfig)
             serverMsgHandler.useEventBus(serverBus)
             serverMsgHandler.init()
 

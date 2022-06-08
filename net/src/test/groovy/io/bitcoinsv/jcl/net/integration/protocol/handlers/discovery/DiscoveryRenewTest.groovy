@@ -42,17 +42,17 @@ class DiscoveryRenewTest extends Specification {
             final int MAX_PEERS = 6
 
             // We set up the configuration
-        ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams()).toBuilder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams()).toBuilder()
                     .minPeers(MIN_PEERS)
                     .maxPeers(MAX_PEERS)
                     .build()
 
             // We set up the frequency for the "pool" renewing Job and  disable the "handshake" renewing job:
-        DiscoveryHandlerConfig discoveryConfig = config.getDiscoveryConfig().toBuilder()
+            DiscoveryHandlerConfig discoveryConfig = config.getDiscoveryConfig().toBuilder()
                 .ADDRFrequency(Optional.of(triggerTime))
                 .recoveryHandshakeFrequency(Optional.empty())
                 .build()
-        P2P server = new P2PBuilder("testing")
+            P2P server = new P2PBuilder("testing")
                     .config(config)
                     .config(discoveryConfig)
                     .serverPort(0) // Random Port

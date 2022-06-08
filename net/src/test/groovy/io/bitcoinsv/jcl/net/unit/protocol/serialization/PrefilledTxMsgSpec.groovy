@@ -41,8 +41,8 @@ class PrefilledTxMsgSpec extends Specification {
 
     def "Testing PrefilledTransactionMsg Deserialize"(int byteInterval, int delayMs) {
         given:
-        ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        DeserializerContext context = DeserializerContext.builder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            DeserializerContext context = DeserializerContext.builder()
                 .protocolBasicConfig(config.getBasicConfig())
                 .build()
 
@@ -73,7 +73,7 @@ class PrefilledTxMsgSpec extends Specification {
     def "Testing PrefilledTransactionInputMessage Serializing"() {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        SerializerContext context = SerializerContext.builder()
+            SerializerContext context = SerializerContext.builder()
                 .protocolBasicConfig(config.getBasicConfig())
                 .build()
 

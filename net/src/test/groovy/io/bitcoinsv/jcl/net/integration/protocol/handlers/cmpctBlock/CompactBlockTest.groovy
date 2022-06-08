@@ -36,15 +36,15 @@ class CompactBlockTest extends Specification {
     @Ignore
     def "Testing get compact block low bandwidth mode"() {
         given:
-        ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
 
-        ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
+            ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
                 .minPeers(OptionalInt.of(20))
                 .maxPeers(OptionalInt.of(25))
                 .protocolVersion(70015)
                 .build()
 
-        P2P p2p = new P2PBuilder("testing")
+            P2P p2p = new P2PBuilder("testing")
                 .config(config)
                 .config(basicConfig)
                 .build()

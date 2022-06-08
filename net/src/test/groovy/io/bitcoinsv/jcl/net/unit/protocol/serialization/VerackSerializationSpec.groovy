@@ -29,12 +29,12 @@ class VerackSerializationSpec extends Specification {
 
     def "Testing Verack Full Message Deserializing"(int byteInterval, int delayMs) {
         given:
-        ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        DeserializerContext context = DeserializerContext.builder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            DeserializerContext context = DeserializerContext.builder()
                         .protocolBasicConfig(config.getBasicConfig())
                         .build()
-        BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
-        BitcoinMsg<VersionAckMsg> version = null
+            BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
+                BitcoinMsg<VersionAckMsg> version = null
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(VERACK_MSG), byteInterval, delayMs)
         when:
             version = bitcoinSerializer.<VersionAckMsg>deserialize(context, byteReader)
@@ -49,7 +49,7 @@ class VerackSerializationSpec extends Specification {
     def "Testing Verack Full Message Serialization"() {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        SerializerContext context = SerializerContext.builder()
+            SerializerContext context = SerializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
             BitcoinMsg<VersionAckMsg> versionAck = new BitcoinMsgBuilder<>(config.getBasicConfig(), VersionAckMsg.builder().build()).build()

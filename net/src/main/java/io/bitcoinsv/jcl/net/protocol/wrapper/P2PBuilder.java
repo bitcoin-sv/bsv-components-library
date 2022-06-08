@@ -181,7 +181,7 @@ public class P2PBuilder {
             // IMPORTANT: We use 0.0.0.0 to allow connections from anywhere
 
             if (this.serverPort == null) this.serverPort = networkConfig.getPort();
-            String serverIp = this.serverAddress + ":" + this.serverPort;
+            String serverIp = "0.0.0.0:" + this.serverPort;
             Handler networkHandler = new NetworkHandlerImpl(id, runtimeConfig, networkConfig, PeerAddress.fromIp(serverIp));
             result.put(networkHandler.getId(), networkHandler);
 

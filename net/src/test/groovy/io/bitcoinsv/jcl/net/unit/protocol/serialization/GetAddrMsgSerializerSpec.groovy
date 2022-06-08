@@ -34,12 +34,12 @@ class GetAddrMsgSerializerSpec extends Specification {
 
     def "Testing GetAddr Full Message Deserializing"(int byteInterval, int delayMs) {
         given:
-        ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        DeserializerContext context = DeserializerContext.builder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            DeserializerContext context = DeserializerContext.builder()
                         .protocolBasicConfig(config.getBasicConfig())
                         .build()
-        BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
-        BitcoinMsg<GetAddrMsg> getAddrMsg = null
+            BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
+                BitcoinMsg<GetAddrMsg> getAddrMsg = null
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(GETADDR_MSG), byteInterval, delayMs);
         when:
             getAddrMsg = bitcoinSerializer.<GetAddrMsg>deserialize(context, byteReader)
@@ -54,7 +54,7 @@ class GetAddrMsgSerializerSpec extends Specification {
     def "Testing GetAddr Full Message Serialization"() {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        SerializerContext context = SerializerContext.builder()
+            SerializerContext context = SerializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
             BitcoinMsg<GetAddrMsg> getAddrMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), GetAddrMsg.builder().build()).build()

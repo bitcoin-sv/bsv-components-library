@@ -73,7 +73,7 @@ class ChainDownloadTest extends Specification {
             ProtocolConfig config = ProtocolConfigBuilder.get(Net.MAINNET.params())
 
             // Network Config:
-        NetworkConfig networkConfig = new NetworkDefaultConfig().toBuilder()
+            NetworkConfig networkConfig = new NetworkDefaultConfig().toBuilder()
                 .maxSocketConnectionsOpeningAtSameTime(100)
                 .timeoutSocketConnection(OptionalInt.of(100))       // 100 millisecs
                 .timeoutSocketRemoteConfirmation(OptionalInt.of(1000))  // 1 sec
@@ -81,7 +81,7 @@ class ChainDownloadTest extends Specification {
 
 
             // Basic Config:
-        ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
+            ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
                     .minPeers(OptionalInt.of(15))
                     .maxPeers(OptionalInt.of(20))
                     .build()
@@ -94,7 +94,7 @@ class ChainDownloadTest extends Specification {
                     .build()
 
             // We configure the P2P Service:
-        P2P p2p = new P2PBuilder("testing")
+            P2P p2p = new P2PBuilder("testing")
                     .config(networkConfig)
                     .config(config)
                     .config(basicConfig)

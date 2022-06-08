@@ -48,23 +48,23 @@ class NotFoundMsgSerilaizerSpec extends Specification {
 
     def "testing notFoundMessage BODY Serializing"() {
         given:
-        ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        SerializerContext context  = SerializerContext.builder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            SerializerContext context  = SerializerContext.builder()
                 .protocolBasicConfig(config.getBasicConfig())
                 .build()
-        InventoryVectorMsg inventoryVectorMsg  = InventoryVectorMsg.builder()
+            InventoryVectorMsg inventoryVectorMsg  = InventoryVectorMsg.builder()
                 .type(InventoryVectorMsg.VectorType.MSG_TX)
                 .hashMsg(REF_HASH_MSG)
                 .build()
             List<InventoryVectorMsg> msgList = new ArrayList<>();
             msgList.add(inventoryVectorMsg);
-        VarIntMsg count = VarIntMsg.builder().value(msgList.size()).build();
-        NotFoundMsg getdataMsg = NotFoundMsg.builder().invVectorMsgList(msgList).count(count).build();
+            VarIntMsg count = VarIntMsg.builder().value(msgList.size()).build();
+            NotFoundMsg getdataMsg = NotFoundMsg.builder().invVectorMsgList(msgList).count(count).build();
 
             ByteArrayWriter byteWriter = new ByteArrayWriter()
             String messageSerialized = null
         when:
-        NotFoundMsgSerilaizer.getInstance().serialize(context, getdataMsg, byteWriter)
+            NotFoundMsgSerilaizer.getInstance().serialize(context, getdataMsg, byteWriter)
             byte[] messageBytes = byteWriter.reader().getFullContent()
             messageSerialized = Utils.HEX.encode(messageBytes)
         then:
@@ -74,7 +74,7 @@ class NotFoundMsgSerilaizerSpec extends Specification {
     def "testing notFoundMsg  BODY De-Serializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        DeserializerContext context = DeserializerContext.builder()
+            DeserializerContext context = DeserializerContext.builder()
                 .protocolBasicConfig(config.getBasicConfig())
                 .maxBytesToRead((long) (REF_NOTFOUND_MSG_BODY.length()/2))
                 .build()
@@ -105,8 +105,8 @@ class NotFoundMsgSerilaizerSpec extends Specification {
             VarIntMsg count = VarIntMsg.builder().value(msgList.size()).build();
             NotFoundMsg getdataMsg = NotFoundMsg.builder().invVectorMsgList(msgList).count(count).build();
 
-        BitcoinMsg<NotFoundMsg> notFoundMsgBitcoinMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), getdataMsg).build()
-        BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
+            BitcoinMsg<NotFoundMsg> notFoundMsgBitcoinMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), getdataMsg).build()
+            BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
             byte[] bytes = serializer.serialize(context, notFoundMsgBitcoinMsg).getFullContent()
             String serialized = Utils.HEX.encode(bytes)

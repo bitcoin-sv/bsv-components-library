@@ -85,7 +85,7 @@ abstract class BlockStoreTxsSpecBase extends BlockStoreSpecBase {
             isTx1FoundAfterInserting
             numTxsAfter3Txs == 3
             numTxsSavedEvents.get() == 2
-            numTxsRemovedEvents.get() == 2
+            numTxsSavedEvents.get() == 2
             numTxsAfterRemove1Tx == 2
             numTxsAfterRemove3Tx == 0
         cleanup:

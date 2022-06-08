@@ -19,15 +19,15 @@ class BlockTxnMsgSpec extends Specification {
 
     def "Testing BlockTxn Deserialize"(int byteInterval, int delayMs) {
         given:
-        ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        DeserializerContext context = DeserializerContext.builder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            DeserializerContext context = DeserializerContext.builder()
                 .protocolBasicConfig(config.getBasicConfig())
                 .build()
 
             byte[] bytes = Utils.HEX.decode(BLOCKTXN_BYTES)
 
-        BlockTxnMsgSerializer serializer = BlockTxnMsgSerializer.getInstance()
-        BlockTxnMsg message
+            BlockTxnMsgSerializer serializer = BlockTxnMsgSerializer.getInstance()
+            BlockTxnMsg message
 
         when:
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(bytes, byteInterval, delayMs)
@@ -50,7 +50,7 @@ class BlockTxnMsgSpec extends Specification {
                 .protocolBasicConfig(config.getBasicConfig())
                 .build()
 
-        SerializerContext serializationContext = SerializerContext.builder()
+            SerializerContext serializationContext = SerializerContext.builder()
                 .protocolBasicConfig(config.getBasicConfig())
                 .build()
 

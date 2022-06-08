@@ -55,13 +55,13 @@ class GetHeadersMsgSerializerSpec extends Specification{
 
             BaseGetDataAndHeaderMsg baseMsg = BaseGetDataAndHeaderMsgSerializerSpec.buildBaseMsg(basicConfig)
 
-        GetHeadersMsg getHeadersMsg  =  GetHeadersMsg.builder()
+            GetHeadersMsg getHeadersMsg  =  GetHeadersMsg.builder()
                     .baseGetDataAndHeaderMsg(baseMsg)
                     .build()
 
             ByteArrayWriter byteWriter = new ByteArrayWriter()
         when:
-        GetHeadersMsgSerializer.getInstance().serialize(context, getHeadersMsg, byteWriter)
+            GetHeadersMsgSerializer.getInstance().serialize(context, getHeadersMsg, byteWriter)
             byte[] messageBytes = byteWriter.reader().getFullContent()
             String messageSerialized = Utils.HEX.encode(messageBytes)
         then:
@@ -107,8 +107,8 @@ class GetHeadersMsgSerializerSpec extends Specification{
             ByteArrayReader byteReader = new ByteArrayReader(Utils.HEX.decode(REF_GETHEADERS_MSG_BODY))
 
 
-        BitcoinMsg<GetHeadersMsg> getHeadersMsgBitcoinMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), getHeadersMsg).build()
-        BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
+            BitcoinMsg<GetHeadersMsg> getHeadersMsgBitcoinMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), getHeadersMsg).build()
+            BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
             byte[] bytes = serializer.serialize(context, getHeadersMsgBitcoinMsg).getFullContent()
             String msgSerialized = Utils.HEX.encode(bytes)

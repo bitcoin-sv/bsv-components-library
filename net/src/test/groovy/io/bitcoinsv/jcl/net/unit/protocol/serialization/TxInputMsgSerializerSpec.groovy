@@ -49,12 +49,12 @@ class TxInputMsgSerializerSpec extends Specification {
 
     def "Testing TxInputMessage Deserializing"(int byteInterval, int delayMs) {
         given:
-        ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        DeserializerContext context = DeserializerContext.builder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
-        TxInputMsgSerializer serializer = TxInputMsgSerializer.getInstance()
-        TxInputMsg message
+            TxInputMsgSerializer serializer = TxInputMsgSerializer.getInstance()
+            TxInputMsg message
         when:
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_FULL_MSG), byteInterval, delayMs)
            message = serializer.deserialize(context, new ByteArrayReaderRealTime(byteReader))
@@ -72,7 +72,7 @@ class TxInputMsgSerializerSpec extends Specification {
     def "Testing TxInputMessage Serializing"() {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        SerializerContext context = SerializerContext.builder()
+            SerializerContext context = SerializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
             TxInputMsgSerializer serializer = TxInputMsgSerializer.getInstance()
@@ -81,7 +81,7 @@ class TxInputMsgSerializerSpec extends Specification {
 
             // We build the TxOutpoint directly by deserializing it:
             ByteArrayReader reader = new ByteArrayReader(Utils.HEX.decode(REF_OUTPOINT))
-        TxOutPointMsg txOutPointMessage =  TxOutPointMsgSerializer.getInstance().deserialize(null, reader)
+            TxOutPointMsg txOutPointMessage =  TxOutPointMsgSerializer.getInstance().deserialize(null, reader)
 
             // We assign the rest of variables:
             TxInputMsg txInputMessage = TxInputMsg.builder().pre_outpoint(txOutPointMessage)

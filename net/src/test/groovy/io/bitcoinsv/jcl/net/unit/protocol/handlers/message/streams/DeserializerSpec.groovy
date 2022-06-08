@@ -49,7 +49,7 @@ class DeserializerSpec extends Specification {
         Convenience method that takes a Message (freshly created supposedly), and return the same Message after setting
         the value of the "checksum" value in the Header.
      */
-    private BitcoinMsg updateChecksum(ProtocolBasicConfig protocolConfig, BitcoinMsg message) {
+    private BitcoinMsg updateChecksum(ProtocolBasicConfig protocolConfig,  BitcoinMsg message) {
         String command = message.header.command
         SerializerContext serContext = SerializerContext.builder()
                 .protocolBasicConfig(protocolConfig)
@@ -204,7 +204,7 @@ class DeserializerSpec extends Specification {
 
             // We initialize the Cache, enabling stats generation...
             RuntimeConfig runtimeConfig = new RuntimeConfigDefault()
-        DeserializerConfig cacheConfig = DeserializerConfig.builder().generateStats(true).build()
+            DeserializerConfig cacheConfig = DeserializerConfig.builder().generateStats(true).build()
             Deserializer cache = new Deserializer(runtimeConfig, cacheConfig)
         when:
             // We "simulate" an incoming flow of messages with a ByteReader containing the messages in raw format
@@ -215,7 +215,7 @@ class DeserializerSpec extends Specification {
             List<BitcoinMsg> messagesFromCache = deserializeWithCache(protocolConfig, reader, cache)
 
             // Now we check that the Messages searched are EQUALS to the BODIES of the Original Messages, and the stats:
-        DeserializerState cacheState = cache.getState()
+            DeserializerState cacheState = cache.getState()
 
         then:
             msgsFromP2P.equals(messagesFromCache)

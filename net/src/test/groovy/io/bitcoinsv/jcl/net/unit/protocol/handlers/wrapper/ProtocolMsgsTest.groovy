@@ -27,10 +27,8 @@ class ProtocolMsgsTest extends Specification {
     def "Testing Client/Server Msgs exchange"() {
         given:
             // Server and client configuration:
-
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams())
-
-                // We disable all the Handlers we don't need for this Test:
+            // We disable all the Handlers we don't need for this Test:
             P2P server = new P2PBuilder("server")
                     .config(config)
                     .useLocalhost()

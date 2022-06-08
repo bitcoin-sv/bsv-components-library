@@ -40,7 +40,6 @@ import java.util.concurrent.atomic.AtomicLong
  * from it. For each Tx contained in the INV,s we ask for them. Since this is just a performance testing, we do not
  * care whether we are asking for Txs already processed or not, we just need to check how many Tx/sec we can process..
  */
-@Ignore
 class TxBlasterPerformanceTest extends Specification {
 
     // Network we use for this test (It does NOT really matter)
@@ -175,19 +174,19 @@ class TxBlasterPerformanceTest extends Specification {
     def "Testing Tx Blaster"() {
         given:
             // We configure the MessageHandler to DISABLE the Deserializer Cache...
-        MessageHandlerConfig messageConfig = protocolConfig.getMessageConfig()
-        DeserializerConfig deserializerConfig = messageConfig.deserializerConfig.toBuilder().cacheEnabled(false).build()
+            MessageHandlerConfig messageConfig = protocolConfig.getMessageConfig()
+            DeserializerConfig deserializerConfig = messageConfig.deserializerConfig.toBuilder().cacheEnabled(false).build()
             messageConfig = messageConfig.toBuilder()
                     .deserializerConfig(deserializerConfig)
                     .rawTxsEnabled(true)
                     .build()
 
             // We configure the Handshake we get notified of new Txs...
-        HandshakeHandlerConfig handshakeConfig = protocolConfig.getHandshakeConfig().toBuilder()
+            HandshakeHandlerConfig handshakeConfig = protocolConfig.getHandshakeConfig().toBuilder()
                                                         .relayTxs(true)
                                                         .build()
             // We define a Range of Peers...
-        ProtocolBasicConfig basicConfig = protocolConfig.getBasicConfig().toBuilder()
+            ProtocolBasicConfig basicConfig = protocolConfig.getBasicConfig().toBuilder()
                                                         .minPeers(OptionalInt.of(15))
                                                         .maxPeers(OptionalInt.of(18))
                                                         .build()

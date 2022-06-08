@@ -41,8 +41,8 @@ class InventoryVectorMsgSerializerSpec extends Specification {
 
     def "testing InventoryVector Message BODY Serializing"() {
         given:
-        ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        SerializerContext context = SerializerContext.builder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            SerializerContext context = SerializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .build()
             InventoryVectorMsg inventoryVectorMsg  = InventoryVectorMsg.builder()
@@ -53,7 +53,7 @@ class InventoryVectorMsgSerializerSpec extends Specification {
             ByteArrayWriter byteWriter = new ByteArrayWriter()
             String messageSerialized = null
         when:
-        InventoryVectorMsgSerializer.getInstance().serialize(context, inventoryVectorMsg, byteWriter)
+            InventoryVectorMsgSerializer.getInstance().serialize(context, inventoryVectorMsg, byteWriter)
             byte[] messageBytes = byteWriter.reader().getFullContent()
             messageSerialized = Utils.HEX.encode(messageBytes)
         then:
@@ -63,7 +63,7 @@ class InventoryVectorMsgSerializerSpec extends Specification {
     def "testing InventoryVector Message BODY De-Serializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        DeserializerContext context = DeserializerContext.builder()
+            DeserializerContext context = DeserializerContext.builder()
                     .protocolBasicConfig(config.getBasicConfig())
                     .maxBytesToRead((long) (REF_MSG.length()/2))
                     .build()

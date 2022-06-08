@@ -47,7 +47,7 @@ class BaseGetDataAndHeaderMsgSerializerSpec extends Specification {
             byte[] messageBytes
             String messageSerialized
         when:
-        BaseGetDataAndHeaderMsgSerializer.getInstance().serialize(context, baseMsg, byteWriter)
+            BaseGetDataAndHeaderMsgSerializer.getInstance().serialize(context, baseMsg, byteWriter)
             messageBytes = byteWriter.reader().getFullContent()
             messageSerialized = Utils.HEX.encode(messageBytes)
         then:
