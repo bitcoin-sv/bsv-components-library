@@ -1,19 +1,10 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.unit.protocol.serialization
 
 
-import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader
-import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter
-import io.bitcoinsv.bitcoinjsv.core.Utils
-import io.bitcoinsv.bitcoinjsv.params.MainNetParams
-import io.bitcoinsv.bitcoinjsv.params.Net
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigBuilder
-import io.bitcoinsv.jcl.net.protocol.messages.TxInputMsg
 import io.bitcoinsv.jcl.net.protocol.messages.TxMsg
+import io.bitcoinsv.jcl.net.protocol.messages.TxInputMsg
 import io.bitcoinsv.jcl.net.protocol.messages.TxOutputMsg
 import io.bitcoinsv.jcl.net.protocol.messages.VersionMsg
 import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg
@@ -26,6 +17,11 @@ import io.bitcoinsv.jcl.net.protocol.serialization.common.BitcoinMsgSerializerIm
 import io.bitcoinsv.jcl.net.protocol.serialization.common.DeserializerContext
 import io.bitcoinsv.jcl.net.protocol.serialization.common.SerializerContext
 import io.bitcoinsv.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
+import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader
+import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter
+import io.bitcoinsv.bitcoinjsv.core.Utils
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import io.bitcoinsv.bitcoinjsv.params.Net
 import spock.lang.Specification
 
 /**
@@ -126,7 +122,7 @@ class TxMsgSerializerSpec extends Specification {
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_MSG_FULL), byteInterval, delayMs)
         BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
-        BitcoinMsg<TxMsg> message = bitcoinSerializer.deserialize(context, byteReader, TxMsg.MESSAGE_TYPE)
+            BitcoinMsg<TxMsg> message = bitcoinSerializer.deserialize(context, byteReader)
 
         then:
             message.getHeader().getMagic().equals(config.getBasicConfig().getMagicPackage())
@@ -170,7 +166,7 @@ class TxMsgSerializerSpec extends Specification {
             BitcoinMsg<VersionMsg> bitcoinVersionMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), transactionMsg).build()
             BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
-            byte[] msgBytes = bitcoinSerializer.serialize(context, bitcoinVersionMsg, TxMsg.MESSAGE_TYPE).getFullContent()
+            byte[] msgBytes = bitcoinSerializer.serialize(context, bitcoinVersionMsg).getFullContent()
             String msgDeserialized = Utils.HEX.encode(msgBytes)
         then:
             msgDeserialized.equals(REF_MSG_FULL)

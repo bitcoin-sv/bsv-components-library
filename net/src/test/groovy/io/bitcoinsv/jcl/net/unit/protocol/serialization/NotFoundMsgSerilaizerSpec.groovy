@@ -1,19 +1,8 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.unit.protocol.serialization
 
-
-import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader
-import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter
-import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
-import io.bitcoinsv.bitcoinjsv.core.Utils
-import io.bitcoinsv.bitcoinjsv.params.MainNetParams
-import io.bitcoinsv.bitcoinjsv.params.Net
-import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigBuilder
 import io.bitcoinsv.jcl.net.protocol.messages.HashMsg
+import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.jcl.net.protocol.messages.InventoryVectorMsg
 import io.bitcoinsv.jcl.net.protocol.messages.NotFoundMsg
 import io.bitcoinsv.jcl.net.protocol.messages.VarIntMsg
@@ -25,6 +14,12 @@ import io.bitcoinsv.jcl.net.protocol.serialization.common.BitcoinMsgSerializerIm
 import io.bitcoinsv.jcl.net.protocol.serialization.common.DeserializerContext
 import io.bitcoinsv.jcl.net.protocol.serialization.common.SerializerContext
 import io.bitcoinsv.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
+import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader
+import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
+import io.bitcoinsv.bitcoinjsv.core.Utils
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import io.bitcoinsv.bitcoinjsv.params.Net
 import spock.lang.Specification
 
 /**
@@ -113,7 +108,7 @@ class NotFoundMsgSerilaizerSpec extends Specification {
         BitcoinMsg<NotFoundMsg> notFoundMsgBitcoinMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), getdataMsg).build()
         BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
-            byte[] bytes = serializer.serialize(context, notFoundMsgBitcoinMsg, NotFoundMsg.MESSAGE_TYPE).getFullContent()
+            byte[] bytes = serializer.serialize(context, notFoundMsgBitcoinMsg).getFullContent()
             String serialized = Utils.HEX.encode(bytes)
         then:
             serialized.equals(REF_NOTFOUND_MSG_FULL)
@@ -129,7 +124,7 @@ class NotFoundMsgSerilaizerSpec extends Specification {
             BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
             ByteArrayReader byteArrayReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_NOTFOUND_MSG_FULL), byteInterval, delayMs);
         when:
-            BitcoinMsg<NotFoundMsg> getDataMsg = bitcoinSerializer.deserialize(context, byteArrayReader, NotFoundMsg.MESSAGE_TYPE)
+            BitcoinMsg<NotFoundMsg> getDataMsg = bitcoinSerializer.deserialize(context, byteArrayReader)
         then:
             getDataMsg.getHeader().getMagic().equals(config.getBasicConfig().getMagicPackage())
             getDataMsg.getHeader().getCommand().equals(NotFoundMsg.MESSAGE_TYPE)

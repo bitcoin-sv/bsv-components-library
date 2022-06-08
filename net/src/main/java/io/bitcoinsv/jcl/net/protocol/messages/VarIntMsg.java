@@ -1,11 +1,9 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
+
+import java.io.Serializable;
 
 
 /**
@@ -34,7 +32,7 @@ import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
  *   format: 0xFF followed by the length as uint64_t
  *
  */
-public final class VarIntMsg extends Message {
+public final class VarIntMsg extends Message implements Serializable {
 
     public static final String MESSAGE_TYPE = "varInt";
 
@@ -81,14 +79,12 @@ public final class VarIntMsg extends Message {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(value);
+        return Objects.hashCode(super.hashCode(), value);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         VarIntMsg other = (VarIntMsg) obj;
         return Objects.equal(this.value, other.value);
     }
@@ -97,13 +93,17 @@ public final class VarIntMsg extends Message {
         return new VarIntMsgBuilder();
     }
 
+    public VarIntMsgBuilder toBuilder() {
+        return new VarIntMsgBuilder().value(this.value);
+    }
+
     /**
      * Builder
      */
     public static class VarIntMsgBuilder {
         private long value;
 
-        VarIntMsgBuilder() {}
+        public VarIntMsgBuilder() {}
 
         public VarIntMsg.VarIntMsgBuilder value(long value) {
             this.value = value;

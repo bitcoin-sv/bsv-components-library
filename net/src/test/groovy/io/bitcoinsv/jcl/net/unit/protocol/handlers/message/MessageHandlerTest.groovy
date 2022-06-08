@@ -1,16 +1,5 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.unit.protocol.handlers.message
 
-
-import io.bitcoinsv.jcl.tools.config.RuntimeConfig
-import io.bitcoinsv.jcl.tools.config.provided.RuntimeConfigDefault
-import io.bitcoinsv.jcl.tools.events.EventBus
-import io.bitcoinsv.jcl.tools.thread.ThreadUtils
-import io.bitcoinsv.bitcoinjsv.params.MainNetParams
-import io.bitcoinsv.bitcoinjsv.params.Net
 import io.bitcoinsv.jcl.net.network.PeerAddress
 import io.bitcoinsv.jcl.net.network.config.NetworkConfig
 import io.bitcoinsv.jcl.net.network.config.provided.NetworkDefaultConfig
@@ -18,15 +7,21 @@ import io.bitcoinsv.jcl.net.network.handlers.NetworkHandler
 import io.bitcoinsv.jcl.net.network.handlers.NetworkHandlerImpl
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigBuilder
-import io.bitcoinsv.jcl.net.protocol.events.control.PeerMsgReadyEvent
 import io.bitcoinsv.jcl.net.protocol.events.data.MsgReceivedEvent
+import io.bitcoinsv.jcl.net.protocol.events.control.PeerMsgReadyEvent
 import io.bitcoinsv.jcl.net.protocol.handlers.message.MessageHandler
 import io.bitcoinsv.jcl.net.protocol.handlers.message.MessageHandlerConfig
 import io.bitcoinsv.jcl.net.protocol.handlers.message.MessageHandlerImpl
+import io.bitcoinsv.jcl.net.protocol.handlers.message.streams.MessageStream
 import io.bitcoinsv.jcl.net.protocol.messages.AddrMsg
-import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg
-import io.bitcoinsv.jcl.net.protocol.streams.MessageStream
 import io.bitcoinsv.jcl.net.unit.protocol.tools.MsgTest
+import io.bitcoinsv.jcl.tools.config.RuntimeConfig
+import io.bitcoinsv.jcl.tools.config.provided.RuntimeConfigDefault
+import io.bitcoinsv.jcl.tools.events.EventBus
+import io.bitcoinsv.jcl.tools.thread.ThreadUtils
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import io.bitcoinsv.bitcoinjsv.params.Net
+import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg
 import spock.lang.Specification
 
 import java.util.concurrent.ExecutorService

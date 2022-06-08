@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.wrapper;
 
 
@@ -13,12 +9,16 @@ import io.bitcoinsv.jcl.net.network.handlers.NetworkHandler;
 import io.bitcoinsv.jcl.net.network.handlers.NetworkHandlerImpl;
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig;
 import io.bitcoinsv.jcl.net.protocol.config.provided.ProtocolBSVMainConfig;
+import io.bitcoinsv.jcl.net.protocol.handlers.blacklist.BlacklistHandler;
+import io.bitcoinsv.jcl.net.protocol.handlers.blacklist.BlacklistHandlerImpl;
+import io.bitcoinsv.jcl.net.protocol.handlers.blacklist.BlacklistHostInfo;
+import io.bitcoinsv.jcl.net.protocol.handlers.blacklist.BlacklistView;
 import io.bitcoinsv.jcl.net.protocol.handlers.handshake.HandshakeHandler;
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig;
 import io.bitcoinsv.jcl.tools.config.provided.RuntimeConfigDefault;
 import io.bitcoinsv.jcl.tools.events.EventBus;
 import io.bitcoinsv.jcl.tools.handlers.Handler;
-import io.bitcoinsv.jcl.tools.log.LoggerUtil;
+import io.bitcoinsv.jcl.net.tools.LoggerUtil;
 import io.bitcoinsv.jcl.tools.thread.ThreadUtils;
 
 import java.time.Duration;
@@ -50,6 +50,11 @@ public class P2P {
     // Event Bus that will be used to "link" all the Handlers together
     private EventBus eventBus;
 
+    // Specific EventBus to trigger Handler States. We use a dedicated Handler for triggering the Handlers States, so
+    // we make sure that the states are always triggered even when the system is under a heavy load and all the
+    // "regular" eventBus is too busy:
+    private EventBus stateEventBus;
+
     // Map of all the Handlers included in this wrapper:
     private Map<String, Handler> handlers = new ConcurrentHashMap<>();
 
@@ -70,23 +75,29 @@ public class P2P {
     public P2P(String id, RuntimeConfig runtimeConfig, NetworkConfig networkConfig, ProtocolConfig protocolConfig) {
         try {
             this.id = id;
-            this.logger = new LoggerUtil(id, "P2P-Handler", this.getClass());
+            this.logger = new LoggerUtil(id, "P2P Service", this.getClass());
             // We update the Configurations
             this.runtimeConfig = runtimeConfig;
             this.networkConfig = networkConfig;
             this.protocolConfig = protocolConfig;
 
-            // We initialize the EventBus...
+            // We initialize the EventBuses...
             ExecutorService executor = (runtimeConfig.useCachedThreadPoolForP2P())
                     ? ThreadUtils.getCachedThreadExecutorService("JclEventBus", runtimeConfig.getMaxNumThreadsForP2P())
                     : ThreadUtils.getFixedThreadExecutorService("JclEventBus", runtimeConfig.getMaxNumThreadsForP2P());
 
+            // EventBus for the Internal Handles within the P2P Service:
             this.eventBus = EventBus.builder()
-                   .executor(executor)
-                   .build();
+                    .executor(executor)
+                    .build();
+
+            // EventBus for Handlers State Publishing:
+            this.stateEventBus = EventBus.builder()
+                    .executor(ThreadUtils.getFixedThreadExecutorService("JclStateEventBus", 2))
+                    .build();
 
             // Event Streamer:
-            EVENTS = new P2PEventStreamer(this.eventBus);
+            EVENTS = new P2PEventStreamer(this.eventBus, this.stateEventBus);
 
             // Requests Handlers:
             REQUESTS = new P2PRequestHandler(this.eventBus);
@@ -182,12 +193,25 @@ public class P2P {
         return handler.getPeerAddress();
     }
 
+    // convenience method to return the PeerAddress for this ProtocolHandler. It assumes that there is a BlacklistHandler
+    public BlacklistHandler getBlacklistHandler() {
+        BlacklistHandler handler = (BlacklistHandler) handlers.get(BlacklistHandlerImpl.HANDLER_ID);
+        if (handler == null) throw new RuntimeException("No Blacklist Handler Found.");
+        return handler;
+    }
+
     // Runs of an scheduled basis, and invoke the "getState()" method on all the Handlers, and then publishes the
     // states as Event into the Bus, so they can be "streamed" by the User.
     private void refreshStatusJob(Handler handler) {
+        try {
+            //System.out.println("----> Trying to Publish State for " + handler.getId() + "...");
             HandlerStateEvent event = new HandlerStateEvent(handler.getState());
-            eventBus.publish(event);
-            //System.out.println("Tasks in progress: " + eventBus.getTraceNumTasks());
+            stateEventBus.publish(event);
+            //System.out.println("----> State for " + handler.getId() + " Published.");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     // Convenience method to deserialize a reference to a P2PBuilder

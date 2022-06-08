@@ -1,13 +1,12 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.handlers.message;
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg;
-import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
+import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
+import io.bitcoinsv.jcl.net.protocol.messages.common.StreamRequest;
 import io.bitcoinsv.jcl.tools.handlers.Handler;
+
+import java.util.stream.Stream;
 
 /**
  * @author i.fernandez@nchain.com
@@ -21,7 +20,7 @@ import io.bitcoinsv.jcl.tools.handlers.Handler;
  */
 public interface MessageHandler extends Handler {
 
-    String HANDLER_ID = "Message-Handler";
+    String HANDLER_ID = "Serialization";
 
     @Override
     default String getId() { return HANDLER_ID; }
@@ -30,11 +29,14 @@ public interface MessageHandler extends Handler {
     void send(PeerAddress peerAddress, BitcoinMsg<?> btcMessage);
 
     /** Sends a Message to an specific Peer */
-    void send(PeerAddress peerAddress, Message msgBody);
+    void send(PeerAddress peerAddress, BodyMessage msgBody);
+
+    /** Streams the given message to the peer, NOTE: this assumes the checksum has been pre-calculated */
+    void stream(PeerAddress peerAddress, StreamRequest streamRequest);
 
     /** Broadcasts a Message to all connected Peers */
     void broadcast(BitcoinMsg<?> btcMessage);
 
     /** Broadcasts a Message to all connected Peers */
-    void broadcast(Message msgBody);
+    void broadcast(BodyMessage msgBody);
 }

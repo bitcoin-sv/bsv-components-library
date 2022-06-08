@@ -1,17 +1,12 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.unit.protocol.serialization
 
-
-import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader
-import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter
 import io.bitcoinsv.jcl.net.protocol.messages.FeeFilterMsg
 import io.bitcoinsv.jcl.net.protocol.serialization.FeeFilterMsgSerializer
 import io.bitcoinsv.jcl.net.protocol.serialization.common.DeserializerContext
 import io.bitcoinsv.jcl.net.protocol.serialization.common.SerializerContext
 import io.bitcoinsv.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
+import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader
+import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter
 import spock.lang.Specification
 
 /**

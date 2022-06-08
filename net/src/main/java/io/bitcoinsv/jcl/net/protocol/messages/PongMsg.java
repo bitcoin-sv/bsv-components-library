@@ -1,12 +1,10 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.messages;
 
 
 import com.google.common.base.Objects;
-import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
+import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
+
+import java.io.Serializable;
 
 /**
  * @author m.jose@nchain.com
@@ -21,13 +19,14 @@ import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
  *   Random nonce assigned to this pong message.
  *   The pong message sends back the same nonce received in the ping message it is replying to.
  */
-public final class PongMsg extends Message {
+public final class PongMsg extends BodyMessage implements Serializable {
     protected static final int FIXED_MESSAGE_LENGTH = 8;
     public static final String MESSAGE_TYPE = "pong";
 
     private final long nonce;
 
-    public PongMsg(long nonce) {
+    public PongMsg(long nonce, byte[] extraBytes, long checksum) {
+        super(extraBytes, checksum);
         this.nonce = nonce;
         init();
     }
@@ -52,14 +51,12 @@ public final class PongMsg extends Message {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(nonce);
+        return Objects.hashCode(super.hashCode(), nonce);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         PongMsg other = (PongMsg) obj;
         return Objects.equal(this.nonce, other.nonce);
     }
@@ -68,13 +65,19 @@ public final class PongMsg extends Message {
         return new PongMsgBuilder();
     }
 
+    @Override
+    public PongMsgBuilder toBuilder() {
+        return new PongMsgBuilder(super.extraBytes, super.checksum).nonce(this.nonce);
+    }
+
     /**
      * Builder
      */
-    public static class PongMsgBuilder {
+    public static class PongMsgBuilder extends BodyMessageBuilder {
         private long nonce;
 
-        PongMsgBuilder() {}
+        public PongMsgBuilder() {}
+        public PongMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public PongMsg.PongMsgBuilder nonce(long nonce) {
             this.nonce = nonce;
@@ -82,7 +85,7 @@ public final class PongMsg extends Message {
         }
 
         public PongMsg build() {
-            return new PongMsg(nonce);
+            return new PongMsg(nonce, super.extraBytes, super.checksum);
         }
     }
 }

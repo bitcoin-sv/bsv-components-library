@@ -12,7 +12,7 @@ plugins {
  ****************************************/
 jclGroup = "$jclGroup"
 jclVersion = "$jclVersion"
-jclArtifactName = "$jclArtifactName"
+jclArtifactName = "jcl-store-foundationDB"
 
 group = "$rootProject.jclGroup"
 version = "$rootProject.jclVersion"
@@ -26,7 +26,7 @@ repositories {
 
 dependencies {
     // Compile Dependencies:
-    implementation "io.bitcoinsv.bitcoinjsv:bitcoinj-base:1.0.1"
+    implementation "io.bitcoinsv.bitcoinjsv:bitcoinj-base:$bitcoinJVersion"
     implementation(project(":tools"))
     implementation(project(":store"))
     implementation(project(":store-keyValue"))
@@ -46,8 +46,7 @@ dependencies {
     
     testImplementation 'org.codehaus.groovy:groovy'
     testImplementation "org.spockframework:spock-core:1.2-groovy-2.5"
-    testImplementation "ch.qos.logback:logback-classic:1.2.3"
-    testImplementation 'org.projectlombok:lombok'
+    testImplementation "ch.qos.logback:logback-classic"
 
     // TestContainer, to start automatically a FoundationDB running in a Docker container...
     // NOTE: Not used at the moment, since starting and stopping the container is NOT enough: We also need to

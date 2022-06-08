@@ -1,13 +1,10 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.events.data;
 
+import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.network.events.P2PEvent;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg;
-import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
+import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
 
 /**
  * @author i.fernandez@nchain.com
@@ -15,7 +12,7 @@ import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
  *
  * An Event triggered when a Message is sent to a remote Peer.
  */
-public class MsgSentEvent<T extends Message> extends P2PEvent {
+public class MsgSentEvent<T extends BodyMessage> extends P2PEvent {
     private final PeerAddress peerAddress;
     private final BitcoinMsg<T> btcMsg;
 
@@ -29,6 +26,19 @@ public class MsgSentEvent<T extends Message> extends P2PEvent {
 
     @Override
     public String toString() {
-        return "Event[" +  btcMsg.getHeader().getCommand().toUpperCase() + " Sent]: to " + peerAddress.toString();
+        return "Event[" +  btcMsg.getHeader().getMsgCommand().toUpperCase() + " Sent]: to " + peerAddress.toString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false; }
+        MsgSentEvent other = (MsgSentEvent) obj;
+        return Objects.equal(this.peerAddress, other.peerAddress)
+                && Objects.equal(this.btcMsg, other.btcMsg);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), peerAddress, btcMsg);
     }
 }

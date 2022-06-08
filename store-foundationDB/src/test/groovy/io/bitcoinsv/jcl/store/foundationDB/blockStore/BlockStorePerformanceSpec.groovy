@@ -1,12 +1,9 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.store.foundationDB.blockStore
 
-import io.bitcoinsv.jcl.store.blockStore.BlockStore
+
 import io.bitcoinsv.jcl.store.foundationDB.FDBTestUtils
 import io.bitcoinsv.jcl.store.foundationDB.StoreFactory
+import io.bitcoinsv.jcl.store.blockStore.BlockStore
 import io.bitcoinsv.jcl.store.blockStore.BlockStorePerformanceSpecBase
 import io.bitcoinsv.jcl.store.blockStore.metadata.Metadata
 import spock.lang.Ignore
@@ -15,7 +12,8 @@ import spock.lang.Ignore
 /**
  * Performance Testing class for the BlockStore
  */
-//@TODO: Test Ignored: FDB installation in docker is not stable. A local FB installation is recommended instead.
+// Test Ignored. If you want to run this Test, set up a local FDB or configure FDBTestUtils.useDocker to use the
+// Docker image provided instead (not fully tested at the moment)
 @Ignore
 class BlockStorePerformanceSpec extends BlockStorePerformanceSpecBase {
 
@@ -24,7 +22,7 @@ class BlockStorePerformanceSpec extends BlockStorePerformanceSpecBase {
     def cleanupSpec()   { FDBTestUtils.checkFDBAfter()}
 
     @Override
-    BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents, Class<? extends Metadata> blockMetadataClass) {
-        return StoreFactory.getInstance(netId, triggerBlockEvents, triggerTxEvents, blockMetadataClass)
+    BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents, Class<? extends Metadata> blockMetadataClass, Class<? extends Metadata> txMetadataClass) {
+        return StoreFactory.getInstance(netId, triggerBlockEvents, triggerTxEvents, blockMetadataClass, txMetadataClass)
     }
 }

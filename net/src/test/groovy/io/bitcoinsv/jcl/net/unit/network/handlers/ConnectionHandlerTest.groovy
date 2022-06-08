@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.unit.network.handlers
 
 import io.bitcoinsv.jcl.net.network.PeerAddress
@@ -116,14 +112,15 @@ class ConnectionHandlerTest extends Specification {
             NetworkHandler client = new NetworkHandlerImpl("client", runtimeConfig, networkConfig, PeerAddress.localhost(0))
             client.useEventBus(clientEventBus)
 
-            // We keep track of the events in these variabes:
+            // We keep track of the events in these variables:
 
             AtomicBoolean clientRejected= new AtomicBoolean(false)
 
             // We provide some callbacks ...
             clientEventBus.subscribe(PeerRejectedEvent.class, { e ->
-                log.trace("EVENT > CLIENT: CONNECTION REJECTED FROM " + e.getPeerAddress())
-                if (e.getReason() == PeerRejectedEvent.RejectedReason.INTERNAL_ERROR) clientRejected.set(true)
+                PeerRejectedEvent rejectedEvent = (PeerRejectedEvent) e;
+                println("EVENT > CLIENT: CONNECTION REJECTED FROM " + rejectedEvent.getPeerAddress())
+                if (rejectedEvent.getReason() == PeerRejectedEvent.RejectedReason.INTERNAL_ERROR) clientRejected.set(true)
             })
 
         when:
@@ -134,7 +131,6 @@ class ConnectionHandlerTest extends Specification {
             client.stop()
         then:
             clientRejected.get()
-
     }
 
 

@@ -1,10 +1,7 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.events.control;
 
 
+import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.network.events.P2PRequest;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg;
@@ -17,7 +14,7 @@ import java.util.List;
  *
  * An Event representing a Request to send a List of Messages to an specific Peer
  */
-public final class SendMsgListRequest extends P2PRequest {
+public class SendMsgListRequest extends P2PRequest {
     private final PeerAddress peerAddress;
     private final List<BitcoinMsg<?>> btcMsgs;
 
@@ -32,5 +29,18 @@ public final class SendMsgListRequest extends P2PRequest {
     @Override
     public String toString() {
         return "SendMsgListRequest(peerAddress=" + this.getPeerAddress() + ", " + this.getBtcMsgs().size() + " msgs)";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false; }
+        SendMsgListRequest other = (SendMsgListRequest) obj;
+        return Objects.equal(this.peerAddress, other.peerAddress)
+                && Objects.equal(this.btcMsgs, other.btcMsgs);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), this.peerAddress, this.btcMsgs);
     }
 }

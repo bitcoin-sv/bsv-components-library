@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.network.streams;
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
@@ -17,6 +13,7 @@ import java.util.concurrent.ExecutorService;
 public abstract class PeerStreamImpl<S,T> implements PeerStream<S> {
 
     protected ExecutorService executor;
+
     protected PeerAddress peerAddress;
     protected PeerStream<T> streamOrigin;
 

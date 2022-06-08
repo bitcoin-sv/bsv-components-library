@@ -1,13 +1,10 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -32,7 +29,8 @@ import java.util.List;
  *   - field: "hash_stop"  (32 bytes)
  *   hash of the last desired block; set to zero to get as many blocks as possible (500)
  */
-public final class BaseGetDataAndHeaderMsg extends Message {
+public final class BaseGetDataAndHeaderMsg extends Message implements Serializable {
+
     private final long version;
     private final VarIntMsg hashCount;
     private final ImmutableList<HashMsg> blockLocatorHash;
@@ -70,18 +68,25 @@ public final class BaseGetDataAndHeaderMsg extends Message {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(version, blockLocatorHash, hashStop);
+        return Objects.hashCode(super.hashCode(), version, hashCount, blockLocatorHash, hashStop);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         BaseGetDataAndHeaderMsg other = (BaseGetDataAndHeaderMsg) obj;
         return Objects.equal(this.version, other.version)
+                && Objects.equal(this.hashCount, other.hashCount)
                 && Objects.equal(this.blockLocatorHash, other.blockLocatorHash)
                 && Objects.equal(this.hashStop, other.hashStop);
+    }
+
+    public BaseGetDataAndHeaderMsgBuilder toBuilder() {
+        return new BaseGetDataAndHeaderMsgBuilder()
+                    .version(this.version)
+                    .hashCount(this.hashCount)
+                    .hashStop(this.hashStop)
+                    .blockLocatorHash(this.blockLocatorHash);
     }
 
     public static BaseGetDataAndHeaderMsgBuilder builder() {

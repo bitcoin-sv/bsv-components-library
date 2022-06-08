@@ -1,10 +1,7 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.network.events;
 
 
+import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.tools.handlers.HandlerState;
 
 /**
@@ -18,7 +15,19 @@ public final class HandlerStateEvent extends P2PEvent {
 
     public HandlerStateEvent(HandlerState state)    { this.state = state; }
     public HandlerState getState()                  { return this.state; }
+
     @Override
     public String toString()                        { return "Event[State]: " + state.toString(); }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false; }
+        HandlerStateEvent other = (HandlerStateEvent) obj;
+        return Objects.equal(this.state, other.state);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), state);
+    }
 }

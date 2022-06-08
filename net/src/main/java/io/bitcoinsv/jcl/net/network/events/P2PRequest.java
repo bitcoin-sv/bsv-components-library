@@ -1,10 +1,5 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.network.events;
 
-import io.bitcoinsv.jcl.tools.events.Event;
 
 /**
  * @author i.fernandez@nchain.com
@@ -14,4 +9,4 @@ import io.bitcoinsv.jcl.tools.events.Event;
  * Base class for any P2PRequest. distinction between P2PEvents and P2PRequests is: a P2P Event is something that
  * HAPPENED, while a P2PRequest is something you WANT to happen.
  */
-public class P2PRequest extends Event {}
+public class P2PRequest extends P2PEvent {}

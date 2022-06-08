@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.unit.network.streams;
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
@@ -23,11 +19,11 @@ public class PeerStreamSimulator<T> extends PeerStreamImpl<T,T> implements PeerS
 
     @Override
     public PeerStreamInOutSimulator<T> buildInputStream() {
-        return new PeerStreamInOutSimulator<>(peerAddress, executor);
+        return new PeerStreamInOutSimulator<>(peerAddress, super.executor);
     }
     @Override
     public PeerStreamInOutSimulator<T> buildOutputStream() {
-        return new PeerStreamInOutSimulator<>(peerAddress, executor);
+        return new PeerStreamInOutSimulator<>(peerAddress, super.executor);
     }
     @Override
     public PeerStreamInOutSimulator<T> input() {

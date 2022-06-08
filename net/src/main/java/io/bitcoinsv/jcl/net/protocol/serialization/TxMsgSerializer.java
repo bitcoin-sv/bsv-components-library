@@ -1,16 +1,12 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.serialization;
 
 
+import io.bitcoinsv.jcl.net.protocol.messages.*;
 import io.bitcoinsv.jcl.net.protocol.messages.*;
 import io.bitcoinsv.jcl.net.protocol.serialization.common.DeserializerContext;
 import io.bitcoinsv.jcl.net.protocol.serialization.common.MessageSerializer;
 import io.bitcoinsv.jcl.net.protocol.serialization.common.SerializerContext;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader;
-import io.bitcoinsv.jcl.tools.bytes.ByteArrayReaderOptimized;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter;
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 
@@ -48,30 +44,24 @@ public class TxMsgSerializer implements MessageSerializer<TxMsg> {
     @Override
     public TxMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
 
-        // We wrap the reader around an ByteArrayReaderOptimized, which works faster than a regular ByteArrayReader
-        // (its also more expensive in terms of memory, but it usually pays off):
-        ByteArrayReaderOptimized reader = (byteReader instanceof ByteArrayReaderOptimized)
-                    ? (ByteArrayReaderOptimized) byteReader
-                    : new ByteArrayReaderOptimized(byteReader);
-
         // We deserialize the Tx the usual way...
-        long version = reader.readUint32();
-        VarIntMsg txInCount = varIntMsgSerializer.deserialize(context, reader);
+        long version = byteReader.readUint32();
+        VarIntMsg txInCount = varIntMsgSerializer.deserialize(context, byteReader);
         int txInCountValue = (int) txInCount.getValue();
         List<TxInputMsg> txInputMessage = new ArrayList<>();
 
         for(int i = 0; i< txInCountValue; i++) {
-            txInputMessage.add(txInputMessageSerializer.deserialize(context,reader));
+            txInputMessage.add(txInputMessageSerializer.deserialize(context,byteReader));
         }
 
-        VarIntMsg txOutCount = varIntMsgSerializer.deserialize(context, reader);
+        VarIntMsg txOutCount = varIntMsgSerializer.deserialize(context, byteReader);
         int txOutCountValue = (int) txOutCount.getValue();
         List<TxOutputMsg> txOutputMessage = new ArrayList<>();
 
         for(int i = 0; i< txOutCountValue; i++) {
-            txOutputMessage.add(txOutputMessageSerializer.deserialize(context, reader));
+            txOutputMessage.add(txOutputMessageSerializer.deserialize(context, byteReader));
         }
-        long locktime = reader.readUint32();
+        long locktime = byteReader.readUint32();
 
         TxMsg.TxMsgBuilder txBuilder =  TxMsg.builder()
                 .version(version)
@@ -94,10 +84,7 @@ public class TxMsgSerializer implements MessageSerializer<TxMsg> {
             byte[] txBytes = writer.reader().getFullContentAndClose();
             // Since this Hash is stored in a Field that is NOT part of the real message and
             // its only a convenience field, we are storing it in the human-readable way (reversed)
-            HashMsg txHash =  HashMsg.builder().hash(
-                    Sha256Hash.wrapReversed(
-                            Sha256Hash.twiceOf(txBytes).getBytes()).getBytes())
-                    .build();
+            Sha256Hash txHash = Sha256Hash.wrapReversed(Sha256Hash.twiceOf(txBytes).getBytes());
             txBuilder.hash(Optional.of(txHash));
         } else txBuilder.hash(Optional.empty());
 

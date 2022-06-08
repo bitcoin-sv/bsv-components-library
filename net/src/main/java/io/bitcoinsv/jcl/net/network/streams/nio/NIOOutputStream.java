@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.network.streams.nio;
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
@@ -13,7 +9,7 @@ import io.bitcoinsv.jcl.net.network.streams.StreamCloseEvent;
 import io.bitcoinsv.jcl.net.network.streams.StreamDataEvent;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader;
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig;
-import io.bitcoinsv.jcl.tools.log.LoggerUtil;
+import io.bitcoinsv.jcl.net.tools.LoggerUtil;
 
 
 import java.io.IOException;
@@ -73,11 +69,10 @@ public class NIOOutputStream extends PeerOutputStreamImpl<ByteArrayReader, ByteA
     private Queue<ByteBuffer> buffersToWrite = new ConcurrentLinkedQueue<>();
 
     public NIOOutputStream(PeerAddress peerAddress,
-                           ExecutorService executor,
                            RuntimeConfig runtimeConfig,
                            NetworkConfig networkConfig,
                            SelectionKey key) {
-        super(peerAddress, executor, null);
+        super(peerAddress, null);
         this.logger = new LoggerUtil(peerAddress.toString(), this.getClass());
 
         this.runtimeConfig = runtimeConfig;
@@ -101,11 +96,19 @@ public class NIOOutputStream extends PeerOutputStreamImpl<ByteArrayReader, ByteA
                 .build();
     }
 
-    public void send(StreamDataEvent<ByteArrayReader> event) {
+    public synchronized void send(StreamDataEvent<ByteArrayReader> event) {
         //logger.trace("Sending " + event.getData().size() + " bytes : " + HEX.encode(event.getData().get()));
-        // We get all the data from this Reader and we addBytes it to the buffer of ByteBuffers.
+        // We get all the data from this Reader and we add it to the buffer of ByteBuffers.
         bytesToWriteRemaining += event.getData().size();
-        buffersToWrite.offer(ByteBuffer.wrap(event.getData().getFullContentAndClose())); // TODO: CAREFUL
+
+        // The bytes to write in this event might be any size, even bigger than 2GB, so we send them in batches...
+        int BATCH_SIZE = 100_000;
+        ByteArrayReader reader = event.getData();
+        while (!reader.isEmpty()) {
+            int numBytesToRead = (int) Math.min(BATCH_SIZE, reader.size());
+            buffersToWrite.offer(ByteBuffer.wrap(reader.read(numBytesToRead)));
+        }
+        //buffersToWrite.offer(ByteBuffer.wrap(event.getData().getFullContentAndClose())); // TODO: CAREFUL
         notifyChannelWritable();
     }
 
@@ -119,9 +122,9 @@ public class NIOOutputStream extends PeerOutputStreamImpl<ByteArrayReader, ByteA
             key.interestOps(key.interestOps() | SelectionKey.OP_WRITE);
             key.selector().wakeup();
         } catch (CancelledKeyException e) {
-            logger.debug("Trying to send byte to " + peerAddress + ", but the Key is Cancelled...");
+            logger.trace("Trying to send byte to " + peerAddress + ", but the Key is Cancelled...");
         } catch (Exception e) {
-            logger.debug("Trying to send byte to " + peerAddress + ", but an Exception was thrown " + e.getMessage());
+            logger.trace("Trying to send byte to " + peerAddress + ", but an Exception was thrown " + e.getMessage());
         }
     }
 
@@ -131,7 +134,7 @@ public class NIOOutputStream extends PeerOutputStreamImpl<ByteArrayReader, ByteA
     }
 
 
-    public int writeToSocket() throws IOException {
+    public synchronized int writeToSocket() throws IOException {
         int writeResult = 0;
         Iterator<ByteBuffer> buffersToWriteIterator = buffersToWrite.iterator();
         while (buffersToWriteIterator.hasNext()) {

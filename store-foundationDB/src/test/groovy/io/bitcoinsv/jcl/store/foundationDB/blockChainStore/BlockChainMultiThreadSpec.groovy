@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.store.foundationDB.blockChainStore
 
 
@@ -17,7 +13,8 @@ import java.time.Duration
 /**
  * Test scenarios involving a Fork and Prune operations
  */
-//@TODO: Test Ignored: FDB installation in docker is not stable. A local FB installation is recommended instead.
+// Test Ignored. If you want to run this Test, set up a local FDB or configure FDBTestUtils.useDocker to use the
+// Docker image provided instead (not fully tested at the moment)
 @Ignore
 class BlockChainMultiThreadSpec extends BlockChainMultiThreadSpecBase {
 

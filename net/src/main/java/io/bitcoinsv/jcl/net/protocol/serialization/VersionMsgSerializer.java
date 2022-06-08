@@ -1,10 +1,7 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.serialization;
 
 
+import io.bitcoinsv.jcl.net.protocol.config.ProtocolVersion;
 import io.bitcoinsv.jcl.net.protocol.serialization.common.DeserializerContext;
 import io.bitcoinsv.jcl.net.protocol.serialization.common.MessageSerializer;
 import io.bitcoinsv.jcl.net.protocol.serialization.common.SerializerContext;
@@ -13,6 +10,7 @@ import io.bitcoinsv.jcl.net.protocol.messages.VarStrMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.VersionMsg;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter;
+import io.bitcoinsv.bitcoinjsv.core.Utils;
 
 /**
  * @author i.fernandez@nchain.com
@@ -50,26 +48,27 @@ public class VersionMsgSerializer implements MessageSerializer<VersionMsg> {
         long nonce = byteReader.readInt64LE(); // TODO: We need to know who to process this field
         VarStrMsg user_agent = VarStrMsgSerializer.getinstance().deserialize(context, byteReader);
         long start_height = byteReader.readUint32();
+
+        // We check if there are more bytes pending to read. Depending on the protocol Version, there might be:
+        // - "relay" (1 byte) :         is only present if protocol >= 7001
+        // - "associationId" (1 byte) : is only present if protocol >= 70015 and its actually there (its optional)
+
         Boolean relay = null;
+        byte[] associationId = Utils.EMPTY_BYTE_ARRAY;
 
+        int numBytesReadedForThisMessage = 20 + (int) addr_from.getLengthInBytes() + (int) addr_recv.getLengthInBytes() + 8 + 4 + (int) user_agent.getLengthInBytes();
 
-        // The "RELAY" Field is optional. So we need to check if the field is there or not. Its NOT enough to just check
-        // if there is more data in the reader, since that data might belong to next message in line, not this one. So
-        // we need to compare the bytes we've read so far for this message, to the MAXIMUM number of Bytes that this
-        // message takes in te reader...
-        int bytesReadedForThisMessage = 20 + (int) addr_from.getLengthInBytes() + (int) addr_recv.getLengthInBytes() + 8 + 4 + (int) user_agent.getLengthInBytes();
+        if (numBytesReadedForThisMessage < context.getMaxBytesToRead()) {
+            int numBytesRemaining = (int) (context.getMaxBytesToRead() - numBytesReadedForThisMessage);
 
-        if (bytesReadedForThisMessage <= (context.getMaxBytesToRead() - 1)) {
-            relay = byteReader.readBoolean();
-            bytesReadedForThisMessage++;
+            boolean isRelayField = (version >= ProtocolVersion.ENABLE_VERSION.getVersion());
+            boolean isAssociationIdField = (isRelayField && numBytesRemaining == 2) || (!isRelayField && numBytesRemaining == 1);
+
+            if (isRelayField)           { relay = byteReader.readBoolean(); }
+            if (isAssociationIdField)   { associationId = byteReader.read(1); }
         }
 
-        // We read the remaining bytes that there might still be there..
-        if (bytesReadedForThisMessage < context.getMaxBytesToRead()) {
-            int bytesRemaining = (int) (context.getMaxBytesToRead() - bytesReadedForThisMessage);
-            byteReader.read(bytesRemaining);
-        }
-
+        // We build the VERSION Message:
         VersionMsg versionMsg = VersionMsg.builder()
                 .version(version)
                 .services(services)
@@ -79,7 +78,9 @@ public class VersionMsgSerializer implements MessageSerializer<VersionMsg> {
                 .nonce(nonce)
                 .user_agent(user_agent)
                 .start_height(start_height)
-                .relay(relay).build();
+                .relay(relay)
+                .associationId(associationId)
+                .build();
 
         return versionMsg;
     }
@@ -96,6 +97,7 @@ public class VersionMsgSerializer implements MessageSerializer<VersionMsg> {
         byteWriter.writeUint64LE(message.getNonce());
         VarStrMsgSerializer.getinstance().serialize(context, message.getUser_agent(), byteWriter);
         byteWriter.writeUint32LE(message.getStart_height());
-        if (message.getRelay() != null) byteWriter.writeBoolean(message.getRelay());
+        if (message.getRelay() != null) { byteWriter.writeBoolean(message.getRelay());}
+        if (message.getAssociationId().length > 0) { byteWriter.write(message.getAssociationId());}
     }
 }

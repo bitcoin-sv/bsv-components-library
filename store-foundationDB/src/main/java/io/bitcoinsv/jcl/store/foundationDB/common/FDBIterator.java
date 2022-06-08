@@ -1,12 +1,7 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.store.foundationDB.common;
 
 
 import com.apple.foundationdb.KeyValue;
-import com.apple.foundationdb.Transaction;
 import io.bitcoinsv.jcl.store.keyValue.common.KeyValueIteratorImpl;
 import org.slf4j.Logger;
 
@@ -45,22 +40,22 @@ import static com.google.common.base.Preconditions.checkArgument;
  * more info about FoundationDB limitations: https://apple.github.io/foundationdb/known-limitations.html
  *
  */
-public class FDBIterator<I> extends KeyValueIteratorImpl<I, Transaction, KeyValue> implements Iterator<I> {
+public class FDBIterator<I> extends KeyValueIteratorImpl<I, LargeTransaction, KeyValue> implements Iterator<I> {
 
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(FDBIterator.class);
     // Internal iterator on a FoundationDb connection
     protected Iterator<KeyValue> fdbIterator;
 
     // Current FoundationDB Transaction
-    protected Transaction currentTransaction;
+    protected LargeTransaction currentTransaction;
 
     /**
      * Constructor
      */
-    public FDBIterator(Transaction currentTransaction,
+    public FDBIterator(LargeTransaction currentTransaction,
                        byte[] startingWithPreffix,
                        byte[] endingWithSuffix,
-                       BiPredicate<Transaction, byte[]> keyIsValidWhen,
+                       BiPredicate<LargeTransaction, byte[]> keyIsValidWhen,
                        Function<KeyValue, I> buildItemBy) {
 
         super(startingWithPreffix, endingWithSuffix, keyIsValidWhen, buildItemBy);
@@ -80,7 +75,7 @@ public class FDBIterator<I> extends KeyValueIteratorImpl<I, Transaction, KeyValu
     @Override protected boolean  hasNextItemFromDB()            { return fdbIterator.hasNext(); }
     @Override protected KeyValue nextEntryFromDB()              { return fdbIterator.next(); }
     @Override protected byte[] getKeyFromEntry(KeyValue item)   { return item.getKey(); }
-    @Override public Transaction getCurrentTransaction()        { return currentTransaction; }
+    @Override public LargeTransaction getCurrentTransaction()        { return currentTransaction; }
 
     public static <I> FDBIteratorBuilder<I> builder() {
         return new FDBIteratorBuilder<I>();
@@ -91,16 +86,16 @@ public class FDBIterator<I> extends KeyValueIteratorImpl<I, Transaction, KeyValu
      * @param <I> Class of each Item returned by the Iterator
      */
     public static class FDBIteratorBuilder<I> {
-        private Transaction currentTransaction;
+        private LargeTransaction currentTransaction;
         private byte[] startingWithPreffix;
         private byte[] endingWithSuffix;
-        private BiPredicate<Transaction, byte[]> keyIsValidWhen;
+        private BiPredicate<LargeTransaction, byte[]> keyIsValidWhen;
         private Function<KeyValue, I> buildItemBy;
 
         FDBIteratorBuilder() {
         }
 
-        public FDBIterator.FDBIteratorBuilder<I> currentTransaction(Transaction currentTransaction) {
+        public FDBIterator.FDBIteratorBuilder<I> currentTransaction(LargeTransaction currentTransaction) {
             this.currentTransaction = currentTransaction;
             return this;
         }
@@ -115,7 +110,7 @@ public class FDBIterator<I> extends KeyValueIteratorImpl<I, Transaction, KeyValu
             return this;
         }
 
-        public FDBIterator.FDBIteratorBuilder<I> keyIsValidWhen(BiPredicate<Transaction, byte[]> keyIsValidWhen) {
+        public FDBIterator.FDBIteratorBuilder<I> keyIsValidWhen(BiPredicate<LargeTransaction, byte[]> keyIsValidWhen) {
             this.keyIsValidWhen = keyIsValidWhen;
             return this;
         }

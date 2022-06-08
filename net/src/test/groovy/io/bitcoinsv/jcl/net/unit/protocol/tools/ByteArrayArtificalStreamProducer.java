@@ -1,17 +1,11 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.unit.protocol.tools;
 
 
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReaderRealTime;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter;
-import lombok.extern.slf4j.Slf4j;
 
 
-@Slf4j
 public class ByteArrayArtificalStreamProducer {
 
     public static ByteArrayReader stream(byte[] streamedData, int streamDelayByteInterval, int streamDelayTimeMs) {

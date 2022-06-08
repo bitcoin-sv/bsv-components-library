@@ -1,9 +1,7 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.network.events;
 
+
+import java.util.Objects;
 
 /**
  * @author i.fernandez@nchain.com
@@ -12,4 +10,18 @@ package io.bitcoinsv.jcl.net.network.events;
  * An Event triggered when the Network Activity Stops
  */
 public class NetStopEvent extends P2PEvent {
+    @Override
+    public String toString() {
+        return "NetStopEvent()";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode());
+    }
 }

@@ -1,25 +1,20 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.unit.protocol.serialization
 
-
+import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigBuilder
+import io.bitcoinsv.jcl.net.protocol.serialization.common.BitcoinMsgSerializer
+import io.bitcoinsv.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl
+import io.bitcoinsv.jcl.net.protocol.serialization.common.DeserializerContext
+import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
+import io.bitcoinsv.jcl.net.protocol.messages.PingMsg
+import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg
+import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsgBuilder
+import io.bitcoinsv.jcl.net.protocol.serialization.PingMsgSerializer
+import io.bitcoinsv.jcl.net.protocol.serialization.common.SerializerContext
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter
 import io.bitcoinsv.bitcoinjsv.core.Utils
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams
 import io.bitcoinsv.bitcoinjsv.params.Net
-import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
-import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigBuilder
-import io.bitcoinsv.jcl.net.protocol.messages.PingMsg
-import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg
-import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsgBuilder
-import io.bitcoinsv.jcl.net.protocol.serialization.PingMsgSerializer
-import io.bitcoinsv.jcl.net.protocol.serialization.common.BitcoinMsgSerializer
-import io.bitcoinsv.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl
-import io.bitcoinsv.jcl.net.protocol.serialization.common.DeserializerContext
-import io.bitcoinsv.jcl.net.protocol.serialization.common.SerializerContext
 import spock.lang.Specification
 
 /**
@@ -90,7 +85,7 @@ class PingMsgSerializerSpec extends Specification {
             ByteArrayReader byteReader = new ByteArrayReader(Utils.HEX.decode(REF_PING_MSG))
         BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
-        BitcoinMsg<PingMsg> message = bitcoinSerializer.deserialize(context, byteReader, PingMsg.MESSAGE_TYPE)
+            BitcoinMsg<PingMsg> message = bitcoinSerializer.deserialize(context, byteReader)
         then:
             message.getHeader().getMagic().equals(config.getBasicConfig().getMagicPackage())
             message.getHeader().getCommand().toUpperCase().equals(PingMsg.MESSAGE_TYPE.toUpperCase())
@@ -110,7 +105,7 @@ class PingMsgSerializerSpec extends Specification {
             BitcoinMsg<PingMsg> bitcoinPingMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), pingBodyMsg).build()
             BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
-            byte[] pingMsgBytes = bitcoinSerializer.serialize(context, bitcoinPingMsg, PingMsg.MESSAGE_TYPE).getFullContent()
+            byte[] pingMsgBytes = bitcoinSerializer.serialize(context, bitcoinPingMsg).getFullContent()
             String pingnMsgDeserialzed = Utils.HEX.encode(pingMsgBytes)
         then:
             pingnMsgDeserialzed.equals(REF_PING_MSG)

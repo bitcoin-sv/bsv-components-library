@@ -1,15 +1,5 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.performance
 
-
-import io.bitcoinsv.jcl.tools.events.EventQueueProcessor
-import io.bitcoinsv.jcl.tools.thread.ThreadUtils
-import io.bitcoinsv.bitcoinjsv.core.Utils
-import io.bitcoinsv.bitcoinjsv.params.MainNetParams
-import io.bitcoinsv.bitcoinjsv.params.STNParams
 import io.bitcoinsv.jcl.net.network.PeerAddress
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolBasicConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
@@ -20,14 +10,17 @@ import io.bitcoinsv.jcl.net.protocol.events.data.RawTxMsgReceivedEvent
 import io.bitcoinsv.jcl.net.protocol.events.data.TxMsgReceivedEvent
 import io.bitcoinsv.jcl.net.protocol.handlers.handshake.HandshakeHandlerConfig
 import io.bitcoinsv.jcl.net.protocol.handlers.message.MessageHandlerConfig
+import io.bitcoinsv.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerConfig
 import io.bitcoinsv.jcl.net.protocol.handlers.pingPong.PingPongHandlerConfig
 import io.bitcoinsv.jcl.net.protocol.messages.GetdataMsg
 import io.bitcoinsv.jcl.net.protocol.messages.InventoryVectorMsg
 import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg
 import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsgBuilder
-import io.bitcoinsv.jcl.net.protocol.streams.deserializer.DeserializerConfig
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2P
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2PBuilder
+import io.bitcoinsv.jcl.tools.events.EventQueueProcessor
+import io.bitcoinsv.jcl.tools.thread.ThreadUtils
+
 import spock.lang.Ignore
 import spock.lang.Specification
 import java.time.Duration
@@ -184,7 +177,7 @@ class IncomingTxPerformanceTest extends Specification {
     /**
      * Main TEst.
      */
-    //@Ignore
+    @Ignore
     def "Testing Incoming TX in real Mainnet"() {
         given:
             // We set up the Network we are connecting to...

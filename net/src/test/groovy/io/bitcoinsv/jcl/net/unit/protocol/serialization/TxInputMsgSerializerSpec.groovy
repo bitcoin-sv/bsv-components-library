@@ -1,18 +1,5 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.unit.protocol.serialization
 
-
-import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader
-import io.bitcoinsv.jcl.tools.bytes.ByteArrayReaderRealTime
-import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter
-import io.bitcoinsv.bitcoinjsv.core.Coin
-import io.bitcoinsv.bitcoinjsv.core.Utils
-import io.bitcoinsv.bitcoinjsv.params.MainNetParams
-import io.bitcoinsv.bitcoinjsv.params.Net
-import io.bitcoinsv.bitcoinjsv.script.ScriptBuilder
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigBuilder
 import io.bitcoinsv.jcl.net.protocol.messages.TxInputMsg
@@ -22,6 +9,14 @@ import io.bitcoinsv.jcl.net.protocol.serialization.TxOutPointMsgSerializer
 import io.bitcoinsv.jcl.net.protocol.serialization.common.DeserializerContext
 import io.bitcoinsv.jcl.net.protocol.serialization.common.SerializerContext
 import io.bitcoinsv.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
+import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader
+import io.bitcoinsv.jcl.tools.bytes.ByteArrayReaderRealTime
+import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter
+import io.bitcoinsv.bitcoinjsv.core.Coin
+import io.bitcoinsv.bitcoinjsv.core.Utils
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import io.bitcoinsv.bitcoinjsv.params.Net
+import io.bitcoinsv.bitcoinjsv.script.ScriptBuilder
 import spock.lang.Specification
 
 /**

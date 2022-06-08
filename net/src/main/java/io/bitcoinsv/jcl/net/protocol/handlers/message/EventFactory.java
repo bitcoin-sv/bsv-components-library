@@ -1,11 +1,9 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.handlers.message;
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.protocol.events.data.*;
+import io.bitcoinsv.jcl.net.protocol.events.data.*;
+import io.bitcoinsv.jcl.net.protocol.messages.*;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
 import io.bitcoinsv.jcl.tools.events.Event;
@@ -20,8 +18,8 @@ import io.bitcoinsv.jcl.net.protocol.messages.*;
 public class EventFactory {
 
     /** It creates the Event to be published to the Bus after we process an incoming Message */
-    public static Event buildIncomingEvent(PeerAddress peerAddress, BitcoinMsg<? extends Message> btcMsg) {
-        Event result = new MsgReceivedEvent<>(peerAddress, btcMsg);
+    public static MsgReceivedEvent buildIncomingEvent(PeerAddress peerAddress, BitcoinMsg<? extends Message> btcMsg) {
+        MsgReceivedEvent result = new MsgReceivedEvent<>(peerAddress, btcMsg);
         Message body = btcMsg.getBody();
 
         if (body instanceof VersionMsg)                 result = new VersionMsgReceivedEvent(peerAddress, (BitcoinMsg<VersionMsg>) btcMsg);
@@ -44,7 +42,7 @@ public class EventFactory {
         else if (body instanceof GetHeadersEnMsg)       result = new GetHeadersEnMsgReceivedEvent(peerAddress, (BitcoinMsg<GetHeadersEnMsg>) btcMsg);
         else if (body instanceof PartialBlockHeaderMsg) result = new BlockHeaderDownloadedEvent(peerAddress, (BitcoinMsg<PartialBlockHeaderMsg>) btcMsg);
         else if (body instanceof PartialBlockTXsMsg)    result = new BlockTXsDownloadedEvent(peerAddress, (BitcoinMsg<PartialBlockTXsMsg>) btcMsg);
-        else if (body instanceof PartialBlockRawTXsMsg) result = new BlockRawTXsDownloadedEvent(peerAddress, (BitcoinMsg<PartialBlockRawTXsMsg>) btcMsg);
+        else if (body instanceof PartialBlockRawTxMsg)  result = new BlockRawTXsDownloadedEvent(peerAddress, (BitcoinMsg<PartialBlockRawTxMsg>) btcMsg);
         else if (body instanceof RawTxMsg)              result = new RawTxMsgReceivedEvent(peerAddress, (BitcoinMsg<RawTxMsg>) btcMsg);
         else if (body instanceof RawBlockMsg)           result = new RawBlockMsgReceivedEvent(peerAddress, (BitcoinMsg<RawBlockMsg>) btcMsg);
         else if (body instanceof CompactBlockMsg)       result = new CompactBlockMsgReceivedEvent(peerAddress, (BitcoinMsg<CompactBlockMsg>) btcMsg);

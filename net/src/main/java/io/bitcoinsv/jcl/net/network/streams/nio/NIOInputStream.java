@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.network.streams.nio;
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
@@ -13,7 +9,7 @@ import io.bitcoinsv.jcl.net.network.streams.StreamDataEvent;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayStatic;
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig;
-import io.bitcoinsv.jcl.tools.log.LoggerUtil;
+import io.bitcoinsv.jcl.net.tools.LoggerUtil;
 
 
 import java.io.IOException;

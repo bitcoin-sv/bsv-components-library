@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.wrapper;
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
@@ -52,8 +48,8 @@ public class P2PBuilder {
     private String id;
 
     // Configurations:
-    private RuntimeConfig runtimeConfig = new RuntimeConfigDefault(); // Default...
-    private NetworkConfig networkConfig = new NetworkDefaultConfig(); // Default...
+    private RuntimeConfig runtimeConfig;
+    private NetworkConfig networkConfig;
     // the server Address is 0.0.0.0 by default, which allows for connections from everywhere. If you are running
     // tests with multiple P2P instances connecting to each other in localhost, use the "useLocalhost()" method
     // instead, that will set the address to "127.0.0.1" which is more efficient.
@@ -115,6 +111,7 @@ public class P2PBuilder {
         this.protocolConfig = ((ProtocolConfigImpl) protocolConfig).toBuilder().basicConfig(basicConfig).build();
 
         // We also overwrite the port number on the Network Config:
+        setUpNetworkConfigIfNull();
         this.networkConfig = ((NetworkConfigImpl) this.networkConfig).toBuilder().port(basicConfig.getPort()).build();
         return this;
     }
@@ -166,11 +163,19 @@ public class P2PBuilder {
         return this;
     }
 
+    private void setUpRuntimeConfigIfNull() {
+        if (this.runtimeConfig == null) { this.runtimeConfig = new RuntimeConfigDefault();}
+    }
+
+    private void setUpNetworkConfigIfNull() {
+        if (this.networkConfig == null) { this.networkConfig = new NetworkDefaultConfig(); }
+    }
+
     private Map<String, Handler> createBuiltInHandlers(RuntimeConfig runtimeConfig, NetworkConfig networkConfig, Map<String, HandlerConfig> handlerConfigs) {
         Map<String, Handler> result = new HashMap<>();
         try {
 
-            // We addBytes different built-in handlers:
+            // We add different built-in handlers:
 
             // Network Handler...
             // IMPORTANT: We use 0.0.0.0 to allow connections from anywhere
@@ -187,12 +192,7 @@ public class P2PBuilder {
 
             // Message Handler...
             MessageHandlerConfig messageConfig =  (MessageHandlerConfig) handlerConfigs.get(MessageHandler.HANDLER_ID);
-
-            // NOTE: The "maxNumberDedicatedConnections" in the MessageHandler is very related to the
-            // "maxBlocksInParallel" property of the BlockDownloaderHandler Config, so we assign its value...
-            BlockDownloaderHandlerConfig blockConfigTmp = (BlockDownloaderHandlerConfig) handlerConfigs.get(BlockDownloaderHandler.HANDLER_ID);
-            messageConfig = messageConfig.toBuilder().basicConfig(this.basicConfig).maxNumberDedicatedConnections(blockConfigTmp.getMaxBlocksInParallel()) .build();
-
+            messageConfig = messageConfig.toBuilder().basicConfig(this.basicConfig).build();
             Handler messageHandler = new MessageHandlerImpl(id, runtimeConfig, messageConfig);
             result.put(messageHandler.getId(), messageHandler);
 
@@ -247,23 +247,27 @@ public class P2PBuilder {
         P2P result = null;
         try {
 
+            // Default values for some configurations, if not defined:
+            setUpRuntimeConfigIfNull();
+            setUpNetworkConfigIfNull();
+
             // We set up the default built-in Handlers:
             Map<String, Handler> defaultHandlers = createBuiltInHandlers(runtimeConfig, networkConfig, this.handlerConfigs);
 
             // We set up the P2P (without handlers, for now)
             result = new P2P(id, runtimeConfig, networkConfig, protocolConfig);
 
-            // Now we addBytes all the Handlers to this P2P: The set of handlers to addBytes is a combination of the
+            // Now we add all the Handlers to this P2P: The set of handlers to add is a combination of the
             // default ones, plus the custom ones, minus the ones specifically excluded...
 
-            // First, we calculate which Handlers we should addBytes...
+            // First, we calculate which Handlers we should add...
             Map<String, Handler> finalHandlersToAdd = new HashMap<>(defaultHandlers);
             for (String handlerId : this.handlersToAdd.keySet())
                 finalHandlersToAdd.put(handlerId, this.handlersToAdd.get(handlerId));
             for (String handlerId : handlersToExclude)
                 finalHandlersToAdd.remove(handlerId);
 
-            // Now, we just addBytes them, along with their "status Refresh Frequency", if it has been configured:
+            // Now, we just addBy them, along with their "status Refresh Frequency", if it has been configured:
             for (Handler handler : finalHandlersToAdd.values()) {
                 String handlerId = handler.getId();
                 Duration handlerStateFrequency = stateRefreshFrequencies.containsKey(handlerId)

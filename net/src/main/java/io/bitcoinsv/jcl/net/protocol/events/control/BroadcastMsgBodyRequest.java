@@ -1,11 +1,8 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.events.control;
 
+import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.network.events.P2PRequest;
-import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
+import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
 
 /**
  * @author i.fernandez@nchain.com
@@ -18,17 +15,30 @@ import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
  * Unlike the BroadcastMsgRequest, this Request does not specify the Header of the Message, only the Body. The Header will
  * be automatically created at the moment of sending the mesage...
  */
-public final class BroadcastMsgBodyRequest extends P2PRequest {
-    private final Message body;
+public class BroadcastMsgBodyRequest extends P2PRequest {
+    private final BodyMessage body;
 
-    public BroadcastMsgBodyRequest(Message body) {
+    public BroadcastMsgBodyRequest(BodyMessage body) {
         this.body = body;
     }
 
-    public Message getMsgBody() { return this.body; }
+    public BodyMessage getMsgBody() { return this.body; }
 
     @Override
     public String toString() {
         return "BroadcastMsgBodyRequest(msgBody=" + this.body + ")";
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false;}
+        BroadcastMsgBodyRequest other = (BroadcastMsgBodyRequest) obj;
+        return Objects.equal(this.body, other.body);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), body);
+    }
+
 }

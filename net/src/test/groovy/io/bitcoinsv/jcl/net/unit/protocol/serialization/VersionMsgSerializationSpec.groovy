@@ -1,18 +1,10 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.unit.protocol.serialization
 
-
-import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader
-import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter
-import io.bitcoinsv.bitcoinjsv.core.Utils
-import io.bitcoinsv.bitcoinjsv.params.MainNetParams
-import io.bitcoinsv.bitcoinjsv.params.Net
 import io.bitcoinsv.jcl.net.network.PeerAddress
+import io.bitcoinsv.jcl.net.protocol.config.ProtocolBasicConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigBuilder
+import io.bitcoinsv.jcl.net.protocol.config.ProtocolVersion
 import io.bitcoinsv.jcl.net.protocol.messages.NetAddressMsg
 import io.bitcoinsv.jcl.net.protocol.messages.VarStrMsg
 import io.bitcoinsv.jcl.net.protocol.messages.VersionMsg
@@ -24,6 +16,11 @@ import io.bitcoinsv.jcl.net.protocol.serialization.common.BitcoinMsgSerializerIm
 import io.bitcoinsv.jcl.net.protocol.serialization.common.DeserializerContext
 import io.bitcoinsv.jcl.net.protocol.serialization.common.SerializerContext
 import io.bitcoinsv.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
+import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader
+import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter
+import io.bitcoinsv.bitcoinjsv.core.Utils
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import io.bitcoinsv.bitcoinjsv.params.Net
 import spock.lang.Specification
 
 /**
@@ -31,6 +28,8 @@ import spock.lang.Specification
  * The test is taken the assumption that we have already a correct serialization version of this Message, obtained
  * from another source that we trust (in this case the Java BitcoinJ library). So we serialize/deserialize some
  * messages with out code and compare the results with that reference.
+ *
+ * NOTE: The Reference HEX Strings used have been generated using 70013 a the protocol Version
  */
 class VersionMsgSerializationSpec extends Specification {
 
@@ -63,9 +62,12 @@ class VersionMsgSerializationSpec extends Specification {
 
     def "testing VersionMSg BODY De-serializing"(int byteInterval, int delayMs) {
         given:
-        ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        DeserializerContext context = DeserializerContext.builder()
-                    .protocolBasicConfig(config.getBasicConfig())
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
+                .protocolVersion(ProtocolVersion.ENABLE_FEE_FILTER.getVersion())
+                .build()
+            DeserializerContext context = DeserializerContext.builder()
+                    .protocolBasicConfig(basicConfig)
                     .maxBytesToRead(Utils.HEX.decode(REF_BODY_ADDRESS_MSG).length)
                     .insideVersionMsg(true)
                     .build()
@@ -89,8 +91,11 @@ class VersionMsgSerializationSpec extends Specification {
     def "testing VersionMsg BODY Serializing"() {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
-        SerializerContext context = SerializerContext.builder()
-                    .protocolBasicConfig(config.getBasicConfig())
+            ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
+                .protocolVersion(ProtocolVersion.ENABLE_FEE_FILTER.getVersion())
+                .build()
+            SerializerContext context = SerializerContext.builder()
+                    .protocolBasicConfig(basicConfig)
                     .insideVersionMsg(true)
                     .build()
         VarStrMsg userAgentMsg = VarStrMsg.builder().str(REF_BODY_USER_AGENT).build();
@@ -100,7 +105,7 @@ class VersionMsgSerializationSpec extends Specification {
                 .build();
 
             VersionMsg message = VersionMsg.builder()
-                    .version(config.getBasicConfig().getProtocolVersion())
+                    .version(basicConfig.getProtocolVersion())
                     .timestamp(REF_BODY_TIMESTAMP)
                     .user_agent(userAgentMsg)
                     .start_height(REF_BODY_START_HEIGHT)
@@ -121,15 +126,20 @@ class VersionMsgSerializationSpec extends Specification {
     def "testing Version Message COMPLETE de-serializing"(int byteInterval, int delayMs) {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
+                .protocolVersion(ProtocolVersion.ENABLE_FEE_FILTER.getVersion())
+                .build()
             DeserializerContext context = DeserializerContext.builder()
-                .protocolBasicConfig(config.getBasicConfig())
+                .protocolBasicConfig(basicConfig)
+                .maxBytesToRead(Utils.HEX.decode(REF_ADDRESS_MSG).length)
                 .insideVersionMsg(true)
+                .calculateChecksum(true)
                 .build()
 
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_ADDRESS_MSG), byteInterval, delayMs);
         BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
-        BitcoinMsg<VersionMsg> message = bitcoinSerializer.deserialize(context, byteReader, VersionMsg.MESSAGE_TYPE)
+            BitcoinMsg<VersionMsg> message = bitcoinSerializer.deserialize(context, byteReader)
         then:
             message.getHeader().getMagic().equals(config.getBasicConfig().getMagicPackage())
             message.getHeader().getCommand().toUpperCase().equals(VersionMsg.MESSAGE_TYPE.toUpperCase())
@@ -147,8 +157,11 @@ class VersionMsgSerializationSpec extends Specification {
     def "testing Version Message COMPLETE Serializing"() {
         given:
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
+                .protocolVersion(ProtocolVersion.ENABLE_FEE_FILTER.getVersion())
+                .build()
             SerializerContext context = SerializerContext.builder()
-                    .protocolBasicConfig(config.getBasicConfig())
+                    .protocolBasicConfig(basicConfig)
                     .insideVersionMsg(true)
                     .build()
             VarStrMsg userAgentMsg = VarStrMsg.builder().str(REF_BODY_USER_AGENT).build();
@@ -157,7 +170,7 @@ class VersionMsgSerializationSpec extends Specification {
                 .timestamp(System.currentTimeMillis())
                 .build();
             VersionMsg versionMsg  = VersionMsg.builder()
-                    .version(config.getBasicConfig().protocolVersion)
+                    .version(basicConfig.protocolVersion)
                     .timestamp(REF_TIMESTAMP)
                     .user_agent(userAgentMsg)
                     .start_height(REF_BODY_START_HEIGHT)
@@ -167,7 +180,7 @@ class VersionMsgSerializationSpec extends Specification {
             BitcoinMsg<VersionMsg> bitcoinVersionMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), versionMsg).build()
             BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
-            byte[] versionMsgBytes = bitcoinSerializer.serialize(context, bitcoinVersionMsg, VersionMsg.MESSAGE_TYPE).getFullContent()
+            byte[] versionMsgBytes = bitcoinSerializer.serialize(context, bitcoinVersionMsg).getFullContent()
             String versionMsgDeserialzed = Utils.HEX.encode(versionMsgBytes)
         then:
             versionMsgDeserialzed.equals(REF_ADDRESS_MSG)

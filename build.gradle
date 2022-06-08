@@ -8,10 +8,18 @@ plugins {
  ****************************************/
 jclGroup = "$jclGroup"
 jclVersion = "$jclVersion"
-jclNetName = "$jclNetName"
+
+group = "$rootProject.jclGroup"
+version = "$rootProject.jclVersion"
 
 sourceCompatibility = "11"
 targetCompatibility = "11"
+
+/****************************************
+ * Dependencies on specific libraries
+ ****************************************/
+ext['logback.version'] = '1.2.8'
+ext['log4j2.version'] = '2.16.0' // Just in Case (log4J vulnerability patch)
 
 configurations {
     childJars
@@ -26,20 +34,10 @@ repositories {
 /****************************************
  * Build the JAR - Include all sub project classes and dependencies
  ****************************************/
-dependencies {
-    subprojects.each {
-        childJars project(it.path)
-    }
-}
-
 jar {
-    dependsOn configurations.childJars
-    from { configurations.childJars.collect { zipTree(it) } }
-}
-
-// Refer to https://github.com/gradle/gradle/issues/17236#issuecomment-894768083
-rootProject.tasks.named("jar") {
-    duplicatesStrategy = 'include'
+    from {
+        subprojects.collect { it.sourceSets.main.output }
+    }
 }
 
 java {
@@ -53,21 +51,21 @@ javadoc {
     }
 }
 
-/****************************************
- * Publish the JAR
- ****************************************/
+/***********************************************************
+ * Publish the FAT JAR (including ALL JCL in one single JAR)
+ ***********************************************************/
 publishing {
     publications {
         mavenJava(MavenPublication) {
 
-            artifactId = "$jclNetName"
+            artifactId = "$jclArtifactName"
             groupId = "$jclGroup"
             version = "$jclVersion"
 
             from components.java
 
             pom {
-                name = "$jclNetName"
+                name = "$jclArtifactName"
                 description = 'Java implementation of Bitcoin components'
                 url = 'https://github.com/bitcoin-sv/bsv-components-library'
 

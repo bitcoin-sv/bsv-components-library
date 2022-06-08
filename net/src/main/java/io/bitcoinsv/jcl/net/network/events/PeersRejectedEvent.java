@@ -1,8 +1,6 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.network.events;
+
+import com.google.common.base.Objects;
 
 import java.util.List;
 
@@ -26,8 +24,21 @@ public final class PeersRejectedEvent extends P2PEvent {
     public List<PeerRejectedEvent> getEvents() {
         return this.events;
     }
+
     @Override
     public String toString() {
         return "Event[PeersRejected]: " + events.size() + "peers rejected";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false; }
+        PeersRejectedEvent other = (PeersRejectedEvent) obj;
+        return Objects.equal(this.events, other.events);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), events);
     }
 }

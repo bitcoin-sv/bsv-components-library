@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.store.blockChainStore.validation.rules;
 
 import io.bitcoinsv.jcl.store.blockChainStore.BlockChainStore;
@@ -10,6 +6,7 @@ import io.bitcoinsv.jcl.tools.util.PowUtil;
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly;
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.extended.ChainInfo;
 import io.bitcoinsv.bitcoinjsv.core.Utils;
+
 
 import java.math.BigInteger;
 import java.util.List;

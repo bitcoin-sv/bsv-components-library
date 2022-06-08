@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.tools.bytes;
 
 import io.bitcoinsv.bitcoinjsv.core.Utils;
@@ -29,6 +25,19 @@ import java.io.IOException;
  * an index, in order to know where to read next). When the Buffer as been read completeluy, we just need to refresh
  * it, moving content from the regular Builder we still have and into the Buffer. But since the buffer is big enough,
  * this refresh should happen not very frequently.
+ *
+ * *****************************************************************************************************************
+ * WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING
+ *
+ * IF YOU USE THIS READER OR ANY OTHER THAT EXTENDS IT, YOU NEED TO MAKE SURE THAT THE READER IS CREATED ONLY ONCE,
+ * AT THE BEGINNING THE DESERIALIZATION, AND YOU CALL "refreshBuffer()" WHEN YOU ARE DONE.
+ *
+ * FOR THAT REASON, ITS NOT A GOOD IDEA TO SET UP THIS READER INSIDE A DESERIALIZER: THAT INDIVIDUAL DESERIALIZER
+ * MIGHT WORK FINE, BUT IF IN THE FUTURE THAT DESERIALIZER IS USED BY ANOTHER (BIGGER) DESERIALIZER THAT USES THAT
+ * ONE IN A LOOP, THAT MIGHT FAIL: THE READER WIL BE SETUP MULTIPLE TIMES, AND THAT MIGHT LEAD TO TROUBLE.
+ *
+ * BOTTOM LINE: MAKE SURE THIS READER IS CREATED ONLY ONCE PER MESSAGE.
+ * *****************************************************************************************************************
  */
 public class ByteArrayReaderOptimized extends ByteArrayReader {
 
@@ -37,7 +46,7 @@ public class ByteArrayReaderOptimized extends ByteArrayReader {
     //private int BUFFER_SIZE = 50;
     private byte[] buffer = new byte[BUFFER_SIZE];
     private int bufferDataSize = 0;
-    private int bytesConsumed = 0;
+    public int bytesConsumed = 0;
 
     public ByteArrayReaderOptimized(ByteArray byteArray) {
         super(byteArray);
@@ -83,6 +92,10 @@ public class ByteArrayReaderOptimized extends ByteArrayReader {
         }
     }
 
+    public long getUint32(int offset) {
+        return Utils.readUint32(get(offset, 4), 0);
+    }
+
     public long readUint32() {
         adjustBufferIfNeededForReading(4);
         long result= Utils.readUint32(buffer, bytesConsumed);
@@ -95,6 +108,10 @@ public class ByteArrayReaderOptimized extends ByteArrayReader {
         byte result = buffer[bytesConsumed];
         bytesConsumed+= 1;
         return result;
+    }
+
+    public long getInt64LE(int offset) {
+        return Utils.readInt64(get(offset, 8), 0);
     }
 
     public long readInt64LE() {
@@ -133,17 +150,21 @@ public class ByteArrayReaderOptimized extends ByteArrayReader {
     }
 
     @Override
-    public byte[] get(int length) {
+    public byte[] get(long offset, int length) {
         byte[] result = new byte[length];
-        if ((buffer.length) >= length) {
-            adjustBufferIfNeededForReading(length);
-            System.arraycopy(buffer, bytesConsumed, result, 0, length);
+
+        if (bytesConsumed + offset + length <= bufferDataSize) {
+            System.arraycopy(buffer, (int) (bytesConsumed + offset), result, 0, length);
         } else {
-            result = super.get(length);
-            resetBuffer();
-            return result;
+            result = super.get(bytesConsumed + offset, length);
         }
+
         return result;
+    }
+
+    @Override
+    public byte[] get(int length) {
+        return get(0, length);
     }
 
     public byte[] getFullContentAndClose() {

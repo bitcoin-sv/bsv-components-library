@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.tools.bytes;
 
 import static com.google.common.base.Preconditions.*;
@@ -36,10 +32,10 @@ public class ByteArrayStatic implements ByteArray {
     @Override public byte[] get(int length) { return get(0, length);}
     @Override public byte[] get()           { return content;}
 
-    @Override public byte[] get(int offset, int length) {
+    @Override public byte[] get(long offset, int length) {
         checkArgument(offset > 0 && ((offset + length) < content.length), "Trying to get too much bytes");
         byte[] result = new byte[length];
-        System.arraycopy(this.content, offset, result, 0, length);
+        System.arraycopy(this.content, (int) offset, result, 0, length);
         return result;
     }
 

@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.serialization.largeMsgs;
 
 
@@ -17,25 +13,38 @@ import java.util.function.Consumer;
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  *
- * Base implementation of a Large Message Deserializer. Imlements basic initilization stuff
+ * Base implementation of a Large Message Deserializer. Implements basic initialization stuff
  * and convenience methods.
  */
 public abstract class LargeMessageDeserializerImpl implements LargeMessageDeserializer {
 
-    // USed to trigger the callbacks
+
+    // Used to trigger the callbacks
     private EventBus eventBus;
 
     // If this property is specified, the reader will be upgraded to expect this speed when reading bytes, or an
     // exception will nbe thrown.
     private Integer minSpeedBytesPerSec = ByteArrayReaderRealTime.DEFAULT_SPEED_BYTES_PER_SECOND;
 
+
+    // This property specifies how "big" each partial message is returned by the Large Deserializer.
+    // Each specific Deserializer might use this property in a different way: the BigBlockDeserializer for instance
+    // uses this property for the chunks/btches of Txs returned.
+    protected Integer partialMsgSize;
+
     /** Constructor. The ServiceExecutor will be used to trigger the callbacks in a different Thread */
     public LargeMessageDeserializerImpl(ExecutorService executor) {
         this.eventBus = EventBus.builder().executor(executor).build();
     }
+
     /** Constructor. Since no Executor Service is specified here, all the callbacks are blocking */
     public LargeMessageDeserializerImpl() {
         this(null);
+    }
+
+    @Override
+    public void setPartialMsgSize(int partialMsgSize) {
+        this.partialMsgSize = partialMsgSize;
     }
 
     @Override

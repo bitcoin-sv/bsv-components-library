@@ -1,10 +1,7 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.handlers.block;
 
 
+import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.tools.handlers.Handler;
 
 import java.util.List;
@@ -16,7 +13,7 @@ import java.util.List;
  * Operations provided by the BlockDownloader Handler.
  */
 public interface BlockDownloaderHandler extends Handler {
-    String HANDLER_ID = "BlockDownloader-Handler";
+    String HANDLER_ID = "Download";
 
     @Override
     default String getId() { return HANDLER_ID; }
@@ -24,6 +21,7 @@ public interface BlockDownloaderHandler extends Handler {
     /** Adds more Block Hashes to the list of Blocks to Download */
     void download(List<String> blockHashes);
     void download(List<String> blockHashes, boolean withPriority);
+    void download(List<String> blockHashes, boolean withPriority, PeerAddress fromThisPeerOnly, PeerAddress fromThisPeerPreferably);
 
     /**
      * Cancels the download of the blocks given. If some of the blocks are already being download, those blocks will

@@ -1,11 +1,9 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
+
+import java.io.Serializable;
 
 
 /**
@@ -26,7 +24,7 @@ import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
  *  - string: "length" (? bytes) char[]
  *    The string itself (can be empty)
  */
-public final class VarStrMsg extends Message {
+public final class VarStrMsg extends Message implements Serializable {
 
     public static final String MESSAGE_TYPE = "varStr";
 
@@ -38,8 +36,6 @@ public final class VarStrMsg extends Message {
         this.strLength = VarIntMsg.builder().value(str.length()).build();
         init();
     }
-
-
 
     @Override
     protected long calculateLength() {
@@ -62,14 +58,12 @@ public final class VarStrMsg extends Message {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(strLength, str);
+        return Objects.hashCode(super.hashCode(), strLength, str);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         VarStrMsg other = (VarStrMsg) obj;
         return Objects.equal(this.strLength, other.strLength)
                 && Objects.equal(this.str, other.str);
@@ -79,14 +73,17 @@ public final class VarStrMsg extends Message {
         return new VarStrMsgBuilder();
     }
 
+    public VarStrMsgBuilder toBuilder() {
+        return new VarStrMsgBuilder().str(this.str);
+    }
+
     /**
      * Builder
      */
     public static class VarStrMsgBuilder {
         private String str;
 
-        VarStrMsgBuilder() {
-        }
+        public VarStrMsgBuilder() {}
 
         public VarStrMsg.VarStrMsgBuilder str(String str) {
             this.str = str;
@@ -97,6 +94,7 @@ public final class VarStrMsg extends Message {
             return new VarStrMsg(str);
         }
 
+        @Override
         public String toString() {
             return "VarStrMsg.VarStrMsgBuilder(str=" + this.str + ")";
         }

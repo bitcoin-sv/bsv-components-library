@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.serialization;
 
 
@@ -49,7 +45,7 @@ public class NetAddressMsgSerializer implements MessageSerializer<NetAddressMsg>
 
             // if applied, we read the timestamp. 4 bytes
             if  ((!context.isInsideVersionMsg()) &&
-                    (context.getProtocolBasicConfig().getProtocolVersion() >= ProtocolVersion.ENABLE_TIMESTAMP_ADDRESS.getBitcoinProtocolVersion())) {
+                    (context.getProtocolBasicConfig().getProtocolVersion() >= ProtocolVersion.ENABLE_TIMESTAMP_ADDRESS.getVersion())) {
 
                 timestamp  = byteReader.readUint32();
             }
@@ -77,7 +73,7 @@ public class NetAddressMsgSerializer implements MessageSerializer<NetAddressMsg>
     public void serialize(SerializerContext context, NetAddressMsg message, ByteArrayWriter byteWriter) {
         // if applied, we write the timestamp. 4 bytes
         if  ((!context.isInsideVersionMsg()) &&
-                (context.getProtocolBasicConfig().getProtocolVersion() >= ProtocolVersion.ENABLE_TIMESTAMP_ADDRESS.getBitcoinProtocolVersion())) {
+                (context.getProtocolBasicConfig().getProtocolVersion() >= ProtocolVersion.ENABLE_TIMESTAMP_ADDRESS.getVersion())) {
             byteWriter.writeUint32LE(message.getTimestamp());
         }
 

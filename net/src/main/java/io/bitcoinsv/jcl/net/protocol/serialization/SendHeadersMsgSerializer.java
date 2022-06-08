@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.serialization;
 
 
@@ -32,7 +28,7 @@ public class SendHeadersMsgSerializer implements MessageSerializer<SendHeadersMs
 
     @Override
     public SendHeadersMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
-        return new SendHeadersMsg().builder().build();
+        return new SendHeadersMsg.SendHeadersMsgBuilder().build();
     }
 
     @Override

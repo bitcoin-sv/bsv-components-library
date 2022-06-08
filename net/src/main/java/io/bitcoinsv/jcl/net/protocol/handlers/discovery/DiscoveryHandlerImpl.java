@@ -1,11 +1,8 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.handlers.discovery;
 
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
+import io.bitcoinsv.jcl.net.network.events.*;
 import io.bitcoinsv.jcl.net.network.events.*;
 import io.bitcoinsv.jcl.net.protocol.events.data.AddrMsgReceivedEvent;
 import io.bitcoinsv.jcl.net.protocol.events.data.GetAddrMsgReceivedEvent;
@@ -20,7 +17,7 @@ import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig;
 import io.bitcoinsv.jcl.tools.events.EventQueueProcessor;
 import io.bitcoinsv.jcl.tools.handlers.HandlerImpl;
-import io.bitcoinsv.jcl.tools.log.LoggerUtil;
+import io.bitcoinsv.jcl.net.tools.LoggerUtil;
 import io.bitcoinsv.jcl.tools.thread.ThreadUtils;
 import io.bitcoinsv.jcl.tools.util.DateTimeUtils;
 import io.bitcoinsv.jcl.tools.util.StringUtils;
@@ -111,6 +108,10 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
         // We schedule the Job to re-connect the Lost Handshaked Peers:
         if (config.getRecoveryHandshakeFrequency().isPresent()
             && config.getRecoveryHandshakeThreshold().isPresent()) {
+            logger.debug("Scheduling job to renew once-handshaked peers every "
+                    + config.getRecoveryHandshakeFrequency().get().toSeconds() + " seconds."
+                    + " Every Peer disconnected after " + config.getRecoveryHandshakeThreshold().get().toSeconds()
+                    + " seconds will be re-connected again). ");
             executor.scheduleAtFixedRate(this::jobRenewLostHandshakedPeers,
                     config.getRecoveryHandshakeFrequency().get().toMillis(),
                     config.getRecoveryHandshakeFrequency().get().toMillis(),
@@ -160,31 +161,34 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
                     ? new InitialPeersFinderSeed(this.config)
                     : new InitialPeersFinderCSV(super.runtimeConfig.getFileUtils(), this.config);
             logger.debug("Loading Pool with Peers Finder: " + peersFinder.getClass().getSimpleName() + "...");
-            List<DiscoveryPeerInfo> initialPeers = peersFinder.findPeers().stream()
-                    .map(p -> new DiscoveryPeerInfo(p))
-                    .collect(Collectors.toList());
+            List<PeerAddress> initialPeers = peersFinder.findPeers();
+
             // We trigger the Event:
             super.eventBus.publish(new InitialPeersLoadedEvent(initialPeers.size(), config.getDiscoveryMethod()));
             logger.debug(initialPeers.size() + " peers found.");
 
             // Now we load the Peers from the POOL from previous execution, stored in a CSV File:
-            logger.debug("Loading High-Quality Peers from file...");
-            List<DiscoveryPeerInfo> poolPeers = new ArrayList<>();
+            List<PeerAddress> poolPeers = new ArrayList<>();
             String csvFileName = StringUtils.fileNamingFriendly(config.getBasicConfig().getId()) + FILE_POOL_SUFFIX;
             Path csvPath = Paths.get(runtimeConfig.getFileUtils().getRootPath().toString(), NET_FOLDER, csvFileName);
             logger.debug("looking for High Quality Peers file in: " + csvPath.toString());
             if (Files.exists(csvPath)) {
-                poolPeers = runtimeConfig.getFileUtils().readCV(csvPath, () -> new DiscoveryPeerInfo());
+                poolPeers = runtimeConfig.getFileUtils().readCV(csvPath, () -> new DiscoveryPeerInfo()).stream()
+                        .map(d -> d.getPeerAddress())
+                        .collect(Collectors.toList());
                 logger.debug(poolPeers.size() + " peers loaded from file.");
             } else logger.debug(" No file found.");
 
+            // We also check if some initial Connections have been defined directly in the Configuration:
+            List<PeerAddress> initialConnections = config.getInitialConnections();
+
             // we put them both all into the Main Pool:
-            List<DiscoveryPeerInfo> totalPeers = new ArrayList<>();
-            totalPeers.addAll(initialPeers);
-            totalPeers.addAll(poolPeers);
+            List<PeerAddress> peersToConnect = new ArrayList<>();
+            peersToConnect.addAll(initialConnections);
+            peersToConnect.addAll(initialPeers);
+            peersToConnect.addAll(poolPeers);
 
             // We register all of them for connection:
-            List<PeerAddress> peersToConnect = totalPeers.stream().map(p -> p.getPeerAddress()).collect(Collectors.toList());
             super.eventBus.publish(new ConnectPeersRequest(peersToConnect));
         } catch (Exception e) {
             e.printStackTrace();
@@ -208,7 +212,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
 
     // Event Handler:
     public void onStart(NetStartEvent event) {
-        logger.debug("Starting...");
+        logger.trace("Starting...");
         initPool();
     }
 
@@ -223,21 +227,21 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
         // We stop the EventQueueProcessor...
         this.eventQueueProcessor.stop();
 
-        logger.debug("Stop.");
+        logger.trace("Stop.");
         isStopping = true;
     }
     // Event Handler:
     public void onPeerHandshaked(PeerHandshakedEvent event) {
         // This peer might or not be in the Main pool.
-        // In case it's not, we first try to addBytes it. If we couldn't addBytes it (maybe because the main Pool is
+        // In case it's not, we first try to add it. If we couldn't add it (maybe because the main Pool is
         // already full, we try to replace it for other Peer that is not handshaked
 
         PeerAddress peerAddress = event.getPeerAddress();
-        // We addBytes it to our "historic" of handshaked peers:
+        // We add it to our "historic" of handshaked peers:
         peersHandshaked.add(peerAddress);
 
-        // Now we addBytes this Peer to our Pool. If it's not possible to Add (most probably because the Pool has already
-        // reached the maximum size), we still try to addBytes it, since a handshaked Peer is a high-quality Peer that we
+        // Now we add this Peer to our Pool. If it's not possible to Add (most probably because the Pool has already
+        // reached the maximum size), we still try to add it, since a handshaked Peer is a high-quality Peer that we
         // want to keep. so in that case, we look for another Peer within the Peer we might replace (like a Peer in
         // the pool that is NOT handshaked)
 
@@ -258,7 +262,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
         }
 
         peerInfo.updateHandshake(event.getVersionMsg());
-        logger.trace(peerAddress, "Handshaked Peer added to the Pool (version:" + peerInfo.getVersionMsg().getVersion() + ")");
+        logger.trace(peerAddress, "Handshaked Peer added to the Pool", "(" + handlerInfo.size() + " peers currently in pool)");
 
         // We start the Discovery protocol....
         if (!isStopping && isAccceptingConnections) startDiscovery(peerInfo);
@@ -302,7 +306,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
 
         DiscoveryPeerInfo peerInfo = getOrWaitForHandlerInfo(event.getPeerAddress());
         if (peerInfo == null) return;
-        logger.debug(peerInfo.getPeerAddress().toString() + " :: Processing incoming GET_ADDR...");
+        logger.debug(peerInfo.getPeerAddress(), "Processing incoming GET_ADDR...");
         // We check that we have enough of them to send them out:
         if (config.getRelayMinAddresses().isPresent() && (handlerInfo.size() > config.getRelayMinAddresses().getAsInt())) {
             logger.debug(peerInfo.getPeerAddress(), "GETADDR Ignored (not enough Addresses to send");
@@ -310,7 +314,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
         }
 
         // If we reach this far, we prepare the ADDR Message in reply to this GET_ADDR and send it out:
-        // We only addBytes those Addr which Timestamps is within the last Hour.
+        // We only add those Addr which Timestamps is within the last Hour.
         // List of addresses:
         List<NetAddressMsg> netAddressMsgs = new ArrayList<NetAddressMsg>() ;
 
@@ -347,7 +351,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
             if (peerInfo == null) return;
 
             AddrMsg msg = event.getBtcMsg().getBody();
-            logger.debug(peerInfo.getPeerAddress().toString() + " :: Processing incoming ADDR...");
+            logger.trace(peerInfo.getPeerAddress(), "Processing incoming ADDR [" + msg.getAddrList().size() + " addresses]...");
 
             // Should never happen!!
             if (peerInfo == null) {
@@ -376,17 +380,16 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
                 return;
             }
 
-            // If we reach this far, we addBytes the Addresses to the Main Pool and request a connection Request:
+            // If we reach this far, we add the Addresses to the Main Pool and request a connection Request:
             List<PeerAddress> peersToConnect = new ArrayList<>();
             for (NetAddressMsg netAddressMsg : msg.getAddrList()) {
                 DiscoveryPeerInfo addPeerInfo = new DiscoveryPeerInfo(netAddressMsg.getAddress(), netAddressMsg.getTimestamp());
                 addToPool(addPeerInfo);
                 peersToConnect.add(addPeerInfo.getPeerAddress());
             }
+            logger.debug(peerInfo.getPeerAddress(), msg.getCount().getValue() + " addresses received in ADDR, " + peersToConnect.size() + " added to the Pool...");
             super.eventBus.publish(new ConnectPeersRequest(peersToConnect));
 
-
-            logger.debug(peerInfo.getPeerAddress(),msg.getCount().getValue() + " Addresses received via ADDR. ");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -413,7 +416,8 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
                                           Integer numAddressInNewADDRMsg) {
 
         DiscoveryHandlerState.DiscoveryHandlerStateBuilder builder = this.state.toBuilder();
-        builder.numNodesAdded(state.getNumNodesAdded() + addedToPool)
+        builder.poolSize(this.handlerInfo.size())
+               .numNodesAdded(state.getNumNodesAdded() + addedToPool)
                .numNodesRemoved(state.getNumNodesRemoved() + removedFromPool)
                .numNodesRejected(state.getNumNodesRejected() + rejectedFromPool)
                .numGetAddrMsgsSent(state.getNumGetAddrMsgsSent() + getAddrMsgsSent)
@@ -430,7 +434,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
     /**
      * Adds a new Address + Timestamp to the MAIN POOL.
      * It performs some changes on the timestamp, based on the Satoshi client Implementation.
-     * Some verifications are alos performed, the Peer is only added when it meets them all. The result of this method
+     * Some verifications are also performed, the Peer is only added when it meets them all. The result of this method
      * will indicate whether the Peer has been successfully added.
      */
     private boolean addToPool(DiscoveryPeerInfo peerInfo) {
@@ -446,10 +450,11 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
         if (peersBlacklisted.contains(peerInfo.getPeerAddress().getIp())) result =  false;
 
         // If the main Pool is already full, we discard it:
+
         if (config.getMaxAddresses().isPresent() && handlerInfo.size() >= config.getMaxAddresses().getAsInt())
             result =  false;
 
-        // Finally, we either addBytes it to the mainPool or not:
+        // Finally, we either add it to the mainPool or not:
         if (result) {
             // We update the Status:
             updateState(1, 0, 0, 0, 0,null);
@@ -457,7 +462,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
             // We perform some changes on the timestamp according to the rules specified in the Satoshi client:
             // https://en.bitcoin.it/wiki/Satoshi_Client_Node_Discovery#Ongoing_.22addr.22_advertisements
             // - If the timestamp is too low or too high, it is set to 5 days ago.
-            // - We subtract 2 hours from the timestamp and addBytes the address.
+            // - We subtract 2 hours from the timestamp and add the address.
             // - If the address has been seen in the last 24 hours and the timestamp is currently over 60 minutes old,
             //   then it is updated to 60 minutes ago
             // - If the address has NOT been seen in the last 24 hours, and the timestamp is currently over 24 hours
@@ -524,6 +529,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
             Duration waitingDuration = config.getRecoveryHandshakeThreshold().get();
             List<DiscoveryPeerInfo> handshakesToRecover = handlerInfo.values().stream()
                     .filter(p -> !p.isHandshaked())
+                    .filter(p -> p.getLastHandshakeTime() != null)
                     .filter(p -> peersHandshaked.contains(p.getPeerAddress()))
                     .filter(p -> Duration.between(p.getLastHandshakeTime(), DateTimeUtils.nowDateTimeUTC()).compareTo(waitingDuration) > 0)
                     .collect(Collectors.toList());

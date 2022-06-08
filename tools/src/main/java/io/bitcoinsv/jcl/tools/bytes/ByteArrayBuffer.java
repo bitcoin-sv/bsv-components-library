@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.tools.bytes;
 
 
@@ -87,7 +83,7 @@ public class ByteArrayBuffer implements ByteArray {
         while (bytesRemaining > 0) {
 
             // The data is added in the last buffer. if the buffer is already full, we create another one and that one
-            // will become the "new" last one. If the last buffer still has free capacity, we addBytes as many bytes as
+            // will become the "new" last one. If the last buffer still has free capacity, we add as many bytes as
             // possible and leave the rest for the next iteration.
 
             ByteArray buffer = buffers.get(buffers.size()-1);
@@ -110,7 +106,7 @@ public class ByteArrayBuffer implements ByteArray {
     /**
      * "Extracts" data from the beginning and returns it as a byteArray. After this
      * operation, the data size will be reduced in "length" bytes.
-     * If we try to extractReader more bytes than stored in the Builder it will throw an Exception
+     * If we try to extract more bytes than stored in the Builder it will throw an Exception
      * */
     public synchronized byte[] extract(int length) {
         byte[] result = new byte[length];
@@ -184,7 +180,7 @@ public class ByteArrayBuffer implements ByteArray {
      */
     public synchronized byte[] get(int length) {
         checkArgument(length <= this.size(),
-                " trying to extractReader too much data (not enough in the byteArray)");
+                " trying to extract too many bytes (offset:0, length:" + length + ", size:" + this.size +")");
 
         byte[] result = new byte[length];
         long bytesRemaining = length;
@@ -202,8 +198,60 @@ public class ByteArrayBuffer implements ByteArray {
     }
 
     /** Returns a Byte Array starting at the given position with the given length */
-    public synchronized byte[] get(int offset, int length) {
-        throw new UnsupportedOperationException("Not supported at the moment");
+    public synchronized byte[] get(long offset, int length) {
+        checkArgument(length + offset <= this.size(),
+                " trying to extract too many bytes (offset:" + offset + ", length: " + length + ", size:" + this.size + ")");
+
+        // Result si stored here:
+        byte[] result = new byte[length];
+
+        // We need to loop over all the Buffer until we reach the one that contains the data (or the beginning of the
+        // data) we look for. So we keep track of the size of all the buffer we go past.
+        int previousBuffersSize = 0;
+        int bytesRemaining = length;
+
+        // Once the buffer containing the beginning of the data is found, we raise a flag and calculate the offset
+        // in that buffer where teh data begins:
+        boolean initialBufferOffsetFound = false;
+        long bufferOffset;
+
+        // Loop over the Buffers:
+        for(ByteArray buffer : buffers){
+
+            // If we haven't reach the beginning of the data, we accumulate counters and move on:
+            if(previousBuffersSize + buffer.size() <= offset){
+                previousBuffersSize += buffer.size();
+                continue;
+            }
+
+            // If we have all the bytes we look for, we exit
+            if(bytesRemaining == 0){
+                break;
+            }
+
+            //we only need to offset the first buffer, the rest of the buffers data will be sequential
+            // We check this Buffer:
+
+            if(initialBufferOffsetFound){
+                // The buffer containing initial data has been found. so this buffer is another one (in a next
+                // iteration in the loop), since the data might be spread accross more than 1 buffer.
+                bufferOffset = 0;
+            } else {
+                // This is the buffer where the data begins.
+                bufferOffset = offset - previousBuffersSize;
+                initialBufferOffsetFound = true;
+            }
+
+            // We get the bytes we need and copy them into the result
+            long availableDataInBuffer = buffer.size() - bufferOffset;
+            long bytesToWriteLength = (availableDataInBuffer >= bytesRemaining) ? bytesRemaining : availableDataInBuffer;
+            byte[] bytesToAdd = buffer.get(bufferOffset, (int) bytesToWriteLength);
+            System.arraycopy(bytesToAdd, 0, result, length - bytesRemaining, (int) bytesToWriteLength);
+            bytesRemaining -= bytesToWriteLength;
+
+        }
+
+        return result;
     }
 
     /**

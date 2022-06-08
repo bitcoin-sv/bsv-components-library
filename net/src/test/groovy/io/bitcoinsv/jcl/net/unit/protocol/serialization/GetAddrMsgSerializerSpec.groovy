@@ -1,24 +1,19 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.unit.protocol.serialization
 
-
+import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigBuilder
+import io.bitcoinsv.jcl.net.protocol.serialization.common.BitcoinMsgSerializer
+import io.bitcoinsv.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl
+import io.bitcoinsv.jcl.net.protocol.serialization.common.DeserializerContext
+import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
+import io.bitcoinsv.jcl.net.protocol.messages.GetAddrMsg
+import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg
+import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsgBuilder
+import io.bitcoinsv.jcl.net.protocol.serialization.common.SerializerContext
+import io.bitcoinsv.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader
 import io.bitcoinsv.bitcoinjsv.core.Utils
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams
 import io.bitcoinsv.bitcoinjsv.params.Net
-import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
-import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigBuilder
-import io.bitcoinsv.jcl.net.protocol.messages.GetAddrMsg
-import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg
-import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsgBuilder
-import io.bitcoinsv.jcl.net.protocol.serialization.common.BitcoinMsgSerializer
-import io.bitcoinsv.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl
-import io.bitcoinsv.jcl.net.protocol.serialization.common.DeserializerContext
-import io.bitcoinsv.jcl.net.protocol.serialization.common.SerializerContext
-import io.bitcoinsv.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
 import spock.lang.Specification
 
 /**
@@ -47,8 +42,7 @@ class GetAddrMsgSerializerSpec extends Specification {
         BitcoinMsg<GetAddrMsg> getAddrMsg = null
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(GETADDR_MSG), byteInterval, delayMs);
         when:
-            getAddrMsg = bitcoinSerializer.<GetAddrMsg>deserialize(context,
-                    byteReader, GetAddrMsg.MESSAGE_TYPE)
+            getAddrMsg = bitcoinSerializer.<GetAddrMsg>deserialize(context, byteReader)
         then:
             getAddrMsg.getHeader().getCommand().equals(GetAddrMsg.MESSAGE_TYPE)
             getAddrMsg.getHeader().getMagic() == config.getBasicConfig().getMagicPackage()
@@ -67,7 +61,7 @@ class GetAddrMsgSerializerSpec extends Specification {
             BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
             String msgSerializedHex = null
         when:
-            byte[] serializedMsg = bitcoinSerializer.serialize(context, getAddrMsg, GetAddrMsg.MESSAGE_TYPE).getFullContent()
+            byte[] serializedMsg = bitcoinSerializer.serialize(context, getAddrMsg).getFullContent()
             msgSerializedHex = Utils.HEX.encode(serializedMsg)
         then:
             msgSerializedHex.equals(GETADDR_MSG)

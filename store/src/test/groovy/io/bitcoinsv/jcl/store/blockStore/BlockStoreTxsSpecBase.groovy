@@ -1,12 +1,8 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.store.blockStore
 
 
-
-import io.bitcoinsv.jcl.store.common.TestingUtils
+import io.bitcoinsv.bitcoinjsv.bitcoin.bean.base.TxBean
+import io.bitcoinsv.jcl.tools.common.TestingUtils
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.Tx
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
 
@@ -244,6 +240,137 @@ abstract class BlockStoreTxsSpecBase extends BlockStoreSpecBase {
             db.printKeys()
             db.clear()
             db.stop()
+        println(" - Test Done.")
+    }
+
+    def "testing saving of big tx"() {
+        given:
+        println(" - Connecting to the DB...")
+        BlockStore db = getInstance("BSV-Main", false, true)
+        int blockSizeBytes = 50_000_000
+
+        when:
+        db.start()
+        //TestingUtils.clearDB(blockStore.db)
+
+        // We define 3 Txs:
+        Tx tx1 = TestingUtils.buildTx()
+
+        tx1.makeMutable()
+
+        tx1.getOutputs().get(0).setScriptBytes(new byte[blockSizeBytes])
+
+        // We save 1 individual Txs:
+        long time = System.currentTimeMillis();
+        println(" - Saving Tx " + tx1.getHash().toString() + "...")
+        db.saveTx(tx1)
+        time = System.currentTimeMillis() - time;
+        println(" - Tx " + tx1.getHash().toString() + "saved in: " + time + " ms")
+
+        then:
+        db.getTx(tx1.hash).get().getHash() == tx1.hash
+        db.getNumTxs() == 1
+
+        cleanup:
+        println(" - Cleanup...")
+        db.removeTx(tx1.getHash())
+        db.printKeys()
+        db.clear()
+        db.stop()
+        println(" - Test Done.")
+    }
+
+    def "testing save tx volume"() {
+        given:
+        println(" - Connecting to the DB...")
+        BlockStore db = getInstance("BSV-Main", false, true)
+        int totalTxs = 100_000;
+        int txScriptSizeBytes = 0;
+
+        when:
+        db.start()
+
+        List<Tx> txs = new ArrayList<>();
+        byte[] script = new byte[txScriptSizeBytes]
+        for(int i = 0; i < totalTxs; i++) {
+            Tx tx = TestingUtils.buildTx()
+
+            tx.makeMutable()
+            tx.getOutputs().get(0).setScriptBytes(script)
+            tx.getHash();
+            tx.makeImmutable()
+
+            TxBean newTx = new TxBean(tx.serialize());
+            newTx.getHash()
+
+            txs.add(newTx);
+        }
+
+        long time = System.currentTimeMillis();
+        println(" - Saving: " + txs.size() + " Txs...")
+        db.saveTxs(txs)
+        time = System.currentTimeMillis() - time;
+        println(" - Txs saved in: " + time + " ms")
+
+        then:
+        db.getNumTxs() == txs.size()
+        db.getTx(txs.get(0).getHash()).get() == txs.get(0)
+
+        cleanup:
+        println(" - Cleanup...")
+        db.clear()
+        db.stop()
+        println(" - Test Done.")
+    }
+
+    def "testing read tx volume"() {
+        given:
+        println(" - Connecting to the DB...")
+        BlockStore db = getInstance("BSV-Main", false, true)
+        int totalTxs = 100000;
+        int txScriptSizeBytes = 500;
+
+        when:
+        db.start()
+
+        List<Tx> txs = new ArrayList<>();
+        byte[] script = new byte[txScriptSizeBytes]
+        for(int i = 0; i < totalTxs; i++) {
+            Tx tx = TestingUtils.buildTx()
+
+            tx.makeMutable()
+            tx.getOutputs().get(0).setScriptBytes(script)
+            tx.getHash();
+            tx.makeImmutable()
+
+            TxBean newTx = new TxBean(tx.serialize());
+            newTx.getHash()
+
+            txs.add(newTx);
+        }
+
+        long time = System.currentTimeMillis();
+        println(" - Saving: " + txs.size() + " Txs...")
+        db.saveBlockTxs(Sha256Hash.ZERO_HASH, txs)
+        time = System.currentTimeMillis() - time;
+        println(" - Txs saved in: " + time + " ms")
+
+        time = System.currentTimeMillis();
+        println(" - Reading: " + txs.size() + " Txs...")
+        List<Sha256Hash> txHashesSaved = db.getBlockTxs(Sha256Hash.ZERO_HASH).toList();
+        time = System.currentTimeMillis() - time;
+        println(" - " + txHashesSaved.size() + " Txs read in: " + time + " ms")
+
+        then:
+        db.getNumTxs() == txs.size()
+        db.getTx(txs.get(0).getHash()).get() == txs.get(0)
+        db.getBlockHashLinkedToTx(txs.get(0).getHash()).get(0) == Sha256Hash.ZERO_HASH
+        txs.stream().map({t -> t.getHash()}).collect(Collectors.toList()) == txHashesSaved
+
+        cleanup:
+        println(" - Cleanup...")
+        db.clear()
+        db.stop()
         println(" - Test Done.")
     }
 }

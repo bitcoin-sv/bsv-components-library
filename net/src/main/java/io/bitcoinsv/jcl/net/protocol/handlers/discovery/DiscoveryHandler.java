@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.handlers.discovery;
 
 
@@ -15,7 +11,7 @@ import io.bitcoinsv.jcl.tools.handlers.Handler;
  * The Discovery Handler takes care of implementing the Node Discovery Algorithm.
  */
 public interface DiscoveryHandler extends Handler {
-    String HANDLER_ID = "Discovery-Handler";
+    String HANDLER_ID = "Discovery";
 
     @Override
     default String getId() { return HANDLER_ID; }

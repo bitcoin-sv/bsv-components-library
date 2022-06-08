@@ -1,8 +1,7 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.messages.common;
+
+
+import com.google.common.base.Objects;
 
 import java.io.Serializable;
 
@@ -11,7 +10,7 @@ import java.io.Serializable;
  * Copyright (c) 2018-2020 nChain Ltd
  *
  * This class represents any piece of data that can be Serialize and sent over the wire
- * as part of a Bitcoin Message. It can be just a part of the message, or the full message (including Header),
+ * as part of a Bitcoin Message. It can be just a part of the message, or the full message.
  *
  * Every piece of information that is sent over the wire, must extend this class. If the information is complex,
  * consisting of several different fields, we can either:
@@ -20,11 +19,8 @@ import java.io.Serializable;
  *    instance of that class into the bigger one. This way, we can compose a Message out of "small" and
  *    reusable messages.
  *
- * So everything is a Message. Sometimes along the code, a distinction is used to differentiate them, like:
- *
- *  - Bitcoin Message: This is aFull connection-compliant message, including a Header and a Body
- *  - A Header: An special Message with a pre-defined structure that works as a Header in aBitcoin Message
- *  - A Body: A Message that goes in the "Body" part in a BitcoinMessage (like Verack, Transaction,etc)
+ * So everything is a Message. For convenience, some specific subclases are also defined like "BodyMessage"
+ * or "BitcoinMsg".
  *
  * Classes that extend this class should be immutable.
  */
@@ -34,21 +30,16 @@ public abstract class Message implements Serializable {
     // serialized.
     protected long lengthInBytes;
 
-    // getter
-    public long getLengthInBytes() {
-        return lengthInBytes;
-    }
+    /** Constructor */
+    public Message() {}
 
-    // updates the length
-    public void updateLength(long length) {
-         lengthInBytes = length;
-    }
+    // getter:
+    public long getLengthInBytes()   { return lengthInBytes; }
 
-    // initialize the message length and validate its values
+    /** initialize the message length and validate its values */
     public void init() {
         validateMessage();
-        long length = calculateLength();
-        updateLength(length);
+        this.lengthInBytes = calculateLength();
     }
 
     /**
@@ -59,10 +50,25 @@ public abstract class Message implements Serializable {
      */
     abstract public String getMessageType();
 
-    // calculates the length of the message
+    /** calculates the length of the message. To override in extending classes */
     abstract protected long calculateLength();
 
-    // calculates the length of the message
+    /** calculates the length of the message. To override in extending classes */
     abstract protected void  validateMessage();
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null)                  { return false; }
+        if (obj == this)                  { return true; }
+        if (obj.getClass() != getClass()) { return false; }
+
+        Message other = (Message) obj;
+        return Objects.equal(this.lengthInBytes, other.lengthInBytes);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(lengthInBytes);
+    }
 
 }

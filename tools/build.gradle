@@ -12,7 +12,7 @@ plugins {
  ****************************************/
 jclGroup = "$jclGroup"
 jclVersion = "$jclVersion"
-jclArtifactName = "$jclArtifactName"
+jclArtifactName = "jcl-tools"
 
 group = "$rootProject.jclGroup"
 version = "$rootProject.jclVersion"
@@ -27,15 +27,15 @@ repositories {
 
 dependencies {
     // Compile Dependencies:
-    implementation "io.bitcoinsv.bitcoinjsv:bitcoinj-base:1.0.1"
+    implementation "io.bitcoinsv.bitcoinjsv:bitcoinj-base:$bitcoinJVersion"
     implementation 'org.slf4j:slf4j-api:1.7.26'
     implementation 'com.madgag.spongycastle:core:1.51.0.0'
+    implementation 'net.openhft:chronicle-map:3.20.80'
 
     // Testing
-    testImplementation "io.bitcoinsv.bitcoinjsv:bitcoinj-base:1.0.1"
     testImplementation 'org.codehaus.groovy:groovy'
     testImplementation "org.spockframework:spock-core:1.2-groovy-2.5"
-    testImplementation "ch.qos.logback:logback-classic:1.2.3"
+    testImplementation "ch.qos.logback:logback-classic"
 
 }
 
@@ -47,6 +47,17 @@ jar {
     enabled = true
     metaInf {
         from "${project.rootDir}/LICENSE"
+    }
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+javadoc {
+    if (JavaVersion.current().isJava11Compatible()) {
+        options.addBooleanOption('Xdoclint:none', true)
     }
 }
 

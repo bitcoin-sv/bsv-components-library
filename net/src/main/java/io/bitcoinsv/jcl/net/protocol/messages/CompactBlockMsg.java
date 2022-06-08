@@ -1,18 +1,16 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.messages;
 
-import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
+import com.google.common.base.Objects;
+import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * @author j.pomer@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  */
-public class CompactBlockMsg extends Message {
+public final class CompactBlockMsg extends BodyMessage implements Serializable {
 
     public static final String MESSAGE_TYPE = "cmpctblock";
 
@@ -24,7 +22,12 @@ public class CompactBlockMsg extends Message {
     private final List<Long> shortTxIds;
     private final List<PrefilledTxMsg> prefilledTransactions;
 
-    public CompactBlockMsg(CompactBlockHeaderMsg header, long nonce, List<Long> shortTxIds, List<PrefilledTxMsg> prefilledTransactions) {
+    public CompactBlockMsg(CompactBlockHeaderMsg header,
+                           long nonce,
+                           List<Long> shortTxIds,
+                           List<PrefilledTxMsg> prefilledTransactions,
+                           byte[] extraBytes, long checksum) {
+        super(extraBytes, checksum);
         this.header = header;
         this.nonce = nonce;
         this.shortTxIds = shortTxIds;
@@ -32,30 +35,13 @@ public class CompactBlockMsg extends Message {
         init();
     }
 
-    public static CompactBlockMsgBuilder builder() {
-        return new CompactBlockMsgBuilder();
-    }
-
-    public CompactBlockHeaderMsg getHeader() {
-        return header;
-    }
-
-    public long getNonce() {
-        return nonce;
-    }
-
-    public List<Long> getShortTxIds() {
-        return shortTxIds;
-    }
-
-    public List<PrefilledTxMsg> getPrefilledTransactions() {
-        return prefilledTransactions;
-    }
-
     @Override
-    public String getMessageType() {
-        return MESSAGE_TYPE;
-    }
+    public String getMessageType()                          { return MESSAGE_TYPE; }
+
+    public CompactBlockHeaderMsg getHeader()                { return header; }
+    public long getNonce()                                  { return nonce; }
+    public List<Long> getShortTxIds()                       { return shortTxIds; }
+    public List<PrefilledTxMsg> getPrefilledTransactions()  { return prefilledTransactions; }
 
     @Override
     protected long calculateLength() {
@@ -71,11 +57,45 @@ public class CompactBlockMsg extends Message {
     protected void validateMessage() {
     }
 
-    public static class CompactBlockMsgBuilder {
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false; }
+        CompactBlockMsg other = (CompactBlockMsg) obj;
+        return Objects.equal(this.header, other.header)
+                && Objects.equal(this.nonce, other.nonce)
+                && Objects.equal(this.shortTxIds, other.shortTxIds)
+                && Objects.equal(this.prefilledTransactions, other.prefilledTransactions);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), this.header, this.nonce, this.shortTxIds, this.prefilledTransactions);
+    }
+
+    @Override
+    public CompactBlockMsgBuilder toBuilder() {
+        return new CompactBlockMsgBuilder(super.extraBytes, super.checksum)
+                    .header(this.header)
+                    .nonce(this.nonce)
+                    .shortTxIds(this.shortTxIds)
+                    .prefilledTransactions(this.prefilledTransactions);
+    }
+
+    public static CompactBlockMsgBuilder builder() {
+        return new CompactBlockMsgBuilder();
+    }
+
+    /**
+     * Builder
+     */
+    public static class CompactBlockMsgBuilder extends BodyMessageBuilder {
         private CompactBlockHeaderMsg header;
         private long nonce;
         private List<Long> shortTxIds;
         private List<PrefilledTxMsg> prefilledTransactions;
+
+        public CompactBlockMsgBuilder() {}
+        public CompactBlockMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public CompactBlockMsgBuilder header(CompactBlockHeaderMsg header) {
             this.header = header;
@@ -98,7 +118,7 @@ public class CompactBlockMsg extends Message {
         }
 
         public CompactBlockMsg build() {
-            return new CompactBlockMsg(header, nonce, shortTxIds, prefilledTransactions);
+            return new CompactBlockMsg(header, nonce, shortTxIds, prefilledTransactions, super.extraBytes, super.checksum);
         }
     }
 }

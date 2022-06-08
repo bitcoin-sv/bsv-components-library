@@ -1,11 +1,5 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.integration.protocol.handlers.discovery
 
-
-import io.bitcoinsv.bitcoinjsv.params.MainNetParams
 import io.bitcoinsv.jcl.net.network.PeerAddress
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigBuilder
@@ -13,6 +7,7 @@ import io.bitcoinsv.jcl.net.protocol.handlers.blacklist.BlacklistHandler
 import io.bitcoinsv.jcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2P
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2PBuilder
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
 import spock.lang.Ignore
 import spock.lang.Specification
 
@@ -67,8 +62,13 @@ class DiscoveryRenewTest extends Specification {
             // We keep track of the GET_ADDR and ADDR messages exchanged:
             AtomicInteger numGET_ADDR = new AtomicInteger()
             AtomicInteger numADDR = new AtomicInteger()
+            server.EVENTS.PEERS.HANDSHAKED.forEach({e -> println(e)})
+            server.EVENTS.PEERS.HANDSHAKED_MAX_REACHED.forEach({e -> println(e)})
             server.EVENTS.MSGS.ADDR.forEach({ e -> numADDR.incrementAndGet()})
-            server.EVENTS.MSGS.GETADDR_SENT.forEach({ e -> numGET_ADDR.incrementAndGet()})
+            server.EVENTS.MSGS.GETADDR_SENT.forEach({ e ->
+                numGET_ADDR.incrementAndGet()
+                println(e)
+            })
 
         when:
             // We start the Service. The Discovery Handler will load an initial set of Peers and the service will

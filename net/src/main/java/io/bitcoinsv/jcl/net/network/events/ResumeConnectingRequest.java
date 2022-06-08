@@ -1,9 +1,7 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.network.events;
 
+
+import com.google.common.base.Objects;
 
 /**
  * @author i.fernandez@nchain.com
@@ -15,7 +13,19 @@ package io.bitcoinsv.jcl.net.network.events;
  */
 public final class ResumeConnectingRequest extends P2PRequest {
     public ResumeConnectingRequest() {}
+
+    @Override
     public String toString() {
         return "ResumeConnectingRequest()";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode());
     }
 }

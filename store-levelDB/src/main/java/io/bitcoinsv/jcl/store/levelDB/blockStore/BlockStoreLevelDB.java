@@ -1,10 +1,7 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.store.levelDB.blockStore;
 
 
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 import io.bitcoinsv.jcl.store.blockStore.events.BlockStoreStreamer;
 import io.bitcoinsv.jcl.store.blockStore.metadata.Metadata;
 import io.bitcoinsv.jcl.store.keyValue.blockStore.BlockStoreKeyValue;
@@ -26,6 +23,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiPredicate;
@@ -74,15 +72,20 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
     // MetadataClass linked to Blocks;
     private Class<? extends Metadata> blockMetadataClass;
 
+    // Metadata Class linked to Txs;
+    private Class<? extends Metadata> txMetadataClass;
+
     public BlockStoreLevelDB(@Nonnull BlockStoreLevelDBConfig config,
                              boolean triggerBlockEvents,
                              boolean triggerTxEvents,
-                             Class<? extends Metadata> blockMetadataClass) throws RuntimeException {
+                             Class<? extends Metadata> blockMetadataClass,
+                             Class<? extends Metadata> txMetadataClass) throws RuntimeException {
         try {
             this.config = config;
             this.triggerBlockEvents = triggerBlockEvents;
             this.triggerTxEvents = triggerTxEvents;
             this.blockMetadataClass = blockMetadataClass;
+            this.txMetadataClass = txMetadataClass;
 
             // LevelDB engine configuration. We define the Path where the LevelDB Db will be stored:
             Options options = new Options();
@@ -130,6 +133,7 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
         return result.toString().getBytes();
     }
 
+
     @Override public void   save(Object tr, byte[] key, byte[] value){levelDBStore.put(key, value);}
     @Override public void   remove(Object tr, byte[] key)                                   { levelDBStore.delete(key); }
     @Override public byte[] read(Object tr, byte[] key)                                     { return levelDBStore.get(key); }
@@ -153,7 +157,10 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
 
     @Override public byte[] fullKeyForBlockDir(Object tr, String blockHash)                 { return fullKey(fullKeyForBlocks(tr), keyForBlockDir(blockHash)); }
     @Override public byte[] fullKeyForBlocksMetadata(Object tr)                             { return fullKey(fullKeyForBlocks(tr), DIR_METADATA);}
+    @Override public byte[] fullKeyForTxsMetadata(Object tr)                                 { return fullKey(fullKeyForTxs(tr), DIR_METADATA);}
+
     @Override public byte[] fullKeyForBlockMetadata(Object tr, String blockHash)            { return fullKey(fullKeyForBlocksMetadata(tr), keyForBlockMetadata(blockHash));}
+    @Override public byte[] fullKeyForTxMetadata(Object tr, String txHash)                  { return fullKey(fullKeyForTxsMetadata(tr), keyForTxMetadata(txHash));}
 
     @Override public byte[] fullKeyForTxs(Object tr)                                        { return fullKey(DIR_BLOCKCHAIN, config.getNetworkId(), DIR_TXS); }
     @Override public byte[] fullKeyForTx(Object tr, String txHash)                          { return fullKey(fullKeyForTxs(tr), keyForTx(txHash)); }
@@ -161,9 +168,15 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
 
     @Override public byte[] fullKeyForBlocks()                                              { return fullKey(DIR_BLOCKCHAIN, config.getNetworkId(), DIR_BLOCKS);}
     @Override public byte[] fullKeyForTxs()                                                 { return fullKey(DIR_BLOCKCHAIN, config.getNetworkId(), DIR_TXS);}
+    @Override public byte[] fullKeyForOrphanBlockHash(Object tr, String blockHash)          { return fullKey(this.fullKeyForBlocks(), keyForOrphanBlockHash(blockHash));}
     @Override public BlockStoreStreamer EVENTS()                                            { return this.blockStoreStreamer; }
 
     @Override public Class<? extends Metadata>  getMetadataClassForBlocks()                 { return this.blockMetadataClass; }
+
+    @Override
+    public Class<? extends Metadata> getMetadataClassForTxs() {
+        return this.txMetadataClass;
+    }
 
     @Override
     public <T> KeyValueIterator<T, Object> getIterator(byte[] startingWith,
@@ -214,9 +227,20 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
 
     @Override
     public void start() {
-        log.info("JCL-Store Configuration:");
-        log.info(" - LevelDB Implementation");
-        log.info(" - working dir: " + config.getWorkingFolder().toAbsolutePath());
+        try {
+            log.info("JCL-Store Configuration:");
+            log.info(" - LevelDB Implementation");
+            log.info(" - working dir: " + config.getWorkingFolder().toAbsolutePath());
+            if (levelDBStore != null) {
+                levelDBStore.close();
+            }
+            Options options = new Options();
+            Path levelDBPath = config.getWorkingFolder();
+            levelDBStore = factory.open(levelDBPath.toFile(), options);
+        } catch (IOException ioe) {
+            log.error(ioe.getMessage(), ioe);
+            throw new RuntimeException(ioe);
+        }
     }
 
     @Override
@@ -281,6 +305,7 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
         private boolean triggerBlockEvents;
         private boolean triggerTxEvents;
         private Class<? extends Metadata> blockMetadataClass;
+        private Class<? extends Metadata> txMetadataClass;
 
         BlockStoreLevelDBBuilder() {
         }
@@ -305,8 +330,13 @@ public class BlockStoreLevelDB implements BlockStoreKeyValue<Map.Entry<byte[], b
             return this;
         }
 
+        public BlockStoreLevelDB.BlockStoreLevelDBBuilder txMetadataClass(Class<? extends Metadata> txMetadataClass) {
+            this.txMetadataClass = txMetadataClass;
+            return this;
+        }
+
         public BlockStoreLevelDB build() throws RuntimeException {
-            return new BlockStoreLevelDB(config, triggerBlockEvents, triggerTxEvents, blockMetadataClass);
+            return new BlockStoreLevelDB(config, triggerBlockEvents, triggerTxEvents, blockMetadataClass, txMetadataClass);
         }
     }
 }

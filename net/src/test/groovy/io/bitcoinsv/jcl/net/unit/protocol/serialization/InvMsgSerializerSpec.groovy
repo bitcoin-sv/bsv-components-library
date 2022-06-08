@@ -1,28 +1,23 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.unit.protocol.serialization
 
-
-import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader
-import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter
-import io.bitcoinsv.bitcoinjsv.core.Utils
-import io.bitcoinsv.bitcoinjsv.params.MainNetParams
-import io.bitcoinsv.bitcoinjsv.params.Net
-import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigBuilder
-import io.bitcoinsv.jcl.net.protocol.messages.InvMessage
-import io.bitcoinsv.jcl.net.protocol.messages.InventoryVectorMsg
-import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg
-import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsgBuilder
-import io.bitcoinsv.jcl.net.protocol.serialization.InvMsgSerializer
 import io.bitcoinsv.jcl.net.protocol.serialization.InventoryVectorMsgSerializer
 import io.bitcoinsv.jcl.net.protocol.serialization.common.BitcoinMsgSerializer
 import io.bitcoinsv.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl
 import io.bitcoinsv.jcl.net.protocol.serialization.common.DeserializerContext
 import io.bitcoinsv.jcl.net.protocol.serialization.common.SerializerContext
+import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
+import io.bitcoinsv.jcl.net.protocol.messages.InvMessage
+import io.bitcoinsv.jcl.net.protocol.messages.InventoryVectorMsg
+import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg
+import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsgBuilder
+import io.bitcoinsv.jcl.net.protocol.serialization.InvMsgSerializer
 import io.bitcoinsv.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
+import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader
+import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter
+import io.bitcoinsv.bitcoinjsv.core.Utils
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import io.bitcoinsv.bitcoinjsv.params.Net
 import spock.lang.Specification
 
 /**
@@ -108,7 +103,7 @@ class InvMsgSerializerSpec extends Specification {
         BitcoinMsg<InvMessage> inventoryBitcoinMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), invMessage).build()
         BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
-            byte[] bytes = serializer.serialize(context, inventoryBitcoinMsg, InvMessage.MESSAGE_TYPE).getFullContent()
+            byte[] bytes = serializer.serialize(context, inventoryBitcoinMsg).getFullContent()
             String invMsgSerialized = Utils.HEX.encode(bytes)
         then:
            invMsgSerialized.equals(REF_INV_MSG_FULL)
@@ -125,7 +120,7 @@ class InvMsgSerializerSpec extends Specification {
 
             BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
         when:
-            BitcoinMsg<InvMessage> invBitcoinMsg = bitcoinSerializer.deserialize(context, byteReader, InvMessage.MESSAGE_TYPE)
+            BitcoinMsg<InvMessage> invBitcoinMsg = bitcoinSerializer.deserialize(context, byteReader)
         then:
             invBitcoinMsg.getHeader().getMagic().equals(config.getBasicConfig().getMagicPackage())
             invBitcoinMsg.getHeader().getCommand().equals(InvMessage.MESSAGE_TYPE)

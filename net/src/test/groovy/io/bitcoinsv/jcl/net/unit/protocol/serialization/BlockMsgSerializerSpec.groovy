@@ -1,16 +1,5 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.unit.protocol.serialization
 
-
-import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader
-import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter
-import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
-import io.bitcoinsv.bitcoinjsv.core.Utils
-import io.bitcoinsv.bitcoinjsv.params.MainNetParams
-import io.bitcoinsv.bitcoinjsv.params.Net
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigBuilder
 import io.bitcoinsv.jcl.net.protocol.messages.BlockHeaderMsg
@@ -29,6 +18,12 @@ import io.bitcoinsv.jcl.net.protocol.serialization.common.BitcoinMsgSerializerIm
 import io.bitcoinsv.jcl.net.protocol.serialization.common.DeserializerContext
 import io.bitcoinsv.jcl.net.protocol.serialization.common.SerializerContext
 import io.bitcoinsv.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
+import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader
+import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
+import io.bitcoinsv.bitcoinjsv.core.Utils
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import io.bitcoinsv.bitcoinjsv.params.Net
 import spock.lang.Ignore
 import spock.lang.Specification
 
@@ -70,7 +65,7 @@ class BlockMsgSerializerSpec extends Specification {
         DeserializerContext context = DeserializerContext.builder()
                 .protocolBasicConfig(config.getBasicConfig())
                 .build()
-        BlockMsgSerializer serializer = BlockMsgSerializer.getInstance()
+            BlockMsgSerializer serializer = BlockMsgSerializer.getInstance()
         BlockMsg blockMsg
 
 
@@ -107,7 +102,7 @@ class BlockMsgSerializerSpec extends Specification {
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_MSG_FULL), byteInterval, delayMs);
         BitcoinMsgSerializer bitcoinSerializer = new BitcoinMsgSerializerImpl()
         when:
-        BitcoinMsg<BlockMsg> blockMsgBody = bitcoinSerializer.deserialize(context, byteReader, BlockMsg.MESSAGE_TYPE)
+            BitcoinMsg<BlockMsg> blockMsgBody = bitcoinSerializer.deserialize(context, byteReader)
 
         then:
 
@@ -141,7 +136,7 @@ class BlockMsgSerializerSpec extends Specification {
             BlockMsgSerializer serializer = BlockMsgSerializer.getInstance()
             List<TxMsg> transactionMsgList = new ArrayList<>()
             TxMsg transactionMsg1 = makeCoinbaseTransaction()
-            TxMsg transactionMsg2 = makeTransaction()
+        TxMsg transactionMsg2 = makeTransaction()
 
             transactionMsgList.add(transactionMsg1)
             transactionMsgList.add(transactionMsg2)
@@ -200,7 +195,7 @@ class BlockMsgSerializerSpec extends Specification {
 
         when:
 
-            byte[] msgBytes = bitcoinSerializer.serialize(context, bitcoinVersionMsg, BlockMsg.MESSAGE_TYPE)
+            byte[] msgBytes = bitcoinSerializer.serialize(context, bitcoinVersionMsg)
             String msgDeserializeVal = HEX.encode(msgBytes)
         then:
             msgDeserializeVal.equals(REF_MSG_FULL)

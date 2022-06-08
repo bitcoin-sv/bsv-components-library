@@ -1,14 +1,11 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
+import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -29,7 +26,7 @@ import java.util.List;
  *   Address of other nodes on the network.
  *
  */
-public final class AddrMsg extends Message {
+public final class AddrMsg extends BodyMessage implements Serializable {
 
     private static final long MAX_ADDRESSES = 1000;
     public static final String MESSAGE_TYPE = "addr";
@@ -40,7 +37,8 @@ public final class AddrMsg extends Message {
     /**
      * Creates the AddrMsg Object.Use the corresponding byteArray to create the instance.
      */
-    protected AddrMsg( List<NetAddressMsg> addrList) {
+    protected AddrMsg( List<NetAddressMsg> addrList, byte[]extraBytes, long checksum) {
+        super(extraBytes, checksum);
         this.addrList = ImmutableList.copyOf(addrList);
         this.count = VarIntMsg.builder().value(this.addrList.size()).build();
         init();
@@ -73,17 +71,20 @@ public final class AddrMsg extends Message {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(addrList, count);
+        return Objects.hashCode(super.hashCode(), addrList, count);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false;}
         AddrMsg other = (AddrMsg) obj;
         return Objects.equal(this.addrList, other.addrList)
                 && Objects.equal(this.count, other.count);
+    }
+
+    @Override
+    public AddrMsgBuilder toBuilder() {
+        return new AddrMsgBuilder(super.extraBytes, super.checksum).addrList(this.addrList);
     }
 
     public static AddrMsgBuilder builder() {
@@ -93,10 +94,11 @@ public final class AddrMsg extends Message {
     /**
      * Builder
      */
-    public static class AddrMsgBuilder {
+    public static class AddrMsgBuilder extends BodyMessageBuilder {
         private List<NetAddressMsg> addrList;
 
         AddrMsgBuilder() {}
+        AddrMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public AddrMsg.AddrMsgBuilder addrList(List<NetAddressMsg> addrList) {
             this.addrList = addrList;
@@ -104,7 +106,7 @@ public final class AddrMsg extends Message {
         }
 
         public AddrMsg build() {
-            return new AddrMsg(addrList);
+            return new AddrMsg(addrList, super.extraBytes, super.checksum);
         }
     }
 }

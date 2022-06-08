@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.serialization.common;
 
 
@@ -19,7 +15,7 @@ import io.bitcoinsv.jcl.net.protocol.config.ProtocolBasicConfig;
 
 public final class DeserializerContext {
 
-    //calculate the hashes when deserialzing block data
+    //calculate the hashes when deserializing block data
     private boolean calculateHashes;
 
     // Global P2P Configuration
@@ -31,35 +27,54 @@ public final class DeserializerContext {
 
     // If specified, this value indicates the maximum number of bytes that can be read during Deserialization.
     // If you try to read more bytes than this from the Source, the result might either be wrong or the execution
-    // fails. If this value is NOT specified, that measn that its value is not needed to execute the
+    // fails. If this value is NOT specified, that means that its value is not needed to execute the
     // Deserialization, but you still need to be careful not to read more bytes than needed from the source.
     private Long maxBytesToRead;
 
     // Override default batch size
+    // FIXME: REMOVE THIS FIELD AND USE THE "partialSerializationMsgSize" in DeserializerConfig instead
     private final Integer batchSize;
 
-    public DeserializerContext(boolean calculateHashes, ProtocolBasicConfig protocolBasicConfig, boolean insideVersionMsg, Long maxBytesToRead, Integer batchSize) {
+    // If true, the checksum of the message is calculated out of its bytes and populated in the message itself
+    // The logic to calculate or not the checksum also takes into consideration other factors, like the size of the
+    // message (messages bigger than 4GB do NOT calculate checksum).
+    // If its FALSE, checksum is NOT calculated in any case
+    private boolean calculateChecksum;
+
+    public DeserializerContext(boolean calculateHashes,
+                               ProtocolBasicConfig protocolBasicConfig,
+                               boolean insideVersionMsg,
+                               Long maxBytesToRead,
+                               Integer batchSize,
+                               boolean calculateChecksum) {
         this.calculateHashes = calculateHashes;
         this.protocolBasicConfig = protocolBasicConfig;
         this.insideVersionMsg = insideVersionMsg;
         this.maxBytesToRead = maxBytesToRead;
         this.batchSize = batchSize;
+        this.calculateChecksum = calculateChecksum;
     }
 
-
-    public boolean isCalculateHashes()                  { return this.calculateHashes; }
-    public ProtocolBasicConfig getProtocolBasicConfig() { return this.protocolBasicConfig; }
-    public boolean isInsideVersionMsg()                 { return this.insideVersionMsg; }
-    public Long getMaxBytesToRead()                     { return this.maxBytesToRead; }
-    public Integer getBatchSize()                       { return this.batchSize; }
+    public boolean isCalculateHashes()                                          { return this.calculateHashes; }
+    public ProtocolBasicConfig getProtocolBasicConfig()                         { return this.protocolBasicConfig; }
+    public boolean isInsideVersionMsg()                                         { return this.insideVersionMsg; }
+    public Long getMaxBytesToRead()                                             { return this.maxBytesToRead; }
+    public Integer getBatchSize()                                               { return this.batchSize; }
+    public boolean isCalculateChecksum()                                        { return this.calculateChecksum;}
 
     public void setCalculateHashes(boolean calculateHashes)                     { this.calculateHashes = calculateHashes; }
     public void setProtocolBasicConfig(ProtocolBasicConfig protocolBasicConfig) { this.protocolBasicConfig = protocolBasicConfig; }
     public void setInsideVersionMsg(boolean insideVersionMsg)                   { this.insideVersionMsg = insideVersionMsg; }
     public void setMaxBytesToRead(Long maxBytesToRead)                          { this.maxBytesToRead = maxBytesToRead; }
+    public void setCalculateChecksum(boolean calculateChecksum)                 { this.calculateChecksum = calculateChecksum;}
 
     public DeserializerContextBuilder toBuilder() {
-        return new DeserializerContextBuilder().calculateHashes(this.calculateHashes).protocolBasicConfig(this.protocolBasicConfig).insideVersionMsg(this.insideVersionMsg).maxBytesToRead(this.maxBytesToRead);
+        return new DeserializerContextBuilder()
+                .calculateHashes(this.calculateHashes)
+                .protocolBasicConfig(this.protocolBasicConfig)
+                .insideVersionMsg(this.insideVersionMsg)
+                .maxBytesToRead(this.maxBytesToRead)
+                .calculateChecksum(this.calculateChecksum);
     }
 
     public static DeserializerContextBuilder builder() {
@@ -75,6 +90,7 @@ public final class DeserializerContext {
         private boolean insideVersionMsg;
         private Long maxBytesToRead;
         private Integer batchSize;
+        private boolean calculateChecksum = true;
 
         DeserializerContextBuilder() { }
 
@@ -103,8 +119,13 @@ public final class DeserializerContext {
             return this;
         }
 
+        public DeserializerContext.DeserializerContextBuilder calculateChecksum(boolean calculateChecksum) {
+            this.calculateChecksum = calculateChecksum;
+            return this;
+        }
+
         public DeserializerContext build() {
-            return new DeserializerContext(calculateHashes, protocolBasicConfig, insideVersionMsg, maxBytesToRead, batchSize);
+            return new DeserializerContext(calculateHashes, protocolBasicConfig, insideVersionMsg, maxBytesToRead, batchSize, calculateChecksum);
         }
     }
 }

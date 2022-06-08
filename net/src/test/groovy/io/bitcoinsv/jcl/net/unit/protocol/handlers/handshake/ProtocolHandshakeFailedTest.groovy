@@ -1,12 +1,5 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.unit.protocol.handlers.handshake
 
-
-import io.bitcoinsv.bitcoinjsv.params.MainNetParams
-import io.bitcoinsv.bitcoinjsv.params.Net
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigBuilder
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigImpl
@@ -15,9 +8,11 @@ import io.bitcoinsv.jcl.net.protocol.handlers.blacklist.BlacklistHandler
 import io.bitcoinsv.jcl.net.protocol.handlers.discovery.DiscoveryHandler
 import io.bitcoinsv.jcl.net.protocol.handlers.handshake.HandshakeHandlerConfig
 import io.bitcoinsv.jcl.net.protocol.handlers.pingPong.PingPongHandler
+import io.bitcoinsv.jcl.net.unit.protocol.tools.MsgTest
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2P
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2PBuilder
-import io.bitcoinsv.jcl.net.unit.protocol.tools.MsgTest
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import io.bitcoinsv.bitcoinjsv.params.Net
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicBoolean
@@ -53,7 +48,6 @@ class ProtocolHandshakeFailedTest extends Specification {
             // - a random Port ("0")
             // - a wrong protocolNumber.
 
-
             ProtocolConfig wrongConfig = ((ProtocolConfigImpl) protocolConfig).toBuilder()
                 .port(0)
                 .basicConfig(protocolConfig.getBasicConfig().toBuilder().protocolVersion(0).build())
@@ -85,6 +79,10 @@ class ProtocolHandshakeFailedTest extends Specification {
             Thread.sleep(1000)
             server.stop()
             client.stop()
+            println("CLIENT THREAD INFO:")
+            println(client.getEventBus().getStatus())
+            println("SERVER THREAD INFO:")
+            println(server.getEventBus().getStatus())
         then:
             // We check that each there has been no handshake
             !serverHandshaked.get()

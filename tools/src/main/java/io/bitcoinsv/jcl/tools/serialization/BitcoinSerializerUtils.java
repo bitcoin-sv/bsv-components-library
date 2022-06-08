@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.tools.serialization;
 
 
@@ -10,6 +6,7 @@ import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter;
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 import io.bitcoinsv.bitcoinjsv.core.Utils;
+import io.bitcoinsv.jcl.tools.bytes.IReader;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -24,7 +21,7 @@ import java.io.IOException;
 public abstract class BitcoinSerializerUtils {
 
     // Indicates how many bytes the number given will take
-    private static int getVarIntSizeInBytes(long value) {
+    public static int getVarIntSizeInBytes(long value) {
         // if negative, it's actually a very largeMsgs unsigned long value
         if (value < 0) return 9; // 1 marker + 8 data bytes
         if (value < 253) return 1; // 1 data byte
@@ -34,20 +31,40 @@ public abstract class BitcoinSerializerUtils {
     }
 
     /** Deserialize the ByteArray into a number (length variable) */
-    public static long deserializeVarInt(ByteArrayReader byteReader) {
+    public static long deserializeVarIntWithoutExtraction(IReader reader, int offset) {
         long result = -1;
-        int firstByte = 0xFF & byteReader.read();
+        int firstByte = 0xFF & reader.get(offset, 1)[0];
 
         // We calculate how to read the value from the byte Array.
         // the size in bytes used to store the value will be calculated automatically by the Builder later on:
         if (firstByte < 253){
             result = firstByte;
         } else if (firstByte == 253){
-            result = (0xFF & byteReader.read()) | ((0xFF & byteReader.read()) << 8);
+            result = (0xFF & reader.get(offset + 1, 1)[0]) | ((0xFF & reader.get(offset + 2, 1)[0]) << 8);
         } else if (firstByte == 254) {
-            result = byteReader.readUint32();
+            result = reader.getUint32(offset + 1);
         } else {
-            result = byteReader.readInt64LE();
+            result = reader.getInt64LE(offset + 1);
+        }
+        return result;
+    }
+
+
+    /** Deserialize the ByteArray into a number (length variable) */
+    public static long deserializeVarInt(IReader reader) {
+        long result = -1;
+        int firstByte = 0xFF & reader.read();
+
+        // We calculate how to read the value from the byte Array.
+        // the size in bytes used to store the value will be calculated automatically by the Builder later on:
+        if (firstByte < 253){
+            result = firstByte;
+        } else if (firstByte == 253){
+            result = (0xFF & reader.read()) | ((0xFF & reader.read()) << 8);
+        } else if (firstByte == 254) {
+            result = reader.readUint32();
+        } else {
+            result = reader.readInt64LE();
         }
         return result;
     }

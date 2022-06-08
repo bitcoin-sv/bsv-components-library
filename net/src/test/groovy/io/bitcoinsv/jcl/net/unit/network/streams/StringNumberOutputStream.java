@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.unit.network.streams;
 
 
@@ -24,8 +20,8 @@ import java.util.concurrent.ExecutorService;
  * Number representation before sending it to its Destination
  */
 class StringNumberOutputStream extends PeerOutputStreamImpl<String, Integer> {
-    public StringNumberOutputStream(PeerAddress peerAddress, ExecutorService executor, PeerOutputStream<Integer> destination) {
-        super(peerAddress, executor, destination);
+    public StringNumberOutputStream(PeerAddress peerAddress, PeerOutputStream<Integer> destination) {
+        super(peerAddress, destination);
     }
     @Override
     public List<StreamDataEvent<Integer>> transform(StreamDataEvent<String> dataEvent) {

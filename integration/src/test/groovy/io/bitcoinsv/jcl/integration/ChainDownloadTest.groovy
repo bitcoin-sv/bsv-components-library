@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.integration
 
 import io.bitcoinsv.jcl.net.network.handlers.NetworkHandler
@@ -31,10 +27,9 @@ import io.bitcoinsv.jcl.tools.config.provided.RuntimeConfigDefault
 import io.bitcoinsv.bitcoinjsv.bitcoin.Genesis
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.extended.ChainInfo
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
-import io.bitcoinsv.bitcoinjsv.core.Utils
 import io.bitcoinsv.bitcoinjsv.params.Net
 import io.bitcoinsv.bitcoinjsv.params.NetworkParameters
-import org.junit.Ignore
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.time.Duration
@@ -78,7 +73,7 @@ class ChainDownloadTest extends Specification {
             "0000000000000000055de705ef722c11d90c1a52de52c21aa646c6bb46de3770")
 
     // We keep track of headers sync, blocks downloaded... so we do not request the same stuff twice:
-    private static Set<Sha256Hash>  headersRequested = ConcurrentHashMap.newKeySet()
+    private static Set<Sha256Hash> headersRequested = ConcurrentHashMap.newKeySet()
     private static Set<String>      blocksRequested = ConcurrentHashMap.newKeySet()
     private static AtomicLong numBlocksDownloaded = new AtomicLong()
 
@@ -221,6 +216,7 @@ class ChainDownloadTest extends Specification {
     /**
      * It downloads the Blockchain
      */
+    @Ignore
     def downloadChainSpec() {
         given:
 

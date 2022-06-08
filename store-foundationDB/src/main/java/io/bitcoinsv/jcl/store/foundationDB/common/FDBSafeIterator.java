@@ -1,12 +1,8 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.store.foundationDB.common;
 
 import com.apple.foundationdb.Database;
 import com.apple.foundationdb.KeyValue;
-import com.apple.foundationdb.Transaction;
+import com.apple.foundationdb.directory.DirectorySubspace;
 import io.bitcoinsv.jcl.store.foundationDB.blockStore.BlockStoreFDBConfig;
 
 import java.util.Iterator;
@@ -44,21 +40,21 @@ public class FDBSafeIterator<T> extends FDBIterator<T> implements Iterator<T> {
 
     // It resets the iterator, closing the current Transaction and creating a new One:
     private void resetIterator(byte[] keyStart) {
-        currentTransaction.commit().join();
-        currentTransaction.close();
-        currentTransaction = db.createTransaction();
+        currentTransaction.next(false);
+
         // We reset the iterator, pointing it at the next Key to process...
         fdbIterator = currentTransaction.getRange(keyStart, "\\xff".getBytes()).iterator();
         fdbIterator.next(); // we skip the first one (already processed)
     }
 
     public FDBSafeIterator(Database database,
+                           DirectorySubspace incompleteTxsDir,
                            byte[] startingWithPreffix,
                            byte[] endingWithSuffix,
-                           BiPredicate<Transaction, byte[]> keyIsValidWhen,
+                           BiPredicate<LargeTransaction, byte[]> keyIsValidWhen,
                            Function<KeyValue, T> buildItemBy,
                            Long maxItemsToProcess) {
-        super(database.createTransaction(), startingWithPreffix, endingWithSuffix, keyIsValidWhen, buildItemBy);
+        super(new LargeTransaction(database, incompleteTxsDir, BlockStoreFDBConfig.TRANSACTION_MAX_SIZE_BYTES), startingWithPreffix, endingWithSuffix, keyIsValidWhen, buildItemBy);
         this.db = database;
         if (maxItemsToProcess != null) this.maxItemsToProcess = maxItemsToProcess;
     }
@@ -87,9 +83,10 @@ public class FDBSafeIterator<T> extends FDBIterator<T> implements Iterator<T> {
      */
     public static class FDBSafeIteratorBuilder<T> {
         private Database database;
+        private DirectorySubspace incompleteTxsDir;
         private byte[] startingWithPreffix;
         private byte[] endingWithSuffix;
-        private BiPredicate<Transaction, byte[]> keyIsValidWhen;
+        private BiPredicate<LargeTransaction, byte[]> keyIsValidWhen;
         private Function<KeyValue, T> buildItemBy;
         private Long maxItemsToProcess;
 
@@ -98,6 +95,11 @@ public class FDBSafeIterator<T> extends FDBIterator<T> implements Iterator<T> {
 
         public FDBSafeIteratorBuilder<T> database(Database database) {
             this.database = database;
+            return this;
+        }
+
+        public FDBSafeIteratorBuilder<T> incompleteTxsDir(DirectorySubspace incompleteTxsDir) {
+            this.incompleteTxsDir = incompleteTxsDir;
             return this;
         }
 
@@ -111,7 +113,7 @@ public class FDBSafeIterator<T> extends FDBIterator<T> implements Iterator<T> {
             return this;
         }
 
-        public FDBSafeIteratorBuilder<T> keyIsValidWhen(BiPredicate<Transaction, byte[]> keyIsValidWhen) {
+        public FDBSafeIteratorBuilder<T> keyIsValidWhen(BiPredicate<LargeTransaction, byte[]> keyIsValidWhen) {
             this.keyIsValidWhen = keyIsValidWhen;
             return this;
         }
@@ -127,11 +129,11 @@ public class FDBSafeIterator<T> extends FDBIterator<T> implements Iterator<T> {
         }
 
         public FDBSafeIterator<T> build() {
-            return new FDBSafeIterator<T>(database, startingWithPreffix, endingWithSuffix, keyIsValidWhen, buildItemBy, maxItemsToProcess);
+            return new FDBSafeIterator<T>(database, incompleteTxsDir, startingWithPreffix, endingWithSuffix, keyIsValidWhen, buildItemBy, maxItemsToProcess);
         }
 
         public String toString() {
-            return "FDBSafeIterator.FDBSafeIteratorBuilder(database=" + this.database + ", startingWithPreffix=" + java.util.Arrays.toString(this.startingWithPreffix) + ", endingWithSuffix=" + java.util.Arrays.toString(this.endingWithSuffix) + ", keyIsValidWhen=" + this.keyIsValidWhen + ", buildItemBy=" + this.buildItemBy + ", maxItemsToProcess=" + this.maxItemsToProcess + ")";
+            return "FDBSafeIterator.FDBSafeIteratorBuilder(database=" + this.database + "incompleteTxsDir="+ incompleteTxsDir + ", startingWithPreffix=" + java.util.Arrays.toString(this.startingWithPreffix) + ", endingWithSuffix=" + java.util.Arrays.toString(this.endingWithSuffix) + ", keyIsValidWhen=" + this.keyIsValidWhen + ", buildItemBy=" + this.buildItemBy + ", maxItemsToProcess=" + this.maxItemsToProcess + ")";
         }
     }
 }

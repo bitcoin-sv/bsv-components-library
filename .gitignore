@@ -20,3 +20,4 @@ log-Tera-J.txt
 
 /bna-data
 /bna-postgres-data
+store-levelDB/testingDB/

@@ -1,16 +1,14 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.serialization.common;
 
 
 import io.bitcoinsv.jcl.net.protocol.messages.*;
 import io.bitcoinsv.jcl.net.protocol.serialization.*;
 import io.bitcoinsv.jcl.net.protocol.serialization.largeMsgs.BigBlockDeserializer;
-import io.bitcoinsv.jcl.net.protocol.serialization.largeMsgs.BigBlockRawDeserializer;
+import io.bitcoinsv.jcl.net.protocol.serialization.largeMsgs.RawBigBlockDeserializer;
 import io.bitcoinsv.jcl.net.protocol.serialization.largeMsgs.BigBlockTxnDeserializer;
 import io.bitcoinsv.jcl.net.protocol.serialization.largeMsgs.LargeMessageDeserializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,13 +23,15 @@ import java.util.Map;
  */
 public class MsgSerializersFactory {
 
+    private static Logger logger = LoggerFactory.getLogger(MsgSerializersFactory.class);
+
     // Regular Message Serializers:
     private static final Map<String, MessageSerializer> serializers = new HashMap<>();
 
     // Raw Message Serializers:
     private static final Map<String, MessageSerializer> rawSerializers = new HashMap<>();
 
-    // Indicates if some Serializer have benn overwriten with their RAW Versions:
+    // Indicates if some Serializer have benn overwritten with their RAW Versions:
     private static boolean RAW_SERIALIZERS_ENABLED = false;
 
     static {
@@ -76,6 +76,8 @@ public class MsgSerializersFactory {
         serializers.put(SendCompactBlockMsg.MESSAGE_TYPE.toUpperCase(), SendCompactBlockMsgSerializer.getInstance());
         serializers.put(GetBlockTxnMsg.MESSAGE_TYPE.toUpperCase(), GetBlockTxnMsgSerializer.getInstance());
         serializers.put(BlockTxnMsg.MESSAGE_TYPE.toUpperCase(), BlockTxnMsgSerializer.getInstance());
+        serializers.put(DsDetectedMsg.MESSAGE_TYPE.toUpperCase(), DsDetectedMsgSerializer.getInstance());
+        serializers.put(ByteStreamMsg.MESSAGE_TYPE.toUpperCase(), ByteStreamMsgSerializer.getInstance());
 
         rawSerializers.put(RawTxMsg.MESSAGE_TYPE.toUpperCase(), RawTxMsgSerializer.getInstance());
         rawSerializers.put(RawBlockMsg.MESSAGE_TYPE.toUpperCase(), RawBlockMsgSerializer.getInstance());
@@ -117,11 +119,9 @@ public class MsgSerializersFactory {
         // are already running in their own Thread.
 
         if (command.equalsIgnoreCase(BlockMsg.MESSAGE_TYPE)) {
-            result = (RAW_SERIALIZERS_ENABLED) ? new BigBlockRawDeserializer() : new BigBlockDeserializer();
+            result = (RAW_SERIALIZERS_ENABLED) ? new RawBigBlockDeserializer() : new BigBlockDeserializer();
         } else if (command.equalsIgnoreCase(BlockTxnMsg.MESSAGE_TYPE)) {
             result = new BigBlockTxnDeserializer();
-        } else {
-            System.out.println("SHOULD NEVER HAPPEN: command=" + command);
         }
 
         if (result != null) {
@@ -138,5 +138,4 @@ public class MsgSerializersFactory {
         boolean result = (!onlyForLargeMessages) ? serializers.containsKey(command.toUpperCase()) : (getLargeMsgDeserializer(command, 0) != null);
         return result;
     }
-
 }

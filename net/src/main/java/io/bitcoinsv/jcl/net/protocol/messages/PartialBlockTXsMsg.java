@@ -1,19 +1,16 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
-import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
+import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  */
-public final class PartialBlockTXsMsg extends Message {
+public final class PartialBlockTXsMsg extends BodyMessage implements Serializable {
 
     public static final String MESSAGE_TYPE = "PartialBlockTxs";
     private final BlockHeaderMsg blockHeader;
@@ -21,7 +18,9 @@ public final class PartialBlockTXsMsg extends Message {
     // This field stores the order of this Batch of Txs within the Block (zero-based)
     private final VarIntMsg txsOrderNumber;
 
-    public PartialBlockTXsMsg(BlockHeaderMsg blockHeader, List<TxMsg> txs, VarIntMsg txsOrderNumber) {
+    public PartialBlockTXsMsg(BlockHeaderMsg blockHeader, List<TxMsg> txs, VarIntMsg txsOrderNumber,
+                              byte[] extraBytes, long checksum) {
+        super(extraBytes, checksum);
         this.blockHeader = blockHeader;
         this.txs = txs;
         this.txsOrderNumber = txsOrderNumber;
@@ -66,36 +65,35 @@ public final class PartialBlockTXsMsg extends Message {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(blockHeader, txs);
+        return Objects.hashCode(super.hashCode(), blockHeader, txs, txsOrderNumber);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (obj == this) {
-            return true;
-        }
-        if (obj.getClass() != getClass()) {
-            return false;
-        }
+        if (!super.equals(obj)) { return false; }
         PartialBlockTXsMsg other = (PartialBlockTXsMsg) obj;
         return Objects.equal(this.blockHeader, other.blockHeader)
-            && Objects.equal(this.txs, other.txs)
-            && Objects.equal(this.txsOrderNumber, other.txsOrderNumber);
+                && Objects.equal(this.txs, other.txs)
+                && Objects.equal(this.txsOrderNumber, other.txsOrderNumber);
+    }
+
+    public PartialBlockTXsMsgBuilder toBuilder() {
+        return new PartialBlockTXsMsgBuilder(super.extraBytes, super.checksum)
+                        .blockHeader(this.blockHeader)
+                        .txs(this.txs)
+                        .txsOrdersNumber(this.txsOrderNumber);
     }
 
     /**
      * Builder
      */
-    public static class PartialBlockTXsMsgBuilder {
+    public static class PartialBlockTXsMsgBuilder extends BodyMessageBuilder{
         private BlockHeaderMsg blockHeader;
         private List<TxMsg> txs;
         private VarIntMsg txsOrderNumber;
 
-        PartialBlockTXsMsgBuilder() {
-        }
+        public PartialBlockTXsMsgBuilder() { }
+        public PartialBlockTXsMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public PartialBlockTXsMsg.PartialBlockTXsMsgBuilder blockHeader(BlockHeaderMsg blockHeader) {
             this.blockHeader = blockHeader;
@@ -112,8 +110,13 @@ public final class PartialBlockTXsMsg extends Message {
             return this;
         }
 
+        public PartialBlockTXsMsg.PartialBlockTXsMsgBuilder txsOrdersNumber(VarIntMsg orderNumber) {
+            this.txsOrderNumber = orderNumber;
+            return this;
+        }
+
         public PartialBlockTXsMsg build() {
-            return new PartialBlockTXsMsg(blockHeader, txs, txsOrderNumber);
+            return new PartialBlockTXsMsg(blockHeader, txs, txsOrderNumber, super.extraBytes, super.checksum);
         }
     }
 }

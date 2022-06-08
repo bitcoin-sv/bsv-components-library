@@ -1,9 +1,4 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.serialization;
-
 
 import io.bitcoinsv.jcl.net.protocol.serialization.common.DeserializerContext;
 import io.bitcoinsv.jcl.net.protocol.serialization.common.MessageSerializer;
@@ -38,16 +33,25 @@ public class HeaderMsgSerializer implements MessageSerializer<HeaderMsg> {
     @Override
     public HeaderMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
         long  magic = byteReader.readUint32();
-
-        // The "command" field is NULL-padded, so we remove the NULL values before
-        // storing the value in a String:
         String command = byteReader.readString(12, "UTF-8");
 
-        HeaderMsg headerMsg = HeaderMsg.builder()
-                .magic(magic)
-                .command(command)
-                .length(byteReader.readUint32())
-                .checksum(byteReader.readUint32()).build();
+        // We read the values present in any header:
+        HeaderMsg.HeaderMsgBuilder headerBuilder = HeaderMsg.builder();
+        headerBuilder.magic(magic);
+        headerBuilder.command(command);
+        headerBuilder.length(byteReader.readUint32());
+        headerBuilder.checksum(byteReader.readUint32());
+
+        // Messages bigger than 4GB use an special command, and extra fields are used:
+        if (command.equalsIgnoreCase(HeaderMsg.EXT_COMMAND)) {
+            String extCommand = byteReader.readString(12, "UTF-8");
+            long extLength = byteReader.readUint64();
+            headerBuilder.extCommand(extCommand);
+            headerBuilder.extLength(extLength);
+        }
+
+        // We get the Header Object:
+        HeaderMsg headerMsg = headerBuilder.build();
 
         return headerMsg;
     }
@@ -58,5 +62,11 @@ public class HeaderMsgSerializer implements MessageSerializer<HeaderMsg> {
         byteWriter.writeStr(message.getCommand(), 12);
         byteWriter.writeUint32LE(message.getLength());
         byteWriter.writeUint32LE(message.getChecksum());
+
+        // Messages bigger than 4GB use an special command, and extra fields are used:
+        if (message.getCommand().equalsIgnoreCase(HeaderMsg.EXT_COMMAND)) {
+            byteWriter.writeStr(message.getExtCommand(), 12);
+            byteWriter.writeUint64LE(message.getExtLength());
+        }
     }
 }

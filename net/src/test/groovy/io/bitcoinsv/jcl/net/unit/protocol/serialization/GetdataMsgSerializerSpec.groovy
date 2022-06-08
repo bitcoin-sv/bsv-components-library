@@ -1,29 +1,24 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.unit.protocol.serialization
 
-
-import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader
-import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter
-import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
-import io.bitcoinsv.bitcoinjsv.core.Utils
-import io.bitcoinsv.bitcoinjsv.params.MainNetParams
-import io.bitcoinsv.bitcoinjsv.params.Net
-import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigBuilder
+import io.bitcoinsv.jcl.net.protocol.serialization.common.BitcoinMsgSerializer
+import io.bitcoinsv.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl
+import io.bitcoinsv.jcl.net.protocol.serialization.common.DeserializerContext
+import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.jcl.net.protocol.messages.GetdataMsg
 import io.bitcoinsv.jcl.net.protocol.messages.HashMsg
 import io.bitcoinsv.jcl.net.protocol.messages.InventoryVectorMsg
 import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg
 import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsgBuilder
 import io.bitcoinsv.jcl.net.protocol.serialization.GetdataMsgSerializer
-import io.bitcoinsv.jcl.net.protocol.serialization.common.BitcoinMsgSerializer
-import io.bitcoinsv.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl
-import io.bitcoinsv.jcl.net.protocol.serialization.common.DeserializerContext
 import io.bitcoinsv.jcl.net.protocol.serialization.common.SerializerContext
 import io.bitcoinsv.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
+import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader
+import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
+import io.bitcoinsv.bitcoinjsv.core.Utils
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import io.bitcoinsv.bitcoinjsv.params.Net
 import spock.lang.Specification
 
 /**
@@ -103,7 +98,7 @@ class GetdataMsgSerializerSpec extends Specification {
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_GETDATA_MSG_FULL), byteInterval, delayMs);
         BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
         when:
-        BitcoinMsg<GetdataMsg> getDataMsg = bitcoinSerializer.deserialize(context, byteReader, GetdataMsg.MESSAGE_TYPE)
+            BitcoinMsg<GetdataMsg> getDataMsg = bitcoinSerializer.deserialize(context, byteReader)
         then:
             getDataMsg.getHeader().getMagic().equals(config.getBasicConfig().getMagicPackage())
             getDataMsg.getHeader().getCommand().equals(GetdataMsg.MESSAGE_TYPE)
@@ -132,7 +127,7 @@ class GetdataMsgSerializerSpec extends Specification {
             BitcoinMsg<GetdataMsg> getdataMsgBitcoinMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), getdataMsg).build()
             BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
-            byte[] bytes = serializer.serialize(context, getdataMsgBitcoinMsg, GetdataMsg.MESSAGE_TYPE).getFullContent()
+            byte[] bytes = serializer.serialize(context, getdataMsgBitcoinMsg).getFullContent()
             String serialized = Utils.HEX.encode(bytes)
         then:
              serialized.equals(REF_GETDATA_MSG_FULL)

@@ -1,11 +1,9 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
-import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
+import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
+
+import java.io.Serializable;
 
 /**
  * @author m.jose@nchain.com
@@ -15,14 +13,16 @@ import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
  * getheaders message with the addition of fields for actual number of transactions that are included in the block
  * and proof of inclussion for coinbase transaction along with the whole coinbase transaction.
  */
-public final class GetHeadersEnMsg extends Message {
+public final class GetHeadersEnMsg extends BodyMessage implements Serializable {
     public static final String MESSAGE_TYPE = "getheadersen";
     private final long version;
     private final HashMsg blockLocatorHash;
     private final HashMsg hashStop;
     public static final int VERSION_LENGTH = 4;
 
-    public GetHeadersEnMsg(long version, HashMsg blockLocatorHash, HashMsg hashStop) {
+    public GetHeadersEnMsg(long version, HashMsg blockLocatorHash, HashMsg hashStop,
+                           byte[] extraBytes, long checksum) {
+        super(extraBytes, checksum);
         this.version = version;
         this.blockLocatorHash = blockLocatorHash;
         this.hashStop = hashStop;
@@ -46,14 +46,12 @@ public final class GetHeadersEnMsg extends Message {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(version, blockLocatorHash, hashStop);
+        return Objects.hashCode(super.hashCode(), version, blockLocatorHash, hashStop);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         GetHeadersEnMsg other = (GetHeadersEnMsg) obj;
         return Objects.equal(this.version, other.version)
                 && Objects.equal(this.blockLocatorHash, other.blockLocatorHash)
@@ -69,15 +67,24 @@ public final class GetHeadersEnMsg extends Message {
         return new GetHeadersEnMsgBuilder();
     }
 
+    @Override
+    public GetHeadersEnMsgBuilder toBuilder() {
+        return new GetHeadersEnMsgBuilder(super.extraBytes, super.checksum)
+                        .version(this.version)
+                        .blockLocatorHash(this.blockLocatorHash)
+                        .hashStop(this.hashStop);
+    }
+
     /**
      * Builder
      */
-    public static class GetHeadersEnMsgBuilder {
+    public static class GetHeadersEnMsgBuilder extends BodyMessageBuilder {
         private long version;
         private HashMsg blockLocatorHash;
         private HashMsg hashStop;
 
-        GetHeadersEnMsgBuilder() {}
+        public GetHeadersEnMsgBuilder() {}
+        public GetHeadersEnMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public GetHeadersEnMsg.GetHeadersEnMsgBuilder version(long version) {
             this.version = version;
@@ -95,7 +102,7 @@ public final class GetHeadersEnMsg extends Message {
         }
 
         public GetHeadersEnMsg build() {
-            return new GetHeadersEnMsg(version, blockLocatorHash, hashStop);
+            return new GetHeadersEnMsg(version, blockLocatorHash, hashStop, super.extraBytes, super.checksum);
         }
     }
 }

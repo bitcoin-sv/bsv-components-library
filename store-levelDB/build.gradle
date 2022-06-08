@@ -12,7 +12,7 @@ plugins {
  ****************************************/
 jclGroup = "$jclGroup"
 jclVersion = "$jclVersion"
-jclArtifactName = "$jclArtifactName"
+jclArtifactName = "jcl-store-levelDB"
 
 group = "$rootProject.jclGroup"
 version = "$rootProject.jclVersion"
@@ -26,7 +26,7 @@ repositories {
 
 dependencies {
     // Compile Dependencies:
-    implementation "io.bitcoinsv.bitcoinjsv:bitcoinj-base:1.0.1"
+    implementation "io.bitcoinsv.bitcoinjsv:bitcoinj-base:$bitcoinJVersion"
     implementation(project(":tools"))
     implementation(project(":store"))
     implementation(project(":store-keyValue"))
@@ -42,12 +42,11 @@ dependencies {
     // concrete logic to create instances of those interfaces:
 
     testImplementation project(':store').sourceSets.test.output
+    testImplementation project(':tools').sourceSets.test.output
 
     testImplementation 'org.codehaus.groovy:groovy'
     testImplementation "org.spockframework:spock-core:1.2-groovy-2.5"
-    testImplementation "ch.qos.logback:logback-classic:1.2.3"
-    testImplementation 'org.projectlombok:lombok'
-
+    testImplementation "ch.qos.logback:logback-classic"
 }
 
 bootJar {
@@ -58,6 +57,17 @@ jar {
     enabled = true
     metaInf {
         from "${project.rootDir}/LICENSE"
+    }
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+javadoc {
+    if (JavaVersion.current().isJava11Compatible()) {
+        options.addBooleanOption('Xdoclint:none', true)
     }
 }
 

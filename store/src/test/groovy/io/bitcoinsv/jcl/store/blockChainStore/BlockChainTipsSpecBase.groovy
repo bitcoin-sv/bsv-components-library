@@ -1,11 +1,7 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.store.blockChainStore
 
 
-import io.bitcoinsv.jcl.store.common.TestingUtils
+import io.bitcoinsv.jcl.tools.common.TestingUtils
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.extended.ChainInfo
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
@@ -257,5 +253,96 @@ abstract class BlockChainTipsSpecBase extends BlockChainStoreSpecBase {
             db.clear()
             db.stop()
             println(" - Test Done.")
+    }
+
+    /**
+     * We test that the IsInChain method works as expected, when two block hashes are given.
+     * In this scenario, we create a TREE hierarchy of Blocks, and this structure is created in a NON-linear fashion:
+     *
+     * We create 2 branches of Blocks: One is connected to the chain, the other is not, then check if two blocks from different branches and the same branch give the correct result.
+     */
+    def "testing IsInChain creating a Tree structure in a no-linear-fashion"() {
+        given:
+        // Configuration and DB start up:
+        println(" - Connecting to the DB...")
+        HeaderReadOnly genesisBlock = TestingUtils.buildBlock(Sha256Hash.ZERO_HASH.toString())
+        println(" - Using block genesis: " + genesisBlock.getHash())
+        BlockChainStore db = getInstance("BSV-Main", false, false, genesisBlock, Duration.ofMillis(100), null, null, null, null)
+
+        when:
+        db.start()
+
+        // We clean the DB:
+        db.clear()
+        // We check the DB Content in the console...
+        println("Content of DB Right BEFORE the Test:")
+        db.printKeys()
+
+        // We create first a tree like this:
+        // - [genesis] - [A] - [B] - [C]
+        // These bocks will be automatically connected to the Chain:
+        HeaderReadOnly blockA = TestingUtils.buildBlock(genesisBlock.hash.toString())
+        HeaderReadOnly blockB = TestingUtils.buildBlock(blockA.hash.toString())
+        HeaderReadOnly blockC = TestingUtils.buildBlock(blockB.hash.toString())
+        db.saveBlocks(Arrays.asList(blockA, blockB, blockC))
+
+
+        // Now we create a another Branch of blocks:
+        //   [B]
+        //     \- [D] - [E] - [F] - [G]
+        //                 \- [H] - [I]
+        // But the Block [D] will NOT be saved yet, so the branch starting from [E] wil be saved but will be
+        // DISCONNECTED from the Chain
+
+        HeaderReadOnly blockD = TestingUtils.buildBlock(blockB.hash.toString())
+        HeaderReadOnly blockE = TestingUtils.buildBlock(blockD.hash.toString())
+        HeaderReadOnly blockF = TestingUtils.buildBlock(blockE.hash.toString())
+        HeaderReadOnly blockG = TestingUtils.buildBlock(blockF.hash.toString())
+        HeaderReadOnly blockH = TestingUtils.buildBlock(blockE.hash.toString())
+        HeaderReadOnly blockI = TestingUtils.buildBlock(blockH.hash.toString())
+
+        List<HeaderReadOnly> blocksToSave = Arrays.asList(blockD, blockE, blockF, blockG, blockH, blockI)
+        db.saveBlocks(blocksToSave)
+
+        println(" - Genesis: " + genesisBlock.hash.toString())
+        println("     |- Block A: " + blockA.hash.toString())
+        println("           |- Block B: " + blockB.hash.toString())
+        println("                |- Block C: " + blockC.hash.toString())
+        println("                |- Block D: " + blockD.hash.toString())
+        println("                     |- Block E: " + blockE.hash.toString())
+        println("                          |- Block F: " + blockF.hash.toString())
+        println("                                |- Block G: " + blockG.hash.toString())
+        println("                          |- Block H: " + blockH.hash.toString())
+        println("                                |- Block I: " + blockI.hash.toString())
+
+        // We check the DB Content in the console...
+        db.printKeys()
+
+        db.isInChain(blockA.getHash(), blockC.getHash())
+        then:
+            db.isInChain(blockA.getHash(), blockC.getHash())
+            db.isInChain(blockD.getHash(), blockG.getHash())
+            db.isInChain(blockH.getHash(), blockI.getHash())
+           !db.isInChain(blockC.getHash(), blockI.getHash())
+           !db.isInChain(blockG.getHash(), blockI.getHash())
+
+
+        cleanup:
+        println(" - Cleanup...")
+        // We first remove the separate branch...
+        db.removeBlocks(Arrays.asList(blockD, blockE, blockF, blockG, blockH, blockI)
+                .stream().map({b -> b.hash}).collect(Collectors.toList()))
+        // Now we remove the initial branch...
+        db.removeBlocks(Arrays.asList(blockA, blockB, blockC)
+                .stream().map({b -> b.hash}).collect(Collectors.toList()))
+
+        // and the genesis block:
+        db.removeBlock(genesisBlock.hash)
+        db.removeTipsChains()
+        // We check the DB Content in the console...
+        db.printKeys()
+        db.clear()
+        db.stop()
+        println(" - Test Done.")
     }
 }

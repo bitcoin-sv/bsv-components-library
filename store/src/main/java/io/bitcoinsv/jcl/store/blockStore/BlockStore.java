@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.store.blockStore;
 
 
@@ -10,6 +6,7 @@ import io.bitcoinsv.jcl.store.blockStore.metadata.Metadata;
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly;
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.Tx;
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
+
 
 import java.util.Iterator;
 import java.util.List;
@@ -112,6 +109,15 @@ public interface BlockStore {
 
     /** It removes metadata linked to a Block */
     void removeBlockMetadata(Sha256Hash blockHash);
+
+    /** Retrieves the metadata attached to the tx given, if any */
+    Optional<Metadata>  getTxMetadata(Sha256Hash txHash);
+
+    /** It saves some Metadata linked to a Tx */
+    void saveTxMetadata(Sha256Hash txHash, Metadata metadata);
+
+    /** It removes metadata linked to a Tx */
+    void removeTxMetadata(Sha256Hash txHash);
 
     // Tx Storage Operations:
 

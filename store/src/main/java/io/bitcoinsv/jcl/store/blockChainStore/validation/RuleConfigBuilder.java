@@ -1,10 +1,8 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.store.blockChainStore.validation;
 
 
+import io.bitcoinsv.jcl.store.blockChainStore.validation.rules.*;
+import io.bitcoinsv.jcl.store.blockChainStore.validation.rules.predicate.*;
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.extended.ChainInfo;
 import io.bitcoinsv.bitcoinjsv.params.NetworkParameters;
 import io.bitcoinsv.jcl.store.blockChainStore.validation.rules.*;
@@ -12,6 +10,7 @@ import io.bitcoinsv.jcl.store.blockChainStore.validation.rules.predicate.Difficu
 import io.bitcoinsv.jcl.store.blockChainStore.validation.rules.predicate.DifficultyEqualtoMaxTargetPredicate;
 import io.bitcoinsv.jcl.store.blockChainStore.validation.rules.predicate.DifficultyTransitionPointPredicate;
 import io.bitcoinsv.jcl.store.blockChainStore.validation.rules.predicate.GenesisPredicate;
+
 
 import java.util.function.Predicate;
 

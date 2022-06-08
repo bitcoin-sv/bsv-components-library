@@ -1,13 +1,10 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.events.control;
-
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.network.events.P2PEvent;
 import io.bitcoinsv.jcl.net.protocol.messages.VersionMsg;
+
+import java.util.Objects;
 
 /**
  * @author i.fernandez@nchain.com
@@ -33,5 +30,18 @@ public final class PeerHandshakedEvent extends P2PEvent {
         StringBuffer result = new StringBuffer();
         result.append("Event[Peer Handshaked]: " + peerAddress + " : " + versionMsg.getUser_agent().getStr());
         return result.toString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false; }
+        PeerHandshakedEvent other = (PeerHandshakedEvent) obj;
+        return Objects.equals(this.peerAddress, other.peerAddress)
+            && Objects.equals(this.versionMsg, other.versionMsg);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), peerAddress, versionMsg);
     }
 }

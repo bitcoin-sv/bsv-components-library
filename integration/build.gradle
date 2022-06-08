@@ -12,7 +12,7 @@ plugins {
  ****************************************/
 jclGroup = "$jclGroup"
 jclVersion = "$jclVersion"
-jclArtifactName = "$jclArtifactName"
+jclArtifactName = "jcl-integration"
 
 group = "$rootProject.jclGroup"
 version = "$rootProject.jclVersion"
@@ -26,21 +26,22 @@ repositories {
 
 dependencies {
     // Compile Dependencies:
-    implementation "io.bitcoinsv.bitcoinjsv:bitcoinj-base:1.0.1"
+    implementation "io.bitcoinsv.bitcoinjsv:bitcoinj-base:$bitcoinJVersion"
     implementation(project(":tools"))
     implementation(project(":net"))
     implementation(project(":store"))
     implementation(project(":store-keyValue"))
     implementation(project(":store-levelDB"))
 
-    implementation "ch.qos.logback:logback-classic:1.2.3"
+    implementation 'org.slf4j:slf4j-api:1.7.26'
 
     // Testing
     testImplementation(project(":tools"))
     testImplementation 'org.codehaus.groovy:groovy'
     testImplementation "org.spockframework:spock-core:1.2-groovy-2.5"
+    testImplementation "ch.qos.logback:logback-classic"
     testImplementation 'com.madgag.spongycastle:core:1.51.0.0'
-    testImplementation 'org.iq80.leveldb:leveldb:0.12' // Should NOT be needed
+    testImplementation 'org.iq80.leveldb:leveldb:0.12'
 }
 
 bootJar {

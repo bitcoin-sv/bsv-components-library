@@ -1,12 +1,9 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.store.blockChainStore.events;
 
 
 import io.bitcoinsv.jcl.store.blockStore.events.BlockStoreEvent;
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
+
 
 /**
  * @author i.fernandez@nchain.com

@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.handlers.handshake;
 
 
@@ -15,7 +11,7 @@ import io.bitcoinsv.jcl.tools.handlers.Handler;
  * Operations provided by the Handshake Handler
  */
 public interface HandshakeHandler extends Handler {
-    String HANDLER_ID = "Handshake-Handler";
+    String HANDLER_ID = "Handshake";
 
     @Override
     default String getId() { return HANDLER_ID; }

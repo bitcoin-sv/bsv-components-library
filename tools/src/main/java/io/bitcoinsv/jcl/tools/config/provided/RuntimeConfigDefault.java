@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.tools.config.provided;
 
 
@@ -20,10 +16,10 @@ import io.bitcoinsv.jcl.tools.files.FileUtilsBuilder;
 public final class RuntimeConfigDefault extends RuntimeConfigImpl implements RuntimeConfig {
 
     // Default values:
-    private static ByteArrayConfig byteArrayMemoryConfig = new ByteArrayConfig();
-    private static int msgSizeInBytesForRealTimeProcessing = 10_000_000;;
-    private static int maxNumThreadsForP2P = 50;
-    private static boolean useCachedThreadPoolForP2P = false;
+    public final static ByteArrayConfig DEF_BYTE_ARRAY_MEM_CONFIG = new ByteArrayConfig();
+    public final static int DEF_MSG_SIZE_BYTES_REAL_TIME = 10_000_000;;
+    public final static int DEF_P2P_THREADS_MAX = 50;
+    public final static boolean DEF_P2P_THREADS_CACHED = false;
 
     /** Constructor */
     public RuntimeConfigDefault() {
@@ -39,10 +35,10 @@ public final class RuntimeConfigDefault extends RuntimeConfigImpl implements Run
 
     private void init(ClassLoader classLoader) {
         // We initialize all the parent fields:
-        super.byteArrayMemoryConfig = byteArrayMemoryConfig;
-        super.msgSizeInBytesForRealTimeProcessing = msgSizeInBytesForRealTimeProcessing;
-        super.maxNumThreadsForP2P = maxNumThreadsForP2P;
-        super.useCachedThreadPoolForP2P = useCachedThreadPoolForP2P;
+        super.byteArrayMemoryConfig = DEF_BYTE_ARRAY_MEM_CONFIG;
+        super.msgSizeInBytesForRealTimeProcessing = DEF_MSG_SIZE_BYTES_REAL_TIME;
+        super.maxNumThreadsForP2P = DEF_P2P_THREADS_MAX;
+        super.useCachedThreadPoolForP2P = DEF_P2P_THREADS_CACHED;
 
         try {
             FileUtilsBuilder fileUtilsBuilder = new FileUtilsBuilder().useTempFolder();

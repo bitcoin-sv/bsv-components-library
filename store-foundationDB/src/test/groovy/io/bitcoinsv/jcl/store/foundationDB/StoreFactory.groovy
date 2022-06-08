@@ -1,17 +1,13 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.store.foundationDB
 
 
-import io.bitcoinsv.jcl.store.blockStore.BlockStore
 import io.bitcoinsv.jcl.store.foundationDB.blockChainStore.BlockChainStoreFDB
 import io.bitcoinsv.jcl.store.foundationDB.blockChainStore.BlockChainStoreFDBConfig
 import io.bitcoinsv.jcl.store.foundationDB.blockStore.BlockStoreFDB
 import io.bitcoinsv.jcl.store.foundationDB.blockStore.BlockStoreFDBConfig
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly
 import io.bitcoinsv.jcl.store.blockChainStore.BlockChainStore
+import io.bitcoinsv.jcl.store.blockStore.BlockStore
 import io.bitcoinsv.jcl.store.blockStore.metadata.Metadata
 
 import java.time.Duration
@@ -32,7 +28,7 @@ class StoreFactory {
     }
 
     /** It creates an instance of the BlockStore interface, including block Metadata */
-    static BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents, Class<? extends Metadata> blockMetadataClass) {
+    static BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents, Class<? extends Metadata> blockMetadataClass, Class<? extends Metadata> txMetadataClass) {
         BlockStoreFDBConfig config = BlockStoreFDBConfig.builder()
                 .networkId(netId)
                 .clusterFile(getClusterFile())
@@ -42,6 +38,7 @@ class StoreFactory {
                 .triggerBlockEvents(triggerBlockEvents)
                 .triggerTxEvents(triggerTxEvents)
                 .blockMetadataClass(blockMetadataClass)
+                .txMetadataClass(txMetadataClass)
                 .build()
         return blockStore
     }

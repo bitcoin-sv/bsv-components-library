@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.tools.thread;
 
 import com.google.common.collect.Lists;
@@ -84,15 +80,14 @@ public class ThreadUtils {
     }
 
     /**
-     * Returns a CachedThread executor with HIGH Priority. The max number of Threads created is equals to the number of
-     * available processor, so for more high-performance tasks where thousands of tasks per sec might be triggered,
-     * you better use the 'getCachedThreadExecutorService(threadName, maxThread) version.
+     * Returns a CachedThread executor with HIGH Priority.
      *
      * @param threadName Thread name (for tracking/logging purposes)
      */
     public static ExecutorService getCachedThreadExecutorService(String threadName) {
-        return new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors(), 60L, TimeUnit.SECONDS,
-                new LinkedBlockingQueue<>(), getThreadFactory(threadName, Thread.MAX_PRIORITY, true));
+//        return new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors(), 60L, TimeUnit.SECONDS,
+//                new LinkedBlockingQueue<>(), getThreadFactory(threadName, Thread.MAX_PRIORITY, true));
+        return Executors.newCachedThreadPool(ThreadUtils.getThreadFactory(threadName, Thread.MAX_PRIORITY, true));
     }
     /** Returns a SingleThread executor with MAX Priority */
     public static ScheduledExecutorService getSingleThreadScheduledExecutorService(String threadName) {

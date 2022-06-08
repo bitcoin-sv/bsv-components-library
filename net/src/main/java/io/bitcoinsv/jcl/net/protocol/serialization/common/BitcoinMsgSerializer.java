@@ -1,13 +1,10 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.serialization.common;
 
 
+import io.bitcoinsv.jcl.net.protocol.config.ProtocolBasicConfig;
 import io.bitcoinsv.jcl.net.protocol.messages.HeaderMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg;
-import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
+import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader;
 
 /**
@@ -21,12 +18,7 @@ import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader;
 public interface BitcoinMsgSerializer {
 
     /**
-     * It returns the Length of the Header.
-     */
-    int getHeaderLength();
-
-    /**
-     * It takes a Byte soruce and returns the Header contained in it. Other bytes in the ByteRader are not procesed.
+     * It takes a Byte source and returns the Header contained in it. Other bytes in the ByteRader are not procesed.
      * The same ByteReader could be used later to keep reading data from it.
      *
      * @param context           Serializer Context
@@ -35,6 +27,27 @@ public interface BitcoinMsgSerializer {
      */
     HeaderMsg deserializeHeader(DeserializerContext context, ByteArrayReader byteReader);
 
+    /**
+     * It takes a Byte source and returns the Header contained in it. Other bytes in the ByteRader are not procesed.
+     * The same ByteReader could be used later to keep reading data from it.
+     *
+     * @param context           Serializer Context
+     * @param headerMsg         HeaderMsg related (previously received))to the body we are deserializing
+     * @param byteReader        Byte Source
+     * @return                  The Header of the Bitcoin Message
+     */
+    <M extends BodyMessage> M deserializeBody(DeserializerContext context, HeaderMsg headerMsg, ByteArrayReader byteReader);
+
+
+    /**
+     * It calculates the checksum of the payload provided. The 'numByes' specifies the maximum number of bytes to use
+     */
+    long calculateChecksum(ByteArrayReader byteReader, long numBytes);
+
+    /**
+     * It calculates the checksum of Message, considering the Protocol Configuration given
+     */
+    <M extends BodyMessage> long calculateChecksum(ProtocolBasicConfig protocolBasicConfig, M bodyMessage);
 
     /**
      * It takes a Byte Source and returns the Bitcoin Message contained in it. It assumes that the Byte source contains
@@ -42,11 +55,9 @@ public interface BitcoinMsgSerializer {
      *
      * @param context                   Serializer Context
      * @param byteReader                Byte Source
-     * @param command                   Type of the message (as it's stored in the "command" field in the Header)
      * @return                          A full Bitcoin-compliant Message
      */
-    <M extends Message> BitcoinMsg<M> deserialize(DeserializerContext context, ByteArrayReader byteReader,
-                                                  String command);
+    <M extends BodyMessage> BitcoinMsg<M> deserialize(DeserializerContext context, ByteArrayReader byteReader);
 
 
     /**
@@ -55,18 +66,8 @@ public interface BitcoinMsgSerializer {
      *
      * @param context                   Serializer Context
      * @param bitcoinMessage            Message to deserialize
-     * @param command                   Type of the message (as it's stored in the "command" field in the Header)
      * @return                          The content of "bitcoinMessage" serialized
      */
-    <M extends Message> ByteArrayReader serialize(SerializerContext context, BitcoinMsg<M> bitcoinMessage,
-                                                  String command);
-
-    /**
-     * It sends a signal to this Serializer so it stops immediately, throwing a RuntimeException. The time when the
-     * Serializer really stops after receiving this signal, depends on the implementation.
-     */
-    default void kill() {}
-    /** Indicates if this Serializer is killable or not */
-    default boolean isKillable() { return false; }
+    <M extends BodyMessage> ByteArrayReader serialize(SerializerContext context, BitcoinMsg<M> bitcoinMessage);
 
 }

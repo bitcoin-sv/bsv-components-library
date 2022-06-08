@@ -1,14 +1,7 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.unit.protocol.serialization
 
-
-import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader
-import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter
-import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
-import io.bitcoinsv.bitcoinjsv.core.Utils
+import io.bitcoinsv.jcl.net.protocol.config.ProtocolBasicConfig
+import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigBuilder
 import io.bitcoinsv.jcl.net.protocol.messages.BlockHeaderMsg
 import io.bitcoinsv.jcl.net.protocol.messages.HashMsg
 import io.bitcoinsv.jcl.net.protocol.messages.HeaderMsg
@@ -19,6 +12,11 @@ import io.bitcoinsv.jcl.net.protocol.serialization.common.BitcoinMsgSerializer
 import io.bitcoinsv.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl
 import io.bitcoinsv.jcl.net.protocol.serialization.common.DeserializerContext
 import io.bitcoinsv.jcl.net.protocol.serialization.common.SerializerContext
+import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader
+import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
+import io.bitcoinsv.bitcoinjsv.core.Utils
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
 import spock.lang.Ignore
 import spock.lang.Specification
 
@@ -39,11 +37,13 @@ class HeadersMsgSerializerSpec extends Specification {
     @Ignore
     def "testing HeadersMsg Serializing and Deserializing"() {
         given:
-
-        SerializerContext serializerContext = SerializerContext.builder()
+            ProtocolBasicConfig protocolBasicConfig = ProtocolConfigBuilder.get(MainNetParams.get())
+            SerializerContext serializerContext = SerializerContext.builder()
+                .protocolBasicConfig(protocolBasicConfig)
                 .build()
 
-        DeserializerContext deserializerContext = DeserializerContext.builder()
+            DeserializerContext deserializerContext = DeserializerContext.builder()
+                .protocolBasicConfig(protocolBasicConfig)
                 .build()
 
         BlockHeaderMsg blockHeaderMsg = BlockHeaderMsg.builder()
@@ -71,7 +71,7 @@ class HeadersMsgSerializerSpec extends Specification {
         given:
             BlockHeaderMsg blockHeaderMsg = BlockHeaderMsg.builder()
                 .version(70013)
-                .hash(HashMsg.builder().hash(Sha256Hash.wrap("a9f965385ffd6da76dbf8226ca0f061d6e05737fdf34ba6edb9ea1d012666b16").getBytes()).build())
+                .hash(Sha256Hash.wrap("a9f965385ffd6da76dbf8226ca0f061d6e05737fdf34ba6edb9ea1d012666b16"))
                 .prevBlockHash(HashMsg.builder().hash(Sha256Hash.ZERO_HASH.getBytes()).build())
                 .merkleRoot(HashMsg.builder().hash(Sha256Hash.ZERO_HASH.getBytes()).build())
                 .difficultyTarget(1)
@@ -96,11 +96,13 @@ class HeadersMsgSerializerSpec extends Specification {
 
     def "testing HeadersMsg COMPLETE Serializing and Deserializing"() {
         given:
-
+            ProtocolBasicConfig protocolBasicConfig = ProtocolConfigBuilder.get(MainNetParams.get()).getBasicConfig()
             SerializerContext serializerContext = SerializerContext.builder()
+                .protocolBasicConfig(protocolBasicConfig)
                 .build()
 
             DeserializerContext deserializerContext = DeserializerContext.builder()
+                .protocolBasicConfig(protocolBasicConfig)
                 .build()
 
             ByteArrayWriter byteArrayWriter = new ByteArrayWriter()
@@ -119,8 +121,8 @@ class HeadersMsgSerializerSpec extends Specification {
 
         BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
         when:
-            ByteArrayReader byteArrayReader = serializer.serialize(serializerContext, headersBitcoinMsg, HeadersMsg.MESSAGE_TYPE)
-            BitcoinMsg<HeadersMsg> deserializedHeadersBitcoinMsg = serializer.deserialize(deserializerContext, byteArrayReader, HeadersMsg.MESSAGE_TYPE)
+            ByteArrayReader byteArrayReader = serializer.serialize(serializerContext, headersBitcoinMsg)
+            BitcoinMsg<HeadersMsg> deserializedHeadersBitcoinMsg = serializer.deserialize(deserializerContext, byteArrayReader)
         then:
             headersBitcoinMsg.equals(deserializedHeadersBitcoinMsg)
 

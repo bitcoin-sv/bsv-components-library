@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.tools.events;
 
 
@@ -13,6 +9,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
 
@@ -36,6 +33,9 @@ import java.util.function.Consumer;
  *
  */
 public class EventBus {
+
+    // UGLY HACK:
+    public static AtomicLong NUM_MSGS_LOST = new AtomicLong();
 
     private static Logger log = LoggerFactory.getLogger(EventBus.class);
 
@@ -69,7 +69,7 @@ public class EventBus {
      * executed in sequence.
      */
     public synchronized void subscribe(Class<? extends Event> eventClass, Consumer<? extends Event> eventHandler) {
-        // We addBytes the handler to the list of handlers assigned to this Event Type:
+        // We add the handler to the list of handlers assigned to this Event Type:
         List<Consumer<? extends Event>> consumers = new ArrayList<>();
         consumers.add(eventHandler);
         eventHandlers.merge(eventClass, consumers, (w, prev) -> {prev.addAll(w); return prev;});
@@ -98,6 +98,7 @@ public class EventBus {
                 try {
                     executor.submit(task);
                 } catch (RejectedExecutionException e) {
+                    NUM_MSGS_LOST.incrementAndGet();
                     log.error(e.getMessage(), e);
                 }
             }

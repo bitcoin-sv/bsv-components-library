@@ -1,12 +1,10 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
+
+import java.io.Serializable;
 
 /**
  * @author m.jose@nchain.com
@@ -26,7 +24,7 @@ import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
  *   - field: "sequence"  (4 bytes) int
  *   Transaction version as defined by the sender.
  */
-public final class TxInputMsg extends Message {
+public final class TxInputMsg extends Message implements Serializable {
     private static final int sequence_len = 4;
     public static final String MESSAGE_TYPE = "TxIn";
 
@@ -75,14 +73,12 @@ public final class TxInputMsg extends Message {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(pre_outpoint, script_length, signature_script, sequence);
+        return Objects.hashCode(super.hashCode(), pre_outpoint, script_length, signature_script, sequence);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         TxInputMsg other = (TxInputMsg) obj;
         return Objects.equal(this.pre_outpoint, other.pre_outpoint)
                 && Objects.equal(this.script_length, other.script_length)
@@ -94,6 +90,13 @@ public final class TxInputMsg extends Message {
         return new TxInputMsgBuilder();
     }
 
+    public TxInputMsgBuilder toBuilder() {
+        return new TxInputMsgBuilder()
+                    .pre_outpoint(this.pre_outpoint)
+                    .signature_script(this.signature_script)
+                    .sequence(this.sequence);
+    }
+
     /**
      * Builder
      */
@@ -102,7 +105,7 @@ public final class TxInputMsg extends Message {
         private byte[] signature_script;
         private long sequence;
 
-        TxInputMsgBuilder() { }
+        public TxInputMsgBuilder() { }
 
         public TxInputMsg.TxInputMsgBuilder pre_outpoint(TxOutPointMsg pre_outpoint) {
             this.pre_outpoint = pre_outpoint;

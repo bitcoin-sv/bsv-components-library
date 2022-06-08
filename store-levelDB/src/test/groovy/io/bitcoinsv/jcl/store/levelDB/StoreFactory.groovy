@@ -1,18 +1,14 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.store.levelDB
 
 
-import io.bitcoinsv.jcl.store.blockChainStore.BlockChainStore
-import io.bitcoinsv.jcl.store.blockStore.BlockStore
-import io.bitcoinsv.jcl.store.blockStore.metadata.Metadata
 import io.bitcoinsv.jcl.store.levelDB.blockChainStore.BlockChainStoreLevelDB
 import io.bitcoinsv.jcl.store.levelDB.blockChainStore.BlockChainStoreLevelDBConfig
 import io.bitcoinsv.jcl.store.levelDB.blockStore.BlockStoreLevelDB
 import io.bitcoinsv.jcl.store.levelDB.blockStore.BlockStoreLevelDBConfig
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly
+import io.bitcoinsv.jcl.store.blockChainStore.BlockChainStore
+import io.bitcoinsv.jcl.store.blockStore.BlockStore
+import io.bitcoinsv.jcl.store.blockStore.metadata.Metadata
 
 import java.nio.file.Path
 import java.time.Duration
@@ -32,11 +28,11 @@ class StoreFactory {
 
     /** It creates an instance of the BlockStore interface */
     static BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents) {
-        return getInstance(netId, triggerBlockEvents, triggerTxEvents, null);
+        return getInstance(netId, triggerBlockEvents, triggerTxEvents, null, null);
     }
 
     /** It creates an instance of the BlockStore interface, including metadata class for Blocks */
-    static BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents, Class<? extends Metadata> blockMetadataClass) {
+    static BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents, Class<? extends Metadata> blockMetadataClass, Class<? extends Metadata> txMetadataClass) {
         Path dbPath = Path.of(buildWorkingFolder())
         BlockStoreLevelDBConfig dbConfig = BlockStoreLevelDBConfig.builder()
                 .workingFolder(dbPath)
@@ -47,6 +43,7 @@ class StoreFactory {
                 .triggerBlockEvents(triggerBlockEvents)
                 .triggerTxEvents(triggerTxEvents)
                 .blockMetadataClass(blockMetadataClass)
+                .txMetadataClass(txMetadataClass)
                 .build()
         return db
     }

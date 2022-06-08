@@ -1,14 +1,11 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
+import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -27,7 +24,7 @@ import java.util.List;
  * - field: "inv_vect[]" (36*count) array of inventory vectors
  *   Inventory vectors.
  */
-public final class GetdataMsg extends Message {
+public final class GetdataMsg extends BodyMessage implements Serializable {
     private static final long MAX_ADDRESSES = 50000;
     public static final String MESSAGE_TYPE = "getdata";
 
@@ -38,7 +35,9 @@ public final class GetdataMsg extends Message {
     /**
      * Creates the InvMessage Object.Use the corresponding byteArray to create the instance.
      */
-    protected GetdataMsg(List<InventoryVectorMsg> invVectorList) {
+    protected GetdataMsg(List<InventoryVectorMsg> invVectorList,
+                         byte[] extraBytes, long checksum) {
+        super(extraBytes, checksum);
         this.invVectorList = ImmutableList.copyOf(invVectorList);
         //count value is calculated from the inv vector list
         long count =  this.invVectorList.size();
@@ -72,14 +71,12 @@ public final class GetdataMsg extends Message {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(count, invVectorList);
+        return Objects.hashCode(super.hashCode(), count, invVectorList);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         GetdataMsg other = (GetdataMsg) obj;
         return Objects.equal(this.count, other.count)
                 && Objects.equal(this.invVectorList, other.invVectorList);
@@ -89,13 +86,19 @@ public final class GetdataMsg extends Message {
         return new GetdataMsgBuilder();
     }
 
+    @Override
+    public GetdataMsgBuilder toBuilder() {
+        return new GetdataMsgBuilder(super.extraBytes, super.checksum).invVectorList(this.invVectorList);
+    }
+
     /**
      * Builder
      */
-    public static class GetdataMsgBuilder {
+    public static class GetdataMsgBuilder extends BodyMessageBuilder {
         private List<InventoryVectorMsg> invVectorList;
 
-        GetdataMsgBuilder() {}
+        public GetdataMsgBuilder() {}
+        public GetdataMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public GetdataMsg.GetdataMsgBuilder invVectorList(List<InventoryVectorMsg> invVectorList) {
             this.invVectorList = invVectorList;
@@ -103,7 +106,7 @@ public final class GetdataMsg extends Message {
         }
 
         public GetdataMsg build() {
-            return new GetdataMsg(invVectorList);
+            return new GetdataMsg(invVectorList, super.extraBytes, super.checksum);
         }
     }
 }

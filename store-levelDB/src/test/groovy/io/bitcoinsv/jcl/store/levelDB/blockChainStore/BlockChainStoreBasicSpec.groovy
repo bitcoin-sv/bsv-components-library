@@ -1,14 +1,10 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.store.levelDB.blockChainStore
 
 
-import io.bitcoinsv.jcl.store.blockChainStore.BlockChainStore
 import io.bitcoinsv.jcl.store.blockChainStore.BlockChainStoreBasicSpecBase
 import io.bitcoinsv.jcl.store.levelDB.StoreFactory
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly
+import io.bitcoinsv.jcl.store.blockChainStore.BlockChainStore
 
 import java.time.Duration
 

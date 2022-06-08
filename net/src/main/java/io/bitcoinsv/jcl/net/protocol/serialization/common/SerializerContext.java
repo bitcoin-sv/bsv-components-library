@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.serialization.common;
 
 
@@ -31,17 +27,25 @@ public final class SerializerContext {
     // serialization logic is slightly different in that case)
     private boolean insideVersionMsg;
 
-    public SerializerContext(long magicPackage, int handshakeProtocolVersion, ProtocolBasicConfig protocolBasicConfig, boolean insideVersionMsg) {
+    // If true, the checksum of the message is calculated out of its bytes and populated in the message itself
+    // The logic to calculate or not the checksum also takes into consideration other factors, like the size of the
+    // message (messages bigger than 4GB do NOT calculate checksum).
+    // If its FALSE, checksum is NOT calculated in any case
+    private boolean calculateChecksum;
+
+    public SerializerContext(long magicPackage, int handshakeProtocolVersion, ProtocolBasicConfig protocolBasicConfig, boolean insideVersionMsg, boolean calculateChecksum) {
         this.magicPackage = magicPackage;
         this.handshakeProtocolVersion = handshakeProtocolVersion;
         this.protocolBasicConfig = protocolBasicConfig;
         this.insideVersionMsg = insideVersionMsg;
+        this.calculateChecksum = calculateChecksum;
     }
 
     public long getMagicPackage()                       { return this.magicPackage; }
     public int getHandshakeProtocolVersion()            { return this.handshakeProtocolVersion; }
     public ProtocolBasicConfig getProtocolBasicConfig() { return this.protocolBasicConfig; }
     public boolean isInsideVersionMsg()                 { return this.insideVersionMsg; }
+    public boolean isCalculateChecksum()                { return this.calculateChecksum;}
 
     public void setMagicPackage(long magicPackage)                              { this.magicPackage = magicPackage; }
     public void setHandshakeProtocolVersion(int handshakeProtocolVersion)       { this.handshakeProtocolVersion = handshakeProtocolVersion; }
@@ -64,6 +68,7 @@ public final class SerializerContext {
         private int handshakeProtocolVersion;
         private ProtocolBasicConfig protocolBasicConfig;
         private boolean insideVersionMsg;
+        private boolean calculateChecksum = true;
 
         SerializerContextBuilder() {}
 
@@ -87,8 +92,13 @@ public final class SerializerContext {
             return this;
         }
 
+        public SerializerContext.SerializerContextBuilder calculateChecksum(boolean calculateChecksum) {
+            this.calculateChecksum = calculateChecksum;
+            return this;
+        }
+
         public SerializerContext build() {
-            return new SerializerContext(magicPackage, handshakeProtocolVersion, protocolBasicConfig, insideVersionMsg);
+            return new SerializerContext(magicPackage, handshakeProtocolVersion, protocolBasicConfig, insideVersionMsg, calculateChecksum);
         }
     }
 }

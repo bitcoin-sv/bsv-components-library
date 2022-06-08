@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.store.blockChainStore;
 
 
@@ -59,6 +55,13 @@ public interface BlockChainStore extends BlockStore {
     Optional<ChainInfo> getBlockChainInfo(Sha256Hash blockHash);
 
     /**
+     * Indicates if the Block given is connected to the Chain
+     * @param blockHash block hash
+     * @return True if connected to the chain, False if Not connected or not saved at all.
+     */
+    boolean isConnected(Sha256Hash blockHash);
+
+    /**
      * Returns the list of Tips of all the chains stored in the DB. In a "normal" scenario there will be only one Tip,
      * but there night also be a fork, in which case we can potentially have more than one Chain (and more than one
      * tip).
@@ -79,6 +82,9 @@ public interface BlockChainStore extends BlockStore {
      * Gets the given blocks ancestor by height
      */
     Optional<ChainInfo> getAncestorByHeight(Sha256Hash blockHash, int height);
+
+    /** Checks whether the given blocks are in the same path of the chain */
+    boolean isInChain(Sha256Hash hash, Sha256Hash ancestorHash);
 
     /**
      * Returns the FIRST Block in the same Path as the block given.

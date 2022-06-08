@@ -1,11 +1,5 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.unit.protocol.handlers.wrapper
 
-
-import io.bitcoinsv.bitcoinjsv.params.MainNetParams
 import io.bitcoinsv.jcl.net.network.handlers.NetworkHandler
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigBuilder
@@ -15,6 +9,7 @@ import io.bitcoinsv.jcl.net.protocol.handlers.message.MessageHandler
 import io.bitcoinsv.jcl.net.protocol.handlers.pingPong.PingPongHandler
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2P
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2PBuilder
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
 import spock.lang.Specification
 
 import java.time.Duration

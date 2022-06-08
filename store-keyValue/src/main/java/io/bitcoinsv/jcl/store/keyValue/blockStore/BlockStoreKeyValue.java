@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.store.keyValue.blockStore;
 
 
@@ -9,10 +5,7 @@ import com.google.common.collect.Lists;
 
 import io.bitcoinsv.jcl.store.blockStore.BlockStore;
 import io.bitcoinsv.jcl.store.blockStore.BlocksCompareResult;
-import io.bitcoinsv.jcl.store.blockStore.events.BlocksRemovedEvent;
-import io.bitcoinsv.jcl.store.blockStore.events.BlocksSavedEvent;
-import io.bitcoinsv.jcl.store.blockStore.events.TxsRemovedEvent;
-import io.bitcoinsv.jcl.store.blockStore.events.TxsSavedEvent;
+import io.bitcoinsv.jcl.store.blockStore.events.*;
 import io.bitcoinsv.jcl.store.blockStore.metadata.Metadata;
 import io.bitcoinsv.jcl.store.keyValue.common.HashesList;
 import io.bitcoinsv.jcl.store.keyValue.common.HashesListSerializer;
@@ -21,12 +14,17 @@ import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter;
 import io.bitcoinsv.jcl.tools.events.EventBus;
 import io.bitcoinsv.jcl.tools.serialization.BitcoinSerializerUtils;
+
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly;
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.Tx;
 import io.bitcoinsv.bitcoinjsv.bitcoin.bean.base.HeaderBean;
 import io.bitcoinsv.bitcoinjsv.bitcoin.bean.base.TxBean;
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 import io.bitcoinsv.bitcoinjsv.core.Utils;
+import io.bitcoinsv.jcl.store.blockStore.events.BlocksRemovedEvent;
+import io.bitcoinsv.jcl.store.blockStore.events.BlocksSavedEvent;
+import io.bitcoinsv.jcl.store.blockStore.events.TxsRemovedEvent;
+import io.bitcoinsv.jcl.store.blockStore.events.TxsSavedEvent;
 import org.slf4j.Logger;
 
 import java.util.*;
@@ -124,9 +122,9 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     String KEY_SUFFIX_BLOCK_NUMTXS   = KEY_SEPARATOR + "numTxs" + KEY_SEPARATOR;      // Property suffix: the number of Txs in a Block
     String KEY_SUFFIX_BLOCK_TXINDEX  = KEY_SEPARATOR + "txIndex" + KEY_SEPARATOR;     // Property suffix: Last txIndex used for this Block (to preserve Tx ordering)
     String KEY_PREFFIX_TX_BLOCK      = "tx_block_link" + KEY_SEPARATOR;               // Property suffix: The list of blocks this Tx is linked to
-
+    String KEY_PREFFIX_ORPHAN_HASH = "orphan_h" + KEY_SEPARATOR;
     String KEY_PREFFIX_BLOCK_META    = "block_m" + KEY_SEPARATOR;    // Metadata linked to a Block
-
+    String KEY_PREFFIX_TX_META       = "tx_m" + KEY_SEPARATOR; //Metadata linked to a tx
 
     /** This method returns a Lock that can be used to make sure Thread-safety is in place */
     ReadWriteLock getLock();
@@ -152,7 +150,7 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
         Low-Level DB Operations: Basic CRUD operations, plus a specific method to remove a whole Block Directory
      */
 
-    void save(T tr, byte[] key, byte[] value);
+    void    save(T tr, byte[] key, byte[] value);
     void    remove(T tr, byte[] key);
     byte[]  read(T tr, byte[] key);
     void    removeBlockDir(String blockHash);
@@ -174,9 +172,13 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     byte[] fullKeyForBlockTx(T tr, byte[] blockDirFullKey, String txHash, long txIndex);
     byte[] fullKeyForBlockDir(T tr, String blockHash);
     byte[] fullKeyForBlocksMetadata(T tr);
+    byte[] fullKeyForTxsMetadata(T tr);
 
     Class<? extends Metadata> getMetadataClassForBlocks();
+    Class<? extends Metadata> getMetadataClassForTxs();
+
     byte[] fullKeyForBlockMetadata(T tr, String blockHash);
+    byte[] fullKeyForTxMetadata(T tr, String txHash);
 
     byte[] fullKeyForTxs(T tr);
     byte[] fullKeyForTx(T tr, String txHash);
@@ -184,6 +186,7 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     byte[] fullKeyForBlocks();
     byte[] fullKeyForTxs();
     byte[] fullKey(Object ...subKeys);      // Returns a FULL Key that is a concatenation of the subKeys provided
+    byte[] fullKeyForOrphanBlockHash(T tr, String blockHash);
     void printKeys();                       // For logging:
 
 
@@ -223,10 +226,19 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     default String keyForBlockTxIndex(String blockHash)             { return KEY_PREFFIX_BLOCK_PROP + blockHash + KEY_SUFFIX_BLOCK_TXINDEX; }
     default String keyForTx(String txHash)                          { return KEY_PREFFIX_TX + txHash + KEY_SEPARATOR;}
     default String keyForTxBlock(String txHash, String blockHash)   { return KEY_PREFFIX_TX_BLOCK + txHash + KEY_SEPARATOR + blockHash + KEY_SEPARATOR; }
-    default String keyForBlockTx(String txHash, long txIndex)       { return KEY_PREFFIX_TX_LINK + txIndex + KEY_SEPARATOR + txHash + KEY_SEPARATOR; }
+    default String keyForBlockTx(String txHash, long txIndex)       {
+        /** We get the log of the number and add 1 to get the amount of digits in the number. We then convert that number to a char to use as a prefix to guarantee
+         *  Lexicographical ordering. So for example, the series: 0, 1, 42, 1623463626463, which would normally appear as: 0, 1, 1623463626463, 42 (which is lexi, not numerical)
+         *  would now appear as: "0, "1, #42, .1623463626463. We also add 1 to the index as 0 blows up this formula.
+         *
+         *  NOTES: If the db implementation does not order lexicographically, then we need to override this function
+         */
+        return KEY_PREFFIX_TX_LINK + Character.toString((int)Math.log10(txIndex + 1) + 1) + "" + ( txIndex + 1) + KEY_SEPARATOR + txHash + KEY_SEPARATOR;
+    }
     default String keyForBlockDir(String blockHash)                 { return blockHash;}
-
+    default String keyForOrphanBlockHash(String blockHash)          { return KEY_PREFFIX_ORPHAN_HASH + blockHash + KEY_SEPARATOR;}
     default String keyForBlockMetadata(String blockHash)            { return KEY_PREFFIX_BLOCK_META + blockHash + KEY_SEPARATOR + getMetadataClassForBlocks().getSimpleName();}
+    default String keyForTxMetadata(String txHash)                  { return KEY_PREFFIX_TX_META + txHash + KEY_SEPARATOR + getMetadataClassForTxs();}
 
     @Override
     default long getNumKeys(String preffix)                         { return numKeys(preffix.getBytes()); }
@@ -322,19 +334,24 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
         if (key == null || key.length == 0) return Optional.empty();
         Optional<String> result = Optional.empty();
         String keyStr = new String(key);
+
         if (keyStr.contains(KEY_PREFFIX_BLOCK))
             result = Optional.of(keyStr.substring(keyStr.indexOf(KEY_PREFFIX_BLOCK) + KEY_PREFFIX_BLOCK.length(),
                     keyStr.lastIndexOf(KEY_SEPARATOR)));
-        if (keyStr.contains(KEY_PREFFIX_BLOCK_PROP)) {
+        else if (keyStr.contains(KEY_PREFFIX_BLOCK_PROP)) {
             String subKey = keyStr.substring(keyStr.indexOf(KEY_PREFFIX_BLOCK_PROP) + KEY_PREFFIX_BLOCK_PROP.length());
             result = Optional.of(subKey.substring(0, subKey.indexOf(KEY_SEPARATOR)));
         }
-
-        if (keyStr.contains(KEY_PREFFIX_TX_BLOCK)) {
+        else if (keyStr.contains(KEY_PREFFIX_TX_BLOCK)) {
             String keyStrAfterSeparator = keyStr.substring(keyStr.indexOf(KEY_PREFFIX_TX_BLOCK) + KEY_PREFFIX_TX_BLOCK.length());
             result = Optional.of(keyStrAfterSeparator.substring(keyStrAfterSeparator.indexOf(KEY_SEPARATOR) + KEY_SEPARATOR.length(),
                     keyStrAfterSeparator.lastIndexOf(KEY_SEPARATOR)));
         }
+        else if(keyStr.contains(KEY_PREFFIX_ORPHAN_HASH)) {
+            result = Optional.of(keyStr.substring(keyStr.indexOf(KEY_PREFFIX_ORPHAN_HASH) + KEY_PREFFIX_ORPHAN_HASH.length(),
+                    keyStr.lastIndexOf(KEY_SEPARATOR)));
+        }
+
         return result;
     }
 
@@ -453,6 +470,9 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
         remove(tr, fullKeyForBlockNumTxs(tr, blockHash));
         remove(tr, fullKeyForBlockTxIndex(tr, blockHash));
 
+        //If the block is an orphan, remove it
+        _removeOrphanBlockHash(tr, blockHash);
+
         // IF a metadata class has been defined, we remove it too
         if (getMetadataClassForBlocks() != null) {
             _removeBlockMetadata(tr, blockHash);
@@ -465,6 +485,17 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
             _unlinkBlock(h);
         });
     }
+
+    default void _saveOrphanBlockHash(T tr, String blockHash) {
+        byte[] key = fullKeyForOrphanBlockHash(tr, blockHash);
+        save(tr, key, new byte[0]);
+        getLogger().trace("Orphan Block Saved/Updated [block: " + blockHash + "]");
+    }
+
+    default void _removeOrphanBlockHash(T tr, String blockHash) {
+        remove(tr, fullKeyForOrphanBlockHash(tr, blockHash));
+    }
+
 
     default byte[] _getBlockBytes(T tr, String blockHash) {
         return read(tr, fullKeyForBlock(tr, blockHash));
@@ -493,6 +524,21 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
         }
     }
 
+    private Metadata _getTxMetadata(T tr, String txHash) {
+        try {
+            Metadata result = null;
+            byte[] key = fullKeyForTxMetadata(tr, txHash);
+            byte[] value = read(tr, key);
+            if (value != null) {
+                result = (Metadata) getMetadataClassForTxs().getConstructor().newInstance();
+                result.load(value);
+            }
+            return result;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private void _saveBlockMetadata(T tr, String blockHash, Metadata metadata) {
         try {
             byte[] key = fullKeyForBlockMetadata(tr, blockHash);
@@ -503,6 +549,17 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
         }
     }
 
+    private void _saveTxMetadata(T tr, String txHash, Metadata metadata) {
+        try {
+            byte[] key = fullKeyForTxMetadata(tr, txHash);
+            byte[] value = metadata.serialize();
+            save(tr, key, value);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
     private void _removeBlockMetadata(T tr, String blockHash) {
         try {
             byte[] key = fullKeyForBlockMetadata(tr, blockHash);
@@ -511,6 +568,16 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
             throw new RuntimeException(e);
         }
     }
+
+    private void _removeTxMetadata(T tr, String txHash) {
+        try {
+            byte[] key = fullKeyForTxMetadata(tr, txHash);
+            remove(tr, key);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     default void _saveTx(T tr, Tx tx) {
         // We store the Whole TX Object
@@ -533,8 +600,14 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     default void _removeTx(T tr, String txHash) {
         remove(tr, fullKeyForTx(tr, txHash));
         List<String> blockHashes =_getBlockHashesLinkedToTx(tr, txHash);
+
         for (String blockHash : blockHashes)
             remove(tr, fullKeyForTxBlock(tr, txHash, blockHash));
+
+        // IF a metadata class has been defined, we remove it too
+        if (getMetadataClassForBlocks() != null) {
+            _removeTxMetadata(tr, txHash);
+        }
     }
 
     default void _removeTxs(T tr, List<String> txHashes) {
@@ -830,6 +903,22 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     }
 
     @Override
+    default Optional<Metadata> getTxMetadata(Sha256Hash txHash) {
+        AtomicReference<Metadata> result = new AtomicReference<>();
+        try {
+            getLock().readLock().lock();
+            T tr = createTransaction();
+            executeInTransaction(tr, () -> {
+                Metadata metadata = _getTxMetadata(tr, txHash.toString());
+                result.set(metadata);
+            });
+        } finally {
+            getLock().readLock().unlock();
+        }
+        return Optional.ofNullable(result.get());
+    }
+
+    @Override
     default void saveBlockMetadata(Sha256Hash blockHash, Metadata metadata) {
         try {
             getLock().writeLock().lock();
@@ -843,12 +932,36 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     }
 
     @Override
+    default void saveTxMetadata(Sha256Hash txHash, Metadata metadata) {
+        try {
+            getLock().writeLock().lock();
+            T tr = createTransaction();
+            executeInTransaction(tr, () -> _saveTxMetadata(tr, txHash.toString(), metadata));
+        } finally {
+            getLock().writeLock().unlock();
+        }
+    }
+
+    @Override
     default void removeBlockMetadata(Sha256Hash blockHash) {
         try {
             getLock().writeLock().lock();
             T tr = createTransaction();
             executeInTransaction(tr, () -> {
                 _removeBlockMetadata(tr, blockHash.toString());
+            });
+        } finally {
+            getLock().writeLock().unlock();
+        }
+    }
+
+    @Override
+    default void removeTxMetadata(Sha256Hash txHash) {
+        try {
+            getLock().writeLock().lock();
+            T tr = createTransaction();
+            executeInTransaction(tr, () -> {
+                _removeTxMetadata(tr, txHash.toString());
             });
         } finally {
             getLock().writeLock().unlock();
@@ -1176,7 +1289,6 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
     default Iterable<Sha256Hash> getBlockTxs(Sha256Hash blockHash) {
         try {
             getLock().readLock().lock();
-            if (!containsBlock(blockHash)) return null; // Check
 
             byte[] keyPreffix = fullKey(fullKeyForBlockDir(blockHash.toString()), KEY_PREFFIX_TX_LINK);
             Function<E, Sha256Hash> buildKeyFunction = e -> {
@@ -1250,7 +1362,6 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
         try {
             getLock().writeLock().lock();
 
-            if (containsBlock(blockHash)) {
                 // We remove all The Txs from this Block. the problem is that we need to trigger an TXS_REMOVED Event but the
                 // number of Txs must be huge, so we cannot just trigger a single event with a huge list inside. Instead, we
                 // are keeping track of the number of Txs we remove, and we only trigger an event when we reach the Threshold.
@@ -1268,7 +1379,7 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
 
                 // In case there are still Tx that have not been published in an Event...
                 if (batchTxsRemoved.size() > 0) _triggerTxsRemovedEvent(batchTxsRemoved);
-            }
+          //  }
 
         } finally {
             getLock().writeLock().unlock();

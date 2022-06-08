@@ -1,15 +1,11 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
-import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
-import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.AbstractBlock;
-import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly;
-import io.bitcoinsv.bitcoinjsv.bitcoin.bean.base.HeaderBean;
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
+import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly;
+
+import java.io.Serializable;
 
 import static java.util.Optional.ofNullable;
 
@@ -20,37 +16,18 @@ import static java.util.Optional.ofNullable;
  * The Block Header represents the Header of information wihtint a Block.
  * It's also used in the HEADERS and GETHEADERS packages.
  */
-public final class BlockHeaderMsg extends Message {
+public final class BlockHeaderMsg extends BodyMessage implements Serializable {
 
     public static final String MESSAGE_TYPE = "BlockHeader";
 
-    public static final int TIMESTAMP_LENGTH = 4;
-
-    public static final int NONCE_LENGTH = 4;
-
-    // IMPORTANT: This field (hash) is NOT SERIALIZED.
-    // The hash of the block is NOT part of the BLOCK Message itself: its external to it.
-    // In order to calculate a Block Hash we need to serialize the Block first, so instead of doing
-    // that avery time we need a Hash, we store the Hash here, at the moment when we deserialize the
-    // Block for the first time, so its available for further use.
-    protected final HashMsg hash;
-
-    protected final long version;
-    protected final HashMsg prevBlockHash;
-    protected final HashMsg merkleRoot;
-    protected final long creationTimestamp;
-    protected final long difficultyTarget;
-    protected final long nonce;
+    private BlockHeaderSimpleMsg blockHeaderSimpleMsg;
     private final VarIntMsg transactionCount;
 
-    public BlockHeaderMsg(HashMsg hash, long version, HashMsg prevBlockHash, HashMsg merkleRoot, long creationTimestamp, long difficultyTarget, long nonce, VarIntMsg transactionCount) {
-        this.hash = hash;
-        this.version = version;
-        this.prevBlockHash = prevBlockHash;
-        this.merkleRoot = merkleRoot;
-        this.creationTimestamp = creationTimestamp;
-        this.difficultyTarget = difficultyTarget;
-        this.nonce = nonce;
+    public BlockHeaderMsg(Sha256Hash hash, long version, HashMsg prevBlockHash, HashMsg merkleRoot,
+                          long creationTimestamp, long difficultyTarget, long nonce, VarIntMsg transactionCount,
+                          byte[] extraBytes, long checksum) {
+        super(extraBytes, checksum);
+        this.blockHeaderSimpleMsg = new BlockHeaderSimpleMsg(hash, version, prevBlockHash, merkleRoot, creationTimestamp, difficultyTarget, nonce);
         this.transactionCount = ofNullable(transactionCount).orElse(VarIntMsg.builder().value(0).build());
         init();
     }
@@ -66,8 +43,7 @@ public final class BlockHeaderMsg extends Message {
 
     @Override
     protected long calculateLength() {
-        return 4 + prevBlockHash.getLengthInBytes() + merkleRoot.getLengthInBytes() +
-            TIMESTAMP_LENGTH + TIMESTAMP_LENGTH + NONCE_LENGTH + transactionCount.calculateLength();
+        return this.blockHeaderSimpleMsg.calculateLength() + transactionCount.calculateLength();
     }
 
     @Override
@@ -75,90 +51,63 @@ public final class BlockHeaderMsg extends Message {
     }
 
     /**
-     * Returns a Domain Class. It alos reverses the PrevBlockHash and merkle tree into human-readable format
+     * Returns a Domain Class. It also reverses the PrevBlockHash and merkle tree into human-readable format
      */
     public HeaderReadOnly toBean() {
-        HeaderBean result = new HeaderBean((AbstractBlock) null);
-
-        result.setTime(this.creationTimestamp);
-        result.setDifficultyTarget(this.difficultyTarget);
-        result.setNonce(this.nonce);
-        result.setPrevBlockHash(Sha256Hash.wrapReversed(this.prevBlockHash.getHashBytes()));
-        result.setVersion(this.version);
-        result.setMerkleRoot(Sha256Hash.wrapReversed(this.merkleRoot.getHashBytes()));
-        //result.setHash(Sha256Hash.wrapReversed(this.hash.getHashBytes()));
-
-        return result;
+        return blockHeaderSimpleMsg.toBean();
     }
 
     @Override
     public String toString() {
-        return "BlockHeaderMsg(hash=" + this.getHash() + ", version=" + this.getVersion() + ", prevBlockHash=" + this.getPrevBlockHash() + ", merkleRoot=" + this.getMerkleRoot() + ", creationTimestamp=" + this.getCreationTimestamp() + ", difficultyTarget=" + this.getDifficultyTarget() + ", nonce=" + this.getNonce() + ", transactionCount=" + this.getTransactionCount() + ")";
+        return "BlockHeaderMsg(hash=" + this.getHash()
+                + ", version=" + blockHeaderSimpleMsg.getVersion()
+                + ", prevBlockHash=" + blockHeaderSimpleMsg.getPrevBlockHash()
+                + ", merkleRoot=" + blockHeaderSimpleMsg.getMerkleRoot()
+                + ", creationTimestamp=" + blockHeaderSimpleMsg.getCreationTimestamp()
+                + ", difficultyTarget=" + blockHeaderSimpleMsg.getDifficultyTarget()
+                + ", nonce=" + blockHeaderSimpleMsg.getNonce()
+                + ", transactionCount=" + transactionCount + ")";
     }
 
-    public HashMsg getHash() {
-        return hash;
-    }
-
-    public long getVersion() {
-        return version;
-    }
-
-    public HashMsg getPrevBlockHash() {
-        return prevBlockHash;
-    }
-
-    public HashMsg getMerkleRoot() {
-        return merkleRoot;
-    }
-
-    public long getCreationTimestamp() {
-        return creationTimestamp;
-    }
-
-    public long getDifficultyTarget() {
-        return difficultyTarget;
-    }
-
-    public long getNonce() {
-        return nonce;
-    }
-
-    public VarIntMsg getTransactionCount() {
-        return transactionCount;
-    }
+    public Sha256Hash getHash()                         { return blockHeaderSimpleMsg.getHash(); }
+    public long getVersion()                            { return blockHeaderSimpleMsg.getVersion();}
+    public HashMsg getPrevBlockHash()                   { return blockHeaderSimpleMsg.getPrevBlockHash();}
+    public HashMsg getMerkleRoot()                      { return blockHeaderSimpleMsg.getMerkleRoot();}
+    public long getCreationTimestamp()                  { return blockHeaderSimpleMsg.getCreationTimestamp();}
+    public long getDifficultyTarget()                   { return blockHeaderSimpleMsg.getDifficultyTarget(); }
+    public long getNonce()                              { return blockHeaderSimpleMsg.getNonce(); }
+    public BlockHeaderSimpleMsg getBlockHeaderSimple()  { return this.blockHeaderSimpleMsg; }
+    public VarIntMsg getTransactionCount()              { return transactionCount; }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-
-        if (obj == this) {
-            return true;
-        }
-
-        if (obj.getClass() != getClass()) {
-            return false;
-        }
-
+        if (!super.equals(obj)) { return false; }
         BlockHeaderMsg other = (BlockHeaderMsg) obj;
-
-        return Objects.equal(this.hash, other.hash)
-            && Objects.equal(this.version, other.version)
-            && Objects.equal(this.prevBlockHash, other.prevBlockHash)
-            && Objects.equal(this.merkleRoot, other.merkleRoot)
-            && Objects.equal(this.creationTimestamp, other.creationTimestamp)
-            && Objects.equal(this.difficultyTarget, other.difficultyTarget)
-            && Objects.equal(this.nonce, other.nonce)
-            && Objects.equal(this.transactionCount, other.transactionCount);
+        return Objects.equal(this.blockHeaderSimpleMsg, other.blockHeaderSimpleMsg)
+                && Objects.equal(this.transactionCount, other.transactionCount);
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), this.blockHeaderSimpleMsg, this.transactionCount);
+    }
+
+    public BlockHeaderMsgBuilder toBuilder() {
+        return new BlockHeaderMsgBuilder(super.extraBytes, super.checksum)
+                    .hash(this.blockHeaderSimpleMsg.getHash())
+                    .version(this.blockHeaderSimpleMsg.getVersion())
+                    .prevBlockHash(this.blockHeaderSimpleMsg.getPrevBlockHash())
+                    .merkleRoot(this.blockHeaderSimpleMsg.merkleRoot)
+                    .creationTimestamp(this.blockHeaderSimpleMsg.getCreationTimestamp())
+                    .difficultyTarget(this.blockHeaderSimpleMsg.getDifficultyTarget())
+                    .nonce(this.blockHeaderSimpleMsg.getNonce())
+                    .transactionCount(this.transactionCount);
+    }
     /**
      * Builder
      */
-    public static class BlockHeaderMsgBuilder {
-        protected HashMsg hash;
+    public static class BlockHeaderMsgBuilder extends BodyMessageBuilder {
+        protected Sha256Hash hash;
         protected long version;
         protected HashMsg prevBlockHash;
         protected HashMsg merkleRoot;
@@ -167,7 +116,10 @@ public final class BlockHeaderMsg extends Message {
         protected long nonce;
         private VarIntMsg transactionCount;
 
-        public BlockHeaderMsgBuilder hash(HashMsg hash) {
+        public BlockHeaderMsgBuilder() {}
+        public BlockHeaderMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
+
+        public BlockHeaderMsgBuilder hash(Sha256Hash hash) {
             this.hash = hash;
             return this;
         }
@@ -212,7 +164,7 @@ public final class BlockHeaderMsg extends Message {
         }
 
         public BlockHeaderMsg build() {
-            return new BlockHeaderMsg(hash, version, prevBlockHash, merkleRoot, creationTimestamp, difficultyTarget, nonce, transactionCount);
+            return new BlockHeaderMsg(hash, version, prevBlockHash, merkleRoot, creationTimestamp, difficultyTarget, nonce, transactionCount, super.extraBytes, super.checksum);
         }
     }
 }

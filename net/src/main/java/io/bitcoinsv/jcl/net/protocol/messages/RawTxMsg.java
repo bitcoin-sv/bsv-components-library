@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.messages;
 
 
@@ -9,6 +5,10 @@ import com.google.common.base.Objects;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
+import io.bitcoinsv.bitcoinjsv.core.Utils;
+
+import java.io.Serializable;
+import java.util.Arrays;
 
 
 /**
@@ -21,22 +21,23 @@ import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
  * Structure of the Message:
  * - hash: Hash of the Tx
  */
-public class RawTxMsg extends RawMsg {
+public final class RawTxMsg extends RawMsg implements Serializable {
 
     public static final String MESSAGE_TYPE = "tx";
+
     private static HashFunction hashFunction = Hashing.sha256();
 
     // Tx Hash in readable format (reversed)
     private Sha256Hash hash;
 
-    public RawTxMsg(byte[] content, Sha256Hash hash) {
-        super(content);
+    public RawTxMsg(byte[] content, Sha256Hash hash, byte[] extraBytes, long checksum) {
+        super(content, extraBytes, checksum);
         this.hash = hash;
         init();
     }
 
-    public RawTxMsg(byte[] content) {
-        this(content, null);
+    public RawTxMsg(byte[] content, long checksum) {
+        this(content, null, Utils.EMPTY_BYTE_ARRAY,  checksum);
     }
 
     // Calculate the Hash...
@@ -64,20 +65,49 @@ public class RawTxMsg extends RawMsg {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(super.content);
+        return Objects.hashCode(super.hashCode());
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
+        if (!super.equals(obj))           { return false; }
         if (obj.getClass() != getClass()) { return false; }
-        RawTxMsg other = (RawTxMsg) obj;
-        return Objects.equal(super.content, super.content);
+        return true;
     }
 
     @Override
     public String toString() {
         return "RawTxMsg(hash=" + this.hash + ")";
+    }
+
+    @Override
+    public RawTxMsgBuilder toBuilder() {
+        return new RawTxMsgBuilder(super.extraBytes, super.checksum)
+                    .content(this.content)
+                    .hash(this.hash);
+    }
+
+    /**
+     * Builder
+     */
+    public static class RawTxMsgBuilder extends BodyMessageBuilder {
+        private byte[] content;
+        private Sha256Hash hash;
+
+        public RawTxMsgBuilder() {}
+        public RawTxMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
+        public RawTxMsgBuilder content(byte[] content) {
+            this.content = content;
+            return this;
+        }
+
+        public RawTxMsgBuilder hash(Sha256Hash hash) {
+            this.hash = hash;
+            return this;
+        }
+
+        public RawMsg build() {
+            return new RawTxMsg(content, hash, super.extraBytes, super.checksum);
+        }
     }
 }

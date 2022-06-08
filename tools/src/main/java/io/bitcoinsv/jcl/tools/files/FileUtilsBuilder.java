@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.tools.files;
 
 
@@ -36,7 +32,8 @@ public class FileUtilsBuilder {
     // Define the Type of Location used for the Root folder
     enum RootFolderLocation {
         TEMPORARY_FOLDER,
-        CLASSPATH_FOLDER;
+        CLASSPATH_FOLDER,
+        CUSTOM_FOLDER;
     }
     private RootFolderLocation folderLocationType = RootFolderLocation.TEMPORARY_FOLDER;
 
@@ -74,6 +71,13 @@ public class FileUtilsBuilder {
     public FileUtilsBuilder useTempFolder(String rootFolder) {
         this.rootFolder = rootFolder;
         return useTempFolder();
+    }
+
+    /** It will use a custom folder, pointing at the folder given */
+    public FileUtilsBuilder useCustomFolder(String rootFolder) {
+        this.rootFolder = rootFolder;
+        this.folderLocationType = RootFolderLocation.CUSTOM_FOLDER;
+        return this;
     }
 
     /** It will use a folder located in the App classpath */
@@ -178,7 +182,11 @@ public class FileUtilsBuilder {
             // operations are not available, so here we are gonna use Apache Commons IO:
 
             Path rootFolderPath = null;
-            if (folderLocationType == RootFolderLocation.TEMPORARY_FOLDER) {
+            if (folderLocationType == RootFolderLocation.CUSTOM_FOLDER) {
+                rootFolderPath = Path.of(this.rootFolder);
+                rootFolderPath = adjustPathLeadingSlash(rootFolderPath);
+                log.debug("work dir [custom folder]: " + rootFolderPath);
+            } else if (folderLocationType == RootFolderLocation.TEMPORARY_FOLDER) {
                 rootFolderPath = Path.of(System.getProperty("java.io.tmpdir"), this.rootFolder);
                 rootFolderPath = adjustPathLeadingSlash(rootFolderPath);
                 log.debug("work dir [temporary folder]: " + rootFolderPath);
@@ -192,8 +200,12 @@ public class FileUtilsBuilder {
                     log.debug("work dir [classpath folder]: " + rootFolderPath);
             }
 
-            // If we have specified Temporary folder, we make sure that folder exists
-            if (folderLocationType == RootFolderLocation.TEMPORARY_FOLDER) Files.createDirectories(rootFolderPath);
+            // If we have specified Temporary or custom folder, we make sure that folder exists
+            if (    folderLocationType == RootFolderLocation.TEMPORARY_FOLDER ||
+                    folderLocationType == RootFolderLocation.CUSTOM_FOLDER )
+            {
+                Files.createDirectories(rootFolderPath);
+            }
 
             if (copyFromClasspath) {
                 Path classpathFolderPath = getPathFromClasspathFolder(classLoader, rootFolder);

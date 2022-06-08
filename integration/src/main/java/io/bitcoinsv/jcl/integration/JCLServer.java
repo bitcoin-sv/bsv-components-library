@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.integration;
 
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolBasicConfig;
@@ -11,8 +7,10 @@ import io.bitcoinsv.jcl.net.protocol.events.control.PeerHandshakedDisconnectedEv
 import io.bitcoinsv.jcl.net.protocol.events.control.PeerHandshakedEvent;
 import io.bitcoinsv.jcl.net.protocol.events.data.InvMsgReceivedEvent;
 import io.bitcoinsv.jcl.net.protocol.events.data.RawTxMsgReceivedEvent;
+import io.bitcoinsv.jcl.net.protocol.events.data.RawTxsBatchMsgReceivedEvent;
 import io.bitcoinsv.jcl.net.protocol.handlers.block.BlockDownloaderHandler;
 import io.bitcoinsv.jcl.net.protocol.handlers.handshake.HandshakeHandlerConfig;
+import io.bitcoinsv.jcl.net.protocol.handlers.message.MessageBatchConfig;
 import io.bitcoinsv.jcl.net.protocol.handlers.message.MessageHandlerConfig;
 import io.bitcoinsv.jcl.net.protocol.handlers.pingPong.PingPongHandler;
 import io.bitcoinsv.jcl.net.protocol.messages.GetdataMsg;
@@ -23,6 +21,8 @@ import io.bitcoinsv.jcl.net.protocol.wrapper.P2P;
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2PBuilder;
 import io.bitcoinsv.jcl.tools.config.RuntimeConfigImpl;
 import io.bitcoinsv.jcl.tools.config.provided.RuntimeConfigDefault;
+import io.bitcoinsv.jcl.tools.events.EventBus;
+import io.bitcoinsv.jcl.tools.events.EventStreamer;
 import io.bitcoinsv.jcl.tools.thread.ThreadUtils;
 import io.bitcoinsv.bitcoinjsv.core.Utils;
 import io.bitcoinsv.bitcoinjsv.params.Net;
@@ -61,13 +61,23 @@ public class JCLServer {
         Duration timeLimit;
         Integer maxThreads;
         boolean useCachedThreadPool;
+        boolean useTxsBatch;
+        int txsBatchSize;
+        boolean verifyChecksum = true; // default
 
         public JCLServerConfig(Net net, int minPeers, int maxPeers, boolean pingEnabled) {
             this.net = net;
             this.minPeers = minPeers;
             this.maxPeers = maxPeers;
             this.pingEnabled = pingEnabled;
-            this.timeLimit = timeLimit;
+        }
+
+
+        public void log() {
+            log.info("JCL Server :: Config > useCachedThreadPool: " + useCachedThreadPool);
+            log.info("JCL Server :: Config > useTxsBatch: " + useTxsBatch);
+            log.info("JCL Server :: Config > txsBatchSize: " + txsBatchSize);
+            log.info("JCL Server :: Config > verifyChecksum: " + verifyChecksum);
         }
     }
 
@@ -163,10 +173,29 @@ public class JCLServer {
                 .relayTxs(true)
                 .build();
 
+        // We configure the Serialization:
+        // - We enable RAW Txs
         MessageHandlerConfig messageConfig = protocolConfig.getMessageConfig().toBuilder()
                 .rawTxsEnabled(true) // IMPORTANT: It affects both Tx and Blocks
                 .build();
+        // - We enable (depending on parameters) the Batch of Txs...
+        if (config.useTxsBatch) {
+            MessageBatchConfig batchConfig = new MessageBatchConfig.MessageBatchBuilder()
+                    .maxMsgsInBatch(config.txsBatchSize)
+                    .maxIntervalBetweenBatches(Duration.ofMillis(500))
+                    .maxBatchSizeInBytes(10_000_000)
+                    .build();
+            messageConfig = messageConfig.toBuilder()
+                    .setRawTxsBatchConfig(batchConfig)
+                    .build();
+        }
 
+        // If the checksum is enabled in the config, we enable it in JCL
+        if (config.verifyChecksum) {
+            messageConfig = messageConfig.toBuilder()
+                    .verifyChecksum(true)
+                    .build();
+        }
         // We build the P2P Service
         P2PBuilder p2pBuilder = new P2PBuilder("JCLServer")
                 .config(runtimeConfig)
@@ -188,12 +217,14 @@ public class JCLServer {
         p2p.EVENTS.PEERS.HANDSHAKED_DISCONNECTED.forEach(this::onPeerDisconnected);
         p2p.EVENTS.MSGS.INV.forEach(this::processINV);
         p2p.EVENTS.MSGS.TX_RAW.forEach(this::processRawTX);
+        p2p.EVENTS.MSGS.TX_RAW_BATCH.forEach(this::processRawTxsBatch);
 
     }
 
     public void start() {
         p2p.startServer();
-        log.info("JCL Server Started.");
+        log.info("JCL Server :: Server Started.");
+        config.log();
         executor.scheduleAtFixedRate(this::log, 0, 1, TimeUnit.SECONDS);
     }
 
@@ -214,12 +245,12 @@ public class JCLServer {
 
     private void onPeerHandshaked(PeerHandshakedEvent event) {
         numPeersHandshaked.incrementAndGet();
-        log.info("JCL Server :: Peer Connected: " + event.getPeerAddress() + " : " + event.getVersionMsg().getUser_agent().getStr());
+        //log.info("JCL Server :: Peer Connected: " + event.getPeerAddress() + " : " + event.getVersionMsg().getUser_agent().getStr());
     }
 
     private void onPeerDisconnected(PeerHandshakedDisconnectedEvent event) {
         numPeersHandshaked.decrementAndGet();
-        log.info("JCL Server :: Peer Disconnected: " + event.getPeerAddress() + " : " + event.getVersionMsg().getUser_agent().getStr());
+        //log.info("JCL Server :: Peer Disconnected: " + event.getPeerAddress() + " : " + event.getVersionMsg().getUser_agent().getStr());
     }
 
     private void processINV(InvMsgReceivedEvent event) {
@@ -245,6 +276,17 @@ public class JCLServer {
         sizeTxsLog.addAndGet(event.getBtcMsg().getBody().getContent().length);
     }
 
+    private void processRawTxsBatch(RawTxsBatchMsgReceivedEvent event) {
+        long txsSize = event.getEvents().stream().mapToLong(e -> e.getBtcMsg().getBody().getLengthInBytes()).sum();
+        if (firstTxInstant == null)
+            firstTxInstant = Instant.now();
+        lastTxInstant = Instant.now();
+        numTxs.addAndGet(event.getEvents().size());
+        sizeTxs.addAndGet(txsSize);
+        numTxsLog.addAndGet(event.getEvents().size());
+        sizeTxsLog.addAndGet(txsSize);
+    }
+
     private static String getParamValue(String paramName, String ...params) {
         String result = null;
         for (String param : params) {
@@ -256,7 +298,8 @@ public class JCLServer {
     }
 
     public static JCLServerConfig getConfigFromArguments(String ...args) {
-        if (args.length < 1) { return null; }
+        // If there are no arguments, we use STN as default:
+        if (args.length < 1) { return CONFIGS.get(Net.STN); }
 
         // We get the 'Net' parameter:
         String netValue = getParamValue("net", args);
@@ -275,18 +318,37 @@ public class JCLServer {
         String useCachedThreadPoolStr = getParamValue("useCachedPool", args);
         boolean useCachedThreadPool = (useCachedThreadPoolStr != null) ? Boolean.valueOf(useCachedThreadPoolStr) : false;
 
+        // We get the useTxsBatch' parameter:
+        String useTxsBatchStr = getParamValue("useTxsBatch", args);
+        boolean useTxsBatch = (useTxsBatchStr != null) ? Boolean.valueOf(useTxsBatchStr) : false;
+
+        // We get the 'txsBatchSize' parameter:
+        String txsBatchSizeStr = getParamValue("txsBatchSize", args);
+        int txsBatchSize = (txsBatchSizeStr != null) ? Integer.parseInt(txsBatchSizeStr) : 100;
+
+        // We get the "calculateChecksum' parameter:
+        String verifyChecksumStr = getParamValue("verifyChecksum", args);
+        boolean verifyChecksum = (verifyChecksumStr != null) ? Boolean.valueOf(verifyChecksumStr) : true;
+
         JCLServerConfig result = CONFIGS.get(net);
         result.timeLimit = timeLimit;
         result.maxThreads = maxThreads;
         result.useCachedThreadPool = useCachedThreadPool;
+        result.useTxsBatch = useTxsBatch;
+        result.txsBatchSize = txsBatchSize;
+        result.verifyChecksum = verifyChecksum;
         return result;
     }
 
     public static void printHelp() {
-        System.out.println("\n JCL Server Usage: java -jar jclServer.jar [net=XXX] (timeLimit=XXX) (maxThreads=XXX)");
-        System.out.println(" - [net]       : Mandatory : Possible Values: mainnet, stn, regtest");
-        System.out.println(" - (timeLimit) : Optional  : Time limit in seconds After that the Server will shutdown.");
-        System.out.println(" - (maxThreads): Optional  : Max number of Threads used by JCL-Net");
+        System.out.println("\n JCL Server Usage: java -jar jclServer.jar [net=XXX] (timeLimit=XXX) (maxThreads=XXX) (useCachedPool=xxx) (useTxsBatch=xxx) (txsBatchSize=xxx)");
+        System.out.println(" - [net]            : Mandatory : Possible Values: mainnet, stn, regtest");
+        System.out.println(" - (timeLimit)      : Optional  : Time limit in seconds After that the Server will shutdown.");
+        System.out.println(" - (maxThreads)     : Optional  : Max number of Threads used by JCL-Net");
+        System.out.println(" - (useCachedPool)  : Optional  : (true/false) If True, the Threads used wil come from a CachedThreadPool");
+        System.out.println(" - (useTxsBatch)    : Optional  : (true/False)) If True Txs are returned in Batches (default size = 100)");
+        System.out.println(" - (txsBatchSize)   : Optional  : Number of Txs within each Batch returned (only if 'useTxsBatch=true')");
+        System.out.println(" - (verifyChecksum) : Optional  : (true/false). false by default)");
         System.out.println("Example:");
         System.out.println(" java -jar jclServer.jar net=mainnet timeLimit=300 maxThreads=500");
         System.out.println("\n\n");
@@ -298,19 +360,22 @@ public class JCLServer {
         log.info("\n--------------------------------------------------------------------------------------------------");
         if (firstTxInstant != null) {
             Duration effectiveTime = Duration.between(firstTxInstant, lastTxInstant);
+            log.info("JCL Server :: HACK > Events lost: " + EventBus.NUM_MSGS_LOST.get());
+            log.info("JCL Server :: HACK > EventStreamer lost: " + EventStreamer.NUM_MSGS_LOST.get());
             log.info("JCL Server :: Statistics > " + Duration.between(firstTxInstant, Instant.now()).toSeconds() + " secs of Test");
             log.info("JCL Server :: Statistics > " + effectiveTime.toSeconds() + " secs processing Txs");
             log.info("JCL Server :: Statistics > performance: " + (numTxs.get() / effectiveTime.toSeconds()) + " txs/sec");
         }
         log.info("JCL Server :: Statistics > " + numINVs.get() + " INVs processed");
         log.info("JCL Server :: Statistics > " + numTxs.get() + " Txs processed");
+        log.info("JCL Server :: Statistics > " + formatSize(sizeTxs.get()) + " (" + sizeTxs.get() + " bytes) of Txs processed");
 
         log.info("\n--------------------------------------------------------------------------------------------------");
         log.info(" JCL Event Bus Summary: \n" + p2p.getEventBus().getStatus());
     }
 
     private String formatSize(long numBytes) {
-        String result = (sizeTxsLog.get() < 1000)
+        String result = (numBytes < 1000)
                 ? numBytes + " bytes"
                 : (numBytes < 1_000_000)
                 ? (numBytes / 1000) + " KB"

@@ -1,12 +1,10 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.messages;
 
 
 import com.google.common.base.Objects;
-import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
+import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
+
+import java.io.Serializable;
 
 /**
  * @author i.fernandez@nchain.com
@@ -20,42 +18,29 @@ import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
  * Structure of the Message:
  * - fee: A long value indicating the Fee (in Satoshis / KB)
  */
-public class FeeFilterMsg extends Message {
+public final class FeeFilterMsg extends BodyMessage implements Serializable {
 
     public static final String MESSAGE_TYPE = "feefilter";
 
     private Long fee;
 
-    public FeeFilterMsg(Long fee) {
+    public FeeFilterMsg(Long fee,
+                        byte[] extraBytes, long checksum) {
+        super(extraBytes, checksum);
         this.fee = fee;
         init();
     }
 
-    @Override
-    public String getMessageType() { return MESSAGE_TYPE; }
+    public Long getFee()                          { return this.fee; }
 
-    @Override
-    protected long calculateLength() {
-        return 8;
-    }
-
-    @Override
-    protected void validateMessage() {}
-
-    public Long getFee() {
-        return this.fee;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(fee);
-    }
+    @Override public String getMessageType()      { return MESSAGE_TYPE; }
+    @Override protected long calculateLength()    { return 8; }
+    @Override protected void validateMessage()    {}
+    @Override public int hashCode()               { return Objects.hashCode(super.hashCode(), fee); }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         FeeFilterMsg other = (FeeFilterMsg) obj;
         return Objects.equal(this.fee, other.fee);
     }
@@ -69,14 +54,19 @@ public class FeeFilterMsg extends Message {
         return new FeeFilterMsgBuilder();
     }
 
+    @Override
+    public FeeFilterMsgBuilder toBuilder() {
+        return new FeeFilterMsgBuilder(super.extraBytes, super.checksum).fee(this.fee);
+    }
+
     /**
      * Builder
      */
-    public static class FeeFilterMsgBuilder {
+    public static class FeeFilterMsgBuilder extends BodyMessageBuilder {
         private Long fee;
 
-        FeeFilterMsgBuilder() {
-        }
+        FeeFilterMsgBuilder() {}
+        FeeFilterMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public FeeFilterMsg.FeeFilterMsgBuilder fee(Long fee) {
             this.fee = fee;
@@ -84,7 +74,7 @@ public class FeeFilterMsg extends Message {
         }
 
         public FeeFilterMsg build() {
-            return new FeeFilterMsg(fee);
+            return new FeeFilterMsg(fee, super.extraBytes, super.checksum);
         }
     }
 }

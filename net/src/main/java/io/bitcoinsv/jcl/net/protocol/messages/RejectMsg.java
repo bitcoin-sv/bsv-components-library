@@ -1,13 +1,12 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.messages;
 
 
 import com.google.common.base.Objects;
-import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
+import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
+
+
+import java.io.Serializable;
 
 /**
  * @author i.fernandez@nchain.com
@@ -33,7 +32,7 @@ import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
  *    with the TXID or block header hash of the object being rejected, so the field is 32 bytes.
  *
  */
-public class RejectMsg extends Message {
+public final class RejectMsg extends BodyMessage implements Serializable {
 
     /**
      * Reference of all the possible values for the MESSAGE field:
@@ -122,7 +121,14 @@ public class RejectMsg extends Message {
     private Sha256Hash dataHash;
 
 
-    protected RejectMsg(VarStrMsg message, RejectCode ccode, VarStrMsg reason ,Sha256Hash dataHash, byte[] data) {
+    protected RejectMsg(VarStrMsg message,
+                        RejectCode ccode,
+                        VarStrMsg reason ,
+                        Sha256Hash dataHash,
+                        byte[] data,
+                        byte[] extraBytes,
+                        long checksum) {
+        super(extraBytes, checksum);
         this.message = message;
         this.ccode = ccode;
         this.reason = reason;
@@ -132,7 +138,7 @@ public class RejectMsg extends Message {
     }
 
     @Override
-    public String getMessageType() { return MESSAGE_TYPE; }
+    public String getMessageType()  { return MESSAGE_TYPE; }
     public VarStrMsg getMessage()   { return this.message; }
     public RejectCode getCcode()    { return this.ccode; }
     public VarStrMsg getReason()    { return this.reason; }
@@ -154,14 +160,12 @@ public class RejectMsg extends Message {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(message, ccode, reason, data, data);
+        return Objects.hashCode(super.hashCode(), message, ccode, reason, data, data);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         RejectMsg other = (RejectMsg) obj;
         return Objects.equal(this.message, other.message)
                 && Objects.equal(this.ccode, other.ccode)
@@ -178,17 +182,28 @@ public class RejectMsg extends Message {
         return new RejectMsgBuilder();
     }
 
+    @Override
+    public RejectMsgBuilder toBuilder() {
+        return new RejectMsgBuilder(super.extraBytes, super.checksum)
+                    .message(this.message)
+                    .ccode(this.ccode)
+                    .reason(this.reason)
+                    .dataHash(this.dataHash)
+                    .data(this.data);
+    }
+
     /**
      * Builder
      */
-    public static class RejectMsgBuilder {
+    public static class RejectMsgBuilder extends BodyMessageBuilder{
         private VarStrMsg message;
         private RejectCode ccode;
         private VarStrMsg reason;
         private Sha256Hash dataHash;
         private byte[] data;
 
-        RejectMsgBuilder() { }
+        public RejectMsgBuilder() { }
+        public RejectMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public RejectMsg.RejectMsgBuilder message(VarStrMsg message) {
             this.message = message;
@@ -216,7 +231,7 @@ public class RejectMsg extends Message {
         }
 
         public RejectMsg build() {
-            return new RejectMsg(message, ccode, reason, dataHash, data);
+            return new RejectMsg(message, ccode, reason, dataHash, data, super.extraBytes, super.checksum);
         }
     }
 }

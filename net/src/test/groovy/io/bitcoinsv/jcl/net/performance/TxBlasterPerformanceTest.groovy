@@ -1,16 +1,7 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.performance
 
 import com.google.common.hash.HashFunction
 import com.google.common.hash.Hashing
-import io.bitcoinsv.jcl.tools.events.EventQueueProcessor
-import io.bitcoinsv.jcl.tools.thread.ThreadUtils
-
-import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
-import io.bitcoinsv.bitcoinjsv.core.Utils
 import io.bitcoinsv.jcl.net.network.PeerAddress
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolBasicConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
@@ -20,6 +11,7 @@ import io.bitcoinsv.jcl.net.protocol.events.data.TxMsgReceivedEvent
 import io.bitcoinsv.jcl.net.protocol.handlers.discovery.DiscoveryHandler
 import io.bitcoinsv.jcl.net.protocol.handlers.handshake.HandshakeHandlerConfig
 import io.bitcoinsv.jcl.net.protocol.handlers.message.MessageHandlerConfig
+import io.bitcoinsv.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerConfig
 import io.bitcoinsv.jcl.net.protocol.messages.HashMsg
 import io.bitcoinsv.jcl.net.protocol.messages.RawTxMsg
 import io.bitcoinsv.jcl.net.protocol.messages.TxInputMsg
@@ -28,9 +20,13 @@ import io.bitcoinsv.jcl.net.protocol.messages.TxOutPointMsg
 import io.bitcoinsv.jcl.net.protocol.messages.TxOutputMsg
 import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg
 import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsgBuilder
-import io.bitcoinsv.jcl.net.protocol.streams.deserializer.DeserializerConfig
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2P
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2PBuilder
+import io.bitcoinsv.jcl.tools.events.EventQueueProcessor
+import io.bitcoinsv.jcl.tools.thread.ThreadUtils
+
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
+import io.bitcoinsv.bitcoinjsv.core.Utils
 import spock.lang.Ignore
 import spock.lang.Specification
 

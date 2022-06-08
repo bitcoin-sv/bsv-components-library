@@ -1,11 +1,7 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.store.blockChainStore
 
 
-import io.bitcoinsv.jcl.store.common.TestingUtils
+import io.bitcoinsv.jcl.tools.common.TestingUtils
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
 
@@ -95,8 +91,9 @@ abstract class BlockChainStoreOrphanSpecBase extends BlockChainStoreSpecBase {
             }
 
         then:
-            orphanBlocks.size() == 2
+            orphanBlocks.size() == 3
             orphanBlocks.contains(block4.hash)
+            orphanBlocks.contains(block5.hash)
             orphanBlocks.contains(block7.hash)
 
             orphanBlocksAfterConnecting.size() == 0
@@ -135,7 +132,7 @@ abstract class BlockChainStoreOrphanSpecBase extends BlockChainStoreSpecBase {
             println("Content of DB Right BEFORE the Test:")
             db.printKeys()
 
-            // We define a chain of Blocks, and we addBytes Orphans at the end, with a delay between them, so the Automatic
+            // We define a chain of Blocks, and we add Orphans at the end, with a delay between them, so the Automatic
             // Orphan pruning process removes them at different times:
 
             // We save a chain of 3 Blocks:
@@ -223,7 +220,7 @@ abstract class BlockChainStoreOrphanSpecBase extends BlockChainStoreSpecBase {
             tipsBeforePrunning.size() == 1
             tipsBeforePrunning.contains(block2.hash)
 
-            orphansBeforePrunning.size() == 1
+            orphansBeforePrunning.size() == 2
             orphansBeforePrunning.contains(block4.hash)
 
             tipsAfterFirstPrunning.size() == 1
@@ -244,7 +241,7 @@ abstract class BlockChainStoreOrphanSpecBase extends BlockChainStoreSpecBase {
             db.printKeys()
             db.clear()
             db.stop()
-            println(" - Test Done.")
+            println(" - Cleanup...")
     }
 
 

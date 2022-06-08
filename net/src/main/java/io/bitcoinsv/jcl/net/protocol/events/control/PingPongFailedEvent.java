@@ -1,9 +1,6 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.events.control;
 
+import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.network.events.P2PEvent;
 
@@ -36,5 +33,18 @@ public final class PingPongFailedEvent extends P2PEvent {
     @Override
     public String toString() {
         return "PingPongFailedEvent(peerAddress=" + this.getPeerAddress() + ", reason=" + this.getReason() + ")";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false; }
+        PingPongFailedEvent other = (PingPongFailedEvent) obj;
+        return Objects.equal(this.peerAddress, other.peerAddress)
+                && Objects.equal(this.reason, other.reason);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), peerAddress, reason);
     }
 }

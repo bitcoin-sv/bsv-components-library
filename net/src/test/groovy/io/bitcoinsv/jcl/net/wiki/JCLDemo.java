@@ -1,13 +1,9 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.wiki;
 
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig;
 import io.bitcoinsv.jcl.net.protocol.config.provided.ProtocolBSVMainConfig;
 import io.bitcoinsv.jcl.net.protocol.handlers.message.MessageHandlerConfig;
-import io.bitcoinsv.jcl.net.protocol.streams.deserializer.DeserializerConfig;
+import io.bitcoinsv.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerConfig;
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2P;
 import org.junit.Ignore;
 import org.junit.Test;

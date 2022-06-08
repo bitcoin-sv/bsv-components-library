@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.unit.protocol.tools;
 
 
@@ -10,7 +6,6 @@ import io.bitcoinsv.jcl.net.network.streams.StreamDataEvent;
 import io.bitcoinsv.jcl.net.unit.network.streams.PeerStreamInOutSimulator;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayBuffer;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader;
-import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
 import java.util.concurrent.ExecutorService;
@@ -23,11 +18,10 @@ import java.util.concurrent.TimeUnit;
  * Distributed under the Open BSV software license, see the accompanying file LICENSE.
  * @date 2020-06-15 10:33
  *
- * An implementation of a InputStreamSource that also simulates ral nework activity by adding a Delay
+ * An implementation of a InputStreamSource that also simulates real network activity by adding a Delay
  * when sending bytes down the Stream
  */
 
-@Slf4j
 public class ByteReaderDelaySource extends PeerStreamInOutSimulator<ByteArrayReader> {
 
     // Speed

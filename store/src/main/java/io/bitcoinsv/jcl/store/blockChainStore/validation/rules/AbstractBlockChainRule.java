@@ -1,8 +1,5 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.store.blockChainStore.validation.rules;
+
 
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.extended.ChainInfo;
 

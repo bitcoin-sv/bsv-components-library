@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.tools.bytes;
 
 import io.bitcoinsv.bitcoinjsv.core.Utils;
@@ -30,12 +26,25 @@ public class ByteArrayWriter {
         this.buffer = new ByteArrayBuffer();
     }
 
+    public ByteArrayWriter(ByteArrayConfig byteArrayConfig) {
+        this.buffer = new ByteArrayBuffer(byteArrayConfig);
+    }
+
     public void write(byte data) {
         buffer.add(new byte[]{data});
     }
 
     public void write(byte[] data) {
         buffer.add(data);
+    }
+
+    public void writeUint16LE(int value){
+        byte[] out = new byte[2];
+
+        out[0] = (byte) (255L & value);
+        out[1] = (byte) (255L & value >> 8);
+
+        buffer.add(out);
     }
 
     public void writeUint32LE(long value) {

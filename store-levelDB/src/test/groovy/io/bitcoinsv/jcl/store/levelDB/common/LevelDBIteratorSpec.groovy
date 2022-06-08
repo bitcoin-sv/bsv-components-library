@@ -1,14 +1,12 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.store.levelDB.common
 
-import io.bitcoinsv.jcl.store.blockStore.BlockStore
-import io.bitcoinsv.jcl.store.blockStore.metadata.Metadata
+
 import io.bitcoinsv.jcl.store.common.IteratorSpecBase
 import io.bitcoinsv.jcl.store.levelDB.blockStore.BlockStoreLevelDB
 import io.bitcoinsv.jcl.store.levelDB.StoreFactory
+import io.bitcoinsv.jcl.store.blockStore.BlockStore
+import io.bitcoinsv.jcl.store.blockStore.metadata.Metadata
+
 import java.util.function.Function
 
 
@@ -19,7 +17,7 @@ import java.util.function.Function
 class LevelDBIteratorSpec extends IteratorSpecBase {
 
     @Override
-    BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents, Class<? extends Metadata> blockMetadataClass) {
+    BlockStore getInstance(String netId, boolean triggerBlockEvents, boolean triggerTxEvents, Class<? extends Metadata> blockMetadataClass, Class<? extends Metadata> txMetadataClass) {
         return StoreFactory.getInstance(netId, triggerBlockEvents, triggerTxEvents)
     }
 

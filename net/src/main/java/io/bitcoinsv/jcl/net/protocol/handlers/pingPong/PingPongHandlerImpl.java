@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.handlers.pingPong;
 
 
@@ -24,7 +20,7 @@ import io.bitcoinsv.jcl.net.tools.NonceUtils;
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig;
 import io.bitcoinsv.jcl.tools.events.EventQueueProcessor;
 import io.bitcoinsv.jcl.tools.handlers.HandlerImpl;
-import io.bitcoinsv.jcl.tools.log.LoggerUtil;
+import io.bitcoinsv.jcl.net.tools.LoggerUtil;
 import io.bitcoinsv.jcl.tools.thread.ThreadUtils;
 
 import java.time.Duration;
@@ -116,7 +112,7 @@ public class PingPongHandlerImpl extends HandlerImpl<PeerAddress, PingPongPeerIn
 
     // Event Handler
     public void onStart(NetStartEvent event) {
-        logger.debug(" Starting...");
+        logger.trace("Starting...");
         this.executor.submit(this::handlePingPongJob);
     }
 
@@ -124,7 +120,7 @@ public class PingPongHandlerImpl extends HandlerImpl<PeerAddress, PingPongPeerIn
     public void onStop(NetStopEvent event) {
         this.executor.shutdownNow();
         this.eventQueueProcessor.stop();
-        logger.debug("Stop.");
+        logger.trace("Stop.");
     }
 
     // Event Handler:
@@ -189,7 +185,7 @@ public class PingPongHandlerImpl extends HandlerImpl<PeerAddress, PingPongPeerIn
         }
 
         // If we reach this far, the Ping-Pong is CORRECT. We update the state and reset the Peer:
-        logger.debug(peerInfo.getPeerAddress(), " Pong Received within time limit.");
+        logger.debug(peerInfo.getPeerAddress(), "PONG Received within time limit.");
         updateState(1);
         peerInfo.reset();
     }

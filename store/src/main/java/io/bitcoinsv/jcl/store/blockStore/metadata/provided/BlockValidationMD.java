@@ -1,15 +1,9 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.store.blockStore.metadata.provided;
 
 import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.store.blockStore.metadata.Metadata;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter;
-
-import java.io.ByteArrayOutputStream;
 
 /**
  * @author i.fernandez@nchain.com
@@ -65,7 +59,6 @@ public class BlockValidationMD implements Metadata {
     @Override
     public byte[] serialize() {
         // We use the Bitcoin codification to serialize it
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ByteArrayWriter writer = new ByteArrayWriter();
         writer.writeUint64LE(numTxs);
         writer.writeBoolean(downloaded);
@@ -78,7 +71,6 @@ public class BlockValidationMD implements Metadata {
         if (data == null || data.length == 0) return;
         // We use the Bitcoin codification to deserialize it
         ByteArrayReader reader = new ByteArrayReader(data);
-        BlockValidationMD result = new BlockValidationMD();
         this.numTxs = reader.readInt64LE();
         this.downloaded = reader.readBoolean();
         this.validated = reader.readBoolean();

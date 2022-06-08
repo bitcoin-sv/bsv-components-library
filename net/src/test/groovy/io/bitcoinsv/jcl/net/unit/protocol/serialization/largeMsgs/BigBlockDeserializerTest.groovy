@@ -1,13 +1,5 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.unit.protocol.serialization.largeMsgs
 
-
-import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader
-import io.bitcoinsv.jcl.tools.bytes.ByteArrayReaderOptimized
-import io.bitcoinsv.bitcoinjsv.core.Utils
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import io.bitcoinsv.jcl.net.protocol.messages.PartialBlockHeaderMsg
@@ -15,6 +7,9 @@ import io.bitcoinsv.jcl.net.protocol.messages.PartialBlockTXsMsg
 import io.bitcoinsv.jcl.net.protocol.serialization.common.DeserializerContext
 import io.bitcoinsv.jcl.net.protocol.serialization.largeMsgs.BigBlockDeserializer
 import io.bitcoinsv.jcl.net.unit.protocol.tools.MsgTest
+import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader
+import io.bitcoinsv.jcl.tools.bytes.ByteArrayReaderOptimized
+import io.bitcoinsv.bitcoinjsv.core.Utils
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicBoolean
@@ -46,7 +41,8 @@ class BigBlockDeserializerTest extends Specification {
 
             ByteArrayReader reader = new ByteArrayReader(Utils.HEX.decode(BLOCK_HEX))
             ByteArrayReader optimizedReader = new ByteArrayReaderOptimized(reader)
-        BigBlockDeserializer bigBlockDeserializer = new BigBlockDeserializer()
+            BigBlockDeserializer bigBlockDeserializer = new BigBlockDeserializer()
+            bigBlockDeserializer.setPartialMsgSize(1_000_000) // 1MB
 
         DeserializerContext deserializedContext = DeserializerContext.builder()
                 .protocolBasicConfig(protocolConfig.getBasicConfig())
@@ -64,7 +60,8 @@ class BigBlockDeserializerTest extends Specification {
                 errorThrown.set(true)
                 println("ERROR Received: " + e.getException())
             })
-            bigBlockDeserializer.deserialize(deserializedContext, optimizedReader)
+
+            bigBlockDeserializer.deserializeBody(deserializedContext, null, optimizedReader)
             println("End of Test.")
 
         then:

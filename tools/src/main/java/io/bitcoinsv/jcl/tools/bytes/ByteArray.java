@@ -1,14 +1,10 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.tools.bytes;
 
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  *
- * An abstraction over a regular Byte Array but with limited functionality. It allows to "addBytes" data at
+ * An abstraction over a regular Byte Array but with limited functionality. It allows to "add" data at
  * the end (right), extract data from the beginning (left) and other utility functions.
  *
  * Different implementations may store the data differently.
@@ -21,7 +17,7 @@ public interface ByteArray {
     boolean isEmpty();
     void add(byte[] data);
     void add(byte[] data, int offset, int length);
-    byte[] get(int offset, int length);
+    byte[] get(long offset, int length);
     byte[] get(int length);
     byte[] get();
     byte[] extract(int length);

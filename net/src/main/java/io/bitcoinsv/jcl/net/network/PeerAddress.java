@@ -1,12 +1,9 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.network;
 
 
 import io.bitcoinsv.jcl.tools.files.CSVSerializable;
 
+import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -20,7 +17,7 @@ import java.util.StringTokenizer;
  * A class that wraps the info to locate a Peer in the Blockchain Network.
  * This class is immutable and safe for MultiThreading
  */
-public final class PeerAddress implements CSVSerializable {
+public final class PeerAddress implements CSVSerializable, Serializable {
 
     private String address;
     private InetAddress ip;

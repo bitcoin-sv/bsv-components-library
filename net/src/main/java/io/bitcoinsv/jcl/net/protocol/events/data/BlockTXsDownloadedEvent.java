@@ -1,9 +1,6 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.events.data;
 
+import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.protocol.events.control.BlockDownloadedEvent;
 import io.bitcoinsv.jcl.net.protocol.messages.PartialBlockTXsMsg;
@@ -24,5 +21,15 @@ import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg;
 public final class BlockTXsDownloadedEvent extends MsgReceivedEvent<PartialBlockTXsMsg> {
     public BlockTXsDownloadedEvent(PeerAddress peerAddress, BitcoinMsg<PartialBlockTXsMsg> blockTxsMsg) {
         super(peerAddress, blockTxsMsg);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode());
     }
 }

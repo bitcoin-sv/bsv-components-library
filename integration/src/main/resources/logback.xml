@@ -18,10 +18,17 @@
     </appender>
     -->
 
-    <logger name="io.bitcoinsv.jcl" additivity="false">
+    <logger name="io.bitcoinsv.jcl.integration" additivity="false">
         <level value="INFO" />
         <appender-ref ref="STDOUT" />
     </logger>
+
+    <!--
+    <logger name="io.bitcoinsv.jcl.net.protocol.handlers" additivity="false">
+        <level value="INFO" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+    -->
 
     <root level="error">
         <appender-ref ref="STDOUT" />

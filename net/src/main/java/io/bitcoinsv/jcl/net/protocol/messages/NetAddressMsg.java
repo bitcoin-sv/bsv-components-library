@@ -1,12 +1,10 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
+
+import java.io.Serializable;
 
 
 /**
@@ -34,7 +32,7 @@ import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
  *  - field: "getPort" (2 bytes) uint16_t
  *    getPort number, network byte order
  */
-public final class NetAddressMsg extends Message {
+public final class NetAddressMsg extends Message implements Serializable {
     // An NetAddressMsg has a length of 30 Bytes or 26 bytes, depending whether it has a timestamp or not.
     public static final int MESSAGE_LENGTH = 30;
     public static final int MESSAGE_LENGTH_NO_TIMESTAMP = 26;
@@ -75,14 +73,12 @@ public final class NetAddressMsg extends Message {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(timestamp, address, services);
+        return Objects.hashCode(super.hashCode(), timestamp, address, services);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         NetAddressMsg other = (NetAddressMsg) obj;
         return Objects.equal(this.timestamp, other.timestamp)
                 && Objects.equal(this.address, other.address)
@@ -93,15 +89,23 @@ public final class NetAddressMsg extends Message {
         return new NetAddressMsgBuilder();
     }
 
+
+    public NetAddressMsgBuilder toBuilder() {
+        return new NetAddressMsgBuilder()
+                        .timestamp(this.timestamp)
+                        .services(this.services)
+                        .address(this.address);
+    }
+
     /**
      * Builder
      */
-    public static class NetAddressMsgBuilder {
+    public static class NetAddressMsgBuilder  {
         private Long timestamp;
         private long services;
         private PeerAddress address;
 
-        NetAddressMsgBuilder() {}
+        public NetAddressMsgBuilder() {}
 
         public NetAddressMsg.NetAddressMsgBuilder timestamp(Long timestamp) {
             this.timestamp = timestamp;

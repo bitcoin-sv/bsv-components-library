@@ -1,12 +1,9 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.store.blockStore
 
-import io.bitcoinsv.jcl.store.blockStore.metadata.provided.BlockValidationMD
-import io.bitcoinsv.jcl.store.common.TestingUtils
+import io.bitcoinsv.jcl.store.blockStore.metadata.provided.TxValidationMD
+import io.bitcoinsv.jcl.tools.common.TestingUtils
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly
+import io.bitcoinsv.jcl.store.blockStore.metadata.provided.BlockValidationMD
 
 /**
  * Testing class for the Metadata that can be linked to one specific Block (Save, remove, etc)
@@ -21,7 +18,7 @@ abstract class BlockStoreBlockMetadataSpecBase extends BlockStoreSpecBase {
     def "testing saving Blocks and Metadata"() {
         given:
             println(" - Connecting to the DB...")
-            BlockStore db = getInstance("BSV-Main", true, false, BlockValidationMD.class)
+            BlockStore db = getInstance("BSV-Main", true, false, BlockValidationMD.class, TxValidationMD.class)
         when:
             db.start()
             // We define 2 Blocks:
@@ -64,7 +61,7 @@ abstract class BlockStoreBlockMetadataSpecBase extends BlockStoreSpecBase {
     def "testing removing Blocks and Metadata"() {
         given:
             println(" - Connecting to the DB...")
-            BlockStore db = getInstance("BSV-Main", true, false, BlockValidationMD.class)
+            BlockStore db = getInstance("BSV-Main", true, false, BlockValidationMD.class, TxValidationMD.class)
         when:
             db.start()
             // We define 2 Blocks:

@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.handlers.block;
 
 import com.google.common.base.Strings;
@@ -9,8 +5,8 @@ import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.protocol.messages.BlockHeaderMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.BlockMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.HeaderMsg;
-import io.bitcoinsv.jcl.net.protocol.streams.deserializer.DeserializerStream;
-import io.bitcoinsv.jcl.net.protocol.streams.deserializer.DeserializerStreamState;
+import io.bitcoinsv.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerStream;
+import io.bitcoinsv.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerStreamState;
 
 import java.text.DecimalFormat;
 import java.time.Duration;
@@ -216,7 +212,7 @@ public class BlockPeerInfo {
             DeserializerStreamState streamState = stream.getState();
             HeaderMsg currentHeaderMsg = streamState.getCurrentHeaderMsg();
             // We only do the update if the current Msg being downloaded by this Peer is a BLOCK
-            if (currentHeaderMsg != null && currentHeaderMsg.getCommand().equalsIgnoreCase(BlockMsg.MESSAGE_TYPE)) {
+            if (currentHeaderMsg != null && currentHeaderMsg.getMsgCommand().equalsIgnoreCase(BlockMsg.MESSAGE_TYPE)) {
 
                 // We set the Total Bytes. This is a bit tricky:
                 // When a Peer starts the downloading of a block, "bytesTotal" is reset to ZERO. then, and while
@@ -229,7 +225,7 @@ public class BlockPeerInfo {
 
                if (stream.getState().getProcessState() == DeserializerStreamState.ProcessingBytesState.SEEIKING_BODY ||
                     stream.getState().getProcessState() == DeserializerStreamState.ProcessingBytesState.DESERIALIZING_BODY) {
-                    currentBlockInfo.bytesTotal = currentHeaderMsg.getLength();
+                    currentBlockInfo.bytesTotal = currentHeaderMsg.getMsgLength();
                 }
 
                 // If the Deserializer stream is in CORRUPTED State (after throwing some error), we do nothing...
@@ -261,8 +257,8 @@ public class BlockPeerInfo {
         }
     }
 
-
-    // The following methods indicates if some thresholds have been broken...
+    // Indicates if this Peer has broken the IDLE time-limit, meaning he has NOT sent any bytes at all during
+    // that time:
     protected boolean isIdleTimeoutBroken(Duration timeout) {
         if (currentBlockInfo == null) return false;
         if (currentBlockInfo.lastBytesReceivedTimestamp == null) return false;
@@ -270,10 +266,32 @@ public class BlockPeerInfo {
                 Instant.now()).compareTo(timeout) > 0);
     }
 
+    // Indicates if this Peer is taking longer than we allow it to download a Block
     protected boolean isDownloadTimeoutBroken(Duration timeout) {
         if (currentBlockInfo == null) return false;
         return (Duration.between(currentBlockInfo.startTimestamp, Instant.now())
                 .compareTo(timeout) > 0);
+    }
+
+    // Indicates if this Peer is too slow. A Peer is considered "too slow" if:
+    // - It already downloaded a minimum number of bytes AND
+    // - Its downloading a Block AND
+    // - the avg Speed (bytes/sec) is lower than the minSpeed given as parameter
+    protected boolean isTooSlow(int minBytesPerSec) {
+        if (minBytesPerSec <= 0) return false;
+        if (currentBlockInfo == null) return false;
+
+        final int MIN_BYTES_READ    = 10_000; // minimum size: 10K
+        HeaderMsg currentHeaderMsg  = stream.getState().getCurrentHeaderMsg();
+        boolean isBlock             = currentHeaderMsg.getMsgCommand().equalsIgnoreCase(BlockMsg.MESSAGE_TYPE);
+        long numBytesSoFar          = stream.getState().getCurrentMsgBytesReceived();
+
+        if (currentHeaderMsg != null && isBlock && (numBytesSoFar >= MIN_BYTES_READ)) {
+            long numMillisSoFar = Duration.between(currentBlockInfo.getStartTimestamp(),Instant.now()).toMillis();
+            long currentSpeed   = (numBytesSoFar / numMillisSoFar) * 1000;
+            return (currentSpeed < minBytesPerSec);
+        }
+        return false;
     }
 
     @Override

@@ -1,9 +1,6 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.serialization.largeMsgs;
 
+import io.bitcoinsv.jcl.net.protocol.messages.HeaderMsg;
 import io.bitcoinsv.jcl.net.protocol.serialization.common.DeserializerContext;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader;
 
@@ -23,16 +20,25 @@ import java.util.function.Consumer;
 public interface LargeMessageDeserializer {
 
     /**
+     * It specifies the size of each chunk or partial message returned by the Large Deserializer.
+     * Each specific Deserializer might use this property in a different way
+     */
+    void setPartialMsgSize(int partialMsgSize);
+
+    /**
      * After calling this method, the Deserializer will trigger an error if the bytes coming from the remote Peer
      * come in a slower rate than this (in bytes per Sec)
      */
     void setMinSpeedBytesPerSec(int minSpeedBytesPerSec);
 
     /**
-     * It starts the Deserialization. The diffrent Results will be notified through the callbacks fed in the
+     * It starts the Deserialization. The different Results will be notified through the callbacks fed in the
      * "onDeserialized" methods.
+     * @param context    Deserialization Context
+     * @param headerMsg  Header of the message to Deserialize
+     * @param byteReader Reader containing the BODY of the message
      */
-    void deserialize(DeserializerContext context, ByteArrayReader byteReader);
+    void deserializeBody(DeserializerContext context, HeaderMsg headerMsg, ByteArrayReader byteReader);
 
     /** It provides a callback that wil be triggered when a new part is deserialized */
     void onDeserialized(Consumer<MsgPartDeserializedEvent> eventHandler);

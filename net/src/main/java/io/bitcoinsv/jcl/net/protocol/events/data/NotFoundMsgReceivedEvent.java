@@ -1,10 +1,7 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.events.data;
 
 
+import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.protocol.messages.NotFoundMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg;
@@ -18,5 +15,15 @@ import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg;
 public final class NotFoundMsgReceivedEvent extends MsgReceivedEvent<NotFoundMsg> {
     public NotFoundMsgReceivedEvent(PeerAddress peerAddress, BitcoinMsg<NotFoundMsg> btcMsg) {
         super(peerAddress, btcMsg);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode());
     }
 }

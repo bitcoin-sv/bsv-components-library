@@ -1,10 +1,8 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.messages;
 
-import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
+import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
+
+import java.io.Serializable;
 
 /**
  * @author m.fletcher@nchain.com
@@ -12,12 +10,13 @@ import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
  *
  * This message consists of only a message header with the command string "sendheaders".
  */
-public final class SendHeadersMsg extends Message {
+public final class SendHeadersMsg extends BodyMessage implements Serializable {
 
     public static final String MESSAGE_TYPE = "sendheaders";
     private static final int MESSAGE_LENGTH = 0;
 
-    public SendHeadersMsg(){
+    public SendHeadersMsg(byte[] extraBytes, long checksum){
+        super(extraBytes, checksum);
         init();
     }
 
@@ -42,29 +41,32 @@ public final class SendHeadersMsg extends Message {
 
     @Override
     public int hashCode() {
-        return 1;
+        return super.hashCode();
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
-        return true;
+        return super.equals(obj);
     }
 
     public static SendHeadersMsgBuilder builder() {
         return new SendHeadersMsgBuilder();
     }
 
+    @Override
+    public SendHeadersMsgBuilder toBuilder() {
+        return new SendHeadersMsgBuilder(super.extraBytes, super.checksum);
+    }
+
     /**
      * Builder
      */
-    public static class SendHeadersMsgBuilder {
-        SendHeadersMsgBuilder() { }
+    public static class SendHeadersMsgBuilder extends BodyMessageBuilder {
+        public SendHeadersMsgBuilder() { }
+        public SendHeadersMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public SendHeadersMsg build() {
-            return new SendHeadersMsg();
+            return new SendHeadersMsg(super.extraBytes, super.checksum);
         }
     }
 }

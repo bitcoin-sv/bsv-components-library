@@ -1,12 +1,9 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
-import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
+import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
 
+import java.io.Serializable;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkState;
@@ -20,7 +17,7 @@ import static com.google.common.base.Preconditions.checkState;
  * * chain, and proves that a difficult calculation was done over its contents. <p/>
  * *
  */
-public final class BlockMsg extends Message {
+public final class BlockMsg extends BodyMessage implements Serializable {
 
     public static final String MESSAGE_TYPE = "Block";
 
@@ -28,7 +25,9 @@ public final class BlockMsg extends Message {
     private final List<TxMsg> transactionMsg;
 
     // Constructor (specifying the Block Header and All Txs
-    protected BlockMsg(BlockHeaderMsg blockHeader, List<TxMsg> transactionMsgs) {
+    protected BlockMsg(BlockHeaderMsg blockHeader, List<TxMsg> transactionMsgs,
+                       byte[] extraBytes, long checksum) {
+        super(extraBytes, checksum);
         this.blockHeader = blockHeader;
         this.transactionMsg = transactionMsgs;
         init();
@@ -53,17 +52,9 @@ public final class BlockMsg extends Message {
     }
 
     @Override
-    public String getMessageType() {
-        return MESSAGE_TYPE;
-    }
-
-    public BlockHeaderMsg getBlockHeader() {
-        return this.blockHeader;
-    }
-
-    public List<TxMsg> getTransactionMsg() {
-        return this.transactionMsg;
-    }
+    public String getMessageType()          { return MESSAGE_TYPE; }
+    public BlockHeaderMsg getBlockHeader()  { return this.blockHeader; }
+    public List<TxMsg> getTransactionMsg()  { return this.transactionMsg; }
 
     public String toString() {
         return "BlockMsg(blockHeader=" + this.getBlockHeader() + ", transactionMsg=" + this.getTransactionMsg() + ")";
@@ -71,34 +62,33 @@ public final class BlockMsg extends Message {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(blockHeader, transactionMsg);
+        return Objects.hashCode(super.hashCode(), blockHeader, transactionMsg);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (obj == this) {
-            return true;
-        }
-        if (obj.getClass() != getClass()) {
-            return false;
-        }
+        if (!super.equals(obj)) { return false; }
         BlockMsg other = (BlockMsg) obj;
         return Objects.equal(this.blockHeader, other.blockHeader)
-            && Objects.equal(this.transactionMsg, other.transactionMsg);
+                && Objects.equal(this.transactionMsg, other.transactionMsg);
+    }
+
+    @Override
+    public BlockMsgBuilder toBuilder() {
+        return new BlockMsgBuilder(super.extraBytes, super.checksum)
+                    .blockHeader(this.blockHeader)
+                    .transactionMsgs(this.transactionMsg);
     }
 
     /**
      * Builder
      */
-    public static class BlockMsgBuilder {
+    public static class BlockMsgBuilder extends BodyMessageBuilder {
         private BlockHeaderMsg blockHeader;
         private List<TxMsg> transactionMsgs;
 
-        BlockMsgBuilder() {
-        }
+        BlockMsgBuilder() {}
+        BlockMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public BlockMsg.BlockMsgBuilder blockHeader(BlockHeaderMsg blockHeader) {
             this.blockHeader = blockHeader;
@@ -111,7 +101,7 @@ public final class BlockMsg extends Message {
         }
 
         public BlockMsg build() {
-            return new BlockMsg(blockHeader, transactionMsgs);
+            return new BlockMsg(blockHeader, transactionMsgs, super.extraBytes, super.checksum);
         }
 
     }

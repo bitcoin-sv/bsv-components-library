@@ -1,9 +1,6 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.events.control;
 
+import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.network.events.P2PRequest;
 
 /**
@@ -19,8 +16,18 @@ import io.bitcoinsv.jcl.net.network.events.P2PRequest;
  * @see BlocksDownloadStartRequest
  *
  */
-public class BlocksDownloadPauseRequest extends P2PRequest {
+public final class BlocksDownloadPauseRequest extends P2PRequest {
 
     /** Constructor */
     public BlocksDownloadPauseRequest() {}
+
+    @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode());
+    }
 }

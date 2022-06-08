@@ -1,15 +1,5 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.unit.protocol.serialization
 
-
-import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader
-import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter
-import io.bitcoinsv.bitcoinjsv.core.Utils
-import io.bitcoinsv.bitcoinjsv.params.MainNetParams
-import io.bitcoinsv.bitcoinjsv.params.Net
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigBuilder
 import io.bitcoinsv.jcl.net.protocol.messages.VarIntMsg
@@ -17,6 +7,11 @@ import io.bitcoinsv.jcl.net.protocol.serialization.VarIntMsgSerializer
 import io.bitcoinsv.jcl.net.protocol.serialization.common.DeserializerContext
 import io.bitcoinsv.jcl.net.protocol.serialization.common.SerializerContext
 import io.bitcoinsv.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
+import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader
+import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter
+import io.bitcoinsv.bitcoinjsv.core.Utils
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import io.bitcoinsv.bitcoinjsv.params.Net
 import spock.lang.Specification
 
 /**
@@ -68,5 +63,33 @@ class VarIntSerializationSpec extends Specification {
             messageBytesStr = Utils.HEX.encode(messageBytes)
         then:
             messageBytesStr.equals(REF_VARINT_MSG)
+    }
+
+    /**
+     * We test that the VarIntMsg Serializer works fine for numbers higher than 4GB
+     */
+    def "Testing big number (>4GB)"() {
+        given:
+            long number = 5_000_000_000; // 5GB
+        when:
+            // We Serialize the MSg:
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
+            SerializerContext serContext = SerializerContext.builder()
+                .protocolBasicConfig(config.getBasicConfig())
+                .build()
+            VarIntMsg msg = VarIntMsg.builder().value(number).build()
+            ByteArrayWriter writer = new ByteArrayWriter()
+            VarIntMsgSerializer.getInstance().serialize(serContext, msg, writer)
+            byte[] numberBytes = writer.reader().getFullContentAndClose()
+
+            // We deserialize the msg:
+            DeserializerContext desContext = DeserializerContext.builder()
+                .protocolBasicConfig(config.getBasicConfig())
+                .build()
+            ByteArrayReader reader = new ByteArrayReader(numberBytes)
+            VarIntMsg msgDes = VarIntMsgSerializer.getInstance().deserialize(desContext, reader)
+
+        then:
+            msg.equals(msgDes)
     }
 }

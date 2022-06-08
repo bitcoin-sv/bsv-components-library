@@ -1,11 +1,9 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
+
+import java.io.Serializable;
 
 
 /**
@@ -16,7 +14,7 @@ import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
  *
  */
 
-public final class InventoryVectorMsg extends Message {
+public final class InventoryVectorMsg extends Message implements Serializable {
 
     public static final String MESSAGE_TYPE = "inventoryVec";
 
@@ -24,9 +22,14 @@ public final class InventoryVectorMsg extends Message {
     public static final long VECTOR_TYPE_LENGTH = 4;
 
     public static enum VectorType {
-        ERROR(0), //	Any data of with this number may be ignored
-        MSG_TX(1), // Hash is related to a transaction
-        MSG_BLOCK(2),//Hash is related to a data block
+        //	Any data of with this number may be ignored
+        ERROR(0),
+
+        // Hash is related to a transaction
+        MSG_TX(1),
+
+        // Hash is related to a data block
+        MSG_BLOCK(2),
 
         //   Hash of a block header; identical to MSG_BLOCK. Only to be used in getdata message.
         //   Indicates the reply should be a merkleblock message rather than a block message;
@@ -85,14 +88,12 @@ public final class InventoryVectorMsg extends Message {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(type, hashMsg);
+        return Objects.hashCode(super.hashCode(), type, hashMsg);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         InventoryVectorMsg other = (InventoryVectorMsg) obj;
         return Objects.equal(this.type, other.type)
                 && Objects.equal(this.hashMsg, other.hashMsg);
@@ -102,6 +103,13 @@ public final class InventoryVectorMsg extends Message {
         return new InventoryVectorMsgBuilder();
     }
 
+
+    public InventoryVectorMsgBuilder toBuilder() {
+        return new InventoryVectorMsgBuilder()
+                    .type(this.type)
+                    .hashMsg(this.hashMsg);
+    }
+
     /**
      * Builder
      */
@@ -109,7 +117,7 @@ public final class InventoryVectorMsg extends Message {
         private VectorType type;
         private HashMsg hashMsg;
 
-        InventoryVectorMsgBuilder() {}
+        public InventoryVectorMsgBuilder() {}
 
         public InventoryVectorMsg.InventoryVectorMsgBuilder type(VectorType type) {
             this.type = type;

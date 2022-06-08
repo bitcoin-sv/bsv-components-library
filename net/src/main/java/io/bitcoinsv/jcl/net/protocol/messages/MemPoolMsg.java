@@ -1,10 +1,8 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.messages;
 
-import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
+import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
+
+import java.io.Serializable;
 
 /**
  * @author m.fletcher@nchain.com
@@ -12,12 +10,13 @@ import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
  *
  * This message consists of only a message header with the command string "mempool".
  */
-public final class MemPoolMsg extends Message {
+public final class MemPoolMsg extends BodyMessage implements Serializable {
 
     public static final String MESSAGE_TYPE = "mempool";
     private static final int MESSAGE_LENGTH = 0;
 
-    public MemPoolMsg(){
+    public MemPoolMsg(byte[] extraBytes, long checksum){
+        super(extraBytes, checksum);
         init();
     }
 
@@ -41,28 +40,32 @@ public final class MemPoolMsg extends Message {
 
     @Override
     public int hashCode() {
-        return 1;
+        return super.hashCode();
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        return true;
+        return super.equals(obj);
     }
 
     public static MemPoolMsgBuilder builder() {
         return new MemPoolMsgBuilder();
     }
 
+    @Override
+    public MemPoolMsgBuilder toBuilder() {
+        return new MemPoolMsgBuilder(super.extraBytes, super.checksum);
+    }
+
     /**
      * Builder
      */
-    public static class MemPoolMsgBuilder {
-        MemPoolMsgBuilder() {}
+    public static class MemPoolMsgBuilder extends BodyMessageBuilder {
+        public MemPoolMsgBuilder() {}
+        public MemPoolMsgBuilder(byte[] extraBuild, long checksum) { super(extraBuild, checksum);}
 
         public MemPoolMsg build() {
-            return new MemPoolMsg();
+            return new MemPoolMsg(super.extraBytes, super.checksum);
         }
     }
 }

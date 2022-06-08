@@ -1,11 +1,8 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.config.provided;
 
 
 
+import io.bitcoinsv.jcl.net.protocol.config.*;
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolBasicConfig;
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig;
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigImpl;
@@ -40,7 +37,7 @@ public class ProtocolBSVMainConfig extends ProtocolConfigImpl implements Protoco
     //private static int services                = ProtocolServices.NODE_BLOOM.getProtocolServices();
     private static int services                = 0;
     private static int port                    = 8333;
-    private static int protocolVersion         = ProtocolVersion.CURRENT.getBitcoinProtocolVersion();
+    private static int protocolVersion         = ProtocolVersion.CURRENT.getVersion();
     private static String[] userAgentBlacklist = new String[] {"Bitcoin ABC:", "BUCash:" };
     private static String[] userAgentWhitelist = new String[] {"Bitcoin SV:", HandshakeHandlerConfig.DEFAULT_USER_AGENT };
     private static String[] dns                = new String[] {

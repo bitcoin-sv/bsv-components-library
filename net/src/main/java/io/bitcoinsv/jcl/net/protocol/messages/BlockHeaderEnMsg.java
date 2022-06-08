@@ -1,12 +1,9 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,7 +15,7 @@ import java.util.stream.Collectors;
  * the addition of fields for actual number of transactions that are included in the block and proof of inclusion
  * for coinbase transaction along with the whole coinbase transaction.
  */
-public final class BlockHeaderEnMsg extends Message {
+public final class BlockHeaderEnMsg extends Message implements Serializable {
     public static final String MESSAGE_TYPE = "blockHeaderEn";
     public static final int TIMESTAMP_LENGTH = 4;
     public static final int NBITS_LENGTH = 4;
@@ -49,9 +46,20 @@ public final class BlockHeaderEnMsg extends Message {
     // Block for the first time, so its available for further use.
     private final HashMsg hash;
 
-    public BlockHeaderEnMsg(HashMsg hash, long version, HashMsg prevBlockHash, HashMsg merkleRoot, long creationTimestamp,
-                            long nBits, long nonce, long transactionCount, boolean noMoreHeaders,
-                            boolean hasCoinbaseData, List<HashMsg> coinbaseMerkleProof, VarStrMsg coinbase, TxMsg coinbaseTX) {
+    public BlockHeaderEnMsg(HashMsg hash,
+                            long version,
+                            HashMsg prevBlockHash,
+                            HashMsg merkleRoot,
+                            long creationTimestamp,
+                            long nBits,
+                            long nonce,
+                            long transactionCount,
+                            boolean noMoreHeaders,
+                            boolean hasCoinbaseData,
+                            List<HashMsg> coinbaseMerkleProof,
+                            VarStrMsg coinbase,
+                            TxMsg coinbaseTX) {
+
         this.hash = hash;
         this.version = version;
         this.prevBlockHash = prevBlockHash;
@@ -113,14 +121,12 @@ public final class BlockHeaderEnMsg extends Message {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(version, prevBlockHash, merkleRoot, creationTimestamp, nBits, nonce, transactionCount, noMoreHeaders, hasCoinbaseData, coinbaseMerkleProof, coinbase, coinbaseTX, hash);
+        return Objects.hashCode(super.hashCode(), version, prevBlockHash, merkleRoot, creationTimestamp, nBits, nonce, transactionCount, noMoreHeaders, hasCoinbaseData, coinbaseMerkleProof, coinbase, coinbaseTX, hash);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         BlockHeaderEnMsg other = (BlockHeaderEnMsg) obj;
         return Objects.equal(this.version, other.version)
                 && Objects.equal(this.prevBlockHash, other.prevBlockHash)
@@ -135,6 +141,23 @@ public final class BlockHeaderEnMsg extends Message {
                 && Objects.equal(this.coinbase, other.coinbase)
                 && Objects.equal(this.coinbaseTX, other.coinbaseTX)
                 && Objects.equal(this.hash, other.hash);
+    }
+
+    public BlockHeaderEnMsgBuilder toBuilder() {
+        return new BlockHeaderEnMsgBuilder()
+                    .hash(this.hash)
+                    .version(this.version)
+                    .prevBlockHash(this.prevBlockHash)
+                    .merkleRoot(this.merkleRoot)
+                    .creationTimestamp(this.creationTimestamp)
+                    .nBits(this.nBits)
+                    .nonce(this.nonce)
+                    .transactionCount(this.transactionCount)
+                    .noMoreHeaders(this.noMoreHeaders)
+                    .hasCoinbaseData(this.hasCoinbaseData)
+                    .coinbaseMerkleProof(this.coinbaseMerkleProof)
+                    .coinbase(this.coinbase)
+                    .coinbaseTX(this.coinbaseTX);
     }
 
     public static BlockHeaderEnMsgBuilder builder() {

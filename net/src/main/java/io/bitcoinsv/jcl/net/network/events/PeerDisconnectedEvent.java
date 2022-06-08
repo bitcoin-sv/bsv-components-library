@@ -1,9 +1,6 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.network.events;
 
+import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 
 /**
@@ -18,6 +15,7 @@ public final class PeerDisconnectedEvent extends P2PEvent {
     public enum DisconnectedReason {
         UNDEFINED,                              // undefined in general
         DISCONNECTED_BY_LOCAL,                  // generic reason for getting disconnected by Local (JCL)
+        DISCONNECTED_BY_LOCAL_BLACKLIST,        // Peer has been blacklisted
         DISCONNECTED_BY_LOCAL_LAZY_DOWNLOAD,    // Remote block doesn't respond to block download requests
         DISCONNECTED_BY_REMOTE                  // generic reason for getting disconnected by the Remote Peer
     }
@@ -36,5 +34,18 @@ public final class PeerDisconnectedEvent extends P2PEvent {
     @Override
     public String toString() {
         return "Event[Peer Disconnected]: " + peerAddress.toString() + ": " + reason;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) { return false; }
+        PeerDisconnectedEvent other = (PeerDisconnectedEvent) obj;
+        return Objects.equal(this.peerAddress, other.peerAddress)
+                && Objects.equal(this.reason, other.reason);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), peerAddress, reason);
     }
 }

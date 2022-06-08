@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.tools.bytes;
 
 
@@ -35,7 +31,7 @@ public class ByteArrayNIO implements ByteArray {
     }
 
     // The methods are broken down into 2 parts:
-    // The "regular" methods like "addBytes", "get", etc, perform some parameter verification, so these methods are safe.
+    // The "regular" methods like "add", "get", etc, perform some parameter verification, so these methods are safe.
     // These methods then invoke the "add_bytes" or "get_bytes" method, which do the real work.
     // If you are using ByteArrayImpl directly, you should use the "regular" ones. But if this class is wrapped up in
     // another class that already guarantees the parameters sanity, the "xxx_bytes" can be used directly in order to
@@ -60,14 +56,14 @@ public class ByteArrayNIO implements ByteArray {
 
     @GuardedBy("this")
     @Override
-    public byte[] get(int offset, int length) {
+    public byte[] get(long offset, int length) {
         checkArgument(offset >= 0, "wrong value for 'pos'");
         checkArgument(length >= 0, "'length' must be >= zero");
         checkArgument(size() >= (offset + length),
                 "not enough data in the buffer: actual data: " + size() + " bytes,"
-                        + " , requested: " + length + " bytes");
+                        + " , requested: " + offset + length + " bytes");
         try {
-            return get_bytes(offset, length);
+            return get_bytes((int)offset, length);
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
         }

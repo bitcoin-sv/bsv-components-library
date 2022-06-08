@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.handlers.message;
 
 
@@ -9,15 +5,20 @@ package io.bitcoinsv.jcl.net.protocol.handlers.message;
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolBasicConfig;
 
 
-
-import io.bitcoinsv.jcl.net.protocol.streams.deserializer.DeserializerConfig;
+import io.bitcoinsv.jcl.net.protocol.events.data.RawTxMsgReceivedEvent;
+import io.bitcoinsv.jcl.net.protocol.events.data.TxMsgReceivedEvent;
+import io.bitcoinsv.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerConfig;
+import io.bitcoinsv.jcl.net.protocol.messages.ByteStreamMsg;
 import io.bitcoinsv.jcl.tools.handlers.HandlerConfig;
+
+import java.util.HashMap;
 
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  *
- * It soes the configuration variables needed by the Message Handler
+ * It soes the configuration variables needed by the Message Handler.
+ * This handler is the handler responsable for the message Serialization/Deserialization
  */
 public final class MessageHandlerConfig extends HandlerConfig {
 
@@ -33,37 +34,56 @@ public final class MessageHandlerConfig extends HandlerConfig {
     private boolean rawTxsEnabled = false;
 
     /**
-     * Maximun number of Connections to other Peers that can use a dedicated thread to manage its connections.
-     * By default, all the connections to remote peers are managed by a single Thread, that's why JCL can connect to
-     * so many peers in parallel. but sometimes its worth it to manage an individual connection with a dedicated Thread
-     * , for example when there is a big Message coming from that connection.
+     * A Map containing Batch Message Configurations. If for example we want to Deserialize the "RawTxMsg" messages
+     * in batches, then an entry with "RawTxMsg.class" as a Key should be included here.
      */
-    private int maxNumberDedicatedConnections = 10;
+    private HashMap<Class, MessageBatchConfig> msgBatchConfigs = new HashMap<>();
+
+
+    /**
+     * If TRUe, then the CHECKSuM of all the INCOMING messages is calculated and checked against the "checksum" field
+     * in them, i order to verity they are correct.
+     *
+     * NOTE: If this is TRUE, then the  "calculateChecksum" FLAG in the "DeserializerConfig" within this class must be
+     * also set to TRUE.
+     *
+     * NOTE: This only accepts checksum for Incoming Messages. For OUTCOMING Messages, checksum is ALWAYS generated.
+     */
+    private boolean verifyChecksum = true; // default
 
     MessageHandlerConfig(ProtocolBasicConfig basicConfig,
                          MessagePreSerializer preSerializer,
                          DeserializerConfig deserializerConfig,
                          boolean rawTxsEnabled,
-                         int maxNumberDedicatedConnections
+                         HashMap<Class, MessageBatchConfig> msgBatchConfigs,
+                         boolean verifyChecksum
     ) {
         if (basicConfig != null)
             this.basicConfig = basicConfig;
         this.preSerializer = preSerializer;
-        if (deserializerConfig != null)
+        if (deserializerConfig != null) {
             this.deserializerConfig = deserializerConfig;
+        }
+
         this.rawTxsEnabled = rawTxsEnabled;
-        this.maxNumberDedicatedConnections = maxNumberDedicatedConnections;
+        this.msgBatchConfigs = msgBatchConfigs;
+        this.verifyChecksum = verifyChecksum;
     }
 
-    public ProtocolBasicConfig getBasicConfig()         { return this.basicConfig; }
-    public MessagePreSerializer getPreSerializer()      { return this.preSerializer; }
-    public DeserializerConfig getDeserializerConfig()   { return this.deserializerConfig; }
-    public boolean isRawTxsEnabled()                    { return this.rawTxsEnabled; }
-    public int getMaxNumberDedicatedConnections()       { return this.maxNumberDedicatedConnections;}
+    public ProtocolBasicConfig getBasicConfig()                     { return this.basicConfig; }
+    public MessagePreSerializer getPreSerializer()                  { return this.preSerializer; }
+    public DeserializerConfig getDeserializerConfig()               { return this.deserializerConfig; }
+    public boolean isRawTxsEnabled()                                { return this.rawTxsEnabled; }
+    public HashMap<Class, MessageBatchConfig> getMsgBatchConfigs()  { return this.msgBatchConfigs;}
+    public boolean isVerifyChecksum()                               { return this.verifyChecksum;}
 
     @Override
     public String toString() {
-        return "MessageHandlerConfig(basicConfig=" + this.getBasicConfig() + ", preSerializer=" + this.getPreSerializer() + ", deserializerConfig=" + this.getDeserializerConfig() + ", maxNumberDedicatedConnections=" + maxNumberDedicatedConnections + ")";
+        return "MessageHandlerConfig(basicConfig=" + this.getBasicConfig()
+                + ", preSerializer=" + this.getPreSerializer() + ", deserializerConfig="
+                + this.getDeserializerConfig()
+                + ", msgBatchConfigs=" + msgBatchConfigs
+                + ", verifyChecksum=" + this.verifyChecksum + ")";
     }
 
     public MessageHandlerConfigBuilder toBuilder() {
@@ -72,7 +92,8 @@ public final class MessageHandlerConfig extends HandlerConfig {
                 .preSerializer(this.preSerializer)
                 .deserializerConfig(this.deserializerConfig)
                 .rawTxsEnabled(rawTxsEnabled)
-                .maxNumberDedicatedConnections(this.maxNumberDedicatedConnections);
+                .msgBatchConfigs(this.msgBatchConfigs)
+                .verifyChecksum(this.verifyChecksum);
     }
 
     public static MessageHandlerConfigBuilder builder() {
@@ -87,7 +108,8 @@ public final class MessageHandlerConfig extends HandlerConfig {
         private MessagePreSerializer preSerializer;
         private DeserializerConfig deserializerConfig;
         private boolean rawTxsEnabled = false;
-        private int maxNumberDedicatedConnections = 10;
+        private HashMap<Class, MessageBatchConfig> msgBatchConfigs = new HashMap<>();
+        private boolean verifyChecksum = true; // default
 
         MessageHandlerConfigBuilder() { }
 
@@ -111,13 +133,38 @@ public final class MessageHandlerConfig extends HandlerConfig {
             return this;
         }
 
-        public MessageHandlerConfig.MessageHandlerConfigBuilder maxNumberDedicatedConnections(int maxNumberDedicatedConnections) {
-            this.maxNumberDedicatedConnections = maxNumberDedicatedConnections;
+        public MessageHandlerConfig.MessageHandlerConfigBuilder msgBatchConfigs(HashMap<Class, MessageBatchConfig> msgBatchConfigs) {
+            this.msgBatchConfigs = msgBatchConfigs;
+            return this;
+        }
+
+        public MessageHandlerConfig.MessageHandlerConfigBuilder addMsgBatchConfig(Class msgType, MessageBatchConfig msgBatchConfig) {
+            this.msgBatchConfigs.put(msgType, msgBatchConfig);
+            return this;
+        }
+
+        public MessageHandlerConfig.MessageHandlerConfigBuilder setTxsBatchConfig(MessageBatchConfig batchConfig) {
+            this.msgBatchConfigs.put(TxMsgReceivedEvent.class, batchConfig);
+            return this;
+        }
+
+        public MessageHandlerConfig.MessageHandlerConfigBuilder setRawTxsBatchConfig(MessageBatchConfig batchConfig) {
+            this.msgBatchConfigs.put(RawTxMsgReceivedEvent.class, batchConfig);
+            return this;
+        }
+
+        public MessageHandlerConfig.MessageHandlerConfigBuilder setRawBytesBatchConfig(MessageBatchConfig batchConfig) {
+            this.msgBatchConfigs.put(ByteStreamMsg.class, batchConfig);
+            return this;
+        }
+
+        public MessageHandlerConfig.MessageHandlerConfigBuilder verifyChecksum(boolean verifyChecksum) {
+            this.verifyChecksum = verifyChecksum;
             return this;
         }
 
         public MessageHandlerConfig build() {
-            return new MessageHandlerConfig(basicConfig, preSerializer, deserializerConfig, rawTxsEnabled, maxNumberDedicatedConnections);
+            return new MessageHandlerConfig(basicConfig, preSerializer, deserializerConfig, rawTxsEnabled, msgBatchConfigs, verifyChecksum);
         }
     }
 }

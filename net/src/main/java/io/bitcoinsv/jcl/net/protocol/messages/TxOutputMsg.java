@@ -1,12 +1,11 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
+
+import java.io.Serializable;
+import java.util.Arrays;
 
 /**
  * @author m.jose@nchain.com
@@ -23,15 +22,13 @@ import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
  * - field: "pk_script"  uchar[]
  *   Usually contains the public key as a Bitcoin script setting up conditions to claim this output.
  */
-public final class TxOutputMsg extends Message {
+public final class TxOutputMsg extends Message implements Serializable {
     public static final String MESSAGE_TYPE = "TxOut";
     private static final int txValue_length = 8;
 
     private final long txValue;
     private final VarIntMsg pk_script_length;
     private final byte[] pk_script;
-
-
 
     protected TxOutputMsg(long txValue, byte[] pk_script) {
         this.txValue = txValue;
@@ -64,18 +61,16 @@ public final class TxOutputMsg extends Message {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(txValue, pk_script_length, pk_script);
+        return Objects.hashCode(super.hashCode(), txValue, pk_script_length, Arrays.hashCode(pk_script));
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         TxOutputMsg other = (TxOutputMsg) obj;
         return Objects.equal(this.txValue, other.txValue)
                 && Objects.equal(this.pk_script_length, other.pk_script_length)
-                && Objects.equal(this.pk_script, other.pk_script);
+                && Arrays.equals(this.pk_script, other.pk_script);
     }
 
 
@@ -83,6 +78,11 @@ public final class TxOutputMsg extends Message {
         return new TxOutputMsgBuilder();
     }
 
+    public TxOutputMsgBuilder toBuilder() {
+        return new TxOutputMsgBuilder()
+                        .txValue(this.txValue)
+                        .pk_script(this.pk_script);
+    }
     /**
      * Builder
      */
@@ -90,7 +90,7 @@ public final class TxOutputMsg extends Message {
         private long txValue;
         private byte[] pk_script;
 
-        TxOutputMsgBuilder() {}
+        public TxOutputMsgBuilder() {}
 
         public TxOutputMsg.TxOutputMsgBuilder txValue(long txValue) {
             this.txValue = txValue;

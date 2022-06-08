@@ -1,11 +1,5 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.unit.protocol.handlers.wrapper
 
-
-import io.bitcoinsv.bitcoinjsv.params.MainNetParams
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigBuilder
 import io.bitcoinsv.jcl.net.protocol.handlers.blacklist.BlacklistHandler
@@ -14,8 +8,10 @@ import io.bitcoinsv.jcl.net.protocol.handlers.handshake.HandshakeHandler
 import io.bitcoinsv.jcl.net.protocol.handlers.pingPong.PingPongHandler
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2P
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2PBuilder
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
 import spock.lang.Specification
 
+import java.time.Instant
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -55,10 +51,35 @@ class ProtocolConnectionTest extends Specification {
             AtomicInteger numConnections = new AtomicInteger()
             AtomicInteger numDisconnections = new AtomicInteger()
 
-            server.EVENTS.PEERS.CONNECTED.forEach({ e -> numConnections.incrementAndGet()})
-            client.EVENTS.PEERS.CONNECTED.forEach({ e -> numConnections.incrementAndGet()})
-            server.EVENTS.PEERS.DISCONNECTED.forEach({ e -> numDisconnections.incrementAndGet()})
-            client.EVENTS.PEERS.DISCONNECTED.forEach({ e -> numDisconnections.incrementAndGet()})
+            server.EVENTS.PEERS.CONNECTED.forEach({ e ->
+                println(Instant.now().toString() + " Server event: " + e)
+                numConnections.incrementAndGet()
+            })
+            client.EVENTS.PEERS.CONNECTED.forEach({ e ->
+                println(Instant.now().toString() + " Client event: " + e)
+                numConnections.incrementAndGet()
+            })
+            server.EVENTS.PEERS.DISCONNECTED.forEach({ e ->
+                println(Instant.now().toString() + " Server event: " + e)
+                numDisconnections.incrementAndGet()
+            })
+            client.EVENTS.PEERS.DISCONNECTED.forEach({ e ->
+                println(Instant.now().toString() + " Client event: " + e)
+                numDisconnections.incrementAndGet()
+            })
+
+            server.EVENTS.GENERAL.START.forEach({ e ->
+                println(Instant.now().toString() + " Server event: " + e)
+            })
+            server.EVENTS.GENERAL.STOP.forEach({ e ->
+                println(Instant.now().toString() + " Server event: " + e)
+            })
+            client.EVENTS.GENERAL.START.forEach({ e ->
+                println(Instant.now().toString() + " Client event: " + e)
+            })
+            client.EVENTS.GENERAL.STOP.forEach({ e ->
+                println(Instant.now().toString() + " Client event: " + e)
+            })
 
 
         when:
@@ -77,7 +98,7 @@ class ProtocolConnectionTest extends Specification {
             client.stop()
 
         then:
-            // We check that the Events hae been triggered right:
+            // We check that the Events have been triggered right:
             numConnections.get() == 2
             numDisconnections.get() == 2
     }

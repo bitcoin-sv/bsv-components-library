@@ -1,12 +1,8 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.handlers.message;
 
 
 
-import io.bitcoinsv.jcl.net.protocol.streams.deserializer.DeserializerState;
+import io.bitcoinsv.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerState;
 import io.bitcoinsv.jcl.tools.handlers.HandlerState;
 
 import java.math.BigInteger;

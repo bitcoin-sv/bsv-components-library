@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.serialization;
 
 
@@ -14,6 +10,7 @@ import io.bitcoinsv.jcl.net.protocol.messages.VarStrMsg;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter;
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
+
 
 /**
  * @author i.fernandez@nchain.com

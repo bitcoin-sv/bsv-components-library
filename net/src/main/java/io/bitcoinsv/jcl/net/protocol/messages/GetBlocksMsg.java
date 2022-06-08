@@ -1,11 +1,9 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
-import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
+import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
+
+import java.io.Serializable;
 
 
 /**
@@ -16,12 +14,14 @@ import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
  * in the block locator object, up to hash_stop or 500 blocks, whichever comes first.
  *
  */
-public final class GetBlocksMsg extends Message {
+public final class GetBlocksMsg extends BodyMessage implements Serializable {
 
     public static final String MESSAGE_TYPE = "getblocks";
     private final BaseGetDataAndHeaderMsg baseGetDataAndHeaderMsg;
 
-    protected GetBlocksMsg(BaseGetDataAndHeaderMsg baseGetDataAndHeaderMsg) {
+    protected GetBlocksMsg(BaseGetDataAndHeaderMsg baseGetDataAndHeaderMsg,
+                           byte[] extraBytes, long checksum) {
+        super(extraBytes, checksum);
         this.baseGetDataAndHeaderMsg = baseGetDataAndHeaderMsg;
         init();
     }
@@ -46,14 +46,12 @@ public final class GetBlocksMsg extends Message {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(baseGetDataAndHeaderMsg);
+        return Objects.hashCode(super.hashCode(), baseGetDataAndHeaderMsg);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         GetBlocksMsg other = (GetBlocksMsg) obj;
         return Objects.equal(this.baseGetDataAndHeaderMsg, other.baseGetDataAndHeaderMsg);
     }
@@ -62,13 +60,20 @@ public final class GetBlocksMsg extends Message {
         return new GetBlocksMsgBuilder();
     }
 
+    @Override
+    public GetBlocksMsgBuilder toBuilder() {
+        return new GetBlocksMsgBuilder(super.extraBytes, super.checksum)
+                    .baseGetDataAndHeaderMsg(this.baseGetDataAndHeaderMsg);
+    }
+
     /**
      * Builder
      */
-    public static class GetBlocksMsgBuilder {
+    public static class GetBlocksMsgBuilder extends BodyMessageBuilder{
         private BaseGetDataAndHeaderMsg baseGetDataAndHeaderMsg;
 
-        GetBlocksMsgBuilder() {}
+        public GetBlocksMsgBuilder() {}
+        public GetBlocksMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public GetBlocksMsg.GetBlocksMsgBuilder baseGetDataAndHeaderMsg(BaseGetDataAndHeaderMsg baseGetDataAndHeaderMsg) {
             this.baseGetDataAndHeaderMsg = baseGetDataAndHeaderMsg;
@@ -76,7 +81,7 @@ public final class GetBlocksMsg extends Message {
         }
 
         public GetBlocksMsg build() {
-            return new GetBlocksMsg(baseGetDataAndHeaderMsg);
+            return new GetBlocksMsg(baseGetDataAndHeaderMsg, super.extraBytes, super.checksum);
         }
     }
 }

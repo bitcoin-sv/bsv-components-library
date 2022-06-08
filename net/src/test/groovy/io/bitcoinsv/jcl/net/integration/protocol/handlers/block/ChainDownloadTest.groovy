@@ -1,9 +1,4 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.integration.protocol.handlers.block
-
 
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
 import io.bitcoinsv.bitcoinjsv.core.Utils
@@ -24,6 +19,7 @@ import io.bitcoinsv.jcl.net.protocol.messages.HashMsg
 import io.bitcoinsv.jcl.net.protocol.messages.VarIntMsg
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2P
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2PBuilder
+
 import spock.lang.Ignore
 import spock.lang.Specification
 
@@ -65,11 +61,13 @@ class ChainDownloadTest extends Specification {
     @Ignore
     def "Test download Chain from hash Locator"() {
         given:
+
             // The longest Timeout we'll wait for to run the test:
             Duration TIMEOUT = Duration.ofMinutes(15)
 
             // We'll download all the blocks mined AFTER this block:
-            String HASH_LOCATOR = "000000000000000002f5268d72f9c79f29bef494e350e58f624bcf28700a1846"
+            //String HASH_LOCATOR = "000000000000000002f5268d72f9c79f29bef494e350e58f624bcf28700a1846"
+            String HASH_LOCATOR = "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f" // GENESIS
 
             // We Configure the P2P Connection:
             ProtocolConfig config = ProtocolConfigBuilder.get(Net.MAINNET.params())
@@ -81,6 +79,7 @@ class ChainDownloadTest extends Specification {
                 .timeoutSocketRemoteConfirmation(OptionalInt.of(1000))  // 1 sec
                 .build()
 
+
             // Basic Config:
         ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
                     .minPeers(OptionalInt.of(15))
@@ -88,9 +87,10 @@ class ChainDownloadTest extends Specification {
                     .build()
 
             // We set up the Download configuration:
-        BlockDownloaderHandlerConfig blockConfig = config.getBlockDownloaderConfig().toBuilder()
-                    .maxBlocksInParallel(15)
+            BlockDownloaderHandlerConfig blockConfig = config.getBlockDownloaderConfig().toBuilder()
+                    .maxBlocksInParallel(10)
                     .maxIdleTimeout(Duration.ofSeconds(10))
+                    .minSpeed(0)
                     .build()
 
             // We configure the P2P Service:
@@ -108,9 +108,9 @@ class ChainDownloadTest extends Specification {
             Lock lock = new ReentrantLock()
 
             // We are keeping track of the Blocks being downloaded:
-            Set<String> blocksToDownload = new HashSet<>()
-            Set<String> blocksDownloaded = new HashSet<>()                          // Blocks fully downloaded
-            Set<String> blocksDiscarded = new HashSet<>()                           // Blocks Discarded...
+            Set<String> blocksToDownload = java.util.concurrent.ConcurrentHashMap.newKeySet()
+            Set<String> blocksDownloaded = java.util.concurrent.ConcurrentHashMap.newKeySet()                        // Blocks fully downloaded
+            Set<String> blocksDiscarded = java.util.concurrent.ConcurrentHashMap.newKeySet()                          // Blocks Discarded...
 
             // We capture the state when we reach the min Peers, so we do not start the download until this moment:
             AtomicBoolean connReady = new AtomicBoolean(false);
@@ -125,21 +125,41 @@ class ChainDownloadTest extends Specification {
             // Every time we receive a HEADERS message from Remote Peers, we add the block Hashes there to the
             // download list:
             p2p.EVENTS.MSGS.HEADERS.forEach({ e ->
-                // We use the HEADERS receive to feed the list of blocks to download:
-                List<String> blocksToAdd = e.getBtcMsg().getBody().getBlockHeaderMsgList().stream()
-                        .map({ header -> Utils.HEX.encode(Utils.reverseBytes(header.getHash().getHashBytes())) })
-                        .collect(Collectors.toList())
 
-                blocksToDownload.addAll(blocksToAdd)
-                p2p.REQUESTS.BLOCKS.download(blocksToAdd).submit()
+                try {
+                    lock.lock();
+                    // We use the HEADERS receive to feed the list of blocks to download:
+
+                    List<String> blocksToAdd = e.getBtcMsg().getBody().getBlockHeaderMsgList().stream()
+                            .map({ header -> Utils.HEX.encode(header.getHash().getBytes()) })
+                            .collect(Collectors.toList())
+
+                    if (!blocksToAdd.isEmpty()) {
+                        List<String> newBlocksToDownload = blocksToAdd.stream()
+                                .filter({h -> !blocksToDownload.contains(h)})
+                                .collect(Collectors.toList());
+                        if (!newBlocksToDownload.isEmpty()) {
+
+                            blocksToDownload.addAll(newBlocksToDownload)
+                            p2p.REQUESTS.BLOCKS.download(newBlocksToDownload).submit()
+
+                            // And we send out other GET_HEADERS Msg,, so we keep building the Chain:
+                            String hashLocator = newBlocksToDownload.get(newBlocksToDownload.size() - 1);
+                            p2p.REQUESTS.MSGS.broadcast(buildGetHeadersMsg(config, hashLocator)).submit()
+
+                            println("> HEADERS Received, " + blocksToDownload.size() + " blocks requested.");
+                        }
+                    }
+                } finally {
+                    lock.unlock()
+                }
 
             })
 
             // Blocks fully downloaded
             p2p.EVENTS.BLOCKS.BLOCK_DOWNLOADED.forEach({ e ->
-                try {
-                    lock.lock()
-                    String blockHash = Utils.HEX.encode(Utils.reverseBytes(e.getBlockHeader().hash.getHashBytes()))
+
+                    String blockHash = Utils.HEX.encode(e.getBlockHeader().hash.getBytes())
                     blocksDownloaded.add(blockHash)
                     bytesDownloaded.addAndGet(e.getBlockSize())
                     // Downloading speed (Kb/Sec) calculation:
@@ -147,10 +167,8 @@ class ChainDownloadTest extends Specification {
                     if (secsElapsed > 0) {
                         currentSpeedKbPerSec.set((int) ((bytesDownloaded.get() / secsElapsed) / 1_000))
                     }
-                    println(" > " + blockHash + " downloaded. " + blocksDownloaded.size() + " blocks. " + (bytesDownloaded.get() / 1_000_000) + " MB. " + currentSpeedKbPerSec + " Kbs/sec")
-                } finally {
-                    lock.unlock()
-                }
+                    println(" > " + blockHash + " downloaded. " + blocksDownloaded.size() + " blocks. " + (bytesDownloaded.get() / 1_000_000) + " MB. " + currentSpeedKbPerSec + " Kbs/sec, " + blocksToDownload.size() + " blocks Requested in total")
+
             })
 
             // Blocks discarded
@@ -185,6 +203,7 @@ class ChainDownloadTest extends Specification {
             while (!connReady.get()) Thread.sleep(100)
             println("Connection Ready...")
 
+            Thread.sleep(1000)
             // After this moment, we can start downloading Blocks. The next Blocks to download will be injected after
             // we receive the HEADERS messages from the remote Peers....
             p2p.REQUESTS.MSGS.broadcast(buildGetHeadersMsg(config, HASH_LOCATOR)).submit()

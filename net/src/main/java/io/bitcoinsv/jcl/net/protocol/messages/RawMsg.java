@@ -1,12 +1,11 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.messages;
 
 
 import com.google.common.base.Objects;
-import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
+import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
+
+import java.io.Serializable;
+import java.util.Arrays;
 
 /**
  * @author i.fernandez@nchain.com
@@ -19,17 +18,18 @@ import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
  * not deserialized.
  *
  */
-public abstract class RawMsg extends Message {
+public abstract class RawMsg extends BodyMessage implements Serializable {
 
     protected byte[] content;
 
-    public RawMsg(byte[] content) {
+    public RawMsg(byte[] content, byte[] extraBytes, long checksum) {
+        super(extraBytes, checksum);
         this.content = content;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(content);
+        return Objects.hashCode(super.hashCode(), Arrays.hashCode(content));
     }
 
     public byte[] getContent() {
@@ -38,11 +38,9 @@ public abstract class RawMsg extends Message {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         RawMsg other = (RawMsg) obj;
-        return Objects.equal(this.content, other.content);
+        return Arrays.equals(this.content, other.content);
     }
 
 }

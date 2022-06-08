@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.unit.network.streams;
 
 import io.bitcoinsv.jcl.net.network.streams.PeerInputStream;
@@ -28,6 +24,6 @@ public class NumberStringPeerStream extends PeerStreamImpl<Integer, String> {
     }
     @Override
     public PeerOutputStream<Integer> buildOutputStream() {
-        return new NumberStringOutputStream(peerAddress, super.executor, super.streamOrigin.output());
+        return new NumberStringOutputStream(peerAddress, super.streamOrigin.output());
     }
 }

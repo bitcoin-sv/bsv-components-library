@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
@@ -11,11 +7,13 @@ import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly;
 import io.bitcoinsv.bitcoinjsv.bitcoin.bean.base.HeaderBean;
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 
+import java.io.Serializable;
+
 /**
  * @author j.pomer@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  */
-public class CompactBlockHeaderMsg extends Message {
+public final class CompactBlockHeaderMsg extends Message implements Serializable {
 
     public static final String MESSAGE_TYPE = "CompactClockHeader";
 
@@ -37,7 +35,13 @@ public class CompactBlockHeaderMsg extends Message {
     protected final long difficultyTarget;
     protected final long nonce;
 
-    public CompactBlockHeaderMsg(HashMsg hash, long version, HashMsg prevBlockHash, HashMsg merkleRoot, long creationTimestamp, long difficultyTarget, long nonce) {
+    public CompactBlockHeaderMsg(HashMsg hash,
+                                 long version,
+                                 HashMsg prevBlockHash,
+                                 HashMsg merkleRoot,
+                                 long creationTimestamp,
+                                 long difficultyTarget,
+                                 long nonce) {
         this.hash = hash;
         this.version = version;
         this.prevBlockHash = prevBlockHash;
@@ -74,29 +78,22 @@ public class CompactBlockHeaderMsg extends Message {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-
-        if (obj == this) {
-            return true;
-        }
-
-        if (obj.getClass() != getClass()) {
-            return false;
-        }
+        if (!super.equals(obj)) { return false; }
 
         CompactBlockHeaderMsg other = (CompactBlockHeaderMsg) obj;
 
         return Objects.equal(this.hash, other.hash)
-            && Objects.equal(this.version, other.version)
-            && Objects.equal(this.prevBlockHash, other.prevBlockHash)
-            && Objects.equal(this.merkleRoot, other.merkleRoot)
-            && Objects.equal(this.creationTimestamp, other.creationTimestamp)
-            && Objects.equal(this.difficultyTarget, other.difficultyTarget)
-            && Objects.equal(this.nonce, other.nonce);
+                && Objects.equal(this.version, other.version)
+                && Objects.equal(this.prevBlockHash, other.prevBlockHash)
+                && Objects.equal(this.merkleRoot, other.merkleRoot)
+                && Objects.equal(this.creationTimestamp, other.creationTimestamp)
+                && Objects.equal(this.difficultyTarget, other.difficultyTarget)
+                && Objects.equal(this.nonce, other.nonce);
     }
 
+    /**
+     * Returns a Domain Class.
+     */
     public HeaderReadOnly toBean() {
         HeaderBean result = new HeaderBean((AbstractBlock) null);
         result.setTime(this.creationTimestamp);
@@ -109,37 +106,28 @@ public class CompactBlockHeaderMsg extends Message {
         return result;
     }
 
-    public HashMsg getHash() {
-        return this.hash;
-    }
-
-    public long getVersion() {
-        return this.version;
-    }
-
-    public HashMsg getPrevBlockHash() {
-        return this.prevBlockHash;
-    }
-
-    public HashMsg getMerkleRoot() {
-        return this.merkleRoot;
-    }
-
-    public long getCreationTimestamp() {
-        return this.creationTimestamp;
-    }
-
-    public long getDifficultyTarget() {
-        return this.difficultyTarget;
-    }
-
-    public long getNonce() {
-        return this.nonce;
-    }
+    public HashMsg getHash()            { return this.hash; }
+    public long getVersion()            { return this.version; }
+    public HashMsg getPrevBlockHash()   { return this.prevBlockHash; }
+    public HashMsg getMerkleRoot()      { return this.merkleRoot; }
+    public long getCreationTimestamp()  { return this.creationTimestamp; }
+    public long getDifficultyTarget()   { return this.difficultyTarget; }
+    public long getNonce()              { return this.nonce; }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(hash, version, prevBlockHash, merkleRoot, creationTimestamp, difficultyTarget, nonce);
+        return Objects.hashCode(super.hashCode(), hash, version, prevBlockHash, merkleRoot, creationTimestamp, difficultyTarget, nonce);
+    }
+
+    public CompactBlockHeaderMsgBuilder toBuilder() {
+        return new CompactBlockHeaderMsgBuilder()
+                    .hash(this.hash)
+                    .version(this.version)
+                    .prevBlockHash(this.prevBlockHash)
+                    .merkleRoot(this.merkleRoot)
+                    .creationTimestamp(this.creationTimestamp)
+                    .difficultyTarget(this.difficultyTarget)
+                    .nonce(this.nonce);
     }
 
     /**
@@ -153,6 +141,8 @@ public class CompactBlockHeaderMsg extends Message {
         protected long creationTimestamp;
         protected long difficultyTarget;
         protected long nonce;
+
+        public CompactBlockHeaderMsgBuilder() {}
 
         public CompactBlockHeaderMsgBuilder hash(HashMsg hash) {
             this.hash = hash;

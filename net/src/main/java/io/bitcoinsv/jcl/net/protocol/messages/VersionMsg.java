@@ -1,11 +1,9 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
-import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
+import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
+import io.bitcoinsv.bitcoinjsv.core.Utils;
+
 
 import java.io.Serializable;
 
@@ -54,10 +52,10 @@ import java.io.Serializable;
  *  - field: "isHandshakeUsingRelay" (1 bytes) bool
  *    Whether the remote peer should announce relayed transactions or not, see BIP 0037
  */
-public final class VersionMsg extends Message implements Serializable {
+public final class VersionMsg extends BodyMessage implements Serializable {
     // The only field which a variable length in the Version Message is the "getHandshakeUserAgent" field.
     // The rest of the Message has a fixed length of 85 bytes.
-    private static final int FIXED_MESSAGE_LENGTH = 84; // need to addBytes the "getHandshakeUserAgent"  and RELAY length to this.
+    private static final int FIXED_MESSAGE_LENGTH = 84; // need to add the "getHandshakeUserAgent"  and RELAY length to this.
     public static final String MESSAGE_TYPE = "version";
 
     private final long version;
@@ -70,9 +68,16 @@ public final class VersionMsg extends Message implements Serializable {
     private final long start_height;
     private final Boolean relay;
 
+    // Multi-Streams support: We do NOT process this yet, so we store it in raw data
+    private byte[] associationId = Utils.EMPTY_BYTE_ARRAY;
+
     protected VersionMsg(long version, long services, long timestamp,
                          NetAddressMsg addr_recv, NetAddressMsg addr_from,
-                         long nonce, VarStrMsg user_agent, long start_height, Boolean relay ) {
+                         long nonce, VarStrMsg user_agent, long start_height, Boolean relay,
+                         byte[] associationId,
+                         byte[] extraBytes,
+                         long checksum) {
+        super(extraBytes, checksum);
         this.version = version;
         this.services = services;
         this.timestamp = timestamp;
@@ -82,6 +87,7 @@ public final class VersionMsg extends Message implements Serializable {
         this.user_agent = user_agent;
         this.start_height = start_height;
         this.relay = relay;
+        this.associationId = associationId;
         init();
     }
 
@@ -90,6 +96,7 @@ public final class VersionMsg extends Message implements Serializable {
         long length = FIXED_MESSAGE_LENGTH;
         length += (user_agent != null) ? user_agent.getLengthInBytes(): 0;
         length += (relay != null) ? 1 : 0;
+        length += associationId.length;
         return length;
     }
 
@@ -107,21 +114,30 @@ public final class VersionMsg extends Message implements Serializable {
     public VarStrMsg getUser_agent()    { return this.user_agent; }
     public long getStart_height()       { return this.start_height; }
     public Boolean getRelay()           { return this.relay; }
+    public byte[] getAssociationId()    { return this.associationId;}
 
     public String toString() {
-        return "VersionMsg(version=" + this.getVersion() + ", services=" + this.getServices() + ", timestamp=" + this.getTimestamp() + ", addr_recv=" + this.getAddr_recv() + ", addr_from=" + this.getAddr_from() + ", nonce=" + this.getNonce() + ", user_agent=" + this.getUser_agent() + ", start_height=" + this.getStart_height() + ", relay=" + this.getRelay() + ")";
+        return "VersionMsg(version=" + this.getVersion()
+                + ", services=" + this.getServices()
+                + ", timestamp=" + this.getTimestamp()
+                + ", addr_recv=" + this.getAddr_recv()
+                + ", addr_from=" + this.getAddr_from()
+                + ", nonce=" + this.getNonce()
+                + ", user_agent=" + this.getUser_agent()
+                + ", start_height=" + this.getStart_height()
+                + ", relay=" + this.getRelay()
+                + ", associationId=" + this.associationId
+                + ")";
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(version, services, timestamp, addr_recv, addr_from, nonce, user_agent, start_height, relay);
+        return Objects.hashCode(super.hashCode(), version, services, timestamp, addr_recv, addr_from, nonce, user_agent, start_height, relay);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         VersionMsg other = (VersionMsg) obj;
         return Objects.equal(this.version, other.version)
                 && Objects.equal(this.services, other.services)
@@ -138,10 +154,25 @@ public final class VersionMsg extends Message implements Serializable {
         return new VersionMsgBuilder();
     }
 
+    @Override
+    public VersionMsgBuilder toBuilder() {
+        return new VersionMsgBuilder(super.extraBytes, super.checksum)
+                        .version(this.version)
+                        .services(this.services)
+                        .timestamp(this.timestamp)
+                        .addr_recv(this.addr_recv)
+                        .addr_from(this.addr_from)
+                        .nonce(this.nonce)
+                        .user_agent(this.user_agent)
+                        .start_height(this.start_height)
+                        .relay(this.relay)
+                        .associationId(this.associationId);
+    }
+
     /**
      * Builder
      */
-    public static class VersionMsgBuilder {
+    public static class VersionMsgBuilder extends BodyMessageBuilder {
         private long version;
         private long services;
         private long timestamp;
@@ -151,8 +182,10 @@ public final class VersionMsg extends Message implements Serializable {
         private VarStrMsg user_agent;
         private long start_height;
         private Boolean relay;
+        private byte[] associationId = Utils.EMPTY_BYTE_ARRAY;
 
         VersionMsgBuilder() {}
+        VersionMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public VersionMsg.VersionMsgBuilder version(long version) {
             this.version = version;
@@ -199,8 +232,13 @@ public final class VersionMsg extends Message implements Serializable {
             return this;
         }
 
+        public VersionMsg.VersionMsgBuilder associationId(byte[] associationId) {
+            this.associationId = associationId;
+            return this;
+        }
+
         public VersionMsg build() {
-            return new VersionMsg(version, services, timestamp, addr_recv, addr_from, nonce, user_agent, start_height, relay);
+            return new VersionMsg(version, services, timestamp, addr_recv, addr_from, nonce, user_agent, start_height, relay, associationId, super.extraBytes, super.checksum);
         }
     }
 }

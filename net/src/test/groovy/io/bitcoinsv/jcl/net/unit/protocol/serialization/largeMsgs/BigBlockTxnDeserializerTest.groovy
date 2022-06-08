@@ -1,21 +1,17 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.unit.protocol.serialization.largeMsgs
 
-
-import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader
-import io.bitcoinsv.bitcoinjsv.core.Utils
-import io.bitcoinsv.bitcoinjsv.params.MainNetParams
-import io.bitcoinsv.bitcoinjsv.params.Net
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigBuilder
+import io.bitcoinsv.jcl.net.protocol.messages.HeaderMsg
 import io.bitcoinsv.jcl.net.protocol.messages.PartialBlockTxnMsg
 import io.bitcoinsv.jcl.net.protocol.messages.common.Message
 import io.bitcoinsv.jcl.net.protocol.serialization.common.DeserializerContext
 import io.bitcoinsv.jcl.net.protocol.serialization.largeMsgs.BigBlockTxnDeserializer
 import io.bitcoinsv.jcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
+import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader
+import io.bitcoinsv.bitcoinjsv.core.Utils
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import io.bitcoinsv.bitcoinjsv.params.Net
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
 import spock.lang.Specification
@@ -40,7 +36,7 @@ class BigBlockTxnDeserializerTest extends Specification {
                 .build()
 
             ExecutorService executor = Executors.newSingleThreadExecutor()
-        BigBlockTxnDeserializer deserializer = Mockito.spy(new BigBlockTxnDeserializer(executor))
+            BigBlockTxnDeserializer deserializer = Mockito.spy(new BigBlockTxnDeserializer(executor))
 
             byte[] bytes = Utils.HEX.decode(BLOCKTXN_BYTES)
             ByteArrayReader reader = ByteArrayArtificalStreamProducer.stream(bytes, byteInterval, delayMs)
@@ -48,7 +44,9 @@ class BigBlockTxnDeserializerTest extends Specification {
             ArgumentCaptor<Message> messageCapture = new ArgumentCaptor<>()
 
         when:
-            deserializer.deserialize(context, reader)
+            // Dummy Header Msg:
+            HeaderMsg header = new HeaderMsg.HeaderMsgBuilder().command(PartialBlockTxnMsg.MESSAGE_TYPE).build()
+            deserializer.deserializeBody(context, header, reader)
             Mockito.verify(deserializer, Mockito.times(8)).notifyDeserialization(messageCapture.capture())
 
             int fullSizeCount = 0

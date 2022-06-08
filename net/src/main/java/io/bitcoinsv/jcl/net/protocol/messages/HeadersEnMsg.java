@@ -1,13 +1,10 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
+import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,7 +24,7 @@ import java.util.stream.Collectors;
  * - field: "block_header_ enriched" (90+ * MAX_ADDRESS bytes) block_header[]
  *   Array of headeren messages.
  */
-public final class HeadersEnMsg extends Message {
+public final class HeadersEnMsg extends BodyMessage implements Serializable {
     private static final long MAX_ADDRESSES = 2000;
     public static final String MESSAGE_TYPE = "headersen";
 
@@ -39,7 +36,9 @@ public final class HeadersEnMsg extends Message {
      *
      * @param blockHeaderEnMsgList
      */
-    public HeadersEnMsg(List<BlockHeaderEnMsg> blockHeaderEnMsgList) {
+    public HeadersEnMsg(List<BlockHeaderEnMsg> blockHeaderEnMsgList,
+                        byte[] extraBytes, long checksum) {
+        super(extraBytes, checksum);
         this.blockHeaderEnMsgList = blockHeaderEnMsgList.stream().collect(Collectors.toUnmodifiableList());
         this.count = VarIntMsg.builder().value(blockHeaderEnMsgList.size()).build();
         init();
@@ -68,14 +67,12 @@ public final class HeadersEnMsg extends Message {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(count, blockHeaderEnMsgList);
+        return Objects.hashCode(super.hashCode(), count, blockHeaderEnMsgList);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (!super.equals(obj)) { return false; }
         HeadersEnMsg other = (HeadersEnMsg) obj;
         return Objects.equal(this.count, other.count)
                 && Objects.equal(this.blockHeaderEnMsgList, other.blockHeaderEnMsgList);
@@ -89,13 +86,19 @@ public final class HeadersEnMsg extends Message {
         return new HeadersEnMsgBuilder();
     }
 
+    @Override
+    public HeadersEnMsgBuilder toBuilder() {
+        return new HeadersEnMsgBuilder(super.extraBytes, super.checksum).blockHeaderEnMsgList(this.blockHeaderEnMsgList);
+    }
+
     /**
      * Builder
      */
-    public static class HeadersEnMsgBuilder {
+    public static class HeadersEnMsgBuilder extends BodyMessageBuilder {
         private List<BlockHeaderEnMsg> blockHeaderEnMsgList;
 
-        HeadersEnMsgBuilder() {}
+        public HeadersEnMsgBuilder() {}
+        public HeadersEnMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
         public HeadersEnMsg.HeadersEnMsgBuilder blockHeaderEnMsgList(List<BlockHeaderEnMsg> blockHeaderEnMsgList) {
             this.blockHeaderEnMsgList = blockHeaderEnMsgList;
@@ -103,7 +106,7 @@ public final class HeadersEnMsg extends Message {
         }
 
         public HeadersEnMsg build() {
-            return new HeadersEnMsg(blockHeaderEnMsgList);
+            return new HeadersEnMsg(blockHeaderEnMsgList, super.extraBytes, super.checksum);
         }
     }
 }

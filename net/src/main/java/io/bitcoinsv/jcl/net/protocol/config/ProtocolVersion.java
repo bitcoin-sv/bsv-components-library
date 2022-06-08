@@ -1,7 +1,3 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.protocol.config;
 
 /**
@@ -13,16 +9,20 @@ package io.bitcoinsv.jcl.net.protocol.config;
 public enum ProtocolVersion {
     ENABLE_TIMESTAMP_ADDRESS(31402),
     ENABLE_VERSION(31800),
-    CURRENT(70013),
-    ENABLE_RELAY(70001);
+    ENABLE_RELAY(70001),
+    ENABLE_FEE_FILTER(70013),
+    ENABLE_ASSOCIATION_ID(70015),
+    ENABLE_EXT_MSGS(70016),
+    CURRENT(70016)
+    ;
 
-    private final int bitcoinProtocol;
+    private final int version;
     
-    ProtocolVersion(final int bitcoinProtocol) {
-        this.bitcoinProtocol = bitcoinProtocol;
+    ProtocolVersion(final int version) {
+        this.version = version;
     }
-    public int getBitcoinProtocolVersion() {
-        return bitcoinProtocol;
+    public int getVersion() {
+        return version;
     }
 
 }

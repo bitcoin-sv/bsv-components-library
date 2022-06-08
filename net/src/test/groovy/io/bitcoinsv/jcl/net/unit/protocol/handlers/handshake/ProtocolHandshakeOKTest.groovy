@@ -1,12 +1,5 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.net.unit.protocol.handlers.handshake
 
-
-import io.bitcoinsv.bitcoinjsv.params.MainNetParams
-import io.bitcoinsv.bitcoinjsv.params.Net
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolBasicConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigBuilder
@@ -17,6 +10,8 @@ import io.bitcoinsv.jcl.net.protocol.handlers.discovery.DiscoveryHandler
 import io.bitcoinsv.jcl.net.protocol.handlers.pingPong.PingPongHandler
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2P
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2PBuilder
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import io.bitcoinsv.bitcoinjsv.params.Net
 import spock.lang.Ignore
 import spock.lang.Specification
 
@@ -126,6 +121,7 @@ class ProtocolHandshakeOKTest extends Specification {
             AtomicReference<MinHandshakedPeersReachedEvent> reachedEvent = new AtomicReference<>()
             AtomicReference<MinHandshakedPeersLostEvent> lostEvent = new AtomicReference<>()
 
+            server.EVENTS.PEERS.HANDSHAKED.forEach({ e -> println(e)})
             server.EVENTS.PEERS.HANDSHAKED_MIN_REACHED.forEach({ e ->
                 println(" >> Event: Min Handshaked Peers Reached (" + e.getNumPeers() + " peers)")
                 numReachedEvents.incrementAndGet()

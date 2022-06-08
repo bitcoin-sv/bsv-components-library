@@ -1,18 +1,14 @@
-/*
- * Distributed under the Open BSV software license, see the accompanying file LICENSE
- * Copyright (c) 2020 Bitcoin Association
- */
 package io.bitcoinsv.jcl.store.blockChainStore.validation.rules;
 
-import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 import io.bitcoinsv.jcl.store.blockChainStore.BlockChainStore;
 import io.bitcoinsv.jcl.store.blockChainStore.validation.exception.BlockChainRuleFailureException;
 import io.bitcoinsv.jcl.tools.util.PowUtil;
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.extended.ChainInfo;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 import io.bitcoinsv.bitcoinjsv.core.Verification;
 
+
 import java.math.BigInteger;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -76,9 +72,6 @@ public class NewDifficultyAdjustmentAlgorithmRule extends AbstractBlockChainRule
          * influence, we select the median of the 3 top most blocks as a starting
          * point.
          */
-        // TODO: This needs reviewing, now that we support Forks (multiple ChainInfo at a certain height)
-        // NOTE: We assume the are not fork!! If the list of ChainInfos for a certain Height returns more than one Block,
-        // we just take the first one:
         Optional<ChainInfo> blocksAtHeightMinus1 = blockChainStore.getAncestorByHeight(candidateBlockHash, candiateBlockHeight - 1);
         Optional<ChainInfo> blocksAtHeightMinus2 = blockChainStore.getAncestorByHeight(candidateBlockHash, candiateBlockHeight - 2);
         Optional<ChainInfo> blocksAtHeightMinus3 = blockChainStore.getAncestorByHeight(candidateBlockHash, candiateBlockHeight - 3);
