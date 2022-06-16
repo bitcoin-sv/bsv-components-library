@@ -53,16 +53,15 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
     }
 
     public void registerForEvents() {
-        super.eventBus.subscribe(NetStartEvent.class, e -> onNetStart((NetStartEvent) e));
-        ;
-        super.eventBus.subscribe(NetStopEvent.class, e -> onNetStop((NetStopEvent) e));
-        super.eventBus.subscribe(PeerConnectedEvent.class, e -> onPeerConnected((PeerConnectedEvent) e));
-        super.eventBus.subscribe(PeerRejectedEvent.class, e -> onPeerRejected((PeerRejectedEvent) e));
-        super.eventBus.subscribe(PeerHandshakeRejectedEvent.class, e -> onPeerHandshakedRejected((PeerHandshakeRejectedEvent) e));
-        super.eventBus.subscribe(PingPongFailedEvent.class, e -> onPingPongFailed((PingPongFailedEvent) e));
-        super.eventBus.subscribe(BlacklistPeerRequest.class, e -> onBlacklistPeerRequest((BlacklistPeerRequest) e));
-        super.eventBus.subscribe(RemovePeerFromBlacklistRequest.class, e -> onWhitelistPeerRequest((RemovePeerFromBlacklistRequest) e));
-        super.eventBus.subscribe(ClearBlacklistRequest.class, e -> onClearBlacklistRequest((ClearBlacklistRequest) e));
+        super.eventBus.subscribe(NetStartEvent.class,                   e -> onNetStart((NetStartEvent) e));
+        super.eventBus.subscribe(NetStopEvent.class,                    e -> onNetStop((NetStopEvent) e));
+        super.eventBus.subscribe(PeerConnectedEvent.class,              e -> onPeerConnected((PeerConnectedEvent) e));
+        super.eventBus.subscribe(PeerRejectedEvent.class,               e -> onPeerRejected((PeerRejectedEvent) e));
+        super.eventBus.subscribe(PeerHandshakeRejectedEvent.class,      e -> onPeerHandshakedRejected((PeerHandshakeRejectedEvent) e));
+        super.eventBus.subscribe(PingPongFailedEvent.class,             e -> onPingPongFailed((PingPongFailedEvent) e));
+        super.eventBus.subscribe(BlacklistPeerRequest.class,            e -> onBlacklistPeerRequest((BlacklistPeerRequest) e));
+        super.eventBus.subscribe(RemovePeerFromBlacklistRequest.class,  e -> onRemovePeerFromBlacklistRequest((RemovePeerFromBlacklistRequest) e));
+        super.eventBus.subscribe(ClearBlacklistRequest.class,           e -> onClearBlacklistRequest((ClearBlacklistRequest) e));
     }
 
     @Override
@@ -127,7 +126,7 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
     }
 
     // Event Handler:
-    private void onWhitelistPeerRequest(RemovePeerFromBlacklistRequest event) {
+    private void onRemovePeerFromBlacklistRequest(RemovePeerFromBlacklistRequest event) {
         InetAddress ip = event.getAddress();
         BlacklistHostInfo hostInfo = this.handlerInfo.get(ip);
         if (hostInfo != null) {
@@ -160,11 +159,11 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
     }
 
     /**
-     * It updates the State of this Handler
+     * It updates the State of this Handler after blacklisting a new Peer
      *
      * @param newReason Reason of the new Blacklisted Host
      */
-    private synchronized void updateState(PeersBlacklistedEvent.BlacklistReason newReason) {
+    private synchronized void updateStateAddBlacklistedHost(PeersBlacklistedEvent.BlacklistReason newReason) {
         Map<PeersBlacklistedEvent.BlacklistReason, Integer> blacklistedReasons = this.state.getBlacklistedReasons();
         blacklistedReasons.merge(newReason, 1, (oldValue, newValue) -> Math.max(oldValue, newValue) + 1);
         this.state = this.state.toBuilder()
@@ -174,16 +173,34 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
     }
 
     /**
+     * It updates the State of this Handler after removing a Peer from the Blacklist
+     *
+     * @param reason Reason why the removed Host was blacklisted
+     */
+    private synchronized void updateStateRemoveBlacklistedPeer(PeersBlacklistedEvent.BlacklistReason reason) {
+        Map<PeersBlacklistedEvent.BlacklistReason, Integer> blacklistedReasons = this.state.getBlacklistedReasons();
+        blacklistedReasons.merge(reason, 1, (oldValue, newValue) -> Math.max(oldValue, newValue) - 1);
+        this.state = this.state.toBuilder()
+                .numTotalBlacklisted(state.getNumTotalBlacklisted() - 1)
+                .blacklistedReasons(blacklistedReasons)
+                .build();
+    }
+
+    /**
      * It blacklists the Host given for the reason specified.
      * NOTE: The "duration" specified the duration of the blacklist, overriding the one defined in the reason itself.
      */
     private void blacklist(BlacklistHostInfo hostInfo, PeersBlacklistedEvent.BlacklistReason reason, Optional<Duration> duration) {
-        logger.trace(hostInfo.getIp(), "IP Blacklisted", reason);
-        hostInfo.blacklist(reason, duration);
-        // We trigger an Event:
-        PeersBlacklistedEvent event = new PeersBlacklistedEvent(hostInfo.getIp(), reason);
-        super.eventBus.publish(event);
-        updateState(reason);
+        if (hostInfo.isBlacklisted()) {
+            logger.trace(hostInfo.getIp(), "Already blacklisted");
+        } else {
+            logger.trace(hostInfo.getIp(), "IP Blacklisted", reason);
+            hostInfo.blacklist(reason, duration);
+            // We trigger an Event:
+            PeersBlacklistedEvent event = new PeersBlacklistedEvent(hostInfo.getIp(), reason);
+            super.eventBus.publish(event);
+            updateStateAddBlacklistedHost(reason);
+        }
     }
 
     /**
@@ -201,6 +218,8 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
         hostInfos.forEach(h -> h.removeFromBacklist());
         // We publish the event to the Bus:
         super.eventBus.publish(new PeersRemovedFromBlacklistEvent(hostInfos.stream().map(h -> h.getIp()).collect(Collectors.toList())));
+        // We update the State:
+        hostInfos.forEach(h -> updateStateRemoveBlacklistedPeer(h.getBlacklistReason()));
     }
 
     /**

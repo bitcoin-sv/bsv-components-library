@@ -115,6 +115,7 @@ class BlacklistSpec extends Specification {
             println("==============================================================================================")
             println(":: REMOVING ONE PEER FORM THE BLACKLIST...")
             PeerAddress peerToRemove = peersToBlacklist.get(0)
+            println("Removing " + peerToRemove + " from the Blacklist...")
             server.REQUESTS.PEERS.removeFromBlacklist(peerToRemove.ip).submit();
             // We wait a bit, so the event is triggered:
             Thread.sleep(100)
