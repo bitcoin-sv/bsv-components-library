@@ -479,12 +479,8 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Mes
         boolean allBytesMessageReceived         = (bufferSize >= currentHeaderMsg.getMsgLength());
 
 
-        //System.out.println(" TRACE:: " + this.peerAddress + " >> " + buffer.size() + " bytes in buffer, Still looking Body: " + currentHeaderMsg.getMsgCommand() + "...");
-        //log(isThisADedicatedThread, "Reading Body : " + HEX.encode(new ByteArrayReader(buffer).get()));
-
         // If it's a Big Msg but we are not Allowed to do real-time processing, that's an error...
         if (isABigMessage && !realTimeProcessingEnabled) {
-            //buffer.extract((int) bodySize); // We discard the bytes:
             logger.warm(this.peerAddress, "Big Message (" + msgType + " received, but this Stream is NOT allowed to process");
             return processError(isThisADedicatedThread,
                     new RuntimeException("Big Message Received (" + msgType + ") but Not allowed to Process"),
