@@ -61,7 +61,7 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
         super.eventBus.subscribe(PeerHandshakeRejectedEvent.class, e -> onPeerHandshakedRejected((PeerHandshakeRejectedEvent) e));
         super.eventBus.subscribe(PingPongFailedEvent.class, e -> onPingPongFailed((PingPongFailedEvent) e));
         super.eventBus.subscribe(BlacklistPeerRequest.class, e -> onBlacklistPeerRequest((BlacklistPeerRequest) e));
-        super.eventBus.subscribe(WhitelistPeerRequest.class, e -> onWhitelistPeerRequest((WhitelistPeerRequest) e));
+        super.eventBus.subscribe(RemovePeerFromBlacklistRequest.class, e -> onWhitelistPeerRequest((RemovePeerFromBlacklistRequest) e));
         super.eventBus.subscribe(ClearBlacklistRequest.class, e -> onClearBlacklistRequest((ClearBlacklistRequest) e));
     }
 
@@ -127,11 +127,11 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
     }
 
     // Event Handler:
-    private void onWhitelistPeerRequest(WhitelistPeerRequest event) {
+    private void onWhitelistPeerRequest(RemovePeerFromBlacklistRequest event) {
         InetAddress ip = event.getAddress();
         BlacklistHostInfo hostInfo = this.handlerInfo.get(ip);
         if (hostInfo != null) {
-            whitelist(List.of(hostInfo));
+            removeFromBlacklist(List.of(hostInfo));
         }
     }
 
@@ -140,7 +140,7 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
         var whitelist = handlerInfo.values().stream()
             .filter(BlacklistHostInfo::isBlacklisted)
             .collect(Collectors.toList());
-        whitelist(whitelist);
+        removeFromBlacklist(whitelist);
     }
 
     private void loadBlacklistFromDisk() {
@@ -196,11 +196,11 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
     /**
      * It whitelists the Host given, making it eligible again for connection
      */
-    private void whitelist(List<BlacklistHostInfo> hostInfos) {
-        logger.trace("Whitelisting {} Ips...", hostInfos.size());
-        hostInfos.forEach(h -> h.whitelist());
+    private void removeFromBlacklist(List<BlacklistHostInfo> hostInfos) {
+        logger.trace("Removing from Blacklist {} Ips...", hostInfos.size());
+        hostInfos.forEach(h -> h.removeFromBacklist());
         // We publish the event to the Bus:
-        super.eventBus.publish(new PeersWhitelistedEvent(hostInfos.stream().map(h -> h.getIp()).collect(Collectors.toList())));
+        super.eventBus.publish(new PeersRemovedFromBlacklistEvent(hostInfos.stream().map(h -> h.getIp()).collect(Collectors.toList())));
     }
 
     /**
@@ -260,7 +260,7 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
             List<BlacklistHostInfo> hostsToWhitelist = handlerInfo.values().stream()
                 .filter(h -> h.isBlacklistExpired())
                 .collect(Collectors.toList());
-            whitelist(hostsToWhitelist);
+            removeFromBlacklist(hostsToWhitelist);
             long numBlacklistedAfter = handlerInfo.values().stream().filter(h -> h.isBlacklisted()).count();
             logger.debug("Blacklist reviewed: " + (numBlacklisted - numBlacklistedAfter) + " IPs have been WHITELISTED.");
         } catch (Exception e) {

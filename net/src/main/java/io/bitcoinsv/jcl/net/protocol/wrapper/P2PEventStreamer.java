@@ -3,10 +3,7 @@ package io.bitcoinsv.jcl.net.protocol.wrapper;
 import io.bitcoinsv.jcl.net.network.events.*;
 import io.bitcoinsv.jcl.net.protocol.events.control.*;
 import io.bitcoinsv.jcl.net.protocol.events.data.*;
-import io.bitcoinsv.jcl.net.network.events.*;
 import io.bitcoinsv.jcl.net.network.handlers.NetworkHandlerState;
-import io.bitcoinsv.jcl.net.protocol.events.control.*;
-import io.bitcoinsv.jcl.net.protocol.events.data.*;
 import io.bitcoinsv.jcl.net.protocol.handlers.blacklist.BlacklistHandlerState;
 import io.bitcoinsv.jcl.net.protocol.handlers.block.BlockDownloaderHandlerState;
 import io.bitcoinsv.jcl.net.protocol.handlers.discovery.DiscoveryHandlerState;
@@ -70,12 +67,12 @@ public class P2PEventStreamer {
      */
     public class PeersEventStreamer extends BaseEventStreamer {
         public PeersEventStreamer(int numThreads) { super(numThreads);}
-        public final EventStreamer<PeerConnectedEvent>          CONNECTED       = new EventStreamer<>(eventBus, PeerConnectedEvent.class, numThreads);
-        public final EventStreamer<PeerDisconnectedEvent>       DISCONNECTED    = new EventStreamer<>(eventBus, PeerDisconnectedEvent.class, numThreads);
-        public final EventStreamer<PingPongFailedEvent>         PINGPONG_FAILED = new EventStreamer<>(eventBus, PingPongFailedEvent.class, numThreads);
-        public final EventStreamer<PeersBlacklistedEvent>       BLACKLISTED     = new EventStreamer<>(eventBus, PeersBlacklistedEvent.class, numThreads);
-        public final EventStreamer<PeersWhitelistedEvent>       WHITELISTED     = new EventStreamer<>(eventBus, PeersWhitelistedEvent.class, numThreads);
-        public final EventStreamer<PeerHandshakedEvent>         HANDSHAKED      = new EventStreamer<>(eventBus, PeerHandshakedEvent.class, numThreads);
+        public final EventStreamer<PeerConnectedEvent>              CONNECTED                   = new EventStreamer<>(eventBus, PeerConnectedEvent.class, numThreads);
+        public final EventStreamer<PeerDisconnectedEvent>           DISCONNECTED                = new EventStreamer<>(eventBus, PeerDisconnectedEvent.class, numThreads);
+        public final EventStreamer<PingPongFailedEvent>             PINGPONG_FAILED             = new EventStreamer<>(eventBus, PingPongFailedEvent.class, numThreads);
+        public final EventStreamer<PeersBlacklistedEvent>           BLACKLISTED                 = new EventStreamer<>(eventBus, PeersBlacklistedEvent.class, numThreads);
+        public final EventStreamer<PeersRemovedFromBlacklistEvent>  REMOVED_FROM_BLACKLIST      = new EventStreamer<>(eventBus, PeersRemovedFromBlacklistEvent.class, numThreads);
+        public final EventStreamer<PeerHandshakedEvent>             HANDSHAKED                  = new EventStreamer<>(eventBus, PeerHandshakedEvent.class, numThreads);
         public final EventStreamer<PeerHandshakedDisconnectedEvent> HANDSHAKED_DISCONNECTED     = new EventStreamer<>(eventBus, PeerHandshakedDisconnectedEvent.class, numThreads);
         public final EventStreamer<PeerHandshakeRejectedEvent>      HANDSHAKED_REJECTED         = new EventStreamer<>(eventBus, PeerHandshakeRejectedEvent.class, numThreads);
         public final EventStreamer<MinHandshakedPeersReachedEvent>  HANDSHAKED_MIN_REACHED      = new EventStreamer<>(eventBus, MinHandshakedPeersReachedEvent.class, numThreads);

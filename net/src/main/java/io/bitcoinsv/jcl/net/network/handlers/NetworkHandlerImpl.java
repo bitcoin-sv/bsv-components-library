@@ -6,7 +6,6 @@ import io.bitcoinsv.jcl.net.network.config.NetworkConfig;
 import io.bitcoinsv.jcl.net.network.config.NetworkConfigImpl;
 import io.bitcoinsv.jcl.net.network.events.*;
 
-import io.bitcoinsv.jcl.net.network.events.*;
 import io.bitcoinsv.jcl.net.network.streams.StreamCloseEvent;
 import io.bitcoinsv.jcl.net.network.streams.nio.NIOInputStream;
 import io.bitcoinsv.jcl.net.network.streams.nio.NIOOutputStream;
@@ -315,7 +314,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         }
     }
 
-    public void whitelist(List<InetAddress> ipAddresses) {
+    public void removeFromBlacklist(List<InetAddress> ipAddresses) {
         if (ipAddresses == null) return;
         try {
             lock.writeLock().lock();
@@ -353,16 +352,14 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
 
     // We register this calss to LISTEN for some Events that might be published by another Hndlers.
     public void registerForEvents() {
-        eventBus.subscribe(DisconnectPeerRequest.class,     e -> onDisconnectPeerRequest((DisconnectPeerRequest) e));
-        eventBus.subscribe(ConnectPeerRequest.class,        e -> onConnectPeerRequest((ConnectPeerRequest) e));
-        eventBus.subscribe(ConnectPeersRequest.class, e -> onConnectPeersRequest((ConnectPeersRequest) e));
-        eventBus.subscribe(PeersBlacklistedEvent.class,     e -> onPeersBlacklisted((PeersBlacklistedEvent) e));
-        eventBus.subscribe(PeersWhitelistedEvent.class, e -> onPeersWhitelisted((PeersWhitelistedEvent) e));
-        eventBus.subscribe(ResumeConnectingRequest.class,   e -> onResumeConnecting((ResumeConnectingRequest) e));
-        eventBus.subscribe(StopConnectingRequest.class,     e -> onStopConnecting((StopConnectingRequest) e));
-        eventBus.subscribe(DisconnectPeersRequest.class,    e -> onDisconnectPeers((DisconnectPeersRequest) e));
-        eventBus.subscribe(BlacklistPeerRequest.class,      e -> onBlacklistPeer((BlacklistPeerRequest) e));
-
+        eventBus.subscribe(DisconnectPeerRequest.class,             e -> onDisconnectPeerRequest((DisconnectPeerRequest) e));
+        eventBus.subscribe(ConnectPeerRequest.class,                e -> onConnectPeerRequest((ConnectPeerRequest) e));
+        eventBus.subscribe(ConnectPeersRequest.class,               e -> onConnectPeersRequest((ConnectPeersRequest) e));
+        eventBus.subscribe(PeersBlacklistedEvent.class,             e -> onPeersBlacklisted((PeersBlacklistedEvent) e));
+        eventBus.subscribe(PeersRemovedFromBlacklistEvent.class,    e -> onPeersRemovedFromBlacklist((PeersRemovedFromBlacklistEvent) e));
+        eventBus.subscribe(ResumeConnectingRequest.class,           e -> onResumeConnecting((ResumeConnectingRequest) e));
+        eventBus.subscribe(StopConnectingRequest.class,             e -> onStopConnecting((StopConnectingRequest) e));
+        eventBus.subscribe(DisconnectPeersRequest.class,            e -> onDisconnectPeers((DisconnectPeersRequest) e));
     }
 
     // Event Handlers:
@@ -370,7 +367,8 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     private void onConnectPeerRequest(ConnectPeerRequest request)        { this.connect(request.getPeerAddres()); }
     private void onConnectPeersRequest(ConnectPeersRequest request)      { this.connect(request.getPeerAddressList()); }
     private void onPeersBlacklisted(PeersBlacklistedEvent event)         { this.blacklist(event.getInetAddresses());}
-    private void onPeersWhitelisted(PeersWhitelistedEvent event)         { this.whitelist(event.getInetAddresses());}
+    private void onPeersRemovedFromBlacklist(PeersRemovedFromBlacklistEvent event)
+                                                                         { this.removeFromBlacklist(event.getInetAddresses());}
 
     private void onResumeConnecting(ResumeConnectingRequest request) {
         if (super.state().equals(State.STARTING) || super.state().equals(State.STOPPING)) return;
@@ -390,10 +388,6 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         if (request.getPeersToKeep() != null) {
             this.disconnectAllExcept(request.getPeersToKeep());
         }
-    }
-
-    private void onBlacklistPeer(BlacklistPeerRequest request) {
-        this.blacklist(request.getAddress(), PeersBlacklistedEvent.BlacklistReason.CLIENT);
     }
 
     @Override

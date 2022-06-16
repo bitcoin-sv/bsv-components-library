@@ -9,12 +9,12 @@ import java.net.InetAddress;
  * Copyright (c) 2018-2022 Bitcoin Association
  * Distributed under the Open BSV software license, see the accompanying file LICENSE.
  * <p>
- * A Request to Whitelist a Peer
+ * A Request to Remove a Peer from the Blacklist
  */
-public final class WhitelistPeerRequest extends P2PRequest {
+public final class RemovePeerFromBlacklistRequest extends P2PRequest {
     private final InetAddress address;
 
-    public WhitelistPeerRequest(InetAddress address) {
+    public RemovePeerFromBlacklistRequest(InetAddress address) {
         this.address = address;
     }
 
@@ -30,7 +30,7 @@ public final class WhitelistPeerRequest extends P2PRequest {
     @Override
     public boolean equals(Object obj) {
         if (!super.equals(obj)) { return false; }
-        WhitelistPeerRequest other = (WhitelistPeerRequest) obj;
+        RemovePeerFromBlacklistRequest other = (RemovePeerFromBlacklistRequest) obj;
         return Objects.equal(this.address, other.address);
     }
 

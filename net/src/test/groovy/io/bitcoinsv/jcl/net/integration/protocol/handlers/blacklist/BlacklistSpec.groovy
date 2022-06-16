@@ -15,7 +15,7 @@ import java.util.stream.Collectors
 import java.util.stream.IntStream
 
 /**
- * Testing scenarios for Blacklisting/Whitelisting Remote Peers
+ * Testing scenarios for Blacklisting/Removing from Blacklist Remote Peers
  */
 @Ignore
 class BlacklistSpec extends Specification {
@@ -24,11 +24,11 @@ class BlacklistSpec extends Specification {
      * We launch the P2P Service, and keep track of the Peers we connect to.
      * Then we perform differnet operations:
      * - We blacklist some Peers.
-     * - We whitelist the ONE of previous peer.
+     * - We remove from the Blacklist the ONE of previous peer.
      * - We Clear the Blacklist
      *
      */
-    def "testing blacklisting/whitelisting"() {
+    def "testing blacklisting/removing from Blacklist"() {
         given:
             // We limit the number of Peer we want to connect to:
             final int MIN_PEERS = 5
@@ -47,11 +47,11 @@ class BlacklistSpec extends Specification {
                     .build()
 
             // We keep track of the Peer we connect to:
-            List<PeerAddress> peersConnected = Collections.synchronizedList(new ArrayList<PeerAddress>())
-            List<PeerAddress> peersDisconnected = Collections.synchronizedList(new ArrayList<PeerAddress>())
-            Set<InetAddress>  peersBlacklisted = Collections.synchronizedSet(new HashSet<InetAddress>());
-            Set<InetAddress>  peersWhitelisted = Collections.synchronizedSet(new HashSet<InetAddress>());
-            AtomicBoolean     maxPeersReached = new AtomicBoolean()
+            List<PeerAddress> peersConnected            = Collections.synchronizedList(new ArrayList<PeerAddress>())
+            List<PeerAddress> peersDisconnected         = Collections.synchronizedList(new ArrayList<PeerAddress>())
+            Set<InetAddress>  peersBlacklisted          = Collections.synchronizedSet(new HashSet<InetAddress>());
+            Set<InetAddress>  peersRemovedFromBlacklist = Collections.synchronizedSet(new HashSet<InetAddress>());
+            AtomicBoolean     maxPeersReached           = new AtomicBoolean()
 
             server.EVENTS.PEERS.HANDSHAKED_MAX_REACHED.forEach({ e ->
                 maxPeersReached.set(true)
@@ -70,11 +70,11 @@ class BlacklistSpec extends Specification {
             server.EVENTS.PEERS.BLACKLISTED.forEach({ e ->
                 println(" > Blacklisted peer: " + e.inetAddresses)
                 peersBlacklisted.addAll(e.inetAddresses.keySet());
-                peersWhitelisted.removeAll(e.inetAddresses.keySet());
+                peersRemovedFromBlacklist.removeAll(e.inetAddresses.keySet());
             })
-            server.EVENTS.PEERS.WHITELISTED.forEach({ e ->
-                println(" > Whitelisted peer: " + e.inetAddresses)
-                peersWhitelisted.addAll(e.inetAddresses)
+            server.EVENTS.PEERS.REMOVED_FROM_BLACKLIST.forEach({ e ->
+                println(" > Peer removed from blacklist: " + e.inetAddresses)
+                peersRemovedFromBlacklist.addAll(e.inetAddresses)
                 peersBlacklisted.removeAll(e.inetAddresses);
             })
 
@@ -109,35 +109,36 @@ class BlacklistSpec extends Specification {
 
 
             // -----------------------------------------------------------------------------------------------------
-            // We whitelist one of the Peers previously blacklisted. The P2P service should have enough Peers already
-            // so it won't try to connect to more peers just yet, but the Whitelist event will be triggered.
+            // We remove from the Blacklist one of the Peers previously blacklisted. The P2P service should have enough
+            // Peers already so it won't try to connect to more peers just yet, but the "RemoveFromBlacklist"" event
+            // will be triggered.
             println("==============================================================================================")
-            println(":: WHITELISTING ONE PEER...")
-            PeerAddress peerToWhitelist = peersToBlacklist.get(0)
-            server.REQUESTS.PEERS.whitelist(peerToWhitelist.ip).submit();
+            println(":: REMOVING ONE PEER FORM THE BLACKLIST...")
+            PeerAddress peerToRemove = peersToBlacklist.get(0)
+            server.REQUESTS.PEERS.removeFromBlacklist(peerToRemove.ip).submit();
             // We wait a bit, so the event is triggered:
             Thread.sleep(100)
-            boolean singlePeerWhitelisted = peersWhitelisted.contains(peerToWhitelist.ip) && !peersBlacklisted.contains(peerToWhitelist.getIp())
+            boolean singlePeerRemoved = peersRemovedFromBlacklist.contains(peerToRemove.ip) && !peersBlacklisted.contains(peerToRemove.getIp())
 
             // -----------------------------------------------------------------------------------------------------
-            // We Clear the blacklist. Several whitelist Events should be triggered at this point. These events should
-            // contain references to the Peers previously blacklisted, but they might also contain references to other
-            // Peers that have been blacklisted by the P2P service on startup. So here we just check that at least
-            // the Peers whitelisted include the ones manually blacklisted in this test.
+            // We Clear the blacklist. Several "RemoveFromBlacklist"" Events should be triggered at this point.
+            // These events should contain references to the Peers previously blacklisted, but they might also contain
+            // references to other Peers that have been blacklisted by the P2P service on startup. So here we just
+            // check that at least the Peers removed from the blacklist include the ones manually blacklisted in this test.
             println("==============================================================================================")
             println(":: CLEARING BLACKLIST...")
             server.REQUESTS.PEERS.clearBlacklist().submit()
             // We wait a bit so the events are triggered:
             Thread.sleep(100)
             boolean blacklistCleared =  peersToBlacklist.stream().allMatch({ p -> !peersBlacklisted.contains(p.ip)}) &&
-                                        peersToBlacklist.stream().allMatch({ p -> peersWhitelisted.contains(p.ip)})
+                                        peersToBlacklist.stream().allMatch({ p -> peersRemovedFromBlacklist.contains(p.ip)})
 
             // And we are Done.
             server.stop()
 
         then:
             peersBlacklistedOK
-            singlePeerWhitelisted
+            singlePeerRemoved
             blacklistCleared
     }
 }

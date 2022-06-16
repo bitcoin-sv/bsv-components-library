@@ -17,7 +17,6 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 /**
  * @author i.fernandez@nchain.com
@@ -128,19 +127,19 @@ public class P2PRequestHandler {
     /**
      * A Builder for WhitelistPeerRequest
      */
-    public class WhitelistPeerRequestBuilder extends RequestBuilder {
+    public class RemovePeerFromBlacklistRequestBuilder extends RequestBuilder {
         private final InetAddress address;
 
-        public WhitelistPeerRequestBuilder(PeerAddress peerAddress) {
+        public RemovePeerFromBlacklistRequestBuilder(PeerAddress peerAddress) {
             this.address = peerAddress.getIp();
         }
 
-        public WhitelistPeerRequestBuilder(InetAddress address) {
+        public RemovePeerFromBlacklistRequestBuilder(InetAddress address) {
             this.address = address;
         }
 
-        public WhitelistPeerRequest buildRequest() {
-            return new WhitelistPeerRequest(address);
+        public RemovePeerFromBlacklistRequest buildRequest() {
+            return new RemovePeerFromBlacklistRequest(address);
         }
     }
 
@@ -216,8 +215,8 @@ public class P2PRequestHandler {
         public BlacklistPeerRequestBuilder blacklist(InetAddress address) {
             return new BlacklistPeerRequestBuilder(address);
         }
-        public WhitelistPeerRequestBuilder whitelist(InetAddress address) {
-            return new WhitelistPeerRequestBuilder(address);
+        public RemovePeerFromBlacklistRequestBuilder removeFromBlacklist(InetAddress address) {
+            return new RemovePeerFromBlacklistRequestBuilder(address);
         }
         public ClearBlacklistRequestBuilder clearBlacklist() {
             return new ClearBlacklistRequestBuilder();

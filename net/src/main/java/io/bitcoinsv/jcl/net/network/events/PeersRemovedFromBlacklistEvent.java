@@ -12,19 +12,19 @@ import java.util.List;
  *
  * An event triggered when a set of IP Addresses has been whitelisted (back to business again)
  */
-public final class PeersWhitelistedEvent extends P2PEvent {
+public final class PeersRemovedFromBlacklistEvent extends P2PEvent {
     private final List<InetAddress> inetAddresses;
 
-    public PeersWhitelistedEvent(List<InetAddress> inetAddresses) {
+    public PeersRemovedFromBlacklistEvent(List<InetAddress> inetAddresses) {
         this.inetAddresses = inetAddresses;
     }
 
     @Override
     public String toString() {
-        return "Event[Peer Whitelisted]: "
+        return "Event[Peer Removed from Blacklist]: "
                 + ((inetAddresses.size() == 1)
                     ? inetAddresses.get(0).toString()
-                    : inetAddresses.size() + " IPs whitelisted");
+                    : inetAddresses.size() + " IPs removed");
     }
 
     public List<InetAddress> getInetAddresses() {
@@ -34,7 +34,7 @@ public final class PeersWhitelistedEvent extends P2PEvent {
     @Override
     public boolean equals(Object obj) {
         if (!super.equals(obj)) { return false; }
-        PeersWhitelistedEvent other = (PeersWhitelistedEvent) obj;
+        PeersRemovedFromBlacklistEvent other = (PeersRemovedFromBlacklistEvent) obj;
         return Objects.equal(this.inetAddresses, other.inetAddresses);
     }
 
