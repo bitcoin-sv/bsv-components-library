@@ -72,6 +72,8 @@ public class P2PEventStreamer {
         public final EventStreamer<PingPongFailedEvent>             PINGPONG_FAILED             = new EventStreamer<>(eventBus, PingPongFailedEvent.class, numThreads);
         public final EventStreamer<PeersBlacklistedEvent>           BLACKLISTED                 = new EventStreamer<>(eventBus, PeersBlacklistedEvent.class, numThreads);
         public final EventStreamer<PeersRemovedFromBlacklistEvent>  REMOVED_FROM_BLACKLIST      = new EventStreamer<>(eventBus, PeersRemovedFromBlacklistEvent.class, numThreads);
+        public final EventStreamer<PeersWhitelistedEvent>           WHITELISTED                 = new EventStreamer<>(eventBus, PeersWhitelistedEvent.class, numThreads);
+        public final EventStreamer<PeersRemovedFromWhitelistEvent>  REMOVED_FROM_WHITELIST      = new EventStreamer<>(eventBus, PeersRemovedFromWhitelistEvent.class, numThreads);
         public final EventStreamer<PeerHandshakedEvent>             HANDSHAKED                  = new EventStreamer<>(eventBus, PeerHandshakedEvent.class, numThreads);
         public final EventStreamer<PeerHandshakedDisconnectedEvent> HANDSHAKED_DISCONNECTED     = new EventStreamer<>(eventBus, PeerHandshakedDisconnectedEvent.class, numThreads);
         public final EventStreamer<PeerHandshakeRejectedEvent>      HANDSHAKED_REJECTED         = new EventStreamer<>(eventBus, PeerHandshakeRejectedEvent.class, numThreads);

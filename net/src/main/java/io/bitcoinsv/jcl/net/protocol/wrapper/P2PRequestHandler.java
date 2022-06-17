@@ -124,8 +124,49 @@ public class P2PRequestHandler {
         }
     }
 
+    /** A Builder for WhitelistPeerRequest */
+    public class WhitelistPeerRequestBuilder extends RequestBuilder {
+        private InetAddress address;
+
+        public WhitelistPeerRequestBuilder(InetAddress peerAddress) {
+            this.address = peerAddress;
+        }
+
+        public WhitelistPeerRequest buildRequest() {
+            return new WhitelistPeerRequest(address);
+        }
+    }
+
     /**
-     * A Builder for WhitelistPeerRequest
+     * A Builder for RemovePeerFromWhitelistRequest
+     */
+    public class RemovePeerFromWhitelistRequestBuilder extends RequestBuilder {
+        private final InetAddress address;
+
+        public RemovePeerFromWhitelistRequestBuilder(PeerAddress peerAddress) {
+            this.address = peerAddress.getIp();
+        }
+
+        public RemovePeerFromWhitelistRequestBuilder(InetAddress address) {
+            this.address = address;
+        }
+
+        public RemovePeerFromWhitelistRequest buildRequest() {
+            return new RemovePeerFromWhitelistRequest(address);
+        }
+    }
+
+    /**
+     * A Builder for ClearWhitelistRequest
+     */
+    public class ClearWhitelistRequestBuilder extends RequestBuilder {
+        public ClearWhitelistRequest buildRequest() {
+            return new ClearWhitelistRequest();
+        }
+    }
+
+    /**
+     * A Builder for RemovePeerFromBlacklistRequest
      */
     public class RemovePeerFromBlacklistRequestBuilder extends RequestBuilder {
         private final InetAddress address;
@@ -221,9 +262,21 @@ public class P2PRequestHandler {
         public ClearBlacklistRequestBuilder clearBlacklist() {
             return new ClearBlacklistRequestBuilder();
         }
+
         public EnablePeerBigMessagesRequestBuilder enableBigMessages(PeerAddress peerAddress) {
             return new EnablePeerBigMessagesRequestBuilder(peerAddress);
         }
+
+        public WhitelistPeerRequestBuilder whitelist(InetAddress address) {
+            return new WhitelistPeerRequestBuilder(address);
+        }
+
+        public RemovePeerFromWhitelistRequestBuilder removeFromWhitelist(InetAddress address) {
+            return new RemovePeerFromWhitelistRequestBuilder(address);
+        }
+
+        public ClearWhitelistRequestBuilder clearWhitelist() { return new ClearWhitelistRequestBuilder();}
+
         public EnablePeerBigMessagesRequestBuilder enableBigMessages(String peerAddressStr) {
             try {
                 return new EnablePeerBigMessagesRequestBuilder(PeerAddress.fromIp(peerAddressStr));

@@ -5,16 +5,16 @@ import com.google.common.base.Objects;
 import java.net.InetAddress;
 
 /**
- * @author j.pomer@nchain.com
+ * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2022 Bitcoin Association
  * Distributed under the Open BSV software license, see the accompanying file LICENSE.
  * <p>
- * A Request to Remove a Peer from the Blacklist
+ * A Request to Remove a Peer from the Whitelist
  */
-public final class RemovePeerFromBlacklistRequest extends P2PRequest {
+public final class RemovePeerFromWhitelistRequest extends P2PRequest {
     private final InetAddress address;
 
-    public RemovePeerFromBlacklistRequest(InetAddress address) {
+    public RemovePeerFromWhitelistRequest(InetAddress address) {
         this.address = address;
     }
 
@@ -24,13 +24,13 @@ public final class RemovePeerFromBlacklistRequest extends P2PRequest {
 
     @Override
     public String toString() {
-        return "RemovePeerFromBlacklistRequest(peerAddress=" + address + ")";
+        return "RemovePeerFromWhitelistRequest(peerAddress=" + address + ")";
     }
 
     @Override
     public boolean equals(Object obj) {
         if (!super.equals(obj)) { return false; }
-        RemovePeerFromBlacklistRequest other = (RemovePeerFromBlacklistRequest) obj;
+        RemovePeerFromWhitelistRequest other = (RemovePeerFromWhitelistRequest) obj;
         return Objects.equal(this.address, other.address);
     }
 
