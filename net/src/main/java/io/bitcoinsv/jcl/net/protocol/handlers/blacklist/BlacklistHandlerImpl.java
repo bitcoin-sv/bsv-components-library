@@ -27,6 +27,10 @@ import java.util.stream.Collectors;
  * Copyright (c) 2018-2020 nChain Ltd
  *
  * Implementation of a Blacklist Handler
+ *
+ * NOTE: This Handler Keeps a Reference to every single Peer JCL has tried to connect or connected to. Even if JCL
+ * crops the connections, we stil keep the reference to that peer, since we need to keep track of several metrics like
+ * number of connections/reconnections, in order to determine if the Peers has to be blacklisted or not.
  */
 public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHostInfo> implements BlacklistHandler {
 
@@ -136,10 +140,10 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
 
     // Event Handler:
     private void onClearBlacklistRequest(ClearBlacklistRequest request) {
-        var whitelist = handlerInfo.values().stream()
+        var peersToRemove = handlerInfo.values().stream()
             .filter(BlacklistHostInfo::isBlacklisted)
             .collect(Collectors.toList());
-        removeFromBlacklist(whitelist);
+        removeFromBlacklist(peersToRemove);
     }
 
     private void loadBlacklistFromDisk() {
@@ -200,6 +204,8 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
             PeersBlacklistedEvent event = new PeersBlacklistedEvent(hostInfo.getIp(), reason);
             super.eventBus.publish(event);
             updateStateAddBlacklistedHost(reason);
+            // We remove it from the Whitelist, if its there:
+            super.eventBus.publish(new RemovePeerFromWhitelistRequest(hostInfo.getIp()));
         }
     }
 
@@ -213,13 +219,18 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
     /**
      * It whitelists the Host given, making it eligible again for connection
      */
-    private void removeFromBlacklist(List<BlacklistHostInfo> hostInfos) {
+    private synchronized void removeFromBlacklist(List<BlacklistHostInfo> hostInfos) {
         logger.trace("Removing from Blacklist {} Ips...", hostInfos.size());
-        hostInfos.forEach(h -> h.removeFromBacklist());
-        // We publish the event to the Bus:
-        super.eventBus.publish(new PeersRemovedFromBlacklistEvent(hostInfos.stream().map(h -> h.getIp()).collect(Collectors.toList())));
-        // We update the State:
-        hostInfos.forEach(h -> updateStateRemoveBlacklistedPeer(h.getBlacklistReason()));
+        // We only remove those that are actually blacklisted:
+        List<BlacklistHostInfo> hostsToRemove = hostInfos.stream().filter(h -> h.isBlacklisted()).collect(Collectors.toList());
+        if (!hostsToRemove.isEmpty()) {
+            hostsToRemove.forEach(h -> h.removeFromBacklist());
+            // We publish the event to the Bus:
+            super.eventBus.publish(new PeersRemovedFromBlacklistEvent(hostsToRemove.stream().map(h -> h.getIp()).collect(Collectors.toList())));
+            // We update the State:
+            hostsToRemove.forEach(h -> updateStateRemoveBlacklistedPeer(h.getBlacklistReason()));
+            logger.trace("{} Removed from Blacklist", hostInfos.size());
+        }
     }
 
     /**

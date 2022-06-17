@@ -60,29 +60,24 @@ class BlacklistSpec extends Specification {
             server.EVENTS.PEERS.HANDSHAKED.forEach({e ->
                 println(" > Connected to " + e.peerAddress)
                 peersConnected.add(e.peerAddress)
-                peersDisconnected.remove(e.peerAddress)
             })
             server.EVENTS.PEERS.DISCONNECTED.forEach({e ->
                 println(" > Disconnected from " + e.peerAddress)
                 peersDisconnected.add(e.peerAddress)
-                peersConnected.remove(e.peerAddress)
             })
             server.EVENTS.PEERS.BLACKLISTED.forEach({ e ->
                 println(" > Blacklisted peer: " + e.inetAddresses)
                 peersBlacklisted.addAll(e.inetAddresses.keySet());
-                peersRemovedFromBlacklist.removeAll(e.inetAddresses.keySet());
             })
             server.EVENTS.PEERS.REMOVED_FROM_BLACKLIST.forEach({ e ->
                 println(" > Peer removed from blacklist: " + e.inetAddresses)
                 peersRemovedFromBlacklist.addAll(e.inetAddresses)
-                peersBlacklisted.removeAll(e.inetAddresses);
             })
 
         when:
             // We start the Service. The Discovery Handler will load an initial set of Peers and the service will
             // automatically starts connecting to them...
             server.start()
-            Thread.sleep(20000)
 
             // We wait until we connect to MAX_PEERS:
             while (!maxPeersReached.get()) {Thread.sleep(500)}
@@ -103,7 +98,7 @@ class BlacklistSpec extends Specification {
                 server.REQUESTS.PEERS.blacklist(peerAddress.getIp()).submit()
             }
 
-            // We wait a bit, during this time all the Peers should be Blacklisted and Disconnected...
+            // We wait a bit, so events and handlers are triggered...
             Thread.sleep(1000)
             boolean peersBlacklistedOK = peersToBlacklist.stream().allMatch({ p -> peersDisconnected.contains(p)})
 
@@ -117,9 +112,9 @@ class BlacklistSpec extends Specification {
             PeerAddress peerToRemove = peersToBlacklist.get(0)
             println("Removing " + peerToRemove + " from the Blacklist...")
             server.REQUESTS.PEERS.removeFromBlacklist(peerToRemove.ip).submit();
-            // We wait a bit, so the event is triggered:
+            // We wait a bit, so events and handlers are triggered...
             Thread.sleep(100)
-            boolean singlePeerRemoved = peersRemovedFromBlacklist.contains(peerToRemove.ip) && !peersBlacklisted.contains(peerToRemove.getIp())
+            boolean singlePeerRemoved = peersRemovedFromBlacklist.contains(peerToRemove.ip)
 
             // -----------------------------------------------------------------------------------------------------
             // We Clear the blacklist. Several "RemoveFromBlacklist"" Events should be triggered at this point.
@@ -129,10 +124,9 @@ class BlacklistSpec extends Specification {
             println("==============================================================================================")
             println(":: CLEARING BLACKLIST...")
             server.REQUESTS.PEERS.clearBlacklist().submit()
-            // We wait a bit so the events are triggered:
+            // We wait a bit, so events and handlers are triggered...
             Thread.sleep(100)
-            boolean blacklistCleared =  peersToBlacklist.stream().allMatch({ p -> !peersBlacklisted.contains(p.ip)}) &&
-                                        peersToBlacklist.stream().allMatch({ p -> peersRemovedFromBlacklist.contains(p.ip)})
+            boolean blacklistCleared =  peersToBlacklist.stream().allMatch({ p -> peersRemovedFromBlacklist.contains(p.ip)})
 
             // And we are Done.
             server.stop()
