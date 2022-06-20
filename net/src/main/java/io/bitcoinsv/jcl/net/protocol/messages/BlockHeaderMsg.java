@@ -2,6 +2,7 @@ package io.bitcoinsv.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
+import io.bitcoinsv.bitcoinjsv.core.Utils;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly;
 
@@ -23,6 +24,7 @@ public final class BlockHeaderMsg extends BodyMessage implements Serializable {
     private BlockHeaderSimpleMsg blockHeaderSimpleMsg;
     private final VarIntMsg transactionCount;
 
+    /** Constructor */
     public BlockHeaderMsg(Sha256Hash hash, long version, HashMsg prevBlockHash, HashMsg merkleRoot,
                           long creationTimestamp, long difficultyTarget, long nonce, VarIntMsg transactionCount,
                           byte[] extraBytes, long checksum) {
@@ -30,6 +32,13 @@ public final class BlockHeaderMsg extends BodyMessage implements Serializable {
         this.blockHeaderSimpleMsg = new BlockHeaderSimpleMsg(hash, version, prevBlockHash, merkleRoot, creationTimestamp, difficultyTarget, nonce);
         this.transactionCount = ofNullable(transactionCount).orElse(VarIntMsg.builder().value(0).build());
         init();
+    }
+
+    /** Constructor */
+    public BlockHeaderMsg(BlockHeaderSimpleMsg blockHeaderSimpleMsg, VarIntMsg transactionCount) {
+        super(Utils.EMPTY_BYTE_ARRAY, 0); // checksum will be overwritten during Serialization
+        this.blockHeaderSimpleMsg = blockHeaderSimpleMsg;
+        this.transactionCount = transactionCount;
     }
 
     public static BlockHeaderMsgBuilder builder() {
@@ -55,6 +64,15 @@ public final class BlockHeaderMsg extends BodyMessage implements Serializable {
      */
     public HeaderReadOnly toBean() {
         return blockHeaderSimpleMsg.toBean();
+    }
+
+    /**
+     * Returns a Msg class out of a Bean class
+     */
+    public static BlockHeaderMsg fromBean(HeaderReadOnly header, long numTxs) {
+        BlockHeaderSimpleMsg blockHeaderSimpleMsg = BlockHeaderSimpleMsg.fromBean(header);
+        BlockHeaderMsg result = new BlockHeaderMsg(blockHeaderSimpleMsg, VarIntMsg.builder().value(numTxs).build());
+        return result;
     }
 
     @Override
