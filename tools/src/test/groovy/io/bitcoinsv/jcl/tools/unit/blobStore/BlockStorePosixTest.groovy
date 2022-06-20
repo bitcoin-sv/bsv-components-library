@@ -3,6 +3,7 @@ package io.bitcoinsv.jcl.tools.unit.blobStore
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.Tx
 import io.bitcoinsv.bitcoinjsv.bitcoin.bean.base.FullBlockBean
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
 import io.bitcoinsv.jcl.tools.blobStore.BlockStorePosix
 import io.bitcoinsv.jcl.tools.blobStore.BlockStorePosixConfig
 
@@ -231,6 +232,87 @@ class BlockStorePosixTest extends Specification {
         totalBytes.get() == (long)batchSize * totalBatches;
         blockStorePosix.readBlockHeader(block.getHash()) == block
         blockStorePosix.getBlockSize(block.getHash()) == HeaderReadOnly.FIXED_MESSAGE_SIZE + totalBytes.get() + 1 //1 byte for VarInt numberOfTxs
+
+        blockStorePosix.removeBlock(block.getHash())
+        blockStorePosix.containsBlock(block.getHash()) == false
+
+        cleanup:
+        blockStorePosix.clear()
+    }
+
+    def "test saving and readying block hashes"() {
+        given:
+        int batchSize = 10_000;
+        Path path = buildWorkingFolder()
+        BlockStorePosixConfig blockStorePosixConfig = BlockStorePosixConfig.builder()
+                .batchSize(batchSize)
+                .workingFolder(path)
+                .build()
+        BlockStorePosix blockStorePosix = new BlockStorePosix(blockStorePosixConfig)
+
+        Tx tx = TestingUtils.buildTx()
+        HeaderReadOnly block = TestingUtils.buildBlock()
+
+        Tx tx2 = TestingUtils.buildTx();
+        Tx tx3 = TestingUtils.buildTx()
+        Tx tx4 = TestingUtils.buildTx();
+        Tx tx5 = TestingUtils.buildTx();
+
+        when:
+        blockStorePosix.saveBlock(block, 2, tx.serialize())
+        blockStorePosix.saveBlock(block, 2, tx2.serialize());
+        blockStorePosix.saveBlock(block, 2, tx3.serialize())
+        blockStorePosix.saveBlock(block, 2, tx4.serialize());
+
+        List<Sha256Hash> blockHashes = new ArrayList<>();
+
+        blockHashes.add(tx.getHash())
+        blockHashes.add(tx2.getHash())
+
+        blockStorePosix.saveBlockHashes(block, blockHashes)
+        blockStorePosix.saveBlockHashes(block, Arrays.asList(tx3.getHash()))
+        blockStorePosix.saveBlockHashes(block, Arrays.asList(tx4.getHash()))
+
+        blockStorePosix.commitBlock(block.getHash())
+
+        blockStorePosix.saveBlockHashes(block, Arrays.asList(tx5.getHash()))
+
+        then:
+
+        Sha256Hash[] hashes = blockStorePosix.readBlockTxHashes(block.getHash()).toArray();
+
+        hashes[0] == tx.getHash()
+        hashes[1] == tx2.getHash()
+        hashes[2] == tx3.getHash()
+        hashes[3] == tx4.getHash()
+
+        thrown IllegalAccessException
+
+        blockStorePosix.removeBlock(block.getHash())
+        blockStorePosix.containsBlock(block.getHash()) == false
+
+        cleanup:
+        blockStorePosix.clear()
+    }
+
+    def "test contains fails for uncommited blocks"() {
+        given:
+        int batchSize = 10_000;
+        Path path = buildWorkingFolder()
+        BlockStorePosixConfig blockStorePosixConfig = BlockStorePosixConfig.builder()
+                .batchSize(batchSize)
+                .workingFolder(path)
+                .build()
+        BlockStorePosix blockStorePosix = new BlockStorePosix(blockStorePosixConfig)
+
+        Tx tx = TestingUtils.buildTx()
+        HeaderReadOnly block = TestingUtils.buildBlock()
+
+        when:
+        blockStorePosix.saveBlock(block, 2, tx.serialize())
+
+        then:
+        !blockStorePosix.containsBlock(block.getHash())
 
         blockStorePosix.removeBlock(block.getHash())
         blockStorePosix.containsBlock(block.getHash()) == false

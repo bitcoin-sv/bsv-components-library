@@ -19,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -67,7 +68,9 @@ public class BlockStorePosix {
             bos = FileUtils.openOutputStream(blockHashFile, exists);
             bos.getChannel().lock();
 
-            bos.write(headerReadOnly.serialize());
+            for(Sha256Hash hash: blockHashes){
+                bos.write(hash.getBytes());
+            }
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -214,7 +217,7 @@ public class BlockStorePosix {
      * @param blockHash
      * @return
      */
-    private Stream<Sha256Hash> streamBlockTxHashes(Sha256Hash blockHash) throws ResourceDoesNotExistException {
+    private Stream<Sha256Hash> readBlockTxHashes(Sha256Hash blockHash) throws ResourceDoesNotExistException {
         File file = getFileFromBlockPath(blockHash, BLOCK_FILE_TYPE_TX_LIST);
 
         if(!containsBlock(blockHash)){
