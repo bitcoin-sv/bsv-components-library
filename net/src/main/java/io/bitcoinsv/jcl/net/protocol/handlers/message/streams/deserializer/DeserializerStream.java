@@ -140,6 +140,11 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Mes
                 ? new LoggerUtil(this.getPeerAddress().toString(), this.getClass())
                 : LoggerUtil.of(parentLogger, "Deserializer", this.getClass());
 
+        // If specified, we allow this Stream to deserialize "Big" Msgs (ONLY FOR TESTING)
+        if (messageHandlerConfig.isAllowBigMsgFromAllPeers()) {
+            this.realTimeProcessingEnabled = true;
+        }
+
     }
 
     /** Constructor */
@@ -481,7 +486,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Mes
 
         // If it's a Big Msg but we are not Allowed to do real-time processing, that's an error...
         if (isABigMessage && !realTimeProcessingEnabled) {
-            logger.warm(this.peerAddress, "Big Message (" + msgType + " received, but this Stream is NOT allowed to process");
+            logger.warm(this.peerAddress, "Big Message (" + msgType + ") received, but this Stream is NOT allowed to process");
             return processError(isThisADedicatedThread,
                     new RuntimeException("Big Message Received (" + msgType + ") but Not allowed to Process"),
                     state);
@@ -605,8 +610,12 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Mes
     }
 
     public void resetBufferSize() {
-        this.realTimeProcessingEnabled = false;
-        ((NIOInputStream) super.source).resetBufferSize();
+        // We only "reset" the buffer back to "normal" size if we haven't set the "isAllowBigMsgFromAllPeers"
+        // property, which allows ALL Peers to send Big Messages
+        if (!messageHandlerConfig.isAllowBigMsgFromAllPeers()) {
+            this.realTimeProcessingEnabled = false;
+            ((NIOInputStream) super.source).resetBufferSize();
+        }
     }
 
     // for convenience...
@@ -620,7 +629,11 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Mes
     }
 
     public void setRealTimeProcessingEnabled(boolean realTimeProcessingEnabled) {
-        this.realTimeProcessingEnabled = realTimeProcessingEnabled;
+        // We only "reset" the buffer back to "normal" size if we haven't set the "isAllowBigMsgFromAllPeers"
+        // property, which allows ALL Peers to send Big Messages
+        if (!messageHandlerConfig.isAllowBigMsgFromAllPeers()) {
+            this.realTimeProcessingEnabled = realTimeProcessingEnabled;
+        }
     }
 
     public void setPreSerializer(MessagePreSerializer preSerializer) {

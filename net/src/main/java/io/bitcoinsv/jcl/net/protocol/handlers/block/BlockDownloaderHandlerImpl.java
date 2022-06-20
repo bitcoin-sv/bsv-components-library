@@ -451,7 +451,6 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
         try {
             lock.lock();
             if (!handlerInfo.containsKey(event.getPeerAddress())) return;
-            if (!handlerInfo.get(event.getPeerAddress()).isProcessing()) return;
             processWholeBlockReceived(handlerInfo.get(event.getPeerAddress()), event.getBtcMsg());
         } finally {
             lock.unlock();
@@ -463,7 +462,6 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
         try {
             lock.lock();
             if (!handlerInfo.containsKey(event.getPeerAddress())) return;
-            if (!handlerInfo.get(event.getPeerAddress()).isProcessing()) return;
             processWholeRawBlockReceived(handlerInfo.get(event.getPeerAddress()), event.getBtcMsg());
         } finally {
             lock.unlock();
@@ -475,7 +473,6 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
         try {
             lock.lock();
             if (!handlerInfo.containsKey(event.getPeerAddress())) return;
-            if (!handlerInfo.get(event.getPeerAddress()).isProcessing()) return;
             processPartialBlockReceived(handlerInfo.get(event.getPeerAddress()), event.getBtcMsg());
         } finally {
             lock.unlock();
@@ -487,7 +484,6 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
         try {
             lock.lock();
             if (!handlerInfo.containsKey(event.getPeerAddress())) return;
-            if (!handlerInfo.get(event.getPeerAddress()).isProcessing()) return;
             processPartialBlockReceived(handlerInfo.get(event.getPeerAddress()), event.getBtcMsg());
         } finally {
             lock.unlock();
@@ -583,7 +579,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
 
         // We just received a Block.
         // We publish an specific event for this Lite Block being downloaded:
-        // NOTE: Sometimes, remote Peers send BLOCKS to us Even If we did ask for them. In that case, the Downloading
+        // NOTE: Sometimes, remote Peers send BLOCKS to us Even If we didn't ask for them. In that case, the Downloading
         // time is ZERO, since we didn't ask for it so we cannot measure the downloading time...
 
         try {
