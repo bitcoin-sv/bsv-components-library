@@ -598,6 +598,8 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                     _saveOrphanBlockHash(tr, blockHeader.getHash().toString());
                 }
             }
+        } else {
+            blocksSaved.add(blockHeader);
         }
 
         return blocksSaved;
