@@ -6,15 +6,13 @@ import io.bitcoinsv.bitcoinjsv.bitcoin.bean.base.FullBlockBean
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
 import io.bitcoinsv.jcl.tools.blobStore.BlockStorePosix
 import io.bitcoinsv.jcl.tools.blobStore.BlockStorePosixConfig
-
+import io.bitcoinsv.jcl.tools.common.TestingUtils
 import shaded.org.apache.maven.wagon.ResourceDoesNotExistException
-import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicLong
 
-@Ignore("This test is not working yet. It needs to be fixed.")  // todo: fix this test
 class BlockStorePosixTest extends Specification {
 
     // Folder to store the LevelDB files in:
@@ -320,5 +318,51 @@ class BlockStorePosixTest extends Specification {
         cleanup:
         blockStorePosix.clear()
     }
+
+
+    def "test removal of uncommitted blocks"() {
+        given:
+        int batchSize = 100_000
+        int totalBlocks = 100
+        Path path = buildWorkingFolder()
+        BlockStorePosixConfig blockStorePosixConfig = BlockStorePosixConfig.builder()
+                .batchSize(batchSize)
+                .workingFolder(path)
+                .build()
+        BlockStorePosix blockStorePosix = new BlockStorePosix(blockStorePosixConfig)
+
+        Tx tx = TestingUtils.buildTx()
+        HeaderReadOnly block = TestingUtils.buildBlock()
+
+        when:
+        blockStorePosix.saveBlock(block, 1, tx.serialize())
+
+        byte[] batchData = new byte[batchSize]
+        Arrays.fill(batchData, (byte)1)
+
+        List<Sha256Hash> blocksSaved = new ArrayList<>();
+        for (int i = 0; i < totalBlocks; i++) {
+
+            HeaderReadOnly b = TestingUtils.buildBlock();
+            blockStorePosix.saveBlock(block, 1, new byte[1])
+
+            blocksSaved.add(b .getHash())
+        }
+
+        blockStorePosix.commitBlock(block.getHash())
+        blockStorePosix.clearUncommittedBlocks()
+
+        then:
+        blockStorePosix.containsBlock(block.getHash()) == true
+
+        for (Sha256Hash blockHash: blocksSaved) {
+            !blockStorePosix.containsBlock(blockHash)
+            !blockStorePosix.commitBlock(blockHash)
+        }
+
+        cleanup:
+        blockStorePosix.clear()
+    }
+
 
 }

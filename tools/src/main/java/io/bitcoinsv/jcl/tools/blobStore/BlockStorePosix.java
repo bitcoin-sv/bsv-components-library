@@ -2,7 +2,6 @@ package io.bitcoinsv.jcl.tools.blobStore;
 
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly;
 import io.bitcoinsv.bitcoinjsv.bitcoin.bean.base.HeaderBean;
-import io.bitcoinsv.bitcoinjsv.bitcoin.bean.base.TxBean;
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 import io.bitcoinsv.bitcoinjsv.core.Utils;
 import io.bitcoinsv.bitcoinjsv.core.VarInt;
@@ -19,7 +18,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -55,7 +53,7 @@ public class BlockStorePosix {
             throw new IllegalAccessException("cannot write to a committed block");
         }
 
-        File blockHashFile = getFileFromBlockPath(headerReadOnly.getHash(), BLOCK_FILE_TYPE_TX_LIST);
+        File blockHashFile = getFileByFileType(headerReadOnly.getHash(), BLOCK_FILE_TYPE_TX_LIST);
 
         FileOutputStream bos = null;
         try {
@@ -95,7 +93,7 @@ public class BlockStorePosix {
      * @throws IllegalAccessException exception is thrown if an attempt is made to write to a committed block
      */
     public void saveBlock(HeaderReadOnly headerReadOnly, long numberOfTxs, byte[] txsBytes) throws IllegalAccessException {
-        File blockFile = getFileFromBlockPath(headerReadOnly.getHash(), BLOCK_FILE_TYPE_BLOCK_DATA);
+        File blockFile = getFileByFileType(headerReadOnly.getHash(), BLOCK_FILE_TYPE_BLOCK_DATA);
 
         if (containsBlock(headerReadOnly.getHash())) {
             throw new IllegalAccessException("cannot write to a committed block");
@@ -133,7 +131,7 @@ public class BlockStorePosix {
      * @param blockHash
      */
     public boolean commitBlock(Sha256Hash blockHash) {
-        File blockFileTemp = getFileFromBlockPath(blockHash, BLOCK_FILE_TYPE_TMP);
+        File blockFileTemp = getFileByFileType(blockHash, BLOCK_FILE_TYPE_TMP);
 
         return blockFileTemp.delete();
     }
@@ -145,7 +143,7 @@ public class BlockStorePosix {
      * @return the header of the block
      */
     public HeaderReadOnly readBlockHeader(Sha256Hash blockHash) throws ResourceDoesNotExistException {
-        File file = getFileFromBlockPath(blockHash, BLOCK_FILE_TYPE_BLOCK_DATA);
+        File file = getFileByFileType(blockHash, BLOCK_FILE_TYPE_BLOCK_DATA);
 
         if(!containsBlock(blockHash)){
             throw new ResourceDoesNotExistException("block has either not been committed or does not exist");
@@ -171,7 +169,7 @@ public class BlockStorePosix {
      * @return the header of the block
      */
     public Long readNumberOfTxs(Sha256Hash blockHash) throws ResourceDoesNotExistException {
-        File file = getFileFromBlockPath(blockHash, BLOCK_FILE_TYPE_BLOCK_DATA);
+        File file = getFileByFileType(blockHash, BLOCK_FILE_TYPE_BLOCK_DATA);
 
         if(!containsBlock(blockHash)){
             throw new ResourceDoesNotExistException("block has either not been committed or does not exist");
@@ -218,7 +216,7 @@ public class BlockStorePosix {
      * @return
      */
     private Stream<Sha256Hash> readBlockTxHashes(Sha256Hash blockHash) throws ResourceDoesNotExistException {
-        File file = getFileFromBlockPath(blockHash, BLOCK_FILE_TYPE_TX_LIST);
+        File file = getFileByFileType(blockHash, BLOCK_FILE_TYPE_TX_LIST);
 
         if(!containsBlock(blockHash)){
             throw new ResourceDoesNotExistException("block has either not been committed or does not exist");
@@ -272,7 +270,7 @@ public class BlockStorePosix {
      * @return
      */
     private Stream<byte[]> streamBlock(Sha256Hash blockHash, boolean txsOnly) throws ResourceDoesNotExistException {
-        File file = getFileFromBlockPath(blockHash, BLOCK_FILE_TYPE_BLOCK_DATA);
+        File file = getFileByFileType(blockHash, BLOCK_FILE_TYPE_BLOCK_DATA);
 
         if(!containsBlock(blockHash)){
             throw new ResourceDoesNotExistException("block has either not been committed or does not exist");
@@ -326,7 +324,7 @@ public class BlockStorePosix {
     }
 
     public Stream<byte[]> readPartiallySerializedBlockTxs(Sha256Hash blockHash) throws ResourceDoesNotExistException {
-        File file = getFileFromBlockPath(blockHash, BLOCK_FILE_TYPE_BLOCK_DATA);
+        File file = getFileByFileType(blockHash, BLOCK_FILE_TYPE_BLOCK_DATA);
 
         if(!containsBlock(blockHash)){
             throw new ResourceDoesNotExistException("block has either not been committed or does not exist");
@@ -385,8 +383,8 @@ public class BlockStorePosix {
      * @param blockHash
      */
     public void removeBlock(Sha256Hash blockHash) {
-        File blockFile = getFileFromBlockPath(blockHash, BLOCK_FILE_TYPE_BLOCK_DATA);
-        File blockFileTemp = getFileFromBlockPath(blockHash, BLOCK_FILE_TYPE_TMP);
+        File blockFile = getFileByFileType(blockHash, BLOCK_FILE_TYPE_BLOCK_DATA);
+        File blockFileTemp = getFileByFileType(blockHash, BLOCK_FILE_TYPE_TMP);
 
         blockFile.delete();
         blockFileTemp.delete();
@@ -397,9 +395,24 @@ public class BlockStorePosix {
      */
     public void clear() {
         try {
-            FileUtils.deleteDirectory(getBlocksDir().toFile());
+            FileUtils.deleteDirectory(getRootDir().toFile());
         } catch (IOException ex) {
             log.warn("Unable to clear database");
+        }
+    }
+
+    /**
+     * Clears all blocks that have not been committed
+     */
+    public void clearUncommittedBlocks(){
+        try {
+            Files.walk(getFileTypeRootDir(BLOCK_FILE_TYPE_TMP)).filter(Files::isRegularFile)
+                    .forEach(f -> {
+                        Sha256Hash blockHashFromFileName = Sha256Hash.wrap(f.getFileName().toString());
+                        removeBlock(blockHashFromFileName);
+                    });
+        } catch (IOException ex) {
+            log.warn("Unable to clear uncommitted blocks from database");
         }
     }
 
@@ -413,7 +426,7 @@ public class BlockStorePosix {
                 throw new ResourceDoesNotExistException("block has not been committed");
             }
 
-            return Files.size(getFileFromBlockPath(blockHash, BLOCK_FILE_TYPE_BLOCK_DATA).toPath());
+            return Files.size(getFileByFileType(blockHash, BLOCK_FILE_TYPE_BLOCK_DATA).toPath());
         } catch (IOException ex) {
             return 0;
         }
@@ -424,37 +437,37 @@ public class BlockStorePosix {
      * @return true if the block exists and has been committed
      */
     public boolean containsBlock(Sha256Hash blockHash) {
-        File blockFile = getFileFromBlockPath(blockHash, BLOCK_FILE_TYPE_BLOCK_DATA);
-        File blockFileTemp = getFileFromBlockPath(blockHash, BLOCK_FILE_TYPE_TMP);
+        File blockFile = getFileByFileType(blockHash, BLOCK_FILE_TYPE_BLOCK_DATA);
+        File blockFileTemp = getFileByFileType(blockHash, BLOCK_FILE_TYPE_TMP);
 
         return !blockFileTemp.exists() && blockFile.exists();
     }
 
-    /**
-     * Returns the path of the given block relative to the configued working directory
-     *
-     * @param hash
-     * @return
-     */
-    private Path getBlockPath(Sha256Hash hash) {
-        return getBlocksDir().resolve(calculateFanoutPath(hash)).resolve(hash.toString());
-    }
 
     /**
      * Returns the file within the block path subdir
-     * @param hash
-     * @param fileName
+     * @param hash the object hash representing the file name
+     * @param fileType the type of file we want to open
      * @return
      */
-    private File getFileFromBlockPath(Sha256Hash hash, String fileName){
-        return getBlockPath(hash).resolve(fileName).toFile();
+    private File getFileByFileType(Sha256Hash hash, String fileType){
+        return getFileTypeRootDir(fileType).resolve(calculateFanoutPath(hash)).resolve(hash.toString()).toFile();
+    }
+
+    /**
+     * Returns the root path of the file type
+     * @param fileType
+     * @return
+     */
+    private Path getFileTypeRootDir(String fileType) {
+        return getRootDir().resolve(fileType);
     }
 
     /**
      * @return the base path where blocks should be stored
      */
-    public Path getBlocksDir() {
-        return Paths.get(config.getWorkingFolder().toString(), "blocks");
+    private Path getRootDir() {
+        return Paths.get(config.getWorkingFolder().toString());
     }
 
     /**
@@ -476,7 +489,8 @@ public class BlockStorePosix {
      * Creates a temp file to keep track of which blocks have been committed
      */
     private void createTempFile(Sha256Hash blockHash) throws IOException {
-        File tempFile = getFileFromBlockPath(blockHash, BLOCK_FILE_TYPE_TMP);
+        File tempFile = getFileByFileType(blockHash, BLOCK_FILE_TYPE_TMP);
+        tempFile.mkdirs();
         tempFile.createNewFile();
     }
 }
