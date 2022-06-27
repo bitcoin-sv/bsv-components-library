@@ -40,7 +40,7 @@ public class NotFoundMsgSerilaizer implements MessageSerializer<NotFoundMsg> {
         List<InventoryVectorMsg> inventoryVectorMsgs = serializer.deserializeList(context, byteReader);
         VarIntMsg count = VarIntMsg.builder().value(inventoryVectorMsgs.size()).build();
         //Builds both the count and inventory list from the messages
-        NotFoundMsg getdataMsg = NotFoundMsg.builder().invVectorMsgList(inventoryVectorMsgs).count(count).build();
+        NotFoundMsg getdataMsg = NotFoundMsg.builder().invVectorMsgList(inventoryVectorMsgs).build();
         return getdataMsg;
     }
 
