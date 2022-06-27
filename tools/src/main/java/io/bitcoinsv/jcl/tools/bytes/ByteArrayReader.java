@@ -53,6 +53,8 @@ public class ByteArrayReader implements IReader {
     @Override
     public long readUint32()                    { return Utils.readUint32(read(4), 0); }
     @Override
+    public long readInt32()                     { return Utils.readInt32(read(4), 0);}
+    @Override
     public long readUint64()                    { return Utils.readUint64(read(8), 0); }
     @Override
     public byte read()                          { return read(1)[0]; }

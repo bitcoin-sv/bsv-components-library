@@ -62,6 +62,11 @@ public class InputStreamReader implements IReader, AutoCloseable {
     }
 
     @Override
+    public long readInt32() {
+        return Utils.readInt32(read(4), 0);
+    }
+
+    @Override
     public long readUint64() {
         return Utils.readUint64(read(8), 0);
     }

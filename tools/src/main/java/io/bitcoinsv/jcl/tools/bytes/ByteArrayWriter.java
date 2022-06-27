@@ -53,6 +53,12 @@ public class ByteArrayWriter {
         buffer.add(out);
     }
 
+    public void writeInt32LE(long value) {
+        byte[] out = new byte[4];
+        Utils.int32ToByteArrayLE(value, out, 0);
+        buffer.add(out);
+    }
+
     public void writeUint48LE(long value) {
         byte[] out = new byte[6];
         Utils.uint48ToByteArrayLE(value, out, 0);

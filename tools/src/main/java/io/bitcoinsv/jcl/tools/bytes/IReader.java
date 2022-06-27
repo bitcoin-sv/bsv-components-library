@@ -9,6 +9,8 @@ public interface IReader {
 
     long readUint32();
 
+    long readInt32();
+
     long readUint64();
 
     byte read();
