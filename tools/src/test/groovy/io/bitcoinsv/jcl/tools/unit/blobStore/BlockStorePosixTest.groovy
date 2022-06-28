@@ -337,14 +337,11 @@ class BlockStorePosixTest extends Specification {
         when:
         blockStorePosix.saveBlock(block, 1, tx.serialize())
 
-        byte[] batchData = new byte[batchSize]
-        Arrays.fill(batchData, (byte)1)
-
         List<Sha256Hash> blocksSaved = new ArrayList<>();
         for (int i = 0; i < totalBlocks; i++) {
 
             HeaderReadOnly b = TestingUtils.buildBlock();
-            blockStorePosix.saveBlock(block, 1, new byte[1])
+            blockStorePosix.saveBlock(b, 1, new byte[1])
 
             blocksSaved.add(b .getHash())
         }

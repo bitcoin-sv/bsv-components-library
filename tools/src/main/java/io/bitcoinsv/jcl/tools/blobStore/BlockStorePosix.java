@@ -407,10 +407,7 @@ public class BlockStorePosix {
     public void clearUncommittedBlocks(){
         try {
             Files.walk(getFileTypeRootDir(BLOCK_FILE_TYPE_TMP)).filter(Files::isRegularFile)
-                    .forEach(f -> {
-                        Sha256Hash blockHashFromFileName = Sha256Hash.wrap(f.getFileName().toString());
-                        removeBlock(blockHashFromFileName);
-                    });
+                    .forEach(f -> removeBlock(fileToBlockHash(f.getFileName().toFile())));
         } catch (IOException ex) {
             log.warn("Unable to clear uncommitted blocks from database");
         }
@@ -490,7 +487,15 @@ public class BlockStorePosix {
      */
     private void createTempFile(Sha256Hash blockHash) throws IOException {
         File tempFile = getFileByFileType(blockHash, BLOCK_FILE_TYPE_TMP);
-        tempFile.mkdirs();
+        tempFile.getParentFile().mkdirs();
         tempFile.createNewFile();
+    }
+
+    /**
+     * Returns the block hash associated with a file
+     * @param file
+     */
+    private Sha256Hash fileToBlockHash(File file){
+        return Sha256Hash.wrap(file.toString());
     }
 }
