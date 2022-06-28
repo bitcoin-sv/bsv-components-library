@@ -202,12 +202,6 @@ public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeer
                 return;
             }
 
-            // We check the Start Height:
-            if (versionMsg.getStart_height() < 0) {
-                rejectHandshake(peerInfo, PeerHandshakeRejectedEvent.HandshakedRejectedReason.WRONG_START_HEIGHT, null);
-                return;
-            }
-
             // We check the USER_AGENT:
             if (config.getUserAgentBlacklist() != null) {
                 for (String pattern : config.getUserAgentBlacklist())
