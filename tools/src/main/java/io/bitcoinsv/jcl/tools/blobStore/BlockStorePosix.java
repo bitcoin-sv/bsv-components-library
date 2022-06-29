@@ -384,9 +384,12 @@ public class BlockStorePosix {
      */
     public void removeBlock(Sha256Hash blockHash) {
         File blockFile = getFileByFileType(blockHash, BLOCK_FILE_TYPE_BLOCK_DATA);
+        File txFile = getFileByFileType(blockHash, BLOCK_FILE_TYPE_TX_LIST);
         File blockFileTemp = getFileByFileType(blockHash, BLOCK_FILE_TYPE_TMP);
 
+
         blockFile.delete();
+        txFile.delete();
         blockFileTemp.delete();
     }
 
