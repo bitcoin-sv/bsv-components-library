@@ -124,9 +124,11 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
     private void onBlacklistPeerRequest(BlacklistPeerRequest event) {
         InetAddress ip = event.getAddress();
         BlacklistHostInfo hostInfo = this.handlerInfo.get(ip);
-        if (hostInfo != null) {
-            blacklist(hostInfo, event.getReason(), event.getDuration());
+        if (hostInfo == null) {
+            hostInfo = new BlacklistHostInfo(ip);
+            this.handlerInfo.put(ip, hostInfo);
         }
+        blacklist(hostInfo, event.getReason(), event.getDuration());
     }
 
     // Event Handler:
