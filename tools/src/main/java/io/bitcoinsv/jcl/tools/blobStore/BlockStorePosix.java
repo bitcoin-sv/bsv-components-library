@@ -215,7 +215,7 @@ public class BlockStorePosix {
      * @param blockHash
      * @return
      */
-    private Stream<Sha256Hash> readBlockTxHashes(Sha256Hash blockHash) throws ResourceDoesNotExistException {
+    public Stream<Sha256Hash> readBlockTxHashes(Sha256Hash blockHash) throws ResourceDoesNotExistException {
         File file = getFileByFileType(blockHash, BLOCK_FILE_TYPE_TX_LIST);
 
         if(!containsBlock(blockHash)){
