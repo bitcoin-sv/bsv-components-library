@@ -233,11 +233,13 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
     // These methods pause/resume the Handler:
 
     private void pause() {
+        logger.debug("Pausing download...");
         this.downloadingState = DonwloadingState.PAUSED;
         this.blocksPendingManager.switchToRestrictedMode();
     }
 
     private void resume() {
+        logger.debug("Resuming download...");
         this.downloadingState = DonwloadingState.RUNNING;
         this.blocksPendingManager.switchToNormalMode();
     }
@@ -245,11 +247,13 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
     // If the client requests it or our state demands it, we pause right away:
 
     private void pauseByClient() {
+        logger.debug("Pausing download by Client...");
         this.allowedToRunByClient = false;
         pause();
     }
 
     private void pauseByInternalState() {
+        logger.debug("Pausing download by Internal State...");
         this.allowedToRunByInternalState = false;
         pause();
     }
@@ -257,6 +261,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
     // In oder to Resume, it should be possible by both the client and internal State
 
     private void resumeByClient() {
+        logger.debug("Resuming download by Client...");
         this.allowedToRunByClient = true;
         if (this.allowedToRunByInternalState) {
             resume();
@@ -264,6 +269,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
     }
 
     private void resumeByInternalState() {
+        logger.debug("Resuming download by Internal State...");
         this.allowedToRunByInternalState = true;
         if (this.allowedToRunByClient) {
             resume();
@@ -379,6 +385,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
 
     // Event Handler:
     public void onPeerMsgReady(PeerMsgReadyEvent event) {
+        logger.debug(event.getStream().getPeerAddress(), "New Peer Connected and Ready");
         try {
             lock.lock();
             // If the Peer is already in our Pool, that means it's been used before, so we just reset it, otherwise
@@ -405,6 +412,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
     }
     // Event Handler:
     public void onPeerHandshaked(PeerHandshakedEvent event) {
+        logger.debug(event.getPeerAddress(), "New Peer Handshaked");
         try {
             lock.lock();
             BlockPeerInfo peerInfo = handlerInfo.get(event.getPeerAddress());
@@ -419,7 +427,6 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
             lock.lock();
             BlockPeerInfo peerInfo = handlerInfo.get(event.getPeerAddress());
             if (peerInfo != null) {
-                logger.trace(peerInfo.getPeerAddress(),  "Peer Disconnected", peerInfo.toString());
                 // If this Peer was in the middle of downloading a block, we process the failure...
                 if (peerInfo.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING)) {
                     blocksDownloadHistory.register(peerInfo.getCurrentBlockInfo().hash, peerInfo.getPeerAddress(), "Peer has disconnected");
@@ -429,6 +436,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                     processDownloadFailure(peerInfo.getCurrentBlockInfo().hash);
                 }
                 peerInfo.disconnect();
+                logger.trace(peerInfo.getPeerAddress(),  "Peer Disconnected", peerInfo.toString());
             }
         } finally {
             lock.unlock();
@@ -813,7 +821,6 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
     }
 
     private void startDownloading(BlockPeerInfo peerInfo, String blockHash) {
-
         try {
             lock.lock();
 
