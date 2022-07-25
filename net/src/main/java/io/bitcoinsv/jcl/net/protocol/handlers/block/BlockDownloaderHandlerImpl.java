@@ -416,7 +416,11 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
         try {
             lock.lock();
             BlockPeerInfo peerInfo = handlerInfo.get(event.getPeerAddress());
-            peerInfo.handshake();
+            if (peerInfo.isConnected()) {
+                peerInfo.handshake();
+            } else {
+                logger.debug(event.getPeerAddress(), "Peer Handshaked ignored (Its already Disconnected)");
+            }
         } finally {
             lock.unlock();
         }
