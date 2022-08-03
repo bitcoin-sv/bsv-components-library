@@ -334,6 +334,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
                 SocketAddress serverSocketAddress = new InetSocketAddress(peerAddress.getIp(), peerAddress.getPort());
                 ServerSocketChannel serverSocket = ServerSocketChannel.open();
                 serverSocket.configureBlocking(false);
+                serverSocket.socket().setReuseAddress(true);
                 serverSocket.socket().bind(serverSocketAddress);
                 serverSocket.register(selector, SelectionKey.OP_ACCEPT );
 
@@ -512,7 +513,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
             failedConns.add(peerAddress);
             inProgressConns.remove(peerAddress);
             numConnsFailed.incrementAndGet();
-            blacklist(peerAddress.getIp(), PeersBlacklistedEvent.BlacklistReason.CONNECTION_REJECTED);
+            //blacklist(peerAddress.getIp(), PeersBlacklistedEvent.BlacklistReason.CONNECTION_REJECTED);
 
             // We publish the event
             eventBus.publish(new PeerRejectedEvent(peerAddress, reason, detail));

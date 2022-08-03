@@ -106,8 +106,9 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
 
     // Event Handler:
     private void onPeerRejected(PeerRejectedEvent event) {
-        processHostAndCheckBlacklisting(event.getPeerAddress(), h -> h.addConnRejections());
-
+        // For now, we do NOT use the connection Rejection as a Criteria to Blacklist a Peer, since a Peer might
+        // be running in "client" mode which is ok, although we can't trigger the connection from our side
+        //processHostAndCheckBlacklisting(event.getPeerAddress(), h -> h.addConnRejections());
     }
 
     // Event Handler:
@@ -274,7 +275,7 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
             result = Optional.of(PeersBlacklistedEvent.BlacklistReason.FAILED_HANDSHAKE);
         else if (hostInfo.getNumSerializationErrors() > 0)
             result = Optional.of(PeersBlacklistedEvent.BlacklistReason.SERIALIZATION_ERROR);
-        else if (hostInfo.getNumConnRejections() > 0)
+        else if (hostInfo.getNumConnRejections() > 0) // This might not be needed and removed in the future
             result = Optional.of(PeersBlacklistedEvent.BlacklistReason.CONNECTION_REJECTED);
 
         return result;
