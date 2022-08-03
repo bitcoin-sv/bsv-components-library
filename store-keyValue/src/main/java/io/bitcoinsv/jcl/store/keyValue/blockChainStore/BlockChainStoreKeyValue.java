@@ -1215,11 +1215,18 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             while (true) {
                 // we do NOT prune the GENESIS Block:
                 if (hashBlockToRemove.equals(getConfig().getGenesisBlock().getHash())) break;
-                // We prune it:
+
+                // We prune the block:
+                getLogger().debug("prunning block " + hashBlockToRemove);
+
+                // We use the internal method "_removeBlock()" instead of the public one, because there might be a
+                // Locking problem is this class is extended and that method overriden. We might have to make this class
+                // FINAL to prevent that from happening...
+                T tr = createTransaction();
+                _removeBlock(tr, hashBlockToRemove.toString());
+                commitTransaction(tr);
 
                 if (removeTxs) removeBlockTxs(hashBlockToRemove);
-                getLogger().debug("prunning block " + hashBlockToRemove);
-                removeBlock(hashBlockToRemove);
                 hashesBlocksToRemove.add(hashBlockToRemove);
                 numBlocksRemoved++;
 
