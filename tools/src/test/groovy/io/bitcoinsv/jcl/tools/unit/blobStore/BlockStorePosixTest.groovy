@@ -11,7 +11,11 @@ import shaded.org.apache.maven.wagon.ResourceDoesNotExistException
 import spock.lang.Specification
 
 import java.nio.file.Path
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicLong
+import java.util.stream.Stream
 
 class BlockStorePosixTest extends Specification {
 
@@ -361,5 +365,211 @@ class BlockStorePosixTest extends Specification {
         blockStorePosix.clear()
     }
 
+    def "test async saving large data"() {
+        given:
+        int batchSize = 10_000_000
+        int totalBatches = 30
+        ExecutorService threadpool = Executors.newCachedThreadPool();
 
+        Path path = buildWorkingFolder()
+        BlockStorePosixConfig blockStorePosixConfig = BlockStorePosixConfig.builder()
+                .batchSize(batchSize)
+                .workingFolder(path)
+                .build()
+        BlockStorePosix blockStorePosix = new BlockStorePosix(blockStorePosixConfig)
+
+        HeaderReadOnly block1 = TestingUtils.buildBlock()
+        HeaderReadOnly block2 = TestingUtils.buildBlock()
+
+        byte[] batchData = new byte[batchSize]
+        Arrays.fill(batchData, (byte)1)
+
+        when:
+            //save each block on a seperate thread
+            threadpool.submit({ ->
+                for (int i = 0; i < totalBatches; i++) {
+                    blockStorePosix.saveBlock(block1, totalBatches, batchData)
+                }
+                blockStorePosix.commitBlock(block1.getHash());
+            })
+
+            threadpool.submit({ ->
+                for (int i = 0; i < totalBatches; i++) {
+                    blockStorePosix.saveBlock(block2, totalBatches, batchData)
+                }
+                blockStorePosix.commitBlock(block2.getHash())
+            })
+
+        //wait for the block to save
+        while(!blockStorePosix.containsBlock(block1.getHash()) || !blockStorePosix.containsBlock(block2.getHash())){
+            Thread.sleep(500)
+        }
+
+        blockStorePosix.commitBlock(block1.getHash())
+
+        AtomicLong totalBytesBlock1 = new AtomicLong();
+        AtomicLong totalBytesBlock2 = new AtomicLong();
+
+        blockStorePosix.readBlockTxs(block1.getHash()).forEach({ b ->
+            totalBytesBlock1.addAndGet(b.length);
+        });
+
+        blockStorePosix.readBlockTxs(block2.getHash()).forEach({ b ->
+            totalBytesBlock2.addAndGet(b.length);
+        });
+
+        then:
+        totalBytesBlock1.get() == (long)batchSize * totalBatches;
+        totalBytesBlock2.get() == (long)batchSize * totalBatches;
+
+        blockStorePosix.readBlockHeader(block1.getHash()) == block1
+        blockStorePosix.readBlockHeader(block2.getHash()) == block2
+
+        blockStorePosix.getBlockSize(block1.getHash()) == HeaderReadOnly.FIXED_MESSAGE_SIZE + totalBytesBlock1.get() + 1 //1 byte for VarInt numberOfTxs
+        blockStorePosix.getBlockSize(block2.getHash()) == HeaderReadOnly.FIXED_MESSAGE_SIZE + totalBytesBlock2.get() + 1 //1 byte for VarInt numberOfTxs
+
+        blockStorePosix.removeBlock(block1.getHash())
+        blockStorePosix.removeBlock(block2.getHash())
+
+        blockStorePosix.containsBlock(block1.getHash()) == false
+        blockStorePosix.containsBlock(block2.getHash()) == false
+
+        cleanup:
+        blockStorePosix.clear()
+    }
+
+    def "test async reading of large data from different blocks"() {
+        given:
+        int batchSize = 10_000_000
+        int totalBatches = 10
+        int timeoutMs = 8000;
+
+        ExecutorService threadpool = Executors.newCachedThreadPool();
+
+        Path path = buildWorkingFolder()
+        BlockStorePosixConfig blockStorePosixConfig = BlockStorePosixConfig.builder()
+                .batchSize(batchSize)
+                .workingFolder(path)
+                .build()
+        BlockStorePosix blockStorePosix = new BlockStorePosix(blockStorePosixConfig)
+
+        HeaderReadOnly block1 = TestingUtils.buildBlock()
+        HeaderReadOnly block2 = TestingUtils.buildBlock()
+
+        byte[] batchData = new byte[batchSize]
+        Arrays.fill(batchData, (byte)1)
+
+        when:
+        for (int i = 0; i < totalBatches; i++) {
+            blockStorePosix.saveBlock(block1, totalBatches, batchData)
+            blockStorePosix.saveBlock(block2, totalBatches, batchData)
+        }
+        blockStorePosix.commitBlock(block1.getHash())
+        blockStorePosix.commitBlock(block2.getHash())
+
+        AtomicLong totalBytesBlock1 = new AtomicLong();
+        AtomicLong totalBytesBlock2 = new AtomicLong();
+
+        threadpool.submit({ ->
+            blockStorePosix.readBlockTxs(block1.getHash()).forEach({ b ->
+                totalBytesBlock1.addAndGet(b.length);
+            });
+        })
+
+        threadpool.submit({ ->
+            blockStorePosix.readBlockTxs(block2.getHash()).forEach({ b ->
+                totalBytesBlock2.addAndGet(b.length);
+            });
+        })
+
+        //read block, timeout after 5 seconds
+        long endTime = System.currentTimeMillis() + timeoutMs;
+
+        while(System.currentTimeMillis() < endTime && (totalBytesBlock1.get() + totalBytesBlock2.get()) < (long)batchSize * totalBatches * 2){
+            Thread.sleep(500)
+        }
+
+        then:
+        totalBytesBlock1.get() == (long)batchSize * totalBatches;
+        totalBytesBlock2.get() == (long)batchSize * totalBatches;
+
+        blockStorePosix.readBlockHeader(block1.getHash()) == block1
+        blockStorePosix.readBlockHeader(block2.getHash()) == block2
+
+        blockStorePosix.getBlockSize(block1.getHash()) == HeaderReadOnly.FIXED_MESSAGE_SIZE + totalBytesBlock1.get() + 1 //1 byte for VarInt numberOfTxs
+        blockStorePosix.getBlockSize(block2.getHash()) == HeaderReadOnly.FIXED_MESSAGE_SIZE + totalBytesBlock2.get() + 1 //1 byte for VarInt numberOfTxs
+
+        blockStorePosix.removeBlock(block1.getHash())
+        blockStorePosix.removeBlock(block2.getHash())
+
+        blockStorePosix.containsBlock(block1.getHash()) == false
+        blockStorePosix.containsBlock(block2.getHash()) == false
+
+
+        cleanup:
+        blockStorePosix.clear()
+    }
+
+    def "test async reading of large data from same block async"() {
+        given:
+        int batchSize = 10_000_000
+        int totalBatches = 30
+        int timeoutMs = 8000;
+
+        ExecutorService threadpool = Executors.newCachedThreadPool();
+
+        Path path = buildWorkingFolder()
+        BlockStorePosixConfig blockStorePosixConfig = BlockStorePosixConfig.builder()
+                .batchSize(batchSize)
+                .workingFolder(path)
+                .build()
+        BlockStorePosix blockStorePosix = new BlockStorePosix(blockStorePosixConfig)
+
+        HeaderReadOnly block1 = TestingUtils.buildBlock()
+
+        byte[] batchData = new byte[batchSize]
+        Arrays.fill(batchData, (byte)1)
+
+        when:
+        for (int i = 0; i < totalBatches; i++) {
+            blockStorePosix.saveBlock(block1, totalBatches, batchData)
+        }
+        blockStorePosix.commitBlock(block1.getHash())
+
+        AtomicLong totalBytesBlockFirstRead = new AtomicLong();
+        AtomicLong totalBytesBlockSecondRead = new AtomicLong();
+
+        threadpool.submit({ ->
+            blockStorePosix.readBlockTxs(block1.getHash()).forEach({ b ->
+                totalBytesBlockFirstRead.addAndGet(b.length);
+            });
+        })
+
+        threadpool.submit({ ->
+            blockStorePosix.readBlockTxs(block1.getHash()).forEach({ b ->
+                totalBytesBlockSecondRead.addAndGet(b.length);
+            });
+        })
+
+
+        //read block, timeout after 5 seconds
+        long endTime = System.currentTimeMillis() + timeoutMs;
+
+        while(System.currentTimeMillis() < endTime && (totalBytesBlockFirstRead.get() + totalBytesBlockSecondRead.get()) < (long)batchSize * totalBatches * 2){
+            Thread.sleep(500)
+        }
+
+        then:
+        totalBytesBlockFirstRead.get() == (long)batchSize * totalBatches;
+        totalBytesBlockSecondRead.get() == (long)batchSize * totalBatches;
+
+        blockStorePosix.readBlockHeader(block1.getHash()) == block1
+        blockStorePosix.getBlockSize(block1.getHash()) == HeaderReadOnly.FIXED_MESSAGE_SIZE + totalBytesBlockFirstRead.get() + 1 //1 byte for VarInt numberOfTxs
+
+        blockStorePosix.removeBlock(block1.getHash())
+        blockStorePosix.containsBlock(block1.getHash()) == false
+
+        cleanup:
+        blockStorePosix.clear()
+    }
 }
