@@ -908,7 +908,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
 
 
                                 // If we are in PAUSED Mode, we might still need to keep trying to download those blocks
-                                // which we already started...
+                                // which we already started and they are now in LIMBO...
                                 boolean isPausedAndBlocksInProcess = isPaused() && !blocksPendingManager.getBlockDownloadAttempts().isEmpty();
 
                                 // If we can download more Blocks, we ask the BlocksPendingManager for a Suitable block for

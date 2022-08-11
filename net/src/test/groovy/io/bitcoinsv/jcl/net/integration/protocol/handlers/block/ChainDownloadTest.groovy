@@ -34,8 +34,21 @@ import java.util.stream.Collectors
 
 /**
  * A testing class for downloading a partial part of the Blockchain, including both Blocks and Txs.
+ * You specify a Block hASH as a starting point, and JCL will start downloading the HEADERS and the Blocks until
+ * the Test finishes, or you reach the Tip
  */
 class ChainDownloadTest extends Specification {
+
+    // Starting Point:
+    //String HASH_LOCATOR = "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f" // GENESIS
+    private static final HASH_LOCATOR = "000000000000000004ea72f7d8ba1509868a0c8a852509eacd600dce7232075b";
+
+    // Maximum Duration of the Test:
+    private static final Duration TIMEOUT = Duration.ofMinutes(15)
+
+    // If this TIMEOUT IS specified (1= null), then JCL will PAUSE the Download after that time:
+    // NOTE: IT will NOT be Resumed: This is here to test the behaviour of the Downloader Handler in PAUSED Mode
+    private static final Duration TIMEOUT_TO_PAUSE = Duration.ofSeconds(60)
 
     // It creates a GET_HEADER Message using the block locator hash given (which is in human-readable format)
     private GetHeadersMsg buildGetHeadersMsg(ProtocolConfig protocolConfig, String blockHashHex) {
@@ -62,13 +75,6 @@ class ChainDownloadTest extends Specification {
     def "Test download Chain from hash Locator"() {
         given:
 
-            // The longest Timeout we'll wait for to run the test:
-            Duration TIMEOUT = Duration.ofMinutes(15)
-
-            // We'll download all the blocks mined AFTER this block:
-            //String HASH_LOCATOR = "000000000000000002f5268d72f9c79f29bef494e350e58f624bcf28700a1846"
-            String HASH_LOCATOR = "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f" // GENESIS
-
             // We Configure the P2P Connection:
             ProtocolConfig config = ProtocolConfigBuilder.get(Net.MAINNET.params())
 
@@ -82,7 +88,7 @@ class ChainDownloadTest extends Specification {
 
             // Basic Config:
             ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
-                    .minPeers(OptionalInt.of(15))
+                    .minPeers(OptionalInt.of(10))
                     .maxPeers(OptionalInt.of(20))
                     .build()
 
@@ -90,6 +96,7 @@ class ChainDownloadTest extends Specification {
             BlockDownloaderHandlerConfig blockConfig = config.getBlockDownloaderConfig().toBuilder()
                     .maxBlocksInParallel(10)
                     .maxIdleTimeout(Duration.ofSeconds(10))
+                    .maxMBinParallel(10_000)
                     .minSpeed(0)
                     .build()
 
@@ -122,8 +129,7 @@ class ChainDownloadTest extends Specification {
 
             p2p.EVENTS.PEERS.HANDSHAKED_MIN_REACHED.forEach({ e -> connReady.set(true) })
 
-            // Every time we receive a HEADERS message from Remote Peers, we add the block Hashes there to the
-            // download list:
+            // Every time we receive a HEADERS message from Remote Peers, we add the block Hashes there to the download list:
             p2p.EVENTS.MSGS.HEADERS.forEach({ e ->
 
                 try {
@@ -181,15 +187,7 @@ class ChainDownloadTest extends Specification {
             p2p.EVENTS.STATE.BLOCKS.forEach( {e ->
                 // We only print the detail block Download status if the Speed is strangley low (lower than 1MB/sec);
                 BlockDownloaderHandlerState state = (BlockDownloaderHandlerState) e.getState();
-                if (currentSpeedKbPerSec.get() < 1000) {
-                    println(e)
-                } else {
-                    println("Peers: " +
-                            state.getPeersInfo().size() +
-                            " total, " + state.getNumPeersDownloading() + " downloading. " +
-                            "Blocks: " + state.getDownloadedBlocks().size() + " downloaded, " +
-                            state.getDiscardedBlocks().size() + " discarded, " + state.getPendingBlocks().size() + " pending")
-                }
+                println(e)
             })
             p2p.EVENTS.STATE.HANDSHAKE.forEach({ e -> println(e)})
             p2p.EVENTS.STATE.NETWORK.forEach({ e -> println(e)})
@@ -204,14 +202,16 @@ class ChainDownloadTest extends Specification {
             println("Connection Ready...")
 
             Thread.sleep(1000)
+
             // After this moment, we can start downloading Blocks. The next Blocks to download will be injected after
             // we receive the HEADERS messages from the remote Peers....
             p2p.REQUESTS.MSGS.broadcast(buildGetHeadersMsg(config, HASH_LOCATOR)).submit()
 
             startTime = Instant.now()
 
-            // We wait until we get some HEADERS in response, so we can feed ur BlocksToDownload List:
+            // We wait until we get some HEADERS in response, so we can feed our BlocksToDownload List:
             while (blocksToDownload.isEmpty()) Thread.sleep(1000)
+
             println("Blocks downloading Starts now...")
 
             // At this moment, the downloading has started.
@@ -219,10 +219,21 @@ class ChainDownloadTest extends Specification {
 
             boolean allBlocksDone = false
             boolean timeoutBroken = false;
+            boolean paused = false;
             while (!allBlocksDone && !timeoutBroken) {
                 Thread.sleep(500)
                 allBlocksDone = (blocksDownloaded.size() + blocksDiscarded.size()) == blocksToDownload.size()
                 timeoutBroken = Duration.between(startTime, Instant.now()).compareTo(TIMEOUT) > 0
+
+                // If specified, we PAUSE the Download process
+                if ((TIMEOUT_TO_PAUSE != null) && !paused) {
+                    if (Duration.between(startTime, Instant.now()).compareTo(TIMEOUT_TO_PAUSE) > 0) {
+                        println("PAUSING DOWNLOAD...")
+                        p2p.REQUESTS.BLOCKS.pause().submit();
+                        paused = true;
+                    }
+                }
+
             }
             p2p.stop()
             Duration testDuration = Duration.between(startTime, Instant.now())

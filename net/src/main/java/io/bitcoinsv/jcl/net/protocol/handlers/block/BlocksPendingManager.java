@@ -1,7 +1,10 @@
 package io.bitcoinsv.jcl.net.protocol.handlers.block;
 
 import com.google.common.collect.ImmutableList;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 import io.bitcoinsv.jcl.net.network.PeerAddress;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,6 +23,8 @@ import java.util.stream.IntStream;
  * attempts, etc.
  */
 public class BlocksPendingManager {
+
+    private static Logger log = LoggerFactory.getLogger(BlocksPendingManager.class);
 
     // BEST Match Logic:
     // A block can only be downloaded if there are some Peers connected. So if we have N Peers connected, then each
@@ -96,17 +101,17 @@ public class BlocksPendingManager {
     }
 
     // REGISTER OF EVENTS:
-    public void registerNewDownloadAttempt(String blockHash)            { blocksNumDownloadAttempts.merge(blockHash, 1, (o, n) -> o + n); }
-    public void registerBlockDownloaded(String blockHash)               { blocksNumDownloadAttempts.remove(blockHash); }
-    public void registerBlockDiscarded(String blockHash)                { blocksNumDownloadAttempts.remove(blockHash); }
-    public void registerBlockCancelled(String blockHash)                {
+    public synchronized void registerNewDownloadAttempt(String blockHash)            { blocksNumDownloadAttempts.merge(blockHash, 1, (o, n) -> o + n); }
+    public synchronized void registerBlockDownloaded(String blockHash)               { blocksNumDownloadAttempts.remove(blockHash); }
+    public synchronized void registerBlockDiscarded(String blockHash)                { blocksNumDownloadAttempts.remove(blockHash); }
+    public synchronized void registerBlockCancelled(String blockHash)                {
         blocksNumDownloadAttempts.remove(blockHash);
         pendingBlocks.remove(blockHash);
     }
 
     // RESTRICTED MODE:
-    public void switchToRestrictedMode()                                { this.restrictedMode = true; }
-    public void switchToNormalMode()                                    { this.restrictedMode = false; }
+    public synchronized void switchToRestrictedMode()                                { this.restrictedMode = true; }
+    public synchronized void switchToNormalMode()                                    { this.restrictedMode = false; }
 
     // DOWNLOAD ATTEMPTS:
     public int getNumDownloadAttempts(String blockHash)                 { return blocksNumDownloadAttempts.containsKey(blockHash)? blocksNumDownloadAttempts.get(blockHash) : 0; }
@@ -114,14 +119,17 @@ public class BlocksPendingManager {
     public boolean isBlockBeingAttempted(String blockHash)              { return blocksNumDownloadAttempts.containsKey(blockHash); }
 
     // PENDING BLOCKS:
-    public synchronized void add(String blockHash)                      { this.pendingBlocks.add(blockHash); }
-    public synchronized void add(List<String> blockHashes)              { this.pendingBlocks.addAll(blockHashes); }
-    public synchronized void addWithPriority(String blockHash)          { this.pendingBlocks.add(0, blockHash); }
-    public synchronized void addWithPriority(List<String> blockHashes)  { this.pendingBlocks.addAll(0, blockHashes); }
-    public synchronized void remove(String blockHash)                   { this.pendingBlocks.remove(blockHash); }
+    private List getBlocksNotPendingAlready(List<String> blocksToAdd) {
+        return blocksToAdd.stream().filter(h -> !this.pendingBlocks.contains(h)).collect(Collectors.toList());
+    }
+    public synchronized void add(String blockHash)                      { add(List.of(blockHash)); }
+    public synchronized void add(List<String> blockHashes)              { pendingBlocks.addAll(getBlocksNotPendingAlready(blockHashes)); }
+    public synchronized void addWithPriority(String blockHash)          { addWithPriority(List.of(blockHash)); }
+    public synchronized void addWithPriority(List<String> blockHashes)  { pendingBlocks.addAll(0, getBlocksNotPendingAlready(blockHashes)); }
+    public synchronized void remove(String blockHash)                   { pendingBlocks.remove(blockHash); }
     public synchronized int size()                                      { return this.pendingBlocks.size(); }
     public synchronized List<String> getPendingBlocks()                 { return ImmutableList.copyOf(this.pendingBlocks); }
-    public boolean contains(String blockHash)                           { return this.pendingBlocks.contains(blockHash); }
+    public synchronized boolean contains(String blockHash)              { return this.pendingBlocks.contains(blockHash); }
 
     /**
      * This methods checks if a given Block can be assigned to the Peer given (currentPeer) to be download from it.
