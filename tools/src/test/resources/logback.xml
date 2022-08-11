@@ -1,0 +1,55 @@
+<configuration>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!--<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>-->
+            <!--<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%-25thread] %-5level  - %msg%n</pattern>-->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level  - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file> log-Tera-J.txt </file>
+        <append>true</append>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%-25thread] %-5level  - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="io.bitcoinsv.jcl.net" additivity="false">
+        <level value="INFO" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <logger name="io.bitcoinsv.jcl.net.protocol.handlers.message.MessageHandlerImpl" additivity="false">
+        <level value="ERROR" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <logger name="io.bitcoinsv.jcl.net.protocol.handlers.discovery" additivity="false">
+        <level value="ERROR" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <logger name="io.bitcoinsv.jcl.net.protocol.handlers.block" additivity="false">
+        <level value="WARN" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+
+
+    <logger name="io.bitcoinsv.jcl.net.protocol.handlers.handshake" additivity="false">
+        <level value="INFO" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <logger name="io.bitcoinsv.jcl.tools" additivity="false">
+        <level value="TRACE" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <root level="error">
+        <appender-ref ref="STDOUT" />
+    </root>
+
+</configuration>
