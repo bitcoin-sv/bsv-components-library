@@ -21,6 +21,7 @@ import io.bitcoinsv.jcl.net.tools.LoggerUtil;
 import io.bitcoinsv.jcl.tools.thread.ThreadUtils;
 
 import java.math.BigInteger;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -459,7 +460,7 @@ public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeer
                 .addr_recv(addr_recv)
                 .start_height(config.getBlock_height())
                 .nonce(NonceUtils.newOnce())
-                .timestamp(System.currentTimeMillis())
+                .timestamp(Instant.now().getEpochSecond())
                 .build();
         BitcoinMsg<VersionMsg> btcVersionMsg = new BitcoinMsgBuilder<VersionMsg>(config.getBasicConfig(), versionMsg).build();
         super.eventBus.publish(new SendMsgRequest(peerInfo.getPeerAddress(), btcVersionMsg));
