@@ -134,8 +134,9 @@ public class ByteArrayBuffer implements ByteArray {
 
             buffer.extractInto(bytesToWriteLength, array, length - bytesRemaining);
 
+            boolean isLastBuffer = (indexBuffer == buffers.size() - 1);
             // We prepare for next iteration. if this buffer has been emptied, we store if for future cleaning...
-            if (buffer.isEmpty()) buffersToRemove.add(buffer);
+            if (buffer.isEmpty() && !isLastBuffer) buffersToRemove.add(buffer);
             bytesRemaining -= bytesToWriteLength;
             indexBuffer++;
         }
