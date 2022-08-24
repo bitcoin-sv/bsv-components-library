@@ -135,6 +135,9 @@ public class MsgSerializersFactory {
      * Indicates if there is a Serializer register for this Message.
      */
     public static boolean hasSerializerFor(String command, boolean onlyForLargeMessages) {
+        // until we implement proper realtime deserializer for transactions we will use the regular one even for big transactions
+        if (command.equalsIgnoreCase(RawTxMsg.MESSAGE_TYPE)) return true;
+
         boolean result = (!onlyForLargeMessages) ? serializers.containsKey(command.toUpperCase()) : (getLargeMsgDeserializer(command, 0) != null);
         return result;
     }

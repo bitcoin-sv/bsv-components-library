@@ -7,6 +7,7 @@ import io.bitcoinsv.jcl.net.network.streams.nio.NIOInputStream;
 import io.bitcoinsv.jcl.net.protocol.handlers.message.MessageHandlerConfig;
 import io.bitcoinsv.jcl.net.protocol.handlers.message.MessagePreSerializer;
 import io.bitcoinsv.jcl.net.protocol.messages.HeaderMsg;
+import io.bitcoinsv.jcl.net.protocol.messages.RawTxMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.VersionMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
@@ -420,14 +421,14 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Mes
 
             // Now we need to figure out if this incoming Message is one we need to Deserialize, or just Ignore, and that
             // depends on whether we have a Serializer Implementation for it...
-            boolean doWeNeedRealTimeProcessing = headerMsg.getMsgLength() >= runtimeConfig.getMsgSizeInBytesForRealTimeProcessing();
-            boolean ignoreMsg = !MsgSerializersFactory.hasSerializerFor(headerMsg.getMsgCommand(), doWeNeedRealTimeProcessing);
+            boolean isABigMessage = headerMsg.getMsgLength() >= runtimeConfig.getMsgSizeInBytesForRealTimeProcessing();
+            boolean ignoreMsg = !MsgSerializersFactory.hasSerializerFor(headerMsg.getMsgCommand(), isABigMessage);
 
             // The Header has been processed. After the HEAD a BODY must ALWAYS come, so there is still work todo...
             boolean stillWorkToDoInBuffer = true;
 
             // Depending on the Size of the incoming BODY, we upgrade the Buffer or not...
-            if (doWeNeedRealTimeProcessing)
+            if (isABigMessage)
                     buffer.updateConfig(new ByteArrayConfig(ByteArrayConfig.ARRAY_SIZE_BIG));
             else    buffer.updateConfig(new ByteArrayConfig(ByteArrayConfig.ARRAY_SIZE_NORMAL));
 
@@ -492,7 +493,9 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Mes
                     state);
         }
 
-        if (!isABigMessage) {
+        // if it is not a big message or it is tx message (realtime deserializer for transactions is not implemented yet)
+        // we will use regular (not realtime) deserializer
+        if (!isABigMessage || msgType.equalsIgnoreCase(RawTxMsg.MESSAGE_TYPE)) {
             if (allBytesMessageReceived) {
                 trace(isThisADedicatedThread,  "Seeking Body for " + msgType + " :: Deserializing " + currentHeaderMsg.getMsgCommand() + "...");
                 result = deserialize(isThisADedicatedThread,false, state, buffer).toBuilder();

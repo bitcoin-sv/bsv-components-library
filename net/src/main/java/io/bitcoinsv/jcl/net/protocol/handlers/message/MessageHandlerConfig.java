@@ -103,7 +103,7 @@ public final class MessageHandlerConfig extends HandlerConfig {
                 basicConfig(this.basicConfig)
                 .preSerializer(this.preSerializer)
                 .deserializerConfig(this.deserializerConfig)
-                .rawTxsEnabled(rawTxsEnabled)
+                .rawTxsEnabled(this.rawTxsEnabled)
                 .msgBatchConfigs(this.msgBatchConfigs)
                 .verifyChecksum(this.verifyChecksum)
                 .allowBigMsgFromAllPeers(this.allowBigMsgFromAllPeers);
