@@ -543,7 +543,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Mes
         if (remainingBytesToIgnore > 0) {
             int bytesToRemove = (int) Math.min(remainingBytesToIgnore, buffer.size());
             remainingBytesToIgnore -= bytesToRemove;
-            buffer.extract(bytesToRemove);
+            buffer.discard(bytesToRemove);
             trace(isThisADedicatedThread,  "Ignoring Body :: Discarding " + bytesToRemove + " bytes, " + remainingBytesToIgnore + " bytes still to discard...");
         }
         result.reminingBytestoIgnore(remainingBytesToIgnore);

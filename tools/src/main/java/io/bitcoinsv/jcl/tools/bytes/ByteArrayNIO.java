@@ -85,6 +85,20 @@ public class ByteArrayNIO implements ByteArray {
 
     @GuardedBy("this")
     @Override
+    public void discard(int length) {
+        checkArgument(length >= 0, "'length' must be >= 0");
+        checkArgument(size() >= length,
+                "not enough data in the buffer: actual data: " + size() + " bytes,"
+                        + " , requested: " + length + " bytes");
+        try {
+            discard_bytes(length);
+        } catch (IOException ioe) {
+            throw new RuntimeException(ioe);
+        }
+    }
+
+    @GuardedBy("this")
+    @Override
     public void extractInto(int length, byte[] bytes, int writeOffset) {
         checkArgument(length >= 0, "'length' must be >= 0");
         checkArgument(size() >= length,
@@ -159,6 +173,13 @@ public class ByteArrayNIO implements ByteArray {
         remaining += length;
         dataSize -= length;
         return result;
+    }
+
+    public void discard_bytes(int length) throws IOException {
+        buffer.position(length).limit(dataSize);
+        buffer.compact();
+        remaining += length;
+        dataSize -= length;
     }
 
     public void clear_content() throws IOException {
