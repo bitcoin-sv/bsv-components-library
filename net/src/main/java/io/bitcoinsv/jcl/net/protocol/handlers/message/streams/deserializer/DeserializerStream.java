@@ -424,6 +424,9 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Mes
             boolean isABigMessage = headerMsg.getMsgLength() >= runtimeConfig.getMsgSizeInBytesForRealTimeProcessing();
             boolean ignoreMsg = !MsgSerializersFactory.hasSerializerFor(headerMsg.getMsgCommand(), isABigMessage);
 
+            // set a hint to the source about expected message size
+            source.expectedMessageSize(headerMsg.getLength());
+
             // The Header has been processed. After the HEAD a BODY must ALWAYS come, so there is still work todo...
             boolean stillWorkToDoInBuffer = true;
 

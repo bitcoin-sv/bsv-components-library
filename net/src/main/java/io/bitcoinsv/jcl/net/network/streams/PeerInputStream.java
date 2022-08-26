@@ -31,4 +31,5 @@ public interface PeerInputStream<T> {
     void onClose(Consumer<? extends StreamCloseEvent> eventHandler);
     void onError(Consumer<? extends StreamErrorEvent> eventHandler);
     void close(StreamCloseEvent event);
+    void expectedMessageSize(long messageSize);
 }

@@ -97,6 +97,9 @@ public abstract class PeerInputStreamImpl<I,R> implements PeerInputStream<R> {
         eventBus.publish(new StreamCloseEvent());
     }
 
+    @Override
+    public void expectedMessageSize(long messageSize) { };
+
     protected synchronized void receiveAndTransform(StreamDataEvent<I> dataEvent) {
         try {
             List<StreamDataEvent<R>> dataTransformed = transform(dataEvent);

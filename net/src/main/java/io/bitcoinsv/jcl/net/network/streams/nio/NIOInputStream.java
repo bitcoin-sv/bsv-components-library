@@ -180,6 +180,16 @@ public class NIOInputStream extends PeerInputStreamImpl<ByteArrayReader, ByteArr
         }
     }
 
+    @Override
+    public void expectedMessageSize(long messageSize) {
+        boolean isABigMessage = (messageSize >= this.bufferHighCapacity);
+        if (isABigMessage && this.readBuffer.capacity() < this.bufferHighCapacity) {
+            this.upgradeBufferSize();
+        } else if ( !isABigMessage && this.readBuffer.capacity() > this.bufferNormalCapacity) {
+            this.resetBufferSize();
+        }
+    };
+
     public  List<StreamDataEvent<ByteArrayReader>> transform(StreamDataEvent<ByteArrayReader> dataEvent) {
         throw new UnsupportedOperationException();
     }
