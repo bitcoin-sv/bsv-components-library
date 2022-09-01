@@ -6,6 +6,8 @@ import io.bitcoinsv.jcl.net.network.PeerAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Instant;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -55,6 +57,14 @@ public class BlocksPendingManager {
     // Blocks download Attempts: (removed after successful download) [Key: Bock Hash, Value: Number of download Attempts]
     private Map<String, Integer> blocksNumDownloadAttempts = new ConcurrentHashMap<>();
 
+    // Minimal time that should pass since last download failure of particular block from particular peer to be able for another try
+    // TODO: this should be configurable
+    private static final Duration minTimeSinceLastDownloadFailure = Duration.ofMinutes(3);
+
+    // Register downloading failure of particular block on particular peer.
+    // [Key: block hash, Value: Map [Key: peer address: Value time of the last download failure]]
+    private Map<String, Map<PeerAddress, Instant>> downloadFails = new ConcurrentHashMap<>();
+
     // If "restrictedMode" is TRUE, then ONLY those pending blocks that have been tried already will be candidates for
     // a download. In this "restrictive Mode", no new Blocks are download, only "old" ones are re-tried, and for these
     // blocks the "BestMatch" Criteria and Actions do NOt apply: they are download from any peer available and as soon
@@ -100,12 +110,19 @@ public class BlocksPendingManager {
         });
     }
 
+    // Register failed download attempt of a block from a peer
+    public void registerDownloadFailure(String blockHash, PeerAddress peerAddress) {
+        downloadFails.putIfAbsent(blockHash, new ConcurrentHashMap<>());
+        downloadFails.get(blockHash).put(peerAddress, Instant.now());
+    }
+
     // REGISTER OF EVENTS:
     public synchronized void registerNewDownloadAttempt(String blockHash)            { blocksNumDownloadAttempts.merge(blockHash, 1, (o, n) -> o + n); }
-    public synchronized void registerBlockDownloaded(String blockHash)               { blocksNumDownloadAttempts.remove(blockHash); }
-    public synchronized void registerBlockDiscarded(String blockHash)                { blocksNumDownloadAttempts.remove(blockHash); }
+    public synchronized void registerBlockDownloaded(String blockHash)               { blocksNumDownloadAttempts.remove(blockHash); downloadFails.remove(blockHash);}
+    public synchronized void registerBlockDiscarded(String blockHash)                { blocksNumDownloadAttempts.remove(blockHash); downloadFails.remove(blockHash);}
     public synchronized void registerBlockCancelled(String blockHash)                {
         blocksNumDownloadAttempts.remove(blockHash);
+        downloadFails.remove(blockHash);
         pendingBlocks.remove(blockHash);
     }
 
@@ -148,6 +165,22 @@ public class BlocksPendingManager {
     private boolean isPeerSuitableForDownload(String blockHash, PeerAddress currentPeer,
                                               List<PeerAddress> availablePeers,
                                               List<PeerAddress> notAvailablePeers) {
+
+        // If "currentPeer" failed to download "blockHash" in last "minTimeSinceLastDownloadFailure" we will
+        // return false.
+        var failedAttemptsOnCurrentPeer = downloadFails.get(blockHash);
+        if (failedAttemptsOnCurrentPeer != null) {
+            var failedAttemptTimeForBlock = failedAttemptsOnCurrentPeer.get(currentPeer);
+            if (failedAttemptTimeForBlock != null) {
+                // see if time since the last download attempt is less than "minTimeSinceLastDownloadFailure"
+                if (Duration.between(Instant.now(), failedAttemptTimeForBlock).minus(minTimeSinceLastDownloadFailure).isNegative()) {
+                    return false; // current peer is not suitable for downloading "blokHash"
+                } else {
+                    // enough time has passed from last download attempt, we can continue to assess "currentPeer"
+                    failedAttemptsOnCurrentPeer.remove(currentPeer);
+                }
+            }
+        }
 
         // If we are running in RestrictiveMode, we just assign this Block to this Peer and return:
         if (restrictedMode) return true;

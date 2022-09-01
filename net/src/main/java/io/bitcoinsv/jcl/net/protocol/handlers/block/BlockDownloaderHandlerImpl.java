@@ -960,10 +960,9 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                                     logger.debug(peerAddress, "Download Failure", peerInfo.getCurrentBlockInfo().hash, msgFailure);
                                     blocksDownloadHistory.register(peerInfo.getCurrentBlockInfo().hash, peerInfo.getPeerAddress(), "Download Issue detected : " + msgFailure);
                                     blocksInLimbo.add(peerInfo.getCurrentBlockInfo().hash);
-                                    // We discard this Peer and also send a request to Disconnect from it:
-                                    peerInfo.discard();
-                                    super.eventBus.publish(new DisconnectPeerRequest(peerInfo.getPeerAddress(), PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL_LAZY_DOWNLOAD, null));
-                                    //super.eventBus.publish(new PeerDisconnectedEvent(peerInfo.getPeerAddress(), PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL_LAZY_DOWNLOAD));
+
+                                    blocksPendingManager.registerDownloadFailure(peerInfo.getCurrentBlockInfo().hash, peerInfo.getPeerAddress());
+                                    peerInfo.reset();
                                 }
                                 break;
                             }
