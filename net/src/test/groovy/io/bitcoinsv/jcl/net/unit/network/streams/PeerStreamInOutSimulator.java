@@ -56,4 +56,8 @@ public class PeerStreamInOutSimulator<T> implements PeerInputStream<T>, PeerOutp
     public void close(StreamCloseEvent event) {
         eventBus.publish(event);
     }
+    @Override
+    public void expectedMessageSize(long size) {
+        // nothing
+    }
 }
