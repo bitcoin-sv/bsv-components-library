@@ -213,7 +213,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
     // Returns the list of Blocks being downloaded at this moment
     public List<String> getBlocksBeingDownloaded() {
         return handlerInfo.values().stream()
-                .filter(p -> p.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING))
+                .filter(p -> p.isProcessing())
                 .map(p -> p.getCurrentBlockInfo().getHash())
                 .collect(Collectors.toList());
     }
@@ -332,9 +332,12 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
             logger.debug("Adding " + blockHashes.size() + " blocks to download (priority: " + withPriority +": ");
 
             // We filter out those blocks cancelled, etc...
+            List<String> blocksBeingDownloadedNow = this.getBlocksBeingDownloaded();
             List<String> blockHashesToAdd =  blockHashes.stream()
                     .filter(h -> !blocksCancelled.contains(h))
                     .filter(h -> !blocksPendingToCancel.contains(h))
+                    .filter(h -> !blocksDownloaded.contains(h))
+                    .filter(h -> !blocksBeingDownloadedNow.contains(h))
                     .collect(Collectors.toList());
 
             // Now we add them all to the BlocksPendingManager:
