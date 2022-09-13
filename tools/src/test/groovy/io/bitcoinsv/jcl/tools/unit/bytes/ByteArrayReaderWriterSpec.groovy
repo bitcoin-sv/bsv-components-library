@@ -163,7 +163,7 @@ class ByteArrayReaderWriterSpec extends Specification {
 
             numBuffersWriterAfterWriting > 0
             numBuffersReaderBeforeReading == numBuffersWriterAfterWriting
-            numBuffersReaderAfterReading == 0
+            numBuffersReaderAfterReading == 1 // one change in JCL avoids removing last buffer in the Buffer
             numBuffersWriterAfterReading == 0
     }
 
