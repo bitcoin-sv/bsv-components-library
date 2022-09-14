@@ -336,7 +336,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
             List<String> blockHashesToAdd =  blockHashes.stream()
                     .filter(h -> !blocksCancelled.contains(h))
                     .filter(h -> !blocksPendingToCancel.contains(h))
-                    .filter(h -> !blocksDownloaded.contains(h))
+                    // NOTE: A block downloaded can be re-downloaded if the clients decides to...
+                    // .filter(h -> !blocksDownloaded.contains(h))
                     .filter(h -> !blocksBeingDownloadedNow.contains(h))
                     .collect(Collectors.toList());
 
