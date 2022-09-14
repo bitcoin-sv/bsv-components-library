@@ -118,11 +118,10 @@ public class BlocksPendingManager {
 
     // REGISTER OF EVENTS:
     public synchronized void registerNewDownloadAttempt(String blockHash)            { blocksNumDownloadAttempts.merge(blockHash, 1, (o, n) -> o + n); }
-    public synchronized void registerBlockDownloaded(String blockHash)               { blocksNumDownloadAttempts.remove(blockHash); downloadFails.remove(blockHash);}
-    public synchronized void registerBlockDiscarded(String blockHash)                { blocksNumDownloadAttempts.remove(blockHash); downloadFails.remove(blockHash);}
+    public synchronized void registerBlockDownloaded(String blockHash)               { blocksNumDownloadAttempts.remove(blockHash);}
+    public synchronized void registerBlockDiscarded(String blockHash)                { blocksNumDownloadAttempts.remove(blockHash);}
     public synchronized void registerBlockCancelled(String blockHash)                {
         blocksNumDownloadAttempts.remove(blockHash);
-        downloadFails.remove(blockHash);
         pendingBlocks.remove(blockHash);
     }
 
@@ -175,9 +174,6 @@ public class BlocksPendingManager {
                 // see if time since the last download attempt is less than "minTimeSinceLastDownloadFailure"
                 if (Duration.between(Instant.now(), failedAttemptTimeForBlock).minus(minTimeSinceLastDownloadFailure).isNegative()) {
                     return false; // current peer is not suitable for downloading "blokHash"
-                } else {
-                    // enough time has passed from last download attempt, we can continue to assess "currentPeer"
-                    failedAttemptsOnCurrentPeer.remove(currentPeer);
                 }
             }
         }
