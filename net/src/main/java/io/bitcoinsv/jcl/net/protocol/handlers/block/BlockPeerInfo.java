@@ -133,6 +133,7 @@ public class BlockPeerInfo {
     public PeerConnectionState getConnectionState() { return this.connectionState; }
     public PeerWorkingState getWorkingState()       { return this.workingState; }
     public Integer getDownloadSpeed()               { return this.downloadSpeed; }
+    public void setDownloadSpeed(Integer speed)     { this.downloadSpeed = speed; }
     public DeserializerStream getStream()           { return this.stream; }
     public BlockProgressInfo getCurrentBlockInfo()  { return this.currentBlockInfo; }
 
