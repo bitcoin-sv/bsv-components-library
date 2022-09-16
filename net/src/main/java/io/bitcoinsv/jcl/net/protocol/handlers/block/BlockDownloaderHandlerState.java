@@ -4,10 +4,13 @@ package io.bitcoinsv.jcl.net.protocol.handlers.block;
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.tools.handlers.HandlerState;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -17,6 +20,8 @@ import java.util.stream.Collectors;
  * It stores the state of the blockDownloader Handler at a point in time.
  */
 public final class BlockDownloaderHandlerState extends HandlerState {
+    // Handler Config:
+    private final BlockDownloaderHandlerConfig config;
 
     // Downloading State:
     private final BlockDownloaderHandlerImpl.DonwloadingState downloadingState;
@@ -41,6 +46,9 @@ public final class BlockDownloaderHandlerState extends HandlerState {
     // Map with the current attempts per block:
     private Map<String, Integer> blocksNumDownloadAttempts;
 
+    // Track of last activity timestamp for each block:
+    private Map<String, Instant> blocksLastActivity = new ConcurrentHashMap<>();
+
     // percentage of "busy": If 100, then the Block downloader is downloading all the possible blocks simultaneously,
     // based con configuration. If 50, only half of the blocks that could be are being downloaded, etc.
     // This parameter is NOT a snapshot, but more like an accumulative aggregation: Its the average between the
@@ -52,7 +60,8 @@ public final class BlockDownloaderHandlerState extends HandlerState {
 
     private final long blocksDownloadingSize;
 
-    public BlockDownloaderHandlerState( BlockDownloaderHandlerImpl.DonwloadingState downloadingState,
+    public BlockDownloaderHandlerState( BlockDownloaderHandlerConfig config,
+                                        BlockDownloaderHandlerImpl.DonwloadingState downloadingState,
                                         List<String> pendingBlocks,
                                         List<String> downloadedBlocks,
                                         List<String> discardedBlocks,
@@ -60,12 +69,14 @@ public final class BlockDownloaderHandlerState extends HandlerState {
                                         List<String> cancelledBlocks,
                                         Set<String> blocksInLimbo,
                                         Map<String, List<BlocksDownloadHistory.HistoricItem<String, PeerAddress>>> blocksHistory,
+                                        Map<String, Instant> blocksLastActivity,
                                         List<BlockPeerInfo> peersInfo,
                                         long totalReattempts,
                                         Map<String, Integer> blocksNumDownloadAttempts,
                                         int busyPercentage,
                                         boolean bandwidthRestricted,
                                         long blocksDownloadingSize) {
+        this.config = config;
         this.downloadingState = downloadingState;
         this.pendingBlocks = pendingBlocks;
         this.downloadedBlocks = downloadedBlocks;
@@ -74,6 +85,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         this.cancelledBlocks = cancelledBlocks;
         this.blocksInLimbo = blocksInLimbo;
         this.blocksHistory = blocksHistory;
+        this.blocksLastActivity = blocksLastActivity;
         this.peersInfo = peersInfo;
         this.totalReattempts = totalReattempts;
         this.blocksNumDownloadAttempts = blocksNumDownloadAttempts;
@@ -94,6 +106,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         // Blocks Info:
         result.append("\n Blocks     : ");
         result.append(downloadedBlocks.size()).append(" downloaded");
+        result.append(", ").append(pendingBlocks.size()).append(" pending");
         result.append(", ").append(blocksInLimbo.size()).append(" in limbo");
         result.append(", ").append(cancelledBlocks.size()).append(" cancelled");
         result.append(", ").append(discardedBlocks.size()).append( " discarded");
@@ -103,7 +116,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         long numPeersDownloading = peersInfo.stream().filter(p -> p.isProcessing()).count();
         long numPeersIdle = peersInfo.stream().filter(p -> p.isIdle()).count();
         result.append("\n Peers      : ");
-        result.append(numPeersHandshaked).append(" handshaked");
+        result.append(numPeersHandshaked).append(" peers");
         result.append(", ").append(numPeersDownloading).append(" downloading");
         result.append(", ").append(numPeersIdle).append(" idle");
 
@@ -117,7 +130,13 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         // Blocks iin Limbo:
         if (blocksInLimbo.size() > 0) {
             result.append("\n Retry later:\n  > ");
-            result.append(blocksInLimbo.stream().collect(Collectors.joining("\n  > ")));
+
+            String blocksInLimboStr = blocksInLimbo.stream().map(h -> {
+                Duration timePassedSinceLastActivity = Duration.between(blocksLastActivity.get(h), Instant.now());
+                long secsToRetry = config.getInactivityTimeoutToFail().toSeconds() - timePassedSinceLastActivity.toSeconds();
+                return (h + " Retrying in " + secsToRetry + " secs...");
+            }).collect(Collectors.joining("\n  > "));
+            result.append(blocksInLimboStr);
         }
         result.append("\n");
         return result.toString();
@@ -181,6 +200,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
      * Builder
      */
     public static class BlockDownloaderHandlerStateBuilder {
+        private BlockDownloaderHandlerConfig config;
         private BlockDownloaderHandlerImpl.DonwloadingState downloadingState;
         private List<String> pendingBlocks;
         private List<String> downloadedBlocks;
@@ -189,6 +209,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         private List<String> cancelledBlocks;
         private Set<String> blocksInLimbo;
         private Map<String, List<BlocksDownloadHistory.HistoricItem<String, PeerAddress>>> blocksHistory;
+        private Map<String, Instant> blocksLastActivity;
         private List<BlockPeerInfo> peersInfo;
         private long totalReattempts;
         private Map<String, Integer> blocksNumDownloadAttempts;
@@ -197,6 +218,11 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         private long blocksDownloadingSize;
 
         BlockDownloaderHandlerStateBuilder() {
+        }
+
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder config(BlockDownloaderHandlerConfig config) {
+            this.config = config;
+            return this;
         }
 
         public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder downloadingState(BlockDownloaderHandlerImpl.DonwloadingState downloadingState) {
@@ -239,6 +265,11 @@ public final class BlockDownloaderHandlerState extends HandlerState {
             return this;
         }
 
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder blocksLastActivity(Map<String, Instant> blocksLastActivity) {
+            this.blocksLastActivity = blocksLastActivity;
+            return this;
+        }
+
         public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder peersInfo(List<BlockPeerInfo> peersInfo) {
             this.peersInfo = peersInfo;
             return this;
@@ -270,7 +301,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         }
 
         public BlockDownloaderHandlerState build() {
-            return new BlockDownloaderHandlerState(downloadingState, pendingBlocks, downloadedBlocks, discardedBlocks, pendingToCancelBlocks, cancelledBlocks, blocksInLimbo, blocksHistory, peersInfo, totalReattempts, blocksNumDownloadAttempts, busyPercentage, bandwidthRestricted, blocksDownloadingSize);
+            return new BlockDownloaderHandlerState(config, downloadingState, pendingBlocks, downloadedBlocks, discardedBlocks, pendingToCancelBlocks, cancelledBlocks, blocksInLimbo, blocksHistory, blocksLastActivity, peersInfo, totalReattempts, blocksNumDownloadAttempts, busyPercentage, bandwidthRestricted, blocksDownloadingSize);
         }
     }
 }

@@ -288,6 +288,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
         long blocksDownloadingSize = this.bigBlocksHeaders.values().stream().mapToLong(h -> h.getTxsSizeInbytes().getValue()).sum();
 
         return BlockDownloaderHandlerState.builder()
+                .config(this.config)
                 .downloadingState(this.downloadingState)
                 .pendingBlocks(this.blocksPendingManager.getPendingBlocks().stream().collect(Collectors.toList()))
                 .downloadedBlocks(this.blocksDownloaded)
@@ -296,6 +297,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                 .cancelledBlocks(this.blocksCancelled.stream().collect(Collectors.toList()))
                 .blocksInLimbo(this.blocksInLimbo)
                 .blocksHistory(this.blocksDownloadHistory.getBlocksHistory())
+                .blocksLastActivity(this.blocksLastActivity)
                 .peersInfo(this.handlerInfo.values().stream()
                         //.filter( p -> p.getCurrentBlockInfo() != null)
                         //.filter( p -> p.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING))
