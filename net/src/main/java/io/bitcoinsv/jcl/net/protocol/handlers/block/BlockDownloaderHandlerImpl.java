@@ -957,7 +957,13 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                                 if (peerInfo.isIdleTimeoutBroken(config.getMaxIdleTimeout()))                             { msgFailure = "Idle Time expired"; peerInfo.setDownloadSpeed(0);}
                                 if (peerInfo.isDownloadTimeoutBroken(config.getMaxDownloadTimeout()))                     { msgFailure = "Downloading Time expired"; }
                                 if (peerInfo.getConnectionState().equals(BlockPeerInfo.PeerConnectionState.DISCONNECTED)) { msgFailure = "Peer Closed while downloading"; }
-                                if (peerInfo.isTooSlow(config.getMinSpeed()))                                             { msgFailure = "Peer too slow"; }
+
+                                // We dont process a SLOW peer as a Failure anymore: Since we are NOT dropping the connections to
+                                // Peers now, if a Peer is slow we cannot cancel the download since the Peer will still be sending
+                                // as the block in the background, so we might be downloading the same blocks from multiple peers,
+                                // which is not good.
+                                //if (peerInfo.isTooSlow(config.getMinSpeed()))                                             { msgFailure = "Peer too slow"; }
+
                                 if (msgFailure != null) {
                                     logger.debug(peerAddress, "Download Failure", peerInfo.getCurrentBlockInfo().hash, msgFailure);
                                     blocksDownloadHistory.register(peerInfo.getCurrentBlockInfo().hash, peerInfo.getPeerAddress(), "Download Issue detected : " + msgFailure);
