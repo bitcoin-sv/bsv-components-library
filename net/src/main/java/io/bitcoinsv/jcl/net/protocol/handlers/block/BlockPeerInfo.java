@@ -7,6 +7,7 @@ import io.bitcoinsv.jcl.net.protocol.messages.BlockMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.HeaderMsg;
 import io.bitcoinsv.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerStream;
 import io.bitcoinsv.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerStreamState;
+import io.bitcoinsv.jcl.tools.util.StringUtils;
 
 import java.text.DecimalFormat;
 import java.time.Duration;
@@ -67,18 +68,35 @@ public class BlockPeerInfo {
         @Override
         public String toString() {
             StringBuffer result = new StringBuffer();
-            result.append(hash).append(" : ");
-            result.append(Strings.padEnd("#" + numAttempt,3,' ')).append(" : ");
-            if (corrupted) result.append("CORRUPTED");
-            else {
-                DecimalFormat format = new DecimalFormat("#0.0");
+            // Block being downloaded:
+            result.append(hash);
+            result.append(" ");
+
+            // Number of Attempts of downloading this Block:
+            result.append(StringUtils.fixedLength("#" + numAttempt, 4));
+            result.append(" ");
+
+            // If state is CORRUPTED, we do not log anything else:
+            if (corrupted) {
+                result.append("CORRUPTED !!");
+            } else {
+                // Download Speed:
+                // We only log it if we have already downloading some of the block otherwise we dont even know its size:
                 if (bytesDownloaded != null && bytesTotal != null) {
-                    String bytesTotalStr = format.format((double) bytesTotal / 1_000_000) + " MB";
-                    String bytesDownStr =  format.format((double) bytesDownloaded / 1_000_000) + " MB";
+                    // Progress (percentage):
                     String progressStr = (getProgressPercentage() == null)? "¿? %" : (getProgressPercentage() + " %");
-                    result.append(Strings.padEnd(progressStr, 4, ' '));
-                    String bytesRead = " [" + bytesDownStr + " / " + bytesTotalStr + "]";
-                    result.append(Strings.padEnd(bytesRead, 22, ' '));
+                    result.append(StringUtils.fixedLength(progressStr, 5));
+                    result.append(" ");
+
+                    // Bytes downloaded / total:
+                    DecimalFormat format = new DecimalFormat("#0.0");
+                    String bytesTotalStr = format.format((double) bytesTotal / 1_000_000);
+                    String bytesDownStr =  format.format((double) bytesDownloaded / 1_000_000);
+                    String bytesStr = StringUtils.fixedLength(bytesDownStr + "/" + bytesTotalStr + " MB", 15);
+                    result.append(bytesStr);
+
+                } else {
+                    result.append("nothing received yet...");
                 }
             }
             return result.toString();
@@ -297,30 +315,32 @@ public class BlockPeerInfo {
 
     @Override
     public String toString() {
-        StringBuffer result = new StringBuffer();
-        result.append(Strings.padEnd(this.peerAddress.toString(), 36, ' ')).append(" : ");
+        StringBuilder result = new StringBuilder();
+        result.append(StringUtils.fixedLength(this.peerAddress.toString(), 36));
+        result.append(" ");
 
-        // we calculate the Progress status, if any:
+        // If this Peer is downloading a Block, we add more detail:
         BlockProgressInfo blockProgressInfo = currentBlockInfo;
         if (blockProgressInfo != null) {
-            result.append(blockProgressInfo.toString());
-
-            //if (blockProgressInfo.getRealTimeProcessing() != null)
-            //    result.append(blockProgressInfo.getRealTimeProcessing() ? "[Big block]" : "").append(" : ");
-
-            // We print this Peer download Speed:
-            DecimalFormat speedFormat = new DecimalFormat("#0.0");
-            Integer peerSpeed = getDownloadSpeed();
-            if (peerSpeed != null && blockProgressInfo.bytesDownloaded != null && peerSpeed != Integer.MAX_VALUE) {
-                String speedStr = speedFormat.format((double) peerSpeed / 1_000);
-                result.append(Strings.padEnd("[ " + speedStr + " KB/sec ]",17, ' '));
-                result.append(" : ");
-            }
-
-            // We print the downloading time:
+            // Downloading time...
             Duration downloadingTime = Duration.between(blockProgressInfo.startTimestamp, Instant.now());
-            if (downloadingTime.toSeconds() > 0) {
-                result.append("[" + downloadingTime.toSeconds() + " secs]");
+            result.append(StringUtils.fixedLength("[" + downloadingTime.toSeconds() + " secs]",10));
+            result.append(" ");
+
+            // Block Details:
+            result.append(blockProgressInfo);
+            result.append(" ");
+
+            // Download Speed:
+            if (blockProgressInfo.bytesDownloaded != null && blockProgressInfo.bytesTotal != null) {
+                DecimalFormat speedFormat = new DecimalFormat("#0.0");
+                Integer peerSpeed = getDownloadSpeed();
+                String speedStr = (peerSpeed != null)
+                        ? (peerSpeed != Integer.MAX_VALUE)
+                        ? speedFormat.format((double) peerSpeed / 1_000)
+                        : "¿?"
+                        : "0.0";
+                result.append(StringUtils.fixedLength(speedStr + " KB/sec", 15));
             }
         } else {
             result.append(this.connectionState).append("-");

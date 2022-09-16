@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author i.fernandez@nchain.com
@@ -85,41 +86,40 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         return new BlockDownloaderHandlerStateBuilder();
     }
 
-    public String toStringShort() {
-        StringBuffer result = new StringBuffer();
-        result.append(" [ " + downloadingState + " ] ");
-        result.append(" : ");
-        result.append("Blocks: [");
-        result.append(downloadedBlocks.size() + " downloaded, " + getNumPeersDownloading() + " downloading, " + pendingBlocks.size() + " pending, ");
-        result.append(blocksInLimbo.size() + " in limbo, ");
-        result.append(discardedBlocks.size() + " discarded, ");
-        result.append(cancelledBlocks.size() + " canceled, "+ pendingToCancelBlocks.size() + " pending to cancel, ");
-        result.append(totalReattempts + " re-attempts");
-        result.append("] ");
-        result.append(" Peers: [");
-        result.append(peersInfo.size() + " peers, ");
-        result.append(busyPercentage + "% busy ");
-        if (bandwidthRestricted) {
-            result.append("(bandwidth restricted)");
-        }
-        result.append("]");
-
-        long totalSizeDownloadingInMB = getBlocksDownloadingSize() / 1_000_000;
-        result.append((totalSizeDownloadingInMB > 0)? ": downloading " + totalSizeDownloadingInMB + " MBs or more" : "");
-        return result.toString();
-    }
-
     @Override
     public String toString() {
-        StringBuffer result = new StringBuffer();
-        result.append(toStringShort());
-        result.append("\n");
-        peersInfo.stream()
-                .filter(p -> p.getWorkingState() == BlockPeerInfo.PeerWorkingState.PROCESSING)
-                .forEach(p -> {
-                    result.append(p.toString()).append("\n");
-                });
+        // The state of this Handler is too big so it takes several lines:
+        StringBuilder result = new StringBuilder("\n\n DOWNLOAD STATE:");
 
+        // Blocks Info:
+        result.append("\n Blocks     : ");
+        result.append(downloadedBlocks.size()).append(" downloaded");
+        result.append(", ").append(blocksInLimbo.size()).append(" in limbo");
+        result.append(", ").append(cancelledBlocks.size()).append(" cancelled");
+        result.append(", ").append(discardedBlocks.size()).append( " discarded");
+
+        // Peers Info:
+        long numPeersHandshaked = peersInfo.stream().filter(p -> p.isHandshaked()).count();
+        long numPeersDownloading = peersInfo.stream().filter(p -> p.isProcessing()).count();
+        long numPeersIdle = peersInfo.stream().filter(p -> p.isIdle()).count();
+        result.append("\n Peers      : ");
+        result.append(numPeersHandshaked).append(" handshaked");
+        result.append(", ").append(numPeersDownloading).append(" downloading");
+        result.append(", ").append(numPeersIdle).append(" idle");
+
+        // Download progress:
+        if (numPeersDownloading > 0) {
+            result.append("\n Progress   :\n");
+            result.append("  > ");
+            result.append(peersInfo.stream().filter(p -> p.isProcessing()).map(p -> p.toString()).collect(Collectors.joining("\n  > ")));
+        }
+
+        // Blocks iin Limbo:
+        if (blocksInLimbo.size() > 0) {
+            result.append("\n Retry later:\n  > ");
+            result.append(blocksInLimbo.stream().collect(Collectors.joining("\n  > ")));
+        }
+        result.append("\n");
         return result.toString();
     }
 
