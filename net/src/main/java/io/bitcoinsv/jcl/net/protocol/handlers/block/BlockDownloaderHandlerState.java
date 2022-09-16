@@ -101,35 +101,41 @@ public final class BlockDownloaderHandlerState extends HandlerState {
     @Override
     public String toString() {
         // The state of this Handler is too big so it takes several lines:
-        StringBuilder result = new StringBuilder("\n\n DOWNLOAD STATE:");
+        StringBuilder result = new StringBuilder("\n\n DOWNLOAD STATE: ");
+        result.append(downloadingState);
+        if (bandwidthRestricted) {
+            result.append(" [bandwidth restricted to " + config.getMaxMBinParallel() + " MB]");
+        }
 
         // Blocks Info:
-        result.append("\n Blocks     : ");
+        result.append("\n Blocks        : ");
         result.append(downloadedBlocks.size()).append(" downloaded");
         result.append(", ").append(pendingBlocks.size()).append(" pending");
         result.append(", ").append(blocksInLimbo.size()).append(" in limbo");
         result.append(", ").append(cancelledBlocks.size()).append(" cancelled");
         result.append(", ").append(discardedBlocks.size()).append( " discarded");
+        result.append(", ").append(totalReattempts + " re-attempts");
 
         // Peers Info:
         long numPeersHandshaked = peersInfo.stream().filter(p -> p.isHandshaked()).count();
         long numPeersDownloading = peersInfo.stream().filter(p -> p.isProcessing()).count();
         long numPeersIdle = peersInfo.stream().filter(p -> p.isIdle()).count();
-        result.append("\n Peers      : ");
+        result.append("\n Peers         : ");
         result.append(numPeersHandshaked).append(" peers");
         result.append(", ").append(numPeersDownloading).append(" downloading");
+        result.append(" (" + busyPercentage + "% busy)");
         result.append(", ").append(numPeersIdle).append(" idle");
 
         // Download progress:
         if (numPeersDownloading > 0) {
-            result.append("\n Progress   :\n");
+            result.append("\n Progress      :\n");
             result.append("  > ");
             result.append(peersInfo.stream().filter(p -> p.isProcessing()).map(p -> p.toString()).collect(Collectors.joining("\n  > ")));
         }
 
         // Blocks iin Limbo:
         if (blocksInLimbo.size() > 0) {
-            result.append("\n Retry later:\n  > ");
+            result.append("\n Retry later   :\n  > ");
 
             String blocksInLimboStr = blocksInLimbo.stream().map(h -> {
                 Duration timePassedSinceLastActivity = Duration.between(blocksLastActivity.get(h), Instant.now());
