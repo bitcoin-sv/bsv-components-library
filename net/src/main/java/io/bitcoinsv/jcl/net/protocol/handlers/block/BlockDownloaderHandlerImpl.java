@@ -146,6 +146,9 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
     private boolean allowedToRunByClient = true;
     private boolean allowedToRunByInternalState = false;
 
+    // We keep track also of the list of Rejections obtained for each Peer that can NOT download any block at all
+    private Map<PeerAddress, BlocksPendingManager.DownloadFromPeerResponse> downloadRejections = new ConcurrentHashMap<>();
+
     /** Constructor */
     public BlockDownloaderHandlerImpl(String id, RuntimeConfig runtimeConfig, BlockDownloaderHandlerConfig config) {
         super(id, runtimeConfig);
@@ -288,23 +291,25 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
         long blocksDownloadingSize = this.bigBlocksHeaders.values().stream().mapToLong(h -> h.getTxsSizeInbytes().getValue()).sum();
 
         return BlockDownloaderHandlerState.builder()
-                .config(this.config)
-                .downloadingState(this.downloadingState)
+
+                // Direct references:
                 .pendingBlocks(this.blocksPendingManager.getPendingBlocks().stream().collect(Collectors.toList()))
                 .downloadedBlocks(this.blocksDownloaded)
                 .discardedBlocks(this.blocksDiscarded.keySet().stream().collect(Collectors.toList()))
                 .pendingToCancelBlocks(this.blocksPendingToCancel.stream().collect(Collectors.toList()))
                 .cancelledBlocks(this.blocksCancelled.stream().collect(Collectors.toList()))
-                .blocksInLimbo(this.blocksInLimbo)
+
                 .blocksHistory(this.blocksDownloadHistory.getBlocksHistory())
                 .blocksLastActivity(this.blocksLastActivity)
-                .peersInfo(this.handlerInfo.values().stream()
-                        //.filter( p -> p.getCurrentBlockInfo() != null)
-                        //.filter( p -> p.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING))
-                        .filter(p -> p.getConnectionState().equals(BlockPeerInfo.PeerConnectionState.HANDSHAKED))
-                        .collect(Collectors.toList()))
+                // Defensive Copies:
+                .downloadRejections(new HashMap<>(this.downloadRejections))
+                .peersInfo(new ArrayList(this.handlerInfo.values().stream().filter(p -> p.isHandshaked()).collect(Collectors.toList())))
                 .totalReattempts(this.totalReattempts.get())
-                .blocksNumDownloadAttempts(blocksPendingManager.getBlockDownloadAttempts())
+                .blocksNumDownloadAttempts(new HashMap<>(blocksPendingManager.getBlockDownloadAttempts()))
+                .blocksInLimbo(new HashSet<>(this.blocksInLimbo))
+                // Static/Primitive properties
+                .config(this.config)
+                .downloadingState(this.downloadingState)
                 .busyPercentage(percentage)
                 .bandwidthRestricted(this.bandwidthRestricted)
                 .blocksDownloadingSize(blocksDownloadingSize)
@@ -448,6 +453,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                 peerInfo.disconnect();
                 logger.trace(peerInfo.getPeerAddress(),  "Peer Disconnected", peerInfo.toString());
             }
+            downloadRejections.remove(event.getPeerAddress());
         } finally {
             lock.unlock();
         }
@@ -838,6 +844,9 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
             logger.debug(peerInfo.getPeerAddress(), "Starting downloading Block " + blockHash);
             blocksDownloadHistory.register(blockHash, peerInfo.getPeerAddress(), "Starting downloading");
 
+            // The block is not rejected anymore if it ever was)
+            downloadRejections.remove(peerInfo.getPeerAddress());
+
             // We update the Peer Info
             int numAttempts = blocksPendingManager.getNumDownloadAttempts(blockHash) + 1;
             peerInfo.startDownloading(blockHash, numAttempts);
@@ -940,9 +949,17 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                                             .collect(Collectors.toList());
 
                                     // We finally request a Peer to assign and download from this Peer, if any has been found:
-                                    Optional<String> blockHashToDownload = blocksPendingManager.extractMostSuitableBlockForDownload(peerAddress, availablePeers, notAvailablePeers);
-                                    if (blockHashToDownload.isPresent()) {
-                                        startDownloading(peerInfo, blockHashToDownload.get());
+                                    Optional<BlocksPendingManager.DownloadFromPeerResponse> downloadResponse = blocksPendingManager
+                                            .extractMostSuitableBlockForDownload(peerAddress, availablePeers, notAvailablePeers);
+
+                                    if (downloadResponse.isPresent()) {
+                                        if (downloadResponse.get().isAssigned()) {
+                                            startDownloading(peerInfo, downloadResponse.get().getAssignedResponse().getRequest().getBlockHash());
+                                        } else {
+                                         // A Peer not being able to download any block at all is a rare situation, so
+                                         // we save the references to the rejection so they can be saved in the State:
+                                         downloadRejections.put(peerInfo.getPeerAddress(), downloadResponse.get());
+                                        }
                                     }
                                 }
                                 break;
@@ -1008,6 +1025,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                             blocksPendingManager.addWithPriority(hashToRetry); // blocks to retry have preference...
                         }
                     }
+
                 } finally {
                     lock.unlock();
                 }

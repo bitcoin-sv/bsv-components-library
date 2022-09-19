@@ -1,7 +1,6 @@
 package io.bitcoinsv.jcl.net.protocol.handlers.block;
 
 import com.google.common.collect.ImmutableList;
-import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +26,96 @@ import java.util.stream.IntStream;
 public class BlocksPendingManager {
 
     private static Logger log = LoggerFactory.getLogger(BlocksPendingManager.class);
+
+    /**
+     * A Download Request is a Request where a Peer/Block is given, asking if its possible to start the downloading of
+     * that block from that specific Peer
+     */
+    public static class DownloadRequest {
+        private PeerAddress peerAddress;
+        private String blockHash;
+        public DownloadRequest(PeerAddress peerAddress, String blockHash) {
+            this.peerAddress = peerAddress;
+            this.blockHash = blockHash;
+        }
+        public PeerAddress getPeerAddress() { return this.peerAddress;}
+        public String getBlockHash()        { return this.blockHash;}
+    }
+
+
+    /**
+     * A Download Response is the Response from a Previous Request. It represents the Block assigned to be downloaded
+     * from a Peer, or some info about WHY that Peer cannot be assigned to any block at all.
+     */
+
+    // Note: A "announcer" Peer is a Peer that has "announced" a Block by sending previously an INV
+    public enum DownloadResponseState {
+        ASSIGNED,                       // Bock assigned to Peer (NORMAL CASE)
+        TOO_MANY_FAILURES,              // Block NOT assigned: Peer has already tried this block before
+        OTHER_PEER_WITH_EXCLUSIVITY,    // Block NOT assigned: Other Peer has higher priority for this Block
+        OTHER_PEER_ANNOUNCER,           // Another Peer has announced this block so that Peer has higher Priority
+        NO_ANNOUNCERS                   // The Block can ONLY be downloader from an Announcer, but this Peer is NOT
+    }
+
+    public static class DownloadResponse {
+        private DownloadRequest request;
+        private DownloadResponseState state;
+
+        public DownloadResponse(DownloadRequest request) {
+            this.request = request;
+            this.state = DownloadResponseState.ASSIGNED;
+        }
+
+        public DownloadResponse(DownloadRequest request, DownloadResponseState state) {
+            this.request = request;
+            this.state = state;
+        }
+
+        public DownloadRequest getRequest()     { return this.request;}
+        public DownloadResponseState getState() { return this.state;}
+        public boolean isAssigned()             { return this.state.equals(DownloadResponseState.ASSIGNED);}
+    }
+
+    /**
+     * This class stores the Response when we are asked about what Block can be assigned for the Peer given to
+     * download. The response can be a single Peer if there is one, or a list of REJECTIONS, if no Block could
+     * be assigned to this peer.
+     */
+    public static class DownloadFromPeerResponse {
+        private PeerAddress peerAddress;
+        private DownloadResponse assignedResponse;
+        private List<DownloadResponse> rejectedResponses;
+
+        public DownloadFromPeerResponse (DownloadResponse assignedResponse) {
+            this.peerAddress = assignedResponse.getRequest().getPeerAddress();
+            this.assignedResponse = assignedResponse;
+        }
+
+        public DownloadFromPeerResponse(PeerAddress peerAddress, List<DownloadResponse> rejectedResponses) {
+            this.peerAddress = peerAddress;
+            this.rejectedResponses = rejectedResponses;
+        }
+
+        public DownloadResponse getAssignedResponse()   { return this.assignedResponse;}
+        public List<DownloadResponse> getRejections()   { return this.rejectedResponses;}
+        public boolean isAssigned()                     { return assignedResponse != null;}
+
+        @Override
+        public String toString() {
+            StringBuilder result = new StringBuilder();
+            if (isAssigned()) {
+                result.append(" Assigned ");
+            } else {
+                Map<DownloadResponseState, Long> rejectReasons = rejectedResponses.stream()
+                        .collect(Collectors.groupingBy(DownloadResponse::getState, Collectors.counting()));
+                result.append(rejectReasons.entrySet().stream()
+                        .map(e -> e.getKey() + "(" + e.getValue() + ")")
+                        .collect(Collectors.joining(" ")));
+            }
+            return result.toString();
+        }
+    }
+
 
     // BEST Match Logic:
     // A block can only be downloaded if there are some Peers connected. So if we have N Peers connected, then each
@@ -75,10 +164,16 @@ public class BlocksPendingManager {
     public BlocksPendingManager() { }
 
     // Best Match Policies/Criteria Setters:
-    public void setBestMatchCriteria(BlockDownloaderHandlerConfig.BestMatchCriteria bestMatchCriteria)   { this.bestMatchCriteria = bestMatchCriteria; }
-    public void setNoBestMatchAction(BlockDownloaderHandlerConfig.NoBestMatchAction noBestMatchAction)   { this.noBestMatchAction = noBestMatchAction; }
-    public void setBestMatchNotAvailableAction(BlockDownloaderHandlerConfig.BestMatchNotAvailableAction bestMatchNotAvailableAction)
-                                                                            { this.bestMatchNotAvailableAction = bestMatchNotAvailableAction; }
+    public void setBestMatchCriteria(BlockDownloaderHandlerConfig.BestMatchCriteria bestMatchCriteria) {
+        this.bestMatchCriteria = bestMatchCriteria;
+    }
+    public void setNoBestMatchAction(BlockDownloaderHandlerConfig.NoBestMatchAction noBestMatchAction) {
+        this.noBestMatchAction = noBestMatchAction;
+    }
+    public void setBestMatchNotAvailableAction(BlockDownloaderHandlerConfig.BestMatchNotAvailableAction bestMatchNotAvailableAction) {
+        this.bestMatchNotAvailableAction = bestMatchNotAvailableAction;
+    }
+
     // BOCK ANNOUNCEMENTS:
     public void registerBlockAnnouncement(String blockHash, PeerAddress peerAddress) {
         Set<String> blocks = blockAnnouncements.containsKey(peerAddress) ? blockAnnouncements.get(peerAddress) : new HashSet<>();
@@ -117,17 +212,17 @@ public class BlocksPendingManager {
     }
 
     // REGISTER OF EVENTS:
-    public synchronized void registerNewDownloadAttempt(String blockHash)            { blocksNumDownloadAttempts.merge(blockHash, 1, (o, n) -> o + n); }
-    public synchronized void registerBlockDownloaded(String blockHash)               { blocksNumDownloadAttempts.remove(blockHash);}
-    public synchronized void registerBlockDiscarded(String blockHash)                { blocksNumDownloadAttempts.remove(blockHash);}
-    public synchronized void registerBlockCancelled(String blockHash)                {
+    public synchronized void registerNewDownloadAttempt(String blockHash)  { blocksNumDownloadAttempts.merge(blockHash, 1, (o, n) -> o + n); }
+    public synchronized void registerBlockDownloaded(String blockHash)     { blocksNumDownloadAttempts.remove(blockHash);}
+    public synchronized void registerBlockDiscarded(String blockHash)      { blocksNumDownloadAttempts.remove(blockHash);}
+    public synchronized void registerBlockCancelled(String blockHash)      {
         blocksNumDownloadAttempts.remove(blockHash);
         pendingBlocks.remove(blockHash);
     }
 
     // RESTRICTED MODE:
-    public synchronized void switchToRestrictedMode()                                { this.restrictedMode = true; }
-    public synchronized void switchToNormalMode()                                    { this.restrictedMode = false; }
+    public synchronized void switchToRestrictedMode()                   { this.restrictedMode = true; }
+    public synchronized void switchToNormalMode()                       { this.restrictedMode = false; }
 
     // DOWNLOAD ATTEMPTS:
     public int getNumDownloadAttempts(String blockHash)                 { return blocksNumDownloadAttempts.containsKey(blockHash)? blocksNumDownloadAttempts.get(blockHash) : 0; }
@@ -155,41 +250,46 @@ public class BlocksPendingManager {
      * - FALSE: The current Peer will NOT be used to download the Block. In this case, since this method will iterate
      *   other all the Peers, another Peer might be chosen for that (this method might return TRUE for other Peer)
      *
-     * @param blockHash         Block Hash we want to download
-     * @param currentPeer       Peer we try to check if its a good fit to download this block
+     * @param request           Download Assignment Request
      * @param availablePeers    List of available Pers (excluding 'currentPeer')
      * @param notAvailablePeers List of NOT available Pers (excluding 'currentPeer')
      * @return                  true -> This block can be assigned to this Peer for download
      */
-    private boolean isPeerSuitableForDownload(String blockHash, PeerAddress currentPeer,
-                                              List<PeerAddress> availablePeers,
-                                              List<PeerAddress> notAvailablePeers) {
+    private DownloadResponse isPeerSuitableForDownload(
+            DownloadRequest request,
+            List<PeerAddress> availablePeers,
+            List<PeerAddress> notAvailablePeers) {
+
+        PeerAddress peer = request.getPeerAddress();
+        String blockHash = request.getBlockHash();
+
+        // By default, we assign this block to this Peer:
+        DownloadResponse result = new DownloadResponse(request);
 
         // If "currentPeer" failed to download "blockHash" in last "minTimeSinceLastDownloadFailure" we will
         // return false.
         var failedAttemptsOnCurrentPeer = downloadFails.get(blockHash);
         if (failedAttemptsOnCurrentPeer != null) {
-            var failedAttemptTimeForBlock = failedAttemptsOnCurrentPeer.get(currentPeer);
+            var failedAttemptTimeForBlock = failedAttemptsOnCurrentPeer.get(peer);
             if (failedAttemptTimeForBlock != null) {
                 // see if time since the last download attempt is less than "minTimeSinceLastDownloadFailure"
-                if (Duration.between(Instant.now(), failedAttemptTimeForBlock).minus(minTimeSinceLastDownloadFailure).isNegative()) {
-                    return false; // current peer is not suitable for downloading "blokHash"
+                if (Duration.between(failedAttemptTimeForBlock, Instant.now()).minus(minTimeSinceLastDownloadFailure).isNegative()) {
+                    return new DownloadResponse(request, DownloadResponseState.TOO_MANY_FAILURES);
                 }
             }
         }
 
         // If we are running in RestrictiveMode, we just assign this Block to this Peer and return:
-        if (restrictedMode) return true;
-
-        // By default, we assign this block to this Peer:
-        boolean result = true;
+        if (restrictedMode) return result;
 
         // If this Block has been assigned to one specific Peer to be downloaded from exclusively, we check if this
         // is that peer. If its not, then this Block is NOT assigned.
 
         if (this.blocksPeerExclusivity.containsKey(blockHash)) {
-            result = this.blocksPeerExclusivity.get(blockHash).equals(currentPeer);
-            return result;
+            boolean hasExclusivityForThisblock = this.blocksPeerExclusivity.get(blockHash).equals(peer);
+            return hasExclusivityForThisblock
+                    ? result
+                    : new DownloadResponse(request, DownloadResponseState.OTHER_PEER_WITH_EXCLUSIVITY);
         }
 
         // If this block has been assigned a list of Peers to download from with priority, we check:
@@ -201,12 +301,10 @@ public class BlocksPendingManager {
         // - If this block has NOT been assigned a list of Priority Peers, we just continue...
 
         if (this.blocksPeerPriority.containsKey(blockHash)) {
-            if (this.blocksPeerPriority.get(blockHash).contains(currentPeer)) {
-                result = true;
-            } else {
+            if (!this.blocksPeerPriority.get(blockHash).contains(peer)) {
                 boolean anyPriorityPeerAvailable = availablePeers.stream().anyMatch(p -> this.blocksPeerPriority.get(blockHash).contains(p));
                 if (anyPriorityPeerAvailable) {
-                    result = false;
+                    result = new DownloadResponse(request, DownloadResponseState.OTHER_PEER_WITH_EXCLUSIVITY);
                 }
             }
             return result;
@@ -214,24 +312,37 @@ public class BlocksPendingManager {
 
         // If blocks can be downloaded from ANYONE, we return TRUE right away:
         if (this.bestMatchCriteria == BlockDownloaderHandlerConfig.BestMatchCriteria.FROM_ANYONE) {
-            return true;
+            return result;
         }
 
         // If Blocks can only be downloaded from those Peers who announced them:
         if (this.bestMatchCriteria == BlockDownloaderHandlerConfig.BestMatchCriteria.FROM_ANNOUNCERS) {
-            if (isBlockAnnouncedBy(blockHash, currentPeer)) {
-                result = true; // Announced by this Peer. We assign it
-            } else if (isBlockAnnouncedBy(blockHash, availablePeers)){
-                result = false; // Announced by OTHER available Peer. WE skip this one (Return false)
+            if (isBlockAnnouncedBy(blockHash, request.getPeerAddress())) {
+                // Announced by this Peer. We assign it
+                return result;
+            } else if (isBlockAnnouncedBy(blockHash, availablePeers)) {
+                // Announced by OTHER available Peer. WE skip this one (Return false)
+                return new DownloadResponse(request, DownloadResponseState.OTHER_PEER_ANNOUNCER);
             } else if (isBlockAnnouncedBy(blockHash, notAvailablePeers)) {
                 // Block has been announced by a Peer that is NOT available. We do based on Action defined:
-                result = (bestMatchNotAvailableAction == BlockDownloaderHandlerConfig.BestMatchNotAvailableAction.DOWNLOAD_FROM_ANYONE);
+                if ((bestMatchNotAvailableAction == BlockDownloaderHandlerConfig.BestMatchNotAvailableAction.DOWNLOAD_FROM_ANYONE)) {
+                    // It can be Download by ANYBODY. We assign it:
+                    return result;
+                } else {
+                    // It cannot be Assigned to this Peer:
+                    return new DownloadResponse(request, DownloadResponseState.OTHER_PEER_ANNOUNCER);
+                }
 
             } else {
                 // Block has NOT been announced by ANY Peer at all. We do based on Action defined:
-                result = (noBestMatchAction == BlockDownloaderHandlerConfig.NoBestMatchAction.DOWNLOAD_FROM_ANYONE);
+                if (noBestMatchAction == BlockDownloaderHandlerConfig.NoBestMatchAction.DOWNLOAD_FROM_ANYONE) {
+                    // It can be Download by ANYBODY. We assign it:
+                    return result;
+                } else {
+                    // It cannot be Assigned to this Peer:
+                    return new DownloadResponse(request, DownloadResponseState.NO_ANNOUNCERS);
+                }
             }
-            return result;
         }
 
         return result;
@@ -249,12 +360,12 @@ public class BlocksPendingManager {
      * @return  A block to assign to this Peer, or empty if no assignment is possible (because there are no pending
      *          blocks anymore, or because due to the CRITERIA and ACTIONS defined there is no match possible).
      */
-    public synchronized Optional<String> extractMostSuitableBlockForDownload(PeerAddress currentPeer,
+    public synchronized Optional<DownloadFromPeerResponse> extractMostSuitableBlockForDownload(PeerAddress currentPeer,
                                                                              List<PeerAddress> availablePeers,
                                                                              List<PeerAddress> notAvailablePeers) {
 
         // Default:
-        Optional<String> result = Optional.empty();
+        Optional<DownloadFromPeerResponse> result = Optional.empty();
 
         // If we are in NORMAL Mode, we loop over the "pending" list of Blocks checking for each one if this Peer is a
         // Best Match. If we are in RESTRICTIVE Mode, we loop instead over the list of ONLY those blocks that have been
@@ -265,24 +376,31 @@ public class BlocksPendingManager {
                 : this.blocksNumDownloadAttempts.keySet().stream().filter(hash -> pendingBlocks.contains(hash)).collect(Collectors.toList());
 
         if (blocksToProcess.size() > 0) {
-            // We loop over the blocks and return the first one that is suitable (we get its index in the list):
-            OptionalInt blockIndexToReturn = IntStream.range(0, blocksToProcess.size())
-                    .filter(i -> isPeerSuitableForDownload(blocksToProcess.get(i), currentPeer, availablePeers, notAvailablePeers))
-                    .findFirst();
+            // We loop over the Blocks, making a DownloadRequest for each one, and storing the response. If we
+            // finally get a Match, then we only return that one, otherwise we return the list of rejections
+            List<DownloadResponse> rejections = new ArrayList<>();
 
-            if (blockIndexToReturn.isPresent()) {
-                result = Optional.of(blocksToProcess.get(blockIndexToReturn.getAsInt()));
+            for (int i = 0; i < blocksToProcess.size(); i++) {
+                String blockHash = blocksToProcess.get(i);
+                DownloadRequest request = new DownloadRequest(currentPeer, blockHash);
+                DownloadResponse response = isPeerSuitableForDownload(request, availablePeers, notAvailablePeers);
+                if (response.isAssigned()) {
+                    // We found a MATCH:
+                    // That block will then have to be REMOVED from the list of "pending" blocks.
+                    //  - If we are in NORMAL Mode, we can remove it quickly by using its INDEX.
+                    //  - If we are in RESTRICTIVE mode it might take longer...
+                    if (!restrictedMode) { this.pendingBlocks.remove(i); }          // remove by Index
+                    else                 { this.pendingBlocks.remove(blockHash);}   // remove by content
 
-                // That block will then have to be REMOVED from the list of "pending" blocks.
-                //  - If we are in NORMAL Mode, we can remove it quickly by using its INDEX.
-                //  - If we are in RESTRICTIVE mode it might take longer...
-
-                if (!restrictedMode) {
-                    this.pendingBlocks.remove(blockIndexToReturn.getAsInt()); // remove by Index -> FAST
+                    return Optional.of(new DownloadFromPeerResponse(response));
                 } else {
-                    this.pendingBlocks.remove(result.get()); // remove by Content -> SLOW
+                    // This block can NOT be Downloaded from this Peer. We save the Rejection:
+                    rejections.add(response);
                 }
             }
+            // If we get to here, then no block could be assigned to this Peer:
+            return Optional.of(new DownloadFromPeerResponse(currentPeer, rejections));
+
         }
         return result;
     }
