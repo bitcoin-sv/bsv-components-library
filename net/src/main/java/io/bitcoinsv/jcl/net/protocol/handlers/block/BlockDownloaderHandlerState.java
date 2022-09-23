@@ -126,11 +126,13 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         long numPeersHandshaked = peersInfo.stream().filter(p -> p.isHandshaked()).count();
         long numPeersDownloading = peersInfo.stream().filter(p -> p.isProcessing()).count();
         long numPeersIdle = peersInfo.stream().filter(p -> p.isIdle()).count();
+        long numPeersInLimbo = peersInfo.stream().filter(p -> p.isInLimbo()).count();
         result.append("\n Peers         : ");
         result.append(numPeersHandshaked).append(" peers");
         result.append(", ").append(numPeersDownloading).append(" downloading");
         result.append(" (" + busyPercentage + "% busy)");
         result.append(", ").append(numPeersIdle).append(" idle");
+        result.append(", ").append(numPeersInLimbo).append(" in Limbo");
 
         // Download progress:
         if (numPeersDownloading > 0) {

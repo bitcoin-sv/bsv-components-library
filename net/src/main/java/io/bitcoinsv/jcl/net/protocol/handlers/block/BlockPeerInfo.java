@@ -39,7 +39,8 @@ public class BlockPeerInfo {
     public enum PeerWorkingState {
         IDLE,                           // Peer doing nothing. Default
         PROCESSING,
-        DISCARDED;
+        DISCARDED,
+        IN_LIMBO;
     }
 
     /**
@@ -162,6 +163,9 @@ public class BlockPeerInfo {
     public boolean isIdle()                         { return this.workingState.equals(PeerWorkingState.IDLE);}
     public boolean isProcessing()                   { return this.workingState.equals(PeerWorkingState.PROCESSING);}
     public boolean isDiscarded()                    { return this.workingState.equals(PeerWorkingState.DISCARDED);}
+    public boolean isInLimbo()                      { return this.workingState.equals(PeerWorkingState.IN_LIMBO);}
+
+    public boolean isDownloading(String blockHash)  { return ((this.currentBlockInfo != null) && (this.currentBlockInfo.getHash().equalsIgnoreCase(blockHash)));}
 
     /**
      * It resets the peer, to make it ready to download a new Block. This Peer might have been used to downloadad
@@ -171,6 +175,18 @@ public class BlockPeerInfo {
     protected void reset() {
         this.workingState = PeerWorkingState.IDLE;
         this.currentBlockInfo = null;
+    }
+
+    /**
+     * It set this Peer to ION_LIMBO State, meaning this Peer is in an unpredictable state: It's supposed to be 
+     * downloading a Block, but it also seems to have an issue, so we are not getting more info from it. But we might
+     * still get it in the near future. So this peer will remain in this state until:
+     *  - we eventually receive the remaining parts of the block, which will finish the download
+     *  - a timeout is triggered and the download will be processed as a fail,iure, so the block wuill be re-attempted
+     *    with another Peer
+     */
+    protected void setToLimbo() {
+        this.workingState = PeerWorkingState.IN_LIMBO;
     }
 
     /**

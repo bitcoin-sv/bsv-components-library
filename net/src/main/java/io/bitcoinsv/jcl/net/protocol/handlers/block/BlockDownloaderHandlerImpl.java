@@ -441,15 +441,13 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
         try {
             lock.lock();
             BlockPeerInfo peerInfo = handlerInfo.get(event.getPeerAddress());
-            if (peerInfo != null) {
-                // If this Peer was in the middle of downloading a block, we process the failure...
-                if (peerInfo.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING)) {
-                    blocksDownloadHistory.register(peerInfo.getCurrentBlockInfo().hash, peerInfo.getPeerAddress(), "Peer has disconnected");
-                    blocksInLimbo.add(peerInfo.getCurrentBlockInfo().hash);
-
-                    // We process this failiure right away, no need to wait for the monitorJob to pick it up 1 minutes later
-                    processDownloadFailure(peerInfo.getCurrentBlockInfo().hash);
-                }
+            if ((peerInfo != null) && peerInfo.isProcessing()) {
+                // If this Peer was in the middle of downloading a block, we put this block in the LIMBO:
+                blocksDownloadHistory.register(peerInfo.getCurrentBlockInfo().hash, peerInfo.getPeerAddress(), "Peer has disconnected");
+                // Order is important here:
+                // - 1: we put the block into Limbo so we wait a while until we retry...
+                // - 2: we disconnect and we release the Stream so it can be gc collected
+                putDownloadIntoLimbo(peerInfo);
                 peerInfo.disconnect();
                 logger.trace(peerInfo.getPeerAddress(),  "Peer Disconnected", peerInfo.toString());
             }
@@ -793,6 +791,16 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
         }
     }
 
+    private void putDownloadIntoLimbo(BlockPeerInfo peerInfo) {
+        try {
+            lock.lock();
+            blocksInLimbo.add(peerInfo.getCurrentBlockInfo().getHash());
+            peerInfo.setToLimbo();
+        } finally {
+            lock.unlock();
+        }
+    }
+
     private void processDownloadFailure(String blockHash) {
         try {
             lock.lock();
@@ -812,6 +820,13 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                 return;
             }
 
+            // We reset the Peer that is currently downloading this Block, if any....
+            Optional<BlockPeerInfo> peerOpt = handlerInfo.values().stream().filter(p -> p.isDownloading(blockHash)).findFirst();
+            if (peerOpt.isPresent()) {
+                peerOpt.get().reset();
+            }
+
+            // We move the block back to the pool or discard it:
             int numAttempts = blocksPendingManager.getNumDownloadAttempts(blockHash);
             if (numAttempts < config.getMaxDownloadAttempts()) {
                 logger.debug("Download failure for " + blockHash + " :: back to the pending Pool...");
@@ -952,14 +967,21 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                                     Optional<BlocksPendingManager.DownloadFromPeerResponse> downloadResponse = blocksPendingManager
                                             .extractMostSuitableBlockForDownload(peerAddress, availablePeers, notAvailablePeers);
 
+                                    // possible outcomes:
+                                    // - No blocks to assign: nothing to do:
+                                    // - Assignment possible: we trigger the download
+                                    // - Assignment rejected: we save this info for logging
+
                                     if (downloadResponse.isPresent()) {
                                         if (downloadResponse.get().isAssigned()) {
                                             startDownloading(peerInfo, downloadResponse.get().getAssignedResponse().getRequest().getBlockHash());
                                         } else {
-                                         // A Peer not being able to download any block at all is a rare situation, so
-                                         // we save the references to the rejection so they can be saved in the State:
-                                         downloadRejections.put(peerInfo.getPeerAddress(), downloadResponse.get());
+                                            // A Peer not being able to download any block at all is a rare situation, so
+                                            // we save the references to the rejection so they can be saved in the State:
+                                            downloadRejections.put(peerInfo.getPeerAddress(), downloadResponse.get());
                                         }
+                                    } else {
+                                        downloadRejections.remove(peerInfo.getPeerAddress());
                                     }
                                 }
                                 break;
@@ -984,10 +1006,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                                 if (msgFailure != null) {
                                     logger.debug(peerAddress, "Download Failure", peerInfo.getCurrentBlockInfo().hash, msgFailure);
                                     blocksDownloadHistory.register(peerInfo.getCurrentBlockInfo().hash, peerInfo.getPeerAddress(), "Download Issue detected : " + msgFailure);
-                                    blocksInLimbo.add(peerInfo.getCurrentBlockInfo().hash);
-
+                                    putDownloadIntoLimbo(peerInfo);
                                     blocksPendingManager.registerDownloadFailure(peerInfo.getCurrentBlockInfo().hash, peerInfo.getPeerAddress());
-                                    peerInfo.reset();
                                 }
                                 break;
                             }
