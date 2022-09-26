@@ -292,6 +292,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
 
         // We process this download as a failure immediately so it can be re-tried right away:
         logger.info("Block #{} NOT FOUND by Peer [{}]...", blockHash, peerInfoOpt.get().getPeerAddress());
+        blocksDownloadHistory.register(blockHash,   "NOT FOUND Msg received from Peer [" + event.getPeerAddress() + "]");
         processDownloadFailure(blockHash);
 
     }
