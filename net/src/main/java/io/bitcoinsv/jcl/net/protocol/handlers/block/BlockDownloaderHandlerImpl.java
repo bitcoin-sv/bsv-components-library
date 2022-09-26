@@ -2,15 +2,12 @@ package io.bitcoinsv.jcl.net.protocol.handlers.block;
 
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
-import io.bitcoinsv.jcl.net.network.events.DisconnectPeerRequest;
 import io.bitcoinsv.jcl.net.network.events.NetStartEvent;
 import io.bitcoinsv.jcl.net.network.events.NetStopEvent;
 import io.bitcoinsv.jcl.net.network.events.PeerDisconnectedEvent;
 import io.bitcoinsv.jcl.net.protocol.events.control.*;
 import io.bitcoinsv.jcl.net.protocol.events.data.*;
 import io.bitcoinsv.jcl.net.protocol.messages.*;
-import io.bitcoinsv.jcl.net.protocol.events.control.*;
-import io.bitcoinsv.jcl.net.protocol.events.data.*;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
 import io.bitcoinsv.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerStream;
@@ -20,7 +17,6 @@ import io.bitcoinsv.jcl.net.tools.LoggerUtil;
 import io.bitcoinsv.jcl.tools.thread.ThreadUtils;
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 import io.bitcoinsv.bitcoinjsv.core.Utils;
-import io.bitcoinsv.jcl.net.protocol.messages.*;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -196,6 +192,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
         super.eventBus.subscribe(BlocksCancelDownloadRequest.class, e -> this.cancelDownload(((BlocksCancelDownloadRequest) e).getBlockHashes()));
         super.eventBus.subscribe(BlocksDownloadStartRequest.class, e -> this.resumeByClient());
         super.eventBus.subscribe(BlocksDownloadPauseRequest.class, e -> this.pauseByClient());
+        super.eventBus.subscribe(NotFoundMsgReceivedEvent.class, e -> this.onNotFoundMsg((NotFoundMsgReceivedEvent) e));
 
         // We get notified about a block being announced:
         super.eventBus.subscribe(InvMsgReceivedEvent.class, e -> this.onInvMsgReceived((InvMsgReceivedEvent) e));
@@ -277,6 +274,26 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
         if (this.allowedToRunByClient) {
             resume();
         }
+    }
+
+    private void onNotFoundMsg(NotFoundMsgReceivedEvent event) {
+        // We check the Msg integrity:
+        if (event.getBtcMsg().getBody().getCount().getValue() > 1) {
+            logger.warm("NotFoundMsg received but more than 1 Block specified!");
+            return;
+        }
+        // We check if this msg is related to any Peer downloading a block...
+        String blockHash = Sha256Hash.wrapReversed(event.getBtcMsg().getBody().getInvVectorList().get(0).getHashMsg().getHashBytes()).toString();
+        Optional<BlockPeerInfo> peerInfoOpt = this.handlerInfo.values().stream().filter(p -> p.isDownloading(blockHash)).findFirst();
+        if (peerInfoOpt.isEmpty()) {
+            logger.warm("NotFound Msg received for block #{} but no Peer is downloading it!", blockHash);
+            return;
+        }
+
+        // We process this download as a failure immediately so it can be re-tried right away:
+        logger.info("Block #{} NOT FOUND by Peer [{}]...", blockHash, peerInfoOpt.get().getPeerAddress());
+        processDownloadFailure(blockHash);
+
     }
 
     private boolean isRunning() { return this.downloadingState.equals(DonwloadingState.RUNNING); }
