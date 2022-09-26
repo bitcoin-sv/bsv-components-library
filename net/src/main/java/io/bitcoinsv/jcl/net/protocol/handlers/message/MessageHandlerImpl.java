@@ -335,7 +335,7 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
 
                 //we only want to perform actions such as event propagation for each message type, not each part of a message if it's broken down
                 if (message.getMessageType().equals(BitcoinMsg.MESSAGE_TYPE)) {
-                    logger.trace(peerAddress, ((BitcoinMsg) message).getBody().getMessageType() + " Msg sent.");
+                    logger.trace(peerAddress, ((BitcoinMsg) message).getBody().getMessageType().toUpperCase() + " Msg sent.");
 
                     // We propagate this message to the Bus, so other handlers can pick them up if they are subscribed to:
                     // NOTE: These Events related to messages sent might not be necessary, and they add some multi-thread
