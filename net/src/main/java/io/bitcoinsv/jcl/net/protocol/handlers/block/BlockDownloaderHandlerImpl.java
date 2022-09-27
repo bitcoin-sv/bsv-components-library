@@ -762,8 +762,12 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
             );
 
             // We reset the peer, to make it ready for a new download, and we updateNextMessage the workingState:
-            peerInfo.reset();
-            peerInfo.getStream().resetBufferSize();
+            // NOTE: Some Peers disconnect after sending a block and the Disconnected Event might have arrived BEFORE
+            // this one, so we check....
+            if (!peerInfo.isDisconnected()) {
+                peerInfo.reset();
+                peerInfo.getStream().resetBufferSize();
+            }
 
             blocksDownloaded.add(blockHash);
             blocksPendingManager.registerBlockDownloaded(blockHash);
