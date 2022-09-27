@@ -9,6 +9,7 @@ import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolVersion
 import io.bitcoinsv.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import io.bitcoinsv.jcl.net.protocol.handlers.block.BlockDownloaderHandlerConfig
+import io.bitcoinsv.jcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig
 import io.bitcoinsv.jcl.net.protocol.handlers.message.MessageHandlerConfig
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2P
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2PBuilder
@@ -42,7 +43,8 @@ class BlockDownloadAndReceiverTest extends Specification {
 
     // Hash to Download and Save:
     //String HASH = "00000000000000000dc61d2fcd6495e835562a90db649d093e9eea660ccb5911";
-    String HASH = "000000000000000004f464f1cbd55f818e77ad61d444b9a40d5d59400ec27b9b";
+    //String HASH = "000000000000000004f464f1cbd55f818e77ad61d444b9a40d5d59400ec27b9b";
+    String HASH = "00000000000000000d3c90b80fa76954bca88a8599b856d5eeb9a224e5c3da61";
 
     // Id for the Store (A folder will be created with this name)
     private static String STORE_ID = "testingDownloadAndSaveBlock";
@@ -145,6 +147,19 @@ class BlockDownloadAndReceiverTest extends Specification {
                 .removeBlockHistoryAfter(Duration.ofMinutes(10))
                 .build()
 
+        // Discovery Config:
+        // This might be needed if the DNS's do not work
+        DiscoveryHandlerConfig discoveryConfig = config.getDiscoveryConfig().toBuilder()
+        .addInitialConnection("144.76.117.158:8333")
+        .addInitialConnection("65.108.132.250:8333")
+        .addInitialConnection("23.250.18.170:8333")
+        .addInitialConnection("3.69.24.55:8333")
+        .addInitialConnection("95.216.243.249:8333")
+        .addInitialConnection("3.120.175.133:8333")
+        .addInitialConnection("139.59.35.196:8333")
+        .addInitialConnection("95.217.197.54:8333")
+        .build()
+
         // We configure the P2P Service:
         P2P p2p = new P2PBuilder("testing")
                 .config(config)
@@ -153,6 +168,7 @@ class BlockDownloadAndReceiverTest extends Specification {
                 .config(basicConfig)
                 .config(messageConfig)
                 .config(blockConfig)
+                .config(discoveryConfig)
                 .publishStates(Duration.ofMillis(500))
                 .build()
 

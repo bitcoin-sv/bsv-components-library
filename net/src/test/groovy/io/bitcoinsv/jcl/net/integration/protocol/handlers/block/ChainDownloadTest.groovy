@@ -12,6 +12,7 @@ import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigBuilder
 import io.bitcoinsv.jcl.net.protocol.handlers.block.BlockDownloaderHandler
 import io.bitcoinsv.jcl.net.protocol.handlers.block.BlockDownloaderHandlerConfig
 import io.bitcoinsv.jcl.net.protocol.handlers.block.BlockDownloaderHandlerState
+import io.bitcoinsv.jcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig
 import io.bitcoinsv.jcl.net.protocol.handlers.handshake.HandshakeHandler
 import io.bitcoinsv.jcl.net.protocol.messages.BaseGetDataAndHeaderMsg
 import io.bitcoinsv.jcl.net.protocol.messages.GetHeadersMsg
@@ -40,15 +41,16 @@ import java.util.stream.Collectors
 class ChainDownloadTest extends Specification {
 
     // Starting Point:
-    //String HASH_LOCATOR = "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f" // GENESIS
-    private static final HASH_LOCATOR = "000000000000000004ea72f7d8ba1509868a0c8a852509eacd600dce7232075b";
+    String HASH_LOCATOR = "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f" // GENESIS
+    //private static final HASH_LOCATOR = "000000000000000004ea72f7d8ba1509868a0c8a852509eacd600dce7232075b";
 
     // Maximum Duration of the Test:
     private static final Duration TIMEOUT = Duration.ofMinutes(15)
 
     // If this TIMEOUT IS specified (1= null), then JCL will PAUSE the Download after that time:
     // NOTE: IT will NOT be Resumed: This is here to test the behaviour of the Downloader Handler in PAUSED Mode
-    private static final Duration TIMEOUT_TO_PAUSE = Duration.ofSeconds(60)
+    //private static final Duration TIMEOUT_TO_PAUSE = Duration.ofSeconds(60)
+    private static final Duration TIMEOUT_TO_PAUSE = null;
 
     // It creates a GET_HEADER Message using the block locator hash given (which is in human-readable format)
     private GetHeadersMsg buildGetHeadersMsg(ProtocolConfig protocolConfig, String blockHashHex) {
@@ -100,13 +102,27 @@ class ChainDownloadTest extends Specification {
                     .minSpeed(0)
                     .build()
 
+            // Discovery Config:
+            // This might be needed if the DNS's do not work
+            DiscoveryHandlerConfig discoveryConfig = config.getDiscoveryConfig().toBuilder()
+                .addInitialConnection("144.76.117.158:8333")
+                .addInitialConnection("65.108.132.250:8333")
+                .addInitialConnection("23.250.18.170:8333")
+                .addInitialConnection("3.69.24.55:8333")
+                .addInitialConnection("95.216.243.249:8333")
+                .addInitialConnection("3.120.175.133:8333")
+                .addInitialConnection("139.59.35.196:8333")
+                .addInitialConnection("95.217.197.54:8333")
+                .build()
+
             // We configure the P2P Service:
             P2P p2p = new P2PBuilder("testing")
                     .config(networkConfig)
                     .config(config)
                     .config(basicConfig)
                     .config(blockConfig)
-                    .publishState(BlockDownloaderHandler.HANDLER_ID, Duration.ofMillis(500))
+                    .config(discoveryConfig)
+                    .publishState(BlockDownloaderHandler.HANDLER_ID, Duration.ofMillis(1000))
                     .publishState(NetworkHandler.HANDLER_ID, Duration.ofMillis(500))
                     .publishState(HandshakeHandler.HANDLER_ID, Duration.ofMillis(500))
                     .build()
@@ -186,8 +202,7 @@ class ChainDownloadTest extends Specification {
             // We log Status:
             p2p.EVENTS.STATE.BLOCKS.forEach( {e ->
                 // We only print the detail block Download status if the Speed is strangley low (lower than 1MB/sec);
-                BlockDownloaderHandlerState state = (BlockDownloaderHandlerState) e.getState();
-                println(e)
+                println(Instant.now().toString() + " :: " + e)
             })
             p2p.EVENTS.STATE.HANDSHAKE.forEach({ e -> println(e)})
             p2p.EVENTS.STATE.NETWORK.forEach({ e -> println(e)})
