@@ -220,6 +220,7 @@ public class BlocksPendingManager {
     public synchronized void registerBlockCancelled(String blockHash)      {
         blocksNumDownloadAttempts.remove(blockHash);
         pendingBlocks.remove(blockHash);
+        pendingBlocksSet.remove(blockHash);
     }
 
     // RESTRICTED MODE:
@@ -248,10 +249,10 @@ public class BlocksPendingManager {
             }
         }
     }
-    public synchronized void remove(String blockHash)                   { pendingBlocks.remove(blockHash); }
+
     public synchronized int size()                                      { return this.pendingBlocks.size(); }
     public synchronized List<String> getPendingBlocks()                 { return ImmutableList.copyOf(this.pendingBlocks); }
-    public synchronized boolean contains(String blockHash)              { return this.pendingBlocks.contains(blockHash); }
+    public synchronized boolean contains(String blockHash)              { return this.pendingBlocksSet.contains(blockHash); }
 
     /**
      * This methods checks if a given Block can be assigned to the Peer given (currentPeer) to be download from it.
@@ -384,7 +385,7 @@ public class BlocksPendingManager {
 
         List<String> blocksToProcess = (!restrictedMode)
                 ? this.pendingBlocks
-                : this.blocksNumDownloadAttempts.keySet().stream().filter(hash -> pendingBlocks.contains(hash)).collect(Collectors.toList());
+                : this.blocksNumDownloadAttempts.keySet().stream().filter(hash -> pendingBlocksSet.contains(hash)).collect(Collectors.toList());
 
         if (blocksToProcess.size() > 0) {
             // We loop over the Blocks, making a DownloadRequest for each one, and storing the response. If we
@@ -408,6 +409,7 @@ public class BlocksPendingManager {
                     // This block can NOT be Downloaded from this Peer. We save the Rejection:
                     rejections.add(response);
                 }
+                this.pendingBlocksSet.remove(result.get());
             }
             // If we get to here, then no block could be assigned to this Peer:
             return Optional.of(new DownloadFromPeerResponse(currentPeer, rejections));
