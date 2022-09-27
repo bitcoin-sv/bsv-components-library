@@ -132,6 +132,7 @@ public class BlocksPendingManager {
     private BlockDownloaderHandlerConfig.NoBestMatchAction noBestMatchAction = BlockDownloaderHandlerConfig.NoBestMatchAction.DOWNLOAD_FROM_ANYONE;
 
     // List of pending blocks: It works as a FIFO Queue: First Block to be added are the first ones to be downloaded.
+    // We also keep a SET for checking if a Block is already stored
     private List<String> pendingBlocks = new ArrayList<>();
     private Set<String> pendingBlocksSet = new HashSet<>();
 
