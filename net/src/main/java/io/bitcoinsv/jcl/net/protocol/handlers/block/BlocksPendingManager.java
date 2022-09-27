@@ -133,6 +133,7 @@ public class BlocksPendingManager {
 
     // List of pending blocks: It works as a FIFO Queue: First Block to be added are the first ones to be downloaded.
     private List<String> pendingBlocks = new ArrayList<>();
+    private Set<String> pendingBlocksSet = new HashSet<>();
 
     // Blocks announced by Peer: [Key: peer. Value: List of Blocks announced by this peer]
     private Map<PeerAddress, Set<String>> blockAnnouncements = new ConcurrentHashMap<>();
@@ -230,13 +231,22 @@ public class BlocksPendingManager {
     public boolean isBlockBeingAttempted(String blockHash)              { return blocksNumDownloadAttempts.containsKey(blockHash); }
 
     // PENDING BLOCKS:
-    private List getBlocksNotPendingAlready(List<String> blocksToAdd) {
-        return blocksToAdd.stream().filter(h -> !this.pendingBlocks.contains(h)).collect(Collectors.toList());
-    }
     public synchronized void add(String blockHash)                      { add(List.of(blockHash)); }
-    public synchronized void add(List<String> blockHashes)              { pendingBlocks.addAll(getBlocksNotPendingAlready(blockHashes)); }
+    public synchronized void add(List<String> blockHashes)              {
+        for (String hash : blockHashes) {
+            if (pendingBlocksSet.add(hash)) {
+                pendingBlocks.add(hash);
+            }
+        }
+    }
     public synchronized void addWithPriority(String blockHash)          { addWithPriority(List.of(blockHash)); }
-    public synchronized void addWithPriority(List<String> blockHashes)  { pendingBlocks.addAll(0, getBlocksNotPendingAlready(blockHashes)); }
+    public synchronized void addWithPriority(List<String> blockHashes)  {
+        for (String hash : blockHashes) {
+            if (pendingBlocksSet.add(hash)) {
+                pendingBlocks.add(0, hash);
+            }
+        }
+    }
     public synchronized void remove(String blockHash)                   { pendingBlocks.remove(blockHash); }
     public synchronized int size()                                      { return this.pendingBlocks.size(); }
     public synchronized List<String> getPendingBlocks()                 { return ImmutableList.copyOf(this.pendingBlocks); }

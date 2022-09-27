@@ -778,7 +778,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
 
     private void cancelDownload(String blockHash) {
         try {
-            lock.tryLock();
+            lock.lock();
 
             // If this block has not been cancelled previously, we record it:
             if (!blocksPendingToCancel.contains(blockHash) && !blocksCancelled.contains(blockHash)) {
