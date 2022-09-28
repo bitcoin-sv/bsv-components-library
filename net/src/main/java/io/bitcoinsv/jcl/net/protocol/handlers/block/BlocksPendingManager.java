@@ -1,7 +1,10 @@
 package io.bitcoinsv.jcl.net.protocol.handlers.block;
 
 import com.google.common.collect.ImmutableList;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 import io.bitcoinsv.jcl.net.network.PeerAddress;
+import org.apache.commons.collections4.list.SetUniqueList;
+import org.apache.commons.collections4.set.ListOrderedSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -131,10 +134,9 @@ public class BlocksPendingManager {
     // Indicates what to do in case we have some Peers, but none of them is a BEST Match:
     private BlockDownloaderHandlerConfig.NoBestMatchAction noBestMatchAction = BlockDownloaderHandlerConfig.NoBestMatchAction.DOWNLOAD_FROM_ANYONE;
 
-    // List of pending blocks: It works as a FIFO Queue: First Block to be added are the first ones to be downloaded.
-    // We also keep a SET for checking if a Block is already stored
-    private List<String> pendingBlocks = new ArrayList<>();
-    private Set<String> pendingBlocksSet = new HashSet<>();
+    // List of pending blocks: "ListOrderedSet" is a List with Set capabilities: It preserves the insertion order and
+    // also avoid duplicates
+    private ListOrderedSet<String> pendingBlocks = new ListOrderedSet<String>();
 
     // Blocks announced by Peer: [Key: peer. Value: List of Blocks announced by this peer]
     private Map<PeerAddress, Set<String>> blockAnnouncements = new ConcurrentHashMap<>();
@@ -220,7 +222,6 @@ public class BlocksPendingManager {
     public synchronized void registerBlockCancelled(String blockHash)      {
         blocksNumDownloadAttempts.remove(blockHash);
         pendingBlocks.remove(blockHash);
-        pendingBlocksSet.remove(blockHash);
     }
 
     // RESTRICTED MODE:
@@ -234,25 +235,13 @@ public class BlocksPendingManager {
 
     // PENDING BLOCKS:
     public synchronized void add(String blockHash)                      { add(List.of(blockHash)); }
-    public synchronized void add(List<String> blockHashes)              {
-        for (String hash : blockHashes) {
-            if (pendingBlocksSet.add(hash)) {
-                pendingBlocks.add(hash);
-            }
-        }
-    }
+    public synchronized void add(List<String> blockHashes)              { pendingBlocks.addAll(blockHashes); }
     public synchronized void addWithPriority(String blockHash)          { addWithPriority(List.of(blockHash)); }
-    public synchronized void addWithPriority(List<String> blockHashes)  {
-        for (String hash : blockHashes) {
-            if (pendingBlocksSet.add(hash)) {
-                pendingBlocks.add(0, hash);
-            }
-        }
-    }
-
+    public synchronized void addWithPriority(List<String> blockHashes)  { pendingBlocks.addAll(0, blockHashes);}
+    public synchronized void remove(String blockHash)                   { pendingBlocks.remove(blockHash); }
     public synchronized int size()                                      { return this.pendingBlocks.size(); }
     public synchronized List<String> getPendingBlocks()                 { return ImmutableList.copyOf(this.pendingBlocks); }
-    public synchronized boolean contains(String blockHash)              { return this.pendingBlocksSet.contains(blockHash); }
+    public synchronized boolean contains(String blockHash)              { return this.pendingBlocks.contains(blockHash); }
 
     /**
      * This methods checks if a given Block can be assigned to the Peer given (currentPeer) to be download from it.
@@ -383,9 +372,11 @@ public class BlocksPendingManager {
         // Best Match. If we are in RESTRICTIVE Mode, we loop instead over the list of ONLY those blocks that have been
         // tried already...
 
-        List<String> blocksToProcess = (!restrictedMode)
-                ? this.pendingBlocks
-                : this.blocksNumDownloadAttempts.keySet().stream().filter(hash -> pendingBlocksSet.contains(hash)).collect(Collectors.toList());
+        ListOrderedSet<String> blocksToProcess = this.pendingBlocks;
+        if (restrictedMode) {
+            blocksToProcess = new ListOrderedSet<>();
+            blocksToProcess.addAll(this.blocksNumDownloadAttempts.keySet().stream().filter(hash -> pendingBlocks.contains(hash)).collect(Collectors.toSet()));
+        }
 
         if (blocksToProcess.size() > 0) {
             // We loop over the Blocks, making a DownloadRequest for each one, and storing the response. If we
@@ -409,7 +400,6 @@ public class BlocksPendingManager {
                     // This block can NOT be Downloaded from this Peer. We save the Rejection:
                     rejections.add(response);
                 }
-                this.pendingBlocksSet.remove(result.get());
             }
             // If we get to here, then no block could be assigned to this Peer:
             return Optional.of(new DownloadFromPeerResponse(currentPeer, rejections));
