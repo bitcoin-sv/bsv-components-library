@@ -113,6 +113,10 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
 
     private Map<String, Instant> blocksLastActivity = new ConcurrentHashMap<>();
 
+    // We store in this list some "Notes" or "Events" that we might want to TRACE. These will be store din the State
+    private List<String> downloadEvents = new ArrayList<>();
+
+    // LOCK fort Multithread Sanity:
     Lock lock = new ReentrantLock();
 
     // We keep a reference to the List of blocks downloaded:
@@ -293,6 +297,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
         // We process this download as a failure immediately so it can be re-tried right away:
         logger.info("Block #{} NOT FOUND by Peer [{}]...", blockHash, peerInfoOpt.get().getPeerAddress());
         blocksDownloadHistory.register(blockHash,   "NOT FOUND Msg received from Peer [" + event.getPeerAddress() + "]");
+        downloadEvents.add(Instant.now().toString() + " : Block #" + blockHash + " Not Found by [" + event.getPeerAddress() + "]");
         processDownloadFailure(blockHash);
 
     }
@@ -316,9 +321,10 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                 .discardedBlocks(this.blocksDiscarded.keySet().stream().collect(Collectors.toList()))
                 .pendingToCancelBlocks(this.blocksPendingToCancel.stream().collect(Collectors.toList()))
                 .cancelledBlocks(this.blocksCancelled.stream().collect(Collectors.toList()))
-
                 .blocksHistory(this.blocksDownloadHistory.getBlocksHistory())
                 .blocksLastActivity(this.blocksLastActivity)
+                .downloadEvents(this.downloadEvents)
+
                 // Defensive Copies:
                 .downloadRejections(new HashMap<>(this.downloadRejections))
                 .peersInfo(new ArrayList(this.handlerInfo.values().stream().filter(p -> p.isHandshaked()).collect(Collectors.toList())))
@@ -767,6 +773,13 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
             if (!peerInfo.isDisconnected()) {
                 peerInfo.reset();
                 peerInfo.getStream().resetBufferSize();
+            }
+
+            // If The Block has been downloading after several Attempts, we log that info as an Event, we might want to
+            // see it in the log:
+            int numAttempts = blocksPendingManager.getBlockDownloadAttempts().get(blockHash);
+            if (numAttempts > 1) {
+                this.downloadEvents.add(Instant.now() + " : Block #" + blockHash + " downloaded from [" + peerInfo.getPeerAddress() + "] in attempt #" + numAttempts);
             }
 
             blocksDownloaded.add(blockHash);

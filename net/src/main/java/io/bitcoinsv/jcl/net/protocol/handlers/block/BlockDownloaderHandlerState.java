@@ -13,6 +13,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * @author i.fernandez@nchain.com
@@ -37,6 +38,10 @@ public final class BlockDownloaderHandlerState extends HandlerState {
 
     // Blocks download History:
     private final Map<String, List<BlocksDownloadHistory.HistoricItem<String, PeerAddress>>> blocksHistory;
+
+    // Download Events: A list of Notes/Events we might want to be logged
+    private final List<String> downloadEvents;
+    private static final int NUM_EVENTS_TO_LOG = 3; // we only log the last "X" Events
 
     // Complete info of all the Peers, but only those who are hanshaked at the moment (they might be idle or not)
     private final List<BlockPeerInfo> peersInfo;
@@ -73,6 +78,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
                                         List<String> cancelledBlocks,
                                         Set<String> blocksInLimbo,
                                         Map<String, List<BlocksDownloadHistory.HistoricItem<String, PeerAddress>>> blocksHistory,
+                                        List<String> downloadEvents,
                                         Map<String, Instant> blocksLastActivity,
                                         Map<PeerAddress, BlocksPendingManager.DownloadFromPeerResponse> downloadRejections,
                                         List<BlockPeerInfo> peersInfo,
@@ -90,6 +96,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         this.cancelledBlocks = cancelledBlocks;
         this.blocksInLimbo = blocksInLimbo;
         this.blocksHistory = blocksHistory;
+        this.downloadEvents = downloadEvents;
         this.blocksLastActivity = blocksLastActivity;
         this.downloadRejections = downloadRejections;
         this.peersInfo = peersInfo;
@@ -163,6 +170,15 @@ public final class BlockDownloaderHandlerState extends HandlerState {
             result.append(rejectionsStr);
         }
 
+        // Download Events:
+        if (!downloadEvents.isEmpty()) {
+            result.append("\n Last Events   :\n  > ");
+            String eventsStr = IntStream.range(0, Math.min(this.downloadEvents.size(), NUM_EVENTS_TO_LOG))
+                    .mapToObj(i -> this.downloadEvents.get(this.downloadEvents.size() - (i + 1)))
+                    .collect(Collectors.joining("\n  > "));
+            result.append(eventsStr);
+        }
+
         result.append("\n");
         return result.toString();
     }
@@ -185,7 +201,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
                                                 { return this.blocksNumDownloadAttempts; }
     public Map<String, List<BlocksDownloadHistory.HistoricItem<String, PeerAddress>>> getBlocksHistory()
                                                 { return this.blocksHistory;}
-
+    public List<String> getDownloadEvents()     { return this.downloadEvents;}
     public boolean isBandwidthRestricted()      { return bandwidthRestricted; }
     public long getBlocksDownloadingSize()      { return blocksDownloadingSize;}
 
@@ -214,6 +230,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
                 .cancelledBlocks(this.cancelledBlocks)
                 .blocksInLimbo(this.blocksInLimbo)
                 .blocksHistory(this.blocksHistory)
+                .downloadEvents(this.downloadEvents)
                 .peersInfo(this.peersInfo)
                 .blocksNumDownloadAttempts(this.blocksNumDownloadAttempts)
                 .busyPercentage(this.busyPercentage)
@@ -234,6 +251,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         private List<String> cancelledBlocks;
         private Set<String> blocksInLimbo;
         private Map<String, List<BlocksDownloadHistory.HistoricItem<String, PeerAddress>>> blocksHistory;
+        private List<String> downloadEvents;
         private Map<String, Instant> blocksLastActivity;
         private Map<PeerAddress, BlocksPendingManager.DownloadFromPeerResponse> downloadRejections;
         private List<BlockPeerInfo> peersInfo;
@@ -291,6 +309,11 @@ public final class BlockDownloaderHandlerState extends HandlerState {
             return this;
         }
 
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder downloadEvents(List<String> downloadEvents) {
+            this.downloadEvents = downloadEvents;
+            return this;
+        }
+
         public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder downloadRejections(Map<PeerAddress, BlocksPendingManager.DownloadFromPeerResponse> downloadRejections) {
             this.downloadRejections = downloadRejections;
             return this;
@@ -332,7 +355,25 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         }
 
         public BlockDownloaderHandlerState build() {
-            return new BlockDownloaderHandlerState(config, downloadingState, pendingBlocks, downloadedBlocks, discardedBlocks, pendingToCancelBlocks, cancelledBlocks, blocksInLimbo, blocksHistory, blocksLastActivity, downloadRejections, peersInfo, totalReattempts, blocksNumDownloadAttempts, busyPercentage, bandwidthRestricted, blocksDownloadingSize);
+            return new BlockDownloaderHandlerState(
+                    config,
+                    downloadingState,
+                    pendingBlocks,
+                    downloadedBlocks,
+                    discardedBlocks,
+                    pendingToCancelBlocks,
+                    cancelledBlocks,
+                    blocksInLimbo,
+                    blocksHistory,
+                    downloadEvents,
+                    blocksLastActivity,
+                    downloadRejections,
+                    peersInfo,
+                    totalReattempts,
+                    blocksNumDownloadAttempts,
+                    busyPercentage,
+                    bandwidthRestricted,
+                    blocksDownloadingSize);
         }
     }
 }
