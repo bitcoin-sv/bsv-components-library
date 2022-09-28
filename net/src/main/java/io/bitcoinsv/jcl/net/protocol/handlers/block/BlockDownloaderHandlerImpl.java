@@ -1040,6 +1040,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
 
                                 if (msgFailure != null) {
                                     logger.debug(peerAddress, "Download Failure", peerInfo.getCurrentBlockInfo().hash, msgFailure);
+                                    this.downloadEvents.add(Instant.now() + " : " + "Download Failure from [" + peerAddress + "] : " + msgFailure);
                                     blocksDownloadHistory.register(peerInfo.getCurrentBlockInfo().hash, peerInfo.getPeerAddress(), "Download Issue detected : " + msgFailure);
                                     putDownloadIntoLimbo(peerInfo);
                                     blocksPendingManager.registerDownloadFailure(peerInfo.getCurrentBlockInfo().hash, peerInfo.getPeerAddress());

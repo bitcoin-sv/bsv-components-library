@@ -276,7 +276,7 @@ public class BlockPeerInfo {
 
                     // If these numbers are different from the previous already stored, then that means that this Peer is actually
                     // active, so we update the "lastBytesReceivedTimestamp" field..
-                    if (bytesDownloaded != this.currentBlockInfo.getBytesDownloaded()) {
+                    if (!bytesDownloaded.equals(this.currentBlockInfo.getBytesDownloaded())) {
                         this.currentBlockInfo.lastBytesReceivedTimestamp = Instant.now();
                     }
 
