@@ -148,7 +148,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
             result.append(peersInfo.stream().filter(p -> p.isProcessing()).map(p -> p.toString()).collect(Collectors.joining("\n  > ")));
         }
 
-        // Blocks iin Limbo:
+        // Blocks in Limbo:
         if (blocksInLimbo.size() > 0) {
             result.append("\n Retry later   :\n  > ");
 

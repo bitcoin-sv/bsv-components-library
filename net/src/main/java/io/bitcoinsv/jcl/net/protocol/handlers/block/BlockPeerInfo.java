@@ -189,6 +189,10 @@ public class BlockPeerInfo {
         this.workingState = PeerWorkingState.IN_LIMBO;
     }
 
+    protected void setToProcessing() {
+        this.workingState = PeerWorkingState.PROCESSING;
+    }
+
     /**
      * It discards this Peer, prabably due to a previous error while downloading a Block from it
      */
@@ -233,8 +237,8 @@ public class BlockPeerInfo {
     /** It updates the Peer to reflect that it's just started to download this block */
     protected void startDownloading(String blockHash, int numAttempt) {
         reset();
+        setToProcessing();
         this.currentBlockInfo = new BlockProgressInfo(blockHash, this.peerAddress, numAttempt);
-        this.workingState = PeerWorkingState.PROCESSING;
     }
 
     /**

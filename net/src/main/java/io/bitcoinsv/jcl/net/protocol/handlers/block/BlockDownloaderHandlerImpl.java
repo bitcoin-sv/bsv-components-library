@@ -589,6 +589,15 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                 return;
             }
 
+            // It can also happen that this block is sent by a Peer BUT we didnt ask for it, the peer just sent it
+            // without a prior request. In that case, we do as if we had requested the block, so we update this Peer
+            // accordingly:
+
+            if (!blocksPendingManager.isBlockBeingAttempted(blockHash)) {
+                peerInfo.startDownloading(blockHash, 1);
+                blocksPendingManager.registerNewDownloadAttempt(blockHash);
+            }
+
             if (msg.is(PartialBlockHeaderMsg.MESSAGE_TYPE)) {
                 // We update the info about the Header this block:
                 PartialBlockHeaderMsg partialMsg = (PartialBlockHeaderMsg) msg.getBody();
@@ -640,6 +649,15 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
             super.eventBus.publish(new LiteBlockDownloadedEvent(peerInfo.getPeerAddress(), blockMesage, downloadingDuration));
             liteBlocksDownloaded.add(blockHash);
 
+            // It can also happen that this block is sent by a Peer BUT we didnt ask for it, the peer just sent it
+            // without a prior request. In that case, we do as if we had requested the block, so we update this Peer
+            // accordingly:
+
+            if (!blocksPendingManager.isBlockBeingAttempted(blockHash)) {
+                peerInfo.startDownloading(blockHash, 1);
+                blocksPendingManager.registerNewDownloadAttempt(blockHash);
+            }
+
             // Now, in order to follow the same approach for both Big blocks and Regular Blocks, we also trigger the
             // "HeaderDownloaded" and "TxsDownloaded" Events for this Block:
 
@@ -689,6 +707,15 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
             // We publish and register it:
             super.eventBus.publish(new LiteRawBlockDownloadedEvent(peerInfo.getPeerAddress(), rawBlockMessage, downloadingDuration));
             liteBlocksDownloaded.add(blockHash);
+
+            // It can also happen that this block is sent by a Peer BUT we didnt ask for it, the peer just sent it
+            // without a prior request. In that case, we do as if we had requested the block, so we update this Peer
+            // accordingly:
+
+            if (!blocksPendingManager.isBlockBeingAttempted(blockHash)) {
+                peerInfo.startDownloading(blockHash, 1);
+                blocksPendingManager.registerNewDownloadAttempt(blockHash);
+            }
 
             // Now, in order to follow the same approach for both Big blocks and Regular Blocks, we also trigger the
             // "HeaderDownloaded" and "TxsDownloaded" Events for this Block:
