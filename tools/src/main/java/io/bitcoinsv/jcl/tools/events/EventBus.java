@@ -107,7 +107,10 @@ public class EventBus {
             }
             numEventsPublished.merge(event.getClass(), 1L ,Long::sum);
         }
+    }
 
+    public <T extends Event> Consumer<T> getConsumerForEvent(Class<T> eventClass) {
+        return eventHandlersOptimized.get(eventClass);
     }
 
     /** Returns the EVentBus Status (ONLY FOR TESTING/DEBUGGING) */
