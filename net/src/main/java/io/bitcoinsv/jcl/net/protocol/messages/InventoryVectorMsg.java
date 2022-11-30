@@ -1,6 +1,7 @@
 package io.bitcoinsv.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
 
 import java.io.Serializable;
@@ -67,10 +68,21 @@ public final class InventoryVectorMsg extends Message implements Serializable {
         init();
     }
 
+    public InventoryVectorMsg( VectorType type, Sha256Hash hash) {
+        this.type = type;
+        // TODO: fix this when JCL and BitcoinJ won't return human readable hashes
+        this.hashMsg = HashMsg.builder().hash(hash.getReversedBytes()).build();
+        init();
+    }
+
     @Override
     public String getMessageType()  { return MESSAGE_TYPE; }
     public VectorType getType()     { return this.type; }
     public HashMsg getHashMsg()     { return this.hashMsg; }
+    public Sha256Hash getHash()     {
+        // TODO: fix this when JCL and BitcoinJ won't return human readable hashes
+        return Sha256Hash.wrapReversed(hashMsg.getHashBytes());
+    }
 
     @Override
     public String toString() {
