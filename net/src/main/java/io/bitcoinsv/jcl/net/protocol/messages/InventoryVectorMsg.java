@@ -84,6 +84,9 @@ public final class InventoryVectorMsg extends Message implements Serializable {
         return Sha256Hash.wrapReversed(hashMsg.getHashBytes());
     }
 
+    // TODO: fix this when JCL and BitcoinJ won't return human readable hashes
+    public Sha256Hash getHash()     { return Sha256Hash.wrapReversed(hashMsg.getHashBytes()); }
+
     @Override
     public String toString() {
         return "InventoryVectorMsg(type=" + this.getType() + ", hashMsg=" + this.getHashMsg() + ")";
