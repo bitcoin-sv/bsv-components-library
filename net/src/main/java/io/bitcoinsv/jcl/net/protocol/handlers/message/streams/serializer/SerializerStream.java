@@ -71,7 +71,7 @@ public class SerializerStream extends PeerOutputStreamImpl<Message, ByteArrayRea
 
         SerializerContext serializerContext = SerializerContext.builder()
                 .protocolBasicConfig(messageConfig.getBasicConfig())
-                .insideVersionMsg(data.getData().equals(VersionMsg.MESSAGE_TYPE))
+                .insideVersionMsg(data.getData().getMessageType().equals(VersionMsg.MESSAGE_TYPE))
                 .build();
 
         List<StreamDataEvent<ByteArrayReader>> result;
