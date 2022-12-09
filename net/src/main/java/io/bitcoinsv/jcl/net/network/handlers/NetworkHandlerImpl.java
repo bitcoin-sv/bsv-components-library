@@ -137,6 +137,21 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     private Map<PeerAddress, InProgressConn> inProgressConns = new ConcurrentHashMap<>();
     private BlockingQueue<PeerAddress> pendingToOpenConns = new LinkedBlockingQueue<>();
     private BlockingQueue<DisconnectPeerRequest> pendingToCloseConns = new LinkedBlockingQueue<>();
+    /**
+     * Helper used to search if pendingToCloseConns contains a disconnect request for a specific peer
+     */
+    private static class PeerAddress2DisconnectPeerRequest_Comparator {
+        private final PeerAddress peerAddress;
+        public PeerAddress2DisconnectPeerRequest_Comparator(PeerAddress peerAddress) {
+            this.peerAddress = peerAddress;
+        }
+        @Override
+        public boolean equals(final Object o) {
+            final var other = (DisconnectPeerRequest) o;
+            assert other!=null; // should never be called with any other type of object
+            return peerAddress.equals(other.getPeerAddress());
+        }
+    }
     private Set<InetAddress> blacklist = ConcurrentHashMap.newKeySet();
     private Set<PeerAddress> failedConns = ConcurrentHashMap.newKeySet();
 
@@ -215,7 +230,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
                         .filter(p -> !inProgressConns.containsKey(p))
                         .filter(p -> !activeConns.containsKey(p))
                         .filter(p -> !pendingToOpenConns.contains(p))
-                        .filter(p -> !pendingToCloseConns.contains(p))
+                        .filter(p -> !pendingToCloseConns.contains( new PeerAddress2DisconnectPeerRequest_Comparator(p) ))
                         .filter(p -> !blacklist.contains(p.getIp()))
                         .collect(Collectors.toList());
 
@@ -257,7 +272,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
             try {
                 lock.writeLock().lock();
                 List<DisconnectPeerRequest> newList = requests.stream()
-                        .filter(r -> !pendingToCloseConns.contains(r.getPeerAddress()))
+                        .filter(r -> !pendingToCloseConns.contains( new PeerAddress2DisconnectPeerRequest_Comparator(r.getPeerAddress()) ))
                         .filter(r -> (activeConns.containsKey(r.getPeerAddress()) || pendingToOpenConns.contains(r.getPeerAddress())))
                         .collect(Collectors.toList());
                 if (newList.size() > 0) {
@@ -782,7 +797,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
                         logger.trace(keyConnection.stream.getPeerAddress(), "Peer socket closed");
                         keyConnection.stream.input().close(new StreamCloseEvent());
                     }
-                    pendingToCloseConns.remove(keyConnection.peerAddress);
+                    pendingToCloseConns.remove( new PeerAddress2DisconnectPeerRequest_Comparator(keyConnection.peerAddress) );
                     inProgressConns.remove(keyConnection.peerAddress);
                     // We notify about this Peer being Disconnected:
                     eventBus.publish(new PeerDisconnectedEvent(keyConnection.peerAddress, reason));
@@ -874,7 +889,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
             // does not accept new connections anymore, or we've reached the Maximum Connections limit already:
 
             OptionalInt limitNumConns = config.getMaxSocketConnections();
-            if (pendingToCloseConns.contains(keyConnection.peerAddress) ||
+            if (pendingToCloseConns.contains( new PeerAddress2DisconnectPeerRequest_Comparator(keyConnection.peerAddress) ) ||
                     (!keep_connecting) ||
                     ((limitNumConns.isPresent()) && (inProgressConns.size() + activeConns.size() >= limitNumConns.getAsInt()))) {
                 closeKey(key, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL);
