@@ -79,11 +79,6 @@ public final class InventoryVectorMsg extends Message implements Serializable {
     public String getMessageType()  { return MESSAGE_TYPE; }
     public VectorType getType()     { return this.type; }
     public HashMsg getHashMsg()     { return this.hashMsg; }
-    public Sha256Hash getHash()     {
-        // TODO: fix this when JCL and BitcoinJ won't return human readable hashes
-        return Sha256Hash.wrapReversed(hashMsg.getHashBytes());
-    }
-
     // TODO: fix this when JCL and BitcoinJ won't return human readable hashes
     public Sha256Hash getHash()     { return Sha256Hash.wrapReversed(hashMsg.getHashBytes()); }
 
