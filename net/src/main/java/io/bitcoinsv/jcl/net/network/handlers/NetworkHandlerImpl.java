@@ -525,6 +525,20 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
             lock.writeLock().lock();
 
             logger.trace(peerAddress, reason.name(), detail);
+            final int maxFailedConnectionAddressesToKeep = 10000;
+            if(failedConns.size()>=maxFailedConnectionAddressesToKeep) {
+                logger.warm("List of peer addresses to which connection has failed has reached maximum allowed size ("+maxFailedConnectionAddressesToKeep+")!. Half of addresses will be removed from the list.");
+                var it = failedConns.iterator();
+                while (true) {
+                    if(!it.hasNext()) break;
+                    it.next();
+                    if(!it.hasNext()) break;
+                    it.next();
+                    it.remove();
+                }
+            }
+            // TODO: We should ban the peer that sent us too many ADDR messages containing an address to which the connection failed.
+            // TODO: Tracking addresses of peers to which the connection failed should be redesigned (maybe even removed), because currently these addresses are not used anywhere and are only written to file when NetworkHandler is stopped.
             failedConns.add(peerAddress);
             inProgressConns.remove(peerAddress);
             numConnsFailed.incrementAndGet();
