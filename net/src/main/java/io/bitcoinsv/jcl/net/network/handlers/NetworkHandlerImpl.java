@@ -183,6 +183,13 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         return (NetworkConfigImpl) config;
     }
     @Override
+    public synchronized void updateConfig(HandlerConfig config) {
+        if (!(config instanceof NetworkConfig)) {
+            throw new RuntimeException("config class is NOT correct for this Handler");
+        }
+        this.config = (NetworkConfig) config;
+    }
+    @Override
     public void useEventBus(EventBus eventBus)      { this.eventBus = eventBus; }
     @Override
     public void stopConnecting()                    { this.keep_connecting = false; }

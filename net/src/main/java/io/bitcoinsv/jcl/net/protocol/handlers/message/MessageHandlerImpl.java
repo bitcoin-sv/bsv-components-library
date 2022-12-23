@@ -20,6 +20,7 @@ import io.bitcoinsv.jcl.net.protocol.handlers.message.streams.deserializer.Deser
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayBuffer;
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig;
 import io.bitcoinsv.jcl.tools.events.Event;
+import io.bitcoinsv.jcl.tools.handlers.HandlerConfig;
 import io.bitcoinsv.jcl.tools.handlers.HandlerImpl;
 import io.bitcoinsv.jcl.net.tools.LoggerUtil;
 import io.bitcoinsv.jcl.tools.thread.ThreadUtils;
@@ -470,6 +471,14 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
 
     public MessageHandlerConfig getConfig() {
         return this.config;
+    }
+
+    @Override
+    public synchronized void updateConfig(HandlerConfig config) {
+        if (!(config instanceof MessageHandlerConfig)) {
+            throw new RuntimeException("config class is NOT correct for this Handler");
+        }
+        this.config = (MessageHandlerConfig) config;
     }
 
     public MessageHandlerState getState() {

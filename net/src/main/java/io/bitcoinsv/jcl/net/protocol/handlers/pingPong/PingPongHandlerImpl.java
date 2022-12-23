@@ -19,6 +19,7 @@ import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
 import io.bitcoinsv.jcl.net.tools.NonceUtils;
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig;
 import io.bitcoinsv.jcl.tools.events.EventQueueProcessor;
+import io.bitcoinsv.jcl.tools.handlers.HandlerConfig;
 import io.bitcoinsv.jcl.tools.handlers.HandlerImpl;
 import io.bitcoinsv.jcl.net.tools.LoggerUtil;
 import io.bitcoinsv.jcl.tools.thread.ThreadUtils;
@@ -268,8 +269,17 @@ public class PingPongHandlerImpl extends HandlerImpl<PeerAddress, PingPongPeerIn
         }
     }
 
+    @Override
     public PingPongHandlerConfig getConfig() {
         return this.config;
+    }
+
+    @Override
+    public synchronized void updateConfig(HandlerConfig config) {
+        if (!(config instanceof PingPongHandlerConfig)) {
+            throw new RuntimeException("config class is NOT correct for this Handler");
+        }
+        this.config = (PingPongHandlerConfig) config;
     }
 
     public PingPongHandlerState getState() {

@@ -3,6 +3,7 @@ package io.bitcoinsv.jcl.net.protocol.handlers.whitelist;
 import io.bitcoinsv.jcl.net.network.events.*;
 import io.bitcoinsv.jcl.net.tools.LoggerUtil;
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig;
+import io.bitcoinsv.jcl.tools.handlers.HandlerConfig;
 import io.bitcoinsv.jcl.tools.handlers.HandlerImpl;
 import io.bitcoinsv.jcl.tools.util.StringUtils;
 
@@ -114,6 +115,14 @@ public class WhitelistHandlerImpl extends HandlerImpl<InetAddress, WhitelistHost
 
     @Override
     public WhitelistHandlerConfig getConfig() { return this.config;}
+
+    @Override
+    public synchronized void updateConfig(HandlerConfig config) {
+        if (!(config instanceof WhitelistHandlerConfig)) {
+            throw new RuntimeException("config class is NOT correct for this Handler");
+        }
+        this.config = (WhitelistHandlerConfig) config;
+    }
 
     private void loadWhitelistFromDisk() {
         String csvFileName = StringUtils.fileNamingFriendly(config.getBasicConfig().getId()) + FILE_WHITELIST_SUFFIX;

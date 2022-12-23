@@ -31,7 +31,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
 
     // List of blocks in different States:
     private final List<String> pendingBlocks;
-    private final List<String> downloadedBlocks;
+    private final Set<String> downloadedBlocks;
     private final List<String> discardedBlocks;
     private final List<String> pendingToCancelBlocks;
     private final List<String> cancelledBlocks;
@@ -73,7 +73,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
     public BlockDownloaderHandlerState( BlockDownloaderHandlerConfig config,
                                         BlockDownloaderHandlerImpl.DonwloadingState downloadingState,
                                         List<String> pendingBlocks,
-                                        List<String> downloadedBlocks,
+                                        Set<String> downloadedBlocks,
                                         List<String> discardedBlocks,
                                         List<String> pendingToCancelBlocks,
                                         List<String> cancelledBlocks,
@@ -154,9 +154,13 @@ public final class BlockDownloaderHandlerState extends HandlerState {
             result.append("\n Retry later   :\n  > ");
 
             String blocksInLimboStr = blocksInLimbo.stream().map(h -> {
-                Duration timePassedSinceLastActivity = Duration.between(blocksLastActivity.get(h), Instant.now());
-                long secsToRetry = config.getInactivityTimeoutToFail().toSeconds() - timePassedSinceLastActivity.toSeconds();
-                return (h + " Retrying in " + secsToRetry + " secs...");
+                if (blocksLastActivity.containsKey(h)) {
+                    Duration timePassedSinceLastActivity = Duration.between(blocksLastActivity.get(h), Instant.now());
+                    long secsToRetry = config.getInactivityTimeoutToFail().toSeconds() - timePassedSinceLastActivity.toSeconds();
+                    return (h + " Retrying in " + secsToRetry + " secs...");
+                } else {
+                    return " Retrying (calculating retry-time...)";
+                }
             }).collect(Collectors.joining("\n  > "));
             result.append(blocksInLimboStr);
         }
@@ -185,9 +189,9 @@ public final class BlockDownloaderHandlerState extends HandlerState {
     }
 
     public BlockDownloaderHandlerImpl.DonwloadingState getDownloadingState()
-                                                    { return this.downloadingState; }
+    { return this.downloadingState; }
     public List<String> getPendingBlocks()          { return this.pendingBlocks; }
-    public List<String> getDownloadedBlocks()       { return this.downloadedBlocks; }
+    public Set<String> getDownloadedBlocks()        { return this.downloadedBlocks; }
     public List<String> getDiscardedBlocks()        { return this.discardedBlocks; }
     public List<String> getPendingToCancelBlocks()  { return this.pendingToCancelBlocks; }
     public List<String> getCancelledBlocks()        { return cancelledBlocks; }
@@ -199,9 +203,9 @@ public final class BlockDownloaderHandlerState extends HandlerState {
     public boolean isRunning()                  { return this.downloadingState.equals(BlockDownloaderHandlerImpl.DonwloadingState.RUNNING);}
     public boolean isPaused()                   { return this.downloadingState.equals(BlockDownloaderHandlerImpl.DonwloadingState.PAUSED);}
     public Map<String, Integer> getBlocksNumDownloadAttempts()
-                                                { return this.blocksNumDownloadAttempts; }
+    { return this.blocksNumDownloadAttempts; }
     public Map<String, List<BlocksDownloadHistory.HistoricItem<String, PeerAddress>>> getBlocksHistory()
-                                                { return this.blocksHistory;}
+    { return this.blocksHistory;}
     public List<String> getDownloadEvents()     { return this.downloadEvents;}
     public boolean isBandwidthRestricted()      { return bandwidthRestricted; }
     public long getBlocksDownloadingSize()      { return blocksDownloadingSize;}
@@ -246,7 +250,7 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         private BlockDownloaderHandlerConfig config;
         private BlockDownloaderHandlerImpl.DonwloadingState downloadingState;
         private List<String> pendingBlocks;
-        private List<String> downloadedBlocks;
+        private Set<String> downloadedBlocks;
         private List<String> discardedBlocks;
         private List<String> pendingToCancelBlocks;
         private List<String> cancelledBlocks;
@@ -265,92 +269,92 @@ public final class BlockDownloaderHandlerState extends HandlerState {
         BlockDownloaderHandlerStateBuilder() {
         }
 
-        public BlockDownloaderHandlerStateBuilder config(BlockDownloaderHandlerConfig config) {
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder config(BlockDownloaderHandlerConfig config) {
             this.config = config;
             return this;
         }
 
-        public BlockDownloaderHandlerStateBuilder downloadingState(BlockDownloaderHandlerImpl.DonwloadingState downloadingState) {
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder downloadingState(BlockDownloaderHandlerImpl.DonwloadingState downloadingState) {
             this.downloadingState = downloadingState;
             return this;
         }
 
-        public BlockDownloaderHandlerStateBuilder pendingBlocks(List<String> pendingBlocks) {
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder pendingBlocks(List<String> pendingBlocks) {
             this.pendingBlocks = pendingBlocks;
             return this;
         }
 
-        public BlockDownloaderHandlerStateBuilder downloadedBlocks(List<String> downloadedBlocks) {
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder downloadedBlocks(Set<String> downloadedBlocks) {
             this.downloadedBlocks = downloadedBlocks;
             return this;
         }
 
-        public BlockDownloaderHandlerStateBuilder discardedBlocks(List<String> discardedBlocks) {
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder discardedBlocks(List<String> discardedBlocks) {
             this.discardedBlocks = discardedBlocks;
             return this;
         }
 
-        public BlockDownloaderHandlerStateBuilder pendingToCancelBlocks(List<String> pendingToCancelBlocks) {
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder pendingToCancelBlocks(List<String> pendingToCancelBlocks) {
             this.pendingToCancelBlocks = pendingToCancelBlocks;
             return this;
         }
 
-        public BlockDownloaderHandlerStateBuilder cancelledBlocks(List<String> cancelledBlocks) {
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder cancelledBlocks(List<String> cancelledBlocks) {
             this.cancelledBlocks = cancelledBlocks;
             return this;
         }
 
-        public BlockDownloaderHandlerStateBuilder blocksInLimbo(Set<String> blocksInLimbo) {
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder blocksInLimbo(Set<String> blocksInLimbo) {
             this.blocksInLimbo = blocksInLimbo;
             return this;
         }
 
-        public BlockDownloaderHandlerStateBuilder blocksHistory(Map<String, List<BlocksDownloadHistory.HistoricItem<String, PeerAddress>>> blocksHistory) {
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder blocksHistory(Map<String, List<BlocksDownloadHistory.HistoricItem<String, PeerAddress>>> blocksHistory) {
             this.blocksHistory = blocksHistory;
             return this;
         }
 
-        public BlockDownloaderHandlerStateBuilder downloadEvents(List<String> downloadEvents) {
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder downloadEvents(List<String> downloadEvents) {
             this.downloadEvents = downloadEvents;
             return this;
         }
 
-        public BlockDownloaderHandlerStateBuilder downloadRejections(Map<PeerAddress, DownloadResponse> downloadRejections) {
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder downloadRejections(Map<PeerAddress, DownloadResponse> downloadRejections) {
             this.downloadRejections = downloadRejections;
             return this;
         }
 
-        public BlockDownloaderHandlerStateBuilder blocksLastActivity(Map<String, Instant> blocksLastActivity) {
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder blocksLastActivity(Map<String, Instant> blocksLastActivity) {
             this.blocksLastActivity = blocksLastActivity;
             return this;
         }
 
-        public BlockDownloaderHandlerStateBuilder peersInfo(List<BlockPeerInfo> peersInfo) {
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder peersInfo(List<BlockPeerInfo> peersInfo) {
             this.peersInfo = peersInfo;
             return this;
         }
 
-        public BlockDownloaderHandlerStateBuilder totalReattempts(long totalReattempts) {
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder totalReattempts(long totalReattempts) {
             this.totalReattempts = totalReattempts;
             return this;
         }
 
-        public BlockDownloaderHandlerStateBuilder blocksNumDownloadAttempts(Map<String, Integer> blocksNumDownloadAttempts) {
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder blocksNumDownloadAttempts(Map<String, Integer> blocksNumDownloadAttempts) {
             this.blocksNumDownloadAttempts = blocksNumDownloadAttempts;
             return this;
         }
 
-        public BlockDownloaderHandlerStateBuilder busyPercentage(int busyPercentage) {
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder busyPercentage(int busyPercentage) {
             this.busyPercentage = busyPercentage;
             return this;
         }
 
-        public BlockDownloaderHandlerStateBuilder bandwidthRestricted(boolean bandwidthRestricted) {
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder bandwidthRestricted(boolean bandwidthRestricted) {
             this.bandwidthRestricted = bandwidthRestricted;
             return this;
         }
 
-        public BlockDownloaderHandlerStateBuilder blocksDownloadingSize(long blocksDownloadingSize) {
+        public BlockDownloaderHandlerState.BlockDownloaderHandlerStateBuilder blocksDownloadingSize(long blocksDownloadingSize) {
             this.blocksDownloadingSize = blocksDownloadingSize;
             return this;
         }

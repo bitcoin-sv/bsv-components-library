@@ -43,83 +43,6 @@ public class BlockPeerInfo {
         IN_LIMBO;
     }
 
-    /**
-     * Definition of Info about the Current Block being downloaded by this Peer.
-     */
-    public class BlockProgressInfo {
-        protected String hash;
-        protected int numAttempt;
-        protected BlockHeaderMsg blockHeaderMsg;
-        protected PeerAddress peerAddress; // a bit redundant, but it's ok
-        protected boolean corrupted;
-        protected Long bytesTotal;
-        protected Long bytesDownloaded;
-        protected Boolean realTimeProcessing;
-        protected Instant startTimestamp;
-        protected Instant lastBytesReceivedTimestamp;
-
-        public BlockProgressInfo(String hash, PeerAddress peerAddress, int numAttempt) {
-            this.hash = hash;
-            this.numAttempt = numAttempt;
-            this.peerAddress = peerAddress;
-            this.startTimestamp = Instant.now();
-            this.lastBytesReceivedTimestamp = Instant.now();
-        }
-
-        @Override
-        public String toString() {
-            StringBuffer result = new StringBuffer();
-            // Block being downloaded:
-            result.append(hash);
-            result.append(" ");
-
-            // Number of Attempts of downloading this Block:
-            result.append(StringUtils.fixedLength("#" + numAttempt, 4));
-            result.append(" ");
-
-            // If state is CORRUPTED, we do not log anything else:
-            if (corrupted) {
-                result.append("CORRUPTED !!");
-            } else {
-                // Download Speed:
-                // We only log it if we have already downloading some of the block otherwise we dont even know its size:
-                if (bytesDownloaded != null && bytesTotal != null) {
-                    // Progress (percentage):
-                    String progressStr = (getProgressPercentage() == null)? "¿? %" : (getProgressPercentage() + " %");
-                    result.append(StringUtils.fixedLength(progressStr, 5));
-                    result.append(" ");
-
-                    // Bytes downloaded / total:
-                    DecimalFormat format = new DecimalFormat("#0.0");
-                    String bytesTotalStr = format.format((double) bytesTotal / 1_000_000);
-                    String bytesDownStr =  format.format((double) bytesDownloaded / 1_000_000);
-                    String bytesStr = StringUtils.fixedLength(bytesDownStr + "/" + bytesTotalStr + " MB", 15);
-                    result.append(bytesStr);
-
-                } else {
-                    result.append("nothing received yet...");
-                }
-            }
-            return result.toString();
-        }
-
-        public String getHash()                         { return this.hash; }
-        public BlockHeaderMsg getBlockHeaderMsg()       { return this.blockHeaderMsg; }
-        public PeerAddress getPeerAddress()             { return this.peerAddress; }
-        public boolean isCorrupted()                    { return this.corrupted; }
-        public Long getBytesTotal()                     { return this.bytesTotal; }
-        public Long getBytesDownloaded()                { return this.bytesDownloaded; }
-        public Boolean getRealTimeProcessing()          { return this.realTimeProcessing; }
-        public Instant getStartTimestamp()              { return this.startTimestamp; }
-        public Instant getLastBytesReceivedTimestamp()  { return this.lastBytesReceivedTimestamp; }
-
-        public Integer getProgressPercentage() {
-            Integer result = (bytesTotal == null) ? null : (int)  (bytesDownloaded * 100 / bytesTotal);
-            return result;
-        }
-
-    }
-
     // A comparator that orders the Peers by Speed (high speed first)
     public static final Comparator<BlockPeerInfo> SPEED_COMPARATOR = (peerA, peerB) -> peerB.downloadSpeed - peerA.downloadSpeed;
 
@@ -132,9 +55,8 @@ public class BlockPeerInfo {
     // A reference to the Deserializer Stream used by this Peer:
     private DeserializerStream stream;
 
-    // Info bout the Block being currently downloaded by this Peer:
+    // Info about the Block being currently downloaded by this Peer:
     private BlockProgressInfo currentBlockInfo;
-
 
     /** Constructor */
     public BlockPeerInfo(PeerAddress peerAddress, DeserializerStream stream) {
@@ -178,7 +100,7 @@ public class BlockPeerInfo {
     }
 
     /**
-     * It set this Peer to ION_LIMBO State, meaning this Peer is in an unpredictable state: It's supposed to be 
+     * It set this Peer to ION_LIMBO State, meaning this Peer is in an unpredictable state: It's supposed to be
      * downloading a Block, but it also seems to have an issue, so we are not getting more info from it. But we might
      * still get it in the near future. So this peer will remain in this state until:
      *  - we eventually receive the remaining parts of the block, which will finish the download
@@ -262,16 +184,16 @@ public class BlockPeerInfo {
                 // update "bytesTotal" if the Stream is SEEKING a BODY, which means that the Stream has already parsed
                 // the new Header...
 
-               if (stream.getState().getProcessState() == DeserializerStreamState.ProcessingBytesState.SEEIKING_BODY ||
-                    stream.getState().getProcessState() == DeserializerStreamState.ProcessingBytesState.DESERIALIZING_BODY) {
-                    currentBlockInfo.bytesTotal = currentHeaderMsg.getMsgLength();
+                if (stream.getState().getProcessState() == DeserializerStreamState.ProcessingBytesState.SEEIKING_BODY ||
+                        stream.getState().getProcessState() == DeserializerStreamState.ProcessingBytesState.DESERIALIZING_BODY) {
+                    currentBlockInfo.updateBytesTotal(currentHeaderMsg.getMsgLength());
                 }
 
                 // If the Deserializer stream is in CORRUPTED State (after throwing some error), we do nothing...
                 if (!currentBlockInfo.isCorrupted()) {
 
                     if (streamState.getProcessState().equals(DeserializerStreamState.ProcessingBytesState.CORRUPTED)) {
-                        currentBlockInfo.corrupted = true;
+                        currentBlockInfo.setCorrupted();
                         return;
                     }
 
@@ -281,16 +203,16 @@ public class BlockPeerInfo {
                     // If these numbers are different from the previous already stored, then that means that this Peer is actually
                     // active, so we update the "lastBytesReceivedTimestamp" field..
                     if (!bytesDownloaded.equals(this.currentBlockInfo.getBytesDownloaded())) {
-                        this.currentBlockInfo.lastBytesReceivedTimestamp = Instant.now();
+                        this.currentBlockInfo.updateLastBytesReceivedTimestamp(Instant.now());
                     }
 
                     // We update the Speed (bytes/sec):
-                    long totalSecs = Duration.between(this.currentBlockInfo.startTimestamp, Instant.now()).toSeconds();
+                    long totalSecs = Duration.between(this.currentBlockInfo.getStartTimestamp(), Instant.now()).toSeconds();
                     if (totalSecs != 0)
                         this.downloadSpeed = (int) (bytesDownloaded / totalSecs);
 
-                    this.currentBlockInfo.bytesDownloaded = bytesDownloaded;
-                    this.currentBlockInfo.realTimeProcessing = streamState.getTreadState().dedicatedThreadRunning();
+                    this.currentBlockInfo.updateBytesDownloaded(bytesDownloaded);
+                    this.currentBlockInfo.setRealTimeProcessing(streamState.getTreadState().dedicatedThreadRunning());
                 }
             }
         }
@@ -300,15 +222,15 @@ public class BlockPeerInfo {
     // that time:
     protected boolean isIdleTimeoutBroken(Duration timeout) {
         if (currentBlockInfo == null) return false;
-        if (currentBlockInfo.lastBytesReceivedTimestamp == null) return false;
-        return (Duration.between(currentBlockInfo.lastBytesReceivedTimestamp,
+        if (currentBlockInfo.getLastBytesReceivedTimestamp() == null) return false;
+        return (Duration.between(currentBlockInfo.getLastBytesReceivedTimestamp(),
                 Instant.now()).compareTo(timeout) > 0);
     }
 
     // Indicates if this Peer is taking longer than we allow it to download a Block
     protected boolean isDownloadTimeoutBroken(Duration timeout) {
         if (currentBlockInfo == null) return false;
-        return (Duration.between(currentBlockInfo.startTimestamp, Instant.now())
+        return (Duration.between(currentBlockInfo.getStartTimestamp(), Instant.now())
                 .compareTo(timeout) > 0);
     }
 
@@ -343,7 +265,7 @@ public class BlockPeerInfo {
         BlockProgressInfo blockProgressInfo = currentBlockInfo;
         if (blockProgressInfo != null) {
             // Downloading time...
-            Duration downloadingTime = Duration.between(blockProgressInfo.startTimestamp, Instant.now());
+            Duration downloadingTime = Duration.between(blockProgressInfo.getStartTimestamp(), Instant.now());
             result.append(StringUtils.fixedLength("[" + downloadingTime.toSeconds() + " secs]",10));
             result.append(" ");
 
@@ -352,7 +274,7 @@ public class BlockPeerInfo {
             result.append(" ");
 
             // Download Speed:
-            if (blockProgressInfo.bytesDownloaded != null && blockProgressInfo.bytesTotal != null) {
+            if (blockProgressInfo.getBytesDownloaded()!= null && blockProgressInfo.getBytesTotal() != null) {
                 DecimalFormat speedFormat = new DecimalFormat("#0.0");
                 Integer peerSpeed = getDownloadSpeed();
                 String speedStr = (peerSpeed != null)

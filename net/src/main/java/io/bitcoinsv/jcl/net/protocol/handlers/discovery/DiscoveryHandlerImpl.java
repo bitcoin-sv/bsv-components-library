@@ -16,6 +16,7 @@ import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig;
 import io.bitcoinsv.jcl.tools.events.EventQueueProcessor;
+import io.bitcoinsv.jcl.tools.handlers.HandlerConfig;
 import io.bitcoinsv.jcl.tools.handlers.HandlerImpl;
 import io.bitcoinsv.jcl.net.tools.LoggerUtil;
 import io.bitcoinsv.jcl.tools.thread.ThreadUtils;
@@ -107,7 +108,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
 
         // We schedule the Job to re-connect the Lost Handshaked Peers:
         if (config.getRecoveryHandshakeFrequency().isPresent()
-            && config.getRecoveryHandshakeThreshold().isPresent()) {
+                && config.getRecoveryHandshakeThreshold().isPresent()) {
             logger.debug("Scheduling job to renew once-handshaked peers every "
                     + config.getRecoveryHandshakeFrequency().get().toSeconds() + " seconds."
                     + " Every Peer disconnected after " + config.getRecoveryHandshakeThreshold().get().toSeconds()
@@ -417,11 +418,11 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
 
         DiscoveryHandlerState.DiscoveryHandlerStateBuilder builder = this.state.toBuilder();
         builder.poolSize(this.handlerInfo.size())
-               .numNodesAdded(state.getNumNodesAdded() + addedToPool)
-               .numNodesRemoved(state.getNumNodesRemoved() + removedFromPool)
-               .numNodesRejected(state.getNumNodesRejected() + rejectedFromPool)
-               .numGetAddrMsgsSent(state.getNumGetAddrMsgsSent() + getAddrMsgsSent)
-               .numAddrMsgsReceived(state.getNumAddrMsgsReceived() + addrMsgsReceived);
+                .numNodesAdded(state.getNumNodesAdded() + addedToPool)
+                .numNodesRemoved(state.getNumNodesRemoved() + removedFromPool)
+                .numNodesRejected(state.getNumNodesRejected() + rejectedFromPool)
+                .numGetAddrMsgsSent(state.getNumGetAddrMsgsSent() + getAddrMsgsSent)
+                .numAddrMsgsReceived(state.getNumAddrMsgsReceived() + addrMsgsReceived);
 
         if (numAddressInNewADDRMsg != null) {
             Map<Integer, Integer> addrMsgsSize = state.getAddrMsgsSize();
@@ -547,8 +548,17 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
         }
     }
 
+    @Override
     public DiscoveryHandlerConfig getConfig() {
         return this.config;
+    }
+
+    @Override
+    public synchronized void updateConfig(HandlerConfig config) {
+        if (!(config instanceof DiscoveryHandlerConfig)) {
+            throw new RuntimeException("config class is NOT correct for this Handler");
+        }
+        this.config = (DiscoveryHandlerConfig) config;
     }
 
     public DiscoveryHandlerState getState() {

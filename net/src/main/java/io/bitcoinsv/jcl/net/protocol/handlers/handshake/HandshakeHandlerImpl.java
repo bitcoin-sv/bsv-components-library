@@ -16,6 +16,7 @@ import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
 import io.bitcoinsv.jcl.net.tools.NonceUtils;
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig;
 import io.bitcoinsv.jcl.tools.events.EventQueueProcessor;
+import io.bitcoinsv.jcl.tools.handlers.HandlerConfig;
 import io.bitcoinsv.jcl.tools.handlers.HandlerImpl;
 import io.bitcoinsv.jcl.net.tools.LoggerUtil;
 import io.bitcoinsv.jcl.tools.thread.ThreadUtils;
@@ -37,7 +38,7 @@ public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeer
     private LoggerUtil logger;
 
     // P2P configuration:
-   private HandshakeHandlerConfig config;
+    private HandshakeHandlerConfig config;
 
 
     // Handler State:
@@ -521,8 +522,17 @@ public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeer
         handlerInfo.remove(peerInfo.getPeerAddress());
     }
 
+    @Override
     public HandshakeHandlerConfig getConfig() {
         return this.config;
+    }
+
+    @Override
+    public synchronized void updateConfig(HandlerConfig config) {
+        if (!(config instanceof HandshakeHandlerConfig)) {
+            throw new RuntimeException("config class is NOT correct for this Handler");
+        }
+        this.config = (HandshakeHandlerConfig) config;
     }
 
     public HandshakeHandlerState getState() {
