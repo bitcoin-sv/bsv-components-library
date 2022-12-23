@@ -185,7 +185,7 @@ public class P2PEventStreamer {
         public GenericEventStreamer(int numThreads) {
             super(numThreads);
         }
-        public void forEach(Class<? extends P2PEvent> eventClass, Consumer<? extends P2PEvent> eventHandler) {
+        public void forEach(Class<P2PEvent> eventClass, Consumer<P2PEvent> eventHandler) {
             eventBus.subscribe(eventClass, eventHandler);
             if (HandlerStateEvent.class.isAssignableFrom(eventClass)) {
                 stateEventBus.subscribe(eventClass, eventHandler);
@@ -210,7 +210,7 @@ public class P2PEventStreamer {
     public final BlockEventStreamer     BLOCKS ;
 
     /** It allows to subscribe to any Event specified as a parameter */
-    public void forEach(Class<? extends P2PEvent> eventClass, Consumer<? extends P2PEvent> eventHandler) {
+    public void forEach(Class<P2PEvent> eventClass, Consumer<P2PEvent> eventHandler) {
         GENERIC.forEach(eventClass, eventHandler);
     }
 

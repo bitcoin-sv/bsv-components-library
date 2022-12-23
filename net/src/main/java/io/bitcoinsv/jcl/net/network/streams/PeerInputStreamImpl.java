@@ -78,17 +78,17 @@ public abstract class PeerInputStreamImpl<I,R> implements PeerInputStream<R> {
     public StreamState getState() { return null;}
 
     @Override
-    public void onData(Consumer<? extends StreamDataEvent<R>> eventHandler)  {
-        eventBus.subscribe(StreamDataEvent.class, eventHandler);
+    public void onData(Consumer<StreamDataEvent<R>> eventHandler)  {
+        eventBus.subscribe(StreamDataEvent.class, eventHandler::accept);
     }
 
     @Override
-    public void onClose(Consumer<? extends StreamCloseEvent> eventHandler) {
+    public void onClose(Consumer<StreamCloseEvent> eventHandler) {
         eventBus.subscribe(StreamCloseEvent.class, eventHandler);
     }
 
     @Override
-    public void onError(Consumer<? extends StreamErrorEvent> eventHandler) {
+    public void onError(Consumer<StreamErrorEvent> eventHandler) {
         eventBus.subscribe(StreamErrorEvent.class, eventHandler);
     }
 

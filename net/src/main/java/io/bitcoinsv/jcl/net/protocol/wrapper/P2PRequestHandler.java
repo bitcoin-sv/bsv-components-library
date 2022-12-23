@@ -49,7 +49,7 @@ public class P2PRequestHandler {
         public abstract Event buildRequest();
         // This method publishes the Request to the Bus
         public void submit() {
-             eventBus.publish(buildRequest());
+            eventBus.publish(buildRequest());
         }
     }
 
@@ -62,7 +62,7 @@ public class P2PRequestHandler {
     }
 
     /** A Builder for DisconnectPeerRequest */
-   public  class DisconnectPeerRequestBuilder extends RequestBuilder {
+    public  class DisconnectPeerRequestBuilder extends RequestBuilder {
         private PeerAddress peerAddress;
         private DisconnectedReason reason;
 
@@ -399,6 +399,21 @@ public class P2PRequestHandler {
         public BlocksToDownloadRequestBuilder downloadWithPriority(List<String> blockHashes) {
             return new BlocksToDownloadRequestBuilder(blockHashes, true);
         }
+
+        public BlocksToDownloadRequestBuilder forceDownload(String blockHash) {
+            return new BlocksToDownloadRequestBuilder(Arrays.asList(blockHash), false).forceDownload();
+        }
+        public BlocksToDownloadRequestBuilder forceDownload(List<String> blockHashes) {
+            return new BlocksToDownloadRequestBuilder(blockHashes, false).forceDownload();
+        }
+
+        public BlocksToDownloadRequestBuilder forceDownloadWithPriority(String blockHash) {
+            return new BlocksToDownloadRequestBuilder(Arrays.asList(blockHash), true).forceDownload();
+        }
+        public BlocksToDownloadRequestBuilder forceDownloadWithPriority(List<String> blockHashes) {
+            return new BlocksToDownloadRequestBuilder(blockHashes, true).forceDownload();
+        }
+
         public BlocksToCancelDownloadRequestBuilder cancelDownload(String blockHash) {
             return new BlocksToCancelDownloadRequestBuilder(Arrays.asList(blockHash));
         }
@@ -419,12 +434,18 @@ public class P2PRequestHandler {
     public class BlocksToDownloadRequestBuilder extends RequestBuilder {
         private List<String> blockHash;
         private boolean withPriority;
+        private boolean forceDownload;
         private PeerAddress fromThisPeerOnly;
         private PeerAddress fromThisPeerPreferably;
 
         public BlocksToDownloadRequestBuilder(List<String> blockHash, boolean withPriority)   {
             this.blockHash = blockHash;
             this.withPriority = withPriority;
+        }
+
+        public BlocksToDownloadRequestBuilder forceDownload() {
+            this.forceDownload = true;
+            return this;
         }
 
         public BlocksToDownloadRequestBuilder fromThisPeerOnly(PeerAddress fromThisPeerOnly) {
@@ -448,7 +469,7 @@ public class P2PRequestHandler {
         }
 
         public BlocksDownloadRequest buildRequest() {
-            return new BlocksDownloadRequest(blockHash, withPriority, fromThisPeerOnly, fromThisPeerPreferably);
+            return new BlocksDownloadRequest(blockHash, withPriority, forceDownload, fromThisPeerOnly, fromThisPeerPreferably);
         }
     }
 

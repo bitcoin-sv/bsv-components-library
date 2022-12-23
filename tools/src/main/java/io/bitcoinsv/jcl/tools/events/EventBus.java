@@ -34,9 +34,6 @@ import java.util.function.Consumer;
  */
 public class EventBus {
 
-    // UGLY HACK:
-    public static AtomicLong NUM_MSGS_LOST = new AtomicLong();
-
     private static Logger log = LoggerFactory.getLogger(EventBus.class);
 
     // For each Event Type, we store the list of Consumers/Event Handlers that will get run/notified
@@ -58,17 +55,17 @@ public class EventBus {
 
 
     /** Constructor */
-    private EventBus(ExecutorService executor) {
+    public EventBus(ExecutorService executor) {
         this.executor = executor;
     }
 
-    private EventBus() {}
+    public EventBus() {}
 
     /**
      * It assigns a Handler to an Event Type. More than one Handler can be linked to an Event Type, and they are all
      * executed in sequence.
      */
-    public synchronized void subscribe(Class<? extends Event> eventClass, Consumer<? extends Event> eventHandler) {
+    public synchronized <E extends Event> void subscribe(Class<E> eventClass, Consumer<E> eventHandler) {
         // We add the handler to the list of handlers assigned to this Event Type:
         List<Consumer<? extends Event>> consumers = new ArrayList<>();
         consumers.add(eventHandler);
@@ -98,7 +95,6 @@ public class EventBus {
                 try {
                     executor.submit(task);
                 } catch (RejectedExecutionException e) {
-                    NUM_MSGS_LOST.incrementAndGet();
                     log.error(e.getMessage(), e);
                 }
             }

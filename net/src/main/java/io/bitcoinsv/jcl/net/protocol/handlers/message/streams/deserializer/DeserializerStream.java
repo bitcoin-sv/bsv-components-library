@@ -160,7 +160,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Mes
     }
 
     @Override
-    public void onClose(Consumer<? extends StreamCloseEvent> eventHandler) {
+    public void onClose(Consumer<StreamCloseEvent> eventHandler) {
         super.onClose(eventHandler);
         this.streamClosed = true;
     }

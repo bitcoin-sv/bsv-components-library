@@ -11,6 +11,7 @@ import io.bitcoinsv.jcl.store.blockChainStore.BlockChainStore;
 import io.bitcoinsv.jcl.store.blockChainStore.BlockChainStoreState;
 import io.bitcoinsv.jcl.store.blockChainStore.events.ChainForkEvent;
 import io.bitcoinsv.jcl.store.blockChainStore.events.ChainPruneEvent;
+import io.bitcoinsv.jcl.store.blockChainStore.events.ChainPruneAlertEvent;
 import io.bitcoinsv.jcl.store.blockChainStore.events.ChainStateEvent;
 import io.bitcoinsv.jcl.store.blockChainStore.validation.exception.BlockChainRuleFailureException;
 import io.bitcoinsv.jcl.store.keyValue.blockStore.BlockStoreKeyValue;
@@ -302,8 +303,8 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             var header = _getBlock(tr, blockHash.toString());
 
             return _connectBlock(tr, header, null, null).stream()
-                .map(HashProvider::getHash)
-                .collect(Collectors.toList());
+                    .map(HashProvider::getHash)
+                    .collect(Collectors.toList());
         } finally {
             getLock().writeLock().unlock();
         }
@@ -365,10 +366,10 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             // Now we look into the CHILDREN (Blocks built on top of this Block), and we connect them as well...
             // If the Block has NOT Children, then this is the Last Block that can be connected, so we add it to the Tips
             _getNextBlocks(tr, blockToConnectHashString).forEach(childHashHex ->
-                ofNullable(_getBlock(tr, childHashHex)).ifPresent(header -> {
-                    blocksToConnect.push(header);
-                    BlockStoreKeyValue.super._removeOrphanBlockHash(tr, childHashHex);
-                })
+                    ofNullable(_getBlock(tr, childHashHex)).ifPresent(header -> {
+                        blocksToConnect.push(header);
+                        BlockStoreKeyValue.super._removeOrphanBlockHash(tr, childHashHex);
+                    })
             );
 
             ofNullable(onBlockConnected).ifPresent(c -> c.accept(blockToConnectHash));
@@ -427,7 +428,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     }
 
     private void _disconnectBlock(T tr, String blockHash) {
-       _disconnectBlock(tr, blockHash, null);
+        _disconnectBlock(tr, blockHash, null);
     }
 
     private void _disconnectBlock(T tr, String blockHash, Consumer<Sha256Hash> onDisconnected) {
@@ -544,17 +545,17 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     }
 
     default void _publishState() {
-            try {
-                getLock().readLock().lock();
-                //getLogger().trace("Publishing State...");
-                ChainStateEvent event = new ChainStateEvent(getState());
-                getEventBus().publish(event);
-                //getLogger().trace("State published");
-            } catch (Exception e) {
-                getLogger().error("ERROR at publishing State", e);
-            } finally {
-                 getLock().readLock().unlock();
-            }
+        try {
+            getLock().readLock().lock();
+            //getLogger().trace("Publishing State...");
+            ChainStateEvent event = new ChainStateEvent(getState());
+            getEventBus().publish(event);
+            //getLogger().trace("State published");
+        } catch (Exception e) {
+            getLogger().error("ERROR at publishing State", e);
+        } finally {
+            getLock().readLock().unlock();
+        }
     }
 
 
@@ -566,7 +567,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
         List<HeaderReadOnly> blocksSaved = new ArrayList<>();
 
         // we save the Block...:
-       BlockStoreKeyValue.super._saveBlock(tr, blockHeader);
+        BlockStoreKeyValue.super._saveBlock(tr, blockHeader);
 
         // and its relation with its parent (ONLY If this is NOT the GENESIS Block)
         if (!blockHeader.getHash().equals(getConfig().getGenesisBlock().getHash())) {
@@ -796,7 +797,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                 BlockChainInfo block2 = _getBlockChainInfo(tr, blockHash2.toString());
 
                 if(block1 == null || block2 == null){
-                   return;
+                    return;
                 }
 
                 //get the chain path from the higest block
@@ -824,7 +825,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             return result.get();
 
         } finally {
-                getLock().readLock().unlock();
+            getLock().readLock().unlock();
         }
     }
 
@@ -1080,9 +1081,9 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             byte[] key = fullKeyForBlockChainInfo(blockHash.toString());
             T tr = createTransaction();
             executeInTransaction(tr, () -> {
-                byte[] value = read(tr, key);
-                result.set(value != null);
-              }
+                        byte[] value = read(tr, key);
+                        result.set(value != null);
+                    }
             );
         } finally {
             getLock().readLock().unlock();
@@ -1112,14 +1113,14 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
 
             // We get block on the same height in the longest chain
             var ancestor = getAncestorByHeight(
-                longestChain.get().getHeader().getHash(),
-                blockInfo.get().getHeight()
+                    longestChain.get().getHeader().getHash(),
+                    blockInfo.get().getHeight()
             );
 
             // We check if block in the longest chain and the block we are asking for are the same block
             return ancestor
-                .map(ancestorInfo -> ancestorInfo.getHeader().getHash().equals(blockHash))
-                .orElse(false);
+                    .map(ancestorInfo -> ancestorInfo.getHeader().getHash().equals(blockHash))
+                    .orElse(false);
         } finally {
             getLock().readLock().unlock();
         }
@@ -1131,7 +1132,7 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             getLock().readLock().lock();
 
             return getState().getTipsChains().stream()
-                .max(Comparator.comparingInt(ChainInfoReadOnly::getHeight));
+                    .max(Comparator.comparingInt(ChainInfoReadOnly::getHeight));
         } finally {
             getLock().readLock().unlock();
         }
@@ -1195,7 +1196,12 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     }
 
     @Override
-    default void prune(Sha256Hash tipChainHash, boolean removeTxs) {
+    default List<Sha256Hash> prune(ChainPruneAlertEvent pruneReq) {
+        return prune(pruneReq.getTipForkHash(), true, getConfig().isForkPruningIncludeTxs());
+    }
+
+    @Override
+    default List<Sha256Hash> prune(Sha256Hash tipChainHash, boolean removeBlocks, boolean removeTxs) {
         getLogger().debug("Prunning chain tip #" + tipChainHash + " ...");
         try {
             getLock().writeLock().lock();
@@ -1216,19 +1222,22 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
                 // we do NOT prune the GENESIS Block:
                 if (hashBlockToRemove.equals(getConfig().getGenesisBlock().getHash())) break;
 
-                // We prune the block:
-                getLogger().debug("prunning block " + hashBlockToRemove);
+                // We only remove the Blocks FOR REAL depending on the parameter:
+                if (removeBlocks) {
+                    // We prune the block:
+                    getLogger().debug("prunning block " + hashBlockToRemove);
 
-                // We use the internal method "_removeBlock()" instead of the public one, because there might be a
-                // Locking problem is this class is extended and that method overriden. We might have to make this class
-                // FINAL to prevent that from happening...
-                T tr = createTransaction();
-                _removeBlock(tr, hashBlockToRemove.toString());
-                commitTransaction(tr);
+                    // We use the internal method "_removeBlock()" instead of the public one, because there might be a
+                    // Locking problem is this class is extended and that method overriden. We might have to make this class
+                    // FINAL to prevent that from happening...
+                    T tr = createTransaction();
+                    _removeBlock(tr, hashBlockToRemove.toString());
+                    commitTransaction(tr);
 
-                if (removeTxs) removeBlockTxs(hashBlockToRemove);
+                    if (removeTxs) removeBlockTxs(hashBlockToRemove);
+                    numBlocksRemoved++;
+                }
                 hashesBlocksToRemove.add(hashBlockToRemove);
-                numBlocksRemoved++;
 
                 // If it does not have parent or the parent has more than one Child, we stop right here:
                 if (parentHashOpt.isEmpty()) break;
@@ -1242,8 +1251,11 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
             getLogger().debug("chain tip #" + tipChainHash + " Pruned. " + numBlocksRemoved + " blocks removed.");
 
             // We trigger a Prune Event:
-            ChainPruneEvent event = new ChainPruneEvent(tipChainHash, parentHashOpt.get(), hashesBlocksToRemove);
-            getEventBus().publish(event);
+            if (removeBlocks) {
+                ChainPruneEvent event = new ChainPruneEvent(tipChainHash, parentHashOpt.get(), hashesBlocksToRemove);
+                getEventBus().publish(event);
+            }
+            return hashesBlocksToRemove;
         } finally {
             getLock().writeLock().unlock();
         }
@@ -1257,62 +1269,77 @@ public interface BlockChainStoreKeyValue<E, T> extends BlockStoreKeyValue<E, T>,
     //   longer than "prunningAgeDifference"
 
     default void _automaticForkPrunning() {
-            try {
-                getLock().writeLock().lock();
-                getLogger().debug("Automatic Fork Pruning initiating...");
-                // We only prune if there is more than one chain:
-                List<Sha256Hash> tipsChain = getTipsChains();
-                if (tipsChain != null && (tipsChain.size() > 1)) {
-                    ChainInfo longestChain = getLongestChain().get();
-                    List<Sha256Hash> tipsToPrune = getState().getTipsChains().stream()
-                            .filter(c -> (!c.equals(longestChain))
-                                    && ((longestChain.getHeight() - c.getHeight()) >= getConfig().getForkPrunningHeightDifference()))
-                            .map(c -> c.getHeader().getHash())
-                            .collect(Collectors.toList());
-                    tipsToPrune.forEach(c -> prune(c, getConfig().isForkPrunningIncludeTxs()));
+        try {
+            getLock().writeLock().lock();
+            getLogger().debug("Automatic Fork Pruning initiating...");
+
+            // We only prune if there is more than one chain:
+            List<Sha256Hash> tipsChain = getTipsChains();
+            if (tipsChain != null && (tipsChain.size() > 1)) {
+                ChainInfo longestChain = getLongestChain().get();
+                List<Sha256Hash> tipsToPrune = getState().getTipsChains().stream()
+                        .filter(c -> (!c.equals(longestChain))
+                                && ((longestChain.getHeight() - c.getHeight()) >= getConfig().getForkPruningHeightDifference()))
+                        .map(c -> c.getHeader().getHash())
+                        .collect(Collectors.toList());
+
+                // Based on Config, we perform REAL Prunning (removing Blocks), or trigger an ALERT, or both:
+                boolean prunning      = getConfig().isForkPruningAutomaticEnabled();
+                boolean prunningAlert = getConfig().isForkPruningAlertEnabled();
+                boolean removeTxs     = getConfig().isForkPruningIncludeTxs();
+
+                if (prunning || prunningAlert) {
+                    tipsToPrune.forEach(c -> {
+                        List<Sha256Hash> blocksMightBeRemoved = prune(c, prunning, removeTxs);
+                        if (prunningAlert) {
+                            getEventBus().publish(new ChainPruneAlertEvent(c, blocksMightBeRemoved));
+                        }
+                    });
                 }
-                getLogger().debug("Automatic Fork Pruning finished.");
-            } finally {
-                getLock().writeLock().unlock();
+
             }
+            getLogger().debug("Automatic Fork Pruning finished.");
+        } finally {
+            getLock().writeLock().unlock();
+        }
     }
 
     default void _automaticOrphanPrunning() {
-            try {
-                //getLock().readLock().lock();
-                getLogger().debug("Automatic Orphan Pruning initiating...");
-                int numBlocksRemoved = 0;
-                // we get the list of Orphans, and we remove them if they are old" enough:
-                Iterator<Sha256Hash> orphansIt = getOrphanBlocks().iterator();
-                while (orphansIt.hasNext()) {
-                    Sha256Hash blockHash = orphansIt.next();
-                    //getLogger().info("Automatic Orphan Pruning:: Checking block " + blockHash.toString() + "...");
-                    Optional<HeaderReadOnly> blockHeaderOpt = getBlock(blockHash);
-                    //getLogger().info("Automatic Orphan Pruning:: Checking block Header " + blockHash.toString() + "...");
-                    if (blockHeaderOpt.isPresent()) {
-                        Instant blockTime = Instant.ofEpochSecond(blockHeaderOpt.get().getTime());
-                        if (Duration.between(blockTime, Instant.now()).compareTo(getConfig().getOrphanPrunningBlockAge()) > 0) {
-                            //getLogger().info("Automatic Orphan Pruning:: Prunning Block " + blockHash.toString() + "...");
-                            removeBlock(blockHash);
-                            numBlocksRemoved++;
-                            getLogger().debug("Automatic Orphan Pruning:: Block pruned." + blockHash.toString());
-                        }
+        try {
+            //getLock().readLock().lock();
+            getLogger().debug("Automatic Orphan Pruning initiating...");
+            int numBlocksRemoved = 0;
+            // we get the list of Orphans, and we remove them if they are old" enough:
+            Iterator<Sha256Hash> orphansIt = getOrphanBlocks().iterator();
+            while (orphansIt.hasNext()) {
+                Sha256Hash blockHash = orphansIt.next();
+                //getLogger().info("Automatic Orphan Pruning:: Checking block " + blockHash.toString() + "...");
+                Optional<HeaderReadOnly> blockHeaderOpt = getBlock(blockHash);
+                //getLogger().info("Automatic Orphan Pruning:: Checking block Header " + blockHash.toString() + "...");
+                if (blockHeaderOpt.isPresent()) {
+                    Instant blockTime = Instant.ofEpochSecond(blockHeaderOpt.get().getTime());
+                    if (Duration.between(blockTime, Instant.now()).compareTo(getConfig().getOrphanPruningBlockAge()) > 0) {
+                        //getLogger().info("Automatic Orphan Pruning:: Prunning Block " + blockHash.toString() + "...");
+                        removeBlock(blockHash);
+                        numBlocksRemoved++;
+                        getLogger().debug("Automatic Orphan Pruning:: Block pruned." + blockHash.toString());
                     }
-                } // while...
-                getLogger().debug("Automatic Orphan Prunning finished. " + numBlocksRemoved + " orphan Blocks Removed");
-            } finally {
-                //getLock().readLock().unlock();
-            }
+                }
+            } // while...
+            getLogger().debug("Automatic Orphan Prunning finished. " + numBlocksRemoved + " orphan Blocks Removed");
+        } finally {
+            //getLock().readLock().unlock();
         }
+    }
 
     private void _validateBlock(HeaderReadOnly candidateBlockHeader, BlockChainInfo candidateChainInfo) throws BlockChainRuleFailureException {
 
-       ChainInfoBean chainInfoBean = new ChainInfoBean(candidateBlockHeader);
-       chainInfoBean.setChainWork(candidateChainInfo.getChainWork());
-       chainInfoBean.setHeight(candidateChainInfo.getHeight());
-       chainInfoBean.makeImmutable();
+        ChainInfoBean chainInfoBean = new ChainInfoBean(candidateBlockHeader);
+        chainInfoBean.setChainWork(candidateChainInfo.getChainWork());
+        chainInfoBean.setHeight(candidateChainInfo.getHeight());
+        chainInfoBean.makeImmutable();
 
-       validateBlockChainInfo(chainInfoBean);
+        validateBlockChainInfo(chainInfoBean);
     }
 
 }

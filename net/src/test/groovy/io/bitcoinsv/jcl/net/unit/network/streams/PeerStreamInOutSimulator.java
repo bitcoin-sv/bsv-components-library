@@ -37,15 +37,15 @@ public class PeerStreamInOutSimulator<T> implements PeerInputStream<T>, PeerOutp
         return this.peerAddress;
     }
     @Override
-    public void onData(Consumer<? extends StreamDataEvent<T>> eventHandler) {
-        eventBus.subscribe(StreamDataEvent.class, eventHandler);
+    public void onData(Consumer<StreamDataEvent<T>> eventHandler) {
+        eventBus.subscribe(StreamDataEvent.class, eventHandler::accept);
     }
     @Override
-    public void onClose(Consumer<? extends StreamCloseEvent> eventHandler) {
+    public void onClose(Consumer<StreamCloseEvent> eventHandler) {
         eventBus.subscribe(StreamCloseEvent.class, eventHandler);
     }
     @Override
-    public void onError(Consumer<? extends StreamErrorEvent> eventHandler) {
+    public void onError(Consumer<StreamErrorEvent> eventHandler) {
         eventBus.subscribe(StreamErrorEvent.class, eventHandler);
     }
     @Override

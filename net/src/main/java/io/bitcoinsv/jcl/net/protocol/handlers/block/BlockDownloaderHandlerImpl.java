@@ -2,24 +2,31 @@ package io.bitcoinsv.jcl.net.protocol.handlers.block;
 
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
+import io.bitcoinsv.jcl.net.network.events.DisconnectPeerRequest;
 import io.bitcoinsv.jcl.net.network.events.NetStartEvent;
 import io.bitcoinsv.jcl.net.network.events.NetStopEvent;
 import io.bitcoinsv.jcl.net.network.events.PeerDisconnectedEvent;
 import io.bitcoinsv.jcl.net.protocol.events.control.*;
 import io.bitcoinsv.jcl.net.protocol.events.data.*;
+import io.bitcoinsv.jcl.net.protocol.handlers.block.strategies.*;
 import io.bitcoinsv.jcl.net.protocol.messages.*;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
 import io.bitcoinsv.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerStream;
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig;
+import io.bitcoinsv.jcl.tools.events.EventBus;
+import io.bitcoinsv.jcl.tools.handlers.HandlerConfig;
 import io.bitcoinsv.jcl.tools.handlers.HandlerImpl;
 import io.bitcoinsv.jcl.net.tools.LoggerUtil;
 import io.bitcoinsv.jcl.tools.thread.ThreadUtils;
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 import io.bitcoinsv.bitcoinjsv.core.Utils;
+import static io.bitcoinsv.jcl.net.protocol.handlers.block.BlockDownloaderHandlerConfig.*;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -147,7 +154,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
     private boolean allowedToRunByInternalState = false;
 
     // We keep track also of the list of Rejections obtained for each Peer that can NOT download any block at all
-    private Map<PeerAddress, BlocksPendingManager.DownloadFromPeerResponse> downloadRejections = new ConcurrentHashMap<>();
+    private Map<PeerAddress, DownloadResponse> downloadRejections = new ConcurrentHashMap<>();
 
     /** Constructor */
     public BlockDownloaderHandlerImpl(String id, RuntimeConfig runtimeConfig, BlockDownloaderHandlerConfig config) {
@@ -159,12 +166,17 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
         this.blocksDownloadHistory = new BlocksDownloadHistory();
         this.blocksDownloadHistory.setCleaningTimeout(config.getBlockHistoryTimeout());
 
-        // We configure the Blocks-Pending Manager:
+        // We configure the Blocks-Pending Manager as we assign a Download Strategy:
         this.blocksPendingManager = new BlocksPendingManager();
-        this.blocksPendingManager.setBestMatchCriteria(config.getBestMatchCriteria());
-        this.blocksPendingManager.setBestMatchNotAvailableAction(config.getBestMatchNotAvailableAction());
-        this.blocksPendingManager.setNoBestMatchAction(config.getNoBestMatchAction());
+        setDownloadStrategy(this.config, this.blocksPendingManager, this.eventBus);
+    }
 
+    private void setDownloadStrategy(BlockDownloaderHandlerConfig config, BlocksPendingManager blocksPendingManager, EventBus eventBus) {
+        boolean isAnnouncersStrategy = config.getBestMatchCriteria().equals(BestMatchCriteria.FROM_ANNOUNCERS);
+        PriorityStrategy downloadStrategy = (isAnnouncersStrategy)
+                ? new AnnouncersStrategy(eventBus, config.getBestMatchNotAvailableAction(), config.getNoBestMatchAction())
+                : new IBDStrategy(eventBus);
+        blocksPendingManager.setDownloadStrategy(downloadStrategy);
     }
 
     private void registerForEvents() {
@@ -191,6 +203,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
         super.eventBus.subscribe(BlocksDownloadRequest.class, e -> this.download(
                 ((BlocksDownloadRequest) e).getBlockHashes(),
                 ((BlocksDownloadRequest) e).isWithPriority(),
+                ((BlocksDownloadRequest) e).isForceDownload(),
                 ((BlocksDownloadRequest) e).getFromThisPeerOnly(),
                 ((BlocksDownloadRequest) e).getFromThisPeerPreferably()));
         super.eventBus.subscribe(BlocksCancelDownloadRequest.class, e -> this.cancelDownload(((BlocksCancelDownloadRequest) e).getBlockHashes()));
@@ -198,8 +211,6 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
         super.eventBus.subscribe(BlocksDownloadPauseRequest.class, e -> this.pauseByClient());
         super.eventBus.subscribe(NotFoundMsgReceivedEvent.class, e -> this.onNotFoundMsg((NotFoundMsgReceivedEvent) e));
 
-        // We get notified about a block being announced:
-        super.eventBus.subscribe(InvMsgReceivedEvent.class, e -> this.onInvMsgReceived((InvMsgReceivedEvent) e));
     }
 
     // Returns the total size (in bytes) of all the blocks being downloaded at this moment
@@ -220,6 +231,10 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                 .filter(p -> p.isProcessing())
                 .map(p -> p.getCurrentBlockInfo().getHash())
                 .collect(Collectors.toList());
+    }
+
+    public Optional<BlockPeerInfo> getPeerDownloadingThisBlock(String blockHash) {
+        return handlerInfo.values().stream().filter(b -> b.isDownloading(blockHash)).findFirst();
     }
 
     // This method calculates the percentage of Thread occupation.
@@ -295,7 +310,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
         }
 
         // We process this download as a failure immediately so it can be re-tried right away:
-        logger.info("Block #{} NOT FOUND by Peer [{}]...", blockHash, peerInfoOpt.get().getPeerAddress());
+        logger.info("Block #" + blockHash + " NOT FOUND by Peer [" + peerInfoOpt.get().getPeerAddress() + "]..." );
         blocksDownloadHistory.register(blockHash,   "NOT FOUND Msg received from Peer [" + event.getPeerAddress() + "]");
         downloadEvents.add(Instant.now().toString() + " : Block #" + blockHash + " Not Found by [" + event.getPeerAddress() + "]");
         processDownloadFailure(blockHash);
@@ -347,20 +362,20 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
 
     @Override
     public void download(List<String> blockHashes) {
-        download(blockHashes, false, null, null);
+        download(blockHashes, false, false, null, null);
     }
 
     @Override
     public void download(List<String> blockHashes, boolean withPriority) {
-        download(blockHashes, false, null, null);
+        download(blockHashes, false, false, null, null);
     }
 
     @Override
-    public void download(List<String> blockHashes, boolean withPriority, PeerAddress fromThisPeerOnly, PeerAddress fromThisPeerPreferably) {
+    public void download(List<String> blockHashes, boolean withPriority, boolean forceDownload, PeerAddress fromThisPeerOnly, PeerAddress fromThisPeerPreferably) {
         try {
             lock.lock();
             // First we add the list of Block Hashes to the Pending Pool:
-            logger.debug("Adding " + blockHashes.size() + " blocks to download (priority: " + withPriority +": ");
+            logger.info("Adding " + blockHashes.size() + " blocks to download (priority: " + withPriority + ", forceDownload: " + forceDownload + ")");
 
             // We filter out those blocks cancelled, etc...
             List<String> blocksBeingDownloadedNow = this.getBlocksBeingDownloaded();
@@ -379,12 +394,16 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                 blocksPendingManager.add(blockHashesToAdd);
             }
 
+            // If there blocks have priorities specified, we fed them into the Download Strategy.
             // Now we add the Priorities Peers, if specified:
             if (fromThisPeerOnly != null) {
-                blocksPendingManager.registerBlockExclusivity(blockHashesToAdd, fromThisPeerOnly);
+                blocksPendingManager.getStrategy().registerBlockExclusivity(blockHashesToAdd, fromThisPeerOnly);
             }
             if (fromThisPeerPreferably != null) {
-                blocksPendingManager.registerBlockPriority(blockHashesToAdd, fromThisPeerPreferably);
+                blocksPendingManager.getStrategy().registerBlockPriority(blockHashesToAdd, fromThisPeerPreferably);
+            }
+            if (forceDownload) {
+                blocksPendingManager.registerBlockAsAlreadyAttempted(blockHashesToAdd);
             }
         } finally {
             lock.unlock();
@@ -465,32 +484,24 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
         try {
             lock.lock();
             BlockPeerInfo peerInfo = handlerInfo.get(event.getPeerAddress());
-            if ((peerInfo != null) && peerInfo.isProcessing()) {
-                // If this Peer was in the middle of downloading a block, we put this block in the LIMBO:
-                blocksDownloadHistory.register(peerInfo.getCurrentBlockInfo().hash, peerInfo.getPeerAddress(), "Peer has disconnected");
-                // Order is important here:
-                // - 1: we put the block into Limbo so we wait a while until we retry...
-                // - 2: we disconnect and we release the Stream so it can be gc collected
-                putDownloadIntoLimbo(peerInfo);
-                peerInfo.disconnect();
+            if ((peerInfo != null) && (peerInfo.isProcessing())) {
                 logger.trace(peerInfo.getPeerAddress(),  "Peer Disconnected", peerInfo.toString());
+                 // If this Peer was in the middle of downloading a block, we put this block in the LIMBO:
+                 blocksDownloadHistory.register(peerInfo.getCurrentBlockInfo().hash, peerInfo.getPeerAddress(), "Peer has disconnected");
+                 // Order is important here:
+                 // - 1: we put the block into Limbo so we wait a while until we retry...
+                 // - 2: we disconnect and we release the Stream so it can be gc collected
+                 putDownloadIntoLimbo(peerInfo);
+                 peerInfo.disconnect();
             }
+
             downloadRejections.remove(event.getPeerAddress());
         } finally {
             lock.unlock();
         }
     }
 
-    // Event Handler:
-    // We register the Peers that are announcing Blocks:
-    public void onInvMsgReceived(InvMsgReceivedEvent event) {
-        event.getBtcMsg().getBody().getInvVectorList().stream()
-                .filter(item -> item.getType().equals(InventoryVectorMsg.VectorType.MSG_BLOCK))
-                .forEach(item -> {
-                    String blockHash = Sha256Hash.wrapReversed(item.getHashMsg().getHashBytes()).toString();
-                    blocksPendingManager.registerBlockAnnouncement(blockHash, event.getPeerAddress());
-                });
-    }
+
 
     // Event Handler:
     public void onBlockMsgReceived(BlockMsgReceivedEvent event) {
@@ -589,6 +600,13 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                 return;
             }
 
+            // If this Msg is coming a bit late, when the block is in LIMBO, then its fine.
+            // We just remove it from Limbo and we set the Peer back to business:
+            if (blocksInLimbo.contains(blockHash)) {
+                blocksInLimbo.remove(blockHash);
+                getPeerDownloadingThisBlock(blockHash).ifPresent(b -> b.setToProcessing());
+            }
+
             // It can also happen that this block is sent by a Peer BUT we didnt ask for it, the peer just sent it
             // without a prior request. In that case, we do as if we had requested the block, so we update this Peer
             // accordingly:
@@ -596,7 +614,19 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
             if (!blocksPendingManager.isBlockBeingAttempted(blockHash)) {
                 peerInfo.startDownloading(blockHash, 1);
                 blocksPendingManager.registerNewDownloadAttempt(blockHash);
+            } else {
+                // We check that the block is downloaded from a Peer that is ASSIGNED to that Block
+                if (!(peerInfo.isDownloading(blockHash))) {
+                    logger.warm(peerInfo.getPeerAddress(), "Partial Block received form this Peer BUT it shouldn't be sending anything. Discarding...");
+                    blocksDownloadHistory.register(blockHash, peerInfo.getPeerAddress(), "Partial data received but DISCARDED");
+                    // We disconnect from this Peer:
+                    peerInfo.discard();
+                    this.eventBus.publish(new DisconnectPeerRequest(peerInfo.getPeerAddress(), PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL));
+                    return;
+                }
             }
+
+
 
             if (msg.is(PartialBlockHeaderMsg.MESSAGE_TYPE)) {
                 // We update the info about the Header this block:
@@ -841,8 +871,6 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                 blocksDiscarded.remove(blockHash);
                 bigBlocksHeaders.remove(blockHash);
                 bigBlocksCurrentTxs.remove(blockHash);
-                blocksInLimbo.remove(blockHash);
-
                 blocksPendingToCancel.remove(blockHash);
                 blocksCancelled.add(blockHash);
 
@@ -871,6 +899,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
             // succcesfully downloaded after all...
             if (!blocksPendingManager.isBlockBeingAttempted(blockHash)) {
                 blocksInLimbo.remove(blockHash);
+                getPeerDownloadingThisBlock(blockHash).ifPresent(b -> b.reset());
                 return;
             }
 
@@ -882,11 +911,16 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                 return;
             }
 
-            // We reset the Peer that is currently downloading this Block, if any....
-            Optional<BlockPeerInfo> peerOpt = handlerInfo.values().stream().filter(p -> p.isDownloading(blockHash)).findFirst();
-            if (peerOpt.isPresent()) {
-                peerOpt.get().reset();
+            // We disconnect from this Peer:
+            Optional<BlockPeerInfo> peerInfoOpt = getPeerDownloadingThisBlock(blockHash);
+            if (peerInfoOpt.isPresent()) {
+                //peerInfoOpt.get().discard();
+                peerInfoOpt.get().reset();
+                //this.eventBus.publish(new DisconnectPeerRequest(peerInfoOpt.get().getPeerAddress(), PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL));
+            } else {
+                logger.warm("Block " + blockHash + " failed Download but here is NO Peer downloading it!");
             }
+
 
             // We move the block back to the pool or discard it:
             int numAttempts = blocksPendingManager.getNumDownloadAttempts(blockHash);
@@ -951,6 +985,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
             BitcoinMsg<GetdataMsg> btcMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), msg).build();
             // We send the message
             super.eventBus.publish(new SendMsgRequest(peerInfo.getPeerAddress(), btcMsg));
+            logger.trace(peerInfo.getPeerAddress(), "GET_DATA for Block " + blockHash + " sent to " + peerInfo.getPeerAddress());
         } finally {
             lock.unlock();
         }
@@ -1026,7 +1061,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                                             .collect(Collectors.toList());
 
                                     // We finally request a Peer to assign and download from this Peer, if any has been found:
-                                    Optional<BlocksPendingManager.DownloadFromPeerResponse> downloadResponse = blocksPendingManager
+                                    Optional<DownloadResponse> downloadResponse = blocksPendingManager
                                             .extractMostSuitableBlockForDownload(peerAddress, availablePeers, notAvailablePeers);
 
                                     // possible outcomes:
@@ -1036,7 +1071,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
 
                                     if (downloadResponse.isPresent()) {
                                         if (downloadResponse.get().isAssigned()) {
-                                            startDownloading(peerInfo, downloadResponse.get().getAssignedResponse().getRequest().getBlockHash());
+                                            startDownloading(peerInfo, downloadResponse.get().getRequest().getBlockHash());
                                         } else {
                                             // A Peer not being able to download any block at all is a rare situation, so
                                             // we save the references to the rejection so they can be saved in the State:
@@ -1053,8 +1088,12 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                                 // we update the Progress of this Peer:
                                 peerInfo.updateBytesProgress();
 
-                                // We check the timeouts. If the peer has broken some of these timeouts, we discard it:
+                                // We check for Errors in the data coming from this Peer:
                                 String msgFailure = null;
+
+                                // We check the timeouts. If the peer has broken some of these timeouts, we discard it:
+
+                                if (peerInfo.getStream().getState().getProcessState().isCorrupted())                      { msgFailure = "CORRUPTED: Error during Deserialization";}
                                 if (peerInfo.isIdleTimeoutBroken(config.getMaxIdleTimeout()))                             { msgFailure = "Idle Time expired"; peerInfo.setDownloadSpeed(0);}
                                 if (peerInfo.isDownloadTimeoutBroken(config.getMaxDownloadTimeout()))                     { msgFailure = "Downloading Time expired"; }
                                 if (peerInfo.getConnectionState().equals(BlockPeerInfo.PeerConnectionState.DISCONNECTED)) { msgFailure = "Peer Closed while downloading"; }
@@ -1071,6 +1110,10 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                                     blocksDownloadHistory.register(peerInfo.getCurrentBlockInfo().hash, peerInfo.getPeerAddress(), "Download Issue detected : " + msgFailure);
                                     putDownloadIntoLimbo(peerInfo);
                                     blocksPendingManager.registerDownloadFailure(peerInfo.getCurrentBlockInfo().hash, peerInfo.getPeerAddress());
+                                    // We discard this Peer and also send a request to Disconnect from it:
+                                    // peerInfo.discard();
+                                    // super.eventBus.publish(new DisconnectPeerRequest(peerInfo.getPeerAddress(), PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL_LAZY_DOWNLOAD, null));
+
                                 }
                                 break;
                             }
@@ -1084,7 +1127,17 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
 
                     List<String> blocksFailed = this.blocksInLimbo.stream().collect(Collectors.toList());
                     for (String blockHash: blocksFailed) {
-                        Duration timePassedSinceLastActivity = Duration.between(blocksLastActivity.get(blockHash), Instant.now());
+                        // We check the time passed from the moment we got the first bit of data of the body of this
+                        // block
+                        Instant blockActivityInit = blocksLastActivity.get(blockHash);
+
+                        // NOTE: If the Block arrives without a priori Request AND its is empty (no Txs at all,
+                        // which is an invalid block), we won't have an initial reference. In that case we use
+                        // a timestamp = now - timeout.
+                        if (blockActivityInit == null) {
+                            blockActivityInit = Instant.now().minus(config.getInactivityTimeoutToFail().toSeconds(), ChronoUnit.SECONDS);
+                        }
+                        Duration timePassedSinceLastActivity = Duration.between(blockActivityInit, Instant.now());
                         if (timePassedSinceLastActivity.compareTo(config.getInactivityTimeoutToFail()) > 0) {
                             processDownloadFailure(blockHash); // This block has definitely failed:
                         }
@@ -1124,7 +1177,9 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
         }
     }
 
+    @Override
     public BlockDownloaderHandlerConfig getConfig() {
         return this.config;
     }
+
 }
