@@ -103,7 +103,7 @@ public final class BlockHeaderSimpleMsg extends Message implements Serializable 
                 .creationTimestamp(header.getTime())
                 .difficultyTarget(header.getDifficultyTarget())
                 .nonce(header.getNonce())
-                .prevBlockHash(HashMsg.builder().hash(header.getPrevBlockHash().getBytes()).build())
+                .prevBlockHash(HashMsg.builder().hash(header.getPrevBlockHash().getReversedBytes()).build())
                 .version(header.getVersion())
                 .merkleRoot(HashMsg.builder().hash(header.getMerkleRoot().getReversedBytes()).build());
 
