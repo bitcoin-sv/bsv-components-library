@@ -48,6 +48,18 @@ public class TestingUtils {
         return buildBlock(null);
     }
 
+    /** Build a Chain og blocks, one built on top of the previous one */
+    public static List<HeaderReadOnly> buildBlocksChain(String genesisHashHex, int numBlocks) {
+        List<HeaderReadOnly> result = new ArrayList<>();
+        String parentHashEx = genesisHashHex;
+        for (int i = 0; i < numBlocks; i++) {
+            HeaderReadOnly block = buildBlock(parentHashEx);
+            parentHashEx = block.getHash().toString();
+            result.add(block);
+        } // for...
+        return result;
+    }
+
     /** Convenience method to generate a Dummy Tx, specifying a parent Tx */
     public static Tx buildTx(String parentTxHash) {
         Random rand = new Random();
