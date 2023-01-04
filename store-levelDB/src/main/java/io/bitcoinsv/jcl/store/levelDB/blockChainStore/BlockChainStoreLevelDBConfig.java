@@ -25,30 +25,20 @@ public class BlockChainStoreLevelDBConfig extends BlockStoreLevelDBConfig implem
 
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(BlockChainStoreLevelDBConfig.class);
 
-    // Default: The Height difference a Fork must have compared to the main chain to be eligible for prunning
-    private static int DEFAULT_FORK_HEIGH_DIFF = 2;
-
-    // Default: The Age of an Orphan Block to be eligible for prunning
-    private static Duration DEFAULT_ORPHAN_AGE = Duration.ofMinutes(30);
-
-    // Automatic prunning configuration:
-    public static Duration FORK_PRUNING_FREQUENCY_DEFAULT = Duration.ofMinutes(180);
-    public static Duration ORPHAN_PRUNING_FREQUENCY_DEFAULT = Duration.ofMinutes(60);
-
     // This is the Root of all the Block in the DB:
     private HeaderReadOnly genesisBlock;
 
     // Fork-Prunning Parameters:
     private boolean forkPruningAutomaticEnabled;
     private boolean forkPruningAlertEnabled;
-    private Duration forkPruningFrequency = FORK_PRUNING_FREQUENCY_DEFAULT;
-    private int forkPruningHeightDifference = DEFAULT_FORK_HEIGH_DIFF;
+    private Duration forkPruningFrequency;
+    private int forkPruningHeightDifference;
 
     // Orphan-Prunning Frequency:
     private boolean automaticOrphanPruningEnabled;
     private boolean forkPruningIncludeTxs;
-    private Duration orphanPruningFrequency = ORPHAN_PRUNING_FREQUENCY_DEFAULT;
-    private Duration orphanPruningBlockAge = DEFAULT_ORPHAN_AGE;
+    private Duration orphanPruningFrequency;
+    private Duration orphanPruningBlockAge;
 
     private BlockChainStoreRuleConfig ruleConfig = new BlockChainStoreRuleConfig(Collections.emptyList());
 
@@ -78,24 +68,14 @@ public class BlockChainStoreLevelDBConfig extends BlockStoreLevelDBConfig implem
 
         this.forkPruningAutomaticEnabled = forkPruningAutomaticEnabled;
         this.forkPruningAlertEnabled = forkPruningAlertEnabled;
-        this.automaticOrphanPruningEnabled = orphanPruningAutomaticEnabled;
+
         this.forkPruningIncludeTxs = forkPruningIncludeTxs;
+        this.forkPruningFrequency = forkPruningFrequency;
+        this.forkPruningHeightDifference = forkPruningHeightDifference;
 
-        if (forkPruningFrequency != null) {
-            this.forkPruningFrequency = forkPruningFrequency;
-        }
-
-        if (forkPruningHeightDifference != null) {
-            this.forkPruningHeightDifference = forkPruningHeightDifference;
-        }
-
-        if (orphanPruningFrequency != null) {
-            this.orphanPruningFrequency = orphanPruningFrequency;
-        }
-
-        if (orphanPruningBlockAge != null) {
-            this.orphanPruningBlockAge = orphanPruningBlockAge;
-        }
+        this.automaticOrphanPruningEnabled = orphanPruningAutomaticEnabled;
+        this.orphanPruningBlockAge = orphanPruningBlockAge;
+        this.orphanPruningFrequency = orphanPruningFrequency;
 
         if (ruleConfig == null || ruleConfig.getRuleList() == null || ruleConfig.getRuleList().size() == 0){
             log.warn("BlockchainStore has been configured without any block validation rules");
@@ -128,6 +108,18 @@ public class BlockChainStoreLevelDBConfig extends BlockStoreLevelDBConfig implem
      * Builder
      */
     public static class BlockChainStoreLevelDBConfigBuilder {
+
+
+        // Default: The Height difference a Fork must have compared to the main chain to be eligible for prunning
+        private static int DEFAULT_FORK_HEIGH_DIFF = 2;
+
+        // Default: The Age of an Orphan Block to be eligible for prunning
+        private static Duration DEFAULT_ORPHAN_AGE = Duration.ofMinutes(30);
+
+        // Automatic prunning configuration:
+        public static Duration FORK_PRUNING_FREQUENCY_DEFAULT = Duration.ofMinutes(180);
+        public static Duration ORPHAN_PRUNING_FREQUENCY_DEFAULT = Duration.ofMinutes(60);
+
         private String id;
         private Path workingFolder;
         private RuntimeConfig runtimeConfig;
@@ -135,21 +127,21 @@ public class BlockChainStoreLevelDBConfig extends BlockStoreLevelDBConfig implem
         private String networkId;
         private HeaderReadOnly genesisBlock;
 
+        // Fork-Prunning Parameters:
         private boolean forkPruningAutomaticEnabled;
         private boolean forkPruningAlertEnabled;
-        private Integer forkPruningHeightDifference;
-        private boolean forkPruningIncludeTxs;
-        private Duration forkPruningFrequency;
+        private Duration forkPruningFrequency = FORK_PRUNING_FREQUENCY_DEFAULT;
+        private int forkPruningHeightDifference = DEFAULT_FORK_HEIGH_DIFF;
 
-
+        // Orphan-Prunning Frequency:
         private boolean orphanPruningAutomaticEnabled;
-        private Duration orphanPruningBlockAge;
-        private Duration orphanPruningFrequency;
+        private boolean forkPruningIncludeTxs;
+        private Duration orphanPruningFrequency = ORPHAN_PRUNING_FREQUENCY_DEFAULT;
+        private Duration orphanPruningBlockAge = DEFAULT_ORPHAN_AGE;
 
         private BlockChainStoreRuleConfig ruleConfig;
 
-        BlockChainStoreLevelDBConfigBuilder() {
-        }
+        BlockChainStoreLevelDBConfigBuilder() {}
 
         public BlockChainStoreLevelDBConfig.BlockChainStoreLevelDBConfigBuilder id(String id) {
             this.id = id;
