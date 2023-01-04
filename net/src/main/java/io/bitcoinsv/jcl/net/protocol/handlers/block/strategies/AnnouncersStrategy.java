@@ -79,7 +79,7 @@ public class AnnouncersStrategy extends PriorityStrategy implements BlockDownloa
     // Event Handler:
     // We register the Peers that are announcing blocks:
     private void onHeadersMsgReceived(HeadersMsgReceivedEvent event) {
-        event.getBtcMsg().getBody().getBlockHeaderMsgList().stream()
+        event.getBtcMsg().getBody().getBlockHeaderMsgList()
                 .forEach(h -> {
                     log.trace("Block {} announced by [{}] in a HEADERS msg", h.getHash().toString(), event.getPeerAddress());
                     registerBlockAnnouncement(h.getHash().toString(), event.getPeerAddress());

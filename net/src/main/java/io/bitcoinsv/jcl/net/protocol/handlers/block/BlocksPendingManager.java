@@ -192,7 +192,7 @@ public class BlocksPendingManager {
             blocksToProcess.addAll(this.blocksNumDownloadAttempts.keySet().stream().filter(hash -> pendingBlocks.contains(hash)).collect(Collectors.toSet()));
         }
 
-        if (blocksToProcess.size() > 0) {
+        if (!blocksToProcess.isEmpty()) {
 
             // We loop over the Blocks, making a DownloadRequest for each one, and storing the response.
             for (int i = 0; i < blocksToProcess.size(); i++) {

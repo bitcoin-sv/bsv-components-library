@@ -388,34 +388,34 @@ public class P2PRequestHandler {
      */
     public class BlocksDownloadRequestBuilder {
         public BlocksToDownloadRequestBuilder download(String blockHash) {
-            return new BlocksToDownloadRequestBuilder(Arrays.asList(blockHash), false);
+            return new BlocksToDownloadRequestBuilder(List.of(blockHash), false);
         }
         public BlocksToDownloadRequestBuilder download(List<String> blockHashes) {
             return new BlocksToDownloadRequestBuilder(blockHashes, false);
         }
         public BlocksToDownloadRequestBuilder downloadWithPriority(String blockHash) {
-            return new BlocksToDownloadRequestBuilder(Arrays.asList(blockHash), true);
+            return new BlocksToDownloadRequestBuilder(List.of(blockHash), true);
         }
         public BlocksToDownloadRequestBuilder downloadWithPriority(List<String> blockHashes) {
             return new BlocksToDownloadRequestBuilder(blockHashes, true);
         }
 
         public BlocksToDownloadRequestBuilder forceDownload(String blockHash) {
-            return new BlocksToDownloadRequestBuilder(Arrays.asList(blockHash), false).forceDownload();
+            return new BlocksToDownloadRequestBuilder(List.of(blockHash), false).forceDownload();
         }
         public BlocksToDownloadRequestBuilder forceDownload(List<String> blockHashes) {
             return new BlocksToDownloadRequestBuilder(blockHashes, false).forceDownload();
         }
 
         public BlocksToDownloadRequestBuilder forceDownloadWithPriority(String blockHash) {
-            return new BlocksToDownloadRequestBuilder(Arrays.asList(blockHash), true).forceDownload();
+            return new BlocksToDownloadRequestBuilder(List.of(blockHash), true).forceDownload();
         }
         public BlocksToDownloadRequestBuilder forceDownloadWithPriority(List<String> blockHashes) {
             return new BlocksToDownloadRequestBuilder(blockHashes, true).forceDownload();
         }
 
         public BlocksToCancelDownloadRequestBuilder cancelDownload(String blockHash) {
-            return new BlocksToCancelDownloadRequestBuilder(Arrays.asList(blockHash));
+            return new BlocksToCancelDownloadRequestBuilder(List.of(blockHash));
         }
         public BlocksToCancelDownloadRequestBuilder cancelDownload(List<String> blockHashes) {
             return new BlocksToCancelDownloadRequestBuilder(blockHashes);

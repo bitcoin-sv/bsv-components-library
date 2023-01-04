@@ -56,19 +56,22 @@ public final class BlocksDownloadRequest extends P2PRequest {
 
     @Override
     public String toString() {
-        StringBuilder result = new StringBuilder("");
+        StringBuilder result = new StringBuilder();
         result
                 .append("BlocksDownloadRequest(blockHashes=")
                 .append(this.getBlockHashes())
-                .append(", withPriority=" + withPriority);
+                .append(", withPriority=")
+                .append(withPriority);
         if (this.forceDownload) {
             result.append(" [downloaded forced] ");
         }
         if (this.fromThisPeerOnly != null) {
-            result.append(", fromThisPeerOnly: " + this.fromThisPeerOnly);
+            result.append(", fromThisPeerOnly: ")
+                  .append(this.fromThisPeerOnly);
         }
         if (this.fromThisPeerPreferably != null) {
-            result.append(". fromThisPeerPreferable: " + this.fromThisPeerPreferably);
+            result.append(". fromThisPeerPreferable: ")
+                  .append(this.fromThisPeerPreferably);
         }
         result.append(")");
         return result.toString();

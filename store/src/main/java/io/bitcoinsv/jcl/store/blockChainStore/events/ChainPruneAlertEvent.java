@@ -29,6 +29,7 @@ public final class ChainPruneAlertEvent extends BlockStoreEvent {
         return blocksRemovedIfDone;
     }
 
+    @Override
     public String toString() {
         return "ChainPruneReqEvent[tipForkHash = " + this.tipForkHash + "]";
     }

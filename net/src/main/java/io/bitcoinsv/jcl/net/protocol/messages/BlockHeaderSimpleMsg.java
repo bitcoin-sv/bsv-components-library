@@ -97,6 +97,7 @@ public final class BlockHeaderSimpleMsg extends Message implements Serializable 
     /**
      * Returns a Msg class out of a Bean
      */
+    // TODO: fix this when JCL and BitcoinJ won't return human readable hashes
     public static BlockHeaderSimpleMsg fromBean(HeaderReadOnly header) {
         BlockHeaderSimpleMsgBuilder builder = BlockHeaderSimpleMsg.builder();
         builder
