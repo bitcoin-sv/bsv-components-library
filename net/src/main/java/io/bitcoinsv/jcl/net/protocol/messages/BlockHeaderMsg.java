@@ -39,6 +39,7 @@ public final class BlockHeaderMsg extends BodyMessage implements Serializable {
         super(Utils.EMPTY_BYTE_ARRAY, 0); // checksum will be overwritten during Serialization
         this.blockHeaderSimpleMsg = blockHeaderSimpleMsg;
         this.transactionCount = transactionCount;
+        init();
     }
 
     public static BlockHeaderMsgBuilder builder() {
