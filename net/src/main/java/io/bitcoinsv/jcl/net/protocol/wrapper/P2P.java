@@ -199,8 +199,10 @@ public class P2P {
 
             NetworkHandler handler = (NetworkHandler) handlers.get(NetworkHandlerImpl.HANDLER_ID);
             if (handler == null) throw new RuntimeException("No Network Handler Found. Impossible to getPeerAddress without it...");
-            PeerAddress result = PeerAddress.fromIp(
-                    Inet4Address.getLocalHost().getHostAddress() + ":" + handler.getPeerAddress().getPort());
+// This way of getting local IP address might cause issues if the host has several network interfaces:
+//            PeerAddress result = PeerAddress.fromIp(
+//                    Inet4Address.getLocalHost().getHostAddress() + ":" + handler.getPeerAddress().getPort());
+            PeerAddress result = PeerAddress.fromIp(("127.0.0.1") + ":" + handler.getPeerAddress().getPort());
             return result;
         } catch (UnknownHostException e) {
             logger.error("Error getting P2P Address");
