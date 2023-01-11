@@ -1,9 +1,11 @@
 package io.bitcoinsv.jcl.net.integration.protocol.handlers.cmpctBlock
 
+import io.bitcoinsv.jcl.net.integration.utils.IntegrationUtils
 import io.bitcoinsv.jcl.net.network.PeerAddress
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolBasicConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigBuilder
+import io.bitcoinsv.jcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig
 import io.bitcoinsv.jcl.net.protocol.messages.*
 import io.bitcoinsv.jcl.net.protocol.messages.BlockHeaderMsg
 import io.bitcoinsv.jcl.net.protocol.messages.CompactBlockHeaderMsg
@@ -44,8 +46,12 @@ class CompactBlockTest extends Specification {
                 .protocolVersion(70015)
                 .build()
 
+            // We extends the DiscoveryHandler Config, in case DNS's are not working properly:
+            DiscoveryHandlerConfig discoveryConfig = IntegrationUtils.getDiscoveryHandlerConfigMainnet(config.getDiscoveryConfig())
+
             P2P p2p = new P2PBuilder("testing")
                 .config(config)
+                .config(discoveryConfig)
                 .config(basicConfig)
                 .build()
 
@@ -280,8 +286,12 @@ class CompactBlockTest extends Specification {
                 .protocolVersion(70015)
                 .build()
 
+            // We extends the DiscoveryHandler Config, in case DNS's are not working properly:
+            DiscoveryHandlerConfig discoveryConfig = IntegrationUtils.getDiscoveryHandlerConfigMainnet(config.getDiscoveryConfig())
+
             P2P p2p = new P2PBuilder("testing")
                 .config(config)
+                .config(discoveryConfig)
                 .config(basicConfig)
                 .build()
 

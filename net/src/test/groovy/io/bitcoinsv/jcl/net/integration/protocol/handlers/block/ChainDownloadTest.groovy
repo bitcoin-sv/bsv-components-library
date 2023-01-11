@@ -3,6 +3,7 @@ package io.bitcoinsv.jcl.net.integration.protocol.handlers.block
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
 import io.bitcoinsv.bitcoinjsv.core.Utils
 import io.bitcoinsv.bitcoinjsv.params.Net
+import io.bitcoinsv.jcl.net.integration.utils.IntegrationUtils
 import io.bitcoinsv.jcl.net.network.config.NetworkConfig
 import io.bitcoinsv.jcl.net.network.config.provided.NetworkDefaultConfig
 import io.bitcoinsv.jcl.net.network.handlers.NetworkHandler
@@ -102,18 +103,8 @@ class ChainDownloadTest extends Specification {
                     .minSpeed(0)
                     .build()
 
-            // Discovery Config:
-            // This might be needed if the DNS's do not work
-            DiscoveryHandlerConfig discoveryConfig = config.getDiscoveryConfig().toBuilder()
-                .addInitialConnection("144.76.117.158:8333")
-                .addInitialConnection("65.108.132.250:8333")
-                .addInitialConnection("23.250.18.170:8333")
-                .addInitialConnection("3.69.24.55:8333")
-                .addInitialConnection("95.216.243.249:8333")
-                .addInitialConnection("3.120.175.133:8333")
-                .addInitialConnection("139.59.35.196:8333")
-                .addInitialConnection("95.217.197.54:8333")
-                .build()
+            // We extends the DiscoveryHandler Config, in case DNS's are not working properly:
+            DiscoveryHandlerConfig discoveryConfig = IntegrationUtils.getDiscoveryHandlerConfigMainnet(config.getDiscoveryConfig())
 
             // We configure the P2P Service:
             P2P p2p = new P2PBuilder("testing")

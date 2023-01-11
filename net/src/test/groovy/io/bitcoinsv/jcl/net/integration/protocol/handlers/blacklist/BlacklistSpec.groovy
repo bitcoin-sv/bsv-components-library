@@ -1,9 +1,11 @@
 package io.bitcoinsv.jcl.net.integration.protocol.handlers.blacklist
 
+import io.bitcoinsv.jcl.net.integration.utils.IntegrationUtils
 import io.bitcoinsv.jcl.net.network.PeerAddress
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigBuilder
 import io.bitcoinsv.jcl.net.protocol.handlers.block.BlockDownloaderHandler
+import io.bitcoinsv.jcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2P
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2PBuilder
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams
@@ -40,8 +42,12 @@ class BlacklistSpec extends Specification {
                     .maxPeers(MAX_PEERS)
                     .build()
 
+            // We extends the DiscoveryHandler Config, in case DNS's are not working properly:
+            DiscoveryHandlerConfig discoveryConfig = IntegrationUtils.getDiscoveryHandlerConfigMainnet(config.getDiscoveryConfig())
+
             P2P server = new P2PBuilder("testing")
                     .config(config)
+                    .config(discoveryConfig)
                     .serverPort(0) // Random Port
                     .excludeHandler(BlockDownloaderHandler.HANDLER_ID)
                     .build()

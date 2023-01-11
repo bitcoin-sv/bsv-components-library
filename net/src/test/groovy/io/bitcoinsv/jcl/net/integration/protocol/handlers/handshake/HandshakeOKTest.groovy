@@ -1,11 +1,12 @@
 package io.bitcoinsv.jcl.net.integration.protocol.handlers.handshake
 
-
+import io.bitcoinsv.jcl.net.integration.utils.IntegrationUtils
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigBuilder
 import io.bitcoinsv.jcl.net.protocol.events.control.MinHandshakedPeersLostEvent
 import io.bitcoinsv.jcl.net.protocol.events.control.MinHandshakedPeersReachedEvent
 import io.bitcoinsv.jcl.net.protocol.handlers.blacklist.BlacklistHandler
+import io.bitcoinsv.jcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2P
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2PBuilder
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams
@@ -50,9 +51,13 @@ class HandshakeOKTest extends Specification {
                 .maxPeers(MAX_PEERS)
                 .build();
 
+            // We extends the DiscoveryHandler Config, in case DNS's are not working properly:
+            DiscoveryHandlerConfig discoveryConfig = IntegrationUtils.getDiscoveryHandlerConfigMainnet(config.getDiscoveryConfig())
+
             // We disable the Handlers we do NOT need for this test
             P2P server = new P2PBuilder("testing")
                     .config(config)
+                    .config(discoveryConfig)
                     .serverPort(0) // Random Port
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
                     .build()
