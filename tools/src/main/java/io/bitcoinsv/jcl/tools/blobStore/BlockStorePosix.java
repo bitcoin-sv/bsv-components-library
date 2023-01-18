@@ -37,9 +37,11 @@ public class BlockStorePosix {
     private static final String BLOCK_FILE_TYPE_TMP = "tmp";
 
     private BlockStorePosixConfig config;
-    public BlockStorePosix(BlockStorePosixConfig config) {
-        this.config = config;
 
+    public BlockStorePosix() {}
+
+    public void setConfiguration(BlockStorePosixConfig config) {
+        this.config = config;
     }
 
     /**
