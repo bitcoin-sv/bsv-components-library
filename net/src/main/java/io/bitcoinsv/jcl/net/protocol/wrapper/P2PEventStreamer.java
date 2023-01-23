@@ -145,6 +145,8 @@ public class P2PEventStreamer {
         public final EventStreamer<GetHeadersEnMsgSentEvent>                    GETHEADERSEN_SENT   = new EventStreamer<>(eventBus, GetHeadersEnMsgSentEvent.class, numThreads);
         public final EventStreamer<GetCompactBlockMsgReceivedEvent>             GETCMPCTBLCK        = new EventStreamer<>(eventBus, GetCompactBlockMsgReceivedEvent.class, numThreads);
         public final EventStreamer<GetCompactBlockMsgSentEvent>                 GETCMPCTBLCK_SENT   = new EventStreamer<>(eventBus, GetCompactBlockMsgSentEvent.class, numThreads);
+        public final EventStreamer<CompactBlockTransactionsMsgReceivedEvent>    CMPCTBLCKTXS        = new EventStreamer<>(eventBus, CompactBlockTransactionsMsgReceivedEvent.class, numThreads);
+        public final EventStreamer<CompactBlockTransactionsMsgSentEvent>        CMPCTBLCKTXS_SENT   = new EventStreamer<>(eventBus, CompactBlockTransactionsMsgSentEvent.class, numThreads);
     }
 
     /**
