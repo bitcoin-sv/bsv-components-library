@@ -122,6 +122,7 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
         // If enabled, we stop the job to publish the state
         if (statePublishFrequency != null || config.isForkPruningAutomaticEnabled() || config.isOrphanPruningAutomaticEnabled()) {
             try {
+                this.scheduledExecutorService.shutdown();
                 this.scheduledExecutorService.awaitTermination(1000, TimeUnit.MILLISECONDS);
             } catch (InterruptedException ie) {}
             this.scheduledExecutorService.shutdownNow();
