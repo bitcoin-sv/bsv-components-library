@@ -1,6 +1,5 @@
 package io.bitcoinsv.jcl.net.protocol.serialization;
 
-import io.bitcoinsv.jcl.net.protocol.messages.CompactTransactionMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.GetCompactBlockMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.HashMsg;
 import io.bitcoinsv.jcl.net.protocol.serialization.common.DeserializerContext;

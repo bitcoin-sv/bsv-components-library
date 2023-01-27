@@ -1,6 +1,7 @@
 package io.bitcoinsv.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
 
 import java.io.Serializable;
@@ -63,6 +64,11 @@ public final class GetCompactBlockMsg extends BodyMessage implements Serializabl
 
         public GetCompactBlockMsgBuilder blockHash(HashMsg blockHash) {
             this.blockHash = blockHash;
+            return this;
+        }
+
+        public GetCompactBlockMsgBuilder blockHash(Sha256Hash blockHash) {
+            this.blockHash = HashMsg.builder().hash(blockHash.getBytes()).build();
             return this;
         }
 
