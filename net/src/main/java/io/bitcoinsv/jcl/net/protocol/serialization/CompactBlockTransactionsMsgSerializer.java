@@ -3,6 +3,7 @@ package io.bitcoinsv.jcl.net.protocol.serialization;
 import io.bitcoinsv.jcl.net.protocol.messages.CompactBlockTransactionsMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.CompactTransactionMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.HashMsg;
+import io.bitcoinsv.jcl.net.protocol.messages.TxMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.VarIntMsg;
 import io.bitcoinsv.jcl.net.protocol.serialization.common.DeserializerContext;
 import io.bitcoinsv.jcl.net.protocol.serialization.common.MessageSerializer;
@@ -12,6 +13,7 @@ import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A Serializer for {@link CompactBlockTransactionsMsg} messages
@@ -42,9 +44,13 @@ public class CompactBlockTransactionsMsgSerializer implements MessageSerializer<
     public CompactBlockTransactionsMsg deserialize(DeserializerContext context, ByteArrayReader byteReader) {
         HashMsg blockHash = HashMsgSerializer.getInstance().deserialize(context, byteReader);
         VarIntMsg startTxIndex = VarIntMsgSerializer.getInstance().deserialize(context, byteReader);
+        Optional<TxMsg> coinbase = Optional.empty();
+        if (startTxIndex.getValue() == 0) {
+            coinbase = Optional.of(TxMsgSerializer.getInstance().deserialize(context, byteReader));
+        }
         List<CompactTransactionMsg> compactTransactions = deserializeList(context, byteReader);
         return CompactBlockTransactionsMsg.builder().blockHash(blockHash).startTxIndex(startTxIndex)
-                .compactTransactions(compactTransactions).build();
+                .coinbaseTransaction(coinbase).compactTransactions(compactTransactions).build();
     }
 
     /**
@@ -74,6 +80,9 @@ public class CompactBlockTransactionsMsgSerializer implements MessageSerializer<
     public void serialize(SerializerContext context, CompactBlockTransactionsMsg message, ByteArrayWriter byteWriter) {
         HashMsgSerializer.getInstance().serialize(context, message.getBlockHash(), byteWriter);
         VarIntMsgSerializer.getInstance().serialize(context, message.getStartTxIndex(), byteWriter);
+        if (message.getStartTxIndex().getValue() == 0) {
+            TxMsgSerializer.getInstance().serialize(context, message.getCoinbaseTransaction().get(), byteWriter);
+        }
         VarIntMsgSerializer.getInstance().serialize(context, message.getNumberOfTransactions(), byteWriter);
         serializeList(context, message.getCompactTransactions(), byteWriter);
     }
