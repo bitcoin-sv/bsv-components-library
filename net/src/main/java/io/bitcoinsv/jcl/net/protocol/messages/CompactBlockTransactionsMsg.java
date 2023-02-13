@@ -41,10 +41,10 @@ public final class CompactBlockTransactionsMsg extends BodyMessage implements Se
     private final VarIntMsg startTxIndex;
     private final Optional<TxMsg> coinbaseTransaction;
     private final VarIntMsg numberOfTransactions;
-    private final List<CompactTransactionMsg> compactTransactions;
+    private final List<HashMsg> compactTransactions;
 
     public CompactBlockTransactionsMsg(HashMsg blockHash, VarIntMsg startTxIndex, Optional<TxMsg> coinbaseTransaction,
-                                       List<CompactTransactionMsg> compactTransactions,
+                                       List<HashMsg> compactTransactions,
                                        byte[] extraBytes, long checksum) {
         super(extraBytes, checksum);
         this.blockHash = blockHash;
@@ -86,7 +86,7 @@ public final class CompactBlockTransactionsMsg extends BodyMessage implements Se
     public VarIntMsg getStartTxIndex() { return startTxIndex; }
     public Optional<TxMsg> getCoinbaseTransaction() { return coinbaseTransaction; }
     public VarIntMsg getNumberOfTransactions() { return numberOfTransactions; }
-    public List<CompactTransactionMsg> getCompactTransactions() { return compactTransactions; }
+    public List<HashMsg> getCompactTransactions() { return compactTransactions; }
 
     @Override
     public int hashCode() {
@@ -127,7 +127,7 @@ public final class CompactBlockTransactionsMsg extends BodyMessage implements Se
         private HashMsg blockHash;
         private VarIntMsg startTxIndex;
         private Optional<TxMsg> coinbaseTransaction = Optional.empty();
-        private List<CompactTransactionMsg> compactTransactions;
+        private List<HashMsg> compactTransactions;
 
         public CompactBlockTransactionsMsgBuilder() {}
         public CompactBlockTransactionsMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
@@ -165,7 +165,7 @@ public final class CompactBlockTransactionsMsg extends BodyMessage implements Se
             return this;
         }
 
-        public CompactBlockTransactionsMsgBuilder compactTransactions(List<CompactTransactionMsg> compactTransactions) {
+        public CompactBlockTransactionsMsgBuilder compactTransactions(List<HashMsg> compactTransactions) {
             this.compactTransactions = compactTransactions;
             return this;
         }

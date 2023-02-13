@@ -1,7 +1,6 @@
 package io.bitcoinsv.jcl.net.protocol.serialization;
 
 import io.bitcoinsv.jcl.net.protocol.messages.CompactBlockTransactionsMsg;
-import io.bitcoinsv.jcl.net.protocol.messages.CompactTransactionMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.HashMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.TxMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.VarIntMsg;
@@ -48,23 +47,23 @@ public class CompactBlockTransactionsMsgSerializer implements MessageSerializer<
         if (startTxIndex.getValue() == 0) {
             coinbase = Optional.of(TxMsgSerializer.getInstance().deserialize(context, byteReader));
         }
-        List<CompactTransactionMsg> compactTransactions = deserializeList(context, byteReader);
+        List<HashMsg> compactTransactions = deserializeList(context, byteReader);
         return CompactBlockTransactionsMsg.builder().blockHash(blockHash).startTxIndex(startTxIndex)
                 .coinbaseTransaction(coinbase).compactTransactions(compactTransactions).build();
     }
 
     /**
-     * Deserializes the list of CompactTransactionMsg
+     * Deserializes the list of HashMsg
      * @param context
      * @param byteReader
      * @return
      */
-    protected List<CompactTransactionMsg> deserializeList(DeserializerContext context, ByteArrayReader byteReader) {
+    protected List<HashMsg> deserializeList(DeserializerContext context, ByteArrayReader byteReader) {
         VarIntMsg numberOfTransactions = VarIntMsgSerializer.getInstance().deserialize(context, byteReader);
-        List<CompactTransactionMsg> compactTransactions = new ArrayList<>((int)numberOfTransactions.getValue());
-        CompactTransactionMsgSerializer compactTransactionMsgSerializer = CompactTransactionMsgSerializer.getInstance();
+        List<HashMsg> compactTransactions = new ArrayList<>((int)numberOfTransactions.getValue());
+        HashMsgSerializer hashMsgSerializer = HashMsgSerializer.getInstance();
         for (int i = 0; i < numberOfTransactions.getValue(); ++i) {
-            CompactTransactionMsg compactTransaction = compactTransactionMsgSerializer.deserialize(context, byteReader);
+            HashMsg compactTransaction = hashMsgSerializer.deserialize(context, byteReader);
             compactTransactions.add(compactTransaction);
         }
         return compactTransactions;
@@ -88,15 +87,15 @@ public class CompactBlockTransactionsMsgSerializer implements MessageSerializer<
     }
 
     /**
-     * Serializes the list of CompactTransactionMsg
+     * Serializes the list of HashMsg
      *
      * @param context
      * @param compactTransactions
      * @param byteWriter
      */
-    protected void serializeList(SerializerContext context, List<CompactTransactionMsg> compactTransactions, ByteArrayWriter byteWriter) {
-        for (CompactTransactionMsg compactTransaction  : compactTransactions) {
-            CompactTransactionMsgSerializer.getInstance().serialize(context, compactTransaction, byteWriter);
+    protected void serializeList(SerializerContext context, List<HashMsg> compactTransactions, ByteArrayWriter byteWriter) {
+        for (HashMsg compactTransaction  : compactTransactions) {
+            HashMsgSerializer.getInstance().serialize(context, compactTransaction, byteWriter);
         }
     }
 }
