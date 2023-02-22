@@ -1,5 +1,6 @@
 package io.bitcoinsv.jcl.net.protocol.serialization;
 
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 import io.bitcoinsv.jcl.net.protocol.messages.CompactBlockTransactionsMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.HashMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.TxMsg;
@@ -10,8 +11,6 @@ import io.bitcoinsv.jcl.net.protocol.serialization.common.SerializerContext;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -47,26 +46,20 @@ public class CompactBlockTransactionsMsgSerializer implements MessageSerializer<
         if (startTxIndex.getValue() == 0) {
             coinbase = Optional.of(TxMsgSerializer.getInstance().deserialize(context, byteReader));
         }
-        List<HashMsg> compactTransactions = deserializeList(context, byteReader);
+        byte[] transactionIds = deserializeTransactionIds(context, byteReader);
         return CompactBlockTransactionsMsg.builder().blockHash(blockHash).startTxIndex(startTxIndex)
-                .coinbaseTransaction(coinbase).compactTransactions(compactTransactions).build();
+                .coinbaseTransaction(coinbase).transactionIds(transactionIds).build();
     }
 
     /**
-     * Deserializes the list of HashMsg
+     * Deserializes the chunk of transaction ids.
      * @param context
      * @param byteReader
-     * @return
+     * @return Returns transaction ids as a byte array.
      */
-    protected List<HashMsg> deserializeList(DeserializerContext context, ByteArrayReader byteReader) {
+    protected byte[] deserializeTransactionIds(DeserializerContext context, ByteArrayReader byteReader) {
         VarIntMsg numberOfTransactions = VarIntMsgSerializer.getInstance().deserialize(context, byteReader);
-        List<HashMsg> compactTransactions = new ArrayList<>((int)numberOfTransactions.getValue());
-        HashMsgSerializer hashMsgSerializer = HashMsgSerializer.getInstance();
-        for (int i = 0; i < numberOfTransactions.getValue(); ++i) {
-            HashMsg compactTransaction = hashMsgSerializer.deserialize(context, byteReader);
-            compactTransactions.add(compactTransaction);
-        }
-        return compactTransactions;
+        return byteReader.read((int)numberOfTransactions.getValue() * Sha256Hash.LENGTH);
     }
 
     /**
@@ -83,19 +76,6 @@ public class CompactBlockTransactionsMsgSerializer implements MessageSerializer<
             TxMsgSerializer.getInstance().serialize(context, message.getCoinbaseTransaction().get(), byteWriter);
         }
         VarIntMsgSerializer.getInstance().serialize(context, message.getNumberOfTransactions(), byteWriter);
-        serializeList(context, message.getCompactTransactions(), byteWriter);
-    }
-
-    /**
-     * Serializes the list of HashMsg
-     *
-     * @param context
-     * @param compactTransactions
-     * @param byteWriter
-     */
-    protected void serializeList(SerializerContext context, List<HashMsg> compactTransactions, ByteArrayWriter byteWriter) {
-        for (HashMsg compactTransaction  : compactTransactions) {
-            HashMsgSerializer.getInstance().serialize(context, compactTransaction, byteWriter);
-        }
+        byteWriter.write(message.getTransactionIds());
     }
 }
