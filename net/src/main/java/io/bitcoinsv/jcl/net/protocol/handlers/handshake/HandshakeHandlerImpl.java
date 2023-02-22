@@ -70,27 +70,27 @@ public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeer
         // We initialize the State:
         this.state = HandshakeHandlerState.builder().build();
 
+        // TODO: if required make capacity configurable
         // We start the EventQueueProcessor. We do not expect many messages (compared to the rest of traffic), so a
         // single Thread will do...
-        this.eventQueueProcessor = new EventQueueProcessor("JclHandshakeHandler", ThreadUtils.getSingleThreadScheduledExecutorService("JclHandshakeHandler-EventsConsumers"));
+        this.eventQueueProcessor = new EventQueueProcessor("JclHandshakeHandler", ThreadUtils.getBlockingSingleThreadExecutorService("JclHandshakeHandler-EventsConsumers", 10));
     }
 
     // We register this Handler to LISTEN to these Events:
     private void registerForEvents() {
+        this.eventQueueProcessor.addProcessor(NetStartEvent.class, this::onNetStart);
+        this.eventQueueProcessor.addProcessor(NetStopEvent.class, this::onNetStop);
+        this.eventQueueProcessor.addProcessor(PeerMsgReadyEvent.class, this::onPeerMsgReady);
+        this.eventQueueProcessor.addProcessor(PeerDisconnectedEvent.class, this::onPeerDisconnected);
+        this.eventQueueProcessor.addProcessor(VersionMsgReceivedEvent.class, this::onVersionMessage);
+        this.eventQueueProcessor.addProcessor(VersionAckMsgReceivedEvent.class, this::onAckMessage);
 
-        this.eventQueueProcessor.addProcessor(NetStartEvent.class, e -> onNetStart((NetStartEvent) e));
-        this.eventQueueProcessor.addProcessor(NetStopEvent.class, e -> onNetStop((NetStopEvent) e));
-        this.eventQueueProcessor.addProcessor(PeerMsgReadyEvent.class, e -> onPeerMsgReady((PeerMsgReadyEvent) e));
-        this.eventQueueProcessor.addProcessor(PeerDisconnectedEvent.class, e -> onPeerDisconnected((PeerDisconnectedEvent) e));
-        this.eventQueueProcessor.addProcessor(VersionMsgReceivedEvent.class, e -> onVersionMessage((VersionMsgReceivedEvent) e));
-        this.eventQueueProcessor.addProcessor(VersionAckMsgReceivedEvent.class, e -> onAckMessage((VersionAckMsgReceivedEvent) e));
-
-        super.eventBus.subscribe(NetStartEvent.class, e -> this.eventQueueProcessor.addEvent(e));
-        super.eventBus.subscribe(NetStopEvent.class, e -> this.eventQueueProcessor.addEvent(e));
-        super.eventBus.subscribe(PeerMsgReadyEvent.class, e -> this.eventQueueProcessor.addEvent(e));
-        super.eventBus.subscribe(PeerDisconnectedEvent.class, e -> this.eventQueueProcessor.addEvent(e));
-        super.eventBus.subscribe(VersionMsgReceivedEvent.class, e -> this.eventQueueProcessor.addEvent(e));
-        super.eventBus.subscribe(VersionAckMsgReceivedEvent.class, e -> this.eventQueueProcessor.addEvent(e));
+        subscribe(NetStartEvent.class, eventQueueProcessor::addEvent);
+        subscribe(NetStopEvent.class, eventQueueProcessor::addEvent);
+        subscribe(PeerMsgReadyEvent.class, eventQueueProcessor::addEvent);
+        subscribe(PeerDisconnectedEvent.class, eventQueueProcessor::addEvent);
+        subscribe(VersionMsgReceivedEvent.class, eventQueueProcessor::addEvent);
+        subscribe(VersionAckMsgReceivedEvent.class, eventQueueProcessor::addEvent);
 
         this.eventQueueProcessor.start();
     }

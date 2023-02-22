@@ -27,9 +27,9 @@ import java.util.function.Consumer;
 public interface PeerInputStream<T> {
     PeerAddress getPeerAddress();
     StreamState getState();
-    void onData(Consumer<StreamDataEvent<T>> eventHandler);
+    void onData(Consumer<T> data);
     void onClose(Consumer<StreamCloseEvent> eventHandler);
-    void onError(Consumer<StreamErrorEvent> eventHandler);
+    void onError(Consumer<Throwable> error);
     void close(StreamCloseEvent event);
     void expectedMessageSize(long messageSize);
 }

@@ -164,35 +164,36 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
     private void registerForEvents() {
 
         // Network Events:
-        super.eventBus.subscribe(NetStartEvent.class,                   this::onNetStart);
-        super.eventBus.subscribe(NetStopEvent.class,                    this::onNetStop);
-        super.eventBus.subscribe(PeerMsgReadyEvent.class,               this::onPeerMsgReady);
-        super.eventBus.subscribe(PeerHandshakedEvent.class,             this::onPeerHandshaked);
-        super.eventBus.subscribe(PeerDisconnectedEvent.class,           this::onPeerDisconnected);
-        super.eventBus.subscribe(MinHandshakedPeersReachedEvent.class,  this::onMinHandshakeReached);
-        super.eventBus.subscribe(MinHandshakedPeersLostEvent.class,     this::onMinHandshakeLost);
+        subscribe(NetStartEvent.class, this::onNetStart);
+        subscribe(NetStopEvent.class, this::onNetStop);
+        subscribe(PeerMsgReadyEvent.class, this::onPeerMsgReady);
+        subscribe(PeerHandshakedEvent.class, this::onPeerHandshaked);
+        subscribe(PeerDisconnectedEvent.class, this::onPeerDisconnected);
+        subscribe(MinHandshakedPeersReachedEvent.class, this::onMinHandshakeReached);
+        subscribe(MinHandshakedPeersLostEvent.class, this::onMinHandshakeLost);
 
         // Lite Blocks downloaded in a single go:
-        super.eventBus.subscribe(BlockMsgReceivedEvent.class,           this::onBlockMsgReceived);
-        super.eventBus.subscribe(RawBlockMsgReceivedEvent.class,        this::onBlockMsgReceived);
+        subscribe(BlockMsgReceivedEvent.class, this::onBlockMsgReceived);
+        subscribe(RawBlockMsgReceivedEvent.class, this::onBlockMsgReceived);
 
         // Big Blocks received in Chunks:
-        super.eventBus.subscribe(BlockHeaderDownloadedEvent.class,      this::onPartialBlockHeaderMsgReceived);
-        super.eventBus.subscribe(BlockTXsDownloadedEvent.class,         this::onPartialBlockTxsMsgReceived);
-        super.eventBus.subscribe(BlockRawTXsDownloadedEvent.class,      this::onPartialBlockTxsMsgReceived);
+        subscribe(BlockHeaderDownloadedEvent.class, this::onPartialBlockHeaderMsgReceived);
+        subscribe(BlockTXsDownloadedEvent.class, this::onPartialBlockTxsMsgReceived);
+        subscribe(BlockRawTXsDownloadedEvent.class, this::onPartialBlockTxsMsgReceived);
 
         // Download/Cancel requests:
-        super.eventBus.subscribe(BlocksDownloadRequest.class, e -> this.download(
+        subscribe(BlocksDownloadRequest.class, e -> this.download(
                 e.getBlockHashes(),
                 e.isWithPriority(),
                 e.isForceDownload(),
                 e.getFromThisPeerOnly(),
-                e.getFromThisPeerPreferably()));
+                e.getFromThisPeerPreferably()
+        ));
 
-        super.eventBus.subscribe(BlocksCancelDownloadRequest.class, e -> this.cancelDownload((e).getBlockHashes()));
-        super.eventBus.subscribe(BlocksDownloadStartRequest.class,  this::onBlocksDownloadStartRequest);
-        super.eventBus.subscribe(BlocksDownloadPauseRequest.class,  this::onBlocksDownloadPauseRequest);
-        super.eventBus.subscribe(NotFoundMsgReceivedEvent.class,    this::onNotFoundMsg);
+        subscribe(BlocksCancelDownloadRequest.class, e -> this.cancelDownload(e.getBlockHashes()));
+        subscribe(BlocksDownloadStartRequest.class, this::onBlocksDownloadStartRequest);
+        subscribe(BlocksDownloadPauseRequest.class, this::onBlocksDownloadPauseRequest);
+        subscribe(NotFoundMsgReceivedEvent.class, this::onNotFoundMsg);
     }
 
     /*
@@ -311,7 +312,6 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
         We also inform BlocksPendingManager about this, so it doesn't try this Peer for this Block anymore
      */
     private void onNotFoundMsg(NotFoundMsgReceivedEvent event) {
-
         // We check the Msg integrity:
         if (event.getBtcMsg().getBody().getCount().getValue() > 1) {
             logger.warm("NotFoundMsg received but more than 1 Block specified!");
@@ -354,17 +354,17 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
         return BlockDownloaderHandlerState.builder()
 
                 // Direct references:
-                .pendingBlocks(this.blocksPendingManager.getPendingBlocks().stream().collect(Collectors.toList()))
+                .pendingBlocks(new ArrayList<>(this.blocksPendingManager.getPendingBlocks()))
                 .downloadedBlocks(this.blocksDownloaded)
-                .discardedBlocks(this.blocksDiscarded.keySet().stream().collect(Collectors.toList()))
-                .pendingToCancelBlocks(this.blocksPendingToCancel.stream().collect(Collectors.toList()))
-                .cancelledBlocks(this.blocksCancelled.stream().collect(Collectors.toList()))
+                .discardedBlocks(new ArrayList<>(this.blocksDiscarded.keySet()))
+                .pendingToCancelBlocks(new ArrayList<>(this.blocksPendingToCancel))
+                .cancelledBlocks(new ArrayList<>(this.blocksCancelled))
                 .blocksHistory(this.blocksDownloadHistory.getBlocksHistory())
                 .downloadEvents(this.downloadEvents)
 
                 // Defensive Copies:
                 .downloadRejections(new HashMap<>(this.downloadRejections))
-                .peersInfo(new ArrayList(this.handlerInfo.values().stream().filter(p -> p.isHandshaked()).collect(Collectors.toList())))
+                .peersInfo(this.handlerInfo.values().stream().filter(BlockPeerInfo::isHandshaked).toList())
                 .totalReattempts(this.totalReattempts.get())
                 .blocksNumDownloadAttempts(new HashMap<>(blocksPendingManager.getBlockDownloadAttempts()))
                 .blocksInLimbo(new HashSet<>(this.blocksInLimbo))
@@ -454,8 +454,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
     public void onNetStart(NetStartEvent event) {
         logger.trace("Starting...");
         this.blocksDownloadHistory.start();
-        executor.submit(this::jobProcessCheckDownloadingProcess);
-
+        executor.execute(this::jobProcessCheckDownloadingProcess);
     }
 
     /*
@@ -810,7 +809,6 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
 
             // We publish it:
             super.eventBus.publish(new LiteRawBlockDownloadedEvent(peerInfo.getPeerAddress(), rawBlockMessage, downloadingDuration));
-
 
             // Now, in order to follow the same approach for both Big blocks and Regular Blocks, we also trigger the
             // "HeaderDownloaded" and "TxsDownloaded" Events for this Block:

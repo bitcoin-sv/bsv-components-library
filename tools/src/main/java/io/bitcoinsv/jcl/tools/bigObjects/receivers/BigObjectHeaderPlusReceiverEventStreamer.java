@@ -28,19 +28,19 @@ public class BigObjectHeaderPlusReceiverEventStreamer {
     public EventStreamer<BigObjectSourceChangedEvent> SOURCE_CHANGED;
 
     public EventStreamer<BigObjectReceivedEvent> OBJECT_RECEIVED(int numThreads) {
-        return new EventStreamer<>(eventBus, BigObjectReceivedEvent.class, numThreads);
+        return new EventStreamer<>(eventBus, BigObjectReceivedEvent.class);
     }
 
     public EventStreamer<BigObjectHeaderReceivedEvent> HEADER_RECEIVED(int numThreads) {
-        return new EventStreamer<>(eventBus, BigObjectHeaderReceivedEvent.class, numThreads);
+        return new EventStreamer<>(eventBus, BigObjectHeaderReceivedEvent.class);
     }
 
     public EventStreamer<BigObjectItemsReceivedEvent> ITEMS_RECEIVED(int numThreads) {
-        return new EventStreamer<>(eventBus, BigObjectItemsReceivedEvent.class, numThreads);
+        return new EventStreamer<>(eventBus, BigObjectItemsReceivedEvent.class);
     }
 
     public EventStreamer<BigObjectSourceChangedEvent> SOURCE_CHANGED(int numThreads) {
-        return new EventStreamer<>(eventBus, BigObjectSourceChangedEvent.class, numThreads);
+        return new EventStreamer<>(eventBus, BigObjectSourceChangedEvent.class);
     }
 
     public BigObjectHeaderPlusReceiverEventStreamer(EventBus eventBus) {

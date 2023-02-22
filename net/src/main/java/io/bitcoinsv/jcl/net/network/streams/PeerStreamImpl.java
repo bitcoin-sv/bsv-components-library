@@ -2,8 +2,6 @@ package io.bitcoinsv.jcl.net.network.streams;
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 
-import java.util.concurrent.ExecutorService;
-
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
@@ -12,8 +10,6 @@ import java.util.concurrent.ExecutorService;
  */
 public abstract class PeerStreamImpl<S,T> implements PeerStream<S> {
 
-    protected ExecutorService executor;
-
     protected PeerAddress peerAddress;
     protected PeerStream<T> streamOrigin;
 
@@ -21,12 +17,11 @@ public abstract class PeerStreamImpl<S,T> implements PeerStream<S> {
     protected PeerOutputStream<S> outputStream;
 
 
-    public PeerStreamImpl(ExecutorService executor, PeerStream<T> streamOrigin) {
-        this(streamOrigin.getPeerAddress(), executor, streamOrigin);
+    public PeerStreamImpl(PeerStream<T> streamOrigin) {
+        this(streamOrigin.getPeerAddress(), streamOrigin);
     }
 
-    public PeerStreamImpl(PeerAddress peerAddress, ExecutorService executor, PeerStream<T> streamOrigin) {
-        this.executor = executor;
+    public PeerStreamImpl(PeerAddress peerAddress, PeerStream<T> streamOrigin) {
         this.peerAddress = peerAddress;
         this.streamOrigin = streamOrigin;
     }

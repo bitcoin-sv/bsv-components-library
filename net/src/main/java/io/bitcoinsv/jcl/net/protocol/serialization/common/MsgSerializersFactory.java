@@ -3,10 +3,7 @@ package io.bitcoinsv.jcl.net.protocol.serialization.common;
 
 import io.bitcoinsv.jcl.net.protocol.messages.*;
 import io.bitcoinsv.jcl.net.protocol.serialization.*;
-import io.bitcoinsv.jcl.net.protocol.serialization.largeMsgs.BigBlockDeserializer;
-import io.bitcoinsv.jcl.net.protocol.serialization.largeMsgs.RawBigBlockDeserializer;
-import io.bitcoinsv.jcl.net.protocol.serialization.largeMsgs.BigBlockTxnDeserializer;
-import io.bitcoinsv.jcl.net.protocol.serialization.largeMsgs.LargeMessageDeserializer;
+import io.bitcoinsv.jcl.net.protocol.serialization.largeMsgs.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,6 +78,8 @@ public class MsgSerializersFactory {
         serializers.put(GetCompactBlockMsg.MESSAGE_TYPE.toUpperCase(), GetCompactBlockMsgSerializer.getInstance());
         serializers.put(CompactBlockTransactionsMsg.MESSAGE_TYPE.toUpperCase(), CompactBlockTransactionsMsgSerializer.getInstance());
 
+        serializers.put(RawTxBatchMsg.MESSAGE_TYPE.toUpperCase(), RawTxBatchMsgSerializer.getInstance());
+
         rawSerializers.put(RawTxMsg.MESSAGE_TYPE.toUpperCase(), RawTxMsgSerializer.getInstance());
         rawSerializers.put(RawBlockMsg.MESSAGE_TYPE.toUpperCase(), RawBlockMsgSerializer.getInstance());
     }
@@ -122,6 +121,8 @@ public class MsgSerializersFactory {
 
         if (command.equalsIgnoreCase(BlockMsg.MESSAGE_TYPE)) {
             result = (RAW_SERIALIZERS_ENABLED) ? new RawBigBlockDeserializer() : new BigBlockDeserializer();
+        } else if (command.equalsIgnoreCase(RawTxBatchMsg.MESSAGE_TYPE)) {
+            result = new BigRawTxBatchMsgDeserializer();
         } else if (command.equalsIgnoreCase(BlockTxnMsg.MESSAGE_TYPE)) {
             result = new BigBlockTxnDeserializer();
         }
@@ -140,7 +141,6 @@ public class MsgSerializersFactory {
         // until we implement proper realtime deserializer for transactions we will use the regular one even for big transactions
         if (command.equalsIgnoreCase(RawTxMsg.MESSAGE_TYPE)) return true;
 
-        boolean result = (!onlyForLargeMessages) ? serializers.containsKey(command.toUpperCase()) : (getLargeMsgDeserializer(command, 0) != null);
-        return result;
+        return (!onlyForLargeMessages) ? serializers.containsKey(command.toUpperCase()) : (getLargeMsgDeserializer(command, 0) != null);
     }
 }

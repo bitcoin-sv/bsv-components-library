@@ -2,7 +2,6 @@ package io.bitcoinsv.jcl.net.protocol.handlers.message.streams.deserializer;
 
 
 import io.bitcoinsv.jcl.net.network.streams.*;
-import io.bitcoinsv.jcl.net.network.streams.*;
 import io.bitcoinsv.jcl.net.network.streams.nio.NIOInputStream;
 import io.bitcoinsv.jcl.net.protocol.handlers.message.MessageHandlerConfig;
 import io.bitcoinsv.jcl.net.protocol.handlers.message.MessagePreSerializer;
@@ -116,14 +115,15 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Mes
 
 
     /** Constructor */
-    public DeserializerStream(ExecutorService eventBusExecutor,
-                              PeerInputStream<ByteArrayReader> source,
-                              RuntimeConfig runtimeConfig,
-                              MessageHandlerConfig messageHandlerConfig,
-                              Deserializer deserializer,
-                              ExecutorService bigMsgsDeserializersExecutor,
-                              LoggerUtil parentLogger) {
-        super(eventBusExecutor, source);
+    public DeserializerStream(
+            PeerInputStream<ByteArrayReader> source,
+            RuntimeConfig runtimeConfig,
+            MessageHandlerConfig messageHandlerConfig,
+            Deserializer deserializer,
+            ExecutorService bigMsgsDeserializersExecutor,
+            LoggerUtil parentLogger
+    ) {
+        super(source);
         this.runtimeConfig = runtimeConfig;
         this.messageHandlerConfig = messageHandlerConfig;
         //this.buffer = new ByteArrayBuffer(runtimeConfig.getByteArrayMemoryConfig());
@@ -149,14 +149,20 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Mes
     }
 
     /** Constructor */
-    public DeserializerStream(ExecutorService eventBusExecutor,
-                              PeerInputStream<ByteArrayReader> source,
-                              RuntimeConfig runtimeConfig,
-                              MessageHandlerConfig messageHandlerConfig,
-                              Deserializer deserializer,
-                              ExecutorService bigMsgsDeserializersExecutor) {
-        this(eventBusExecutor, source, runtimeConfig, messageHandlerConfig, deserializer,
-                bigMsgsDeserializersExecutor, new LoggerUtil("Deserializer", DeserializerStream.class));
+    public DeserializerStream(
+            PeerInputStream<ByteArrayReader> source,
+            RuntimeConfig runtimeConfig,
+            MessageHandlerConfig messageHandlerConfig,
+            Deserializer deserializer,
+            ExecutorService bigMsgsDeserializersExecutor
+    ) {
+        this(
+                source,
+                runtimeConfig,
+                messageHandlerConfig,
+                deserializer,
+                bigMsgsDeserializersExecutor, new LoggerUtil("Deserializer", DeserializerStream.class)
+        );
     }
 
     @Override
@@ -164,6 +170,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Mes
         super.onClose(eventHandler);
         this.streamClosed = true;
     }
+
     /**
      * It updates the state of this class to reflect that an error has been thrown. The new State is returned.
      */
@@ -172,7 +179,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Mes
         if (!streamClosed) {
             logger.error((e.getMessage() != null)? e.getMessage() : e.getCause().getMessage());
             // We notify the parent about this Error and return:
-            super.eventBus.publish(new StreamErrorEvent(e));
+            onErrorListeners.forEach(streamCloseEventConsumer -> streamCloseEventConsumer.accept(e));
         }
         return state.toBuilder()
                 .processState(DeserializerStreamState.ProcessingBytesState.CORRUPTED)
@@ -189,7 +196,8 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Mes
         trace(isThisADedicatedThread, message.getBody().getMessageType().toUpperCase() + " Deserialized.");
         //log(isThisADedicatedThread, " Buffer After Deserialization: " + HEX.encode(new ByteArrayReader(buffer).get()));
         // We notify the parent about the new Message Deserialized and return:
-        super.eventBus.publish(new StreamDataEvent<>(message));
+        onDataListeners.forEach(streamCloseEventConsumer -> streamCloseEventConsumer.accept(message));
+
         // We return the updated State:
         return state.toBuilder()
                 .currentBitcoinMsg(message)
@@ -203,18 +211,18 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Mes
      * It is called every time new bytes are received by this Stream (see InputStreamImpl.receiveAndTransform()).
      */
     @Override
-    public synchronized List<StreamDataEvent<Message>> transform(StreamDataEvent<ByteArrayReader> dataEvent) {
+    public synchronized List<Message> transform(ByteArrayReader dataEvent) {
         try {
             // If some error has occurred already, we don't process any more data...
-            if (state.getProcessState().isCorrupted() || dataEvent == null || dataEvent.getData() == null) return null;
+            if (state.getProcessState().isCorrupted() || dataEvent == null || dataEvent == null) return null;
 
             // We feed the buffer with the incoming bytes....
-            //log.trace("SHARED Thread :: " + dataEvent.getData().size() + " bytes received, " + buffer.size() + " bytes in buffer. " + Thread.activeCount() + " active Threads...");
-            buffer.add(dataEvent.getData().getFullContent());
+            //log.trace("SHARED Thread :: " + dataEvent.size() + " bytes received, " + buffer.size() + " bytes in buffer. " + Thread.activeCount() + " active Threads...");
+            buffer.add(dataEvent.getFullContent());
 
             // We update the State with the new incoming bytes...
             state = state.toBuilder()
-                    .currentMsgBytesReceived(state.getCurrentMsgBytesReceived() + dataEvent.getData().size())
+                    .currentMsgBytesReceived(state.getCurrentMsgBytesReceived() + dataEvent.size())
                     .workToDoInBuffer(true)
                     .deserializerState(deserializer.getState())
                     .build();
@@ -432,7 +440,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Mes
 
             // Depending on the Size of the incoming BODY, we upgrade the Buffer or not...
             if (isABigMessage)
-                    buffer.updateConfig(new ByteArrayConfig(ByteArrayConfig.ARRAY_SIZE_BIG));
+                buffer.updateConfig(new ByteArrayConfig(ByteArrayConfig.ARRAY_SIZE_BIG));
             else    buffer.updateConfig(new ByteArrayConfig(ByteArrayConfig.ARRAY_SIZE_NORMAL));
 
             // We update the State:
@@ -518,7 +526,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Mes
                         .treadState(DeserializerStreamState.ThreadState.DEDICATED_THREAD)
                         .build();
                 try {
-                    bigMsgsDeserializersExecutor.submit(() -> this.processBytes(true, threadState));
+                    bigMsgsDeserializersExecutor.execute(() -> this.processBytes(true, threadState));
                     result.treadState(DeserializerStreamState.ThreadState.DEDICATED_THREAD);
                     result.workToDoInBuffer(false);
                 } catch (RejectedExecutionException e) {
@@ -573,7 +581,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Mes
             // If the State is CORRUPTED, we do thing...
             if (state.getProcessState().isCorrupted()) return;
 
-             // If we reach this far, it's because:
+            // If we reach this far, it's because:
             // - there is only the "Shared Thread" running, and we are in it
             // - there is a DEDICATED Thread working, and we are in it
 

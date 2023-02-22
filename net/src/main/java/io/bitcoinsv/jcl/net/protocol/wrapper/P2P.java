@@ -11,10 +11,7 @@ import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig;
 import io.bitcoinsv.jcl.net.protocol.config.provided.ProtocolBSVMainConfig;
 import io.bitcoinsv.jcl.net.protocol.handlers.blacklist.BlacklistHandler;
 import io.bitcoinsv.jcl.net.protocol.handlers.blacklist.BlacklistHandlerImpl;
-import io.bitcoinsv.jcl.net.protocol.handlers.blacklist.BlacklistHostInfo;
-import io.bitcoinsv.jcl.net.protocol.handlers.blacklist.BlacklistView;
 import io.bitcoinsv.jcl.net.protocol.handlers.handshake.HandshakeHandler;
-import io.bitcoinsv.jcl.net.protocol.serialization.common.MsgSerializersFactory;
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig;
 import io.bitcoinsv.jcl.tools.config.provided.RuntimeConfigDefault;
 import io.bitcoinsv.jcl.tools.events.EventBus;
@@ -23,12 +20,10 @@ import io.bitcoinsv.jcl.net.tools.LoggerUtil;
 import io.bitcoinsv.jcl.tools.handlers.HandlerConfig;
 import io.bitcoinsv.jcl.tools.thread.ThreadUtils;
 
-import java.net.Inet4Address;
 import java.net.UnknownHostException;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -85,19 +80,12 @@ public class P2P {
             this.networkConfig = networkConfig;
             this.protocolConfig = protocolConfig;
 
-            // We initialize the EventBuses...
-            ExecutorService executor = (runtimeConfig.useCachedThreadPoolForP2P())
-                    ? ThreadUtils.getCachedThreadExecutorService("JclEventBus", runtimeConfig.getMaxNumThreadsForP2P())
-                    : ThreadUtils.getFixedThreadExecutorService("JclEventBus", runtimeConfig.getMaxNumThreadsForP2P());
-
             // EventBus for the Internal Handles within the P2P Service:
             this.eventBus = EventBus.builder()
-                    .executor(executor)
                     .build();
 
             // EventBus for Handlers State Publishing:
             this.stateEventBus = EventBus.builder()
-                    .executor(ThreadUtils.getFixedThreadExecutorService("JclStateEventBus", 2))
                     .build();
 
             // Event Streamer:

@@ -1,6 +1,8 @@
 package io.bitcoinsv.jcl.tools.config;
 
 
+import io.bitcoinsv.jcl.tools.writebuffer.IWriteBufferConfig;
+import io.bitcoinsv.jcl.tools.writebuffer.WriteBuffer;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayConfig;
 import io.bitcoinsv.jcl.tools.files.FileUtils;
 
@@ -38,4 +40,13 @@ public interface RuntimeConfig {
      * system.
      */
     boolean useCachedThreadPoolForP2P();
+
+    /**
+     * {@link WriteBuffer} configuration.
+     * <P>
+     * Each peer connection creates instances of write buffer used for buffering outgoing bytes.
+     *
+     * @return byte buffer configuration
+     */
+    IWriteBufferConfig getWriteBufferConfig();
 }

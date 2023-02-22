@@ -36,11 +36,11 @@ public class WhitelistHandlerImpl extends HandlerImpl<InetAddress, WhitelistHost
     }
 
     public void registerForEvents() {
-        eventBus.subscribe(NetStartEvent.class,               e -> onNetStart((NetStartEvent) e));
-        eventBus.subscribe(NetStopEvent.class,                e -> onNetStop((NetStopEvent) e));
-        eventBus.subscribe(WhitelistPeerRequest.class,              e -> onWhitelistPeerRequest((WhitelistPeerRequest) e));
-        eventBus.subscribe(RemovePeerFromWhitelistRequest.class,    e -> onRemovePeerFromWhitelist((RemovePeerFromWhitelistRequest) e));
-        eventBus.subscribe(ClearWhitelistRequest.class,             e -> onClearQuitelistRequest((ClearWhitelistRequest) e));
+        subscribe(NetStartEvent.class, this::onNetStart);
+        subscribe(NetStopEvent.class, this::onNetStop);
+        subscribe(WhitelistPeerRequest.class, this::onWhitelistPeerRequest);
+        subscribe(RemovePeerFromWhitelistRequest.class, this::onRemovePeerFromWhitelist);
+        subscribe(ClearWhitelistRequest.class, this::onClearQuitelistRequest);
     }
 
     // Event Handler:

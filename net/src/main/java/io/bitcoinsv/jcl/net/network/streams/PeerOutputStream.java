@@ -15,6 +15,6 @@ import io.bitcoinsv.jcl.net.network.PeerAddress;
 public interface PeerOutputStream<T> {
     PeerAddress getPeerAddress();
     StreamState getState();
-    void send(StreamDataEvent<T> event);
+    void send(T data);
     void close(StreamCloseEvent event);
 }

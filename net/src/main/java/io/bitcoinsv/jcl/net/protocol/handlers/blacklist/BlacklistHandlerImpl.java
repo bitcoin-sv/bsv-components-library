@@ -3,8 +3,7 @@ package io.bitcoinsv.jcl.net.protocol.handlers.blacklist;
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.network.events.*;
-import io.bitcoinsv.jcl.net.protocol.events.control.PeerHandshakeRejectedEvent;
-import io.bitcoinsv.jcl.net.protocol.events.control.PingPongFailedEvent;
+import io.bitcoinsv.jcl.net.protocol.events.control.*;
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig;
 import io.bitcoinsv.jcl.tools.handlers.HandlerConfig;
 import io.bitcoinsv.jcl.tools.handlers.HandlerImpl;
@@ -58,15 +57,15 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
     }
 
     public void registerForEvents() {
-        super.eventBus.subscribe(NetStartEvent.class,                   e -> onNetStart((NetStartEvent) e));
-        super.eventBus.subscribe(NetStopEvent.class,                    e -> onNetStop((NetStopEvent) e));
-        super.eventBus.subscribe(PeerConnectedEvent.class,              e -> onPeerConnected((PeerConnectedEvent) e));
-        super.eventBus.subscribe(PeerRejectedEvent.class,               e -> onPeerRejected((PeerRejectedEvent) e));
-        super.eventBus.subscribe(PeerHandshakeRejectedEvent.class,      e -> onPeerHandshakedRejected((PeerHandshakeRejectedEvent) e));
-        super.eventBus.subscribe(PingPongFailedEvent.class,             e -> onPingPongFailed((PingPongFailedEvent) e));
-        super.eventBus.subscribe(BlacklistPeerRequest.class,            e -> onBlacklistPeerRequest((BlacklistPeerRequest) e));
-        super.eventBus.subscribe(RemovePeerFromBlacklistRequest.class,  e -> onRemovePeerFromBlacklistRequest((RemovePeerFromBlacklistRequest) e));
-        super.eventBus.subscribe(ClearBlacklistRequest.class,           e -> onClearBlacklistRequest((ClearBlacklistRequest) e));
+        subscribe(NetStartEvent.class, this::onNetStart);
+        subscribe(NetStopEvent.class, this::onNetStop);
+        subscribe(PeerConnectedEvent.class, this::onPeerConnected);
+        subscribe(PeerRejectedEvent.class, this::onPeerRejected);
+        subscribe(PeerHandshakeRejectedEvent.class, this::onPeerHandshakedRejected);
+        subscribe(PingPongFailedEvent.class, this::onPingPongFailed);
+        subscribe(BlacklistPeerRequest.class, this::onBlacklistPeerRequest);
+        subscribe(RemovePeerFromBlacklistRequest.class, this::onRemovePeerFromBlacklistRequest);
+        subscribe(ClearBlacklistRequest.class, this::onClearBlacklistRequest);
     }
 
     @Override

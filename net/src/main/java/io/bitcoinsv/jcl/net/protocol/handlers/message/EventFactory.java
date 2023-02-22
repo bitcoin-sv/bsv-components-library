@@ -2,12 +2,10 @@ package io.bitcoinsv.jcl.net.protocol.handlers.message;
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.protocol.events.data.*;
-import io.bitcoinsv.jcl.net.protocol.events.data.*;
 import io.bitcoinsv.jcl.net.protocol.messages.*;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
 import io.bitcoinsv.jcl.tools.events.Event;
-import io.bitcoinsv.jcl.net.protocol.messages.*;
 
 /**
  * @author i.fernandez@nchain.com
@@ -50,6 +48,7 @@ public class EventFactory {
         else if (body instanceof BlockTxnMsg)           result = new BlockTxnMsgReceivedEvent(peerAddress, (BitcoinMsg<BlockTxnMsg>) btcMsg);
         else if (body instanceof RawTxMsg)              result = new RawTxMsgReceivedEvent(peerAddress, (BitcoinMsg<RawTxMsg>) btcMsg);
         else if (body instanceof PartialBlockTxnMsg)    result = new PartialBlockTxnDownloadedEvent(peerAddress, (BitcoinMsg<PartialBlockTxnMsg>) btcMsg);
+        else if (body instanceof RawTxBatchMsg)         result = new RawTxBatchReceivedEvent(peerAddress, (BitcoinMsg<RawTxBatchMsg>) btcMsg);
         else if (body instanceof GetCompactBlockMsg)    result = new GetCompactBlockMsgReceivedEvent(peerAddress, (BitcoinMsg<GetCompactBlockMsg>) btcMsg);
         else if (body instanceof CompactBlockTransactionsMsg) result = new CompactBlockTransactionsMsgReceivedEvent(peerAddress, (BitcoinMsg<CompactBlockTransactionsMsg>) btcMsg);
 
@@ -83,6 +82,7 @@ public class EventFactory {
         else if (body instanceof CompactBlockMsg)       result = new CompactBlockMsgSentEvent(peerAddress, (BitcoinMsg<CompactBlockMsg>) btcMsg);
         else if (body instanceof GetBlockTxnMsg)        result = new GetBlockTxnMsgSentEvent(peerAddress, (BitcoinMsg<GetBlockTxnMsg>) btcMsg);
         else if (body instanceof BlockTxnMsg)           result = new BlockTxnMsgSentEvent(peerAddress, (BitcoinMsg<BlockTxnMsg>) btcMsg);
+        else if (body instanceof RawTxBatchMsg)         result = new RawTxBatchSentEvent(peerAddress, (BitcoinMsg<RawTxBatchMsg>) btcMsg);
         else if (body instanceof GetCompactBlockMsg)    result = new GetCompactBlockMsgSentEvent(peerAddress, (BitcoinMsg<GetCompactBlockMsg>) btcMsg);
         else if (body instanceof CompactBlockTransactionsMsg) result = new CompactBlockTransactionsMsgSentEvent(peerAddress, (BitcoinMsg<CompactBlockTransactionsMsg>) btcMsg);
 

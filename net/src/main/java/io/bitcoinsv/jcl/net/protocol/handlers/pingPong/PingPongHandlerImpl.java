@@ -26,7 +26,8 @@ import io.bitcoinsv.jcl.tools.thread.ThreadUtils;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author i.fernandez@nchain.com
@@ -50,7 +51,7 @@ public class PingPongHandlerImpl extends HandlerImpl<PeerAddress, PingPongPeerIn
     private PingPongHandlerState state = PingPongHandlerState.builder().build();
 
     // An Executor, to trigger the "handlePingPongJob" in a different Thread:
-    private ExecutorService executor;
+    private ScheduledExecutorService executor;
 
     // The Events captured by this Handler will  e processed in a separate Thread/s, by an EventQueueProcessor, this
     // way we won't slow down the rate at which the eVents are published and processed in the Bus
@@ -63,29 +64,30 @@ public class PingPongHandlerImpl extends HandlerImpl<PeerAddress, PingPongPeerIn
         this.logger = new LoggerUtil(id, HANDLER_ID, this.getClass());
         this.executor = ThreadUtils.getSingleThreadScheduledExecutorService("JclPingPongHandler");
 
+        // TODO: if required make capacity configurable
         // We start the EventQueueProcessor. We do not expect many messages (compared to the rest of traffic), so a
         // single Thread will do...
-        this.eventQueueProcessor = new EventQueueProcessor("JclPingPongHandler", ThreadUtils.getFixedThreadExecutorService("JclPingPongHandler-EventsConsumers", 3));
+        this.eventQueueProcessor = new EventQueueProcessor("JclPingPongHandler", ThreadUtils.getBlockingThreadExecutorService("JclPingPongHandler-EventsConsumers", 3, 6));
     }
 
     // We register this Handler to LISTEN to these Events:
     private void registerForEvents() {
 
-        this.eventQueueProcessor.addProcessor(NetStartEvent.class, e -> onStart((NetStartEvent) e));
-        this.eventQueueProcessor.addProcessor(NetStopEvent.class, e -> onStop((NetStopEvent) e));
-        this.eventQueueProcessor.addProcessor(PeerHandshakedEvent.class, e -> onPeerHandshaked((PeerHandshakedEvent) e));
-        this.eventQueueProcessor.addProcessor(PeerDisconnectedEvent.class, e -> onPeerDisconnected((PeerDisconnectedEvent) e));
-        this.eventQueueProcessor.addProcessor(MsgReceivedEvent.class, e -> onMsgReceived((MsgReceivedEvent) e));
-        this.eventQueueProcessor.addProcessor(EnablePingPongRequest.class, e -> onEnablePingPong((EnablePingPongRequest) e));
-        this.eventQueueProcessor.addProcessor(DisablePingPongRequest.class, e -> onDisablePingPong((DisablePingPongRequest) e));
+        this.eventQueueProcessor.addProcessor(NetStartEvent.class, this::onStart);
+        this.eventQueueProcessor.addProcessor(NetStopEvent.class, this::onStop);
+        this.eventQueueProcessor.addProcessor(PeerHandshakedEvent.class, this::onPeerHandshaked);
+        this.eventQueueProcessor.addProcessor(PeerDisconnectedEvent.class, this::onPeerDisconnected);
+        this.eventQueueProcessor.addProcessor(MsgReceivedEvent.class, this::onMsgReceived);
+        this.eventQueueProcessor.addProcessor(EnablePingPongRequest.class, this::onEnablePingPong);
+        this.eventQueueProcessor.addProcessor(DisablePingPongRequest.class, this::onDisablePingPong);
 
-        super.eventBus.subscribe(NetStartEvent.class, e -> this.eventQueueProcessor.addEvent(e));
-        super.eventBus.subscribe(NetStopEvent.class, e -> this.eventQueueProcessor.addEvent(e));
-        super.eventBus.subscribe(PeerHandshakedEvent.class, e -> this.eventQueueProcessor.addEvent(e));
-        super.eventBus.subscribe(PeerDisconnectedEvent.class, e -> this.eventQueueProcessor.addEvent(e));
-        super.eventBus.subscribe(MsgReceivedEvent.class, e -> this.eventQueueProcessor.addEvent(e));
-        super.eventBus.subscribe(EnablePingPongRequest.class, e -> this.eventQueueProcessor.addEvent(e));
-        super.eventBus.subscribe(DisablePingPongRequest.class, e -> this.eventQueueProcessor.addEvent(e));
+        subscribe(NetStartEvent.class, eventQueueProcessor::addEvent);
+        subscribe(NetStopEvent.class, eventQueueProcessor::addEvent);
+        subscribe(PeerHandshakedEvent.class, eventQueueProcessor::addEvent);
+        subscribe(PeerDisconnectedEvent.class, eventQueueProcessor::addEvent);
+        subscribe(MsgReceivedEvent.class, eventQueueProcessor::addEvent);
+        subscribe(EnablePingPongRequest.class, eventQueueProcessor::addEvent);
+        subscribe(DisablePingPongRequest.class, eventQueueProcessor::addEvent);
 
         this.eventQueueProcessor.start();
     }
@@ -114,7 +116,7 @@ public class PingPongHandlerImpl extends HandlerImpl<PeerAddress, PingPongPeerIn
     // Event Handler
     public void onStart(NetStartEvent event) {
         logger.trace("Starting...");
-        this.executor.submit(this::handlePingPongJob);
+        this.executor.scheduleAtFixedRate(this::handlePingPongJob, 0L, 1L, TimeUnit.SECONDS);
     }
 
     // Event Handler
@@ -234,35 +236,27 @@ public class PingPongHandlerImpl extends HandlerImpl<PeerAddress, PingPongPeerIn
      */
     private void handlePingPongJob() {
         try {
-            // First loop level: This job runs forever...
-            while (true) {
-                // Second loop level: We loop over all our registered peers
-                for (PingPongPeerInfo peerInfo : handlerInfo.values()) {
-                    //logger.trace("Checking pending ping for " + peerInfo.getPeerAddress() + "...");
-                    if (!peerInfo.isPingPongDisabled()) {
-                        boolean pingSent = peerInfo.getTimePingSent() != null;
-                        Instant now = Instant.now();
-                        // If we have sent a PING, we check that the time we've been waiting for
-                        // the response is still within limits:
-                        if (pingSent && Duration.between(peerInfo.getTimePingSent(), now).compareTo(config.getResponseTimeout()) > 0) {
-                            failPingPon(peerInfo, PingPongFailedEvent.PingPongFailedReason.TIMEOUT);
-                            continue;
-                        }
+            // First loop level: We loop over all our registered peers
+            for (PingPongPeerInfo peerInfo : handlerInfo.values()) {
+                //logger.trace("Checking pending ping for " + peerInfo.getPeerAddress() + "...");
+                if (!peerInfo.isPingPongDisabled()) {
+                    boolean pingSent = peerInfo.getTimePingSent() != null;
+                    Instant now = Instant.now();
+                    // If we have sent a PING, we check that the time we've been waiting for
+                    // the response is still within limits:
+                    if (pingSent && Duration.between(peerInfo.getTimePingSent(), now).compareTo(config.getResponseTimeout()) > 0) {
+                        failPingPon(peerInfo, PingPongFailedEvent.PingPongFailedReason.TIMEOUT);
+                        continue;
+                    }
 
-                        // If we haven't sent a PING yet, we check if it's time to send it:
-                        if (!pingSent && (Duration.between(peerInfo.getTimeLastActivity(), now).compareTo(config.getInactivityTimeout()) > 0)) {
-                            this.startPingPong(peerInfo);
-                            continue;
-                        }
-                    } // else logger.trace(peerInfo.getPeerAddress() + ", pingPong disabled.");
+                    // If we haven't sent a PING yet, we check if it's time to send it:
+                    if (!pingSent && (Duration.between(peerInfo.getTimeLastActivity(), now).compareTo(config.getInactivityTimeout()) > 0)) {
+                        this.startPingPong(peerInfo);
+                        continue;
+                    }
+                } // else logger.trace(peerInfo.getPeerAddress() + ", pingPong disabled.");
 
-                } // for...
-                Thread.sleep(1000); // We wait for a while between different executions of this job
-
-            } // While...
-        } catch (InterruptedException ie) {
-            // In case of an interrupted exception we do nothing, since this will be caused most probably by this
-            // handlers stopping (when it stops, it kills all the Threads it launched).
+            } // for...
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException();
