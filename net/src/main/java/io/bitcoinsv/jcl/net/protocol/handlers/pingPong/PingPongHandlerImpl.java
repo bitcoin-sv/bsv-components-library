@@ -140,6 +140,7 @@ public class PingPongHandlerImpl extends HandlerImpl<PeerAddress, PingPongPeerIn
     // Event Handler
     public void onMsgReceived(MsgReceivedEvent event) {
         PingPongPeerInfo peerInfo = getOrWaitForHandlerInfo(event.getPeerAddress());
+
         if (peerInfo != null) {
             // We update the activity of this Peer and process it:
             peerInfo.updateActivity();
@@ -148,6 +149,12 @@ public class PingPongHandlerImpl extends HandlerImpl<PeerAddress, PingPongPeerIn
             } else if (event.getBtcMsg().is(PongMsg.MESSAGE_TYPE)){
                 processPongMsg(event.getBtcMsg(), peerInfo);
             }
+        } else if (event.getBtcMsg().is(PingMsg.MESSAGE_TYPE)) {
+            BitcoinMsg<PingMsg> pingMsg = (BitcoinMsg<PingMsg>) event.getBtcMsg();
+            logger.debug(peerInfo.getPeerAddress(), "PING received from UNKNON PEER, replying with PONG...");
+            PongMsg pongMSg = PongMsg.builder().nonce(pingMsg.getBody().getNonce()).build();
+            BitcoinMsg<PongMsg> btcPongMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), pongMSg).build();
+            super.eventBus.publish(new SendMsgRequest(event.getPeerAddress(), btcPongMsg));
         }
     }
 
