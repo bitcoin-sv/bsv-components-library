@@ -3,6 +3,7 @@ package io.bitcoinsv.jcl.net.protocol.handlers.message.streams.serializer;
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.network.streams.PeerOutputStream;
 import io.bitcoinsv.jcl.net.network.streams.PeerOutputStreamImpl;
+import io.bitcoinsv.jcl.net.network.streams.PeerStreamer;
 import io.bitcoinsv.jcl.net.protocol.handlers.message.MessageHandlerConfig;
 import io.bitcoinsv.jcl.net.protocol.messages.VersionMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg;
@@ -17,6 +18,7 @@ import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * @author m.fletcher@nchain.com

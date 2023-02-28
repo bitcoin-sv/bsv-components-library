@@ -335,29 +335,30 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
 
     private void _send(PeerAddress peerAddress, Message message) {
         if (handlerInfo.containsKey(peerAddress)) {
-            //send the message
-            handlerInfo.get(peerAddress).getStream().output().send(message);
 
-            //we only want to perform actions such as event propagation for each message type, not each part of a message if it's broken down
-            if (message.getMessageType().equals(BitcoinMsg.MESSAGE_TYPE)) {
-                logger.trace(peerAddress, ((BitcoinMsg) message).getBody().getMessageType().toUpperCase() + " Msg sent.");
+            handlerInfo.get(peerAddress).getStream().output().stream(streamer -> {
+                //send the message
+                streamer.send(message);
 
-                // We propagate this message to the Bus, so other handlers can pick them up if they are subscribed to:
-                // NOTE: These Events related to messages sent might not be necessary, and they add some multi-thread
-                // pressure, so in the future they might be disabled (for noe we need them for some unit tests):
-                Event event = EventFactory.buildOutcomingEvent(peerAddress, (BitcoinMsg<? extends Message>) message);
-                super.eventBus.publish(event);
+                //we only want to perform actions such as event propagation for each message type, not each part of a message if it's broken down
+                if (message.getMessageType().equals(BitcoinMsg.MESSAGE_TYPE)) {
+                    logger.trace(peerAddress, ((BitcoinMsg) message).getBody().getMessageType().toUpperCase() + " Msg sent.");
+
+                    // We propagate this message to the Bus, so other handlers can pick them up if they are subscribed to:
+                    // NOTE: These Events related to messages sent might not be necessary, and they add some multi-thread
+                    // pressure, so in the future they might be disabled (for noe we need them for some unit tests):
+                    Event event = EventFactory.buildOutcomingEvent(peerAddress, (BitcoinMsg<? extends Message>) message);
+                    super.eventBus.publish(event);
 
                 /*
                 // we also publish a more "general" event, valid for any outcoming message
                 super.eventBus.publish(new MsgSentEvent<>(peerAddress, btcMessage));
                 */
 
-                // We update the state per message, not per message block:
-                state.increaseOutMsgCount(1);
-            }
-
-
+                    // We update the state per message, not per message block:
+                    state.increaseOutMsgCount(1);
+                }
+            });
         } else {
             logger.trace(peerAddress, " Request to Send Msg Discarded (unknown Peer)");
         }
@@ -386,31 +387,33 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
                 .overrideHeaderMsgLength(streamRequest.getLen())
                 .build();
 
-        //send the initial message to the peer
-        handlerInfo.get(peerAddress).getStream().output().send(initialMessage);
+        handlerInfo.get(peerAddress).getStream().output().stream(streamer -> {
+            //send the initial message to the peer
+            streamer.send(initialMessage);
 
-        //if batch size isn't configured for the raw bytes class, then default to 1 GB message sizes
-        int batchSizeBytes = config.getMsgBatchConfigs().get(ByteStreamMsg.class) != null ?
+            //if batch size isn't configured for the raw bytes class, then default to 1 GB message sizes
+            int batchSizeBytes = config.getMsgBatchConfigs().get(ByteStreamMsg.class) != null ?
                 config.getMsgBatchConfigs().get(ByteStreamMsg.class).getMaxBatchSizeInbytes() : 1_000_000_000;
 
-        //loop the remaining stream and send in chunks of bytes
-        ByteArrayBuffer batchByteBuffer = new ByteArrayBuffer();
-        while (streamItr.hasNext()) {
-            batchByteBuffer.add(streamItr.next());
+            //loop the remaining stream and send in chunks of bytes
+            ByteArrayBuffer batchByteBuffer = new ByteArrayBuffer();
+            while (streamItr.hasNext()) {
+                batchByteBuffer.add(streamItr.next());
 
-            //if we've exceeded the maximum size, send it down the wire and start again
-            if (batchByteBuffer.size() > batchSizeBytes) {
-                ByteStreamMsg bodyMsgPart = new ByteStreamMsg(batchByteBuffer);
-                handlerInfo.get(peerAddress).getStream().output().send(bodyMsgPart);
+                //if we've exceeded the maximum size, send it down the wire and start again
+                if (batchByteBuffer.size() > batchSizeBytes) {
+                    ByteStreamMsg bodyMsgPart = new ByteStreamMsg(batchByteBuffer);
+                    streamer.send(bodyMsgPart);
 
-                batchByteBuffer = new ByteArrayBuffer();
+                    batchByteBuffer = new ByteArrayBuffer();
+                }
             }
-        }
 
-        //send the last message if there's any remaining bytes
-        if (batchByteBuffer.size() > 0) {
-            handlerInfo.get(peerAddress).getStream().output().send(initialMessage);
-        }
+            //send the last message if there's any remaining bytes
+            if (batchByteBuffer.size() > 0) {
+                streamer.send(initialMessage);
+            }
+        });
 
         logger.trace(peerAddress, streamRequest.getMsgType() + " Msg streamed to peer");
 

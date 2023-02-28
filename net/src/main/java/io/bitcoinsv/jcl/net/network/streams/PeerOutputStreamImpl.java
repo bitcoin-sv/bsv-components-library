@@ -4,6 +4,7 @@ package io.bitcoinsv.jcl.net.network.streams;
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * @author i.fernandezs@nchain.com
@@ -36,6 +37,7 @@ public abstract class PeerOutputStreamImpl<O, R> implements PeerOutputStream<O> 
 
     protected PeerAddress peerAddress;
     protected PeerOutputStream<R> destination;
+    private final PeerOutputStreamer streamer = new PeerOutputStreamer();
 
     /**
      * Constructor.
@@ -86,4 +88,22 @@ public abstract class PeerOutputStreamImpl<O, R> implements PeerOutputStream<O> 
      * This method implements the Transformation over the data, before is sent to the next OutputStream in line
      */
     public abstract List<R> transform(O data);
+
+    @Override
+    public void stream(Consumer<PeerStreamer<O>> streamer) {
+        streamer.accept(this.streamer);
+    }
+
+    private class PeerOutputStreamer implements PeerStreamer<O> {
+
+        @Override
+        public void send(O data) {
+            PeerOutputStreamImpl.this.send(data);
+        }
+
+        @Override
+        public void close() {
+            // we do nothing...
+        }
+    }
 }

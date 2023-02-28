@@ -57,6 +57,12 @@ public class PeerStreamInOutSimulator<T> implements PeerInputStream<T>, PeerOutp
     public void close(StreamCloseEvent event) {
         onClose.forEach(streamCloseEventConsumer -> streamCloseEventConsumer.accept(event));
     }
+
+    @Override
+    public void stream(Consumer<PeerStreamer<T>> streamer) {
+        throw new UnsupportedOperationException("Streaming is unsupported!");
+    }
+
     @Override
     public void expectedMessageSize(long size) {
         // nothing

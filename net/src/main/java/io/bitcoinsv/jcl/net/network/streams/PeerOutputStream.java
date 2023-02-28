@@ -2,6 +2,8 @@ package io.bitcoinsv.jcl.net.network.streams;
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 
+import java.util.function.Consumer;
+
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
@@ -17,4 +19,5 @@ public interface PeerOutputStream<T> {
     StreamState getState();
     void send(T data);
     void close(StreamCloseEvent event);
+    void stream(Consumer<PeerStreamer<T>> streamer);
 }

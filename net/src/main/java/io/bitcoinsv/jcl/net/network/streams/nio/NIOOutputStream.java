@@ -4,6 +4,7 @@ import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.network.config.NetworkConfig;
 import io.bitcoinsv.jcl.net.network.streams.PeerOutputStream;
 import io.bitcoinsv.jcl.net.network.streams.PeerOutputStreamImpl;
+import io.bitcoinsv.jcl.net.network.streams.PeerStreamer;
 import io.bitcoinsv.jcl.net.network.streams.StreamCloseEvent;
 import io.bitcoinsv.jcl.tools.writebuffer.WriteBuffer;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader;
@@ -15,6 +16,8 @@ import java.io.IOException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 
 /**
  * @author i.fernandez@nchain.com
@@ -39,11 +42,8 @@ import java.util.List;
 public class NIOOutputStream extends PeerOutputStreamImpl<ByteArrayReader, ByteArrayReader> implements PeerOutputStream<ByteArrayReader> {
 
     private final NIOStreamState state = new NIOStreamState();
-    // Here we keep the bytes pending to be written to the Socket:
-    private final WriteBuffer buffersToWrite;
     // For loggin:
     private static final Logger log = LoggerFactory.getLogger(NIOOutputStream.class);
-
     // Configuration:
     private RuntimeConfig runtimeConfig;
     private NetworkConfig networkConfig;
@@ -51,6 +51,9 @@ public class NIOOutputStream extends PeerOutputStreamImpl<ByteArrayReader, ByteA
     // The Selection Key and the Sockets linked to the physical connection to the remote Peer
     private SelectionKey key;
     private SocketChannel socketChannel;
+
+    private final ReentrantLock streamerLock = new ReentrantLock();
+    private final NIOStreamer streamer;
 
     public NIOOutputStream(
         PeerAddress peerAddress,
@@ -66,7 +69,7 @@ public class NIOOutputStream extends PeerOutputStreamImpl<ByteArrayReader, ByteA
         this.key = key;
         this.socketChannel = (SocketChannel) key.channel();
 
-        buffersToWrite = new WriteBuffer(peerAddress.toString(), runtimeConfig.getWriteBufferConfig(), socketChannel);
+        streamer = new NIOStreamer(new WriteBuffer(peerAddress.toString(), runtimeConfig.getWriteBufferConfig(), socketChannel));
     }
 
     @Override
@@ -76,18 +79,25 @@ public class NIOOutputStream extends PeerOutputStreamImpl<ByteArrayReader, ByteA
 
     @Override
     public void send(ByteArrayReader event) {
-        buffersToWrite.write(event);
+        stream(s -> s.send(event));
     }
 
     @Override
     public void close(StreamCloseEvent event) {
         log.trace("Closing Stream...");
-        buffersToWrite.stop();
+        streamer.close();
         key.cancel();
     }
 
+    @Override
+    public void stream(Consumer<PeerStreamer<ByteArrayReader>> streamer) {
+        streamerLock.lock();
+        streamer.accept(this.streamer);
+        streamerLock.unlock();
+    }
+
     public synchronized int writeToSocket() throws IOException {
-        int numBytesWritten = buffersToWrite.extract();
+        int numBytesWritten = streamer.extract();
         updateState(numBytesWritten);
         return numBytesWritten;
     }
