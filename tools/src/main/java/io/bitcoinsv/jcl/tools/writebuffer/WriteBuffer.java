@@ -152,6 +152,11 @@ public class WriteBuffer {
 
                 writeResult += extractQueue();
             }
+
+            if (writeResult > 0) {
+                queueFull.set(false);
+                queueNotFull.signalAll();
+            }
         } catch (Exception e) {
             log.error("Extraction error!", e);
         } finally {
@@ -170,16 +175,11 @@ public class WriteBuffer {
             writeResult += extractBuffer(buffer);
 
             if (buffer.hasRemaining()) {
-                return writeResult;
+                break;
             }
 
             buffers.poll();
             byteBufferManager.release(buffer);
-        }
-
-        if (writeResult > 0) {
-            queueFull.set(false);
-            queueNotFull.signal();
         }
 
         return writeResult;

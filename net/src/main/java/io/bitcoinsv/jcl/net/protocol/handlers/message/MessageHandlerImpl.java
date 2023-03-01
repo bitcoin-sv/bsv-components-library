@@ -371,47 +371,53 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
      */
     @Override
     public void stream(PeerAddress peerAddress, StreamRequest streamRequest) {
-        logger.trace(peerAddress, "Streaming raw bytes to peer: ");
-
-        //If the initial message is greater than 4GB, then we will construct a HeaderEn message and the rest will be appended in batches.
-        ByteArrayBuffer byteArrayBuffer = new ByteArrayBuffer();
-        Iterator<byte[]> streamItr = streamRequest.getStream().iterator();
-
-        while (streamItr.hasNext() && byteArrayBuffer.size() <= config.getBasicConfig().getThresholdSizeExtMsgs()) {
-            byteArrayBuffer.add(streamItr.next());
-        }
-        ByteStreamMsg initialBodyMsg = new ByteStreamMsg(byteArrayBuffer);
-
-        BitcoinMsg<ByteStreamMsg> initialMessage = new BitcoinMsgBuilder(config.getBasicConfig(), initialBodyMsg)
-                .overrideHeaderMsgType(streamRequest.getMsgType())
-                .overrideHeaderMsgLength(streamRequest.getLen())
-                .build();
+        logger.trace(peerAddress, "Streaming raw " + streamRequest.getLen() + " bytes to peer: ");
 
         handlerInfo.get(peerAddress).getStream().output().stream(streamer -> {
-            //send the initial message to the peer
-            streamer.send(initialMessage);
+            try {
 
-            //if batch size isn't configured for the raw bytes class, then default to 1 GB message sizes
-            int batchSizeBytes = config.getMsgBatchConfigs().get(ByteStreamMsg.class) != null ?
-                config.getMsgBatchConfigs().get(ByteStreamMsg.class).getMaxBatchSizeInbytes() : 1_000_000_000;
+                //If the initial message is greater than 4GB, then we will construct a HeaderEn message and the rest will be appended in batches.
+                ByteArrayBuffer byteArrayBuffer = new ByteArrayBuffer();
+                Iterator<byte[]> streamItr = streamRequest.getStream().iterator();
 
-            //loop the remaining stream and send in chunks of bytes
-            ByteArrayBuffer batchByteBuffer = new ByteArrayBuffer();
-            while (streamItr.hasNext()) {
-                batchByteBuffer.add(streamItr.next());
-
-                //if we've exceeded the maximum size, send it down the wire and start again
-                if (batchByteBuffer.size() > batchSizeBytes) {
-                    ByteStreamMsg bodyMsgPart = new ByteStreamMsg(batchByteBuffer);
-                    streamer.send(bodyMsgPart);
-
-                    batchByteBuffer = new ByteArrayBuffer();
+                while (streamItr.hasNext() && byteArrayBuffer.size() <= config.getBasicConfig().getThresholdSizeExtMsgs()) {
+                    byteArrayBuffer.add(streamItr.next());
                 }
-            }
+                ByteStreamMsg initialBodyMsg = new ByteStreamMsg(byteArrayBuffer);
 
-            //send the last message if there's any remaining bytes
-            if (batchByteBuffer.size() > 0) {
+                BitcoinMsg<ByteStreamMsg> initialMessage = new BitcoinMsgBuilder(config.getBasicConfig(), initialBodyMsg)
+                    .overrideHeaderMsgType(streamRequest.getMsgType())
+                    .overrideHeaderMsgLength(streamRequest.getLen())
+                    .build();
+                //send the initial message to the peer
+
                 streamer.send(initialMessage);
+
+                //if batch size isn't configured for the raw bytes class, then default to 1 GB message sizes
+                int batchSizeBytes = config.getMsgBatchConfigs().get(ByteStreamMsg.class) != null ?
+                    config.getMsgBatchConfigs().get(ByteStreamMsg.class).getMaxBatchSizeInbytes() : 1_000_000_000;
+
+                //loop the remaining stream and send in chunks of bytes
+                ByteArrayBuffer batchByteBuffer = new ByteArrayBuffer();
+                while (streamItr.hasNext()) {
+                    batchByteBuffer.add(streamItr.next());
+
+                    //if we've exceeded the maximum size, send it down the wire and start again
+                    if (batchByteBuffer.size() > batchSizeBytes) {
+                        ByteStreamMsg bodyMsgPart = new ByteStreamMsg(batchByteBuffer);
+
+                        streamer.send(bodyMsgPart);
+
+                        batchByteBuffer = new ByteArrayBuffer();
+                    }
+                }
+
+                //send the last message if there's any remaining bytes
+                if (batchByteBuffer.size() > 0) {
+                    streamer.send(initialMessage);
+                }
+            } catch (Exception e) {
+                logger.error("Streaming failed!", e);
             }
         });
 

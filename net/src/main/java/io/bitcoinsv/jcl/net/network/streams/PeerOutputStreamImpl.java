@@ -70,13 +70,13 @@ public abstract class PeerOutputStreamImpl<O, R> implements PeerOutputStream<O> 
             return;
         }
 
-        List<R> dataTransformed = transform(data);
+        final List<R> dataTransformed = transform(data);
 
         if (dataTransformed == null || dataTransformed.isEmpty()) {
             return;
         }
 
-        dataTransformed.forEach(e -> destination.send(e));
+        destination.stream(s -> dataTransformed.forEach(s::send));
     }
 
     @Override
@@ -94,7 +94,7 @@ public abstract class PeerOutputStreamImpl<O, R> implements PeerOutputStream<O> 
         streamer.accept(this.streamer);
     }
 
-    private class PeerOutputStreamer implements PeerStreamer<O> {
+    private final class PeerOutputStreamer implements PeerStreamer<O> {
 
         @Override
         public void send(O data) {
