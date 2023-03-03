@@ -4,6 +4,7 @@ import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.network.streams.*;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -24,6 +25,18 @@ public class PeerStreamInOutSimulator<T> implements PeerInputStream<T>, PeerOutp
     protected final Set<Consumer<Throwable>> onError = new HashSet<>();
 
     private PeerAddress peerAddress;
+
+    private final IStreamHolder<T> streamHolder = new IStreamHolder<T>() {
+        @Override
+        public void send(T data) {
+            PeerStreamInOutSimulator.this.send(data);
+        }
+
+        @Override
+        public void close() {
+
+        }
+    };
 
     public PeerStreamInOutSimulator(PeerAddress peerAddress) {
         this.peerAddress = peerAddress;
@@ -60,7 +73,7 @@ public class PeerStreamInOutSimulator<T> implements PeerInputStream<T>, PeerOutp
 
     @Override
     public void stream(Consumer<IStreamHolder<T>> streamer) {
-        throw new UnsupportedOperationException("Streaming is unsupported!");
+        streamer.accept(streamHolder);
     }
 
     @Override
