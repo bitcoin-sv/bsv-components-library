@@ -19,5 +19,10 @@ public interface PeerOutputStream<T> {
     StreamState getState();
     void send(T data);
     void close(StreamCloseEvent event);
-    void stream(Consumer<PeerStreamer<T>> streamer);
+
+    /**
+     * This method should obtain write lock and prevent other messages being written while one is being streamed.
+     * @param streamer consumer providing stream holder for sending messages
+     */
+    void stream(Consumer<IStreamHolder<T>> streamer);
 }

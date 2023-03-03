@@ -59,7 +59,7 @@ public class PeerStreamInOutSimulator<T> implements PeerInputStream<T>, PeerOutp
     }
 
     @Override
-    public void stream(Consumer<PeerStreamer<T>> streamer) {
+    public void stream(Consumer<IStreamHolder<T>> streamer) {
         throw new UnsupportedOperationException("Streaming is unsupported!");
     }
 

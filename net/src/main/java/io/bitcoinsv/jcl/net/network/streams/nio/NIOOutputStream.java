@@ -4,7 +4,7 @@ import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.network.config.NetworkConfig;
 import io.bitcoinsv.jcl.net.network.streams.PeerOutputStream;
 import io.bitcoinsv.jcl.net.network.streams.PeerOutputStreamImpl;
-import io.bitcoinsv.jcl.net.network.streams.PeerStreamer;
+import io.bitcoinsv.jcl.net.network.streams.IStreamHolder;
 import io.bitcoinsv.jcl.net.network.streams.StreamCloseEvent;
 import io.bitcoinsv.jcl.tools.writebuffer.WriteBuffer;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader;
@@ -53,7 +53,7 @@ public class NIOOutputStream extends PeerOutputStreamImpl<ByteArrayReader, ByteA
     private SocketChannel socketChannel;
 
     private final ReentrantLock streamerLock = new ReentrantLock();
-    private final NIOStreamer streamer;
+    private final NIOStreamerHolder streamer;
 
     public NIOOutputStream(
         PeerAddress peerAddress,
@@ -69,7 +69,7 @@ public class NIOOutputStream extends PeerOutputStreamImpl<ByteArrayReader, ByteA
         this.key = key;
         this.socketChannel = (SocketChannel) key.channel();
 
-        streamer = new NIOStreamer(new WriteBuffer(peerAddress.toString(), runtimeConfig.getWriteBufferConfig(), socketChannel));
+        streamer = new NIOStreamerHolder(new WriteBuffer(peerAddress.toString(), runtimeConfig.getWriteBufferConfig(), socketChannel));
     }
 
     @Override
@@ -90,7 +90,7 @@ public class NIOOutputStream extends PeerOutputStreamImpl<ByteArrayReader, ByteA
     }
 
     @Override
-    public void stream(Consumer<PeerStreamer<ByteArrayReader>> streamer) {
+    public void stream(Consumer<IStreamHolder<ByteArrayReader>> streamer) {
         streamerLock.lock();
         streamer.accept(this.streamer);
         streamerLock.unlock();

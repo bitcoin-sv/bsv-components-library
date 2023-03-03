@@ -4,6 +4,7 @@ package io.bitcoinsv.jcl.net.network.streams;
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
 /**
@@ -37,7 +38,8 @@ public abstract class PeerOutputStreamImpl<O, R> implements PeerOutputStream<O> 
 
     protected PeerAddress peerAddress;
     protected PeerOutputStream<R> destination;
-    private final PeerOutputStreamer streamer = new PeerOutputStreamer();
+    private final ReentrantLock writeLock = new ReentrantLock();
+    private final IStreamHolder<O> streamHolder = new StreamHolder();
 
     /**
      * Constructor.
@@ -66,17 +68,7 @@ public abstract class PeerOutputStreamImpl<O, R> implements PeerOutputStream<O> 
 
     @Override
     public void send(O data) {
-        if (destination == null) {
-            return;
-        }
-
-        final List<R> dataTransformed = transform(data);
-
-        if (dataTransformed == null || dataTransformed.isEmpty()) {
-            return;
-        }
-
-        destination.stream(s -> dataTransformed.forEach(s::send));
+        stream(streamHolder -> streamHolder.send(data));
     }
 
     @Override
@@ -90,15 +82,27 @@ public abstract class PeerOutputStreamImpl<O, R> implements PeerOutputStream<O> 
     public abstract List<R> transform(O data);
 
     @Override
-    public void stream(Consumer<PeerStreamer<O>> streamer) {
-        streamer.accept(this.streamer);
+    public void stream(Consumer<IStreamHolder<O>> streamer) {
+        writeLock.lock();
+        streamer.accept(this.streamHolder);
+        writeLock.unlock();
     }
 
-    private final class PeerOutputStreamer implements PeerStreamer<O> {
+    private final class StreamHolder implements IStreamHolder<O> {
 
         @Override
         public void send(O data) {
-            PeerOutputStreamImpl.this.send(data);
+            if (destination == null) {
+                return;
+            }
+
+            final List<R> dataTransformed = transform(data);
+
+            if (dataTransformed == null || dataTransformed.isEmpty()) {
+                return;
+            }
+
+            destination.stream(s -> dataTransformed.forEach(s::send));
         }
 
         @Override

@@ -1,16 +1,19 @@
 package io.bitcoinsv.jcl.net.network.streams.nio;
 
-import io.bitcoinsv.jcl.net.network.streams.PeerStreamer;
+import io.bitcoinsv.jcl.net.network.streams.IStreamHolder;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader;
 import io.bitcoinsv.jcl.tools.writebuffer.WriteBuffer;
 
 import java.io.IOException;
 
-public class NIOStreamer implements PeerStreamer<ByteArrayReader> {
+/**
+ * Holds write buffer.
+ */
+public class NIOStreamerHolder implements IStreamHolder<ByteArrayReader> {
     // Here we keep the bytes pending to be written to the Socket:
     private final WriteBuffer writeBuffer;
 
-    public NIOStreamer(WriteBuffer writeBuffer) {
+    public NIOStreamerHolder(WriteBuffer writeBuffer) {
         this.writeBuffer = writeBuffer;
     }
 
