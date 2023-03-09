@@ -973,6 +973,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         // all the events related to this Peer/Stream have been populated properly...
 
         if (!keyConnection.started) {
+            logger.warn(">>>> DATA COMING FROM NOT-INITIALIZED STREAM: {}", keyConnection.peerAddress);
             try { Thread.sleep(50);} catch (InterruptedException ie) {}
             keyConnection.started = true;
         }
