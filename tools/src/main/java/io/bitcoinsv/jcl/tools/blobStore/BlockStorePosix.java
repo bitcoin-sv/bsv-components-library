@@ -17,6 +17,8 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -263,6 +265,27 @@ public class BlockStorePosix {
         }
 
         return Stream.empty();
+    }
+
+    /**
+     * Returns a stream containing a list of tx hashes. The stream must be closed if not fully iterated.
+     * This function also WAITS for the block until the block is available, or a timeout specified in "waitingTime" is
+     * reached.
+     *
+     * @param blockHash
+     * @param waitingTime MAximum Time this function will wait for the Block to be available
+     * @return
+     */
+    public Stream<Sha256Hash> readBlockTxHashesWithWait(Sha256Hash blockHash, Duration waitingTime) throws IllegalStateException {
+        final int DELAY_MILLSECS = 5; // We wait in intervals of 5 milliseconds...
+        long beginTimestamp = System.currentTimeMillis();
+        while (!containsBlock(blockHash)) {
+            try { Thread.sleep(DELAY_MILLSECS);} catch(InterruptedException ignore) {}
+            if ((System.currentTimeMillis() - beginTimestamp) > waitingTime.toMillis()) {
+                throw new IllegalStateException(String.format("Block %s not stored within %2 millisecs", blockHash, waitingTime.toMillis()));
+            }
+        }
+        return readBlockTxHashes(blockHash);
     }
 
     /**
