@@ -50,7 +50,7 @@ class BlockStorePosixWaitTest extends Specification {
     }
 
     /**
-     * We read Txs from a Block when the block is saved.
+     * We read Txs from a Block when the block is saved fromt he very beginning
      * It should return the Stream of Txs
      */
     def "test read txs From Block when Block is saved"() {
@@ -66,8 +66,8 @@ class BlockStorePosixWaitTest extends Specification {
     }
 
     /**
-     * We read Txs from a Block when the block is saved.
-     * It should return the list of Txs
+     * We read Txs from a Block when the block is saved some time AFTER we start.
+     * It should return the list of Txs after some retries have been performed
      */
     def "test read txs From Block when Block is NOT saved and we wait until it is SAVED"() {
         given:
@@ -86,10 +86,10 @@ class BlockStorePosixWaitTest extends Specification {
     }
 
     /**
-     * We read Txs from a Block when the block is saved.
-     * It should return the list of Txs
+     * We read Txs from a Block when the block is saved after some time, but we dont wait that long, so
+     * An Exception is raised.
      */
-    def "test read txs From Block when Block is NOT saved and we wait BUt the timneout is triggered"() {
+    def "test read txs From Block when Block is NOT saved and we wait BUt the timeout is triggered"() {
         given:
         long TIME_SAVE_BLOCK = 100; // Block is saved after 100 millis
         long TIME_WE_WAIT = 20;     // We wait for 20 millis and then we give up
