@@ -38,6 +38,9 @@ public class BlockStorePosix {
     private static final String BLOCK_FILE_TYPE_TX_LIST = "txs";
     private static final String BLOCK_FILE_TYPE_TMP = "tmp";
 
+    // Delay between calls on these operations that wait/pull until the requested Block is saved
+    public static final Duration WAIT_DELAY = Duration.ofMillis(5);
+
     private BlockStorePosixConfig config;
 
     public BlockStorePosix() {}
@@ -273,16 +276,15 @@ public class BlockStorePosix {
      * reached.
      *
      * @param blockHash
-     * @param waitingTime MAximum Time this function will wait for the Block to be available
+     * @param waitingTime Maximum Time this function will wait for the Block to be available
      * @return
      */
     public Stream<Sha256Hash> readBlockTxHashesWithWait(Sha256Hash blockHash, Duration waitingTime) throws IllegalStateException {
-        final int DELAY_MILLSECS = 5; // We wait in intervals of 5 milliseconds...
         long beginTimestamp = System.currentTimeMillis();
         while (!containsBlock(blockHash)) {
-            try { Thread.sleep(DELAY_MILLSECS);} catch(InterruptedException ignore) {}
+            try { Thread.sleep(WAIT_DELAY.toMillis());} catch(InterruptedException ignore) {}
             if ((System.currentTimeMillis() - beginTimestamp) > waitingTime.toMillis()) {
-                throw new IllegalStateException(String.format("Block %s not stored within %2 millisecs", blockHash, waitingTime.toMillis()));
+                throw new IllegalStateException(String.format("Block %s not stored within %s millisecs", blockHash, waitingTime.toMillis()));
             }
         }
         return readBlockTxHashes(blockHash);
