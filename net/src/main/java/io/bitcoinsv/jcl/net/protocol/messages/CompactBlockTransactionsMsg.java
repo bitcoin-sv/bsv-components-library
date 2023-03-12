@@ -32,7 +32,7 @@ import java.util.Optional;
  *
  */
 public final class CompactBlockTransactionsMsg extends BodyMessage implements Serializable {
-    public static final int MAXIMUM_NUMBER_OF_TRANSACTIONS = 6000;
+    public static final int MAXIMUM_NUMBER_OF_TRANSACTIONS = 60000;
     public static final String MESSAGE_TYPE = "cmpctblcktxs";
 
     private final HashMsg blockHash;
