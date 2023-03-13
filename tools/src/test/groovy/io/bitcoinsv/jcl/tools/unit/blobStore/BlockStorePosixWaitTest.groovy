@@ -78,11 +78,14 @@ class BlockStorePosixWaitTest extends Specification {
         store.start()
         Stream<Sha256Hash> result = store.readBlockTxHashesWithWait(null, Duration.ofMillis(TIME_WE_WAIT));
         long timeToReadTxs = store.timestampTxsRead - store.timestampStart
+        long timeTotal = System.currentTimeMillis() - store.timestampStart
         int expectedRetries = (int) Math.ceil(TIME_SAVE_BLOCK / WAIT_DELAY) + 1
         then:
         result.count() == 0
         timeToReadTxs >= TIME_SAVE_BLOCK
-        timeToReadTxs <= (expectedRetries * WAIT_DELAY) + 2
+        // There is always a small buffer between the last "wait" and when we set the value of "timestampTxsRead", but
+        // whatever this buffer is it will be lower than "WAIT_DELAY", so we use it as buffer:
+        timeToReadTxs <= (expectedRetries * WAIT_DELAY) + WAIT_DELAY
     }
 
     /**
