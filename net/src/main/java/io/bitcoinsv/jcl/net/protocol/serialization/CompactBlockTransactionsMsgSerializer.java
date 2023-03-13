@@ -43,7 +43,7 @@ public class CompactBlockTransactionsMsgSerializer implements MessageSerializer<
         HashMsg blockHash = HashMsgSerializer.getInstance().deserialize(context, byteReader);
         VarIntMsg startTxIndex = VarIntMsgSerializer.getInstance().deserialize(context, byteReader);
         Optional<TxMsg> coinbase = Optional.empty();
-        if (startTxIndex.getValue() == 0) {
+        if (startTxIndex.getValue() == 1) {
             coinbase = Optional.of(TxMsgSerializer.getInstance().deserialize(context, byteReader));
         }
         byte[] transactionIds = deserializeTransactionIds(context, byteReader);
@@ -72,7 +72,7 @@ public class CompactBlockTransactionsMsgSerializer implements MessageSerializer<
     public void serialize(SerializerContext context, CompactBlockTransactionsMsg message, ByteArrayWriter byteWriter) {
         HashMsgSerializer.getInstance().serialize(context, message.getBlockHash(), byteWriter);
         VarIntMsgSerializer.getInstance().serialize(context, message.getStartTxIndex(), byteWriter);
-        if (message.getStartTxIndex().getValue() == 0) {
+        if (message.getStartTxIndex().getValue() == 1) {
             TxMsgSerializer.getInstance().serialize(context, message.getCoinbaseTransaction().get(), byteWriter);
         }
         VarIntMsgSerializer.getInstance().serialize(context, message.getNumberOfTransactions(), byteWriter);
