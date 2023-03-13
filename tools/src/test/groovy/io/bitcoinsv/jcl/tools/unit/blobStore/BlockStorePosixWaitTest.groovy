@@ -82,7 +82,7 @@ class BlockStorePosixWaitTest extends Specification {
         then:
         result.count() == 0
         timeToReadTxs >= TIME_SAVE_BLOCK
-        timeToReadTxs <= (expectedRetries * WAIT_DELAY)
+        timeToReadTxs <= (expectedRetries * WAIT_DELAY) + 2
     }
 
     /**

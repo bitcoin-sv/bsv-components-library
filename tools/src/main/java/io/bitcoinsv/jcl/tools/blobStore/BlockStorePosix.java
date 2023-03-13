@@ -11,7 +11,6 @@ import io.bitcoinsv.jcl.tools.serialization.TransactionSerializerUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import shaded.org.apache.commons.io.FileUtils;
-import shaded.org.apache.maven.wagon.ResourceDoesNotExistException;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -149,11 +148,11 @@ public class BlockStorePosix {
      * @param blockHash
      * @return the header of the block
      */
-    public HeaderReadOnly readBlockHeader(Sha256Hash blockHash) throws ResourceDoesNotExistException {
+    public HeaderReadOnly readBlockHeader(Sha256Hash blockHash) throws IllegalStateException {
         File file = getFileByFileType(blockHash, BLOCK_FILE_TYPE_BLOCK_DATA);
 
         if(!containsBlock(blockHash)){
-            throw new ResourceDoesNotExistException("block has either not been committed or does not exist");
+            throw new IllegalStateException("block has either not been committed or does not exist");
         }
 
         try (FileInputStream fileInputStream = new FileInputStream(file)) {
@@ -175,11 +174,11 @@ public class BlockStorePosix {
      * @param blockHash
      * @return the header of the block
      */
-    public Long readNumberOfTxs(Sha256Hash blockHash) throws ResourceDoesNotExistException {
+    public Long readNumberOfTxs(Sha256Hash blockHash) throws IllegalStateException {
         File file = getFileByFileType(blockHash, BLOCK_FILE_TYPE_BLOCK_DATA);
 
         if(!containsBlock(blockHash)){
-            throw new ResourceDoesNotExistException("block has either not been committed or does not exist");
+            throw new IllegalStateException("block has either not been committed or does not exist");
         }
 
         try (InputStreamReader reader = new InputStreamReader(new FileInputStream(file))) {
@@ -203,7 +202,7 @@ public class BlockStorePosix {
      * @param blockHash
      * @return
      */
-    public Stream<byte[]> readBlock(Sha256Hash blockHash) throws ResourceDoesNotExistException {
+    public Stream<byte[]> readBlock(Sha256Hash blockHash) throws IllegalStateException {
         return streamBlock(blockHash, false);
     }
 
@@ -212,7 +211,7 @@ public class BlockStorePosix {
      * @param blockHash
      * @return
      */
-    public Stream<byte[]> readBlockTxs(Sha256Hash blockHash) throws ResourceDoesNotExistException {
+    public Stream<byte[]> readBlockTxs(Sha256Hash blockHash) throws IllegalStateException {
         return streamBlock(blockHash, true);
     }
 
@@ -222,11 +221,11 @@ public class BlockStorePosix {
      * @param blockHash
      * @return
      */
-    public Stream<Sha256Hash> readBlockTxHashes(Sha256Hash blockHash) throws ResourceDoesNotExistException {
+    public Stream<Sha256Hash> readBlockTxHashes(Sha256Hash blockHash) throws IllegalStateException {
         File file = getFileByFileType(blockHash, BLOCK_FILE_TYPE_TX_LIST);
 
         if(!containsBlock(blockHash)){
-            throw new ResourceDoesNotExistException("block has either not been committed or does not exist");
+            throw new IllegalStateException(String.format("block %s has either not been committed or does not exist", blockHash));
         }
 
         try {
@@ -296,11 +295,11 @@ public class BlockStorePosix {
      * @param blockHash
      * @return
      */
-    private Stream<byte[]> streamBlock(Sha256Hash blockHash, boolean txsOnly) throws ResourceDoesNotExistException {
+    private Stream<byte[]> streamBlock(Sha256Hash blockHash, boolean txsOnly) throws IllegalStateException {
         File file = getFileByFileType(blockHash, BLOCK_FILE_TYPE_BLOCK_DATA);
 
         if(!containsBlock(blockHash)){
-            throw new ResourceDoesNotExistException("block has either not been committed or does not exist");
+            throw new IllegalStateException("block has either not been committed or does not exist");
         }
 
         try {
@@ -350,11 +349,11 @@ public class BlockStorePosix {
         return Stream.empty();
     }
 
-    public Stream<byte[]> readPartiallySerializedBlockTxs(Sha256Hash blockHash) throws ResourceDoesNotExistException {
+    public Stream<byte[]> readPartiallySerializedBlockTxs(Sha256Hash blockHash) throws IllegalStateException {
         File file = getFileByFileType(blockHash, BLOCK_FILE_TYPE_BLOCK_DATA);
 
         if(!containsBlock(blockHash)){
-            throw new ResourceDoesNotExistException("block has either not been committed or does not exist");
+            throw new IllegalStateException("block has either not been committed or does not exist");
         }
 
         try {
@@ -447,10 +446,10 @@ public class BlockStorePosix {
      * @param blockHash
      * @return block size in bytes
      */
-    public long getBlockSize(Sha256Hash blockHash) throws ResourceDoesNotExistException {
+    public long getBlockSize(Sha256Hash blockHash) throws IllegalStateException {
         try {
             if(!containsBlock(blockHash)){
-                throw new ResourceDoesNotExistException("block has not been committed");
+                throw new IllegalStateException("block has not been committed");
             }
 
             return Files.size(getFileByFileType(blockHash, BLOCK_FILE_TYPE_BLOCK_DATA).toPath());
