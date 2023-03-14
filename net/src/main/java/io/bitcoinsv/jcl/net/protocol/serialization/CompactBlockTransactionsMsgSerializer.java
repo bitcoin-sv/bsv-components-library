@@ -44,6 +44,10 @@ public class CompactBlockTransactionsMsgSerializer implements MessageSerializer<
         VarIntMsg startTxIndex = VarIntMsgSerializer.getInstance().deserialize(context, byteReader);
         Optional<TxMsg> coinbase = Optional.empty();
         if (startTxIndex.getValue() == 1) {
+            /**
+             Chunk contain list of transaction ids, but not a coinbase id.
+             If startTxIndex is 1, chunk also contain an actual coinbase transaction.
+             */
             coinbase = Optional.of(TxMsgSerializer.getInstance().deserialize(context, byteReader));
         }
         byte[] transactionIds = deserializeTransactionIds(context, byteReader);
@@ -73,6 +77,10 @@ public class CompactBlockTransactionsMsgSerializer implements MessageSerializer<
         HashMsgSerializer.getInstance().serialize(context, message.getBlockHash(), byteWriter);
         VarIntMsgSerializer.getInstance().serialize(context, message.getStartTxIndex(), byteWriter);
         if (message.getStartTxIndex().getValue() == 1) {
+            /**
+             Chunk contain list of transaction ids, but not a coinbase id.
+             If startTxIndex is 1, an actual coinbase transaction needs to be added into this chunk.
+             */
             TxMsgSerializer.getInstance().serialize(context, message.getCoinbaseTransaction().get(), byteWriter);
         }
         VarIntMsgSerializer.getInstance().serialize(context, message.getNumberOfTransactions(), byteWriter);
