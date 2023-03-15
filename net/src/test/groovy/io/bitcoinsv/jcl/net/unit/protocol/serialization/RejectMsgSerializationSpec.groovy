@@ -1,5 +1,6 @@
 package io.bitcoinsv.jcl.net.unit.protocol.serialization
 
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigBuilder
 import io.bitcoinsv.jcl.net.protocol.messages.RejectMsg
@@ -25,8 +26,6 @@ import spock.lang.Specification
  * from another source that we trust (in this case the Java BitcoinJ library). So we serialize/deserialize some
  * messages with out code and compare the results with that reference.
  */
-// TODO: Still pending to test those scenarios where a HASH is stored in the "data" field. At this moment we haven't
-// reached that functionality yet.
 class RejectMsgSerializationSpec extends Specification {
 
     // This is the REJECT MSG used as a reference, to compare to our own Serialization.
@@ -37,8 +36,9 @@ class RejectMsgSerializationSpec extends Specification {
     // - reason: "Dummy Reason"
     // - data: empty (null)
 
-    private static final String REF_REJECT_MSG = "e3e1f3e872656a656374000000000000160000008298ed110754657374696e67100c44756d6d7920526561736f6e"
-    private static final String REF_REJECT_BODY_MSG = "0754657374696e67100c44756d6d7920526561736f6e"
+    private static final String REF_REJECT_MSG = "e3e1f3e872656a6563740000000000003600000006fdf977" + REF_REJECT_BODY_MSG;
+    private static final String REF_REJECT_BODY_MSG = "0754657374696e67100c44756d6d7920526561736f6e" + REF_REJECT_BODY_HASH
+    private static final String REF_REJECT_BODY_HASH = "0000000000000000000000000000000000000000000000000000000000000000";
     private static final String REF_MESSAGE = "Testing"
     private static final RejectMsg.RejectCode REF_CCODE = RejectMsg.RejectCode.INVALID
     private static final String REF_REASON = "Dummy Reason"
@@ -53,6 +53,7 @@ class RejectMsgSerializationSpec extends Specification {
                 .message(VarStrMsg.builder().str(REF_MESSAGE).build())
                 .ccode(REF_CCODE)
                 .reason(VarStrMsg.builder().str(REF_REASON).build())
+                .data(Utils.HEX.decode(REF_REJECT_BODY_HASH))
                 .build()
             ByteArrayWriter byteWriter = new ByteArrayWriter()
             String messageSerialized = null
@@ -76,11 +77,13 @@ class RejectMsgSerializationSpec extends Specification {
             ByteArrayReader byteReader = ByteArrayArtificalStreamProducer.stream(Utils.HEX.decode(REF_REJECT_BODY_MSG), byteInterval, delayMs)
         when:
             rejectMsg = RejectMsgSerializer.getInstance().deserialize(context, byteReader)
+            Sha256Hash refHash = Sha256Hash.wrap(REF_REJECT_BODY_HASH)
+            Sha256Hash msgHash = Sha256Hash.wrap(rejectMsg.getData());
         then:
             rejectMsg.getMessage().getStr().equals(REF_MESSAGE)
             rejectMsg.getCcode().equals(REF_CCODE)
             rejectMsg.getReason().getStr().equals(REF_REASON)
-            (rejectMsg.getData() == null || rejectMsg.getData().length == 0)
+            refHash.equals(msgHash)
         where:
             byteInterval | delayMs
                 10       |    25
@@ -96,6 +99,7 @@ class RejectMsgSerializationSpec extends Specification {
                     .message(VarStrMsg.builder().str(REF_MESSAGE).build())
                     .ccode(REF_CCODE)
                     .reason(VarStrMsg.builder().str(REF_REASON).build())
+                    .data(Utils.HEX.decode(REF_REJECT_BODY_HASH))
                     .build()
             BitcoinMsg<RejectMsg> rejectBitcoinMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), rejectMsg).build()
             BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()
@@ -117,13 +121,15 @@ class RejectMsgSerializationSpec extends Specification {
             BitcoinMsgSerializer bitcoinSerializer = BitcoinMsgSerializerImpl.getInstance()
         when:
             BitcoinMsg<RejectMsg> rejectBitcoinMsg = bitcoinSerializer.deserialize(context, byteReader)
+            Sha256Hash refHash = Sha256Hash.wrap(REF_REJECT_BODY_HASH)
+            Sha256Hash msgHash = Sha256Hash.wrap(rejectBitcoinMsg.getBody().getData())
         then:
             rejectBitcoinMsg.getHeader().getMagic().equals(config.getBasicConfig().getMagicPackage())
             rejectBitcoinMsg.getHeader().getCommand().equals(RejectMsg.MESSAGE_TYPE)
             rejectBitcoinMsg.getBody().getMessage().getStr().equals(REF_MESSAGE)
             rejectBitcoinMsg.getBody().getCcode().equals(REF_CCODE)
             rejectBitcoinMsg.getBody().getReason().getStr().equals(REF_REASON)
-            ((rejectBitcoinMsg.getBody().getData() == null) || (rejectBitcoinMsg.getBody().getData().length == 0))
+            refHash.equals(msgHash)
         where:
             byteInterval | delayMs
                 10       |    25
