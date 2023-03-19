@@ -10,7 +10,7 @@ import java.io.Serializable;
 import java.util.Optional;
 
 /**
- * This message is received as a response to "getcmpctblck" message.
+ * This message is received as a response to "getdata" message.
  * It holds a chunk of compact transactions data for the requested block.
  *
  * Structure of the BODY of Message:
@@ -21,8 +21,11 @@ import java.util.Optional;
  *  - field: "start_tx_index" (1+ bytes) var_int
  *    Transaction's block Index of the first transaction in this chunk
  *
+ *   - field: "number_of_all_transactions" (0+ bytes) var_int
+ *     If start_tx_index is 1, it contains a coinbase transaction
+ *
  *  - field: "coinbase" (0+ bytes) transaction
- *    If start_tx_index is 0, it contains a coinbase transaction
+ *    If start_tx_index is 1, it contains the number of all transactions in a block
  *
  *  - field: "count" (1+ bytes) var_int
  *    Number of compact transactions in this chunk (max: MAXIMUM_NUMBER_OF_TRANSACTIONS)
@@ -37,15 +40,18 @@ public final class CompactBlockTransactionsMsg extends BodyMessage implements Se
 
     private final HashMsg blockHash;
     private final VarIntMsg startTxIndex;
+    private final Optional<VarIntMsg> numberOfAllTransactions;
     private final Optional<TxMsg> coinbaseTransaction;
     private final VarIntMsg numberOfTransactions;
     private final byte[] transactionIds;
 
-    public CompactBlockTransactionsMsg(HashMsg blockHash, VarIntMsg startTxIndex, Optional<TxMsg> coinbaseTransaction,
-                                       byte[] transactionIds, byte[] extraBytes, long checksum) {
+    public CompactBlockTransactionsMsg(HashMsg blockHash, VarIntMsg startTxIndex, Optional<VarIntMsg> numberOfAllTransactions,
+                                       Optional<TxMsg> coinbaseTransaction, byte[] transactionIds, byte[] extraBytes,
+                                       long checksum) {
         super(extraBytes, checksum);
         this.blockHash = blockHash;
         this.startTxIndex = startTxIndex;
+        this.numberOfAllTransactions = numberOfAllTransactions;
         this.coinbaseTransaction = coinbaseTransaction;
         numberOfTransactions = VarIntMsg.builder().value(transactionIds.length / Sha256Hash.LENGTH).build();
         this.transactionIds = transactionIds;
@@ -56,6 +62,9 @@ public final class CompactBlockTransactionsMsg extends BodyMessage implements Se
     protected long calculateLength() {
         long length = blockHash.calculateLength() + startTxIndex.getLengthInBytes() + numberOfTransactions.getLengthInBytes() +
                 transactionIds.length;
+        if (numberOfAllTransactions.isPresent()) {
+            length += numberOfAllTransactions.get().getLengthInBytes();
+        }
         if (coinbaseTransaction.isPresent()) {
             length += coinbaseTransaction.get().getLengthInBytes();
         }
@@ -69,9 +78,13 @@ public final class CompactBlockTransactionsMsg extends BodyMessage implements Se
         Preconditions.checkArgument(numberOfTransactions.getValue() == (transactionIds.length / Sha256Hash.LENGTH),
                 "Compact block transactions list size and count value are not the same.");
         if (startTxIndex.getValue() == 1) {
+            Preconditions.checkArgument(numberOfAllTransactions.isPresent(),
+                    "This compact block transactions message should contain the number of all transactions");
             Preconditions.checkArgument(coinbaseTransaction.isPresent(),
                     "This compact block transactions message should contain a coinbase transaction");
         } else {
+            Preconditions.checkArgument(numberOfAllTransactions.isEmpty(),
+                    "This compact block transactions message should not contain the number of all transactions");
             Preconditions.checkArgument(coinbaseTransaction.isEmpty(),
                     "This compact block transactions message should not contain a coinbase transaction");
         }
@@ -81,13 +94,15 @@ public final class CompactBlockTransactionsMsg extends BodyMessage implements Se
     public String getMessageType() { return MESSAGE_TYPE; }
     public HashMsg getBlockHash() { return blockHash; }
     public VarIntMsg getStartTxIndex() { return startTxIndex; }
+    public Optional<VarIntMsg> getNumberOfAllTransactions() { return numberOfAllTransactions; }
     public Optional<TxMsg> getCoinbaseTransaction() { return coinbaseTransaction; }
     public VarIntMsg getNumberOfTransactions() { return numberOfTransactions; }
     public byte[] getTransactionIds() { return transactionIds; }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(super.hashCode(), blockHash, startTxIndex, coinbaseTransaction.get(), numberOfTransactions, transactionIds);
+        return Objects.hashCode(super.hashCode(), blockHash, startTxIndex, numberOfAllTransactions.get(),
+                coinbaseTransaction.get(), numberOfTransactions, transactionIds);
     }
 
     @Override
@@ -96,6 +111,7 @@ public final class CompactBlockTransactionsMsg extends BodyMessage implements Se
         CompactBlockTransactionsMsg other = (CompactBlockTransactionsMsg) obj;
         return Objects.equal(startTxIndex, other.startTxIndex) &&
                 Objects.equal(numberOfTransactions, other.numberOfTransactions) &&
+                Objects.equal(numberOfAllTransactions.get(), other.numberOfAllTransactions.get()) &&
                 Objects.equal(blockHash, other.blockHash) &&
                 Objects.equal(coinbaseTransaction.get(), other.coinbaseTransaction.get()) &&
                 Objects.equal(transactionIds, other.transactionIds);
@@ -114,7 +130,8 @@ public final class CompactBlockTransactionsMsg extends BodyMessage implements Se
     @Override
     public CompactBlockTransactionsMsgBuilder toBuilder() {
         return new CompactBlockTransactionsMsgBuilder(super.extraBytes, super.checksum)
-                .blockHash(blockHash).startTxIndex(startTxIndex).coinbaseTransaction(coinbaseTransaction).transactionIds(transactionIds);
+                .blockHash(blockHash).startTxIndex(startTxIndex).numberOfAllTransactions(numberOfAllTransactions)
+                .coinbaseTransaction(coinbaseTransaction).transactionIds(transactionIds);
     }
 
     /**
@@ -123,6 +140,7 @@ public final class CompactBlockTransactionsMsg extends BodyMessage implements Se
     public static class CompactBlockTransactionsMsgBuilder extends BodyMessageBuilder {
         private HashMsg blockHash;
         private VarIntMsg startTxIndex;
+        private Optional<VarIntMsg> numberOfAllTransactions = Optional.empty();
         private Optional<TxMsg> coinbaseTransaction = Optional.empty();
         private byte[] transactionIds;
 
@@ -150,6 +168,16 @@ public final class CompactBlockTransactionsMsg extends BodyMessage implements Se
             return this;
         }
 
+        public CompactBlockTransactionsMsgBuilder numberOfAllTransactions(int numberOfAllTransactions) {
+            this.numberOfAllTransactions = Optional.of(VarIntMsg.builder().value(numberOfAllTransactions).build());
+            return this;
+        }
+
+        public CompactBlockTransactionsMsgBuilder numberOfAllTransactions(Optional<VarIntMsg> numberOfAllTransactions) {
+            this.numberOfAllTransactions = numberOfAllTransactions;
+            return this;
+        }
+
         public CompactBlockTransactionsMsgBuilder coinbaseTransaction(Optional<TxMsg> coinbaseTransaction) {
             this.coinbaseTransaction = coinbaseTransaction;
             return this;
@@ -168,7 +196,8 @@ public final class CompactBlockTransactionsMsg extends BodyMessage implements Se
         }
 
         public CompactBlockTransactionsMsg build() {
-            return new CompactBlockTransactionsMsg(blockHash, startTxIndex, coinbaseTransaction, transactionIds, extraBytes, checksum);
+            return new CompactBlockTransactionsMsg(blockHash, startTxIndex, numberOfAllTransactions, coinbaseTransaction,
+                    transactionIds, extraBytes, checksum);
         }
     }
 }
