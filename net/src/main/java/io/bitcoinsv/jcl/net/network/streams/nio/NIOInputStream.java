@@ -8,6 +8,7 @@ import io.bitcoinsv.jcl.net.network.streams.StreamCloseEvent;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayStatic;
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig;
+import io.bitcoinsv.jcl.tools.thread.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,6 +18,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ExecutorService;
 
 /**
  * @author i.fernandez@nchain.com
@@ -62,6 +65,14 @@ public class NIOInputStream extends PeerInputStreamImpl<ByteArrayReader, ByteArr
     private boolean bufferNeedToReset;
     private final int bufferNormalCapacity;
     private final int bufferHighCapacity;
+
+    private final ArrayBlockingQueue<Runnable> queue =new ArrayBlockingQueue<>(100);
+
+    /**
+     * This executor is used to release socket channel reading thread from deserializing flow.
+     * It uses blocking queue, so it doesn't read more than deserializer is able to process.
+     */
+    private final ExecutorService executorService = ThreadUtils.getBlockingSingleThreadExecutorService("NIOInputStream_executor", Thread.NORM_PRIORITY, queue);
 
     public NIOInputStream(PeerAddress peerAddress,
                           RuntimeConfig runtimeConfig,
@@ -124,7 +135,12 @@ public class NIOInputStream extends PeerInputStreamImpl<ByteArrayReader, ByteArr
         state.increment(bytesReceivedToAdd);
     }
 
-    public int readFromSocket() throws IOException {
+    public synchronized int readFromSocket() throws IOException {
+        if (queue.size() == 100) {
+            return 0;
+        }
+
+
         // We read data from the Buffer and connection verifications:
         try {
             ByteBuffer buffer = getBufferForReading();
@@ -150,9 +166,11 @@ public class NIOInputStream extends PeerInputStreamImpl<ByteArrayReader, ByteArr
             // So we are using here an "improved" version of ByteArray which is optimized for the situation when we are
             // mainly only interested in its "get()" method.
 
-            ByteArrayReader byteArrayReader = new ByteArrayReader(new ByteArrayStatic(data)); // Optimization
 
-            onDataListeners.forEach(dataListener -> dataListener.accept(byteArrayReader));
+            executorService.execute(() -> {
+                ByteArrayReader byteArrayReader = new ByteArrayReader(new ByteArrayStatic(data)); // Optimization
+                onDataListeners.forEach(dataListener -> dataListener.accept(byteArrayReader));
+            });
 
             return read;
         } catch (IOException e) {

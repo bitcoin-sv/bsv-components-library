@@ -73,6 +73,21 @@ public class ThreadUtils {
         return getBlockingSingleThreadExecutorService(threadName, capacity, Thread.NORM_PRIORITY);
     }
 
+    public static ThreadPoolExecutor getBlockingSingleThreadExecutorService(String threadName, int priority, ArrayBlockingQueue<Runnable> queue) {
+        var executor = new ThreadPoolExecutor(
+            0,
+            1,
+            0L,
+            TimeUnit.MILLISECONDS,
+            queue,
+            getThreadFactory(threadName, priority, true)
+        );
+
+        registerRejectionExecutionHandle(executor);
+
+        return executor;
+    }
+
     public static ThreadPoolExecutor getBlockingSingleThreadExecutorService(String threadName, int capacity, int priority) {
         var executor = new ThreadPoolExecutor(
                 0,
