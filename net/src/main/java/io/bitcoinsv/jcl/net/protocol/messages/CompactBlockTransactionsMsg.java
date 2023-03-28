@@ -168,8 +168,10 @@ public final class CompactBlockTransactionsMsg extends BodyMessage implements Se
             return this;
         }
 
-        public CompactBlockTransactionsMsgBuilder numberOfAllTransactions(int numberOfAllTransactions) {
-            this.numberOfAllTransactions = Optional.of(VarIntMsg.builder().value(numberOfAllTransactions).build());
+        public CompactBlockTransactionsMsgBuilder numberOfAllTransactionsInteger(Optional<Integer> numberOfAllTransactions) {
+            if (numberOfAllTransactions.isPresent()) {
+                this.numberOfAllTransactions = Optional.of(VarIntMsg.builder().value(numberOfAllTransactions.get()).build());
+            }
             return this;
         }
 
