@@ -70,6 +70,9 @@ public class RawBigBlockDeserializer extends LargeMessageDeserializerImpl {
             // Order of each batch of Txs within the Block
             long txsOrderNumber = 0;
 
+            // Index of the FIRST Tx in this Chunk within the Block
+            long txsIndexNumber = 0;
+
             //record each tx in this batch
             List<RawTxMsg> rawTxBatch = new ArrayList<>();
 
@@ -88,12 +91,14 @@ public class RawBigBlockDeserializer extends LargeMessageDeserializerImpl {
                             .blockHeader(blockHeader)
                             .txs(rawTxBatch)
                             .txsOrdersNumber(txsOrderNumber)
+                            .txsIndexNumber(txsIndexNumber)
                             .build();
                     notifyDeserialization(partialBlockRawTXs);
 
                     //we're now moving onto the next batch
                     rawTxBatch = new ArrayList<>();
                     txsOrderNumber++;
+                    txsIndexNumber += rawTxBatch.size();
                     totalSizeInBatch = 0;
 
                     // We add this Tx to the next Batch:
@@ -117,6 +122,7 @@ public class RawBigBlockDeserializer extends LargeMessageDeserializerImpl {
                         .blockHeader(blockHeader)
                         .txs(rawTxBatch)
                         .txsOrdersNumber(txsOrderNumber)
+                        .txsIndexNumber(txsIndexNumber)
                         .build();
                 notifyDeserialization(partialBlockRawTXs);
             }
