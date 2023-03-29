@@ -1,22 +1,23 @@
 package io.bitcoinsv.jcl.net.unit.protocol.serialization.largeMsgs
 
+import io.bitcoinsv.bitcoinjsv.core.Utils
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import io.bitcoinsv.jcl.net.protocol.messages.PartialBlockHeaderMsg
+import io.bitcoinsv.jcl.net.protocol.messages.PartialBlockRawTxMsg
 import io.bitcoinsv.jcl.net.protocol.messages.PartialBlockTXsMsg
 import io.bitcoinsv.jcl.net.protocol.serialization.common.DeserializerContext
 import io.bitcoinsv.jcl.net.protocol.serialization.largeMsgs.BigBlockDeserializer
+import io.bitcoinsv.jcl.net.protocol.serialization.largeMsgs.RawBigBlockDeserializer
 import io.bitcoinsv.jcl.net.unit.protocol.tools.MsgTest
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader
-import io.bitcoinsv.jcl.tools.bytes.ByteArrayReaderOptimized
-import io.bitcoinsv.bitcoinjsv.core.Utils
 import spock.lang.Specification
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
-class BigBlockDeserializerTest extends Specification {
+class BigRawBlockDeserializerTest extends Specification {
 
     /**
      * We test the a "Big" Block is deserializes properly and that the callbacks are triggered and we get notified
@@ -41,15 +42,15 @@ class BigBlockDeserializerTest extends Specification {
             ByteArrayReader reader = new ByteArrayReader(Utils.HEX.decode(BLOCK_HEX))
 
             // Deserializer set up:
-            BigBlockDeserializer bigBlockDeserializer = new BigBlockDeserializer()
+            RawBigBlockDeserializer bigBlockDeserializer = new RawBigBlockDeserializer()
             bigBlockDeserializer.setPartialMsgSize(1) // very small threshold, so we get 1 chunk per each Tx
 
             // We feed the Deserializer with callbacks, so we get notified when Header and Txs are Deserialized:
             bigBlockDeserializer.onDeserialized({ e ->
                 if (e.getData() instanceof PartialBlockHeaderMsg) headerReceived.set(true)
-                else if (e.getData() instanceof PartialBlockTXsMsg) {
-                    numTXsReceived.addAndGet(((PartialBlockTXsMsg) e.getData()).txs.size() )
-                    txIndexesReceived.add(((PartialBlockTXsMsg) e.getData()).txsIndexNumber.value);
+                else if (e.getData() instanceof PartialBlockRawTxMsg) {
+                    numTXsReceived.addAndGet(((PartialBlockRawTxMsg) e.getData()).txs.size() )
+                    txIndexesReceived.add(((PartialBlockRawTxMsg) e.getData()).txsIndexNumber.value);
                 } else errorThrown.set(true);
                 println("Partial Msg (" + e.getData().getClass().getSimpleName() + ") received")
             })

@@ -79,13 +79,11 @@ public class RawBigBlockDeserializer extends LargeMessageDeserializerImpl {
             while (totalBytesRemaining > 0) {
 
                 RawTxMsg tx = rawBlockMsgSerializer.deserializeNextTx(context, byteReader);
+                rawTxBatch.add(tx);
                 long totalBytesInTx = tx.getLengthInBytes();
+                totalSizeInBatch += totalBytesInTx;
 
-                //if we have enough space then add it
-                if(totalSizeInBatch + totalBytesInTx <= super.partialMsgSize){
-                    totalSizeInBatch += totalBytesInTx;
-                    rawTxBatch.add(tx);
-                } else {
+                if(totalSizeInBatch > super.partialMsgSize){
                     // We do not Have enough space in this Batch for this Tx. push the batch we have so far down the pipeline
                     PartialBlockRawTxMsg partialBlockRawTXs = PartialBlockRawTxMsg.builder()
                             .blockHeader(blockHeader)
@@ -96,26 +94,18 @@ public class RawBigBlockDeserializer extends LargeMessageDeserializerImpl {
                     notifyDeserialization(partialBlockRawTXs);
 
                     //we're now moving onto the next batch
-                    rawTxBatch = new ArrayList<>();
                     txsOrderNumber++;
                     txsIndexNumber += rawTxBatch.size();
                     totalSizeInBatch = 0;
 
-                    // We add this Tx to the next Batch:
-                    rawTxBatch.add(tx);
-
-                    // If the size of this individual Tx is already bigger than our Max Batch size, this Txs will be
-                    // pushed down in the next iteration, but we warm of this situation here...
-                    if(totalBytesInTx > super.partialMsgSize){
-                        log.warn("Tx bigger than the current max Batch size has been added to the Batch, it will be pushed next.");
-                    }
-
+                    // We mov on to next Chunk:
+                    rawTxBatch = new ArrayList<>();
                 }
 
                 totalBytesRemaining -= totalBytesInTx;
             }
 
-            //flush any remaining txs
+            // flush any remaining txs
             if(rawTxBatch.size() > 0){
                 //push the batch down the pipeline
                 PartialBlockRawTxMsg partialBlockRawTXs = PartialBlockRawTxMsg.builder()

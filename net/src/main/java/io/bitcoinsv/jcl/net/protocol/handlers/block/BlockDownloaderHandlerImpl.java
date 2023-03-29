@@ -771,6 +771,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                     .blockHeader(blockMesage.getBody().getBlockHeader())
                     .txs(blockMesage.getBody().getTransactionMsg())
                     .txsOrdersNumber(0)
+                    .txsIndexNumber(0)
                     .build();
             BitcoinMsg<PartialBlockTXsMsg> partialBlockTxsBtcMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), partialBlockTxsMsg).build();
             super.eventBus.publish(new BlockTXsDownloadedEvent(peerInfo.getPeerAddress(),partialBlockTxsBtcMsg));
