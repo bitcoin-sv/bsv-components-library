@@ -154,7 +154,7 @@ public final class CompactBlockTransactionsMsg extends BodyMessage implements Se
         }
 
         public CompactBlockTransactionsMsgBuilder blockHash(Sha256Hash blockHash) {
-            this.blockHash = HashMsg.builder().hash(blockHash.getBytes()).build();
+            this.blockHash = HashMsg.builder().hash(blockHash).build();
             return this;
         }
 
