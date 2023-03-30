@@ -17,7 +17,7 @@ public final class PartialBlockTXsMsg extends BodyMessage implements Serializabl
     private final List<TxMsg> txs;
     // This field stores the order of this Batch of Txs within the Block (zero-based)
     private final VarIntMsg txsOrderNumber;
-    // It stores the relative index of the first Tx in this chunk within the Whole Block
+    // It stores the index of the first Tx in this chunk within the Whole Block
     private final VarIntMsg txsIndexNumber;
 
     public PartialBlockTXsMsg(BlockHeaderMsg blockHeader,

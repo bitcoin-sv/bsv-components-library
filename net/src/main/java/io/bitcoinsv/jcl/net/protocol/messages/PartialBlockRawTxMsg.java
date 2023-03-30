@@ -18,7 +18,7 @@ public final class PartialBlockRawTxMsg extends BodyMessage {
     private final List<RawTxMsg> txs;
     // This field stores the order of this Batch of Txs within the Block (zero-based)
     private final VarIntMsg txsOrderNumber;
-    // It stores the relative index of the first Tx in this chunk within the Whole Block
+    // It stores the index of the first Tx in this chunk within the Whole Block
     private final VarIntMsg txsIndexNumber;
 
     private final long txsByteLength;
