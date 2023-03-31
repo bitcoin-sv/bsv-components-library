@@ -63,7 +63,8 @@ public final class DeserializerConfig {
             TxMsg.MESSAGE_TYPE.toUpperCase(),
             BlockHeaderMsg.MESSAGE_TYPE.toUpperCase(),
             CompactBlockMsg.MESSAGE_TYPE.toUpperCase(),
-            BlockTxnMsg.MESSAGE_TYPE.toUpperCase()
+            BlockTxnMsg.MESSAGE_TYPE.toUpperCase(),
+            CompactBlockTransactionsMsg.MESSAGE_TYPE.toUpperCase()
     };
 
     /** If the Message is NOT part of this List, then it won't be cached */
