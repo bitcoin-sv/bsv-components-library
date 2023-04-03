@@ -66,7 +66,8 @@ public class NIOInputStream extends PeerInputStreamImpl<ByteArrayReader, ByteArr
     private final int bufferNormalCapacity;
     private final int bufferHighCapacity;
 
-    private final ArrayBlockingQueue<Runnable> queue =new ArrayBlockingQueue<>(100);
+    private final int QUEUE_SIZE = 100;
+    private final ArrayBlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(QUEUE_SIZE);
 
     /**
      * This executor is used to release socket channel reading thread from deserializing flow.
@@ -136,10 +137,9 @@ public class NIOInputStream extends PeerInputStreamImpl<ByteArrayReader, ByteArr
     }
 
     public synchronized int readFromSocket() throws IOException {
-        if (queue.size() == 100) {
+        if (queue.size() == QUEUE_SIZE) {
             return 0;
         }
-
 
         // We read data from the Buffer and connection verifications:
         try {
