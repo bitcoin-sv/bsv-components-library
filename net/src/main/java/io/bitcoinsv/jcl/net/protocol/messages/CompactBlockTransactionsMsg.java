@@ -43,11 +43,9 @@ public final class CompactBlockTransactionsMsg extends BodyMessage implements Se
     private final Optional<TxMsg> coinbaseTransaction;
     private final VarIntMsg numberOfTransactions;
     private final byte[] transactionIds;
-    private final VarIntMsg maxNumberOfTransactions;
 
     public CompactBlockTransactionsMsg(HashMsg blockHash, VarIntMsg startTxIndex, Optional<VarIntMsg> numberOfAllTransactions,
-                                       VarIntMsg maxNumberOfTransactions, Optional<TxMsg> coinbaseTransaction,
-                                       byte[] transactionIds, byte[] extraBytes,
+                                       Optional<TxMsg> coinbaseTransaction, byte[] transactionIds, byte[] extraBytes,
                                        long checksum) {
         super(extraBytes, checksum);
         this.blockHash = blockHash;
@@ -56,7 +54,6 @@ public final class CompactBlockTransactionsMsg extends BodyMessage implements Se
         this.coinbaseTransaction = coinbaseTransaction;
         numberOfTransactions = VarIntMsg.builder().value(transactionIds.length / Sha256Hash.LENGTH).build();
         this.transactionIds = transactionIds;
-        this.maxNumberOfTransactions = maxNumberOfTransactions;
         init();
     }
 
@@ -75,8 +72,6 @@ public final class CompactBlockTransactionsMsg extends BodyMessage implements Se
 
     @Override
     protected void validateMessage() {
-        Preconditions.checkArgument(numberOfTransactions.getValue() <= maxNumberOfTransactions.getValue(),
-                "Compact block transactions message exceeds maximum size");
         Preconditions.checkArgument(numberOfTransactions.getValue() == (transactionIds.length / Sha256Hash.LENGTH),
                 "Compact block transactions list size and count value are not the same.");
         if (startTxIndex.getValue() == 1) {
@@ -145,7 +140,6 @@ public final class CompactBlockTransactionsMsg extends BodyMessage implements Se
         private Optional<VarIntMsg> numberOfAllTransactions = Optional.empty();
         private Optional<TxMsg> coinbaseTransaction = Optional.empty();
         private byte[] transactionIds;
-        private VarIntMsg maxNumberOfTransactions;
 
         public CompactBlockTransactionsMsgBuilder() {}
         public CompactBlockTransactionsMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
@@ -183,11 +177,6 @@ public final class CompactBlockTransactionsMsg extends BodyMessage implements Se
             return this;
         }
 
-        public CompactBlockTransactionsMsgBuilder maxNumberOfTransactions(VarIntMsg maxNumberOfTransactions) {
-            this.maxNumberOfTransactions = maxNumberOfTransactions;
-            return this;
-        }
-
         public CompactBlockTransactionsMsgBuilder coinbaseTransaction(Optional<TxMsg> coinbaseTransaction) {
             this.coinbaseTransaction = coinbaseTransaction;
             return this;
@@ -206,7 +195,7 @@ public final class CompactBlockTransactionsMsg extends BodyMessage implements Se
         }
 
         public CompactBlockTransactionsMsg build() {
-            return new CompactBlockTransactionsMsg(blockHash, startTxIndex, numberOfAllTransactions, maxNumberOfTransactions,
+            return new CompactBlockTransactionsMsg(blockHash, startTxIndex, numberOfAllTransactions,
                     coinbaseTransaction, transactionIds, extraBytes, checksum);
         }
     }
