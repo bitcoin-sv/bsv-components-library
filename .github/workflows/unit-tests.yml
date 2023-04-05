@@ -25,6 +25,6 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
       - name: Run Unit Tests
-        run: ./gradlew :jbsvlib:test jacocoTestReport
+        run: ./gradlew check jacocoTestReport
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
