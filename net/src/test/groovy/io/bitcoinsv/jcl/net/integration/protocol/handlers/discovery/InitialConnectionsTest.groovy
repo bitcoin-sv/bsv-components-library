@@ -8,6 +8,7 @@ import io.bitcoinsv.jcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2P
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2PBuilder
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicBoolean
@@ -17,11 +18,12 @@ import java.util.concurrent.atomic.AtomicInteger
  * Integration Test Class for the Discovery Handler Initial Connections Process.
  *
  * If the "initialConnections" property is defined in the configuration, then those Peers will be
- * the FIrSt ones to connect to. f more Pers are needed after that to reach maxPeers, then the
+ * the first ones to connect to. If more peers are needed after that to reach maxPeers, then the
  * Node-Discovery Algorithm will be used as usual.
  *
  * INTERNET CONNECTION IS NEEDED FOR THIS TEST.
  */
+@Ignore("This is an integration test")  // todo: set up integration tests
 class InitialConnectionsTest extends Specification {
 
     /**
