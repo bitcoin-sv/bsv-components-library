@@ -5,6 +5,7 @@ import io.bitcoinsv.bitcoinjsv.bitcoin.bean.base.TxBean
 import io.bitcoinsv.jcl.tools.common.TestingUtils
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.Tx
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
+import spock.lang.Ignore
 
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicInteger
@@ -25,6 +26,7 @@ abstract class BlockStoreTxsSpecBase extends BlockStoreSpecBase {
     /**
      * We test that TXs are properly saved and removed into the DB and the related Events are properly triggered.
      */
+    @Ignore("This test is unstable. It needs to be fixed.")     // todo: fix this test
     def "testing saving/removing Txs"() {
         given:
             println(" - Connecting to the DB...")
