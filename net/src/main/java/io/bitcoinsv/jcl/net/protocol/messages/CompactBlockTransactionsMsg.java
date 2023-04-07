@@ -195,8 +195,8 @@ public final class CompactBlockTransactionsMsg extends BodyMessage implements Se
         }
 
         public CompactBlockTransactionsMsg build() {
-            return new CompactBlockTransactionsMsg(blockHash, startTxIndex, numberOfAllTransactions,
-                    coinbaseTransaction, transactionIds, extraBytes, checksum);
+            return new CompactBlockTransactionsMsg(blockHash, startTxIndex, numberOfAllTransactions, coinbaseTransaction,
+                    transactionIds, extraBytes, checksum);
         }
     }
 }
