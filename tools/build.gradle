@@ -5,6 +5,7 @@ plugins {
     id 'groovy'
     id 'java-library'
     id 'maven-publish'
+    id 'jacoco'
 }
 
 /****************************************
@@ -100,4 +101,21 @@ publishing {
     repositories {
         mavenLocal()
     }
+}
+
+
+jacoco {
+    toolVersion = "0.8.8"
+}
+
+jacocoTestReport {
+    reports {
+        xml.required = true
+        csv.required = false
+    }
+    dependsOn test
+}
+
+test {
+    finalizedBy jacocoTestReport
 }

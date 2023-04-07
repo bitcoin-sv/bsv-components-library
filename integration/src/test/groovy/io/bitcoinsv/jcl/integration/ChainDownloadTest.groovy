@@ -45,6 +45,7 @@ import java.util.stream.Collectors
  * In case the tests is interrumpted, next time it will read the DB looking for blocks which headers are stored but they
  * have not been downloaded, and it will start with that list.
  */
+@Ignore("This is a long test that should be run manually")  // todo: set up integration tests
 class ChainDownloadTest extends Specification {
 
     // Maximum Duration of the Test:

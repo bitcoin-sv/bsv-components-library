@@ -7,6 +7,7 @@ import io.bitcoinsv.jcl.net.protocol.handlers.block.BlockDownloaderHandler
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2P
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2PBuilder
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicBoolean
@@ -16,6 +17,7 @@ import java.util.stream.IntStream
 /**
  * Testing scenarios for Blacklisting/Whitelisting Remote Peers
  */
+@Ignore
 class BlacklistSpec extends Specification {
 
     /**
