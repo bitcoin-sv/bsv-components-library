@@ -1,10 +1,9 @@
 package io.bitcoinsv.jcl.store.blockChainStore
 
 
-import io.bitcoinsv.jcl.tools.common.TestingUtils
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
-
+import io.bitcoinsv.jcl.tools.common.TestingUtils
 import java.time.Duration
 
 /**

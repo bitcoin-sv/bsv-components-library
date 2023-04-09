@@ -3,45 +3,32 @@ package io.bitcoinsv.jcl.net.unit.network.streams
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.Tx
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.TxOutPoint
-import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.TxOutput
-import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams
 import io.bitcoinsv.bitcoinjsv.params.Net
-import io.bitcoinsv.jcl.net.network.handlers.NetworkHandler
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolBasicConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigBuilder
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolVersion
 import io.bitcoinsv.jcl.net.protocol.handlers.blacklist.BlacklistHandler
 import io.bitcoinsv.jcl.net.protocol.handlers.discovery.DiscoveryHandler
-import io.bitcoinsv.jcl.net.protocol.handlers.message.MessageHandler
 import io.bitcoinsv.jcl.net.protocol.handlers.pingPong.PingPongHandler
 import io.bitcoinsv.jcl.net.protocol.messages.BlockHeaderMsg
 import io.bitcoinsv.jcl.net.protocol.messages.BlockMsg
 import io.bitcoinsv.jcl.net.protocol.messages.HashMsg
-import io.bitcoinsv.jcl.net.protocol.messages.InvMessage
-import io.bitcoinsv.jcl.net.protocol.messages.InventoryVectorMsg
 import io.bitcoinsv.jcl.net.protocol.messages.TxInputMsg
 import io.bitcoinsv.jcl.net.protocol.messages.TxMsg
 import io.bitcoinsv.jcl.net.protocol.messages.TxOutPointMsg
 import io.bitcoinsv.jcl.net.protocol.messages.TxOutputMsg
-import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg
-import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsgBuilder
 import io.bitcoinsv.jcl.net.protocol.messages.common.StreamRequest
 import io.bitcoinsv.jcl.net.protocol.serialization.BlockMsgSerializer
-import io.bitcoinsv.jcl.net.protocol.serialization.common.BitcoinMsgSerializer
-import io.bitcoinsv.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl
-import io.bitcoinsv.jcl.net.protocol.serialization.common.DeserializerContext
-import io.bitcoinsv.jcl.net.protocol.serialization.common.MsgSerializersFactory
 import io.bitcoinsv.jcl.net.protocol.serialization.common.SerializerContext
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2P
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2PBuilder
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter
 import io.bitcoinsv.jcl.tools.common.TestingUtils
+
 import spock.lang.Specification
 
-import java.time.Duration
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.stream.Stream
 
 /**
