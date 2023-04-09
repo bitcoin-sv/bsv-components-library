@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'maven-publish'
+    id "org.sonarqube" version "3.5.0.2730"
 }
 
 /****************************************
@@ -91,5 +92,13 @@ publishing {
 
     repositories {
         mavenLocal()
+    }
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "bitcoin-sv_bsv-components-library"
+        property "sonar.organization", "bitcoin-sv"
+        property "sonar.host.url", "https://sonarcloud.io"
     }
 }
