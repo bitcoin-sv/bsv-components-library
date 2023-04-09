@@ -13,7 +13,7 @@ plugins {
  ****************************************/
 jclGroup = "$jclGroup"
 jclVersion = "$jclVersion"
-jclArtifactName = "jcl-store-foundationDB"
+jclArtifactName = "jcl-store-tck"
 
 group = "$rootProject.jclGroup"
 version = "$rootProject.jclVersion"
@@ -26,26 +26,14 @@ repositories {
 }
 
 dependencies {
-    // Compile Dependencies:
     implementation "io.bitcoinsv.bitcoinjsv:bitcoinj-base:$bitcoinJVersion"
     implementation(project(":tools"))
     implementation(project(":store"))
-    implementation(project(":store-keyValue"))
-    implementation 'org.foundationdb:fdb-java:6.2.22'
     implementation 'org.slf4j:slf4j-api:1.7.26'
+    implementation 'org.codehaus.groovy:groovy'
+    implementation "org.spockframework:spock-core:1.2-groovy-2.5"
 
-    testImplementation(project(":store-tck"))
-    testImplementation 'org.codehaus.groovy:groovy'
-    testImplementation "org.spockframework:spock-core:1.2-groovy-2.5"
     testImplementation "ch.qos.logback:logback-classic"
-
-    // TestContainer, to start automatically a FoundationDB running in a Docker container...
-    // NOTE: Not used at the moment, since starting and stopping the container is NOT enough: We also need to
-    // INITIALIZE the DataBase, meaning we need to run some Shell Scripts. So instead of using TestContainers, we
-    // are just executing some Shell Scripts Before and After the Tests (check DockerTestUtils class).
-
-    testImplementation 'org.testcontainers:spock:1.15.1'
-
 }
 
 bootJar {

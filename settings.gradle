@@ -7,3 +7,5 @@ include 'store-keyValue'
 include 'store-levelDB'
 include 'store-foundationDB'
 include 'integration'
+include 'store-tck'
+
