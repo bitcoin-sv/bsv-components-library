@@ -11,7 +11,7 @@ on:
 jobs:
   run-check:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' && secrets.SONAR_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v3
       - name: Setup JDK 11
