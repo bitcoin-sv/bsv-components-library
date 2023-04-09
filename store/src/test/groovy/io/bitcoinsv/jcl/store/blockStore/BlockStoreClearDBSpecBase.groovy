@@ -1,5 +1,6 @@
 package io.bitcoinsv.jcl.store.blockStore
 
+import io.bitcoinsv.jcl.tools.common.TestingUtils
 
 /**
  * Testing class for different scenarios where the whole DB is cleared.

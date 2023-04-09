@@ -2,7 +2,7 @@ package io.bitcoinsv.jcl.store.blockStore
 
 
 import io.bitcoinsv.bitcoinjsv.bitcoin.bean.base.TxBean
-
+import io.bitcoinsv.jcl.tools.common.TestingUtils
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.Tx
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
 import spock.lang.Ignore
