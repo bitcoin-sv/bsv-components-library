@@ -1,10 +1,10 @@
 package io.bitcoinsv.jcl.tools.unit.chainStore
 
-
+import io.bitcoinjsv.jcl.tools.unit.chainStore.NodeTest
 import io.bitcoinsv.jcl.tools.chainStore.ChainMemStore
 import io.bitcoinsv.jcl.tools.chainStore.ChainPath
 import spock.lang.Specification
-import static NodeTestFactory.*
+import static io.bitcoinjsv.jcl.tools.unit.chainStore.NodeTestFactory.*
 
 
 /**

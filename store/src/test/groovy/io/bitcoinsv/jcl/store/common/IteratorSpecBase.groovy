@@ -6,7 +6,6 @@ import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.Tx
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
 import io.bitcoinsv.jcl.store.blockStore.BlockStore
 import io.bitcoinsv.jcl.store.blockStore.BlockStoreSpecBase
-import io.bitcoinsv.jcl.tools.common.TestingUtils
 
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
