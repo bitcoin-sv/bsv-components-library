@@ -1,27 +1,20 @@
-
-# JCL: Java Component Library for Bitcoin
-
-
 # Introduction
 
 *JCL* is a Java Library or Suite of libraries that provides different functionalities for use in a Blockchain projects. Some Modules will be commonly used by any project, whereas others might only be included if needed.
 
 *JCL* is currently composed of the following modules:
 
-> **Click on the Links below to access each module specific documentation:**
 
- 
- * [JCL-Net](../net/doc/README.md): Provides Connections and Streaming capabilities, allowing an App to connect to the blockchain and "listen" to Events coming from it, and also "send/broadcast" messages, and other operations.
+* [JCL-Net](../net/doc/README.md): Provides Connections and Streaming capabilities, allowing an App to connect to the blockchain and "listen" to Events coming from it, and also "send/broadcast" messages, and other operations.
 
- * [JCL-Store](../store/doc/README.md): Operations to *save* or *retrieve* information from a Repository. The information to store might be different depending on the different *Store-subModule* we use, and the *Repository* might be different deopending on the *implementation* provided (there are multiple implementations for this Module)
- 
-
-All the libraries within *JCL* make up a hierarchy dependency tree, as shown in the diagram below. *JCL* has a dependency on the *BitcoinJ-base*, where the *Domain Classes* for representing basic entities (Blocks, Transactions, Inputs, outputs, etc) are defined, along with many other functionalities.
-
-![high level architecture](jcl-highLevel.png) 
+* [JCL-Store](../store/doc/README.md): Operations to *save* or *retrieve* information from a Repository. The information to store might be different depending on the different *Store-subModule* we use, and the *Repository* might be different deopending on the *implementation* provided (there are multiple implementations for this Module)
 
 
+All the libraries within *JCL* make up a hierarchy dependency tree, as shown in the diagram below. *JCL* has a
+dependency on the *BitcoinJ-base*, where the *Domain Classes* for representing basic entities (Blocks, Transactions,
+Inputs, outputs, etc) are defined, along with many other functionalities.
 
+![high level architecture](doc/v2.2.0/images/jcl-highLevel.png)
 
 # How to import JCL
 
@@ -117,3 +110,6 @@ And you must store the credentials in the *settings.xml* file:
 ```
 
 > NOTE That the value of the **id** field must match the value of the **id** field in the *pom.xml* file.
+
+-------------
+Copyright (c) 2018-2023, Bitcoin Association, see LICENSE.txt for details.
