@@ -1,4 +1,4 @@
-package io.bitcoinsv.jcl.tools.unit.chainStore;
+package io.bitcoinjsv.jcl.tools.unit.chainStore;
 
 import io.bitcoinsv.jcl.tools.chainStore.Node;
 

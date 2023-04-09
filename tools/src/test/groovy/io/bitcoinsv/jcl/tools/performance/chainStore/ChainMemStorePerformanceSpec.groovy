@@ -2,7 +2,7 @@ package io.bitcoinsv.jcl.tools.performance.chainStore
 
 import io.bitcoinsv.jcl.tools.chainStore.ChainMemStore
 import io.bitcoinsv.jcl.tools.chainStore.ChainPath
-import io.bitcoinsv.jcl.tools.unit.chainStore.NodeTest
+import io.bitcoinjsv.jcl.tools.unit.chainStore.NodeTest
 import spock.lang.Ignore
 import spock.lang.Specification
 

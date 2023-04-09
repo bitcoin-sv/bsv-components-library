@@ -1,12 +1,10 @@
 package io.bitcoinsv.jcl.store.blockStore
 
 
-
-import io.bitcoinsv.jcl.tools.common.TestingUtils
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.HeaderReadOnly
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.Tx
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
-
+import io.bitcoinsv.jcl.tools.common.TestingUtils
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import java.util.stream.Collectors
