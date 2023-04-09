@@ -1,6 +1,6 @@
 # BSV Components Library
 
-[![Unit Tests](https://github.com/bitcoin-sv/bsv-components-library/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/bitcoin-sv/bsv-components-library/actions/workflows/unit-tests.yml)
+[![Unit Tests](https://github.com/bitcoin-sv/bsv-components-library/actions/workflows/check-prs.yml/badge.svg)](https://github.com/bitcoin-sv/bsv-components-library/actions/workflows/check-prs.yml)
 [![codecov](https://codecov.io/gh/bitcoin-sv/bsv-components-library/branch/main/graph/badge.svg?token=HDPXVBWVXS)](https://codecov.io/gh/bitcoin-sv/bsv-components-library)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=bitcoin-sv_bsv-components-library&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=bitcoin-sv_bsv-components-library)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=bitcoin-sv_bsv-components-library&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=bitcoin-sv_bsv-components-library)
