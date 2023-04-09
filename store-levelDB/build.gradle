@@ -26,7 +26,6 @@ repositories {
 }
 
 dependencies {
-    // Compile Dependencies:
     implementation "io.bitcoinsv.bitcoinjsv:bitcoinj-base:$bitcoinJVersion"
     implementation(project(":tools"))
     implementation(project(":store"))
@@ -34,17 +33,7 @@ dependencies {
     implementation 'org.iq80.leveldb:leveldb:0.12'
     implementation 'org.slf4j:slf4j-api:1.7.26'
 
-    // Testing
-
-    // NOTE:
-    // WE are setting up a dependency on the TESTS from the JCL-Store. This might not be a good practice, but in this
-    // case its OK, since the JCL-Module defines the interfaces and the Tests that those interfaces must meet. So the
-    // Tests are oly defined ONCe in the JCL-Store module, and in this project we just extend them and add the
-    // concrete logic to create instances of those interfaces:
-
-    testImplementation project(':store').sourceSets.test.output
-    testImplementation project(':tools').sourceSets.test.output
-
+    testImplementation(project(":store-tck"))
     testImplementation 'org.codehaus.groovy:groovy'
     testImplementation "org.spockframework:spock-core:1.2-groovy-2.5"
     testImplementation "ch.qos.logback:logback-classic"
