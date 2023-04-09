@@ -25,6 +25,7 @@ import io.bitcoinsv.jcl.net.protocol.serialization.common.SerializerContext
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2P
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2PBuilder
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter
+import io.bitcoinsv.jcl.tools.common.TestingUtils
 
 import spock.lang.Specification
 
