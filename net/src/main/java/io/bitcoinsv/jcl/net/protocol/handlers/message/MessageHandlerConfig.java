@@ -51,12 +51,21 @@ public final class MessageHandlerConfig extends HandlerConfig {
      */
     private boolean verifyChecksum = true; // default
 
+
+    /**
+     * A Testing Property.
+     * If True, then ALL Peers are allowed by default to send BIG Messages to us
+     * IT MUST BE DISABLED IN A PRODUCTION ENV
+     */
+    private boolean allowBigMsgFromAllPeers = false;
+
     MessageHandlerConfig(ProtocolBasicConfig basicConfig,
                          MessagePreSerializer preSerializer,
                          DeserializerConfig deserializerConfig,
                          boolean rawTxsEnabled,
                          HashMap<Class, MessageBatchConfig> msgBatchConfigs,
-                         boolean verifyChecksum
+                         boolean verifyChecksum,
+                         boolean allowBigMsgFromAllPeers
     ) {
         if (basicConfig != null)
             this.basicConfig = basicConfig;
@@ -68,6 +77,7 @@ public final class MessageHandlerConfig extends HandlerConfig {
         this.rawTxsEnabled = rawTxsEnabled;
         this.msgBatchConfigs = msgBatchConfigs;
         this.verifyChecksum = verifyChecksum;
+        this.allowBigMsgFromAllPeers = allowBigMsgFromAllPeers;
     }
 
     public ProtocolBasicConfig getBasicConfig()                     { return this.basicConfig; }
@@ -76,6 +86,7 @@ public final class MessageHandlerConfig extends HandlerConfig {
     public boolean isRawTxsEnabled()                                { return this.rawTxsEnabled; }
     public HashMap<Class, MessageBatchConfig> getMsgBatchConfigs()  { return this.msgBatchConfigs;}
     public boolean isVerifyChecksum()                               { return this.verifyChecksum;}
+    public boolean isAllowBigMsgFromAllPeers()                      { return this.allowBigMsgFromAllPeers;}
 
     @Override
     public String toString() {
@@ -83,7 +94,8 @@ public final class MessageHandlerConfig extends HandlerConfig {
                 + ", preSerializer=" + this.getPreSerializer() + ", deserializerConfig="
                 + this.getDeserializerConfig()
                 + ", msgBatchConfigs=" + msgBatchConfigs
-                + ", verifyChecksum=" + this.verifyChecksum + ")";
+                + ", verifyChecksum=" + this.verifyChecksum
+                + ", allowBigMsgFromAllPeers=" + this.allowBigMsgFromAllPeers + ")";
     }
 
     public MessageHandlerConfigBuilder toBuilder() {
@@ -91,9 +103,10 @@ public final class MessageHandlerConfig extends HandlerConfig {
                 basicConfig(this.basicConfig)
                 .preSerializer(this.preSerializer)
                 .deserializerConfig(this.deserializerConfig)
-                .rawTxsEnabled(rawTxsEnabled)
+                .rawTxsEnabled(this.rawTxsEnabled)
                 .msgBatchConfigs(this.msgBatchConfigs)
-                .verifyChecksum(this.verifyChecksum);
+                .verifyChecksum(this.verifyChecksum)
+                .allowBigMsgFromAllPeers(this.allowBigMsgFromAllPeers);
     }
 
     public static MessageHandlerConfigBuilder builder() {
@@ -110,6 +123,7 @@ public final class MessageHandlerConfig extends HandlerConfig {
         private boolean rawTxsEnabled = false;
         private HashMap<Class, MessageBatchConfig> msgBatchConfigs = new HashMap<>();
         private boolean verifyChecksum = true; // default
+        private boolean allowBigMsgFromAllPeers = false;
 
         MessageHandlerConfigBuilder() { }
 
@@ -163,8 +177,13 @@ public final class MessageHandlerConfig extends HandlerConfig {
             return this;
         }
 
+        public MessageHandlerConfig.MessageHandlerConfigBuilder allowBigMsgFromAllPeers(boolean allowBigMsgFromAllPeers) {
+            this.allowBigMsgFromAllPeers = allowBigMsgFromAllPeers;
+            return this;
+        }
+
         public MessageHandlerConfig build() {
-            return new MessageHandlerConfig(basicConfig, preSerializer, deserializerConfig, rawTxsEnabled, msgBatchConfigs, verifyChecksum);
+            return new MessageHandlerConfig(basicConfig, preSerializer, deserializerConfig, rawTxsEnabled, msgBatchConfigs, verifyChecksum, allowBigMsgFromAllPeers);
         }
     }
 }

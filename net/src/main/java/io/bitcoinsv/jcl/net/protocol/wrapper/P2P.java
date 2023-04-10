@@ -11,20 +11,19 @@ import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig;
 import io.bitcoinsv.jcl.net.protocol.config.provided.ProtocolBSVMainConfig;
 import io.bitcoinsv.jcl.net.protocol.handlers.blacklist.BlacklistHandler;
 import io.bitcoinsv.jcl.net.protocol.handlers.blacklist.BlacklistHandlerImpl;
-import io.bitcoinsv.jcl.net.protocol.handlers.blacklist.BlacklistHostInfo;
-import io.bitcoinsv.jcl.net.protocol.handlers.blacklist.BlacklistView;
 import io.bitcoinsv.jcl.net.protocol.handlers.handshake.HandshakeHandler;
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig;
 import io.bitcoinsv.jcl.tools.config.provided.RuntimeConfigDefault;
 import io.bitcoinsv.jcl.tools.events.EventBus;
 import io.bitcoinsv.jcl.tools.handlers.Handler;
 import io.bitcoinsv.jcl.net.tools.LoggerUtil;
+import io.bitcoinsv.jcl.tools.handlers.HandlerConfig;
 import io.bitcoinsv.jcl.tools.thread.ThreadUtils;
 
+import java.net.UnknownHostException;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -81,19 +80,12 @@ public class P2P {
             this.networkConfig = networkConfig;
             this.protocolConfig = protocolConfig;
 
-            // We initialize the EventBuses...
-            ExecutorService executor = (runtimeConfig.useCachedThreadPoolForP2P())
-                    ? ThreadUtils.getCachedThreadExecutorService("JclEventBus", runtimeConfig.getMaxNumThreadsForP2P())
-                    : ThreadUtils.getFixedThreadExecutorService("JclEventBus", runtimeConfig.getMaxNumThreadsForP2P());
-
             // EventBus for the Internal Handles within the P2P Service:
             this.eventBus = EventBus.builder()
-                    .executor(executor)
                     .build();
 
             // EventBus for Handlers State Publishing:
             this.stateEventBus = EventBus.builder()
-                    .executor(ThreadUtils.getFixedThreadExecutorService("JclStateEventBus", 2))
                     .build();
 
             // Event Streamer:
@@ -188,9 +180,22 @@ public class P2P {
 
     // convenience method to return the PeerAddress for this ProtocolHandler. It assumes that there is a NetworkHandler
     public PeerAddress getPeerAddress() {
-        NetworkHandler handler = (NetworkHandler) handlers.get(NetworkHandlerImpl.HANDLER_ID);
-        if (handler == null) throw new RuntimeException("No Network Handler Found. Impossible to getPeerAddress without it...");
-        return handler.getPeerAddress();
+        try {
+            // The localAddress used by NetworkHandlerImpl doesn't work, since most probably will be "0.0.0.0", which
+            // means its listening in all network adapters. We need the local IP, which we obtain by using directly
+            // the Local Inet4Address and we get the port from NetworkHandlerImpl...
+
+            NetworkHandler handler = (NetworkHandler) handlers.get(NetworkHandlerImpl.HANDLER_ID);
+            if (handler == null) throw new RuntimeException("No Network Handler Found. Impossible to getPeerAddress without it...");
+// This way of getting local IP address might cause issues if the host has several network interfaces:
+//            PeerAddress result = PeerAddress.fromIp(
+//                    Inet4Address.getLocalHost().getHostAddress() + ":" + handler.getPeerAddress().getPort());
+            PeerAddress result = PeerAddress.fromIp(("127.0.0.1") + ":" + handler.getPeerAddress().getPort());
+            return result;
+        } catch (UnknownHostException e) {
+            logger.error("Error getting P2P Address");
+            throw new RuntimeException(e);
+        }
     }
 
     // convenience method to return the PeerAddress for this ProtocolHandler. It assumes that there is a BlacklistHandler
@@ -211,7 +216,14 @@ public class P2P {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
 
+    public void updateConfig(String handlerId, HandlerConfig config) {
+        if (!handlers.containsKey(handlerId)) {
+            throw new RuntimeException("Handler not present in the P2P Object");
+        }
+        handlers.get(handlerId).updateConfig(config);
+        logger.info("Handler " + handlerId + " Config Updated.");
     }
 
     // Convenience method to deserialize a reference to a P2PBuilder

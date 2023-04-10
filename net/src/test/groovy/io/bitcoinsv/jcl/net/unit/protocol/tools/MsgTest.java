@@ -29,13 +29,13 @@ import java.util.concurrent.Executors;
 public class MsgTest {
 
     public static class DummyPeerStreamSource extends PeerStreamInOutSimulator<ByteArrayReader> implements PeerInputStream<ByteArrayReader> {
-        DummyPeerStreamSource(ExecutorService executor) { super( null, executor);}
+        DummyPeerStreamSource() { super( null);}
         public PeerAddress getPeerAddress() { try {return PeerAddress.localhost(8111);} catch (Exception e) {e.printStackTrace(); return null;}}
         public StreamState getState() { return null; }
     }
 
     public static class DummyPeerDelayStreamSource extends ByteReaderDelaySource implements PeerInputStream<ByteArrayReader> {
-        public DummyPeerDelayStreamSource(ExecutorService executor, int bytesPerSec) { super(executor, bytesPerSec);}
+        public DummyPeerDelayStreamSource(int bytesPerSec) { super(bytesPerSec);}
         public PeerAddress getPeerAddress() { try {return PeerAddress.localhost(8111);} catch (Exception e) {e.printStackTrace(); return null;}}
         public StreamState getState() { return null; }
     }
@@ -75,11 +75,11 @@ public class MsgTest {
     }
 
     public static PeerInputStream<ByteArrayReader> getDummyStreamSource() {
-        return new DummyPeerStreamSource(Executors.newSingleThreadExecutor());
+        return new DummyPeerStreamSource();
     }
 
     public static PeerInputStream<ByteArrayReader> getDummyDelayStreamSource(int delay) {
-        return new DummyPeerDelayStreamSource(Executors.newSingleThreadExecutor(), delay);
+        return new DummyPeerDelayStreamSource(delay);
     }
 
 }

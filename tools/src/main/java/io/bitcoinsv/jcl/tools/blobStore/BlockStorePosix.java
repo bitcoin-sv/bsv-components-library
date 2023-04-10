@@ -16,10 +16,9 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-import java.util.Spliterator;
-import java.util.Spliterators;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.*;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -34,9 +33,59 @@ public class BlockStorePosix {
 
     private static final Logger log = LoggerFactory.getLogger(BlockStorePosix.class);
 
+    private static final String BLOCK_FILE_TYPE_BLOCK_DATA = "block";
+    private static final String BLOCK_FILE_TYPE_TX_LIST = "txs";
+    private static final String BLOCK_FILE_TYPE_TMP = "tmp";
+
+    // Delay between calls on these operations that wait/pull until the requested Block is saved
+    public static final Duration WAIT_DELAY = Duration.ofMillis(5);
+
     private BlockStorePosixConfig config;
-    public BlockStorePosix(BlockStorePosixConfig config) {
+
+    public BlockStorePosix() {}
+
+    public void setConfiguration(BlockStorePosixConfig config) {
         this.config = config;
+    }
+
+    /**
+     * Saves the list of given block hashes. Once a block has been committed, no more data related to that block will be able to be saved.
+     * @param headerReadOnly
+     * @param blockHashes
+     * @throws IllegalAccessException
+     */
+    public void saveBlockHashes(HeaderReadOnly headerReadOnly, List<Sha256Hash> blockHashes) throws IllegalAccessException {
+        if (containsBlock(headerReadOnly.getHash())) {
+            throw new IllegalAccessException("cannot write to a committed block");
+        }
+
+        File blockHashFile = getFileByFileType(headerReadOnly.getHash(), BLOCK_FILE_TYPE_TX_LIST);
+
+        FileOutputStream bos = null;
+        try {
+            boolean exists = blockHashFile.exists();
+
+            if(!exists){
+                createTempFile(headerReadOnly.getHash());
+            }
+
+            bos = FileUtils.openOutputStream(blockHashFile, exists);
+            bos.getChannel().lock();
+
+            for(Sha256Hash hash: blockHashes){
+                bos.write(hash.getBytes());
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (bos != null)
+                    bos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
     }
 
@@ -50,26 +99,21 @@ public class BlockStorePosix {
      * @throws IllegalAccessException exception is thrown if an attempt is made to write to a committed block
      */
     public void saveBlock(HeaderReadOnly headerReadOnly, long numberOfTxs, byte[] txsBytes) throws IllegalAccessException {
-        File blockFile = getBlockPath(headerReadOnly.getHash()).toFile();
-        File blockFileTemp = getTempPath(headerReadOnly.getHash()).toFile();
+        File blockFile = getFileByFileType(headerReadOnly.getHash(), BLOCK_FILE_TYPE_BLOCK_DATA);
 
         if (containsBlock(headerReadOnly.getHash())) {
             throw new IllegalAccessException("cannot write to a committed block");
         }
 
-        FileOutputStream tbos = null;
         FileOutputStream bos = null;
         try {
-            tbos = FileUtils.openOutputStream(blockFileTemp, blockFile.exists());
-            tbos.getChannel().lock();
-
             boolean exists = blockFile.exists();
-
-            bos = FileUtils.openOutputStream(blockFile, blockFile.exists());
+            bos = FileUtils.openOutputStream(blockFile, exists);
             bos.getChannel().lock();
 
-
             if (!exists) {
+                createTempFile(headerReadOnly.getHash());
+
                 bos.write(headerReadOnly.serialize());
                 bos.write(new VarInt(numberOfTxs).encode());
             }
@@ -79,9 +123,6 @@ public class BlockStorePosix {
             e.printStackTrace();
         } finally {
             try {
-                if (tbos != null)
-                    tbos.close();
-
                 if(bos != null)
                     bos.close();
             } catch (IOException e) {
@@ -91,12 +132,12 @@ public class BlockStorePosix {
     }
 
     /**
-     * Removes the temp file which indicates the file has been written
+     * Commits the block directory by removing the temp file which indicates the directory has finished being written too
      *
      * @param blockHash
      */
     public boolean commitBlock(Sha256Hash blockHash) {
-        File blockFileTemp = getTempPath(blockHash).toFile();
+        File blockFileTemp = getFileByFileType(blockHash, BLOCK_FILE_TYPE_TMP);
 
         return blockFileTemp.delete();
     }
@@ -108,7 +149,7 @@ public class BlockStorePosix {
      * @return the header of the block
      */
     public HeaderReadOnly readBlockHeader(Sha256Hash blockHash) throws IllegalStateException {
-        File file = getBlockPath(blockHash).toFile();
+        File file = getFileByFileType(blockHash, BLOCK_FILE_TYPE_BLOCK_DATA);
 
         if(!containsBlock(blockHash)){
             throw new IllegalStateException("block has either not been committed or does not exist");
@@ -134,7 +175,7 @@ public class BlockStorePosix {
      * @return the header of the block
      */
     public Long readNumberOfTxs(Sha256Hash blockHash) throws IllegalStateException {
-        File file = getBlockPath(blockHash).toFile();
+        File file = getFileByFileType(blockHash, BLOCK_FILE_TYPE_BLOCK_DATA);
 
         if(!containsBlock(blockHash)){
             throw new IllegalStateException("block has either not been committed or does not exist");
@@ -175,13 +216,87 @@ public class BlockStorePosix {
     }
 
     /**
+     * Returns a stream containing a list of tx hashes. The stream must be closed if not fully iterated.
+     *
+     * @param blockHash
+     * @return
+     */
+    public Stream<Sha256Hash> readBlockTxHashes(Sha256Hash blockHash) throws IllegalStateException {
+        File file = getFileByFileType(blockHash, BLOCK_FILE_TYPE_TX_LIST);
+
+        if(!containsBlock(blockHash)){
+            throw new IllegalStateException(String.format("block %s has either not been committed or does not exist", blockHash));
+        }
+
+        try {
+            InputStreamReader reader = new InputStreamReader(new FileInputStream(file));
+
+            Iterator<Sha256Hash> fisIterator = new Iterator<>() {
+                @Override
+                public boolean hasNext() {
+                    try {
+                        if (reader.available() > 0)
+                            return true;
+                        else {
+                            reader.closeAndClear();
+                            return false;
+                        }
+                    } catch (IOException e) {
+                        log.warn("Unable to read file");
+                    }
+
+                    return false;
+                }
+
+                @Override
+                public Sha256Hash next() {
+                    return Sha256Hash.wrap(reader.read(Sha256Hash.LENGTH));
+                }
+            };
+
+
+            Stream<Sha256Hash> stream = StreamSupport.stream(Spliterators.spliteratorUnknownSize(fisIterator, Spliterator.ORDERED), false).onClose(() -> {
+                reader.closeAndClear();
+            });
+
+            return stream;
+
+        } catch (IOException ex) {
+            //should be caught by containsBlock
+            log.warn("Attempted lookup on none existent block: " + blockHash);
+        }
+
+        return Stream.empty();
+    }
+
+    /**
+     * Returns a stream containing a list of tx hashes. The stream must be closed if not fully iterated.
+     * This function also WAITS for the block until the block is available, or a timeout specified in "waitingTime" is
+     * reached.
+     *
+     * @param blockHash
+     * @param waitingTime Maximum Time this function will wait for the Block to be available
+     * @return
+     */
+    public Stream<Sha256Hash> readBlockTxHashesWithWait(Sha256Hash blockHash, Duration waitingTime) throws IllegalStateException {
+        long beginTimestamp = System.currentTimeMillis();
+        while (!containsBlock(blockHash)) {
+            try { Thread.sleep(WAIT_DELAY.toMillis());} catch(InterruptedException ignore) {}
+            if ((System.currentTimeMillis() - beginTimestamp) > waitingTime.toMillis()) {
+                throw new IllegalStateException(String.format("Block %s not stored within %s millisecs", blockHash, waitingTime.toMillis()));
+            }
+        }
+        return readBlockTxHashes(blockHash);
+    }
+
+    /**
      * Returns a stream containing the txs bytes. The stream must be closed if not fully iterated.
      *
      * @param blockHash
      * @return
      */
     private Stream<byte[]> streamBlock(Sha256Hash blockHash, boolean txsOnly) throws IllegalStateException {
-        File file = getBlockPath(blockHash).toFile();
+        File file = getFileByFileType(blockHash, BLOCK_FILE_TYPE_BLOCK_DATA);
 
         if(!containsBlock(blockHash)){
             throw new IllegalStateException("block has either not been committed or does not exist");
@@ -235,7 +350,7 @@ public class BlockStorePosix {
     }
 
     public Stream<byte[]> readPartiallySerializedBlockTxs(Sha256Hash blockHash) throws IllegalStateException {
-        File file = getBlockPath(blockHash).toFile();
+        File file = getFileByFileType(blockHash, BLOCK_FILE_TYPE_BLOCK_DATA);
 
         if(!containsBlock(blockHash)){
             throw new IllegalStateException("block has either not been committed or does not exist");
@@ -294,11 +409,14 @@ public class BlockStorePosix {
      * @param blockHash
      */
     public void removeBlock(Sha256Hash blockHash) {
-        File blockFile = getBlockPath(blockHash).toFile();
-        File tempFile = getTempPath(blockHash).toFile();
+        File blockFile = getFileByFileType(blockHash, BLOCK_FILE_TYPE_BLOCK_DATA);
+        File txFile = getFileByFileType(blockHash, BLOCK_FILE_TYPE_TX_LIST);
+        File blockFileTemp = getFileByFileType(blockHash, BLOCK_FILE_TYPE_TMP);
+
 
         blockFile.delete();
-        tempFile.delete();
+        txFile.delete();
+        blockFileTemp.delete();
     }
 
     /**
@@ -306,9 +424,21 @@ public class BlockStorePosix {
      */
     public void clear() {
         try {
-            FileUtils.deleteDirectory(getBlocksDir().toFile());
+            FileUtils.deleteDirectory(getRootDir().toFile());
         } catch (IOException ex) {
             log.warn("Unable to clear database");
+        }
+    }
+
+    /**
+     * Clears all blocks that have not been committed
+     */
+    public void clearUncommittedBlocks(){
+        try {
+            Files.walk(getFileTypeRootDir(BLOCK_FILE_TYPE_TMP)).filter(Files::isRegularFile)
+                    .forEach(f -> removeBlock(fileToBlockHash(f.getFileName().toFile())));
+        } catch (IOException ex) {
+            log.warn("Unable to clear uncommitted blocks from database");
         }
     }
 
@@ -322,7 +452,7 @@ public class BlockStorePosix {
                 throw new IllegalStateException("block has not been committed");
             }
 
-            return Files.size(getBlockPath(blockHash));
+            return Files.size(getFileByFileType(blockHash, BLOCK_FILE_TYPE_BLOCK_DATA).toPath());
         } catch (IOException ex) {
             return 0;
         }
@@ -333,38 +463,37 @@ public class BlockStorePosix {
      * @return true if the block exists and has been committed
      */
     public boolean containsBlock(Sha256Hash blockHash) {
-        File blockFileTemp = getTempPath(blockHash).toFile();
-        File blockFile = getBlockPath(blockHash).toFile();
+        File blockFile = getFileByFileType(blockHash, BLOCK_FILE_TYPE_BLOCK_DATA);
+        File blockFileTemp = getFileByFileType(blockHash, BLOCK_FILE_TYPE_TMP);
 
         return !blockFileTemp.exists() && blockFile.exists();
     }
 
+
     /**
-     * Returns the path of the given block relative to the configued working directory
-     *
-     * @param hash
+     * Returns the file within the block path subdir
+     * @param hash the object hash representing the file name
+     * @param fileType the type of file we want to open
      * @return
      */
-    private Path getBlockPath(Sha256Hash hash) {
-        return getBlocksDir().resolve(calculateFanoutPath(hash)).resolve(hash.toString());
+    private File getFileByFileType(Sha256Hash hash, String fileType){
+        return getFileTypeRootDir(fileType).resolve(calculateFanoutPath(hash)).resolve(hash.toString()).toFile();
     }
 
     /**
-     * Returns and extends the path of the given block relative to the configued working directory
-     *
-     * @param hash
-     * @param path path being extended
+     * Returns the root path of the file type
+     * @param fileType
      * @return
      */
-    private Path getBlockPath(Path path, Sha256Hash hash) {
-        return path.resolve(calculateFanoutPath(hash)).resolve(hash.toString());
+    private Path getFileTypeRootDir(String fileType) {
+        return getRootDir().resolve(fileType);
     }
 
     /**
      * @return the base path where blocks should be stored
      */
-    public Path getBlocksDir() {
-        return Paths.get(config.getWorkingFolder().toString(), "blocks");
+    private Path getRootDir() {
+        return Paths.get(config.getWorkingFolder().toString());
     }
 
     /**
@@ -383,13 +512,19 @@ public class BlockStorePosix {
     }
 
     /**
-     * Files are written to a temp path until we can confirm the file has been completely saved
-     *
-     * @param blockHash
-     * @return
+     * Creates a temp file to keep track of which blocks have been committed
      */
-    private Path getTempPath(Sha256Hash blockHash) {
-        var path = getBlocksDir().resolve("tmp");
-        return getBlockPath(path, blockHash);
+    private void createTempFile(Sha256Hash blockHash) throws IOException {
+        File tempFile = getFileByFileType(blockHash, BLOCK_FILE_TYPE_TMP);
+        tempFile.getParentFile().mkdirs();
+        tempFile.createNewFile();
+    }
+
+    /**
+     * Returns the block hash associated with a file
+     * @param file
+     */
+    private Sha256Hash fileToBlockHash(File file){
+        return Sha256Hash.wrap(file.toString());
     }
 }

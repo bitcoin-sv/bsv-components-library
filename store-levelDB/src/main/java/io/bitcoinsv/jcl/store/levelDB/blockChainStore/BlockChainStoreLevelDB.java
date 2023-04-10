@@ -37,15 +37,6 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
     private final Duration statePublishFrequency;
     private ScheduledExecutorService scheduledExecutorService;
 
-    // Automatic prunning configuration:
-    public static Duration FORK_PRUNNING_FREQUENCY_DEFAULT      = Duration.ofMinutes(180);
-    public static Duration ORPHAN_PRUNNING_FREQUENCY_DEFAULT    = Duration.ofMinutes(60);
-
-    private final Boolean  enableAutomaticForkPrunning;
-    private final Duration forkPrunningFrequency;
-    private final Boolean  enableAutomaticOrphanPrunning;
-    private final Duration orphanPrunningFrequency;
-
     // Events Streamer:
     private final BlockChainStoreStreamer blockChainStoreStreamer;
 
@@ -54,26 +45,12 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
                                   boolean triggerTxEvents,
                                   Class<? extends Metadata> blockMetadataClass,
                                   Class<? extends Metadata> txMetadataClass,
-                                  Duration statePublishFrequency,
-                                  Boolean enableAutomaticForkPrunning,
-                                  Duration forkPrunningFrequency,
-                                  Boolean enableAutomaticOrphanPrunning,
-                                  Duration orphanPrunningFrequency) {
+                                  Duration statePublishFrequency) {
 
         super(config, triggerBlockEvents, triggerTxEvents, blockMetadataClass, txMetadataClass);
         this.config = config;
 
-        this.enableAutomaticForkPrunning = (enableAutomaticForkPrunning != null) ? enableAutomaticForkPrunning : false;
         this.statePublishFrequency = statePublishFrequency;
-        this.forkPrunningFrequency = (forkPrunningFrequency != null) ? forkPrunningFrequency : FORK_PRUNNING_FREQUENCY_DEFAULT;
-        this.enableAutomaticOrphanPrunning = (enableAutomaticOrphanPrunning != null) ? enableAutomaticOrphanPrunning : false;
-        this.orphanPrunningFrequency = (orphanPrunningFrequency != null) ? orphanPrunningFrequency: ORPHAN_PRUNNING_FREQUENCY_DEFAULT;
-
-        // We set up the executor Service in case we need to launch processes in a different Thread, which is the case
-        // when we publish state, do automatic Fork prunning or automatic orphan prunning
-        if (this.statePublishFrequency != null || this.enableAutomaticForkPrunning || this.enableAutomaticOrphanPrunning) {
-            this.scheduledExecutorService = ThreadUtils.getScheduledExecutorService("BlockChainStore-LevelDB-thread");
-        }
 
         blockChainStoreStreamer = new BlockChainStoreStreamer(super.eventBus);
     }
@@ -109,6 +86,15 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
             executeInTransaction(tr, () -> _initGenesisBlock(tr, config.getGenesisBlock()));
         }
 
+        // We set up the executor Service in case we need to launch processes in a different Thread, which is the case
+        // when we publish state, do automatic Fork prunning or automatic orphan prunning
+        if (this.statePublishFrequency != null
+                || config.isForkPruningAutomaticEnabled()
+                || config.isForkPruningAlertEnabled()
+                || config.isOrphanPruningAutomaticEnabled()) {
+            this.scheduledExecutorService = ThreadUtils.getScheduledExecutorService("BlockChainStore-LevelDB-thread");
+        }
+
         // If enabled, we start the job to publish the DB State:
         if (statePublishFrequency != null)
             this.scheduledExecutorService.scheduleAtFixedRate(this::_publishState,
@@ -117,25 +103,26 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
                     TimeUnit.MILLISECONDS);
 
         // If enabled, we start the job to do the automatic FORK Prunning:
-        if (enableAutomaticForkPrunning)
+        if (config.isForkPruningAutomaticEnabled() || config.isForkPruningAlertEnabled())
             this.scheduledExecutorService.scheduleAtFixedRate(this::_automaticForkPrunning,
-                    forkPrunningFrequency.toMillis(),
-                    forkPrunningFrequency.toMillis(),
+                    config.getForkPruningFrequency().toMillis(),
+                    config.getForkPruningFrequency().toMillis(),
                     TimeUnit.MILLISECONDS);
 
         // If enabled, we start the job to do the automatic ORPHAN Prunning:
-        if (enableAutomaticOrphanPrunning)
+        if (config.isOrphanPruningAutomaticEnabled())
             this.scheduledExecutorService.scheduleAtFixedRate(this::_automaticOrphanPrunning,
-                    orphanPrunningFrequency.toMillis(),
-                    orphanPrunningFrequency.toMillis(),
+                    config.getOrphanPruningFrequency().toMillis(),
+                    config.getForkPruningFrequency().toMillis(),
                     TimeUnit.MILLISECONDS);
     }
 
     @Override
     public void stop() {
         // If enabled, we stop the job to publish the state
-        if (statePublishFrequency != null || enableAutomaticForkPrunning || enableAutomaticOrphanPrunning) {
+        if (statePublishFrequency != null || config.isForkPruningAutomaticEnabled() || config.isOrphanPruningAutomaticEnabled()) {
             try {
+                this.scheduledExecutorService.shutdown();
                 this.scheduledExecutorService.awaitTermination(1000, TimeUnit.MILLISECONDS);
             } catch (InterruptedException ie) {}
             this.scheduledExecutorService.shutdownNow();
@@ -169,12 +156,7 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
         private boolean triggerTxEvents;
         private Class<? extends Metadata> blockMetadataClass;
         private Class<? extends Metadata> txMetadataClass;
-
         private Duration statePublishFrequency;
-        private Boolean enableAutomaticForkPrunning;
-        private Duration forkPrunningFrequency;
-        private Boolean enableAutomaticOrphanPrunning;
-        private Duration orphanPrunningFrequency;
 
         BlockChainStoreLevelDBBuilder() {
         }
@@ -209,28 +191,13 @@ public class BlockChainStoreLevelDB extends BlockStoreLevelDB implements BlockCh
             return this;
         }
 
-        public BlockChainStoreLevelDB.BlockChainStoreLevelDBBuilder enableAutomaticForkPrunning(Boolean enableAutomaticForkPrunning) {
-            this.enableAutomaticForkPrunning = enableAutomaticForkPrunning;
-            return this;
-        }
-
-        public BlockChainStoreLevelDB.BlockChainStoreLevelDBBuilder forkPrunningFrequency(Duration forkPrunningFrequency) {
-            this.forkPrunningFrequency = forkPrunningFrequency;
-            return this;
-        }
-
-        public BlockChainStoreLevelDB.BlockChainStoreLevelDBBuilder enableAutomaticOrphanPrunning(Boolean enableAutomaticOrphanPrunning) {
-            this.enableAutomaticOrphanPrunning = enableAutomaticOrphanPrunning;
-            return this;
-        }
-
-        public BlockChainStoreLevelDB.BlockChainStoreLevelDBBuilder orphanPrunningFrequency(Duration orphanPrunningFrequency) {
-            this.orphanPrunningFrequency = orphanPrunningFrequency;
-            return this;
-        }
-
         public BlockChainStoreLevelDB build() {
-            return new BlockChainStoreLevelDB(config, triggerBlockEvents, triggerTxEvents, blockMetadataClass, txMetadataClass, statePublishFrequency, enableAutomaticForkPrunning, forkPrunningFrequency, enableAutomaticOrphanPrunning, orphanPrunningFrequency);
+            return new BlockChainStoreLevelDB(config,
+                    triggerBlockEvents,
+                    triggerTxEvents,
+                    blockMetadataClass,
+                    txMetadataClass,
+                    statePublishFrequency);
         }
     }
 }

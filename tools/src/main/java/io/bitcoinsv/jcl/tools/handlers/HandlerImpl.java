@@ -2,9 +2,11 @@ package io.bitcoinsv.jcl.tools.handlers;
 
 
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig;
+import io.bitcoinsv.jcl.tools.events.Event;
 import io.bitcoinsv.jcl.tools.events.EventBus;
 
 import java.time.Duration;
+import java.util.function.Consumer;
 
 
 /**
@@ -48,6 +50,10 @@ public abstract class HandlerImpl<K, V> implements Handler {
     // Map This timeout should be enough for the PeerHandshakedEvent to arrive, in case there is such race condition
     private static final Duration DEFAULT_HANDSHAKE_TIMEOUT_MS = Duration.ofMillis(50);
 
+    protected <E extends Event> void subscribe(Class<E> eventClass, Consumer<E> eventHandler) {
+        eventBus.subscribe((Class<Event>) eventClass, (Consumer<Event>) eventHandler);
+    }
+
     @Override
     public void useEventBus(EventBus eventBus) {
         this.eventBus = eventBus;
@@ -59,10 +65,6 @@ public abstract class HandlerImpl<K, V> implements Handler {
         this.runtimeConfig = runtimeConfig;
     }
 
-    // Initialization stuff
-    public abstract void init();
-
-
     protected V getOrWaitForHandlerInfo(K peerAddress){
         try {
             V peerInfo = handlerInfo.take(peerAddress, DEFAULT_HANDSHAKE_TIMEOUT_MS);
@@ -71,6 +73,4 @@ public abstract class HandlerImpl<K, V> implements Handler {
             throw new RuntimeException(ex);
         }
     }
-
-
 }

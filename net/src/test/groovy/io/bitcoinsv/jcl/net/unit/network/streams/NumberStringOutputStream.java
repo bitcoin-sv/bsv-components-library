@@ -5,11 +5,9 @@ package io.bitcoinsv.jcl.net.unit.network.streams;
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.network.streams.PeerOutputStream;
 import io.bitcoinsv.jcl.net.network.streams.PeerOutputStreamImpl;
-import io.bitcoinsv.jcl.net.network.streams.StreamDataEvent;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 
 /**
  * @author i.fernandez@nchain.com
@@ -23,10 +21,10 @@ public class NumberStringOutputStream extends PeerOutputStreamImpl<Integer, Stri
         super(peerAddress, destination);
     }
     @Override
-    public List<StreamDataEvent<String>> transform(StreamDataEvent<Integer> dataEvent) {
+    public List<String> transform(Integer dataEvent) {
         try { Thread.sleep(10);} catch (Exception e) {} // simulate real work
-        String result = "[" + String.valueOf(dataEvent.getData()) + "]";
-        System.out.println(">> NumberStringOutputStream ::Receiving " + dataEvent.getData() + ", sending " + result);
-        return Arrays.asList(new StreamDataEvent<>(result));
+        String result = "[" + dataEvent + "]";
+        System.out.println(">> NumberStringOutputStream ::Receiving " + dataEvent + ", sending " + result);
+        return List.of(result);
     }
 }

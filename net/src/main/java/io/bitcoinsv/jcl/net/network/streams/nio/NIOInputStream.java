@@ -5,19 +5,20 @@ import io.bitcoinsv.jcl.net.network.config.NetworkConfig;
 import io.bitcoinsv.jcl.net.network.streams.PeerInputStream;
 import io.bitcoinsv.jcl.net.network.streams.PeerInputStreamImpl;
 import io.bitcoinsv.jcl.net.network.streams.StreamCloseEvent;
-import io.bitcoinsv.jcl.net.network.streams.StreamDataEvent;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayStatic;
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig;
-import io.bitcoinsv.jcl.net.tools.LoggerUtil;
+import io.bitcoinsv.jcl.tools.thread.ThreadUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -42,14 +43,14 @@ public class NIOInputStream extends PeerInputStreamImpl<ByteArrayReader, ByteArr
     private NetworkConfig networkConfig;
 
     // For loggin:
-    LoggerUtil logger;
+    private static final Logger log = LoggerFactory.getLogger(NIOInputStream.class);
 
-    private PeerAddress peerAddress;
-    private NIOStreamState state;
+    private final PeerAddress peerAddress;
+    private final NIOStreamState state = new NIOStreamState();
 
     // The Selection Key and the Sockets linked to the physical connection to the remote Peer
-    private SelectionKey key;
-    private SocketChannel socketChannel;
+    private final SelectionKey key;
+    private final SocketChannel socketChannel;
 
     // The following variables control the capacity of the Buffer used to READ bytes from it.
     // sometimes, during the lifecycle of this class, it wil be used for regular communications (small
@@ -62,16 +63,23 @@ public class NIOInputStream extends PeerInputStreamImpl<ByteArrayReader, ByteArr
     private ByteBuffer readBuffer;
     private boolean bufferNeedToUpgrade;
     private boolean bufferNeedToReset;
-    private int bufferNormalCapacity;
-    private int bufferHighCapacity;
+    private final int bufferNormalCapacity;
+    private final int bufferHighCapacity;
+
+    private final int QUEUE_SIZE = 100;
+    private final ArrayBlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(QUEUE_SIZE);
+
+    /**
+     * This executor is used to release socket channel reading thread from deserializing flow.
+     * It uses blocking queue, so it doesn't read more than deserializer is able to process.
+     */
+    private final ExecutorService executorService = ThreadUtils.getBlockingSingleThreadExecutorService("NIOInputStream_executor", Thread.NORM_PRIORITY, queue);
 
     public NIOInputStream(PeerAddress peerAddress,
-                          ExecutorService executor,
                           RuntimeConfig runtimeConfig,
                           NetworkConfig networkConfig,
                           SelectionKey key) {
-        super(peerAddress, executor, null);
-        this.logger = new LoggerUtil(peerAddress.toString(), this.getClass());
+        super(peerAddress, null);
 
         this.runtimeConfig = runtimeConfig;
         this.networkConfig = networkConfig;
@@ -83,14 +91,6 @@ public class NIOInputStream extends PeerInputStreamImpl<ByteArrayReader, ByteArr
         this.bufferHighCapacity = networkConfig.getNioBufferSizeUpgrade();
 
         this.readBuffer = getBufferForReading();
-        this.state = NIOStreamState.builder().build();
-
-    }
-
-    private void updateState(int bytesReceivedToAdd) {
-        this.state.toBuilder()
-                .numBytesProcessed(state.getNumBytesProcessed().add(BigInteger.valueOf(bytesReceivedToAdd)))
-                .build();
     }
 
     // It marks a flag saying that before using the Buffer next time, we need to upgrade it
@@ -116,13 +116,13 @@ public class NIOInputStream extends PeerInputStreamImpl<ByteArrayReader, ByteArr
     private ByteBuffer getBufferForReading() {
         ByteBuffer result = null;
         if (bufferNeedToUpgrade) {
-            logger.trace("upgrading Buffer...");
+            log.trace("upgrading Buffer...");
             result = ByteBuffer.allocateDirect(bufferHighCapacity);
         }  else if (bufferNeedToReset) {
-            logger.trace("resetting Buffer...");
+            log.trace("resetting Buffer...");
             result = ByteBuffer.allocateDirect(bufferNormalCapacity);
         }  else if (readBuffer == null) {
-            logger.trace("creating Buffer...");
+            log.trace("creating Buffer...");
             result = ByteBuffer.allocateDirect(bufferNormalCapacity);
         }  else result = this.readBuffer;
 
@@ -132,16 +132,24 @@ public class NIOInputStream extends PeerInputStreamImpl<ByteArrayReader, ByteArr
         return result;
     }
 
-    public int readFromSocket() throws IOException {
+    private void updateState(int bytesReceivedToAdd) {
+        state.increment(bytesReceivedToAdd);
+    }
+
+    public synchronized int readFromSocket() throws IOException {
+        if (queue.size() == QUEUE_SIZE) {
+            return 0;
+        }
+
         // We read data from the Buffer and connection verifications:
         try {
-            // Before using the Buffer to read data from it, we check if we need to upgrtade/reset it...
             ByteBuffer buffer = getBufferForReading();
             int read = this.socketChannel.read(buffer);
             updateState(read);
 
-            //logger.debug(read + " bytes received from " +this.socketChannel.socket().getRemoteSocketAddress());
-            if (read <= 0) return read;
+            if (read <= 0) {
+                return read;
+            }
 
             // We feed the StreamOperations with that data. We concert the data into a ByteArray object, and we
             // feed our StreamOperations with it:
@@ -158,15 +166,18 @@ public class NIOInputStream extends PeerInputStreamImpl<ByteArrayReader, ByteArr
             // So we are using here an "improved" version of ByteArray which is optimized for the situation when we are
             // mainly only interested in its "get()" method.
 
-            ByteArrayReader byteArrayReader = new ByteArrayReader(new ByteArrayStatic(data)); // Optimization
 
-            logger.trace(read + " bytes received from " + peerAddress.toString());
-            super.eventBus.publish(new StreamDataEvent<>(byteArrayReader));
+            executorService.execute(() -> {
+                ByteArrayReader byteArrayReader = new ByteArrayReader(new ByteArrayStatic(data)); // Optimization
+                onDataListeners.forEach(dataListener -> dataListener.accept(byteArrayReader));
+            });
+
             return read;
-        } catch (IOException ioe) {
-            this.close(new StreamCloseEvent());
+        } catch (IOException e) {
+            log.error("Reading form {} socket failed!", peerAddress, e);
+            close(new StreamCloseEvent());
+            throw e;
         }
-        return -1;
     }
 
     @Override
@@ -176,11 +187,22 @@ public class NIOInputStream extends PeerInputStreamImpl<ByteArrayReader, ByteArr
             key.cancel();
             this.socketChannel.close();
         } catch (IOException ioe) {
-            logger.error(ioe.getMessage(), ioe);
+            log.error(ioe.getMessage(), ioe);
         }
     }
 
-    public  List<StreamDataEvent<ByteArrayReader>> transform(StreamDataEvent<ByteArrayReader> dataEvent) {
+    @Override
+    public void expectedMessageSize(long messageSize) {
+        boolean isABigMessage = (messageSize >= this.bufferHighCapacity);
+        if (isABigMessage && this.readBuffer.capacity() < this.bufferHighCapacity) {
+            this.upgradeBufferSize();
+        } else if ( !isABigMessage && this.readBuffer.capacity() > this.bufferNormalCapacity) {
+            this.resetBufferSize();
+        }
+    }
+
+    @Override
+    public  List<ByteArrayReader> transform(ByteArrayReader dataEvent) {
         throw new UnsupportedOperationException();
     }
 

@@ -1,5 +1,6 @@
 package io.bitcoinsv.jcl.net.integration.protocol.handlers.discovery
 
+import io.bitcoinsv.jcl.net.integration.utils.IntegrationUtils
 import io.bitcoinsv.jcl.net.network.PeerAddress
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfigBuilder
@@ -52,6 +53,10 @@ class DiscoveryRenewTest extends Specification {
                 .ADDRFrequency(Optional.of(triggerTime))
                 .recoveryHandshakeFrequency(Optional.empty())
                 .build()
+
+            // We extends the DiscoveryHandler Config, in case DNS's are not working properly:
+            discoveryConfig = IntegrationUtils.getDiscoveryHandlerConfigMainnet(discoveryConfig)
+
             P2P server = new P2PBuilder("testing")
                     .config(config)
                     .config(discoveryConfig)

@@ -39,7 +39,7 @@ public class EventQueueProcessor {
     }
 
     /** It adds an Event Handler/Consumer, linked to an event Type. More than on Handler can be assigned to a Type */
-    public void addProcessor(Class<? extends Event> eventClass, Consumer eventConsumer) {
+    public  <T extends Event> void addProcessor(Class<T> eventClass, Consumer<T> eventConsumer) {
         eventsConsumers.put(eventClass, eventConsumer);
     }
 

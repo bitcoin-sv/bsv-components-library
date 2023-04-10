@@ -13,6 +13,8 @@ import io.bitcoinsv.jcl.net.protocol.handlers.message.MessageHandler;
 import io.bitcoinsv.jcl.net.protocol.handlers.message.MessageHandlerConfig;
 import io.bitcoinsv.jcl.net.protocol.handlers.pingPong.PingPongHandler;
 import io.bitcoinsv.jcl.net.protocol.handlers.pingPong.PingPongHandlerConfig;
+import io.bitcoinsv.jcl.net.protocol.handlers.whitelist.WhitelistHandler;
+import io.bitcoinsv.jcl.net.protocol.handlers.whitelist.WhitelistHandlerConfig;
 import io.bitcoinsv.jcl.net.protocol.messages.BlockHeaderMsg;
 import io.bitcoinsv.jcl.tools.handlers.HandlerConfig;
 
@@ -43,6 +45,7 @@ public class ProtocolConfigImpl implements ProtocolConfig {
     protected PingPongHandlerConfig pingPongConfig;
     protected DiscoveryHandlerConfig discoveryConfig;
     protected BlacklistHandlerConfig blacklistConfig;
+    protected WhitelistHandlerConfig whitelistConfig;
     protected BlockDownloaderHandlerConfig blockDownloaderConfig;
     protected Map<String, HandlerConfig> handlersConfig = new HashMap<>();
 
@@ -65,6 +68,7 @@ public class ProtocolConfigImpl implements ProtocolConfig {
                                 PingPongHandlerConfig pingPongConfig,
                                 DiscoveryHandlerConfig discoveryConfig,
                                 BlacklistHandlerConfig blacklistConfig,
+                                WhitelistHandlerConfig whitelistHandlerConfig,
                                 BlockDownloaderHandlerConfig blockDownloaderConfig) {
 
         // The Basic Config is Mandatory...
@@ -109,6 +113,10 @@ public class ProtocolConfigImpl implements ProtocolConfig {
                 ? new BlacklistHandlerConfig(this.basicConfig).toBuilder().build()
                 : blacklistConfig.toBuilder().basicConfig(this.basicConfig).build();
 
+        this.whitelistConfig = (whitelistHandlerConfig == null)
+                ? new WhitelistHandlerConfig(this.basicConfig).toBuilder().build()
+                : whitelistHandlerConfig.toBuilder().basicConfig(this.basicConfig).build();
+
         this.blockDownloaderConfig = (blockDownloaderConfig == null)
                 ? new BlockDownloaderHandlerConfig().toBuilder().basicConfig(this.basicConfig).build()
                 : blockDownloaderConfig.toBuilder().basicConfig(this.basicConfig).build();
@@ -119,6 +127,7 @@ public class ProtocolConfigImpl implements ProtocolConfig {
         handlersConfig.put(PingPongHandler.HANDLER_ID, this.pingPongConfig);
         handlersConfig.put(DiscoveryHandler.HANDLER_ID, this.discoveryConfig);
         handlersConfig.put(BlacklistHandler.HANDLER_ID, this.blacklistConfig);
+        handlersConfig.put(WhitelistHandler.HANDLER_ID, this.whitelistConfig);
         handlersConfig.put(BlockDownloaderHandler.HANDLER_ID, this.blockDownloaderConfig);
     }
 
@@ -135,6 +144,7 @@ public class ProtocolConfigImpl implements ProtocolConfig {
     public PingPongHandlerConfig getPingPongConfig()                { return this.pingPongConfig; }
     public DiscoveryHandlerConfig getDiscoveryConfig()              { return this.discoveryConfig; }
     public BlacklistHandlerConfig getBlacklistConfig()              { return this.blacklistConfig; }
+    public WhitelistHandlerConfig getWhitelistConfig()              { return this.whitelistConfig;}
     public BlockDownloaderHandlerConfig getBlockDownloaderConfig()  { return this.blockDownloaderConfig; }
     public Map<String, HandlerConfig> getHandlersConfig()           { return this.handlersConfig; }
 
@@ -171,6 +181,7 @@ public class ProtocolConfigImpl implements ProtocolConfig {
         private PingPongHandlerConfig pingPongConfig;
         private DiscoveryHandlerConfig discoveryConfig;
         private BlacklistHandlerConfig blacklistConfig;
+        private WhitelistHandlerConfig whitelistConfig;
         private BlockDownloaderHandlerConfig blockDownloaderConfig;
 
         ProtocolConfigImplBuilder() {}
@@ -225,13 +236,18 @@ public class ProtocolConfigImpl implements ProtocolConfig {
             return this;
         }
 
+        public ProtocolConfigImpl.ProtocolConfigImplBuilder whitelistConfig(WhitelistHandlerConfig whitelistConfig) {
+            this.whitelistConfig = whitelistConfig;
+            return this;
+        }
+
         public ProtocolConfigImpl.ProtocolConfigImplBuilder blockDownloaderConfig(BlockDownloaderHandlerConfig blockDownloaderConfig) {
             this.blockDownloaderConfig = blockDownloaderConfig;
             return this;
         }
 
         public ProtocolConfigImpl build() {
-            return new ProtocolConfigImpl(port, minPeers, maxPeers, genesisBlock, basicConfig, messageConfig, handshakeConfig, pingPongConfig, discoveryConfig, blacklistConfig, blockDownloaderConfig);
+            return new ProtocolConfigImpl(port, minPeers, maxPeers, genesisBlock, basicConfig, messageConfig, handshakeConfig, pingPongConfig, discoveryConfig, blacklistConfig, whitelistConfig, blockDownloaderConfig);
         }
     }
 }

@@ -2,6 +2,7 @@ package io.bitcoinsv.jcl.store.blockChainStore;
 
 
 import io.bitcoinsv.jcl.store.blockChainStore.events.BlockChainStoreStreamer;
+import io.bitcoinsv.jcl.store.blockChainStore.events.ChainPruneAlertEvent;
 import io.bitcoinsv.jcl.store.blockStore.BlockStore;
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.extended.ChainInfo;
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
@@ -119,8 +120,16 @@ public interface BlockChainStore extends BlockStore {
      * @param tipChainHash  Tip of the Chain that we want to rune
      * @param removeTxs     if TRUE, the TXs belonging to each Block will also be removed
      */
-    void prune(Sha256Hash tipChainHash, boolean removeTxs);
+    List<Sha256Hash> prune(Sha256Hash tipChainHash, boolean removeBlocks, boolean removeTxs);
 
+    default List<Sha256Hash> prune(Sha256Hash tipChainHash, boolean removeTxs) {
+        return prune(tipChainHash, true, removeTxs);
+    }
+
+    /**
+     * Prunes the chain based on the Request given
+     */
+    List<Sha256Hash> prune(ChainPruneAlertEvent request);
 
     /**
      * Returns the current State of the Info stored

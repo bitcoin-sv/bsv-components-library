@@ -15,6 +15,8 @@ version = "$rootProject.jclVersion"
 dependencies {
     implementation "io.bitcoinsv.bitcoinjsv:bitcoinj-base:$bitcoinJVersion"
     implementation(project(":tools"))
+    implementation 'org.apache.commons:commons-collections4:4.4'
+    implementation 'commons-io:commons-io:2.11.0'
 
     testImplementation 'com.madgag.spongycastle:core:1.51.0.0'
     testImplementation 'org.mockito:mockito-all:1.10.19'

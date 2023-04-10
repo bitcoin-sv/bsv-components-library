@@ -115,16 +115,10 @@ public final class RejectMsg extends BodyMessage implements Serializable {
     private VarStrMsg reason;
     private byte[] data;
 
-    // Convenience field: At this moment, the only application for the "data" field is to store the HASH of
-    // either a TX/Block Header Hash, so we keep the general case "byte[]" but we use the "dataHash" in those
-    // specific cases (which are the only cases right now):
-    private Sha256Hash dataHash;
-
 
     protected RejectMsg(VarStrMsg message,
                         RejectCode ccode,
                         VarStrMsg reason ,
-                        Sha256Hash dataHash,
                         byte[] data,
                         byte[] extraBytes,
                         long checksum) {
@@ -132,7 +126,6 @@ public final class RejectMsg extends BodyMessage implements Serializable {
         this.message = message;
         this.ccode = ccode;
         this.reason = reason;
-        this.dataHash = dataHash;
         this.data = data;
         init();
     }
@@ -143,15 +136,13 @@ public final class RejectMsg extends BodyMessage implements Serializable {
     public RejectCode getCcode()    { return this.ccode; }
     public VarStrMsg getReason()    { return this.reason; }
     public byte[] getData()         { return this.data; }
-    public Sha256Hash getDataHash() { return this.dataHash; }
 
     @Override
     protected long calculateLength() {
         long length  = message.getLengthInBytes()
                 + FIXED_CCODE_LENGTH
                 + reason.getLengthInBytes();
-        if (dataHash != null) lengthInBytes += 32;
-        if (data != null) lengthInBytes += data.length;
+        if (data != null) length += data.length;
         return length;
     }
 
@@ -175,7 +166,7 @@ public final class RejectMsg extends BodyMessage implements Serializable {
 
     @Override
     public String toString() {
-        return "RejectMsg(message=" + this.getMessage() + ", ccode=" + this.getCcode() + ", reason=" + this.getReason() + ", data=" + java.util.Arrays.toString(this.getData()) + ", dataHash=" + this.getDataHash() + ")";
+        return "RejectMsg(message=" + this.getMessage() + ", ccode=" + this.getCcode() + ", reason=" + this.getReason() + ", data=" + java.util.Arrays.toString(this.getData()) + ")";
     }
 
     public static RejectMsgBuilder builder() {
@@ -188,7 +179,6 @@ public final class RejectMsg extends BodyMessage implements Serializable {
                     .message(this.message)
                     .ccode(this.ccode)
                     .reason(this.reason)
-                    .dataHash(this.dataHash)
                     .data(this.data);
     }
 
@@ -199,7 +189,6 @@ public final class RejectMsg extends BodyMessage implements Serializable {
         private VarStrMsg message;
         private RejectCode ccode;
         private VarStrMsg reason;
-        private Sha256Hash dataHash;
         private byte[] data;
 
         public RejectMsgBuilder() { }
@@ -220,18 +209,13 @@ public final class RejectMsg extends BodyMessage implements Serializable {
             return this;
         }
 
-        public RejectMsg.RejectMsgBuilder dataHash(Sha256Hash dataHash) {
-            this.dataHash = dataHash;
-            return this;
-        }
-
         public RejectMsg.RejectMsgBuilder data(byte[] data) {
             this.data = data;
             return this;
         }
 
         public RejectMsg build() {
-            return new RejectMsg(message, ccode, reason, dataHash, data, super.extraBytes, super.checksum);
+            return new RejectMsg(message, ccode, reason, data, super.extraBytes, super.checksum);
         }
     }
 }

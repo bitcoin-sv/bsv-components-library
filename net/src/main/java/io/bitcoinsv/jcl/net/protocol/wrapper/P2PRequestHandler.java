@@ -17,7 +17,6 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 /**
  * @author i.fernandez@nchain.com
@@ -50,7 +49,7 @@ public class P2PRequestHandler {
         public abstract Event buildRequest();
         // This method publishes the Request to the Bus
         public void submit() {
-             eventBus.publish(buildRequest());
+            eventBus.publish(buildRequest());
         }
     }
 
@@ -63,7 +62,7 @@ public class P2PRequestHandler {
     }
 
     /** A Builder for DisconnectPeerRequest */
-   public  class DisconnectPeerRequestBuilder extends RequestBuilder {
+    public  class DisconnectPeerRequestBuilder extends RequestBuilder {
         private PeerAddress peerAddress;
         private DisconnectedReason reason;
 
@@ -125,22 +124,63 @@ public class P2PRequestHandler {
         }
     }
 
-    /**
-     * A Builder for WhitelistPeerRequest
-     */
+    /** A Builder for WhitelistPeerRequest */
     public class WhitelistPeerRequestBuilder extends RequestBuilder {
-        private final InetAddress address;
+        private InetAddress address;
 
-        public WhitelistPeerRequestBuilder(PeerAddress peerAddress) {
-            this.address = peerAddress.getIp();
-        }
-
-        public WhitelistPeerRequestBuilder(InetAddress address) {
-            this.address = address;
+        public WhitelistPeerRequestBuilder(InetAddress peerAddress) {
+            this.address = peerAddress;
         }
 
         public WhitelistPeerRequest buildRequest() {
             return new WhitelistPeerRequest(address);
+        }
+    }
+
+    /**
+     * A Builder for RemovePeerFromWhitelistRequest
+     */
+    public class RemovePeerFromWhitelistRequestBuilder extends RequestBuilder {
+        private final InetAddress address;
+
+        public RemovePeerFromWhitelistRequestBuilder(PeerAddress peerAddress) {
+            this.address = peerAddress.getIp();
+        }
+
+        public RemovePeerFromWhitelistRequestBuilder(InetAddress address) {
+            this.address = address;
+        }
+
+        public RemovePeerFromWhitelistRequest buildRequest() {
+            return new RemovePeerFromWhitelistRequest(address);
+        }
+    }
+
+    /**
+     * A Builder for ClearWhitelistRequest
+     */
+    public class ClearWhitelistRequestBuilder extends RequestBuilder {
+        public ClearWhitelistRequest buildRequest() {
+            return new ClearWhitelistRequest();
+        }
+    }
+
+    /**
+     * A Builder for RemovePeerFromBlacklistRequest
+     */
+    public class RemovePeerFromBlacklistRequestBuilder extends RequestBuilder {
+        private final InetAddress address;
+
+        public RemovePeerFromBlacklistRequestBuilder(PeerAddress peerAddress) {
+            this.address = peerAddress.getIp();
+        }
+
+        public RemovePeerFromBlacklistRequestBuilder(InetAddress address) {
+            this.address = address;
+        }
+
+        public RemovePeerFromBlacklistRequest buildRequest() {
+            return new RemovePeerFromBlacklistRequest(address);
         }
     }
 
@@ -216,15 +256,27 @@ public class P2PRequestHandler {
         public BlacklistPeerRequestBuilder blacklist(InetAddress address) {
             return new BlacklistPeerRequestBuilder(address);
         }
-        public WhitelistPeerRequestBuilder whitelist(InetAddress address) {
-            return new WhitelistPeerRequestBuilder(address);
+        public RemovePeerFromBlacklistRequestBuilder removeFromBlacklist(InetAddress address) {
+            return new RemovePeerFromBlacklistRequestBuilder(address);
         }
         public ClearBlacklistRequestBuilder clearBlacklist() {
             return new ClearBlacklistRequestBuilder();
         }
+
         public EnablePeerBigMessagesRequestBuilder enableBigMessages(PeerAddress peerAddress) {
             return new EnablePeerBigMessagesRequestBuilder(peerAddress);
         }
+
+        public WhitelistPeerRequestBuilder whitelist(InetAddress address) {
+            return new WhitelistPeerRequestBuilder(address);
+        }
+
+        public RemovePeerFromWhitelistRequestBuilder removeFromWhitelist(InetAddress address) {
+            return new RemovePeerFromWhitelistRequestBuilder(address);
+        }
+
+        public ClearWhitelistRequestBuilder clearWhitelist() { return new ClearWhitelistRequestBuilder();}
+
         public EnablePeerBigMessagesRequestBuilder enableBigMessages(String peerAddressStr) {
             try {
                 return new EnablePeerBigMessagesRequestBuilder(PeerAddress.fromIp(peerAddressStr));
@@ -336,19 +388,34 @@ public class P2PRequestHandler {
      */
     public class BlocksDownloadRequestBuilder {
         public BlocksToDownloadRequestBuilder download(String blockHash) {
-            return new BlocksToDownloadRequestBuilder(Arrays.asList(blockHash), false);
+            return new BlocksToDownloadRequestBuilder(List.of(blockHash), false);
         }
         public BlocksToDownloadRequestBuilder download(List<String> blockHashes) {
             return new BlocksToDownloadRequestBuilder(blockHashes, false);
         }
         public BlocksToDownloadRequestBuilder downloadWithPriority(String blockHash) {
-            return new BlocksToDownloadRequestBuilder(Arrays.asList(blockHash), true);
+            return new BlocksToDownloadRequestBuilder(List.of(blockHash), true);
         }
         public BlocksToDownloadRequestBuilder downloadWithPriority(List<String> blockHashes) {
             return new BlocksToDownloadRequestBuilder(blockHashes, true);
         }
+
+        public BlocksToDownloadRequestBuilder forceDownload(String blockHash) {
+            return new BlocksToDownloadRequestBuilder(List.of(blockHash), false).forceDownload();
+        }
+        public BlocksToDownloadRequestBuilder forceDownload(List<String> blockHashes) {
+            return new BlocksToDownloadRequestBuilder(blockHashes, false).forceDownload();
+        }
+
+        public BlocksToDownloadRequestBuilder forceDownloadWithPriority(String blockHash) {
+            return new BlocksToDownloadRequestBuilder(List.of(blockHash), true).forceDownload();
+        }
+        public BlocksToDownloadRequestBuilder forceDownloadWithPriority(List<String> blockHashes) {
+            return new BlocksToDownloadRequestBuilder(blockHashes, true).forceDownload();
+        }
+
         public BlocksToCancelDownloadRequestBuilder cancelDownload(String blockHash) {
-            return new BlocksToCancelDownloadRequestBuilder(Arrays.asList(blockHash));
+            return new BlocksToCancelDownloadRequestBuilder(List.of(blockHash));
         }
         public BlocksToCancelDownloadRequestBuilder cancelDownload(List<String> blockHashes) {
             return new BlocksToCancelDownloadRequestBuilder(blockHashes);
@@ -367,12 +434,18 @@ public class P2PRequestHandler {
     public class BlocksToDownloadRequestBuilder extends RequestBuilder {
         private List<String> blockHash;
         private boolean withPriority;
+        private boolean forceDownload;
         private PeerAddress fromThisPeerOnly;
         private PeerAddress fromThisPeerPreferably;
 
         public BlocksToDownloadRequestBuilder(List<String> blockHash, boolean withPriority)   {
             this.blockHash = blockHash;
             this.withPriority = withPriority;
+        }
+
+        public BlocksToDownloadRequestBuilder forceDownload() {
+            this.forceDownload = true;
+            return this;
         }
 
         public BlocksToDownloadRequestBuilder fromThisPeerOnly(PeerAddress fromThisPeerOnly) {
@@ -396,7 +469,7 @@ public class P2PRequestHandler {
         }
 
         public BlocksDownloadRequest buildRequest() {
-            return new BlocksDownloadRequest(blockHash, withPriority, fromThisPeerOnly, fromThisPeerPreferably);
+            return new BlocksDownloadRequest(blockHash, withPriority, forceDownload, fromThisPeerOnly, fromThisPeerPreferably);
         }
     }
 

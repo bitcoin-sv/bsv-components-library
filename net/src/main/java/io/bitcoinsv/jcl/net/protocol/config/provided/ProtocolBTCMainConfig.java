@@ -83,6 +83,7 @@ public class ProtocolBTCMainConfig extends ProtocolConfigImpl implements Protoco
                         .dns(dns)
                         .build(),
                 null,            // Default Blacklist Config
+                null,      // Default Whitelist Config
                 null);    // Default Block Downloader Config
     }
 }

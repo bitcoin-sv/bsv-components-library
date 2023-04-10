@@ -2,6 +2,7 @@ package io.bitcoinsv.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
 import io.bitcoinsv.bitcoinjsv.core.Utils;
 
@@ -76,6 +77,12 @@ public final class HashMsg extends Message implements Serializable {
 
         public HashMsg.HashMsgBuilder hash(byte[] hash) {
             this.hash = hash;
+            return this;
+        }
+
+        public HashMsg.HashMsgBuilder hash(Sha256Hash hash) {
+            // TODO: fix this when JCL and BitcoinJ won't return human readable hashes
+            this.hash = hash.getReversedBytes();
             return this;
         }
 

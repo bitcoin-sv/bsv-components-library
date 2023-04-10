@@ -3,9 +3,9 @@ package io.bitcoinsv.jcl.net.protocol.handlers.blacklist;
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.network.events.*;
-import io.bitcoinsv.jcl.net.protocol.events.control.PeerHandshakeRejectedEvent;
-import io.bitcoinsv.jcl.net.protocol.events.control.PingPongFailedEvent;
+import io.bitcoinsv.jcl.net.protocol.events.control.*;
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig;
+import io.bitcoinsv.jcl.tools.handlers.HandlerConfig;
 import io.bitcoinsv.jcl.tools.handlers.HandlerImpl;
 import io.bitcoinsv.jcl.net.tools.LoggerUtil;
 import io.bitcoinsv.jcl.tools.thread.ThreadUtils;
@@ -27,6 +27,10 @@ import java.util.stream.Collectors;
  * Copyright (c) 2018-2020 nChain Ltd
  *
  * Implementation of a Blacklist Handler
+ *
+ * NOTE: This Handler Keeps a Reference to every single Peer JCL has tried to connect or connected to. Even if JCL
+ * crops the connections, we stil keep the reference to that peer, since we need to keep track of several metrics like
+ * number of connections/reconnections, in order to determine if the Peers has to be blacklisted or not.
  */
 public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHostInfo> implements BlacklistHandler {
 
@@ -53,16 +57,15 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
     }
 
     public void registerForEvents() {
-        super.eventBus.subscribe(NetStartEvent.class, e -> onNetStart((NetStartEvent) e));
-        ;
-        super.eventBus.subscribe(NetStopEvent.class, e -> onNetStop((NetStopEvent) e));
-        super.eventBus.subscribe(PeerConnectedEvent.class, e -> onPeerConnected((PeerConnectedEvent) e));
-        super.eventBus.subscribe(PeerRejectedEvent.class, e -> onPeerRejected((PeerRejectedEvent) e));
-        super.eventBus.subscribe(PeerHandshakeRejectedEvent.class, e -> onPeerHandshakedRejected((PeerHandshakeRejectedEvent) e));
-        super.eventBus.subscribe(PingPongFailedEvent.class, e -> onPingPongFailed((PingPongFailedEvent) e));
-        super.eventBus.subscribe(BlacklistPeerRequest.class, e -> onBlacklistPeerRequest((BlacklistPeerRequest) e));
-        super.eventBus.subscribe(WhitelistPeerRequest.class, e -> onWhitelistPeerRequest((WhitelistPeerRequest) e));
-        super.eventBus.subscribe(ClearBlacklistRequest.class, e -> onClearBlacklistRequest((ClearBlacklistRequest) e));
+        subscribe(NetStartEvent.class, this::onNetStart);
+        subscribe(NetStopEvent.class, this::onNetStop);
+        subscribe(PeerConnectedEvent.class, this::onPeerConnected);
+        subscribe(PeerRejectedEvent.class, this::onPeerRejected);
+        subscribe(PeerHandshakeRejectedEvent.class, this::onPeerHandshakedRejected);
+        subscribe(PingPongFailedEvent.class, this::onPingPongFailed);
+        subscribe(BlacklistPeerRequest.class, this::onBlacklistPeerRequest);
+        subscribe(RemovePeerFromBlacklistRequest.class, this::onRemovePeerFromBlacklistRequest);
+        subscribe(ClearBlacklistRequest.class, this::onClearBlacklistRequest);
     }
 
     @Override
@@ -103,8 +106,9 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
 
     // Event Handler:
     private void onPeerRejected(PeerRejectedEvent event) {
-        processHostAndCheckBlacklisting(event.getPeerAddress(), h -> h.addConnRejections());
-
+        // For now, we do NOT use the connection Rejection as a Criteria to Blacklist a Peer, since a Peer might
+        // be running in "client" mode which is ok, although we can't trigger the connection from our side
+        //processHostAndCheckBlacklisting(event.getPeerAddress(), h -> h.addConnRejections());
     }
 
     // Event Handler:
@@ -121,26 +125,28 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
     private void onBlacklistPeerRequest(BlacklistPeerRequest event) {
         InetAddress ip = event.getAddress();
         BlacklistHostInfo hostInfo = this.handlerInfo.get(ip);
-        if (hostInfo != null) {
-            blacklist(hostInfo, event.getReason(), event.getDuration());
+        if (hostInfo == null) {
+            hostInfo = new BlacklistHostInfo(ip);
+            this.handlerInfo.put(ip, hostInfo);
         }
+        blacklist(hostInfo, event.getReason(), event.getDuration());
     }
 
     // Event Handler:
-    private void onWhitelistPeerRequest(WhitelistPeerRequest event) {
+    private void onRemovePeerFromBlacklistRequest(RemovePeerFromBlacklistRequest event) {
         InetAddress ip = event.getAddress();
         BlacklistHostInfo hostInfo = this.handlerInfo.get(ip);
         if (hostInfo != null) {
-            whitelist(List.of(hostInfo));
+            removeFromBlacklist(List.of(hostInfo));
         }
     }
 
     // Event Handler:
     private void onClearBlacklistRequest(ClearBlacklistRequest request) {
-        var whitelist = handlerInfo.values().stream()
-            .filter(BlacklistHostInfo::isBlacklisted)
-            .collect(Collectors.toList());
-        whitelist(whitelist);
+        var peersToRemove = handlerInfo.values().stream()
+                .filter(BlacklistHostInfo::isBlacklisted)
+                .collect(Collectors.toList());
+        removeFromBlacklist(peersToRemove);
     }
 
     private void loadBlacklistFromDisk() {
@@ -160,17 +166,31 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
     }
 
     /**
-     * It updates the State of this Handler
+     * It updates the State of this Handler after blacklisting a new Peer
      *
      * @param newReason Reason of the new Blacklisted Host
      */
-    private synchronized void updateState(PeersBlacklistedEvent.BlacklistReason newReason) {
+    private synchronized void updateStateAddBlacklistedHost(PeersBlacklistedEvent.BlacklistReason newReason) {
         Map<PeersBlacklistedEvent.BlacklistReason, Integer> blacklistedReasons = this.state.getBlacklistedReasons();
         blacklistedReasons.merge(newReason, 1, (oldValue, newValue) -> Math.max(oldValue, newValue) + 1);
         this.state = this.state.toBuilder()
-            .numTotalBlacklisted(state.getNumTotalBlacklisted() + 1)
-            .blacklistedReasons(blacklistedReasons)
-            .build();
+                .numTotalBlacklisted(state.getNumTotalBlacklisted() + 1)
+                .blacklistedReasons(blacklistedReasons)
+                .build();
+    }
+
+    /**
+     * It updates the State of this Handler after removing a Peer from the Blacklist
+     *
+     * @param reason Reason why the removed Host was blacklisted
+     */
+    private synchronized void updateStateRemoveBlacklistedPeer(PeersBlacklistedEvent.BlacklistReason reason) {
+        Map<PeersBlacklistedEvent.BlacklistReason, Integer> blacklistedReasons = this.state.getBlacklistedReasons();
+        blacklistedReasons.merge(reason, 1, (oldValue, newValue) -> Math.max(oldValue, newValue) - 1);
+        this.state = this.state.toBuilder()
+                .numTotalBlacklisted(state.getNumTotalBlacklisted() - 1)
+                .blacklistedReasons(blacklistedReasons)
+                .build();
     }
 
     /**
@@ -178,12 +198,18 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
      * NOTE: The "duration" specified the duration of the blacklist, overriding the one defined in the reason itself.
      */
     private void blacklist(BlacklistHostInfo hostInfo, PeersBlacklistedEvent.BlacklistReason reason, Optional<Duration> duration) {
-        logger.trace(hostInfo.getIp(), "IP Blacklisted", reason);
-        hostInfo.blacklist(reason, duration);
-        // We trigger an Event:
-        PeersBlacklistedEvent event = new PeersBlacklistedEvent(hostInfo.getIp(), reason);
-        super.eventBus.publish(event);
-        updateState(reason);
+        if (hostInfo.isBlacklisted()) {
+            logger.trace(hostInfo.getIp(), "Already blacklisted");
+        } else {
+            logger.trace(hostInfo.getIp(), "IP Blacklisted", reason);
+            hostInfo.blacklist(reason, duration);
+            // We trigger an Event:
+            PeersBlacklistedEvent event = new PeersBlacklistedEvent(hostInfo.getIp(), reason);
+            super.eventBus.publish(event);
+            updateStateAddBlacklistedHost(reason);
+            // We remove it from the Whitelist, if its there:
+            super.eventBus.publish(new RemovePeerFromWhitelistRequest(hostInfo.getIp()));
+        }
     }
 
     /**
@@ -196,11 +222,18 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
     /**
      * It whitelists the Host given, making it eligible again for connection
      */
-    private void whitelist(List<BlacklistHostInfo> hostInfos) {
-        logger.trace("Whitelisting {} Ips...", hostInfos.size());
-        hostInfos.forEach(h -> h.whitelist());
-        // We publish the event to the Bus:
-        super.eventBus.publish(new PeersWhitelistedEvent(hostInfos.stream().map(h -> h.getIp()).collect(Collectors.toList())));
+    private synchronized void removeFromBlacklist(List<BlacklistHostInfo> hostInfos) {
+        logger.trace("Removing from Blacklist {} Ips...", hostInfos.size());
+        // We only remove those that are actually blacklisted:
+        List<BlacklistHostInfo> hostsToRemove = hostInfos.stream().filter(h -> h.isBlacklisted()).collect(Collectors.toList());
+        if (!hostsToRemove.isEmpty()) {
+            hostsToRemove.forEach(h -> h.removeFromBacklist());
+            // We publish the event to the Bus:
+            super.eventBus.publish(new PeersRemovedFromBlacklistEvent(hostsToRemove.stream().map(h -> h.getIp()).collect(Collectors.toList())));
+            // We update the State:
+            hostsToRemove.forEach(h -> updateStateRemoveBlacklistedPeer(h.getBlacklistReason()));
+            logger.trace("{} Removed from Blacklist", hostInfos.size());
+        }
     }
 
     /**
@@ -242,7 +275,7 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
             result = Optional.of(PeersBlacklistedEvent.BlacklistReason.FAILED_HANDSHAKE);
         else if (hostInfo.getNumSerializationErrors() > 0)
             result = Optional.of(PeersBlacklistedEvent.BlacklistReason.SERIALIZATION_ERROR);
-        else if (hostInfo.getNumConnRejections() > 0)
+        else if (hostInfo.getNumConnRejections() > 0) // This might not be needed and removed in the future
             result = Optional.of(PeersBlacklistedEvent.BlacklistReason.CONNECTION_REJECTED);
 
         return result;
@@ -258,9 +291,9 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
             // we check if any of the Blacklisted Peers can be whitelisted...
             long numBlacklisted = handlerInfo.values().stream().filter(h -> h.isBlacklisted()).count();
             List<BlacklistHostInfo> hostsToWhitelist = handlerInfo.values().stream()
-                .filter(h -> h.isBlacklistExpired())
-                .collect(Collectors.toList());
-            whitelist(hostsToWhitelist);
+                    .filter(h -> h.isBlacklistExpired())
+                    .collect(Collectors.toList());
+            removeFromBlacklist(hostsToWhitelist);
             long numBlacklistedAfter = handlerInfo.values().stream().filter(h -> h.isBlacklisted()).count();
             logger.debug("Blacklist reviewed: " + (numBlacklisted - numBlacklistedAfter) + " IPs have been WHITELISTED.");
         } catch (Exception e) {
@@ -269,8 +302,17 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
         }
     }
 
+    @Override
     public BlacklistHandlerConfig getConfig() {
         return this.config;
+    }
+
+    @Override
+    public synchronized void updateConfig(HandlerConfig config) {
+        if (!(config instanceof BlacklistHandlerConfig)) {
+            throw new RuntimeException("config class is NOT correct for this Handler");
+        }
+        this.config = (BlacklistHandlerConfig) config;
     }
 
     public BlacklistHandlerState getState() {
@@ -280,13 +322,12 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
     public List<BlacklistView> getBlacklistedHosts() {
         List<BlacklistView> blacklistedPeers = new ArrayList<>();
         handlerInfo.values().stream()
-            .filter(BlacklistHostInfo::isBlacklisted).forEach(p ->
-                blacklistedPeers.add(new BlacklistView(p.getIp(),
-                    p.getBlacklistReason(),
-                    p.getBlacklistTimestamp(),
-                    p.getExpirationTime()))
-            );
+                .filter(BlacklistHostInfo::isBlacklisted).forEach(p ->
+                        blacklistedPeers.add(new BlacklistView(p.getIp(),
+                                p.getBlacklistReason(),
+                                p.getBlacklistTimestamp(),
+                                p.getExpirationTime()))
+                );
         return blacklistedPeers;
     }
 }
-

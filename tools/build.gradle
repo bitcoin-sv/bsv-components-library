@@ -17,4 +17,5 @@ dependencies {
     implementation 'org.slf4j:slf4j-api:1.7.26'
     implementation 'com.madgag.spongycastle:core:1.51.0.0'
     implementation 'net.openhft:chronicle-map:3.20.80'
+    implementation 'org.apache.commons:commons-lang3:3.12.0'
 }

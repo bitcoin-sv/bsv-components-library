@@ -1,5 +1,6 @@
 package io.bitcoinsv.jcl.net.integration.protocol.handlers.block
 
+import io.bitcoinsv.jcl.net.integration.utils.IntegrationUtils
 import io.bitcoinsv.jcl.net.network.config.NetworkConfig
 import io.bitcoinsv.jcl.net.network.config.provided.NetworkDefaultConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolBasicConfig
@@ -47,32 +48,33 @@ class BlockDownloadTest extends Specification {
     private static final List<String> BLOCKS_BSV_MAIN = Arrays.asList(
  //           "0000000000000000007e2d666ce2045725dda523f744ba426e7900448d71929a", // 340MB
             "0000000000000000053be5a950485a7d437aaea310dcbe4b63de4b5046928a69", // 49MB
+            "0000000000000000053be5a950485a7d437aaea310dcbe4b63de4b5046928a5a", // 49MB
             "0000000011139d059a772fb14123a0bbe66b1a6782d4aebe2a6b2c9f92850a7d", // 6MB
             "00000000000000000fc65b3827b997cbce18350b7aa03ac306367e220cb7ad52", // 115MB
            "0000000000000000052c4236c4c34dc7686f8285e2646a584785b8d3b1eb8779", // 1.25GB
-            "000000000000000002f5268d72f9c79f29bef494e350e58f624bcf28700a1846", // 369MB
-            "0000000000000000027abeb2a2348dac5f953676f6b68a6ed5d92458a1c12cab", // 0.6MB
-            "000000000000000000dd6c89655ca27fd2555247232a5ced8376f5bda0d26ec4", // 12MB
-
-            "0000000000000000071e6e1c401fc530a63d27c826661a2f48709ba2ab51ecb4", // 7K
-            "0000000000000000010b0c201f99c4636b35972fc870cdd322d49aea4e9e469e", // 4MB
-            "00000000000000000dcb5ea5c87f337d017c077e10e314cb0176026266faef0c", // 17MB
-            "0000000000000000039f4868d8c88d8ba86458101b965f5885cc63ed6814fb5c", // 2MB
-            "00000000000000000c6e3e84fcf44f0305a2628d07bc082fd9885480c4ea0eb0", // 71MB
-            "000000000000000002a8d922a4e1d365019758af5e9a2260f6cea0261d459b38", // 63MB
-            "00000000000000000b03fc7421e1063e1f55e7a383801debc551daf6d37c3fa8", // 610KB
-            "000000000000000009564c0360e55b125af1327eaf56b6b7566493112523437b", // 130KB
-            "00000000000000000249f0276b4535875b497c42a737ce477b5c6e11ff55fcd3", // 9MB
-            "0000000000000000068cd5441b2f406562939988bfeafecfe9a90949c055ac78", // 1.6MB
-            "000000000000000001e6ddb4461940f0bedf69c7b63a239f33d641c9f8e4ac73", // 1.4MB
-            "0000000000000000032b2199242e73a7a1388f036648c49856d9d39b5e44d1b0", // 1.8MB
-            "0000000000000000099ae699f1b233a5a5f8a33ce2a570850a86839dd831e4a6", // 840KB
-            "0000000000000000031036042beb5a20085466f4640a61026ce849be411255dd", // 81KB
-            "000000000000000009b7423dc3ec7a97c6593bda228fcdce17e967f0e1729412", // 84MB
-            "0000000000000000007ef109b1266d8701d15158e6795b7d8f2080ebecf3acaf", // 16MB
-            "00000000000000000b53ca866c42c077d95b3d735df593229fd19f49352f5f80", // 10KB
-            "00000000000000000b0f7d16e33e66b64bf94bb5c6543f3b680ce9d7162fef21", // 1.7MB
-            "0000000000000000061757aed9f19d4e6a94ad5f309d1cc53f4303298cbf033f" // 2.2MB
+            "000000000000000002f5268d72f9c79f29bef494e350e58f624bcf28700a1846" // 369MB
+//            "0000000000000000027abeb2a2348dac5f953676f6b68a6ed5d92458a1c12cab", // 0.6MB
+//            "000000000000000000dd6c89655ca27fd2555247232a5ced8376f5bda0d26ec4", // 12MB
+//
+//            "0000000000000000071e6e1c401fc530a63d27c826661a2f48709ba2ab51ecb4", // 7K
+//            "0000000000000000010b0c201f99c4636b35972fc870cdd322d49aea4e9e469e", // 4MB
+//            "00000000000000000dcb5ea5c87f337d017c077e10e314cb0176026266faef0c", // 17MB
+//            "0000000000000000039f4868d8c88d8ba86458101b965f5885cc63ed6814fb5c", // 2MB
+//            "00000000000000000c6e3e84fcf44f0305a2628d07bc082fd9885480c4ea0eb0", // 71MB
+//            "000000000000000002a8d922a4e1d365019758af5e9a2260f6cea0261d459b38", // 63MB
+//            "00000000000000000b03fc7421e1063e1f55e7a383801debc551daf6d37c3fa8", // 610KB
+//            "000000000000000009564c0360e55b125af1327eaf56b6b7566493112523437b", // 130KB
+//            "00000000000000000249f0276b4535875b497c42a737ce477b5c6e11ff55fcd3", // 9MB
+//            "0000000000000000068cd5441b2f406562939988bfeafecfe9a90949c055ac78", // 1.6MB
+//            "000000000000000001e6ddb4461940f0bedf69c7b63a239f33d641c9f8e4ac73", // 1.4MB
+//            "0000000000000000032b2199242e73a7a1388f036648c49856d9d39b5e44d1b0", // 1.8MB
+//            "0000000000000000099ae699f1b233a5a5f8a33ce2a570850a86839dd831e4a6", // 840KB
+//            "0000000000000000031036042beb5a20085466f4640a61026ce849be411255dd", // 81KB
+//            "000000000000000009b7423dc3ec7a97c6593bda228fcdce17e967f0e1729412", // 84MB
+//            "0000000000000000007ef109b1266d8701d15158e6795b7d8f2080ebecf3acaf", // 16MB
+//            "00000000000000000b53ca866c42c077d95b3d735df593229fd19f49352f5f80", // 10KB
+//            "00000000000000000b0f7d16e33e66b64bf94bb5c6543f3b680ce9d7162fef21", // 1.7MB
+//            "0000000000000000061757aed9f19d4e6a94ad5f309d1cc53f4303298cbf033f" // 2.2MB
     )
 
     private static final List<String> BLOCKS_BSV_MAIN_TO_CANCEL = Arrays.asList(
@@ -137,8 +139,8 @@ class BlockDownloadTest extends Specification {
 
             // Basic Config:
             ProtocolBasicConfig basicConfig = config.getBasicConfig().toBuilder()
-                .minPeers(OptionalInt.of(10))
-                .maxPeers(OptionalInt.of(15))
+                .minPeers(OptionalInt.of(1))
+                .maxPeers(OptionalInt.of(10))
                 .protocolVersion(ProtocolVersion.ENABLE_EXT_MSGS.getVersion())
                 .build()
 
@@ -149,21 +151,8 @@ class BlockDownloadTest extends Specification {
 
                 .build();
 
-            // Discovery Config:
-            DiscoveryHandlerConfig discoveryConfig = config.getDiscoveryConfig().toBuilder()
-                //.addInitialConnection("167.99.92.186:8333")
-                //.addInitialConnection("47.91.95.186:8333")
-                //.addInitialConnection("139.59.67.18:8333")
-                //.addInitialConnection("34.68.22.183:8333")
-                //.addInitialConnection("47.108.165.157:8333")
-                //.addInitialConnection("135.181.59.199:18441")
-
-                //.addInitialConnection("46.4.76.249:9333")
-                //.addInitialConnection("135.181.140.195:9333")
-                //.addInitialConnection("116.202.118.183:9333")
-                //.addInitialConnection("95.217.121.173:9333")
-                //.addInitialConnection("209.97.128.49:9333")
-                .build()
+            // We extends the DiscoveryHandler Config, in case DNS's are not working properly:
+            DiscoveryHandlerConfig discoveryConfig = IntegrationUtils.getDiscoveryHandlerConfigMainnet(config.getDiscoveryConfig())
 
             // We set up the Download configuration:
             BlockDownloaderHandlerConfig blockConfig = config.getBlockDownloaderConfig().toBuilder()

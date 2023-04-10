@@ -7,6 +7,7 @@ import io.bitcoinsv.jcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig;
 import io.bitcoinsv.jcl.net.protocol.handlers.handshake.HandshakeHandlerConfig;
 import io.bitcoinsv.jcl.net.protocol.handlers.message.MessageHandlerConfig;
 import io.bitcoinsv.jcl.net.protocol.handlers.pingPong.PingPongHandlerConfig;
+import io.bitcoinsv.jcl.net.protocol.handlers.whitelist.WhitelistHandlerConfig;
 import io.bitcoinsv.jcl.net.protocol.messages.BlockHeaderMsg;
 import io.bitcoinsv.jcl.tools.handlers.HandlerConfig;
 
@@ -57,11 +58,12 @@ public interface ProtocolConfig{
     Map<String, HandlerConfig> getHandlersConfig();
 
     // Convenience methods: They return the Configuration for the Default built-in Handlers
-    MessageHandlerConfig getMessageConfig();
-    HandshakeHandlerConfig getHandshakeConfig();
-    PingPongHandlerConfig getPingPongConfig();
-    DiscoveryHandlerConfig getDiscoveryConfig();
-    BlacklistHandlerConfig getBlacklistConfig();
+    MessageHandlerConfig         getMessageConfig();
+    HandshakeHandlerConfig       getHandshakeConfig();
+    PingPongHandlerConfig        getPingPongConfig();
+    DiscoveryHandlerConfig       getDiscoveryConfig();
+    BlacklistHandlerConfig       getBlacklistConfig();
+    WhitelistHandlerConfig       getWhitelistConfig();
     BlockDownloaderHandlerConfig getBlockDownloaderConfig();
 
     /** Header of the Genesis Block of this Network */

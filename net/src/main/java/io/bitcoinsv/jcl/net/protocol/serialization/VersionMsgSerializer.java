@@ -47,7 +47,7 @@ public class VersionMsgSerializer implements MessageSerializer<VersionMsg> {
 
         long nonce = byteReader.readInt64LE(); // TODO: We need to know who to process this field
         VarStrMsg user_agent = VarStrMsgSerializer.getinstance().deserialize(context, byteReader);
-        long start_height = byteReader.readUint32();
+        long start_height = byteReader.readInt32();
 
         // We check if there are more bytes pending to read. Depending on the protocol Version, there might be:
         // - "relay" (1 byte) :         is only present if protocol >= 7001
@@ -96,7 +96,7 @@ public class VersionMsgSerializer implements MessageSerializer<VersionMsg> {
         NetAddressMsgSerializer.getInstance().serialize(context, message.getAddr_recv(), byteWriter);
         byteWriter.writeUint64LE(message.getNonce());
         VarStrMsgSerializer.getinstance().serialize(context, message.getUser_agent(), byteWriter);
-        byteWriter.writeUint32LE(message.getStart_height());
+        byteWriter.writeInt32LE(message.getStart_height());
         if (message.getRelay() != null) { byteWriter.writeBoolean(message.getRelay());}
         if (message.getAssociationId().length > 0) { byteWriter.write(message.getAssociationId());}
     }

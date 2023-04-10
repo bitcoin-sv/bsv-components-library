@@ -20,15 +20,15 @@ import java.util.concurrent.ExecutorService;
 
 public class StringNumberInputStream extends PeerInputStreamImpl<Integer, String> {
 
-    public StringNumberInputStream(PeerAddress peerAddress, ExecutorService executor, PeerInputStream<Integer> source) {
-        super(peerAddress, executor, source);
+    public StringNumberInputStream(PeerAddress peerAddress, PeerInputStream<Integer> source) {
+        super(peerAddress, source);
     }
 
     @Override
-    public List<StreamDataEvent<String>> transform(StreamDataEvent<Integer> dataEvent) {
+    public List<String> transform(Integer dataEvent) {
         try { Thread.sleep(10);} catch (Exception e) {} // simulate real work
-        String result = "[" + String.valueOf(dataEvent.getData()) + "]";
-        System.out.println(">> StringNumberInputStream ::Receiving " + dataEvent.getData() + ", returning " + result);
-        return Arrays.asList(new StreamDataEvent<String>(result));
+        String result = "[" + String.valueOf(dataEvent) + "]";
+        System.out.println(">> StringNumberInputStream ::Receiving " + dataEvent + ", returning " + result);
+        return List.of(result);
     }
 }

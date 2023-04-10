@@ -1340,7 +1340,7 @@ public interface BlockStoreKeyValue<E,T> extends BlockStore {
 
                     // We iterate over the Txs and we link them using a different index each:
                     for (Tx tx : subList) {
-                        _linkTxToBlock(tr, tx.getHashAsString(), blockHash.toString(), blockDirFullKey, txIndex++);
+                        _linkTxToBlock(tr, tx.getHash().toString(), blockHash.toString(), blockDirFullKey, txIndex++);
                     }
 
                     // we update the number of Txs of this block:
