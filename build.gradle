@@ -16,90 +16,30 @@ version = "$rootProject.jclVersion"
 sourceCompatibility = "11"
 targetCompatibility = "11"
 
-/****************************************
- * Dependencies on specific libraries
- ****************************************/
-ext['logback.version'] = '1.2.8'
-ext['log4j2.version'] = '2.16.0' // Just in Case (log4J vulnerability patch)
-
-configurations {
-    childJars
-}
-
 allprojects {
+    apply plugin: 'java'
+    apply plugin: 'groovy'
+    apply plugin: 'maven-publish'
+
     repositories {
         mavenCentral()
         mavenLocal()
     }
-}
 
-/****************************************
- * Build the JAR - Include all sub project classes and dependencies
- ****************************************/
-jar {
-    from {
-        subprojects.collect { it.sourceSets.main.output }
+    dependencies {
+        implementation 'org.slf4j:slf4j-api:1.7.26'
+
+        testImplementation 'org.codehaus.groovy:groovy'
+        testImplementation "org.spockframework:spock-core:1.2-groovy-2.5"
+        testImplementation "ch.qos.logback:logback-classic:1.2.8"
     }
-}
 
-java {
-    withJavadocJar()
-    withSourcesJar()
-}
-
-javadoc {
-    if (JavaVersion.current().isJava11Compatible()) {
-        options.addBooleanOption('Xdoclint:none', true)
-    }
-}
-
-/***********************************************************
- * Publish the FAT JAR (including ALL JCL in one single JAR)
- ***********************************************************/
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-
-            artifactId = "$jclArtifactName"
-            groupId = "$jclGroup"
-            version = "$jclVersion"
-
-            from components.java
-
-            pom {
-                name = "$jclArtifactName"
-                description = 'Java implementation of Bitcoin components'
-                url = 'https://github.com/bitcoin-sv/bsv-components-library'
-
-                licenses {
-                    license {
-                        name = 'Open BSV License'
-                        url = 'https://github.com/bitcoin-sv/bsv-components-library/blob/master/LICENSE'
-                    }
-                }
-                developers {
-                    developer {
-                        organization = 'nChain'
-                        organizationUrl = 'https://nchain.com'
-                        name = 'i.fernandez'
-                    }
-                }
-                scm {
-                    url = 'https://github.com/bitcoin-sv/bsv-components-library'
-                }
-            }
+    sonarqube {
+        properties {
+            property "sonar.projectKey", "bitcoin-sv_bsv-components-library"
+            property "sonar.organization", "bitcoin-sv"
+            property "sonar.host.url", "https://sonarcloud.io"
         }
     }
-
-    repositories {
-        mavenLocal()
-    }
 }
 
-sonarqube {
-    properties {
-        property "sonar.projectKey", "bitcoin-sv_bsv-components-library"
-        property "sonar.organization", "bitcoin-sv"
-        property "sonar.host.url", "https://sonarcloud.io"
-    }
-}

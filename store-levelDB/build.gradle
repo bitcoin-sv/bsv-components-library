@@ -26,12 +26,8 @@ dependencies {
     implementation(project(":store"))
     implementation(project(":store-keyValue"))
     implementation 'org.iq80.leveldb:leveldb:0.12'
-    implementation 'org.slf4j:slf4j-api:1.7.26'
 
     testImplementation(project(":store-tck"))
-    testImplementation 'org.codehaus.groovy:groovy'
-    testImplementation "org.spockframework:spock-core:1.2-groovy-2.5"
-    testImplementation "ch.qos.logback:logback-classic"
 }
 
 bootJar {
