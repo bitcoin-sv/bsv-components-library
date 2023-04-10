@@ -6,9 +6,9 @@ import io.bitcoinsv.jcl.net.protocol.config.provided.ProtocolBTCMainConfig;
 import io.bitcoinsv.jcl.net.protocol.events.control.PeerHandshakedEvent;
 import io.bitcoinsv.jcl.net.protocol.messages.VersionMsg;
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2P;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
-import org.junit.Ignore;
-import org.junit.Test;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -18,7 +18,7 @@ import java.util.Arrays;
  * Copyright (c) 2018-2020 nChain Ltd
  * @date 2020-09-23
  */
-@Ignore
+@Disabled
 public class DemoExamples {
 
     @Test

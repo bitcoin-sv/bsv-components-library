@@ -5,8 +5,8 @@ import io.bitcoinsv.jcl.net.protocol.config.provided.ProtocolBSVMainConfig;
 import io.bitcoinsv.jcl.net.protocol.handlers.message.MessageHandlerConfig;
 import io.bitcoinsv.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerConfig;
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2P;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 
@@ -15,7 +15,7 @@ import java.time.Duration;
  * Copyright (c) 2018-2020 nChain Ltd
  * @date 2020-09-24
  */
-@Ignore
+@Disabled
 public class JCLDemo {
 
     @Test

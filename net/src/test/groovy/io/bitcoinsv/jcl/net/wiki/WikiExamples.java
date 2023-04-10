@@ -9,7 +9,7 @@ import io.bitcoinsv.jcl.net.protocol.messages.InventoryVectorMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg;
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2P;
 import io.bitcoinsv.jcl.net.protocol.wrapper.P2PBuilder;
-import org.junit.Ignore;
+import org.junit.jupiter.api.Disabled;
 
 import java.time.Duration;
 import java.util.List;
@@ -22,10 +22,10 @@ import java.util.List;
  *
  * Pieces of code used as examples for the "wiki" of the JCL project.
  */
-@Ignore
+@Disabled
 public class WikiExamples {
 
-    @Ignore
+    @Disabled
     public void example1() {
         try {
             P2P p2p = new P2PBuilder("testing").build();
@@ -65,7 +65,7 @@ public class WikiExamples {
         }
     }
     */
-    @Ignore
+    @Disabled
     public void exampleEventHandling() {
         try {
             P2P p2p = new P2PBuilder("testing").build();
@@ -85,7 +85,7 @@ public class WikiExamples {
             System.out.println("Version too low!!!");
     }
 
-    @Ignore
+    @Disabled
     public void exampleStatus() {
         try {
             P2P p2p = new P2PBuilder("testing")
@@ -105,7 +105,7 @@ public class WikiExamples {
     }
 
 
-    @Ignore
+    @Disabled
     public void testPerformance() {
         try {
 
@@ -146,7 +146,7 @@ public class WikiExamples {
             e.printStackTrace();
         }
     }
-    @Ignore
+    @Disabled
     public void quickstart() {
 
         P2P p2p = new P2PBuilder("testing").build();

@@ -1,11 +1,7 @@
 plugins {
-    id 'org.springframework.boot' version '2.1.9.RELEASE'
-    id 'io.spring.dependency-management' version '1.0.8.RELEASE'
-    id 'java'
-    id 'groovy'
+//    id 'org.springframework.boot' version '2.1.9.RELEASE'
+//    id 'io.spring.dependency-management' version '1.0.8.RELEASE'
     id 'java-library'
-    id 'maven-publish'
-    id 'jacoco'
 }
 
 /****************************************
@@ -21,101 +17,18 @@ sourceCompatibility = "11"
 targetCompatibility = "11"
 
 
-repositories {
-    mavenLocal()
-    mavenCentral()
-}
-
 dependencies {
-
-    // Compile Dependencies:
     implementation "io.bitcoinsv.bitcoinjsv:bitcoinj-base:$bitcoinJVersion"
     implementation 'org.slf4j:slf4j-api:1.7.26'
     implementation 'com.madgag.spongycastle:core:1.51.0.0'
     implementation 'net.openhft:chronicle-map:3.20.80'
-
-    // Testing
-    testImplementation 'org.codehaus.groovy:groovy'
-    testImplementation "org.spockframework:spock-core:1.2-groovy-2.5"
-    testImplementation "ch.qos.logback:logback-classic"
-
 }
 
-bootJar {
-    enabled = false
-}
+//bootJar {
+//    enabled = false
+//}
+//
+//jar {
+//    enabled = true
+//}
 
-jar {
-    enabled = true
-}
-
-java {
-    withJavadocJar()
-    withSourcesJar()
-}
-
-javadoc {
-    if (JavaVersion.current().isJava11Compatible()) {
-        options.addBooleanOption('Xdoclint:none', true)
-    }
-}
-
-/****************************************
- * Publish the JAR
- ****************************************/
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-
-            artifactId = "$jclArtifactName"
-            groupId = "$jclGroup"
-            version = "$jclVersion"
-
-            from components.java
-
-            pom {
-                name = "$jclArtifactName"
-                description = 'Java implementation of Bitcoin components'
-                url = 'https://github.com/bitcoin-sv/bsv-components-library'
-
-                licenses {
-                    license {
-                        name = 'Open BSV License'
-                        url = 'https://github.com/bitcoin-sv/bsv-components-library/blob/master/LICENSE'
-                    }
-                }
-                developers {
-                    developer {
-                        organization = 'nChain'
-                        organizationUrl = 'https://nchain.com'
-                        name = 'i.fernandez'
-                    }
-                }
-                scm {
-                    url = 'https://github.com/bitcoin-sv/bsv-components-library'
-                }
-            }
-        }
-    }
-
-    repositories {
-        mavenLocal()
-    }
-}
-
-
-jacoco {
-    toolVersion = "0.8.8"
-}
-
-jacocoTestReport {
-    reports {
-        xml.required = true
-        csv.required = false
-    }
-    dependsOn test
-}
-
-test {
-    finalizedBy jacocoTestReport
-}
