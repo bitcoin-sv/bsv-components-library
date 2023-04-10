@@ -1,11 +1,7 @@
 plugins {
     id 'org.springframework.boot' version '2.1.9.RELEASE'
     id 'io.spring.dependency-management' version '1.0.8.RELEASE'
-    id 'java'
-    id 'groovy'
     id 'java-library'
-    id 'maven-publish'
-    id 'jacoco'
 }
 
 /****************************************
@@ -39,88 +35,4 @@ bootJar {
 
 jar {
     enabled = true
-}
-
-java {
-    withJavadocJar()
-    withSourcesJar()
-}
-
-javadoc {
-    if (JavaVersion.current().isJava11Compatible()) {
-        options.addBooleanOption('Xdoclint:none', true)
-    }
-}
-
-/****************************************
- * Packaging a FAT Jar with jCLServer
- ****************************************/
-task packageJclServer(type: Jar) {
-    manifest {
-        attributes 'Main-Class': 'io.bitcoinsv.jcl.integration.JCLServer'
-    }
-    archiveFileName = 'jclServer.jar'
-    from(configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }) {
-        exclude 'META-INF/*.SF', 'META-INF/*.RSA'
-    }
-    with jar
-}
-
-/****************************************
- * Publish the JAR
- ****************************************/
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-
-            artifactId = "$jclArtifactName"
-            groupId = "$jclGroup"
-            version = "$jclVersion"
-
-            from components.java
-
-            pom {
-                name = "$jclArtifactName"
-                description = 'Java implementation of Bitcoin components'
-                url = 'https://github.com/bitcoin-sv/bsv-components-library'
-
-                licenses {
-                    license {
-                        name = 'Open BSV License'
-                        url = 'https://github.com/bitcoin-sv/bsv-components-library/blob/master/LICENSE'
-                    }
-                }
-                developers {
-                    developer {
-                        organization = 'nChain'
-                        organizationUrl = 'https://nchain.com'
-                        name = 'i.fernandez'
-                    }
-                }
-                scm {
-                    url = 'https://github.com/bitcoin-sv/bsv-components-library'
-                }
-            }
-        }
-    }
-
-    repositories {
-        mavenLocal()
-    }
-}
-
-jacoco {
-    toolVersion = "0.8.8"
-}
-
-jacocoTestReport {
-    reports {
-        xml.required = true
-        csv.required = false
-    }
-    dependsOn test
-}
-
-test {
-    finalizedBy jacocoTestReport
 }
