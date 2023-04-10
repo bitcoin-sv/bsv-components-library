@@ -40,14 +40,15 @@ public class MessageStream extends PeerStreamImpl<Message, ByteArrayReader> {
     private ExecutorService dedicatedConnectionsExecutor;
     private LoggerUtil parentLogger;
 
-    public MessageStream(ExecutorService executor,
-                         RuntimeConfig runtimeConfig,
-                         MessageHandlerConfig messageConfig,
-                         Deserializer deserializer,
-                         PeerStream<ByteArrayReader> streamOrigin,
-                         ExecutorService dedicatedConnectionsExecutor,
-                         LoggerUtil parentLogger) {
-        super(executor, streamOrigin);
+    public MessageStream(
+            RuntimeConfig runtimeConfig,
+            MessageHandlerConfig messageConfig,
+            Deserializer deserializer,
+            PeerStream<ByteArrayReader> streamOrigin,
+            ExecutorService dedicatedConnectionsExecutor,
+            LoggerUtil parentLogger
+    ) {
+        super(streamOrigin);
         this.runtimeConfig = runtimeConfig;
         this.messageConfig = messageConfig;
         this.deserializer = deserializer;
@@ -57,7 +58,7 @@ public class MessageStream extends PeerStreamImpl<Message, ByteArrayReader> {
     }
     @Override
     public DeserializerStream buildInputStream() {
-        return new DeserializerStream(super.executor, streamOrigin.input(), runtimeConfig, messageConfig, deserializer, dedicatedConnectionsExecutor, parentLogger);
+        return new DeserializerStream(streamOrigin.input(), runtimeConfig, messageConfig, deserializer, dedicatedConnectionsExecutor, parentLogger);
     }
     @Override
     public SerializerStream buildOutputStream() {

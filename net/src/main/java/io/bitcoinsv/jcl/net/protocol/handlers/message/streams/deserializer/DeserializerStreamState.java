@@ -28,7 +28,7 @@ public class DeserializerStreamState extends StreamState {
         IGNORING_BODY,              // we are ignoring the body
         CORRUPTED;                  // the data received do not make any sense. The Stream will be closed soon
 
-        boolean isCorrupted() { return this == CORRUPTED;}  // convenience
+        public boolean isCorrupted() { return this == CORRUPTED;}  // convenience
     }
 
     /**

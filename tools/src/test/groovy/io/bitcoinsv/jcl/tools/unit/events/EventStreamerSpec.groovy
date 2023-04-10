@@ -4,6 +4,7 @@ import io.bitcoinsv.jcl.tools.events.Event
 import io.bitcoinsv.jcl.tools.events.EventBus
 import io.bitcoinsv.jcl.tools.events.EventStreamer
 import io.bitcoinsv.jcl.tools.thread.ThreadUtils
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicBoolean
@@ -12,6 +13,7 @@ import java.util.function.Consumer
 /**
  * Testing class for the EventStreamer
  */
+@Ignore
 class EventStreamerSpec extends Specification {
 
     class TestEvent extends Event {

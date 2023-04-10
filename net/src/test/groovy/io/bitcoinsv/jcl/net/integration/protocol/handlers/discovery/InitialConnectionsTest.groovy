@@ -40,6 +40,10 @@ class InitialConnectionsTest extends Specification {
      *  - When we reach 10 "PeerConnectedEvents", we count how many of them belong to the initial Peers, and how many
      *    doo NOT (so they have been found by the Node-Discovery Alg)
      */
+    // NOTE:
+    // We ignore this test since it depends on the Peers specified in the code so it might get outdated pretty soon
+    // if those peers are not available anymore...
+    @Ignore
     def "Testing POOL Renew Job"() {
         given:
             // Initial Set of Peers:

@@ -3,8 +3,6 @@ package io.bitcoinsv.jcl.net.protocol.handlers.message;
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.network.events.*;
-import io.bitcoinsv.jcl.net.network.streams.StreamDataEvent;
-import io.bitcoinsv.jcl.net.network.streams.StreamErrorEvent;
 
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolVersion;
 import io.bitcoinsv.jcl.net.protocol.events.control.*;
@@ -20,11 +18,11 @@ import io.bitcoinsv.jcl.net.protocol.handlers.message.streams.deserializer.Deser
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayBuffer;
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig;
 import io.bitcoinsv.jcl.tools.events.Event;
+import io.bitcoinsv.jcl.tools.handlers.HandlerConfig;
 import io.bitcoinsv.jcl.tools.handlers.HandlerImpl;
 import io.bitcoinsv.jcl.net.tools.LoggerUtil;
 import io.bitcoinsv.jcl.tools.thread.ThreadUtils;
 
-import java.math.BigInteger;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
@@ -48,7 +46,7 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
     private MessageHandlerConfig config;
 
     // State of this Handler:
-    private MessageHandlerState state = MessageHandlerState.builder().build();
+    private MessageHandlerState state = new MessageHandlerState();
 
     // An instance of a Deserializer. There is ONLY ONE Deserializer for all the Streams in the System.
     private Deserializer deserializer;
@@ -82,52 +80,59 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
         if (config.isRawTxsEnabled()) {
             MsgSerializersFactory.enableRawSerializers();
         }
-        this.msgBatchesExecutor = ThreadUtils.getSingleThreadExecutorService("JclMessageHandler-Job");
+
+        // TODO: if required make capacity configurable
+        this.msgBatchesExecutor = ThreadUtils.getBlockingSingleThreadExecutorService("JclMessageHandler-Job", 10);
+
+        // TODO: if required make capacity configurable
         // The Executor responsible for the deserialization of large messages is a cached one, so Threads are created
         // as we need. For a Stream to be able to use a dedicated Thread, its "realTimeProcessingEnabled" property
         // must be set to TRUE.
-        this.dedicateConnsExecutor = ThreadUtils.getCachedThreadExecutorService("JclDeserializer");
-        //this.dedicateConnsExecutor = Executors.newCachedThreadPool(ThreadUtils.getThreadFactory("jclDeserializer", Thread.MAX_PRIORITY, true));
+        this.dedicateConnsExecutor = ThreadUtils.getCachedBlockingThreadExecutorService("JclDeserializer", 50, 100);
 
-        broadcastExecutor = ThreadUtils.getCachedThreadExecutorService("jclBroadcaster", 4);
+        // TODO: if required make capacity configurable
+        this.broadcastExecutor = ThreadUtils.getBlockingThreadExecutorService("jclBroadcaster", 4, 8);
 
         // If some Batch Config has been specified, we instantiate the classes to keep track of their state:
-        this.config.getMsgBatchConfigs().entrySet().forEach(entry -> msgsBatchManagers.put(entry.getKey(), new MessageBatchManager(entry.getKey(), entry.getValue())));
+        this.config.getMsgBatchConfigs().forEach((key, value) -> msgsBatchManagers.put(key, new MessageBatchManager(key, value)));
 
     }
 
     // We register this Handler to LISTEN to these Events:
     private void registerForEvents() {
-        super.eventBus.subscribe(NetStartEvent.class,                   e -> onNetStart((NetStartEvent) e));
-        super.eventBus.subscribe(NetStopEvent.class,                    e -> onNetStop((NetStopEvent) e));
-        super.eventBus.subscribe(SendMsgRequest.class,                  e -> onSendMsgReq((SendMsgRequest) e));
-        super.eventBus.subscribe(SendMsgBodyRequest.class,              e -> onSendMsgBodyReq((SendMsgBodyRequest) e));
-        super.eventBus.subscribe(SendMsgListRequest.class,              e -> onSendMsgListReq((SendMsgListRequest) e));
-        super.eventBus.subscribe(BroadcastMsgRequest.class,             e -> onBroadcastReq((BroadcastMsgRequest) e));
-        super.eventBus.subscribe(BroadcastMsgBodyRequest.class,         e -> onBroadcastReq((BroadcastMsgBodyRequest) e));
-        super.eventBus.subscribe(PeerNIOStreamConnectedEvent.class,     e -> onPeerStreamConnected((PeerNIOStreamConnectedEvent) e));
-        super.eventBus.subscribe(PeerDisconnectedEvent.class,           e -> onPeerDisconnected((PeerDisconnectedEvent) e));
-        super.eventBus.subscribe(EnablePeerBigMessagesRequest.class,    e -> onEnablePeerBigMessages((EnablePeerBigMessagesRequest) e));
-        super.eventBus.subscribe(DisablePeerBigMessagesRequest.class,   e -> onDisablePeerBigMessages((DisablePeerBigMessagesRequest) e));
-        super.eventBus.subscribe(PeerHandshakedEvent.class,             e -> onPeerHandshaked((PeerHandshakedEvent) e));
+        subscribe(NetStartEvent.class, this::onNetStart);
+        subscribe(NetStopEvent.class, this::onNetStop);
+        subscribe(SendMsgRequest.class, this::onSendMsgReq);
+        subscribe(SendMsgBodyRequest.class, this::onSendMsgBodyReq);
+        subscribe(SendMsgListRequest.class, this::onSendMsgListReq);
+        subscribe(BroadcastMsgRequest.class, this::onBroadcastReq);
+        subscribe(BroadcastMsgBodyRequest.class, this::onBroadcastReq);
+        subscribe(PeerNIOStreamConnectedEvent.class, this::onPeerStreamConnected);
+        subscribe(PeerDisconnectedEvent.class, this::onPeerDisconnected);
+        subscribe(EnablePeerBigMessagesRequest.class, this::onEnablePeerBigMessages);
+        subscribe(DisablePeerBigMessagesRequest.class, this::onDisablePeerBigMessages);
+        subscribe(PeerHandshakedEvent.class, this::onPeerHandshaked);
 
-        super.eventBus.subscribe(SendMsgHandshakedRequest.class,        e -> onSendMsgHandshaked((SendMsgHandshakedRequest) e));
-        super.eventBus.subscribe(SendMsgBodyHandshakedRequest.class,    e -> onSendMsgBodyHandshaked((SendMsgBodyHandshakedRequest) e));
-        super.eventBus.subscribe(BroadcastMsgHandshakedRequest.class,   e -> onBroadcastMsgHandshaked((BroadcastMsgHandshakedRequest) e));
-        super.eventBus.subscribe(BroadcastMsgBodyHandshakedRequest.class, e -> onBroadcastMsgBodyHandshaked((BroadcastMsgBodyHandshakedRequest) e));
-        super.eventBus.subscribe(SendMsgListHandshakeRequest.class,     e -> onSendMsgListHandshakeReq((SendMsgListHandshakeRequest) e));
-        this.eventBus.subscribe(SendMsgStreamHandshakeRequest.class,    e -> onSendMsgStreamHandshakeRequest((SendMsgStreamHandshakeRequest) e));
+        subscribe(SendMsgHandshakedRequest.class, this::onSendMsgHandshaked);
+        subscribe(SendMsgBodyHandshakedRequest.class, this::onSendMsgBodyHandshaked);
+        subscribe(BroadcastMsgHandshakedRequest.class, this::onBroadcastMsgHandshaked);
+        subscribe(BroadcastMsgBodyHandshakedRequest.class, this::onBroadcastMsgBodyHandshaked);
+        subscribe(SendMsgListHandshakeRequest.class, this::onSendMsgListHandshakeReq);
+        subscribe(SendMsgStreamHandshakeRequest.class, this::onSendMsgStreamHandshakeRequest);
     }
 
     // Event Handler:
     private void onNetStart(NetStartEvent event) {
         logger.trace("Starting...");
-        this.msgBatchesExecutor.submit(this::checkPendingBatchesToBroadcast);
+        this.msgBatchesExecutor.execute(this::checkPendingBatchesToBroadcast);
     }
 
     // Event Handler:
     private void onNetStop(NetStopEvent event) {
         this.msgBatchesExecutor.shutdownNow();
+        this.dedicateConnsExecutor.shutdownNow();
+        this.broadcastExecutor.shutdownNow();
+
         logger.trace("Stop.");
     }
 
@@ -163,24 +168,25 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
         // NOTE: We can process incoming messages in any order, as larger messages are handled by the serializers. For outgoing streams, they need to be processed in the order
         // they're submitted since larger messages are split into chunks
         MessageStream msgStream = new MessageStream(
-                super.eventBus.getExecutor(),
                 super.runtimeConfig,
                 config,
                 this.deserializer,
                 event.getStream(),
                 this.dedicateConnsExecutor,
-                this.logger);
+                this.logger
+        );
+
         msgStream.init();
         // We listen to the Deserializer Events
-        msgStream.input().onData(e -> {
+        msgStream.input().onData(message -> {
 
-            switch (e.getData().getMessageType()) {
+            switch (message.getMessageType()) {
                 case BitcoinMsg.MESSAGE_TYPE:
-                    onStreamMsgReceived(peerAddress, (BitcoinMsg<?>) e.getData());
-                break;
+                    onStreamMsgReceived(peerAddress, (BitcoinMsg<?>) message);
+                    break;
 
                 default:
-                    logger.warm("Unhandled Message Type: " + e.getData().getMessageType().toUpperCase());
+                    logger.warm("Unhandled Message Type: " + message.getMessageType().toUpperCase());
             }
         });
 
@@ -236,7 +242,7 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
     }
 
     // Event Handler:
-    private void onStreamError(PeerAddress peerAddress, StreamErrorEvent event) {
+    private void onStreamError(PeerAddress peerAddress, Throwable error) {
         // We request a Disconnection from this Peer...
         logger.trace(peerAddress, "Error detected in Stream, requesting disconnection... ");
         super.eventBus.publish(new DisconnectPeerRequest(peerAddress));
@@ -327,15 +333,16 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
         send(peerAddress, btcMsg);
     }
 
-    private void _send(PeerAddress peerAddress, Message message){
-        synchronized (peerAddress.toString().intern()) {
-            if (handlerInfo.containsKey(peerAddress)) {
+    private void _send(PeerAddress peerAddress, Message message) {
+        if (handlerInfo.containsKey(peerAddress)) {
+
+            handlerInfo.get(peerAddress).getStream().output().stream(streamer -> {
                 //send the message
-                handlerInfo.get(peerAddress).getStream().output().send(new StreamDataEvent<>(message));
+                streamer.send(message);
 
                 //we only want to perform actions such as event propagation for each message type, not each part of a message if it's broken down
                 if (message.getMessageType().equals(BitcoinMsg.MESSAGE_TYPE)) {
-                    logger.trace(peerAddress, ((BitcoinMsg) message).getBody().getMessageType() + " Msg sent.");
+                    logger.trace(peerAddress, ((BitcoinMsg) message).getBody().getMessageType().toUpperCase() + " Msg sent.");
 
                     // We propagate this message to the Bus, so other handlers can pick them up if they are subscribed to:
                     // NOTE: These Events related to messages sent might not be necessary, and they add some multi-thread
@@ -349,11 +356,11 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
                 */
 
                     // We update the state per message, not per message block:
-                    updateState(0, 1);
+                    state.increaseOutMsgCount(1);
                 }
-
-
-            } else logger.trace(peerAddress, " Request to Send Msg Discarded (unknown Peer)");
+            });
+        } else {
+            logger.trace(peerAddress, " Request to Send Msg Discarded (unknown Peer)");
         }
     }
 
@@ -364,73 +371,70 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
      */
     @Override
     public void stream(PeerAddress peerAddress, StreamRequest streamRequest) {
-        synchronized (peerAddress.toString().intern()) {
-            logger.trace(peerAddress, "Streaming raw bytes to peer: ");
+        logger.trace(peerAddress, "Streaming raw " + streamRequest.getLen() + " bytes to peer: ");
 
-            //If the initial message is greater than 4GB, then we will construct a HeaderEn message and the rest will be appended in batches.
-            ByteArrayBuffer byteArrayBuffer = new ByteArrayBuffer();
-            Iterator<byte[]> streamItr = streamRequest.getStream().iterator();
+        handlerInfo.get(peerAddress).getStream().output().stream(streamer -> {
+            try {
 
-            while (streamItr.hasNext() && byteArrayBuffer.size() <= config.getBasicConfig().getThresholdSizeExtMsgs()) {
-                byteArrayBuffer.add(streamItr.next());
-            }
-            ByteStreamMsg initialBodyMsg = new ByteStreamMsg(byteArrayBuffer);
+                //If the initial message is greater than 4GB, then we will construct a HeaderEn message and the rest will be appended in batches.
+                ByteArrayBuffer byteArrayBuffer = new ByteArrayBuffer();
+                Iterator<byte[]> streamItr = streamRequest.getStream().iterator();
 
-            BitcoinMsg<ByteStreamMsg> initialMessage = new BitcoinMsgBuilder(config.getBasicConfig(), initialBodyMsg)
+                while (streamItr.hasNext() && byteArrayBuffer.size() <= config.getBasicConfig().getThresholdSizeExtMsgs()) {
+                    byteArrayBuffer.add(streamItr.next());
+                }
+                ByteStreamMsg initialBodyMsg = new ByteStreamMsg(byteArrayBuffer);
+
+                BitcoinMsg<ByteStreamMsg> initialMessage = new BitcoinMsgBuilder(config.getBasicConfig(), initialBodyMsg)
                     .overrideHeaderMsgType(streamRequest.getMsgType())
                     .overrideHeaderMsgLength(streamRequest.getLen())
                     .build();
+                //send the initial message to the peer
 
-            //send the initial message to the peer
-            handlerInfo.get(peerAddress).getStream().output().send(new StreamDataEvent<>(initialMessage));
+                streamer.send(initialMessage);
 
-            //if batch size isn't configured for the raw bytes class, then default to 1 GB message sizes
-            int batchSizeBytes = config.getMsgBatchConfigs().get(ByteStreamMsg.class) != null ?
+                //if batch size isn't configured for the raw bytes class, then default to 1 GB message sizes
+                int batchSizeBytes = config.getMsgBatchConfigs().get(ByteStreamMsg.class) != null ?
                     config.getMsgBatchConfigs().get(ByteStreamMsg.class).getMaxBatchSizeInbytes() : 1_000_000_000;
 
-            //loop the remaining stream and send in chunks of bytes
-            ByteArrayBuffer batchByteBuffer = new ByteArrayBuffer();
-            while (streamItr.hasNext()) {
-                batchByteBuffer.add(streamItr.next());
+                //loop the remaining stream and send in chunks of bytes
+                ByteArrayBuffer batchByteBuffer = new ByteArrayBuffer();
+                while (streamItr.hasNext()) {
+                    batchByteBuffer.add(streamItr.next());
 
-                //if we've exceeded the maximum size, send it down the wire and start again
-                if (batchByteBuffer.size() > batchSizeBytes) {
-                    ByteStreamMsg bodyMsgPart = new ByteStreamMsg(batchByteBuffer);
-                    handlerInfo.get(peerAddress).getStream().output().send(new StreamDataEvent<>(bodyMsgPart));
+                    //if we've exceeded the maximum size, send it down the wire and start again
+                    if (batchByteBuffer.size() > batchSizeBytes) {
+                        ByteStreamMsg bodyMsgPart = new ByteStreamMsg(batchByteBuffer);
 
-                    batchByteBuffer = new ByteArrayBuffer();
+                        streamer.send(bodyMsgPart);
+
+                        batchByteBuffer = new ByteArrayBuffer();
+                    }
                 }
+
+                //send the last message if there's any remaining bytes
+                if (batchByteBuffer.size() > 0) {
+                    streamer.send(initialMessage);
+                }
+            } catch (Exception e) {
+                logger.error("Streaming failed!", e);
             }
+        });
 
-            //send the last message if there's any remaining bytes
-            if (batchByteBuffer.size() > 0) {
-                handlerInfo.get(peerAddress).getStream().output().send(new StreamDataEvent<>(initialMessage));
-            }
+        logger.trace(peerAddress, streamRequest.getMsgType() + " Msg streamed to peer");
 
-            logger.trace(peerAddress, streamRequest.getMsgType() + " Msg streamed to peer");
-
-            updateState(0, 1);
-        }
+        state.increaseOutMsgCount(1);
     }
 
 
     @Override
     public void broadcast(BitcoinMsg<?> btcMessage) {
-        handlerInfo.values().forEach(p -> broadcastExecutor.submit(() -> send(p.getStream().getPeerAddress(), btcMessage)));
+        handlerInfo.values().forEach(p -> broadcastExecutor.execute(() -> send(p.getStream().getPeerAddress(), btcMessage)));
     }
 
     @Override
     public void broadcast(BodyMessage msgBody) {
-        handlerInfo.values().forEach(p -> broadcastExecutor.submit(() -> send(p.getStream().getPeerAddress(), msgBody)));
-    }
-
-    // It updates the State of this Handler:
-    public synchronized void updateState(long addingMsgsIn, long addingMsgsOut) {
-        this.state = this.state.toBuilder()
-                .numMsgsIn(state.getNumMsgsIn().add(BigInteger.valueOf(addingMsgsIn)))
-                .numMsgsOut(state.getNumMsgsOut().add(BigInteger.valueOf(addingMsgsOut)))
-                .deserializerState(deserializer.getState())
-                .build();
+        handlerInfo.values().forEach(p -> broadcastExecutor.execute(() -> send(p.getStream().getPeerAddress(), msgBody)));
     }
 
     // Very basic Verifications on the Message. If an Error is found, its returned as the result.
@@ -472,6 +476,14 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
         return this.config;
     }
 
+    @Override
+    public synchronized void updateConfig(HandlerConfig config) {
+        if (!(config instanceof MessageHandlerConfig)) {
+            throw new RuntimeException("config class is NOT correct for this Handler");
+        }
+        this.config = (MessageHandlerConfig) config;
+    }
+
     public MessageHandlerState getState() {
         return this.state;
     }
@@ -480,14 +492,14 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
     private void publishMessageToEventBus(MsgReceivedEvent event) {
         super.eventBus.publish(event);                                                              // we publish the specific Event
         super.eventBus.publish(new MsgReceivedEvent(event.getPeerAddress(), event.getBtcMsg()));    // we publish a more generic Event
-        updateState(1, 0);                                               // State update
+        state.increaseInMsgCount(1);                                               // State update
     }
 
     // It publishes the Batch event to the Bus and updares the State
     private void publishBatchMessageToEventBus(Optional<MsgReceivedBatchEvent> batchEventOpt) {
         batchEventOpt.ifPresent(batchEvent -> {
             super.eventBus.publish(batchEvent);                                     // we publish the specific Event
-            updateState(batchEvent.getEvents().size(), 0);            // State update
+            state.increaseInMsgCount(batchEvent.getEvents().size());            // State update
         });
     }
 
@@ -501,12 +513,11 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
                             if (Duration.between(batch.getTimestamp(), Instant.now()).compareTo(TIMEOUT) > 0) {
                                 publishBatchMessageToEventBus(batch.extractBatchAndReset());
                             }
-                });
+                        });
                 Thread.sleep(TIMEOUT.toMillis());
             }
         } catch (InterruptedException ie) {
-            logger.error(ie.getMessage(), ie);
-            throw new RuntimeException(ie);
+            // execution terminated...
         }
     }
 }

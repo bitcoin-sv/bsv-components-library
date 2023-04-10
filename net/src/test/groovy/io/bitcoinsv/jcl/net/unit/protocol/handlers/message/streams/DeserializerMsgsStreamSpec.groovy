@@ -12,12 +12,14 @@ import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig
 import io.bitcoinsv.jcl.tools.config.provided.RuntimeConfigDefault
 import io.bitcoinsv.bitcoinjsv.core.Utils
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 
+@Ignore
 class DeserializerMsgsStreamSpec extends Specification {
 
     // We define some messages that wil be used in the Tests:

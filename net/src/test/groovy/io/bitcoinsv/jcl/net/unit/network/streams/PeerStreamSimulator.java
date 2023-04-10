@@ -1,10 +1,10 @@
 package io.bitcoinsv.jcl.net.unit.network.streams;
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
+import io.bitcoinsv.jcl.net.network.streams.PeerInputStream;
+import io.bitcoinsv.jcl.net.network.streams.PeerOutputStream;
 import io.bitcoinsv.jcl.net.network.streams.PeerStream;
 import io.bitcoinsv.jcl.net.network.streams.PeerStreamImpl;
-
-import java.util.concurrent.ExecutorService;
 
 /**
  * @author i.fernandez@nchain.com
@@ -13,24 +13,24 @@ import java.util.concurrent.ExecutorService;
  */
 public class PeerStreamSimulator<T> extends PeerStreamImpl<T,T> implements PeerStream<T> {
 
-    public PeerStreamSimulator(PeerAddress peerAddress, ExecutorService executor) {
-        super(peerAddress, executor, null);
+    public PeerStreamSimulator(PeerAddress peerAddress) {
+        super(peerAddress, null);
     }
 
     @Override
     public PeerStreamInOutSimulator<T> buildInputStream() {
-        return new PeerStreamInOutSimulator<>(peerAddress, super.executor);
+        return new PeerStreamInOutSimulator<>(peerAddress);
     }
     @Override
     public PeerStreamInOutSimulator<T> buildOutputStream() {
-        return new PeerStreamInOutSimulator<>(peerAddress, super.executor);
+        return new PeerStreamInOutSimulator<>(peerAddress);
     }
     @Override
-    public PeerStreamInOutSimulator<T> input() {
-        return (PeerStreamInOutSimulator) inputStream;
+    public PeerInputStream<T> input() {
+        return inputStream;
     }
     @Override
-    public PeerStreamInOutSimulator<T> output() {
-        return (PeerStreamInOutSimulator) outputStream;
+    public PeerOutputStream<T> output() {
+        return outputStream;
     }
 }

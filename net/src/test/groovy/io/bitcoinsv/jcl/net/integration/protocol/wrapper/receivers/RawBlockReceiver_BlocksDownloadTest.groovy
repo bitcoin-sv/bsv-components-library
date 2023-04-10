@@ -1,5 +1,6 @@
 package io.bitcoinsv.jcl.net.integration.protocol.wrapper.receivers
 
+import io.bitcoinsv.jcl.net.integration.utils.IntegrationUtils
 import io.bitcoinsv.jcl.net.network.events.HandlerStateEvent
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolBasicConfig
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig
@@ -7,6 +8,7 @@ import io.bitcoinsv.jcl.net.protocol.config.ProtocolVersion
 import io.bitcoinsv.jcl.net.protocol.config.provided.ProtocolBSVMainConfig
 import io.bitcoinsv.jcl.net.protocol.handlers.block.BlockDownloaderHandlerConfig
 import io.bitcoinsv.jcl.net.protocol.handlers.block.BlockDownloaderHandlerState
+import io.bitcoinsv.jcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig
 import io.bitcoinsv.jcl.net.protocol.handlers.handshake.HandshakeHandlerState
 import io.bitcoinsv.jcl.net.protocol.handlers.message.MessageHandlerConfig
 import io.bitcoinsv.jcl.net.protocol.messages.RawTxMsg
@@ -138,6 +140,9 @@ class RawBlockReceiver_BlocksDownloadTest extends Specification {
                 .removeBlockHistoryAfterDownload(false)
                 .build()
 
+        // We extends the DiscoveryHandler Config, in case DNS's are not working properly:
+        DiscoveryHandlerConfig discoveryConfig = IntegrationUtils.getDiscoveryHandlerConfigMainnet(config.getDiscoveryConfig())
+
         // We configure the P2P Service:
         P2P p2p = new P2PBuilder("testing")
                 .config(runtimeConfig)
@@ -145,6 +150,7 @@ class RawBlockReceiver_BlocksDownloadTest extends Specification {
                 .config(basicConfig)
                 .config(messageConfig)
                 .config(blockConfig)
+                .config(discoveryConfig)
                 .publishStates(Duration.ofMillis(500))
                 .build()
 

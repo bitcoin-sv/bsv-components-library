@@ -3,12 +3,13 @@ package io.bitcoinsv.jcl.tools.bigObjects.stores;
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
 import io.bitcoinsv.bitcoinjsv.core.Utils;
+import io.bitcoinsv.bitcoinjsv.core.VarInt;
 import io.bitcoinsv.jcl.tools.bigObjects.BigCollectionChunk;
 import io.bitcoinsv.jcl.tools.bigObjects.BigCollectionChunkImpl;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter;
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig;
-import io.bitcoinsv.jcl.tools.thread.ThreadUtils;
+import io.bitcoinsv.jcl.tools.serialization.BitcoinSerializerUtils;
 import net.openhft.chronicle.map.ChronicleMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +22,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -88,6 +91,16 @@ public class BigCollectionChunksStoreCMap3<I> implements BigCollectionChunksStor
     // Global Reference Map Configuration:
     private static final long   REFMAP_AVG_VALUE_SIZE   = 1_000; // 1 KB
 
+    // Number of Bytes appended at the beginning of each Serialized Item to store the number of Entries needed:
+    // IMPORTANT:
+    // For each Item, we append [NUM_BYTES_PARTIALS] bytes at the very beginning (after serialized). These bytes
+    // store the number of "Entries" used by that item.
+    // For example, (considering avgItemSize = 500), if we try to save a Item that takes 499 bytes in serialized form,
+    // the item will need 2 entries because:
+    // - First we append 4 bytes at he beginning, now 503 in total
+    // - If each entry is 500 bytes max, then we need 2 entries (we store "2" in the first 4 bytes of the FIRST ENTRY)
+
+    private static final int NUM_BYTES_PARTIALS = 4;
 
     /**
      * An iterator that loops over the Chunks of one Collection. It assumes that all the chunks are saved and there are
@@ -135,6 +148,9 @@ public class BigCollectionChunksStoreCMap3<I> implements BigCollectionChunksStor
     private ChronicleMap<String, byte[]> refMap;
     private List<ChronicleMap<String, byte[]>> contentMaps = new ArrayList<>();
 
+    // A Lock to synchronize access to the CONTENT MAPS:
+    private ReadWriteLock contentMapsLock = new ReentrantReadWriteLock();
+
     private BlockingQueue<String> collectionsToRemoveQueue = new LinkedBlockingQueue<String>();
     private BlockingQueue<Long> sizesToAddQueue = new LinkedBlockingQueue<Long>();
     private ExecutorService executor;
@@ -164,9 +180,6 @@ public class BigCollectionChunksStoreCMap3<I> implements BigCollectionChunksStor
         this.avgItemSize = avgItemSize;
         this.maxItemsEachFile = maxItemsEachFile;
     }
-
-
-
 
     public void setToReuseCMaps() {
         this.reuseCMaps = true;
@@ -200,32 +213,49 @@ public class BigCollectionChunksStoreCMap3<I> implements BigCollectionChunksStor
         return collectionId + "_completed";
     }
 
-    private synchronized ChronicleMap<String, byte[]> addNewContentMap(int cmapIndex) {
+    private ChronicleMap<String, byte[]> addNewContentMap(int cmapIndex) {
         try {
-            String fileName = CONTENT_MAPS_FILE_PREFFIX + cmapIndex + ".dat";
-            ChronicleMap<String, byte[]> cMap = ChronicleMap
-                    .of(String.class, byte[].class)
-                    .name(CONTENT_MAPS_FILE_PREFFIX + cmapIndex)
-                    .averageKeySize(this.avgCollectionIdSize + 10) // 10-byte buffer for suffixes...
-                    .averageValueSize(this.avgItemSize)
-                    .maxBloatFactor(3.0)
-                    .entries(this.maxItemsEachFile)
-                    .createPersistedTo(Paths.get(rootFolder.toString(), fileName).toFile());
-            this.contentMaps.add(cMap);
-            return cMap;
-        } catch (IOException ioe) {
-            throw new RuntimeException(ioe);
+            contentMapsLock.writeLock().lock();
+            try {
+                String fileName = CONTENT_MAPS_FILE_PREFFIX + cmapIndex + ".dat";
+                ChronicleMap<String, byte[]> cMap = ChronicleMap
+                        .of(String.class, byte[].class)
+                        .name(CONTENT_MAPS_FILE_PREFFIX + cmapIndex)
+                        .averageKeySize(this.avgCollectionIdSize + 10) // 10-byte buffer for suffixes...
+                        .averageValueSize(this.avgItemSize)
+                        .maxBloatFactor(3.0)
+                        .entries(this.maxItemsEachFile)
+                        .createPersistedTo(Paths.get(rootFolder.toString(), fileName).toFile());
+                this.contentMaps.add(cMap);
+                return cMap;
+            } catch (IOException ioe) {
+                throw new RuntimeException(ioe);
+            }
+        } finally {
+            contentMapsLock.writeLock().unlock();
         }
     }
 
     private synchronized ChronicleMap<String, byte[]> addNewContentMap() {
-        return addNewContentMap(getNextMapIndexToUse());
+        try {
+            this.contentMapsLock.writeLock().lock();
+            return addNewContentMap(getNextMapIndexToUse());
+        } finally {
+            this.contentMapsLock.writeLock().unlock();
+        }
     }
 
     private synchronized int getNextMapIndexToUse() {
-        if (this.contentMaps.isEmpty()) return 0;
-        int maxIndex = this.contentMaps.stream().map(m -> m.file()).mapToInt(f -> getIndexNumberFromMapFile(f)).max().getAsInt();
-        return maxIndex + 1;
+        try {
+            contentMapsLock.readLock().lock();
+
+            if (this.contentMaps.isEmpty()) return 0;
+            int maxIndex = this.contentMaps.stream().map(m -> m.file()).mapToInt(f -> getIndexNumberFromMapFile(f)).max().getAsInt();
+            return maxIndex + 1;
+
+        } finally {
+            contentMapsLock.readLock().unlock();
+        }
     }
 
     private int getIndexNumberFromMapFile(File file) {
@@ -236,6 +266,8 @@ public class BigCollectionChunksStoreCMap3<I> implements BigCollectionChunksStor
     @Override
     public void start() {
         try {
+            this.contentMapsLock.writeLock().lock();
+
             // We make sure the folder exists:
             Files.createDirectories(this.rootFolder);
 
@@ -264,19 +296,27 @@ public class BigCollectionChunksStoreCMap3<I> implements BigCollectionChunksStor
 
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
+        } finally {
+            this.contentMapsLock.writeLock().unlock();
         }
     }
 
     @Override
     public void stop() {
-        this.executor.shutdownNow();
-        refMap.close();
-        this.contentMaps.forEach(m -> m.close());
+        try {
+            contentMapsLock.writeLock().lock();
+            this.executor.shutdownNow();
+            refMap.close();
+            this.contentMaps.forEach(m -> m.close());
+        } finally {
+            contentMapsLock.writeLock().unlock();
+        }
     }
 
     @Override
     public void destroy() {
         try {
+            this.contentMapsLock.writeLock().lock();
             // We remove the whole folder:
             Files.walk(this.rootFolder)
                     .sorted(Comparator.reverseOrder())
@@ -284,6 +324,8 @@ public class BigCollectionChunksStoreCMap3<I> implements BigCollectionChunksStor
                     .forEach(File::delete);
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
+        } finally {
+            this.contentMapsLock.writeLock().unlock();
         }
     }
 
@@ -291,22 +333,28 @@ public class BigCollectionChunksStoreCMap3<I> implements BigCollectionChunksStor
     public boolean save(String collectionId, BigCollectionChunk<I> chunk) {
         Preconditions.checkArgument(chunk.getChunkOrdinal() >= 0, "chunkOrdinal must be >= 0");
 
-        // If This chunk is already saved, we just return:
-        if (chunkAlreadySaved(collectionId, chunk.getChunkOrdinal())) {
-            return false;
-        }
+        try {
+            this.contentMapsLock.writeLock().lock();
 
-        // We locate a Content Map with enough capacity for this Chunk, and we save all the ITEMS in it:
-        // ----------------------------------------------------------------------------------------------
+            log.trace("Saving {} : chunk #{}, {} items", collectionId, chunk.getChunkOrdinal(), chunk.getItems().size());
 
-        // In order to know how many entries this Chunk is gonna take, we need to Serialize the chunk first, since
-        // that number depends on the size of all the Items...
+            // If This chunk is already saved, we just return:
+            if (chunkAlreadySaved(collectionId, chunk.getChunkOrdinal())) {
+                return false;
+            }
 
-        // So we come up with a List of Items serialized. TThe local memory should be able to handle this:
-        List<byte[]> serializedItems = chunk.getItems().stream().map(i -> serializeItem(i)).collect(Collectors.toList());
-        int numEntries = serializedItems.stream().mapToInt(b -> Utils.readUint16(b, 0)).sum();
+            // We locate a Content Map with enough capacity for this Chunk, and we save all the ITEMS in it:
+            // ----------------------------------------------------------------------------------------------
 
-        ChronicleMap<String, byte[]> chunkItemsMap = getContentMapWithFreeCapacity(numEntries).orElseGet(this::addNewContentMap);
+            // In order to know how many entries this Chunk is gonna take, we need to Serialize the chunk first, since
+            // that number depends on the size of all the Items...
+
+            List<byte[]> serializedItems = chunk.getItems().stream().map(i -> serializeItem(i)).collect(Collectors.toList());
+            int numEntries = serializedItems.stream().mapToInt(b -> calculateNumPartialsForItem(b)).sum();
+            int totalbytes = serializedItems.stream().mapToInt(b -> b.length).sum();
+            log.trace("Saving {} : chunk #{}, {} total bytes, {} total Item Entries", collectionId, chunk.getChunkOrdinal(), totalbytes, numEntries);
+
+            ChronicleMap<String, byte[]> chunkItemsMap = getContentMapWithFreeCapacity(numEntries).orElseGet(this::addNewContentMap);
 
             // If we are going to exceed the limit of this CMap, we log it:
             if ((chunkItemsMap.size() + numEntries) > this.maxItemsEachFile) {
@@ -344,7 +392,10 @@ public class BigCollectionChunksStoreCMap3<I> implements BigCollectionChunksStor
             // We update the total size IN BYTES of the Store:
             updateTotalStorageSize(totalChunkBytes);
 
-        return true;
+            return true;
+        } finally {
+            this.contentMapsLock.writeLock().unlock();
+        }
     }
 
     @Override
@@ -377,18 +428,14 @@ public class BigCollectionChunksStoreCMap3<I> implements BigCollectionChunksStor
 
     @Override
     public long size(String collectionId) {
-
         String keySize = keyForCollectionSize(collectionId);
         return Longs.fromByteArray(refMap.get(keySize));
-
     }
 
     @Override
     public long sizeInBytes(String collectionId) {
-
         String key = keyForCollectionSizeInBytes(collectionId);
         return refMap.containsKey(key)? Longs.fromByteArray(refMap.get(key)) : 0;
-
     }
 
     @Override
@@ -409,21 +456,26 @@ public class BigCollectionChunksStoreCMap3<I> implements BigCollectionChunksStor
     @Override
     public void clear() {
        refMap.clear();
-        synchronized (this.contentMaps) {
-            this.contentMaps.forEach(m -> this.removeAndCleanCMap(m));
-            this.contentMaps.clear();
-        }
+       try {
+           contentMapsLock.writeLock().lock();
+           this.contentMaps.forEach(m -> this.removeAndCleanCMap(m));
+           this.contentMaps.clear();
+       } finally {
+           contentMapsLock.writeLock().unlock();
+       }
     }
 
     @Override
     public void compact() {
-        synchronized (this.contentMaps) {
+        try {
+            contentMapsLock.writeLock().lock();
             this.contentMaps.stream()
                     .filter(m -> m.isEmpty())
                     .forEach(m -> this.removeAndCleanCMap(m));
+        } finally {
+            contentMapsLock.writeLock().unlock();
         }
     }
-
 
     public void _remove(String collectionId) {
 
@@ -467,22 +519,30 @@ public class BigCollectionChunksStoreCMap3<I> implements BigCollectionChunksStor
         // We only remove a CMap file if the Map is empty and there are at least 2 Maps empty: this way we avoid the
         // situation where files might be created and removed continuously when collections and added/removed.
 
-        List<ChronicleMap<String, byte[]>> contentMapsEmpty = this.contentMaps.stream()
-                .filter(cmap -> cmap.isEmpty())
-                .collect(Collectors.toList());
-        if (contentMapsEmpty.size() >= 2) {
-            // We left 1 Content Map without removing...
-            int numMapsRemoved = 0;
-            for (ChronicleMap<String, byte[]> contentMap : contentMapsEmpty) {
-                // Depending on config, we remove this cmap or we leave it for future reuse:
-                if (!this.reuseCMaps) {
-                    this.contentMaps.remove(contentMap);
-                    removeAndCleanCMap(contentMap);
+        try {
+            contentMapsLock.writeLock().lock();
+
+            List<ChronicleMap<String, byte[]>> contentMapsEmpty = this.contentMaps.stream()
+                    .filter(cmap -> cmap.isEmpty())
+                    .collect(Collectors.toList());
+            if (contentMapsEmpty.size() >= 2) {
+                // We left 1 Content Map without removing...
+                int numMapsRemoved = 0;
+                for (ChronicleMap<String, byte[]> contentMap : contentMapsEmpty) {
+                    // Depending on config, we remove this cmap or we leave it for future reuse:
+                    if (!this.reuseCMaps) {
+                        this.contentMaps.remove(contentMap);
+                        removeAndCleanCMap(contentMap);
+                    }
+                    numMapsRemoved++;
+                    if (numMapsRemoved == (contentMapsEmpty.size() - 1)) break;
                 }
-                numMapsRemoved++;
-                if (numMapsRemoved == (contentMapsEmpty.size() - 1)) break;
             }
+
+        } finally {
+            contentMapsLock.writeLock().unlock();
         }
+
     }
 
     private void removeAndCleanCMap(ChronicleMap<String, byte[]> cmap) {
@@ -538,37 +598,60 @@ public class BigCollectionChunksStoreCMap3<I> implements BigCollectionChunksStor
         byte[] itemBytes = writer.reader().getFullContentAndClose();
 
         // We calculate the number of "partials" for this item:
-        int numPartialItems = getNumPartialsForItem(itemBytes);
+        int numPartials = calculateNumPartialsForItem(itemBytes);
+        byte[] numPartialsInBytes = getNumPartialsInBytes(numPartials);
 
-        // And we serialize it all :the first 2 bytes PLUS the bytes themselves:
+        // And we serialize it all : the number of Partial first:
         ByteArrayWriter finalWriter = new ByteArrayWriter();
-        finalWriter.writeUint16LE(numPartialItems);
+        finalWriter.write(numPartialsInBytes);
+
+        // then the payload:
         finalWriter.write(itemBytes);
         return finalWriter.reader().getFullContentAndClose();
     }
 
     protected I deserializeItem(byte[] bytes) {
         ByteArrayReader reader = new ByteArrayReader(bytes);
-        // We discard the first 2 bytes, since they contain the number of "partials" for this Item
-        reader.readUint16();
-        // and we deserialize the ITem normally:
+
+        // First we deserialize the number pf Partials: (we just discard them)
+        byte[] numPartialInBytes = getNumPartialsInBytes(getNumPartialsFromItem(bytes));
+        reader.read(numPartialInBytes.length);
+
+        // and we deserialize the Item normally:
         I result = itemSerializer.deserialize(reader);
         return result;
     }
 
-    private int getNumPartialsForItem(byte[] itemBytes) {
-        int bytesToAdd = itemBytes.length + 2;
-        return (bytesToAdd > this.avgItemSize)
-                ? (int) Math.ceil((double)bytesToAdd / this.avgItemSize)
+    private int calculateNumPartialsForItem(byte[] itemBytes) {
+        int totalBytesToStore = NUM_BYTES_PARTIALS + itemBytes.length;
+        int numPartials = (totalBytesToStore > this.avgItemSize)
+                ? (int) Math.ceil((double)totalBytesToStore / this.avgItemSize)
                 : 1;
+        return numPartials;
+    }
+
+    private byte[] getNumPartialsInBytes(int numPartials) {
+        byte[] result = new byte[NUM_BYTES_PARTIALS];
+        Utils.uint32ToByteArrayLE(numPartials, result, 0);
+       return result;
+    }
+
+    private int getNumPartialsFromItem(byte[] serializedItem) {
+        int result = (int) Utils.readUint32(serializedItem, 0);
+        return result;
     }
 
     private Optional<ChronicleMap<String, byte[]>> getContentMapContainingChunk(String collectionId, int chunkOrdinal) {
-        String key =  keyForChunkNumItems(collectionId, chunkOrdinal);
-        Optional<ChronicleMap<String, byte[]>> result = this.contentMaps.stream()
-                .filter(cm -> cm.containsKey(key))
-                .findFirst();
-        return result;
+        try {
+            contentMapsLock.readLock().lock();
+            String key =  keyForChunkNumItems(collectionId, chunkOrdinal);
+            Optional<ChronicleMap<String, byte[]>> result = this.contentMaps.stream()
+                    .filter(cm -> cm.containsKey(key))
+                    .findFirst();
+            return result;
+        } finally {
+            contentMapsLock.readLock().unlock();
+        }
     }
 
     private boolean chunkAlreadySaved(String collectionId, int chunkOrdinal) {
@@ -577,13 +660,16 @@ public class BigCollectionChunksStoreCMap3<I> implements BigCollectionChunksStor
     }
 
     protected List<I> getItemsFromChunk(String collectionId, int chunkOrdinal) {
+
+        log.trace("Getting {} : chunk #{} ...", collectionId, chunkOrdinal);
+
         List<I> result = new ArrayList<>();
         ChronicleMap<String, byte[]> contentMap = getContentMapContainingChunk(collectionId, chunkOrdinal).get();
 
         // The chunk is split into different Items, so first we check the number of parts and then we loop over them...
         String numItemsKey = keyForChunkNumItems(collectionId, chunkOrdinal);
         int numItems = SerializationUtils.<Integer>deserialize(contentMap.get(numItemsKey));
-
+        log.trace("Getting {} : chunk #{} : {} items to load...", collectionId, chunkOrdinal, numItems);
         for (int i = 0; i < numItems; i++) {
             I item = getItem(collectionId, contentMap, chunkOrdinal, i);
             result.add(item);
@@ -605,7 +691,9 @@ public class BigCollectionChunksStoreCMap3<I> implements BigCollectionChunksStor
      */
     private int saveItem(String collectionId, ChronicleMap<String, byte[]> chunkItemsMap, byte[] itemBytes, int chunkOrdinal, int itemOrdinal) {
         try {
-            int numPartials = Utils.readUint16(itemBytes, 0);
+            int numPartials = calculateNumPartialsForItem(itemBytes);
+            log.trace("Saving {} : chunk #{} : item #{}, {} bytes, {} item Entries needed...", collectionId, chunkOrdinal, itemOrdinal, itemBytes.length, numPartials);
+
             if (numPartials == 1) {
                 String itemKey = keyForChunkItem(collectionId, chunkOrdinal, itemOrdinal, 0);
                 chunkItemsMap.put(itemKey, itemBytes);
@@ -636,10 +724,12 @@ public class BigCollectionChunksStoreCMap3<I> implements BigCollectionChunksStor
             I item = null;
             // We read the number of "Partials" of this Item, which are stored in the first entry:
             byte[] firstEntry = chunkItemsMap.get(keyForChunkItem(collectionID, chunkOrdinal, itemOrdinal, 0));
-            int numPartials = Utils.readUint16(firstEntry, 0);
+            int numPartials = getNumPartialsFromItem(firstEntry);
+
             if (numPartials == 1) {
                 item = deserializeItem(firstEntry);
             } else {
+                // We deserialize the Item by looping over all the Partials.
                 byte[] totalItem = new byte[(int) this.avgItemSize * numPartials];
                 System.arraycopy(firstEntry, 0, totalItem, 0, firstEntry.length);
                 for (int i = 1; i < numPartials; i++) {
@@ -647,6 +737,7 @@ public class BigCollectionChunksStoreCMap3<I> implements BigCollectionChunksStor
                     byte[] itemsPartialBytes = chunkItemsMap.get(itemPartialKey);
                     System.arraycopy(itemsPartialBytes, 0, totalItem, (int) (this.avgItemSize * i), itemsPartialBytes.length);
                 }
+                log.trace("Getting {} : chunk #{} : item #{} : loaded {} entries, ({} bytes rounded up)", collectionID, chunkOrdinal, itemOrdinal, numPartials, totalItem.length);
                 item = deserializeItem(totalItem);
             }
             return item;
@@ -665,9 +756,14 @@ public class BigCollectionChunksStoreCMap3<I> implements BigCollectionChunksStor
     }
 
     private Optional<ChronicleMap<String, byte[]>> getContentMapWithFreeCapacity(int numEntriesNeeded) {
-        return this.contentMaps.stream()
-                .filter(m -> m.size() < (this.maxItemsEachFile - numEntriesNeeded))
-                .findFirst();
+        try {
+            contentMapsLock.readLock().lock();
+            return this.contentMaps.stream()
+                    .filter(m -> m.size() < (this.maxItemsEachFile - numEntriesNeeded))
+                    .findFirst();
+        } finally {
+            contentMapsLock.readLock().unlock();
+        }
     }
 
     private synchronized void addChunkToCollection(String collectionId, int chunkOrdinal) {
@@ -702,21 +798,25 @@ public class BigCollectionChunksStoreCMap3<I> implements BigCollectionChunksStor
 
     // for Testing ONLY
     public void printContent() {
-        StringBuffer line = new StringBuffer();
+        try {
+            contentMapsLock.readLock().lock();
+            StringBuffer line = new StringBuffer();
 
-        // We print the contents of the REFERENCE MAP:
-        line.append(":: Reference CMap Keys:\n");
-        refMap.keySet().forEach(k -> line.append("   - " + k  + "\n"));
+            // We print the contents of the REFERENCE MAP:
+            line.append(":: Reference CMap Keys:\n");
+            refMap.keySet().forEach(k -> line.append("   - " + k  + "\n"));
 
-        // We print the contents of ALL the CONTENT MAPS:
-        line.append(":: Content CMap Keys:\n");
-        contentMaps.forEach(cmap -> {
-            line.append(":: CMap " + cmap.name() + ", " + cmap.percentageFreeSpace() + "% free :\n");
-            for (String k : cmap.keySet()) {
-                line.append("   - " + k  + "\n");
-            }
-        });
-        System.out.println(line.toString());
+            // We print the contents of ALL the CONTENT MAPS:
+            line.append(":: Content CMap Keys:\n");
+            contentMaps.forEach(cmap -> {
+                line.append(":: CMap " + cmap.name() + ", " + cmap.percentageFreeSpace() + "% free :\n");
+                for (String k : cmap.keySet()) {
+                    line.append("   - " + k  + "\n");
+                }
+            });
+            System.out.println(line.toString());
+        } finally {
+            contentMapsLock.readLock().unlock();
+        }
     }
-
 }

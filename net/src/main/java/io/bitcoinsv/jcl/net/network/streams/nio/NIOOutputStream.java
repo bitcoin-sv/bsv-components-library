@@ -2,78 +2,66 @@ package io.bitcoinsv.jcl.net.network.streams.nio;
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.network.config.NetworkConfig;
-
 import io.bitcoinsv.jcl.net.network.streams.PeerOutputStream;
 import io.bitcoinsv.jcl.net.network.streams.PeerOutputStreamImpl;
+import io.bitcoinsv.jcl.net.network.streams.IStreamHolder;
 import io.bitcoinsv.jcl.net.network.streams.StreamCloseEvent;
-import io.bitcoinsv.jcl.net.network.streams.StreamDataEvent;
+import io.bitcoinsv.jcl.tools.writebuffer.WriteBuffer;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader;
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig;
-import io.bitcoinsv.jcl.net.tools.LoggerUtil;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.nio.channels.CancelledKeyException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
- *
+ * <p>
  * Implementation of a Destination for an NIOOutputStream.
  * This class represents the Destination, so this is the last point in the Stream chain where the
  * data is sent.
  * This class is physically connected to the remote Peer through a SocketChannel and
  * a SelectionKey that is used to send data to it. The Selection Key is also being managed by the
  * NetworkHandler class. So the process os writting/sending dat to the Remote Peer is this:
- *
+ * <p>
  * - Some bytes are being sent through the "send()" method.
  * - These bytes are immediately kept in a Collection, to keep track of them.
  * - We update the Selection Key, to notify it tht we are ready for writing.
  * - The NetworkHandler class, which is monitoring the Selection Key all the time, will detect this
- *   and will invoke the "writeToSocket()" method in this class.
+ * and will invoke the "writeToSocket()" method in this class.
  * - The "writeToSocket()" method will take the bytes we collected in the first step, and will try to
- *   write them into the Socket connected to the Remote Peer.
- *
+ * write them into the Socket connected to the Remote Peer.
  */
 
 public class NIOOutputStream extends PeerOutputStreamImpl<ByteArrayReader, ByteArrayReader> implements PeerOutputStream<ByteArrayReader> {
 
+    private final NIOStreamState state = new NIOStreamState();
+    // For loggin:
+    private static final Logger log = LoggerFactory.getLogger(NIOOutputStream.class);
     // Configuration:
     private RuntimeConfig runtimeConfig;
     private NetworkConfig networkConfig;
-
-    // For loggin:
-    LoggerUtil logger;
-
     private PeerAddress peerAddress;
-    private NIOStreamState state;
-
     // The Selection Key and the Sockets linked to the physical connection to the remote Peer
     private SelectionKey key;
     private SocketChannel socketChannel;
 
-    // When using NIO and Buffers, there is no guarantee that all the bytes are written to the Buffer. Sometimes you
-    // write 10 bytes but only 7 have been actually written. So we need to keep track of the bytes pending
-    // to write:
-    private long bytesToWriteRemaining = 0;
-    // Here we keep the bytes pending to be written to the Socket:
-    private Queue<ByteBuffer> buffersToWrite = new ConcurrentLinkedQueue<>();
+    private final ReentrantLock streamerLock = new ReentrantLock();
+    private final NIOStreamerHolder streamer;
 
-    public NIOOutputStream(PeerAddress peerAddress,
-                           RuntimeConfig runtimeConfig,
-                           NetworkConfig networkConfig,
-                           SelectionKey key) {
+    public NIOOutputStream(
+        PeerAddress peerAddress,
+        RuntimeConfig runtimeConfig,
+        NetworkConfig networkConfig,
+        SelectionKey key
+    ) {
         super(peerAddress, null);
-        this.logger = new LoggerUtil(peerAddress.toString(), this.getClass());
 
         this.runtimeConfig = runtimeConfig;
         this.networkConfig = networkConfig;
@@ -81,76 +69,37 @@ public class NIOOutputStream extends PeerOutputStreamImpl<ByteArrayReader, ByteA
         this.key = key;
         this.socketChannel = (SocketChannel) key.channel();
 
-        this.state = NIOStreamState.builder().build();
-
+        streamer = new NIOStreamerHolder(new WriteBuffer(peerAddress.toString(), runtimeConfig.getWriteBufferConfig(), socketChannel));
     }
 
     @Override
-    public List<StreamDataEvent<ByteArrayReader>> transform(StreamDataEvent<ByteArrayReader> data) {
+    public List<ByteArrayReader> transform(ByteArrayReader data) {
         throw new UnsupportedOperationException();
     }
 
-    private void updateState(int bytesSentToAdd) {
-        this.state.toBuilder()
-                .numBytesProcessed(state.getNumBytesProcessed().add(BigInteger.valueOf(bytesSentToAdd)))
-                .build();
+    @Override
+    public void send(ByteArrayReader event) {
+        stream(s -> s.send(event));
     }
 
-    public synchronized void send(StreamDataEvent<ByteArrayReader> event) {
-        //logger.trace("Sending " + event.getData().size() + " bytes : " + HEX.encode(event.getData().get()));
-        // We get all the data from this Reader and we add it to the buffer of ByteBuffers.
-        bytesToWriteRemaining += event.getData().size();
-
-        // The bytes to write in this event might be any size, even bigger than 2GB, so we send them in batches...
-        int BATCH_SIZE = 100_000;
-        ByteArrayReader reader = event.getData();
-        while (!reader.isEmpty()) {
-            int numBytesToRead = (int) Math.min(BATCH_SIZE, reader.size());
-            buffersToWrite.offer(ByteBuffer.wrap(reader.read(numBytesToRead)));
-        }
-        //buffersToWrite.offer(ByteBuffer.wrap(event.getData().getFullContentAndClose())); // TODO: CAREFUL
-        notifyChannelWritable();
-    }
-
+    @Override
     public void close(StreamCloseEvent event) {
-        logger.trace("Closing Stream...");
+        log.trace("Closing Stream...");
+        streamer.close();
         key.cancel();
     }
 
-    private void notifyChannelWritable() {
-        try {
-            key.interestOps(key.interestOps() | SelectionKey.OP_WRITE);
-            key.selector().wakeup();
-        } catch (CancelledKeyException e) {
-            logger.trace("Trying to send byte to " + peerAddress + ", but the Key is Cancelled...");
-        } catch (Exception e) {
-            logger.trace("Trying to send byte to " + peerAddress + ", but an Exception was thrown " + e.getMessage());
-        }
+    @Override
+    public void stream(Consumer<IStreamHolder<ByteArrayReader>> streamer) {
+        streamerLock.lock();
+        streamer.accept(this.streamer);
+        streamerLock.unlock();
     }
-
-    private void notifyChannelNotWritable() {
-        key.interestOps(key.interestOps() & ~SelectionKey.OP_WRITE);
-        // Don't bother waking up the selector here, since we're just removing an op, not adding
-    }
-
 
     public synchronized int writeToSocket() throws IOException {
-        int writeResult = 0;
-        Iterator<ByteBuffer> buffersToWriteIterator = buffersToWrite.iterator();
-        while (buffersToWriteIterator.hasNext()) {
-            ByteBuffer writeBuffer = buffersToWriteIterator.next();
-            int numBytesWritten = socketChannel.write(writeBuffer);
-            updateState(numBytesWritten);
-            writeResult += numBytesWritten;
-            bytesToWriteRemaining -= numBytesWritten;
-
-            if (!writeBuffer.hasRemaining())  buffersToWriteIterator.remove();
-            else break;
-
-        } // while...
-        if (buffersToWrite.isEmpty()) notifyChannelNotWritable();
-        //logger.debug(writeResult + " bytes sent to " + socketChannel.socket().getRemoteSocketAddress());
-        return writeResult;
+        int numBytesWritten = streamer.extract();
+        updateState(numBytesWritten);
+        return numBytesWritten;
     }
 
     public PeerAddress getPeerAddress() {
@@ -159,5 +108,10 @@ public class NIOOutputStream extends PeerOutputStreamImpl<ByteArrayReader, ByteA
 
     public NIOStreamState getState() {
         return this.state;
+    }
+
+
+    private void updateState(int bytesSentToAdd) {
+        state.increment(bytesSentToAdd);
     }
 }

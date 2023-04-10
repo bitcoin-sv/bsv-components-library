@@ -75,7 +75,7 @@ public class BlacklistHostInfo implements CSVSerializable {
         return DateTimeUtils.nowDateTimeUTC().isAfter(expirationTime);
     }
 
-    public void whitelist() {
+    public void removeFromBacklist() {
         // We reset the field according to the Reason provided:
         switch (blacklistReason) {
             case CONNECTION_REJECTED: {

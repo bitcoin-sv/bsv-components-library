@@ -24,7 +24,7 @@ public final class PeersBlacklistedEvent extends P2PEvent {
      * time this peer will remain Blacklisted (empty = forever)
      */
     public enum BlacklistReason {
-        CONNECTION_REJECTED (Optional.of(Duration.ofDays(1))),
+        CONNECTION_REJECTED (Optional.of(Duration.ofDays(1))), // This might not be needed and removed in the future
         SERIALIZATION_ERROR (Optional.empty()),
         FAILED_HANDSHAKE    (Optional.empty()),
         PINGPONG_TIMEOUT    (Optional.of(Duration.ofMinutes(40))),

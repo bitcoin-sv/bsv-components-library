@@ -21,6 +21,7 @@ public interface ByteArray {
     byte[] get(int length);
     byte[] get();
     byte[] extract(int length);
+    void discard(int length);
     void extractInto(int length, byte[] array, int writeOffset);
     void init();    // initialization operations (if needed)
     void clear(); // cleaning operations. No data available after this

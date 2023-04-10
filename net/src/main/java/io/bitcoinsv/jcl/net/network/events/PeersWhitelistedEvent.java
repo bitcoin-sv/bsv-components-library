@@ -1,34 +1,36 @@
 package io.bitcoinsv.jcl.net.network.events;
 
-
 import com.google.common.base.Objects;
 
 import java.net.InetAddress;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  *
- * An event triggered when a set of IP Addresses has been whitelisted (back to business again)
+ * Event triggered when a set of Nodes is whitelisted. (Whole IP address is whitelisted,
+ * no matter the port number).
  */
 public final class PeersWhitelistedEvent extends P2PEvent {
-    private final List<InetAddress> inetAddresses;
 
-    public PeersWhitelistedEvent(List<InetAddress> inetAddresses) {
-        this.inetAddresses = inetAddresses;
+    private final Set<InetAddress> inetAddresses;
+
+    public PeersWhitelistedEvent(Set<InetAddress> inetAddress) {
+        this.inetAddresses = inetAddress;
+    }
+
+    public PeersWhitelistedEvent(InetAddress inetAddress) {
+        inetAddresses = new HashSet<>(){{ add(inetAddress);}};
+    }
+
+    public Set<InetAddress> getInetAddresses() {
+        return this.inetAddresses;
     }
 
     @Override
     public String toString() {
-        return "Event[Peer Whitelisted]: "
-                + ((inetAddresses.size() == 1)
-                    ? inetAddresses.get(0).toString()
-                    : inetAddresses.size() + " IPs whitelisted");
-    }
-
-    public List<InetAddress> getInetAddresses() {
-        return this.inetAddresses;
+        return "Event[Peers Whitelisted]: " + inetAddresses.size() + " IPs whitelisted";
     }
 
     @Override
@@ -42,5 +44,4 @@ public final class PeersWhitelistedEvent extends P2PEvent {
     public int hashCode() {
         return Objects.hashCode(super.hashCode(), inetAddresses);
     }
-
 }
