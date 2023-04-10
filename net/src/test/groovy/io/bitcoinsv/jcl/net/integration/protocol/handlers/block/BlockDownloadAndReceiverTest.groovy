@@ -24,7 +24,7 @@ import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig
 import io.bitcoinsv.jcl.tools.config.provided.RuntimeConfigDefault
 import io.bitcoinsv.jcl.tools.serialization.BitcoinSerializerUtils
-import shaded.org.apache.commons.io.FileUtils
+import org.apache.commons.io.FileUtils
 import spock.lang.Ignore
 import spock.lang.Specification
 

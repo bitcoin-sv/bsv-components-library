@@ -63,7 +63,7 @@ public class InputStreamReader implements IReader, AutoCloseable {
 
     @Override
     public long readInt32() {
-        return Utils.readInt32(read(4), 0);
+        return readInt32(read(4), 0);
     }
 
     @Override
@@ -183,4 +183,14 @@ public class InputStreamReader implements IReader, AutoCloseable {
     public void close() throws IOException {
         closeAndClear();
     }
+
+    /** Parse 4 bytes from the byte array (starting at the offset) as signed 32-bit integer in little endian format.
+     * imported from BitcoinJ-SV */
+    private static long readInt32(byte[] bytes, int offset) {
+        return (bytes[offset] & 0xff) |
+                ((bytes[offset + 1] & 0xff) << 8) |
+                ((bytes[offset + 2] & 0xff) << 16) |
+                ((bytes[offset + 3] & 0xff) << 24);
+    }
+
 }
