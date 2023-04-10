@@ -1,6 +1,4 @@
 plugins {
-//    id 'org.springframework.boot' version '2.1.9.RELEASE'
-//    id 'io.spring.dependency-management' version '1.0.8.RELEASE'
     id 'java-library'
 }
 
@@ -13,8 +11,6 @@ jclArtifactName = "jcl-store-keyValue"
 
 group = "$rootProject.jclGroup"
 version = "$rootProject.jclVersion"
-sourceCompatibility = "11"
-targetCompatibility = "11"
 
 dependencies {
     // Compile Dependencies:
@@ -25,11 +21,3 @@ dependencies {
     // Testing
     testImplementation(project(":tools"))
 }
-
-//bootJar {
-//    enabled = false
-//}
-//
-//jar {
-//    enabled = true
-//}

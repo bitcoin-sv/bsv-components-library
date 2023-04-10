@@ -392,8 +392,8 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
             db.printKeys()
 
             // We get some Blocks by Height and by Hash...
-            Optional<ChainInfo> block1ReadByHeight = db.getBlock(1)
-            Optional<ChainInfo> block2ReadByHeight = db.getBlock(2)
+            List<ChainInfo> block1ReadByHeight = db.getBlock(1)
+            List<ChainInfo> block2ReadByHeight = db.getBlock(2)
 
             Optional<HeaderReadOnly> block1ReadByHash = db.getBlock(block1.hash)
             Optional<HeaderReadOnly> block2ReadByHash = db.getBlock(block2.hash)
@@ -402,12 +402,12 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
             // is DISCONNECTED, so not posible to retrieve by Height...
             db.removeBlock(block1.hash)
 
-            Optional<ChainInfo> block1ReadByHeightAferRemoval = db.getBlock(1)
-            Optional<ChainInfo> block2ReadByHeightAferRemoval = db.getBlock(2)
+            List<ChainInfo> block1ReadByHeightAferRemoval = db.getBlock(1)
+            List<ChainInfo> block2ReadByHeightAferRemoval = db.getBlock(2)
 
         then:
-            block1ReadByHeight.get().header.hash.toString().equals(block1ReadByHash.get().hash.toString())
-            block2ReadByHeight.get().header.hash.toString().equals(block2ReadByHash.get().hash.toString())
+            block1ReadByHeight.get(0).header.hash.toString().equals(block1ReadByHash.get().hash.toString())
+            block2ReadByHeight.get(0).header.hash.toString().equals(block2ReadByHash.get().hash.toString())
             block1ReadByHeightAferRemoval.isEmpty()
             block2ReadByHeightAferRemoval.isEmpty()
         cleanup:
