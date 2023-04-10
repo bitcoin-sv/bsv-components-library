@@ -1,4 +1,4 @@
-rootProject.name = 'jcl'
+rootProject.name = 'bsvcl'
 
 include 'net'
 include 'tools'

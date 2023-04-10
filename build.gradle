@@ -8,11 +8,11 @@ allprojects {
     apply plugin: 'groovy'
     apply plugin: 'jacoco'
 
-    jclGroup = "$jclGroup"
-    jclVersion = "$jclVersion"
+    bsvclGroup = "$bsvclGroup"
+    bsvclVersion = "$bsvclVersion"
 
-    group = "$rootProject.jclGroup"
-    version = "$rootProject.jclVersion"
+    group = "$rootProject.bsvclGroup"
+    version = "$rootProject.bsvclVersion"
 
     repositories {
         mavenCentral()

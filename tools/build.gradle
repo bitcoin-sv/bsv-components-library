@@ -2,7 +2,7 @@ plugins {
     id 'java-library'
 }
 
-jclArtifactName = "jcl-tools"
+bsvclArtifactName = "bsvcl-tools"
 
 dependencies {
     implementation "io.bitcoinsv.bitcoinjsv:bitcoinj-base:$bitcoinJVersion"
