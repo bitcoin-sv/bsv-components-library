@@ -10,13 +10,10 @@ import io.bitcoinsv.bsvcl.net.protocol.messages.HeaderMsg;
 import io.bitcoinsv.bsvcl.net.protocol.messages.common.*;
 import io.bitcoinsv.bsvcl.net.protocol.serialization.common.MsgSerializersFactory;
 import io.bitcoinsv.bsvcl.net.network.PeerAddress;
-import io.bitcoinsv.jcl.net.network.events.*;
 
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolVersion;
-import io.bitcoinsv.jcl.net.protocol.events.control.*;
 import io.bitcoinsv.bsvcl.net.protocol.events.data.MsgReceivedBatchEvent;
 import io.bitcoinsv.bsvcl.net.protocol.events.data.MsgReceivedEvent;
-import io.bitcoinsv.jcl.net.protocol.messages.common.*;
 import io.bitcoinsv.bsvcl.net.protocol.handlers.message.streams.MessageStream;
 import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayBuffer;
 import io.bitcoinsv.bsvcl.tools.config.RuntimeConfig;
@@ -91,10 +88,10 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
         // The Executor responsible for the deserialization of large messages is a cached one, so Threads are created
         // as we need. For a Stream to be able to use a dedicated Thread, its "realTimeProcessingEnabled" property
         // must be set to TRUE.
-        this.dedicateConnsExecutor = ThreadUtils.getCachedBlockingThreadExecutorService("JclDeserializer", 50, 100);
+        this.dedicateConnsExecutor = ThreadUtils.getCachedBlockingThreadExecutorService("BsvclDeserializer", 50, 100);
 
         // TODO: if required make capacity configurable
-        this.broadcastExecutor = ThreadUtils.getBlockingThreadExecutorService("jclBroadcaster", 4, 8);
+        this.broadcastExecutor = ThreadUtils.getBlockingThreadExecutorService("bsvclBroadcaster", 4, 8);
 
         // If some Batch Config has been specified, we instantiate the classes to keep track of their state:
         this.config.getMsgBatchConfigs().forEach((key, value) -> msgsBatchManagers.put(key, new MessageBatchManager(key, value)));

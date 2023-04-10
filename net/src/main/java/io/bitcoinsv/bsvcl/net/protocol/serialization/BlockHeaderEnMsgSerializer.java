@@ -4,7 +4,6 @@ import io.bitcoinsv.bsvcl.net.protocol.messages.*;
 import io.bitcoinsv.bsvcl.net.protocol.serialization.common.DeserializerContext;
 import io.bitcoinsv.bsvcl.net.protocol.serialization.common.MessageSerializer;
 import io.bitcoinsv.bsvcl.net.protocol.serialization.common.SerializerContext;
-import io.bitcoinsv.jcl.net.protocol.messages.*;
 import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReader;
 import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayWriter;
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;

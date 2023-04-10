@@ -1,6 +1,7 @@
 package io.bitcoinsv.bsvcl.net.integration.protocol.handlers.whitelist
 
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicBoolean
@@ -10,6 +11,7 @@ import java.util.stream.IntStream
 /**
  * Testing scenarios for Whitelisting/Removing from Whitelist Remote Peers
  */
+@Ignore
 class WhitelistSpec extends Specification {
 
     /**

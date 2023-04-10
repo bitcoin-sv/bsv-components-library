@@ -3,7 +3,6 @@ package io.bitcoinsv.bsvcl.net.protocol.serialization;
 
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
-import io.bitcoinsv.jcl.net.protocol.messages.*;
 import io.bitcoinsv.bsvcl.net.protocol.messages.RawTxMsg;
 
 /**

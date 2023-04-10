@@ -8,7 +8,6 @@ import io.bitcoinsv.bsvcl.net.protocol.messages.NetAddressMsg;
 import io.bitcoinsv.bsvcl.net.protocol.messages.common.BitcoinMsg;
 import io.bitcoinsv.bsvcl.net.protocol.messages.common.BitcoinMsgBuilder;
 import io.bitcoinsv.bsvcl.net.network.PeerAddress;
-import io.bitcoinsv.jcl.net.network.events.*;
 import io.bitcoinsv.bsvcl.net.protocol.events.data.AddrMsgReceivedEvent;
 import io.bitcoinsv.bsvcl.net.protocol.events.data.GetAddrMsgReceivedEvent;
 import io.bitcoinsv.bsvcl.net.protocol.events.control.InitialPeersLoadedEvent;

@@ -6,7 +6,6 @@ import io.bitcoinsv.bsvcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig
 import io.bitcoinsv.bsvcl.net.protocol.handlers.handshake.HandshakeHandlerConfig;
 import io.bitcoinsv.bsvcl.net.protocol.messages.BlockHeaderMsg;
 import io.bitcoinsv.bsvcl.net.protocol.messages.HashMsg;
-import io.bitcoinsv.jcl.net.protocol.config.*;
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolBasicConfig;
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig;
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfigImpl;

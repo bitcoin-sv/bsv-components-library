@@ -2,7 +2,6 @@ package io.bitcoinsv.bsvcl.net.unit.network.streams;
 
 import io.bitcoinsv.bsvcl.net.network.PeerAddress;
 import io.bitcoinsv.bsvcl.net.network.streams.*;
-import io.bitcoinsv.jcl.net.network.streams.*;
 
 import java.util.HashSet;
 import java.util.Set;

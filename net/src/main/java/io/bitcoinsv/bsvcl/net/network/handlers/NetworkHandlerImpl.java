@@ -5,7 +5,6 @@ import io.bitcoinsv.bsvcl.net.network.PeerAddress;
 import io.bitcoinsv.bsvcl.net.network.config.NetworkConfig;
 import io.bitcoinsv.bsvcl.net.network.config.NetworkConfigImpl;
 import io.bitcoinsv.bsvcl.net.network.events.*;
-import io.bitcoinsv.jcl.net.network.events.*;
 
 import io.bitcoinsv.bsvcl.net.network.streams.StreamCloseEvent;
 import io.bitcoinsv.bsvcl.net.network.streams.nio.NIOInputStream;

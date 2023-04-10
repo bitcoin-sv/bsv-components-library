@@ -4,9 +4,6 @@ package io.bitcoinsv.bsvcl.net.protocol.serialization.common;
 import io.bitcoinsv.bsvcl.net.protocol.messages.*;
 import io.bitcoinsv.bsvcl.net.protocol.serialization.*;
 import io.bitcoinsv.bsvcl.net.protocol.serialization.largeMsgs.*;
-import io.bitcoinsv.jcl.net.protocol.messages.*;
-import io.bitcoinsv.jcl.net.protocol.serialization.*;
-import io.bitcoinsv.jcl.net.protocol.serialization.largeMsgs.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

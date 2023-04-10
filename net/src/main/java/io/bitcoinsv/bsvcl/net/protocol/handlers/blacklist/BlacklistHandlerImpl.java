@@ -5,8 +5,6 @@ import io.bitcoinsv.bsvcl.net.network.PeerAddress;
 import io.bitcoinsv.bsvcl.net.network.events.*;
 import io.bitcoinsv.bsvcl.net.protocol.events.control.PeerHandshakeRejectedEvent;
 import io.bitcoinsv.bsvcl.net.protocol.events.control.PingPongFailedEvent;
-import io.bitcoinsv.jcl.net.network.events.*;
-import io.bitcoinsv.jcl.net.protocol.events.control.*;
 import io.bitcoinsv.bsvcl.tools.config.RuntimeConfig;
 import io.bitcoinsv.bsvcl.tools.handlers.HandlerConfig;
 import io.bitcoinsv.bsvcl.tools.handlers.HandlerImpl;

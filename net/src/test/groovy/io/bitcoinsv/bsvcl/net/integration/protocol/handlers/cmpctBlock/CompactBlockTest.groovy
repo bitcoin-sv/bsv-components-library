@@ -1,7 +1,6 @@
 package io.bitcoinsv.bsvcl.net.integration.protocol.handlers.cmpctBlock
 
 
-import io.bitcoinsv.jcl.net.protocol.messages.*
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams
 import io.bitcoinsv.bitcoinjsv.params.Net
 import spock.lang.Ignore

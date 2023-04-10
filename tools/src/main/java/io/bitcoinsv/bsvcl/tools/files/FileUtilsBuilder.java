@@ -23,7 +23,7 @@ import static com.google.common.base.Preconditions.checkState;
 public class FileUtilsBuilder {
 
     // Default name for the Root Folder.
-    private final static String ROOT_FOLDER = "jcl";
+    private final static String ROOT_FOLDER = "bsvcl";
     private static final Logger log = LoggerFactory.getLogger(FileUtilsBuilder.class);
 
     // The root folder assigned to the FileUtils instance.

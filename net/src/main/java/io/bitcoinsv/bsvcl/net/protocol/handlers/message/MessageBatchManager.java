@@ -1,7 +1,6 @@
 package io.bitcoinsv.bsvcl.net.protocol.handlers.message;
 
 import io.bitcoinsv.bsvcl.net.protocol.events.data.*;
-import io.bitcoinsv.jcl.net.protocol.events.data.*;
 
 import java.time.Duration;
 import java.time.Instant;

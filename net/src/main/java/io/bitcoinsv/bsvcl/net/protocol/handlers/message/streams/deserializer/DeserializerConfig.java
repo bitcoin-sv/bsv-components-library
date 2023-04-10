@@ -1,7 +1,6 @@
 package io.bitcoinsv.bsvcl.net.protocol.handlers.message.streams.deserializer;
 
 import io.bitcoinsv.bsvcl.net.protocol.messages.*;
-import io.bitcoinsv.jcl.net.protocol.messages.*;
 import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReaderRealTime;
 
 import java.time.Duration;
