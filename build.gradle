@@ -12,9 +12,6 @@ jclVersion = "$jclVersion"
 group = "$rootProject.jclGroup"
 version = "$rootProject.jclVersion"
 
-sourceCompatibility = "11"
-targetCompatibility = "11"
-
 allprojects {
     apply plugin: 'java'
     apply plugin: 'groovy'
@@ -24,6 +21,9 @@ allprojects {
         mavenCentral()
         mavenLocal()
     }
+
+    sourceCompatibility = "17"
+    targetCompatibility = "17"
 
     test {
         useJUnitPlatform()

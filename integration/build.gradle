@@ -1,20 +1,13 @@
 plugins {
-//    id 'org.springframework.boot' version '2.1.9.RELEASE'
-//    id 'io.spring.dependency-management' version '1.0.8.RELEASE'
     id 'java-library'
 }
 
-/****************************************
- * Local Configuration
- ****************************************/
 jclGroup = "$jclGroup"
 jclVersion = "$jclVersion"
 jclArtifactName = "jcl-integration"
 
 group = "$rootProject.jclGroup"
 version = "$rootProject.jclVersion"
-sourceCompatibility = "11"
-targetCompatibility = "11"
 
 dependencies {
     implementation "io.bitcoinsv.bitcoinjsv:bitcoinj-base:$bitcoinJVersion"
@@ -28,11 +21,3 @@ dependencies {
     testImplementation 'com.madgag.spongycastle:core:1.51.0.0'
     testImplementation 'org.iq80.leveldb:leveldb:0.12'
 }
-
-//bootJar {
-//    enabled = false
-//}
-
-//jar {
-//    enabled = true
-//}
