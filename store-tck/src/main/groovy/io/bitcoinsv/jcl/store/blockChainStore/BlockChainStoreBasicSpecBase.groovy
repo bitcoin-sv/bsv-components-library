@@ -44,10 +44,10 @@ abstract class BlockChainStoreBasicSpecBase extends BlockChainStoreSpecBase {
             String tipHash = null
             println(" - Generating " + NUM_CHAIN_BLOCKS + " Blocks with relation parent-child between them:")
             for (int i = 1; i < NUM_CHAIN_BLOCKS; i++) {
-                HeaderReadOnly block = TestingUtils.buildBlock(parentHash)
-                tipHash = block.getHash().toString()
-                println("  - Block " + block.getHash() + " , parent: " + parentHash)
-                blocks.add(block)
+                HeaderReadOnly header = TestingUtils.buildBlock(parentHash)
+                tipHash = header.getHash().toString()
+                println("  - Block " + header.getHash() + " , parent: " + parentHash)
+                blocks.add(header)
                 parentHash = tipHash
             }
             println(" - Saving " + NUM_CHAIN_BLOCKS + " Blocks in Batch...")
