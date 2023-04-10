@@ -2,6 +2,7 @@ package io.bitcoinsv.jcl.net.unit.network.streams
 
 import io.bitcoinsv.jcl.net.network.PeerAddress
 import io.bitcoinsv.jcl.net.network.streams.PeerOutputStream
+import io.bitcoinsv.jcl.net.network.streams.StreamDataEvent
 import spock.lang.Specification
 
 import java.util.concurrent.ExecutorService
@@ -14,26 +15,26 @@ class PeerOutputStreamTest extends Specification {
      * It sends the source data through them. As the data passes through the Streams it gets transformed, and the
      * final result is returned.
      */
-    private List<Integer> runPipeline(List<Integer> sourceData) {
+    private List<Integer> runPipeline(ExecutorService executor, List<Integer> sourceData) {
         List<Integer> resultData = new ArrayList<>()
 
         // The Peer assigned to this Stream:
         PeerAddress peerAddress = PeerAddress.localhost(5050)
 
         // We create The Destination of this pipeline of PeerOutputsStream:
-        PeerStreamInOutSimulator<Integer> destination = new PeerStreamInOutSimulator<>(peerAddress)
+        PeerStreamInOutSimulator<Integer> destination = new PeerStreamInOutSimulator<>(peerAddress, executor)
 
         // We create our Pipeline of InputStreams:
-        PeerOutputStream<String> stringToNumberStream = new StringNumberOutputStream(peerAddress, destination)
-        PeerOutputStream<Integer> numberToStringStream = new NumberStringOutputStream(peerAddress, stringToNumberStream)
+        PeerOutputStream<Integer> stringToNumberStream = new StringNumberOutputStream(peerAddress, destination)
+        PeerOutputStream<String> numberToStringStream = new NumberStringOutputStream(peerAddress, stringToNumberStream)
 
-        destination.onData({data ->
-            println("Adding " + data + " to the result list...")
-            resultData.add(data)
+        destination.onData({e ->
+            println("Adding " + e.getData() + " to the result list...")
+            resultData.add(e.getData())
         })
 
         // We send data...
-        for (Integer data : sourceData) { numberToStringStream.send(data) }
+        for (Integer data : sourceData) { numberToStringStream.send(new StreamDataEvent<Integer>(data)) }
 
         // We wait a little bit until all te data has passed through the InputStream:
         Thread.sleep(1000)
@@ -52,17 +53,17 @@ class PeerOutputStreamTest extends Specification {
      */
     def "Testing Transformation Function"() {
         given:
-        // A single-Thread executor
-        ExecutorService executor = Executors.newSingleThreadExecutor()
+            // A single-Thread executor
+            ExecutorService executor = Executors.newSingleThreadExecutor()
 
-        // We configure the source data...
-        List<Integer> sourceData = new ArrayList<>()
-        for (int i = 0; i < 20; i++) { sourceData.add(i) }
+            // We configure the source data...
+            List<Integer> sourceData = new ArrayList<>()
+            for (int i = 0; i < 20; i++) { sourceData.add(i) }
         when:
-        List<Integer> resultData = runPipeline(sourceData)
-        // Now we compare the data sent and the data returned...
-        boolean resultsMatch = sourceData.equals(resultData)
+            List<Integer> resultData = runPipeline(executor, sourceData)
+            // Now we compare the data sent and the data returned...
+            boolean resultsMatch = sourceData.equals(resultData)
         then:
-        resultsMatch
+            resultsMatch
     }
 }

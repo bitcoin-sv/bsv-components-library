@@ -19,8 +19,6 @@ public interface Handler {
     String getId();
     /** Returns the Handler Config */
     HandlerConfig getConfig();
-    /** Update the handler's config in runtime */
-    void updateConfig(HandlerConfig config);
     /** Returns the current State of this Handler */
     HandlerState getState();
     /** Links to this Handler to this EventBus, for events subscription and publishing */

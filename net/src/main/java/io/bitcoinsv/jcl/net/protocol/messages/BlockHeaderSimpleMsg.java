@@ -77,7 +77,7 @@ public final class BlockHeaderSimpleMsg extends Message implements Serializable 
     }
 
     /**
-     * Returns a Domain Class. It also reverses the PrevBlockHash and merkle tree into human-readable format
+     * Returns a Domain Class. It alos reverses the PrevBlockHash and merkle tree into human-readable format
      */
     public HeaderReadOnly toBean() {
         HeaderBean result = new HeaderBean((AbstractBlock) null);
@@ -91,28 +91,9 @@ public final class BlockHeaderSimpleMsg extends Message implements Serializable 
         if (this.hash != null) {
             result.setHash(this.hash);
         }
+
+
         return result;
-    }
-
-    /**
-     * Returns a Msg class out of a Bean
-     */
-    // TODO: fix this when JCL and BitcoinJ won't return human readable hashes
-    public static BlockHeaderSimpleMsg fromBean(HeaderReadOnly header) {
-        BlockHeaderSimpleMsgBuilder builder = BlockHeaderSimpleMsg.builder();
-        builder
-                .creationTimestamp(header.getTime())
-                .difficultyTarget(header.getDifficultyTarget())
-                .nonce(header.getNonce())
-                .prevBlockHash(HashMsg.builder().hash(header.getPrevBlockHash().getReversedBytes()).build())
-                .version(header.getVersion())
-                .merkleRoot(HashMsg.builder().hash(header.getMerkleRoot().getReversedBytes()).build());
-
-        // For performance reasons, we only populate the Hash if its also populated in the original Bean
-        if (header.getHash() != null) {
-            builder.hash(header.getHash());
-        }
-        return builder.build();
     }
 
     @Override

@@ -18,13 +18,11 @@ import io.bitcoinsv.bitcoinjsv.params.MainNetParams
 import io.bitcoinsv.bitcoinjsv.params.Net
 import io.bitcoinsv.jcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl
 import io.bitcoinsv.jcl.net.protocol.serialization.common.DeserializerContext
-import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-@Ignore
 class SerializerStreamSpec extends Specification {
 
     public static long REF_BODY_TIMESTAMP = 1563391320

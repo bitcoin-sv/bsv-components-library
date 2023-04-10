@@ -4,7 +4,6 @@ import com.google.common.base.Objects
 import io.bitcoinsv.jcl.net.network.PeerAddress
 import io.bitcoinsv.jcl.net.protocol.handlers.block.BlocksPendingManager
 import io.bitcoinsv.jcl.net.protocol.handlers.block.BlockDownloaderHandlerConfig
-import spock.lang.Ignore
 import spock.lang.Specification
 
 
@@ -12,7 +11,6 @@ import spock.lang.Specification
  * A Testing class to check that the Download CRITERIA and ACTIONS defined work well and the right Peers are choosen
  * for download Blocks:
  */
-@Ignore
 class BlocksPendingManagerTest extends Specification {
 
     // Test data set:

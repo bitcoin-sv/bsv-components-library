@@ -2,10 +2,10 @@ package io.bitcoinsv.jcl.net.unit.network.streams;
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.network.streams.*;
+import io.bitcoinsv.jcl.tools.events.EventBus;
+import io.bitcoinsv.jcl.net.network.streams.*;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
 /**
@@ -20,26 +20,12 @@ import java.util.function.Consumer;
  */
 public class PeerStreamInOutSimulator<T> implements PeerInputStream<T>, PeerOutputStream<T> {
 
-    protected final Set<Consumer<T>> onData = new HashSet<>();
-    protected final Set<Consumer<StreamCloseEvent>> onClose = new HashSet<>();
-    protected final Set<Consumer<Throwable>> onError = new HashSet<>();
-
     private PeerAddress peerAddress;
+    protected EventBus eventBus;
 
-    private final IStreamHolder<T> streamHolder = new IStreamHolder<T>() {
-        @Override
-        public void send(T data) {
-            PeerStreamInOutSimulator.this.send(data);
-        }
-
-        @Override
-        public void close() {
-
-        }
-    };
-
-    public PeerStreamInOutSimulator(PeerAddress peerAddress) {
+    public PeerStreamInOutSimulator(PeerAddress peerAddress, ExecutorService executor) {
         this.peerAddress = peerAddress;
+        this.eventBus = EventBus.builder().executor(executor).build();
     }
 
     @Override
@@ -51,33 +37,23 @@ public class PeerStreamInOutSimulator<T> implements PeerInputStream<T>, PeerOutp
         return this.peerAddress;
     }
     @Override
-    public void onData(Consumer<T> eventHandler) {
-        onData.add(eventHandler);
+    public void onData(Consumer<? extends StreamDataEvent<T>> eventHandler) {
+        eventBus.subscribe(StreamDataEvent.class, eventHandler);
     }
     @Override
-    public void onClose(Consumer<StreamCloseEvent> eventHandler) {
-        onClose.add(eventHandler);
+    public void onClose(Consumer<? extends StreamCloseEvent> eventHandler) {
+        eventBus.subscribe(StreamCloseEvent.class, eventHandler);
     }
     @Override
-    public void onError(Consumer<Throwable> eventHandler) {
-        onError.add(eventHandler);
+    public void onError(Consumer<? extends StreamErrorEvent> eventHandler) {
+        eventBus.subscribe(StreamErrorEvent.class, eventHandler);
     }
     @Override
-    public void send(T event) {
-        onData.forEach(streamCloseEventConsumer -> streamCloseEventConsumer.accept(event));
+    public void send(StreamDataEvent<T> event) {
+        eventBus.publish(event);
     }
     @Override
     public void close(StreamCloseEvent event) {
-        onClose.forEach(streamCloseEventConsumer -> streamCloseEventConsumer.accept(event));
-    }
-
-    @Override
-    public void stream(Consumer<IStreamHolder<T>> streamer) {
-        streamer.accept(streamHolder);
-    }
-
-    @Override
-    public void expectedMessageSize(long size) {
-        // nothing
+        eventBus.publish(event);
     }
 }

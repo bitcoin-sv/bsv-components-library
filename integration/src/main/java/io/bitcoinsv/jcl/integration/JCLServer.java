@@ -360,6 +360,8 @@ public class JCLServer {
         log.info("\n--------------------------------------------------------------------------------------------------");
         if (firstTxInstant != null) {
             Duration effectiveTime = Duration.between(firstTxInstant, lastTxInstant);
+            log.info("JCL Server :: HACK > Events lost: " + EventBus.NUM_MSGS_LOST.get());
+            log.info("JCL Server :: HACK > EventStreamer lost: " + EventStreamer.NUM_MSGS_LOST.get());
             log.info("JCL Server :: Statistics > " + Duration.between(firstTxInstant, Instant.now()).toSeconds() + " secs of Test");
             log.info("JCL Server :: Statistics > " + effectiveTime.toSeconds() + " secs processing Txs");
             log.info("JCL Server :: Statistics > performance: " + (numTxs.get() / effectiveTime.toSeconds()) + " txs/sec");

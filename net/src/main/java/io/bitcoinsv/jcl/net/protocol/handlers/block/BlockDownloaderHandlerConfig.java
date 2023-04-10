@@ -205,72 +205,72 @@ public class BlockDownloaderHandlerConfig extends HandlerConfig {
 
         BlockDownloaderHandlerConfigBuilder() { }
 
-        public BlockDownloaderHandlerConfigBuilder basicConfig(ProtocolBasicConfig basicConfig) {
+        public BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder basicConfig(ProtocolBasicConfig basicConfig) {
             this.basicConfig = basicConfig;
             return this;
         }
 
-        public BlockDownloaderHandlerConfigBuilder maxDownloadTimeout(Duration maxDownloadTimeout) {
+        public BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder maxDownloadTimeout(Duration maxDownloadTimeout) {
             this.maxDownloadTimeout = maxDownloadTimeout;
             return this;
         }
 
-        public BlockDownloaderHandlerConfigBuilder maxIdleTimeout(Duration maxIdleTimeout) {
+        public BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder maxIdleTimeout(Duration maxIdleTimeout) {
             this.maxIdleTimeout = maxIdleTimeout;
             return this;
         }
 
-        public BlockDownloaderHandlerConfigBuilder retryDiscardedBlocksTimeout(Duration retryDiscardedBlocksTimeout) {
+        public BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder retryDiscardedBlocksTimeout(Duration retryDiscardedBlocksTimeout) {
             this.retryDiscardedBlocksTimeout = retryDiscardedBlocksTimeout;
             return this;
         }
 
-        public BlockDownloaderHandlerConfigBuilder maxDownloadAttempts(int maxDownloadAttempts) {
+        public BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder maxDownloadAttempts(int maxDownloadAttempts) {
             this.maxDownloadAttempts = maxDownloadAttempts;
             return this;
         }
 
-        public BlockDownloaderHandlerConfigBuilder maxBlocksInParallel(int maxBlocksInParallel) {
+        public BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder maxBlocksInParallel(int maxBlocksInParallel) {
             this.maxBlocksInParallel = maxBlocksInParallel;
             return this;
         }
 
-        public BlockDownloaderHandlerConfigBuilder removeBlockHistoryAfterDownload(boolean removeBlockHistoryAfterDownload) {
+        public BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder removeBlockHistoryAfterDownload(boolean removeBlockHistoryAfterDownload) {
             this.removeBlockHistoryAfterDownload = removeBlockHistoryAfterDownload;
             return this;
         }
 
-        public BlockDownloaderHandlerConfigBuilder maxMBinParallel(long maxMBinParallel) {
+        public BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder maxMBinParallel(long maxMBinParallel) {
             this.maxMBinParallel = maxMBinParallel;
             return this;
         }
 
-        public BlockDownloaderHandlerConfigBuilder removeBlockHistoryAfter(Duration blockHistoryTimeout) {
+        public BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder removeBlockHistoryAfter(Duration blockHistoryTimeout) {
             this.blockHistoryTimeout = blockHistoryTimeout;
             return this;
         }
 
-        public BlockDownloaderHandlerConfigBuilder inactivityTimeoutToFail(Duration inactivityTimeoutToFail) {
+        public BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder inactivityTimeoutToFail(Duration inactivityTimeoutToFail) {
             this.inactivityTimeoutToFail = inactivityTimeoutToFail;
             return this;
         }
 
-        public BlockDownloaderHandlerConfigBuilder minSpeed(int minSpeed) {
+        public BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder minSpeed(int minSpeed) {
             this.minSpeed = minSpeed;
             return this;
         }
 
-        public BlockDownloaderHandlerConfigBuilder bestMatchCriteria(BestMatchCriteria bestMatchCriteria) {
+        public BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder bestMatchCriteria(BestMatchCriteria bestMatchCriteria) {
             this.bestMatchCriteria = bestMatchCriteria;
             return this;
         }
 
-        public BlockDownloaderHandlerConfigBuilder bestMatchNotAvailableAction(BestMatchNotAvailableAction bestMatchNotAvailableAction) {
+        public BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder bestMatchNotAvailableAction(BestMatchNotAvailableAction bestMatchNotAvailableAction) {
             this.bestMatchNotAvailableAction = bestMatchNotAvailableAction;
             return this;
         }
 
-        public BlockDownloaderHandlerConfigBuilder noBestMatchAction(NoBestMatchAction noBestMatchAction) {
+        public BlockDownloaderHandlerConfig.BlockDownloaderHandlerConfigBuilder noBestMatchAction(NoBestMatchAction noBestMatchAction) {
             this.noBestMatchAction = noBestMatchAction;
             return this;
         }

@@ -43,6 +43,5 @@ public class ByteArrayStatic implements ByteArray {
     @Override public void add(byte[] data)                          { throw new UnsupportedOperationException();}
     @Override public void add(byte[] data, int offset, int length)  { throw new UnsupportedOperationException(); }
     @Override public byte[] extract(int length)                     { throw new UnsupportedOperationException(); }
-    @Override public void discard(int length)                       { throw new UnsupportedOperationException(); }
     @Override public void extractInto(int length, byte[] array, int writeOffset) { throw new UnsupportedOperationException(); }
 }

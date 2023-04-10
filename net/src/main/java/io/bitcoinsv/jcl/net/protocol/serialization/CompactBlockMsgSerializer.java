@@ -37,15 +37,15 @@ public class CompactBlockMsgSerializer implements MessageSerializer<CompactBlock
 
         // read number of short transaction id and short transaction ids
         var shortIdsLength = VarIntMsgSerializer.getInstance().deserialize(context, byteReader);
-        var shortTxIds = new ArrayList<Long>( shortIdsLength.getValue()<0 || shortIdsLength.getValue()>Integer.MAX_VALUE ? -1 : (int)shortIdsLength.getValue() ); // NOTE: IllegalArgumentException will be thrown if length is too large or negative
-        for (long i = 0; i < shortIdsLength.getValue(); i++) {
+        var shortTxIds = new ArrayList<Long>((short) shortIdsLength.getValue());
+        for (int i = 0; i < shortIdsLength.getValue(); i++) {
             shortTxIds.add(byteReader.readInt48LE());
         }
 
         // read number of prefilled transactions and transactions
         var prefilledTxnLength = VarIntMsgSerializer.getInstance().deserialize(context, byteReader);
-        var prefilledTransactions = new ArrayList<PrefilledTxMsg>( prefilledTxnLength.getValue()<0 || prefilledTxnLength.getValue()>Integer.MAX_VALUE ? -1 : (int)prefilledTxnLength.getValue() );
-        for (long i = 0; i < prefilledTxnLength.getValue(); i++) {
+        var prefilledTransactions = new ArrayList<PrefilledTxMsg>((short) prefilledTxnLength.getValue());
+        for (int i = 0; i < prefilledTxnLength.getValue(); i++) {
             prefilledTransactions.add(PrefilledTxMsgSerializer.getInstance().deserialize(context, byteReader));
         }
 

@@ -77,7 +77,6 @@ public class ProtocolBSVStnConfig extends ProtocolConfigImpl implements Protocol
                         .dns(dns)
                         .build(),
                 null,            // Default Blacklist Config
-                null,      // Default Whitelist Config
                 null);    // Default Block Downloader Config
     }
 }

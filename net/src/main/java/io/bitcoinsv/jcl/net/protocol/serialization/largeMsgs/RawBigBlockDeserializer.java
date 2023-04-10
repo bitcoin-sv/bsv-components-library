@@ -70,49 +70,53 @@ public class RawBigBlockDeserializer extends LargeMessageDeserializerImpl {
             // Order of each batch of Txs within the Block
             long txsOrderNumber = 0;
 
-            // Index of the FIRST Tx in this Chunk within the Block
-            long txsIndexNumber = 0;
-
             //record each tx in this batch
             List<RawTxMsg> rawTxBatch = new ArrayList<>();
 
             while (totalBytesRemaining > 0) {
 
                 RawTxMsg tx = rawBlockMsgSerializer.deserializeNextTx(context, byteReader);
-                rawTxBatch.add(tx);
                 long totalBytesInTx = tx.getLengthInBytes();
-                totalSizeInBatch += totalBytesInTx;
 
-                if(totalSizeInBatch > super.partialMsgSize){
+                //if we have enough space then add it
+                if(totalSizeInBatch + totalBytesInTx <= super.partialMsgSize){
+                    totalSizeInBatch += totalBytesInTx;
+                    rawTxBatch.add(tx);
+                } else {
                     // We do not Have enough space in this Batch for this Tx. push the batch we have so far down the pipeline
                     PartialBlockRawTxMsg partialBlockRawTXs = PartialBlockRawTxMsg.builder()
                             .blockHeader(blockHeader)
                             .txs(rawTxBatch)
                             .txsOrdersNumber(txsOrderNumber)
-                            .txsIndexNumber(txsIndexNumber)
                             .build();
                     notifyDeserialization(partialBlockRawTXs);
 
                     //we're now moving onto the next batch
+                    rawTxBatch = new ArrayList<>();
                     txsOrderNumber++;
-                    txsIndexNumber += rawTxBatch.size();
                     totalSizeInBatch = 0;
 
-                    // We mov on to next Chunk:
-                    rawTxBatch = new ArrayList<>();
+                    // We add this Tx to the next Batch:
+                    rawTxBatch.add(tx);
+
+                    // If the size of this individual Tx is already bigger than our Max Batch size, this Txs will be
+                    // pushed down in the next iteration, but we warm of this situation here...
+                    if(totalBytesInTx > super.partialMsgSize){
+                        log.warn("Tx bigger than the current max Batch size has been added to the Batch, it will be pushed next.");
+                    }
+
                 }
 
                 totalBytesRemaining -= totalBytesInTx;
             }
 
-            // flush any remaining txs
+            //flush any remaining txs
             if(rawTxBatch.size() > 0){
                 //push the batch down the pipeline
                 PartialBlockRawTxMsg partialBlockRawTXs = PartialBlockRawTxMsg.builder()
                         .blockHeader(blockHeader)
                         .txs(rawTxBatch)
                         .txsOrdersNumber(txsOrderNumber)
-                        .txsIndexNumber(txsIndexNumber)
                         .build();
                 notifyDeserialization(partialBlockRawTXs);
             }

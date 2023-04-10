@@ -22,7 +22,7 @@
     </logger>
 
     <logger name="io.bitcoinsv.jcl.net.protocol.handlers.message.MessageHandlerImpl" additivity="false">
-        <level value="INFO" />
+        <level value="ERROR" />
         <appender-ref ref="STDOUT" />
     </logger>
 

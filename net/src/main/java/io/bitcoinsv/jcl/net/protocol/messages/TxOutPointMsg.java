@@ -2,12 +2,6 @@ package io.bitcoinsv.jcl.net.protocol.messages;
 
 
 import com.google.common.base.Objects;
-import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.Tx;
-import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.TxInput;
-import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.TxOutPoint;
-import io.bitcoinsv.bitcoinjsv.bitcoin.bean.base.TxOutPointBean;
-import io.bitcoinsv.bitcoinjsv.bitcoin.bean.base.TxOutputBean;
-import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
 
 import java.io.Serializable;
@@ -80,23 +74,6 @@ public final class TxOutPointMsg extends Message implements Serializable {
                         .hash(this.hash)
                         .index(this.index);
     }
-
-    /** Returns a Domain Class */
-    public TxOutPointBean toBean() {
-        TxOutPointBean result = new TxOutPointBean((TxInput) null);
-        result.setHash(Sha256Hash.wrapReversed(this.hash.getHashBytes()));
-        result.setIndex(this.index);
-        return result;
-    }
-
-    /** Returns a Msg object out of a Bean */
-    public static TxOutPointMsg fromBean(TxOutPoint bean) {
-        return TxOutPointMsg.builder()
-                .hash(HashMsg.builder().hash(bean.getHash().getReversedBytes()).build())
-                .index(bean.getIndex())
-                .build();
-    }
-
     /**
      * Builder
      */

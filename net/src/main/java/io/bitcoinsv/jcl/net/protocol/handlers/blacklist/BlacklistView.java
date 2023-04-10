@@ -44,8 +44,4 @@ public class BlacklistView {
     public Date getExpirationDate() {
         return expirationDate;
     }
-
-    public static BlacklistView from(BlacklistHostInfo hostInfo) {
-        return new BlacklistView(hostInfo.getIp(), hostInfo.getBlacklistReason(), hostInfo.getBlacklistTimestamp(), hostInfo.getExpirationTime());
-    }
 }

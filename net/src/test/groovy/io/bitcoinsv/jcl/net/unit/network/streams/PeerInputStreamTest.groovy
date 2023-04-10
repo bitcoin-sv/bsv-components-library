@@ -2,7 +2,11 @@ package io.bitcoinsv.jcl.net.unit.network.streams
 
 import io.bitcoinsv.jcl.net.network.PeerAddress
 import io.bitcoinsv.jcl.net.network.streams.PeerInputStream
+import io.bitcoinsv.jcl.net.network.streams.StreamDataEvent
 import spock.lang.Specification
+
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 class PeerInputStreamTest extends Specification {
 
@@ -11,26 +15,26 @@ class PeerInputStreamTest extends Specification {
      * It sends the source data through them. As the data passes through the Streams it gets transformed, and the
      * final result is returned.
      */
-    private List<Integer> runPipeline(List<Integer> sourceData) {
+    private List<Integer> runPipeline(ExecutorService executor, List<Integer> sourceData) {
         List<Integer> resultData = new ArrayList<>()
 
         // The Peer assigned to this Stream:
         PeerAddress peerAddress = PeerAddress.localhost(5050)
 
         // We create The Source of this Pipeline of PeerInputStreams:
-        PeerStreamInOutSimulator<Integer> source = new PeerStreamInOutSimulator<>(peerAddress)
+        PeerStreamInOutSimulator<Integer> source = new PeerStreamInOutSimulator<>(peerAddress, executor)
 
         // We create our Pipeline of InputStreams:
-        PeerInputStream<String> numberToStringStream = new StringNumberInputStream(peerAddress, source)
-        PeerInputStream<Integer> stringToNumberStream = new NumberStringInputStream(peerAddress, numberToStringStream)
+        PeerInputStream<String> numberToStringStream = new StringNumberInputStream(peerAddress, executor, source)
+        PeerInputStream<Integer> stringToNumberStream = new NumberStringInputStream(peerAddress, executor, numberToStringStream)
 
-        stringToNumberStream.onData({data ->
-            println("Adding " + data + " to the result list...")
-            resultData.add(data)
+        stringToNumberStream.onData({e ->
+            println("Adding " + e.getData() + " to the result list...")
+            resultData.add(e.getData())
         })
 
         // We send data...
-        for (Integer data : sourceData) { source.send(data) }
+        for (Integer data : sourceData) { source.send(new StreamDataEvent<Integer>(data)) }
 
         // We wait a little bit until all te data has passed through the InputStream:
         Thread.sleep(1000)
@@ -47,15 +51,18 @@ class PeerInputStreamTest extends Specification {
      */
     def "Testing Transformation Function"() {
         given:
-        // We configure the source data...
-        List<Integer> sourceData = new ArrayList<>()
-        for (int i = 0; i < 20; i++) { sourceData.add(i) }
+            // A single-Thread executor
+            ExecutorService executor = Executors.newSingleThreadExecutor()
+
+            // We configure the source data...
+            List<Integer> sourceData = new ArrayList<>()
+            for (int i = 0; i < 20; i++) { sourceData.add(i) }
         when:
-        List<Integer> resultData = runPipeline(sourceData)
-        // Now we compare the data sent and the data returned...
-        boolean resultsMatch = sourceData.equals(resultData)
+            List<Integer> resultData = runPipeline(executor, sourceData)
+            // Now we compare the data sent and the data returned...
+            boolean resultsMatch = sourceData.equals(resultData)
         then:
-        resultsMatch
+            resultsMatch
     }
 
     /**
@@ -83,24 +90,22 @@ class PeerInputStreamTest extends Specification {
 
     def "Testing InputStream Order"() {
         given:
-        // We configure the source data...
-        List<Integer> sourceData = new ArrayList<>()
-        for (int i = 0; i < 20; i++) { sourceData.add(i) }
+            // We configure the source data...
+            List<Integer> sourceData = new ArrayList<>()
+            for (int i = 0; i < 20; i++) { sourceData.add(i) }
         when:
-        println("Testing " + title + " ...")
-        List<Integer> resultData = runPipeline(sourceData)
-        // Now we compare the data sent and the data returned...
-        boolean resultsMatch = sourceData.equals(resultData)
+            println("Testing " + title + " ...")
+            List<Integer> resultData = runPipeline(executor, sourceData)
+            // Now we compare the data sent and the data returned...
+            boolean resultsMatch = sourceData.equals(resultData)
         then:
-        if (allInOrder) {
             resultsMatch.equals(allInOrder)
-        }
         where:
 
-        title                   |   allInOrder
+            title                   | executor                                          |   allInOrder
 
-        "Single Thread"         |   true
-        "2 Threads"             |   false
-        "Multiple Threads"      |   false
+            "Single Thread"         |   Executors.newSingleThreadExecutor()             |   true
+            "2 Threads"             |   Executors.newFixedThreadPool(2)        |   false
+            "Multiple Threads"      |   Executors.newCachedThreadPool()                 |   false
     }
 }

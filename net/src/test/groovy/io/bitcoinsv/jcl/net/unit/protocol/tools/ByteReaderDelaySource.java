@@ -33,8 +33,8 @@ public class ByteReaderDelaySource extends PeerStreamInOutSimulator<ByteArrayRea
     private ByteArrayBuffer byteArrayBuilder;
     private ExecutorService executorService;
 
-    public ByteReaderDelaySource(int bytesPerSec) {
-        super(null); // no PeerAddress
+    public ByteReaderDelaySource(ExecutorService executor, int bytesPerSec) {
+        super(null, executor); // no PeerAddress
         this.bytesPerSec = bytesPerSec;
 
         this.byteArrayBuilder = new ByteArrayBuffer();
@@ -43,8 +43,8 @@ public class ByteReaderDelaySource extends PeerStreamInOutSimulator<ByteArrayRea
     }
 
     @Override
-    public void send(ByteArrayReader event) {
-        byteArrayBuilder.add(event.getFullContent());
+    public void send(StreamDataEvent<ByteArrayReader> event) {
+        byteArrayBuilder.add(event.getData().getFullContent());
     }
 
     @Override
@@ -73,7 +73,7 @@ public class ByteReaderDelaySource extends PeerStreamInOutSimulator<ByteArrayRea
 
                     int bytesToSend = (int) Math.min(byteArrayBuilder.size(), bytesBatchsize);
                     ByteArrayReader byteReader = new ByteArrayReader(byteArrayBuilder.extract(bytesToSend));
-                    super.send(byteReader);
+                    super.send(new StreamDataEvent<>(byteReader));
 
                     // Now we wait...
                     Thread.sleep(delay.toMillis());
