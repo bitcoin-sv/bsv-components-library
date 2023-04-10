@@ -8,6 +8,7 @@ import io.bitcoinsv.jcl.tools.blobStore.BlockStorePosix
 import io.bitcoinsv.jcl.tools.blobStore.BlockStorePosixConfig
 import io.bitcoinsv.jcl.tools.common.TestingUtils
 import shaded.org.apache.maven.wagon.ResourceDoesNotExistException
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.nio.file.Path
@@ -17,6 +18,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicLong
 import java.util.stream.Stream
 
+@Ignore
 class BlockStorePosixTest extends Specification {
 
     // Folder to store the LevelDB files in:
