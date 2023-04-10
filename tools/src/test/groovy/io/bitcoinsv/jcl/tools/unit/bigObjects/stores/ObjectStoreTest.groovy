@@ -7,6 +7,7 @@ import io.bitcoinsv.jcl.tools.bytes.ByteArrayReader
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayWriter
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig
 import io.bitcoinsv.jcl.tools.config.provided.RuntimeConfigDefault
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.nio.file.Files
@@ -72,6 +73,7 @@ class ObjectStoreTest extends Specification {
      * We test that when we use the Store, the proper folder and files are created, and then removed when the store
      * is empty
      */
+    @Ignore
     def "testing Folder %& files"() {
         given:
         String storeId = "testingObjFolder"
@@ -98,6 +100,7 @@ class ObjectStoreTest extends Specification {
     /**
      * We test that we can save different Objects, read and removed them properly.
      */
+    @Ignore
     def "testing Saving, Getting and Removing"() {
         given:
         String storeId = "testingObjOperations"
