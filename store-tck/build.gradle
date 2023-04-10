@@ -20,11 +20,6 @@ version = "$rootProject.jclVersion"
 sourceCompatibility = "11"
 targetCompatibility = "11"
 
-repositories {
-    mavenLocal()
-    mavenCentral()
-}
-
 dependencies {
     implementation "io.bitcoinsv.bitcoinjsv:bitcoinj-base:$bitcoinJVersion"
     implementation(project(":tools"))

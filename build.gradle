@@ -26,10 +26,11 @@ configurations {
     childJars
 }
 
-repositories {
-    mavenCentral()
-    jcenter()
-    mavenLocal()
+allprojects {
+    repositories {
+        mavenCentral()
+        mavenLocal()
+    }
 }
 
 /****************************************
