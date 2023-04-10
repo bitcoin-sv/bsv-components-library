@@ -16,7 +16,6 @@ import io.bitcoinsv.jcl.tools.config.provided.RuntimeConfigDefault
 import io.bitcoinsv.bitcoinjsv.core.Utils
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams
 import io.bitcoinsv.bitcoinjsv.params.Net
-import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.util.concurrent.ExecutorService
@@ -26,7 +25,6 @@ import java.util.concurrent.atomic.AtomicReference
 /**
  * Testing class for small use cases for the Deserializer
  */
-@Ignore
 class DeserializerStreamSpec extends Specification {
 
     /**

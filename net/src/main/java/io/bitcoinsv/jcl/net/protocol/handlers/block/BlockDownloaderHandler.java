@@ -21,7 +21,7 @@ public interface BlockDownloaderHandler extends Handler {
     /** Adds more Block Hashes to the list of Blocks to Download */
     void download(List<String> blockHashes);
     void download(List<String> blockHashes, boolean withPriority);
-    void download(List<String> blockHashes, boolean withPriority, boolean forceDownload, PeerAddress fromThisPeerOnly, PeerAddress fromThisPeerPreferably);
+    void download(List<String> blockHashes, boolean withPriority, PeerAddress fromThisPeerOnly, PeerAddress fromThisPeerPreferably);
 
     /**
      * Cancels the download of the blocks given. If some of the blocks are already being download, those blocks will

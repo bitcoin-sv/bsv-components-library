@@ -5,21 +5,15 @@ import com.google.common.base.Objects;
 import java.net.InetAddress;
 
 /**
- * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 Bitcoin Association
+ * @author j.pomer@nchain.com
+ * Copyright (c) 2018-2022 Bitcoin Association
  * Distributed under the Open BSV software license, see the accompanying file LICENSE.
- * @date 2020-07-09 12:57
- *
+ * <p>
  * A Request to Whitelist a Peer
  */
 public final class WhitelistPeerRequest extends P2PRequest {
     private final InetAddress address;
 
-    /**
-     * Constructor.
-     * We assume that Whitelisting Peers is a rare event, so we accept a single Peer as parameter rather than a
-     * Collection
-     */
     public WhitelistPeerRequest(InetAddress address) {
         this.address = address;
     }
@@ -28,10 +22,9 @@ public final class WhitelistPeerRequest extends P2PRequest {
         return this.address;
     }
 
-
     @Override
     public String toString() {
-        return "BlacklistPeerRequest(address=" + this.address + ")";
+        return "WhitelistPeerRequest(peerAddress=" + address + ")";
     }
 
     @Override
@@ -45,5 +38,4 @@ public final class WhitelistPeerRequest extends P2PRequest {
     public int hashCode() {
         return Objects.hashCode(super.hashCode(), address);
     }
-
 }

@@ -26,9 +26,6 @@ import io.bitcoinsv.jcl.net.protocol.handlers.message.MessageHandlerImpl;
 import io.bitcoinsv.jcl.net.protocol.handlers.pingPong.PingPongHandler;
 import io.bitcoinsv.jcl.net.protocol.handlers.pingPong.PingPongHandlerConfig;
 import io.bitcoinsv.jcl.net.protocol.handlers.pingPong.PingPongHandlerImpl;
-import io.bitcoinsv.jcl.net.protocol.handlers.whitelist.WhitelistHandler;
-import io.bitcoinsv.jcl.net.protocol.handlers.whitelist.WhitelistHandlerConfig;
-import io.bitcoinsv.jcl.net.protocol.handlers.whitelist.WhitelistHandlerImpl;
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig;
 import io.bitcoinsv.jcl.tools.config.provided.RuntimeConfigDefault;
 import io.bitcoinsv.jcl.tools.handlers.Handler;
@@ -141,8 +138,6 @@ public class P2PBuilder {
         return config(BlacklistHandler.HANDLER_ID, config);
     }
 
-    public P2PBuilder config(WhitelistHandlerConfig config) { return config(WhitelistHandler.HANDLER_ID, config);}
-
     public P2PBuilder config(BlockDownloaderHandlerConfig config) { return config(BlockDownloaderHandler.HANDLER_ID, config);}
 
     /** It sets up a specific configuration for a specific protocol Handler, overwritting the default one (if any) */
@@ -224,12 +219,6 @@ public class P2PBuilder {
             blacklistConfig = blacklistConfig.toBuilder().basicConfig(this.basicConfig).build();
             Handler blacklistHandler = new BlacklistHandlerImpl(id, runtimeConfig, blacklistConfig);
             result.put(blacklistHandler.getId(), blacklistHandler);
-
-            // Whitelist Handler...
-            WhitelistHandlerConfig whitelistConfig = (WhitelistHandlerConfig) handlerConfigs.get(WhitelistHandler.HANDLER_ID);
-            whitelistConfig = whitelistConfig.toBuilder().basicConfig(this.basicConfig).build();
-            Handler whitelistHandler = new WhitelistHandlerImpl(id, runtimeConfig, whitelistConfig);
-            result.put(whitelistHandler.getId(), whitelistHandler);
 
             // Block Downloader Handler...
             BlockDownloaderHandlerConfig blockConfig = (BlockDownloaderHandlerConfig) handlerConfigs.get(BlockDownloaderHandler.HANDLER_ID);

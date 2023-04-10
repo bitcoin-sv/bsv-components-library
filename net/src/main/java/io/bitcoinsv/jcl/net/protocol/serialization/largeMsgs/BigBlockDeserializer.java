@@ -65,9 +65,6 @@ public class BigBlockDeserializer extends LargeMessageDeserializerImpl {
             // Order of each batch of Txs within the Block
             long txsOrderNumber = 0;
 
-            // Index of the FIRST Tx in this Chunk within the Block
-            long txsIndexNumber = 0;
-
             // We keep track of some values:
             int currentBatchSize = 0;
             Instant deserializingTime = Instant.now();
@@ -76,7 +73,7 @@ public class BigBlockDeserializer extends LargeMessageDeserializerImpl {
                 TxMsg txMsg = TxMsgSerializer.getInstance().deserialize(context, byteReader);
                 currentBatchSize += txMsg.getLengthInBytes();
                 txList.add(txMsg);
-                if (currentBatchSize > super.partialMsgSize) {
+                if (i > 0 && currentBatchSize > super.partialMsgSize) {
                     // We notify about a new Batch of TX Deserialized...
                     log.trace("Batch of " + txList.size() + " Txs deserialized :: "
                             + currentBatchSize + " bytes, "
@@ -85,19 +82,14 @@ public class BigBlockDeserializer extends LargeMessageDeserializerImpl {
                             .blockHeader(blockHeader)
                             .txs(txList)
                             .txsOrdersNumber(txsOrderNumber)
-                            .txsIndexNumber(txsIndexNumber)
                             .build();
-
+                    txList = new ArrayList<>();
                     notifyDeserialization(partialBlockTXs);
 
                     // We reset the counters...
                     currentBatchSize = 0;
                     deserializingTime = Instant.now();
                     txsOrderNumber++;
-                    txsIndexNumber += txList.size();
-
-                    // we move on for the next Chunk:
-                    txList = new ArrayList<>();
                 }
             } // for...
             // In case we still have some TXs without being notified, we do it now...
@@ -106,7 +98,6 @@ public class BigBlockDeserializer extends LargeMessageDeserializerImpl {
                         .blockHeader(blockHeader)
                         .txs(txList)
                         .txsOrdersNumber(txsOrderNumber)
-                        .txsIndexNumber(txsIndexNumber)
                         .build());
 
         } catch (Exception e) {

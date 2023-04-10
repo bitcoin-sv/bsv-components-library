@@ -81,8 +81,7 @@ public class ProtocolBSVMainConfig extends ProtocolConfigImpl implements Protoco
                 DiscoveryHandlerConfig.builder()
                         .dns(dns)
                         .build(),
-                null,           // Default Blacklist Config
-                null,     // Default Whitelist config
+                null,            // Default Blacklist Config
                 null);    // Default Block Downloader Config
 
     }

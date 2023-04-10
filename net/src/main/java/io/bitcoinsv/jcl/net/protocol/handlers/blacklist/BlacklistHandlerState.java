@@ -4,8 +4,6 @@ package io.bitcoinsv.jcl.net.protocol.handlers.blacklist;
 import com.google.common.base.Objects;
 import io.bitcoinsv.jcl.net.network.events.PeersBlacklistedEvent;
 import io.bitcoinsv.jcl.tools.handlers.HandlerState;
-
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -17,12 +15,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * The Blacklist Handler takes care of Blacklisting (and whitelisting) Peers when some conditions are
  * met: they failed during the handshake, or broken the timeout specified by the PingPong Handler, etc.
  *
- * NOTE: We do NOT store the list of Hosts blacklisted here since that list might be too big. If you want it, ask
- * blacklistHandlerImpl.
  */
 public final class BlacklistHandlerState extends HandlerState {
     private final long numTotalBlacklisted;
-    // A map containing the number of Host blacklisted grouped by Reason
+
     private  Map<PeersBlacklistedEvent.BlacklistReason, Integer> blacklistedReasons = new ConcurrentHashMap<>();
 
     public BlacklistHandlerState(long numTotalBlacklisted, Map<PeersBlacklistedEvent.BlacklistReason, Integer> blacklistedReasons) {
@@ -75,7 +71,7 @@ public final class BlacklistHandlerState extends HandlerState {
      */
     public static class BlacklistHandlerStateBuilder {
         private long numTotalBlacklisted;
-        private Map<PeersBlacklistedEvent.BlacklistReason, Integer> blacklistedReasons = new HashMap<>();
+        private Map<PeersBlacklistedEvent.BlacklistReason, Integer> blacklistedReasons;
 
         BlacklistHandlerStateBuilder() {}
 

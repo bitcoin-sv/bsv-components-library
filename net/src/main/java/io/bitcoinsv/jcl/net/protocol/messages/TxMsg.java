@@ -15,7 +15,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author m.jose@nchain.com
@@ -181,29 +180,6 @@ public final class TxMsg extends BodyMessage implements Serializable {
         }
         result.makeImmutable();
         return result;
-    }
-
-    /**
-     * Returns a Msg object out of a Bean
-     */
-    public static TxMsg fromBean(Tx tx) {
-        // Inputs:
-        List<TxInputMsg> inputs = tx.getInputs().stream()
-                .map(txInput -> TxInputMsg.fromBean(txInput))
-                .collect(Collectors.toList());
-        // Outputs:
-        List<TxOutputMsg> outputs = tx.getOutputs().stream()
-                .map(txOutput -> TxOutputMsg.fromBean(txOutput))
-                .collect(Collectors.toList());
-        // Tx:
-        TxMsgBuilder builder = TxMsg.builder();
-        builder
-                .lockTime(tx.getLockTime())
-                .version(tx.getVersion())
-                .tx_in(inputs)
-                .tx_out(outputs)
-                .build();
-        return builder.build();
     }
 
     public static TxMsgBuilder builder() {

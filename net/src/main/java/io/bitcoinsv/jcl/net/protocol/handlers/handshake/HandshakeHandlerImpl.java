@@ -16,13 +16,11 @@ import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
 import io.bitcoinsv.jcl.net.tools.NonceUtils;
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig;
 import io.bitcoinsv.jcl.tools.events.EventQueueProcessor;
-import io.bitcoinsv.jcl.tools.handlers.HandlerConfig;
 import io.bitcoinsv.jcl.tools.handlers.HandlerImpl;
 import io.bitcoinsv.jcl.net.tools.LoggerUtil;
 import io.bitcoinsv.jcl.tools.thread.ThreadUtils;
 
 import java.math.BigInteger;
-import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -38,7 +36,7 @@ public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeer
     private LoggerUtil logger;
 
     // P2P configuration:
-    private HandshakeHandlerConfig config;
+   private HandshakeHandlerConfig config;
 
 
     // Handler State:
@@ -70,27 +68,27 @@ public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeer
         // We initialize the State:
         this.state = HandshakeHandlerState.builder().build();
 
-        // TODO: if required make capacity configurable
         // We start the EventQueueProcessor. We do not expect many messages (compared to the rest of traffic), so a
         // single Thread will do...
-        this.eventQueueProcessor = new EventQueueProcessor("JclHandshakeHandler", ThreadUtils.getBlockingSingleThreadExecutorService("JclHandshakeHandler-EventsConsumers", 10));
+        this.eventQueueProcessor = new EventQueueProcessor("JclHandshakeHandler", ThreadUtils.getSingleThreadScheduledExecutorService("JclHandshakeHandler-EventsConsumers"));
     }
 
     // We register this Handler to LISTEN to these Events:
     private void registerForEvents() {
-        this.eventQueueProcessor.addProcessor(NetStartEvent.class, this::onNetStart);
-        this.eventQueueProcessor.addProcessor(NetStopEvent.class, this::onNetStop);
-        this.eventQueueProcessor.addProcessor(PeerMsgReadyEvent.class, this::onPeerMsgReady);
-        this.eventQueueProcessor.addProcessor(PeerDisconnectedEvent.class, this::onPeerDisconnected);
-        this.eventQueueProcessor.addProcessor(VersionMsgReceivedEvent.class, this::onVersionMessage);
-        this.eventQueueProcessor.addProcessor(VersionAckMsgReceivedEvent.class, this::onAckMessage);
 
-        subscribe(NetStartEvent.class, eventQueueProcessor::addEvent);
-        subscribe(NetStopEvent.class, eventQueueProcessor::addEvent);
-        subscribe(PeerMsgReadyEvent.class, eventQueueProcessor::addEvent);
-        subscribe(PeerDisconnectedEvent.class, eventQueueProcessor::addEvent);
-        subscribe(VersionMsgReceivedEvent.class, eventQueueProcessor::addEvent);
-        subscribe(VersionAckMsgReceivedEvent.class, eventQueueProcessor::addEvent);
+        this.eventQueueProcessor.addProcessor(NetStartEvent.class, e -> onNetStart((NetStartEvent) e));
+        this.eventQueueProcessor.addProcessor(NetStopEvent.class, e -> onNetStop((NetStopEvent) e));
+        this.eventQueueProcessor.addProcessor(PeerMsgReadyEvent.class, e -> onPeerMsgReady((PeerMsgReadyEvent) e));
+        this.eventQueueProcessor.addProcessor(PeerDisconnectedEvent.class, e -> onPeerDisconnected((PeerDisconnectedEvent) e));
+        this.eventQueueProcessor.addProcessor(VersionMsgReceivedEvent.class, e -> onVersionMessage((VersionMsgReceivedEvent) e));
+        this.eventQueueProcessor.addProcessor(VersionAckMsgReceivedEvent.class, e -> onAckMessage((VersionAckMsgReceivedEvent) e));
+
+        super.eventBus.subscribe(NetStartEvent.class, e -> this.eventQueueProcessor.addEvent(e));
+        super.eventBus.subscribe(NetStopEvent.class, e -> this.eventQueueProcessor.addEvent(e));
+        super.eventBus.subscribe(PeerMsgReadyEvent.class, e -> this.eventQueueProcessor.addEvent(e));
+        super.eventBus.subscribe(PeerDisconnectedEvent.class, e -> this.eventQueueProcessor.addEvent(e));
+        super.eventBus.subscribe(VersionMsgReceivedEvent.class, e -> this.eventQueueProcessor.addEvent(e));
+        super.eventBus.subscribe(VersionAckMsgReceivedEvent.class, e -> this.eventQueueProcessor.addEvent(e));
 
         this.eventQueueProcessor.start();
     }
@@ -201,6 +199,12 @@ public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeer
             // We check the Version number:
             if (versionMsg.getVersion() < ProtocolVersion.ENABLE_VERSION.getVersion()) {
                 rejectHandshake(peerInfo, PeerHandshakeRejectedEvent.HandshakedRejectedReason.WRONG_VERSION, null);
+                return;
+            }
+
+            // We check the Start Height:
+            if (versionMsg.getStart_height() < 0) {
+                rejectHandshake(peerInfo, PeerHandshakeRejectedEvent.HandshakedRejectedReason.WRONG_START_HEIGHT, null);
                 return;
             }
 
@@ -461,7 +465,7 @@ public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeer
                 .addr_recv(addr_recv)
                 .start_height(config.getBlock_height())
                 .nonce(NonceUtils.newOnce())
-                .timestamp(Instant.now().getEpochSecond())
+                .timestamp(System.currentTimeMillis())
                 .build();
         BitcoinMsg<VersionMsg> btcVersionMsg = new BitcoinMsgBuilder<VersionMsg>(config.getBasicConfig(), versionMsg).build();
         super.eventBus.publish(new SendMsgRequest(peerInfo.getPeerAddress(), btcVersionMsg));
@@ -522,17 +526,8 @@ public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeer
         handlerInfo.remove(peerInfo.getPeerAddress());
     }
 
-    @Override
     public HandshakeHandlerConfig getConfig() {
         return this.config;
-    }
-
-    @Override
-    public synchronized void updateConfig(HandlerConfig config) {
-        if (!(config instanceof HandshakeHandlerConfig)) {
-            throw new RuntimeException("config class is NOT correct for this Handler");
-        }
-        this.config = (HandshakeHandlerConfig) config;
     }
 
     public HandshakeHandlerState getState() {

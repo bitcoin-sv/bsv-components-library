@@ -126,7 +126,7 @@ public final class VersionMsg extends BodyMessage implements Serializable {
                 + ", user_agent=" + this.getUser_agent()
                 + ", start_height=" + this.getStart_height()
                 + ", relay=" + this.getRelay()
-                + ", associationId=" + Utils.HEX.encode(this.associationId)
+                + ", associationId=" + this.associationId
                 + ")";
     }
 

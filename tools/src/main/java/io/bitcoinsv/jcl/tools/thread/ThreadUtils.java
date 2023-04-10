@@ -3,7 +3,10 @@ package io.bitcoinsv.jcl.tools.thread;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
@@ -11,7 +14,7 @@ import java.util.stream.Collectors;
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  *
- * A utility Class for MultiThread purposes.
+ * An utility Class for MultiThread purposes.
  */
 public class ThreadUtils {
 
@@ -21,38 +24,32 @@ public class ThreadUtils {
      * This EventBus will publish the vents related to data being deserialized (incoming) or Serialized (outgoing).
      */
     static class PeerStreamThreadFactory implements ThreadFactory {
-        private final String name;
-
-        public PeerStreamThreadFactory() {
-            this(null);
-        }
-
-        public PeerStreamThreadFactory(String name) {
-            this.name = name;
-        }
-
         public Thread newThread(Runnable r) {
             Thread thread = new Thread(r);
             thread.setPriority(Thread.NORM_PRIORITY);
             thread.setDaemon(true);
             thread.setName("JclNetworkStreams");
-
-            if (name != null) {
-                thread.setName(thread.getName() + " - " + name);
-            }
-
             return thread;
         }
     }
 
+    /**
+     * A built-in Executor for the Streams connected to the Remote Peers. This Stream needs to be Single-thread,
+     * otherwise the order of the bytes coming in/out from the Peer cannot be guaranteed
+     */
+    public static ExecutorService PEER_STREAM_EXECUTOR = Executors.newSingleThreadExecutor(new PeerStreamThreadFactory());
+
     /** Convenience method to create a ThreadPoolFactory with the name given and other parameters.*/
     public static ThreadFactory getThreadFactory(String name, int priority, boolean daemon) {
-        return r -> {
-            Thread thread = new Thread(r);
-            thread.setPriority(priority);
-            thread.setDaemon(daemon);
-            thread.setName(name + ":" + thread.getId());
-            return thread;
+        return new ThreadFactory() {
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread thread = new Thread(r);
+                thread.setPriority(priority);
+                thread.setDaemon(daemon);
+                thread.setName(name + ":" + thread.getId());
+                return thread;
+            }
         };
     }
 
@@ -67,92 +64,6 @@ public class ThreadUtils {
     /** Returns a FixedThread executor with MAX Priority */
     public static ExecutorService getFixedThreadExecutorService(String threadName, int maxThreads) {
         return Executors.newFixedThreadPool(maxThreads, getThreadFactory(threadName, Thread.MAX_PRIORITY, true));
-    }
-
-    public static ThreadPoolExecutor getBlockingSingleThreadExecutorService(String threadName, int capacity) {
-        return getBlockingSingleThreadExecutorService(threadName, capacity, Thread.NORM_PRIORITY);
-    }
-
-    public static ThreadPoolExecutor getBlockingSingleThreadExecutorService(String threadName, int priority, ArrayBlockingQueue<Runnable> queue) {
-        var executor = new ThreadPoolExecutor(
-            0,
-            1,
-            0L,
-            TimeUnit.MILLISECONDS,
-            queue,
-            getThreadFactory(threadName, priority, true)
-        );
-
-        registerRejectionExecutionHandle(executor);
-
-        return executor;
-    }
-
-    public static ThreadPoolExecutor getBlockingSingleThreadExecutorService(String threadName, int capacity, int priority) {
-        var executor = new ThreadPoolExecutor(
-                0,
-                1,
-                0L,
-                TimeUnit.MILLISECONDS,
-                new ArrayBlockingQueue<>(capacity),
-                getThreadFactory(threadName, priority, true)
-        );
-
-        registerRejectionExecutionHandle(executor);
-
-        return executor;
-    }
-
-    public static ThreadPoolExecutor getBlockingThreadExecutorService(String threadName, int maxThreads, int capacity) {
-        return getBlockingThreadExecutorService(threadName, maxThreads, capacity, Thread.NORM_PRIORITY);
-    }
-
-    public static ThreadPoolExecutor getBlockingThreadExecutorService(String threadName, int maxThreads, int capacity, int priority) {
-        var executor = new ThreadPoolExecutor(
-                0,
-                maxThreads,
-                0L,
-                TimeUnit.MILLISECONDS,
-                new ArrayBlockingQueue<>(capacity),
-                getThreadFactory(threadName, priority, true)
-        );
-
-        registerRejectionExecutionHandle(executor);
-
-        return executor;
-    }
-
-    public static ThreadPoolExecutor getCachedBlockingThreadExecutorService(String threadName, int maxThreads, int capacity) {
-        return getCachedBlockingThreadExecutorService(threadName, maxThreads, capacity, Thread.NORM_PRIORITY);
-    }
-
-    public static ThreadPoolExecutor getCachedBlockingThreadExecutorService(String threadName, int maxThreads, int capacity, int priority) {
-        var executor = new ThreadPoolExecutor(
-                0,
-                maxThreads,
-                60L,
-                TimeUnit.SECONDS,
-                new ArrayBlockingQueue<>(capacity),
-                getThreadFactory(threadName, priority, true)
-        );
-
-        registerRejectionExecutionHandle(executor);
-
-        return executor;
-    }
-
-    private static void registerRejectionExecutionHandle(ThreadPoolExecutor executor) {
-        executor.setRejectedExecutionHandler((runnable, threadPoolExecutor) -> {
-            try {
-                // block until there's room
-                executor.getQueue().put(runnable);
-                if (executor.isShutdown()) {
-                    throw new RejectedExecutionException("Executor has shut down, task was rejected");
-                }
-            } catch (InterruptedException e) {
-                throw new RejectedExecutionException("Task scheduling interrupted: ", e);
-            }
-        });
     }
 
     /**

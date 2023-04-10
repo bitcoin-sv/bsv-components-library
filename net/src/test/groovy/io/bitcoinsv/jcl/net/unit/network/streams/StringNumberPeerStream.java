@@ -14,13 +14,13 @@ import java.util.concurrent.ExecutorService;
  */
 public class StringNumberPeerStream extends PeerStreamImpl<String, Integer> {
 
-    public StringNumberPeerStream(PeerStream<Integer> streamOrigin) {
-        super(streamOrigin);
+    public StringNumberPeerStream(ExecutorService executor, PeerStream<Integer> streamOrigin) {
+        super(executor, streamOrigin);
     }
 
     @Override
     public PeerInputStream<String> buildInputStream() {
-        return new StringNumberInputStream(peerAddress, super.streamOrigin.input());
+        return new StringNumberInputStream(peerAddress, super.executor, super.streamOrigin.input());
     }
     @Override
     public PeerOutputStream<String> buildOutputStream() {

@@ -1,76 +1,84 @@
 package io.bitcoinsv.jcl.net.protocol.handlers.message;
 
 
+
 import io.bitcoinsv.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerState;
 import io.bitcoinsv.jcl.tools.handlers.HandlerState;
 
-import java.util.concurrent.atomic.AtomicLong;
+import java.math.BigInteger;
 
 
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
- * <p>
+ *
  * This event stores the state of the Handshake Handler at a point in time.
  * The Message Handler takes care of the Serialization/Deserialization of the information coming
  * from/to the Blockchain P2P Network, converting Bitcoin Messages into bytes (raw data) and the
  * other way around.
- * <p>
- * These events keeps track of the number of bitcoin messages sent to and received from the network.
+ *
+ * This events keeps track of the number of bitcoin messages sent to and received from the network.
  */
 public final class MessageHandlerState extends HandlerState {
-    private AtomicLong numMsgsIn = new AtomicLong();
-    private AtomicLong numMsgsOut = new AtomicLong();
+    private BigInteger numMsgsIn = BigInteger.ZERO;
+    private BigInteger numMsgsOut = BigInteger.ZERO;
 
-    /**
-     * State of the Deserializer Cache (if disabled, all value are ZERO)
-     */
+    /** State of the Deserializer Cache (if disabled, all value are ZERO) */
     private final DeserializerState deserializerState;
 
-    public MessageHandlerState() {
-        this.deserializerState = null;
-    }
-
-    public MessageHandlerState(long numMsgsIn, long numMsgsOut, DeserializerState deserializerState) {
-        this.numMsgsIn.set(numMsgsIn);
-        this.numMsgsOut.set(numMsgsOut);
+    public MessageHandlerState(BigInteger numMsgsIn, BigInteger numMsgsOut, DeserializerState deserializerState) {
+        if (numMsgsIn != null)  this.numMsgsIn = numMsgsIn;
+        if (numMsgsOut != null) this.numMsgsOut = numMsgsOut;
         this.deserializerState = deserializerState;
     }
 
     @Override
     public String toString() {
-        String result = "Message Handler State: " + numMsgsIn + " Msgs in, " + numMsgsOut + " Msgs out.";
-        if (deserializerState == null) result += "Deserializer Cache Stats Disabled.";
-        else result += "Deserializer Cache Stats: " + deserializerState;
-
+        String result = "Message Handler State: " + numMsgsIn + " Msgs in, " + numMsgsOut + " Msgs out";
+        if (deserializerState == null) result += ". Deserializer Cache Stats Disabled.";
+        else result += ". Deserializer Cache Stats: " + deserializerState.toString();
         return result;
     }
 
-    public void incMsgsIn(long num) {
-        this.numMsgsIn.addAndGet(num);
+    public BigInteger getNumMsgsIn()                { return this.numMsgsIn; }
+    public BigInteger getNumMsgsOut()               { return this.numMsgsOut; }
+    public DeserializerState getDeserializerState() { return this.deserializerState; }
+
+    public MessageHandlerStateBuilder toBuilder() {
+        return new MessageHandlerStateBuilder().numMsgsIn(this.numMsgsIn).numMsgsOut(this.numMsgsOut).deserializerState(this.deserializerState);
     }
 
-    public void incMsgsOut(long num) {
-        this.numMsgsOut.addAndGet(num);
+    public static MessageHandlerStateBuilder builder() {
+        return new MessageHandlerStateBuilder();
     }
 
-    public long getNumMsgsIn() {
-        return this.numMsgsIn.get();
-    }
+    /**
+     * Builder
+     */
+    public static class MessageHandlerStateBuilder {
+        private BigInteger numMsgsIn;
+        private BigInteger numMsgsOut;
+        private DeserializerState deserializerState;
 
-    public long getNumMsgsOut() {
-        return this.numMsgsOut.get();
-    }
+        MessageHandlerStateBuilder() {}
 
-    public DeserializerState getDeserializerState() {
-        return this.deserializerState;
-    }
+        public MessageHandlerState.MessageHandlerStateBuilder numMsgsIn(BigInteger numMsgsIn) {
+            this.numMsgsIn = numMsgsIn;
+            return this;
+        }
 
-    public void increaseInMsgCount(int count) {
-        numMsgsIn.addAndGet(count);
-    }
+        public MessageHandlerState.MessageHandlerStateBuilder numMsgsOut(BigInteger numMsgsOut) {
+            this.numMsgsOut = numMsgsOut;
+            return this;
+        }
 
-    public void increaseOutMsgCount(int count) {
-        numMsgsIn.addAndGet(count);
+        public MessageHandlerState.MessageHandlerStateBuilder deserializerState(DeserializerState deserializerState) {
+            this.deserializerState = deserializerState;
+            return this;
+        }
+
+        public MessageHandlerState build() {
+            return new MessageHandlerState(numMsgsIn, numMsgsOut, deserializerState);
+        }
     }
 }

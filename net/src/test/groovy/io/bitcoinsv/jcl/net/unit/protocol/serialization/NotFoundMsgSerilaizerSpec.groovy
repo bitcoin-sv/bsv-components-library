@@ -59,7 +59,7 @@ class NotFoundMsgSerilaizerSpec extends Specification {
             List<InventoryVectorMsg> msgList = new ArrayList<>();
             msgList.add(inventoryVectorMsg);
             VarIntMsg count = VarIntMsg.builder().value(msgList.size()).build();
-            NotFoundMsg getdataMsg = NotFoundMsg.builder().invVectorMsgList(msgList).build();
+            NotFoundMsg getdataMsg = NotFoundMsg.builder().invVectorMsgList(msgList).count(count).build();
 
             ByteArrayWriter byteWriter = new ByteArrayWriter()
             String messageSerialized = null
@@ -103,7 +103,7 @@ class NotFoundMsgSerilaizerSpec extends Specification {
             List<InventoryVectorMsg> msgList = new ArrayList<>();
             msgList.add(inventoryVectorMsg);
             VarIntMsg count = VarIntMsg.builder().value(msgList.size()).build();
-            NotFoundMsg getdataMsg = NotFoundMsg.builder().invVectorMsgList(msgList).build();
+            NotFoundMsg getdataMsg = NotFoundMsg.builder().invVectorMsgList(msgList).count(count).build();
 
             BitcoinMsg<NotFoundMsg> notFoundMsgBitcoinMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), getdataMsg).build()
             BitcoinMsgSerializer serializer = BitcoinMsgSerializerImpl.getInstance()

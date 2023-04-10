@@ -134,9 +134,8 @@ public class ByteArrayBuffer implements ByteArray {
 
             buffer.extractInto(bytesToWriteLength, array, length - bytesRemaining);
 
-            boolean isLastBuffer = (indexBuffer == buffers.size() - 1);
             // We prepare for next iteration. if this buffer has been emptied, we store if for future cleaning...
-            if (buffer.isEmpty() && !isLastBuffer) buffersToRemove.add(buffer);
+            if (buffer.isEmpty()) buffersToRemove.add(buffer);
             bytesRemaining -= bytesToWriteLength;
             indexBuffer++;
         }
@@ -148,38 +147,6 @@ public class ByteArrayBuffer implements ByteArray {
         capacity.set(buffers.stream().mapToLong(b -> b.capacity()).sum());
         available.set(buffers.stream().mapToLong(b -> b.available()).sum());
     }
-
-    @Override
-    public void discard(int length) {
-        checkArgument(size() >= length,
-                "trying to discard too many bytes, current: " + size() + ", requested: " + length);
-
-        // For removing empty buffers after the extraction:
-        List<ByteArray> buffersToRemove = new ArrayList<>();
-
-        int bytesRemaining = length;
-        int indexBuffer = 0;
-        while (bytesRemaining > 0) {
-            ByteArray buffer = buffers.get(indexBuffer);
-
-            int bytesToRemove = (int) ((buffer.size() >= bytesRemaining) ? bytesRemaining : (buffer.size()));
-            buffer.discard(bytesToRemove);
-
-            boolean isLastBuffer = (indexBuffer == buffers.size() - 1);
-            // We prepare for next iteration. if this buffer has been emptied, we store if for future cleaning...
-            if (buffer.isEmpty() && !isLastBuffer) buffersToRemove.add(buffer);
-            bytesRemaining -= bytesToRemove;
-            indexBuffer++;
-        }
-        // We remove those ByteArrays that are now empty after the extraction...
-        buffersToRemove.forEach(b -> b.clear());
-        buffers.removeAll(buffersToRemove);
-
-        size.addAndGet(-length);
-        capacity.set(buffers.stream().mapToLong(b -> b.capacity()).sum());
-        available.set(buffers.stream().mapToLong(b -> b.available()).sum());
-    }
-
 
     /** Returns the number of bytes stored */
     //public long size() { return buffers.stream().mapToLong(b -> b.size()).sum(); }

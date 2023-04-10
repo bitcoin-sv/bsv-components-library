@@ -2,10 +2,6 @@ package io.bitcoinsv.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.Tx;
-import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.TxInput;
-import io.bitcoinsv.bitcoinjsv.bitcoin.bean.base.TxInputBean;
-import io.bitcoinsv.bitcoinjsv.bitcoin.bean.base.TxOutPointBean;
 import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
 
 import java.io.Serializable;
@@ -99,26 +95,6 @@ public final class TxInputMsg extends Message implements Serializable {
                     .pre_outpoint(this.pre_outpoint)
                     .signature_script(this.signature_script)
                     .sequence(this.sequence);
-    }
-
-    /** Returns a Domain Class */
-    public TxInput toBean() {
-        TxInput result = new TxInputBean((Tx) null);
-        TxOutPointBean txOutPointBean = this.getPre_outpoint().toBean();
-        result.setOutpoint(txOutPointBean);
-        result.setScriptBytes(this.getSignature_script());
-        result.setSequenceNumber(this.sequence);
-        return result;
-    }
-
-    /** Returns a Msg class out of a Bean */
-    public static TxInputMsg fromBean(TxInput bean) {
-        TxInputMsg result = TxInputMsg.builder()
-                .sequence(bean.getSequenceNumber())
-                .signature_script(bean.getScriptBytes())
-                .pre_outpoint(TxOutPointMsg.fromBean(bean.getOutpoint()))
-                .build();
-        return result;
     }
 
     /**

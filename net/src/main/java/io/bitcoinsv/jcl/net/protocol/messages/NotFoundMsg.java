@@ -26,10 +26,10 @@ public final class NotFoundMsg extends BodyMessage implements Serializable {
     /**
      * Creates the InvMessage Object.Use the corresponding byteArray to create the instance.
      */
-    protected NotFoundMsg(List<InventoryVectorMsg> invVectorMsgList,
+    protected NotFoundMsg(VarIntMsg count, List<InventoryVectorMsg> invVectorMsgList,
                           byte[] extraBytes, long checksum) {
         super(extraBytes, checksum);
-        this.count = VarIntMsg.builder().value(invVectorMsgList.size()).build();
+        this.count = count;
         this.invVectorList = invVectorMsgList.stream().collect(Collectors.toUnmodifiableList());
         init();
     }
@@ -76,6 +76,7 @@ public final class NotFoundMsg extends BodyMessage implements Serializable {
     @Override
     public NotFoundMsgBuilder toBuilder() {
         return new NotFoundMsgBuilder(super.extraBytes, super.checksum)
+                    .count(this.count)
                     .invVectorMsgList(this.invVectorList);
     }
 
@@ -89,14 +90,18 @@ public final class NotFoundMsg extends BodyMessage implements Serializable {
         public NotFoundMsgBuilder() {}
         public NotFoundMsgBuilder(byte[] extraBytes, long checksum) { super(extraBytes, checksum);}
 
+        public NotFoundMsg.NotFoundMsgBuilder count(VarIntMsg count) {
+            this.count = count;
+            return this;
+        }
+
         public NotFoundMsg.NotFoundMsgBuilder invVectorMsgList(List<InventoryVectorMsg> invVectorMsgList) {
             this.invVectorMsgList = invVectorMsgList;
-            this.count =  VarIntMsg.builder().value(invVectorMsgList.size()).build();
             return this;
         }
 
         public NotFoundMsg build() {
-            return new NotFoundMsg(invVectorMsgList, super.extraBytes, super.checksum);
+            return new NotFoundMsg(count, invVectorMsgList, super.extraBytes, super.checksum);
         }
 
     }

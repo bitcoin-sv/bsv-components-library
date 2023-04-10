@@ -54,7 +54,7 @@ public class EventsHistory<I, E,S>{
         @Override
         public String toString() {
             String result = timestamp + " :: "
-                + ((source != null) ? "[" + source + "] " : "")
+                + ((source != null) ? "[" + source + "] " : " ")
                 + event;
                 return result;
         }

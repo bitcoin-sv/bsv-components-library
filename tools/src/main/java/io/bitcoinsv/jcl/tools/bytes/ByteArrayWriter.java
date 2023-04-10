@@ -53,20 +53,6 @@ public class ByteArrayWriter {
         buffer.add(out);
     }
 
-    public void writeInt32LE(long value) {
-        byte[] out = new byte[4];
-        int32ToByteArrayLE(value, out, 0);
-        buffer.add(out);
-    }
-
-    // same as "uint32ToByteArrayLE", added to keep semantics, imported from BitcoinJ
-    private void int32ToByteArrayLE(long val, byte[] out, int offset) {
-        out[offset] = (byte) (0xFF & val);
-        out[offset + 1] = (byte) (0xFF & (val >> 8));
-        out[offset + 2] = (byte) (0xFF & (val >> 16));
-        out[offset + 3] = (byte) (0xFF & (val >> 24));
-    }
-
     public void writeUint48LE(long value) {
         byte[] out = new byte[6];
         Utils.uint48ToByteArrayLE(value, out, 0);

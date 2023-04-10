@@ -2,12 +2,6 @@ package io.bitcoinsv.jcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.Tx;
-import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.TxOutPoint;
-import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.TxOutput;
-import io.bitcoinsv.bitcoinjsv.bitcoin.bean.base.TxOutPointBean;
-import io.bitcoinsv.bitcoinjsv.bitcoin.bean.base.TxOutputBean;
-import io.bitcoinsv.bitcoinjsv.core.Coin;
 import io.bitcoinsv.jcl.net.protocol.messages.common.Message;
 
 import java.io.Serializable;
@@ -89,24 +83,6 @@ public final class TxOutputMsg extends Message implements Serializable {
                         .txValue(this.txValue)
                         .pk_script(this.pk_script);
     }
-
-    /** Returns a Bean class */
-    public TxOutput toBean() {
-        TxOutputBean result = new TxOutputBean((Tx) null);
-        result.setValue(Coin.valueOf(this.txValue));
-        result.setScriptBytes(this.pk_script);
-        return result;
-    }
-
-    /** Returns a Msg class out of a Bean */
-    public static TxOutputMsg fromBean(TxOutput bean) {
-        TxOutputMsg result = TxOutputMsg.builder()
-                .pk_script(bean.getScriptBytes())
-                .txValue(bean.getValue().value)
-                .build();
-        return result;
-    }
-
     /**
      * Builder
      */

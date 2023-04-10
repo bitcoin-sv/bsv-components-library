@@ -50,13 +50,23 @@ public class RejectMsgSerializer implements MessageSerializer<RejectMsg> {
         VarStrMsg reason = VarStrMsgSerializer.getinstance().deserialize(context, byteReader);
         builder.reason(reason);
 
-        // The rest of the data is a Generic data field.
-        if (context.getMaxBytesToRead() == null) throw new RuntimeException("The value of MaxBytesToRead is needed");
-        int numBytesToRead = (int) (context.getMaxBytesToRead() - message.getLengthInBytes() - 1 - reason.getLengthInBytes());
+        // The rest of the data is a Generic data field. So far, its content is either empty or filled with the
+        // HASH of a TX or Block Header. the value of the "message" field will tell us the case.
+        // In case it's not a hash, well read a generic byte array
 
-        byte[] data = byteReader.read(numBytesToRead);
-        builder.data(data);
+        if ((message.getStr().equals(RejectMsg.MESSAGE_BLOCK)) || (message.getStr().equals(RejectMsg.MESSAGE_TX))) {
+            Sha256Hash dataHash = Sha256Hash.wrapReversed(byteReader.read(32));
+            builder.dataHash(dataHash);
+        } else {
+            if (context.getMaxBytesToRead() == null)
+                throw new RuntimeException("The value of MaxBytesToRead is needed");
 
+            int numBytesToRead = (int) (context.getMaxBytesToRead() - message.getLengthInBytes()
+                    - 1 - reason.getLengthInBytes());
+
+            byte[] data = byteReader.read(numBytesToRead);
+            builder.data(data);
+        }
         RejectMsg result = builder.build();
         return result;
     }
@@ -67,6 +77,9 @@ public class RejectMsgSerializer implements MessageSerializer<RejectMsg> {
         VarStrMsgSerializer.getinstance().serialize(context, message.getMessage(), byteWriter);
         byteWriter.write(message.getCcode().getValue());
         VarStrMsgSerializer.getinstance().serialize(context, message.getReason(), byteWriter);
-        byteWriter.write(message.getData());
+        if (message.getDataHash() != null) {
+            byteWriter.write(Sha256Hash.wrapReversed(message.getDataHash().getBytes()).getBytes());
+        }
     }
+
 }

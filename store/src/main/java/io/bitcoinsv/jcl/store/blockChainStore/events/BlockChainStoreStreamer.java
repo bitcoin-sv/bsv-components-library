@@ -15,7 +15,6 @@ public class BlockChainStoreStreamer extends BlockStoreStreamer {
 
     public final EventStreamer<ChainForkEvent> FORKS;
     public final EventStreamer<ChainPruneEvent> PRUNINGS;
-    public final EventStreamer<ChainPruneAlertEvent> PRUNING_ALERTS;
     public final EventStreamer<ChainStateEvent> STATE;
 
     /** Constructor */
@@ -23,7 +22,6 @@ public class BlockChainStoreStreamer extends BlockStoreStreamer {
         super(eventBus);
         this.FORKS = new EventStreamer<>(eventBus, ChainForkEvent.class);
         this.PRUNINGS = new EventStreamer<>(eventBus, ChainPruneEvent.class);
-        this.PRUNING_ALERTS = new EventStreamer<>(eventBus, ChainPruneAlertEvent.class);
         this.STATE = new EventStreamer<>(eventBus, ChainStateEvent.class);
     }
 }

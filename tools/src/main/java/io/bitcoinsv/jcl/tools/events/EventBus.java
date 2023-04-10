@@ -34,6 +34,9 @@ import java.util.function.Consumer;
  */
 public class EventBus {
 
+    // UGLY HACK:
+    public static AtomicLong NUM_MSGS_LOST = new AtomicLong();
+
     private static Logger log = LoggerFactory.getLogger(EventBus.class);
 
     // For each Event Type, we store the list of Consumers/Event Handlers that will get run/notified
@@ -55,17 +58,17 @@ public class EventBus {
 
 
     /** Constructor */
-    public EventBus(ExecutorService executor) {
+    private EventBus(ExecutorService executor) {
         this.executor = executor;
     }
 
-    public EventBus() {}
+    private EventBus() {}
 
     /**
      * It assigns a Handler to an Event Type. More than one Handler can be linked to an Event Type, and they are all
      * executed in sequence.
      */
-    public synchronized <E extends Event> void subscribe(Class<E> eventClass, Consumer<E> eventHandler) {
+    public synchronized void subscribe(Class<? extends Event> eventClass, Consumer<? extends Event> eventHandler) {
         // We add the handler to the list of handlers assigned to this Event Type:
         List<Consumer<? extends Event>> consumers = new ArrayList<>();
         consumers.add(eventHandler);
@@ -95,6 +98,7 @@ public class EventBus {
                 try {
                     executor.submit(task);
                 } catch (RejectedExecutionException e) {
+                    NUM_MSGS_LOST.incrementAndGet();
                     log.error(e.getMessage(), e);
                 }
             }
@@ -103,10 +107,7 @@ public class EventBus {
             }
             numEventsPublished.merge(event.getClass(), 1L ,Long::sum);
         }
-    }
 
-    public <T extends Event> Consumer<T> getConsumerForEvent(Class<T> eventClass) {
-        return eventHandlersOptimized.get(eventClass);
     }
 
     /** Returns the EVentBus Status (ONLY FOR TESTING/DEBUGGING) */

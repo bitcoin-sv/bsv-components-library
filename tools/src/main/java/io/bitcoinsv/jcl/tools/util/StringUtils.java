@@ -29,23 +29,4 @@ public class StringUtils {
         result = result.replaceAll("\\\\", "");
         return result;
     }
-
-    /**
-     * It returns the String given with a Fixed Length
-     */
-    public static String fixedLength(String str, int length) {
-        if (str == null) {
-            return org.apache.commons.lang3.StringUtils.leftPad(" ", length, " ");
-        } else {
-            String result = org.apache.commons.lang3.StringUtils.abbreviate(str, length);
-            if (result.length() < length) {
-                result = org.apache.commons.lang3.StringUtils.rightPad(result, length, " ");
-            }
-            return result;
-        }
-    }
-
-    public static String fixedLength(Integer value, int length) {
-        return (value != null) ? fixedLength(value.toString(), length) : fixedLength((String) null, length);
-    }
 }

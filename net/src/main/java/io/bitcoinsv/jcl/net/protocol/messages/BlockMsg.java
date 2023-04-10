@@ -19,7 +19,7 @@ import static com.google.common.base.Preconditions.checkState;
  */
 public final class BlockMsg extends BodyMessage implements Serializable {
 
-    public static final String MESSAGE_TYPE = "block";
+    public static final String MESSAGE_TYPE = "Block";
 
     private final BlockHeaderMsg blockHeader;
     private final List<TxMsg> transactionMsg;
