@@ -2,16 +2,6 @@ plugins {
     id 'java-library'
 }
 
-/****************************************
- * Local Configuration
- ****************************************/
-jclGroup = "$jclGroup"
-jclVersion = "$jclVersion"
-jclArtifactName = "jcl-net"
-
-group = "$rootProject.jclGroup"
-version = "$rootProject.jclVersion"
-
 dependencies {
     implementation "io.bitcoinsv.bitcoinjsv:bitcoinj-base:$bitcoinJVersion"
     implementation(project(":tools"))

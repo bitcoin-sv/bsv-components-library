@@ -3,19 +3,16 @@ plugins {
     id "org.sonarqube" version "3.5.0.2730"
 }
 
-/****************************************
- * Local Configuration
- ****************************************/
-jclGroup = "$jclGroup"
-jclVersion = "$jclVersion"
-
-group = "$rootProject.jclGroup"
-version = "$rootProject.jclVersion"
-
 allprojects {
     apply plugin: 'java'
     apply plugin: 'groovy'
     apply plugin: 'jacoco'
+
+    jclGroup = "$jclGroup"
+    jclVersion = "$jclVersion"
+
+    group = "$rootProject.jclGroup"
+    version = "$rootProject.jclVersion"
 
     repositories {
         mavenCentral()
