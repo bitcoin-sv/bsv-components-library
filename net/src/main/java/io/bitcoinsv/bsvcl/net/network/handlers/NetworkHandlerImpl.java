@@ -454,7 +454,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     }
 
     @Override
-    public void stop() {
+    public void stop() throws InterruptedException {
         try {
             logger.info("{} : Stopping...", this.id);
             // We save the Network Activity...
@@ -467,20 +467,15 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
             this.keep_connecting = false;
             List<PeerAddress> peersToDisconnect = this.activeConns.keySet().stream().collect(Collectors.toList());
             this.disconnect(peersToDisconnect);
-            Thread.sleep(100); // we wait a bit, so Disconnected Events can be triggered...
+            Thread.sleep(100); // todo: we wait a bit, so Disconnected Events can be triggered...
 
             mainSelector.wakeup();
             super.stopAsync();
-            super.awaitTerminated(5_000, TimeUnit.MILLISECONDS);
 
-            // We stop the Selectors:
             stopSelectorThreads();
-
-        } catch (TimeoutException te) {
-            //te.printStackTrace();
-            logger.error("{} : Timeout while Waiting for the Service to Stop. Stopping anyway...", this.id);
-        } catch (Exception e) {
-            logger.error("{} : Error stopping the service ", this.id, e);
+        } catch (InterruptedException e) {
+            logger.error("{} : InterruptedException stopping the service ", this.id, e);
+            throw e;
         }
     }
 

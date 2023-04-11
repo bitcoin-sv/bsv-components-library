@@ -23,10 +23,7 @@ import io.bitcoinsv.bsvcl.common.thread.ThreadUtils;
 import java.net.UnknownHostException;
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * @author i.fernandez@nchain.com
@@ -66,7 +63,7 @@ public class P2P {
     private ScheduledExecutorService executor;
 
     // Latch that is released when start has finished.
-    private CountDownLatch startedLatch = new CountDownLatch(1);
+    private final CountDownLatch startedLatch = new CountDownLatch(1);
 
     // Event Stream Managers Definition:
     public final P2PEventStreamer EVENTS;
@@ -176,7 +173,7 @@ public class P2P {
         startedLatch.countDown();
     }
 
-    public void stop() {
+    public void stop() throws InterruptedException {
         NetworkHandler handler = (NetworkHandler) handlers.get(NetworkHandlerImpl.HANDLER_ID);
         if (handler == null) throw new RuntimeException("No Network Handler Found. Impossible to Stop without it...");
         handler.stop();
