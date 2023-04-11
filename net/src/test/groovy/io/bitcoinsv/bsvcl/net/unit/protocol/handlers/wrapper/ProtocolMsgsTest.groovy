@@ -86,6 +86,7 @@ class ProtocolMsgsTest extends Specification {
             server.EVENTS.MSGS.ADDR.forEach({ e ->
                 numMsgs.incrementAndGet()
                 msgsRecv.countDown()
+                println("> Server :: ADDR MSG received")
             })
 
         when:
