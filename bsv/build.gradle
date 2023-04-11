@@ -2,12 +2,7 @@ plugins {
     id 'java-library'
 }
 
-jclGroup = "$jclGroup"
-jclVersion = "$jclVersion"
 bsvclArtifactName = "bsvcl-bsv"
-
-group = "$rootProject.jclGroup"
-version = "$rootProject.jclVersion"
 
 dependencies {
 
