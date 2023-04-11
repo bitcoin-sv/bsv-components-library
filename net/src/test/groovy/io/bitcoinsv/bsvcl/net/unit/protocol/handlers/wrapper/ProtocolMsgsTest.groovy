@@ -97,7 +97,7 @@ class ProtocolMsgsTest extends Specification {
 
             client.REQUESTS.PEERS.connect(server.getPeerAddress()).submit()
 
-            // We wait until the Handshake is done
+            // Wait until the Handshake is done
             boolean hndshakeDone = rdyLatch.await(60, TimeUnit.SECONDS)
 
             // We send a few messages from the Client to the Server:
@@ -116,6 +116,8 @@ class ProtocolMsgsTest extends Specification {
             println(" >>> STOPPING...")
             server.stop()
             client.stop()
+            server.awaitStopped()
+            client.awaitStopped()
 
         then:
             // We check that the Events have been triggered right:

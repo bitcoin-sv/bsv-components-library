@@ -173,14 +173,6 @@ public class P2P {
         startedLatch.countDown();
     }
 
-    public void stop() throws InterruptedException {
-        NetworkHandler handler = (NetworkHandler) handlers.get(NetworkHandlerImpl.HANDLER_ID);
-        if (handler == null) throw new RuntimeException("No Network Handler Found. Impossible to Stop without it...");
-        handler.stop();
-        if (this.executor != null) this.executor.shutdownNow();
-        logger.info("Stop.");
-    }
-
     /**
      * Wait for the P2P to be started.
      */
@@ -201,6 +193,24 @@ public class P2P {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /** Initiate a graceful shutdown of the P2P. */
+    public void stop() throws InterruptedException {
+        NetworkHandler handler = (NetworkHandler) handlers.get(NetworkHandlerImpl.HANDLER_ID);
+        if (handler == null) throw new RuntimeException("No Network Handler Found. Impossible to Stop without it...");
+        handler.stop();
+        if (this.executor != null) this.executor.shutdownNow();
+        logger.info("Stopping ...");
+    }
+
+    /**
+     * Wait for the P2P to be stopped.
+     */
+    public void awaitStopped() {
+        NetworkHandler handler = (NetworkHandler) handlers.get(NetworkHandlerImpl.HANDLER_ID);
+        if (handler == null) throw new RuntimeException("No Network Handler Found. Impossible to Stop without it...");
+        handler.awaitStopped();
     }
 
     // convenience method to return the PeerAddress for this ProtocolHandler. It assumes that there is a NetworkHandler

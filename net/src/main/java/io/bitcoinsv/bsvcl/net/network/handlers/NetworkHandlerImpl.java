@@ -479,6 +479,10 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         }
     }
 
+    public void awaitStopped() {
+        super.awaitTerminated();
+    }
+
     // It saves the network activity into CSV files on disk. It saves the content of all of the List managed by this
     // handler (open connections, pending, etc), so they can be verified after the execution is over. if needed.
     private void saveNetworkActivity() {
@@ -861,7 +865,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
      * It performs a loop to handle the Selection Keys.
      */
     private void handleSelectorKeys(Selector selector) throws IOException, InterruptedException {
-        selector.select();
+        selector.select(100);   // we need a timeout, otherwise it will block forever...
         Iterator<SelectionKey> keyIterator = selector.selectedKeys().iterator();
         while (keyIterator.hasNext()) {
             SelectionKey key = keyIterator.next();
