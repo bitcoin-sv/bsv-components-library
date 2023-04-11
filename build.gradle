@@ -3,19 +3,16 @@ plugins {
     id "org.sonarqube" version "3.5.0.2730"
 }
 
-/****************************************
- * Local Configuration
- ****************************************/
-jclGroup = "$jclGroup"
-jclVersion = "$jclVersion"
-
-group = "$rootProject.jclGroup"
-version = "$rootProject.jclVersion"
-
 allprojects {
     apply plugin: 'java'
     apply plugin: 'groovy'
     apply plugin: 'jacoco'
+
+    bsvclGroup = "$bsvclGroup"
+    bsvclVersion = "$bsvclVersion"
+
+    group = "$rootProject.bsvclGroup"
+    version = "$rootProject.bsvclVersion"
 
     repositories {
         mavenCentral()
@@ -36,7 +33,7 @@ allprojects {
         testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
         testImplementation 'org.apache.groovy:groovy'
         testImplementation 'org.spockframework:spock-core:2.3-groovy-4.0'
-        testImplementation "ch.qos.logback:logback-classic:1.2.8"
+        testImplementation 'ch.qos.logback:logback-classic:1.2.9'
     }
 
     jacoco {

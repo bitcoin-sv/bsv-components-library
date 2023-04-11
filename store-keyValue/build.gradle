@@ -2,15 +2,7 @@ plugins {
     id 'java-library'
 }
 
-/****************************************
- * Local Configuration
- ****************************************/
-jclGroup = "$jclGroup"
-jclVersion = "$jclVersion"
 jclArtifactName = "jcl-store-keyValue"
-
-group = "$rootProject.jclGroup"
-version = "$rootProject.jclVersion"
 
 dependencies {
     // Compile Dependencies:
