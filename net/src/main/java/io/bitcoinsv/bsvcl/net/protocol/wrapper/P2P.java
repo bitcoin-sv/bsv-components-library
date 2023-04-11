@@ -24,6 +24,7 @@ import java.net.UnknownHostException;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -63,6 +64,9 @@ public class P2P {
 
     // A ExecutorService, to trigger the Thread to call the getStatus() on the Handlers:
     private ScheduledExecutorService executor;
+
+    // Latch that is released when start has finished.
+    private CountDownLatch startedLatch = new CountDownLatch(1);
 
     // Event Stream Managers Definition:
     public final P2PEventStreamer EVENTS;
@@ -160,6 +164,7 @@ public class P2P {
         if (handler == null) throw new RuntimeException("No Network Handler Found. Impossible to Start without it...");
         init();
         handler.start();
+        startedLatch.countDown();
     }
 
     public void startServer() {
@@ -168,6 +173,7 @@ public class P2P {
         if (handler == null) throw new RuntimeException("No Network Handler Found. Impossible to Start without it...");
         init();
         handler.startServer();
+        startedLatch.countDown();
     }
 
     public void stop() {
@@ -176,6 +182,28 @@ public class P2P {
         handler.stop();
         if (this.executor != null) this.executor.shutdownNow();
         logger.info("Stop.");
+    }
+
+    /**
+     * Wait for the P2P to be started.
+     */
+    public void awaitStarted() {
+        try {
+            startedLatch.await();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Wait for the P2P to be started.
+     */
+    public boolean awaitStarted(long timeout, TimeUnit unit) {
+        try {
+            return startedLatch.await(timeout, unit);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     // convenience method to return the PeerAddress for this ProtocolHandler. It assumes that there is a NetworkHandler

@@ -54,6 +54,7 @@ class ProtocolMsgsTest extends Specification {
             AtomicInteger numDisconnections = new AtomicInteger()
             AtomicInteger numMsgs = new AtomicInteger()
             CountDownLatch rdyLatch = new CountDownLatch(2)
+            CountDownLatch disconnectedLatch = new CountDownLatch(2)
             CountDownLatch msgsRecv = new CountDownLatch(NUM_MSGS)
 
             server.EVENTS.PEERS.CONNECTED.forEach({ e ->
@@ -74,10 +75,12 @@ class ProtocolMsgsTest extends Specification {
             })
             server.EVENTS.PEERS.DISCONNECTED.forEach({ e ->
                 numDisconnections.incrementAndGet()
+                disconnectedLatch.countDown()
                 println("> Server :: peer disconnected: " + e.peerAddress)
             })
             client.EVENTS.PEERS.DISCONNECTED.forEach({ e ->
                 numDisconnections.incrementAndGet()
+                disconnectedLatch.countDown()
                 println("> Client :: peer disconnected: " + e.peerAddress)
             })
             server.EVENTS.MSGS.ADDR.forEach({ e ->
@@ -88,8 +91,9 @@ class ProtocolMsgsTest extends Specification {
         when:
             server.startServer()
             client.start()
+            server.awaitStarted(5, TimeUnit.SECONDS)
+            client.awaitStarted(5, TimeUnit.SECONDS)
 
-            Thread.sleep(100)
             client.REQUESTS.PEERS.connect(server.getPeerAddress()).submit()
 
             // We wait until the Handshake is done
@@ -103,10 +107,11 @@ class ProtocolMsgsTest extends Specification {
             }
 
             rdyLatch.await(5, TimeUnit.SECONDS)
+
             println(" >>> DISCONNECTING FROM THE SERVER...")
             client.REQUESTS.PEERS.disconnect(server.getPeerAddress()).submit()
+            disconnectedLatch.await(5, TimeUnit.SECONDS)
 
-            Thread.sleep(100)
             println(" >>> STOPPING...")
             server.stop()
             client.stop()
