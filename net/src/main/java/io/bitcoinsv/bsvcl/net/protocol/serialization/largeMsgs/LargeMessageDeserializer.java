@@ -2,7 +2,7 @@ package io.bitcoinsv.bsvcl.net.protocol.serialization.largeMsgs;
 
 import io.bitcoinsv.bsvcl.net.protocol.serialization.common.DeserializerContext;
 import io.bitcoinsv.bsvcl.net.protocol.messages.HeaderMsg;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReader;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReader;
 
 import java.util.function.Consumer;
 

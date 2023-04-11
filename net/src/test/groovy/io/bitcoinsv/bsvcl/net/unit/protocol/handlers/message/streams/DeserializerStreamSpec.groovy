@@ -9,9 +9,9 @@ import io.bitcoinsv.bsvcl.net.protocol.handlers.message.streams.deserializer.Des
 import io.bitcoinsv.bsvcl.net.protocol.messages.VersionAckMsg
 import io.bitcoinsv.bsvcl.net.protocol.messages.common.BitcoinMsg
 import io.bitcoinsv.bsvcl.net.unit.protocol.tools.MsgTest
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReader
-import io.bitcoinsv.bsvcl.tools.config.RuntimeConfig
-import io.bitcoinsv.bsvcl.tools.config.provided.RuntimeConfigDefault
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReader
+import io.bitcoinsv.bsvcl.common.config.RuntimeConfig
+import io.bitcoinsv.bsvcl.common.config.provided.RuntimeConfigDefault
 
 import io.bitcoinsv.bitcoinjsv.core.Utils
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams

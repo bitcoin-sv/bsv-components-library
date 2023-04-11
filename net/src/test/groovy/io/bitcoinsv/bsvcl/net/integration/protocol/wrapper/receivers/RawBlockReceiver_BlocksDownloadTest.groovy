@@ -1,11 +1,11 @@
 package io.bitcoinsv.bsvcl.net.integration.protocol.wrapper.receivers
 
 
-import io.bitcoinsv.bsvcl.tools.bigObjects.BigCollectionChunk
-import io.bitcoinsv.bsvcl.tools.bigObjects.receivers.events.BigObjectItemsReceivedEvent
-import io.bitcoinsv.bsvcl.tools.bigObjects.receivers.events.BigObjectReceivedEvent
-import io.bitcoinsv.bsvcl.tools.config.RuntimeConfig
-import io.bitcoinsv.bsvcl.tools.config.provided.RuntimeConfigDefault
+import io.bitcoinsv.bsvcl.common.bigObjects.BigCollectionChunk
+import io.bitcoinsv.bsvcl.common.bigObjects.receivers.events.BigObjectItemsReceivedEvent
+import io.bitcoinsv.bsvcl.common.bigObjects.receivers.events.BigObjectReceivedEvent
+import io.bitcoinsv.bsvcl.common.config.RuntimeConfig
+import io.bitcoinsv.bsvcl.common.config.provided.RuntimeConfigDefault
 import spock.lang.Ignore
 import spock.lang.Specification
 

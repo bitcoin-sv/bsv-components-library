@@ -1,8 +1,8 @@
 package io.bitcoinsv.bsvcl.net.protocol.serialization.common;
 
 import io.bitcoinsv.bsvcl.net.protocol.messages.common.Message;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReader;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayWriter;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReader;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayWriter;
 
 /**
  * @author i.fernandez@nchain.com

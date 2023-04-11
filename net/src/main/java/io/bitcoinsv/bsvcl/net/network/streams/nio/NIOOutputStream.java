@@ -6,9 +6,9 @@ import io.bitcoinsv.bsvcl.net.network.streams.PeerOutputStream;
 import io.bitcoinsv.bsvcl.net.network.streams.PeerOutputStreamImpl;
 import io.bitcoinsv.bsvcl.net.network.streams.IStreamHolder;
 import io.bitcoinsv.bsvcl.net.network.streams.StreamCloseEvent;
-import io.bitcoinsv.bsvcl.tools.writebuffer.WriteBuffer;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReader;
-import io.bitcoinsv.bsvcl.tools.config.RuntimeConfig;
+import io.bitcoinsv.bsvcl.common.writebuffer.WriteBuffer;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReader;
+import io.bitcoinsv.bsvcl.common.config.RuntimeConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

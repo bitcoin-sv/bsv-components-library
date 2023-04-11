@@ -1,7 +1,7 @@
 package io.bitcoinsv.bsvcl.net.protocol.handlers.blacklist;
 
 
-import io.bitcoinsv.bsvcl.tools.handlers.Handler;
+import io.bitcoinsv.bsvcl.common.handlers.Handler;
 
 import java.util.List;
 

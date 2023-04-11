@@ -3,8 +3,8 @@ package io.bitcoinsv.bsvcl.net.protocol.handlers.block;
 
 import io.bitcoinsv.bsvcl.net.network.PeerAddress;
 import io.bitcoinsv.bsvcl.net.protocol.handlers.block.strategies.DownloadResponse;
-import io.bitcoinsv.bsvcl.tools.handlers.HandlerState;
-import io.bitcoinsv.bsvcl.tools.util.StringUtils;
+import io.bitcoinsv.bsvcl.common.handlers.HandlerState;
+import io.bitcoinsv.bsvcl.common.util.StringUtils;
 
 import java.time.Duration;
 import java.time.Instant;

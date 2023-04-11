@@ -1,11 +1,11 @@
 package io.bitcoinsv.bsvcl.net.integration.protocol.handlers.block
 
 
-import io.bitcoinsv.bsvcl.tools.config.RuntimeConfig
-import io.bitcoinsv.bsvcl.tools.config.provided.RuntimeConfigDefault
-import io.bitcoinsv.bsvcl.tools.thread.ThreadUtils
+import io.bitcoinsv.bsvcl.common.config.RuntimeConfig
+import io.bitcoinsv.bsvcl.common.config.provided.RuntimeConfigDefault
+import io.bitcoinsv.bsvcl.common.thread.ThreadUtils
 import io.bitcoinsv.bitcoinjsv.core.Utils
-import io.bitcoinsv.bsvcl.tools.util.EventsHistory
+import io.bitcoinsv.bsvcl.common.util.EventsHistory
 import spock.lang.Ignore
 import spock.lang.Specification
 

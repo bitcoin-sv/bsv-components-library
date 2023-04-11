@@ -5,7 +5,7 @@ import io.bitcoinsv.bsvcl.net.protocol.messages.*;
 import io.bitcoinsv.bsvcl.net.protocol.messages.common.BitcoinMsg;
 import io.bitcoinsv.bsvcl.net.protocol.messages.common.Message;
 import io.bitcoinsv.bsvcl.net.network.PeerAddress;
-import io.bitcoinsv.bsvcl.tools.events.Event;
+import io.bitcoinsv.bsvcl.common.events.Event;
 
 /**
  * @author i.fernandez@nchain.com

@@ -14,8 +14,8 @@ import io.bitcoinsv.bsvcl.net.protocol.messages.TxOutPointMsg
 import io.bitcoinsv.bsvcl.net.protocol.messages.TxOutputMsg
 import io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P
 import io.bitcoinsv.bsvcl.net.protocol.wrapper.P2PBuilder
-import io.bitcoinsv.bsvcl.tools.config.RuntimeConfig
-import io.bitcoinsv.bsvcl.tools.config.provided.RuntimeConfigDefault
+import io.bitcoinsv.bsvcl.common.config.RuntimeConfig
+import io.bitcoinsv.bsvcl.common.config.provided.RuntimeConfigDefault
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
 import io.bitcoinsv.bitcoinjsv.params.RegTestParams
 import io.bitcoinsv.bsvcl.net.protocol.messages.BlockMsg

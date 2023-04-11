@@ -29,10 +29,10 @@ import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfigImpl;
 import io.bitcoinsv.bsvcl.net.protocol.handlers.whitelist.WhitelistHandler;
 import io.bitcoinsv.bsvcl.net.protocol.handlers.whitelist.WhitelistHandlerConfig;
 import io.bitcoinsv.bsvcl.net.protocol.handlers.whitelist.WhitelistHandlerImpl;
-import io.bitcoinsv.bsvcl.tools.config.RuntimeConfig;
-import io.bitcoinsv.bsvcl.tools.config.provided.RuntimeConfigDefault;
-import io.bitcoinsv.bsvcl.tools.handlers.Handler;
-import io.bitcoinsv.bsvcl.tools.handlers.HandlerConfig;
+import io.bitcoinsv.bsvcl.common.config.RuntimeConfig;
+import io.bitcoinsv.bsvcl.common.config.provided.RuntimeConfigDefault;
+import io.bitcoinsv.bsvcl.common.handlers.Handler;
+import io.bitcoinsv.bsvcl.common.handlers.HandlerConfig;
 
 import java.time.Duration;
 import java.util.*;

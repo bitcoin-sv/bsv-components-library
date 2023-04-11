@@ -8,8 +8,8 @@ import io.bitcoinsv.bsvcl.net.protocol.serialization.common.SerializerContext;
 import io.bitcoinsv.bsvcl.net.protocol.messages.InventoryVectorMsg;
 import io.bitcoinsv.bsvcl.net.protocol.messages.NotFoundMsg;
 import io.bitcoinsv.bsvcl.net.protocol.messages.VarIntMsg;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReader;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayWriter;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReader;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayWriter;
 
 import java.util.List;
 

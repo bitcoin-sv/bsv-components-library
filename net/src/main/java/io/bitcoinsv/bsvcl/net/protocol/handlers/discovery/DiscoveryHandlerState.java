@@ -1,7 +1,7 @@
 package io.bitcoinsv.bsvcl.net.protocol.handlers.discovery;
 
 
-import io.bitcoinsv.bsvcl.tools.handlers.HandlerState;
+import io.bitcoinsv.bsvcl.common.handlers.HandlerState;
 
 import java.util.HashMap;
 import java.util.Map;

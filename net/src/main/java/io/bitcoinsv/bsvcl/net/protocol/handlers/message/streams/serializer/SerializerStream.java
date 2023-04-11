@@ -12,8 +12,8 @@ import io.bitcoinsv.bsvcl.net.network.streams.PeerOutputStream;
 import io.bitcoinsv.bsvcl.net.network.streams.PeerOutputStreamImpl;
 import io.bitcoinsv.bsvcl.net.protocol.handlers.message.MessageHandlerConfig;
 import io.bitcoinsv.bsvcl.net.tools.LoggerUtil;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReader;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayWriter;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReader;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayWriter;
 
 import java.math.BigInteger;
 import java.util.List;

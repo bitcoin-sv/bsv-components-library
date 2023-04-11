@@ -10,7 +10,7 @@ import io.bitcoinsv.bsvcl.net.protocol.messages.common.BitcoinMsg
 import io.bitcoinsv.bsvcl.net.protocol.messages.common.BitcoinMsgBuilder
 import io.bitcoinsv.bsvcl.net.protocol.serialization.common.SerializerContext
 import io.bitcoinsv.bsvcl.net.unit.protocol.tools.ByteArrayArtificalStreamProducer
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReader
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReader
 import io.bitcoinsv.bitcoinjsv.core.Utils
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams
 import io.bitcoinsv.bitcoinjsv.params.Net

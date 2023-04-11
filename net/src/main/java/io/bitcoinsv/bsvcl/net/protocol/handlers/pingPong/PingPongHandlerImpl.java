@@ -17,12 +17,12 @@ import io.bitcoinsv.bsvcl.net.protocol.events.control.PingPongFailedEvent;
 import io.bitcoinsv.bsvcl.net.protocol.events.control.SendMsgRequest;
 import io.bitcoinsv.bsvcl.net.protocol.events.data.MsgReceivedEvent;
 import io.bitcoinsv.bsvcl.net.tools.NonceUtils;
-import io.bitcoinsv.bsvcl.tools.config.RuntimeConfig;
-import io.bitcoinsv.bsvcl.tools.events.EventQueueProcessor;
-import io.bitcoinsv.bsvcl.tools.handlers.HandlerConfig;
-import io.bitcoinsv.bsvcl.tools.handlers.HandlerImpl;
+import io.bitcoinsv.bsvcl.common.config.RuntimeConfig;
+import io.bitcoinsv.bsvcl.common.events.EventQueueProcessor;
+import io.bitcoinsv.bsvcl.common.handlers.HandlerConfig;
+import io.bitcoinsv.bsvcl.common.handlers.HandlerImpl;
 import io.bitcoinsv.bsvcl.net.tools.LoggerUtil;
-import io.bitcoinsv.bsvcl.tools.thread.ThreadUtils;
+import io.bitcoinsv.bsvcl.common.thread.ThreadUtils;
 
 import java.time.Duration;
 import java.time.Instant;

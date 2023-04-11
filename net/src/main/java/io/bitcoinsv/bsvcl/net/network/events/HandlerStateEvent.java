@@ -2,7 +2,7 @@ package io.bitcoinsv.bsvcl.net.network.events;
 
 
 import com.google.common.base.Objects;
-import io.bitcoinsv.bsvcl.tools.handlers.HandlerState;
+import io.bitcoinsv.bsvcl.common.handlers.HandlerState;
 
 /**
  * @author i.fernandez@nchain.com

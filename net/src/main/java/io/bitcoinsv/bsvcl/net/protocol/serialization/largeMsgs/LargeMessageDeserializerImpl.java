@@ -2,9 +2,9 @@ package io.bitcoinsv.bsvcl.net.protocol.serialization.largeMsgs;
 
 
 import io.bitcoinsv.bsvcl.net.protocol.messages.common.Message;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReader;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReaderRealTime;
-import io.bitcoinsv.bsvcl.tools.events.EventBus;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReader;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReaderRealTime;
+import io.bitcoinsv.bsvcl.common.events.EventBus;
 
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;

@@ -2,7 +2,7 @@ package io.bitcoinsv.bsvcl.net.protocol.handlers.pingPong;
 
 
 import io.bitcoinsv.bsvcl.net.network.PeerAddress;
-import io.bitcoinsv.bsvcl.tools.handlers.Handler;
+import io.bitcoinsv.bsvcl.common.handlers.Handler;
 
 /**
  * @author i.fernandez@nchain.com

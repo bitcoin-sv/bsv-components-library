@@ -1,6 +1,6 @@
 package io.bitcoinsv.bsvcl.net.network.handlers;
 
-import io.bitcoinsv.bsvcl.tools.handlers.HandlerState;
+import io.bitcoinsv.bsvcl.common.handlers.HandlerState;
 
 /**
  * @author i.fernandez@nchain.com

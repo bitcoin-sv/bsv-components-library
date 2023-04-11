@@ -12,7 +12,7 @@ import io.bitcoinsv.bsvcl.net.protocol.messages.common.BitcoinMsg;
 import io.bitcoinsv.bsvcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl;
 import io.bitcoinsv.bsvcl.net.protocol.serialization.common.DeserializerContext;
 import io.bitcoinsv.bsvcl.net.unit.network.streams.PeerStreamInOutSimulator;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReader;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReader;
 import io.bitcoinsv.bitcoinjsv.core.Utils;
 
 /**

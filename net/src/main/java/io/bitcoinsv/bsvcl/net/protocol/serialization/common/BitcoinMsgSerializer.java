@@ -5,7 +5,7 @@ import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolBasicConfig;
 import io.bitcoinsv.bsvcl.net.protocol.messages.HeaderMsg;
 import io.bitcoinsv.bsvcl.net.protocol.messages.common.BitcoinMsg;
 import io.bitcoinsv.bsvcl.net.protocol.messages.common.BodyMessage;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReader;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReader;
 
 /**
  * @author i.fernandez@nchain.com

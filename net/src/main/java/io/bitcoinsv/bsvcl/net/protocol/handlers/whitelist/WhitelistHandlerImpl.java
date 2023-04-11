@@ -2,10 +2,10 @@ package io.bitcoinsv.bsvcl.net.protocol.handlers.whitelist;
 
 import io.bitcoinsv.bsvcl.net.network.events.*;
 import io.bitcoinsv.bsvcl.net.tools.LoggerUtil;
-import io.bitcoinsv.bsvcl.tools.config.RuntimeConfig;
-import io.bitcoinsv.bsvcl.tools.handlers.HandlerConfig;
-import io.bitcoinsv.bsvcl.tools.handlers.HandlerImpl;
-import io.bitcoinsv.bsvcl.tools.util.StringUtils;
+import io.bitcoinsv.bsvcl.common.config.RuntimeConfig;
+import io.bitcoinsv.bsvcl.common.handlers.HandlerConfig;
+import io.bitcoinsv.bsvcl.common.handlers.HandlerImpl;
+import io.bitcoinsv.bsvcl.common.util.StringUtils;
 
 import java.net.InetAddress;
 import java.nio.file.Files;

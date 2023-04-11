@@ -6,7 +6,7 @@ import io.bitcoinsv.bsvcl.net.protocol.messages.*;
 import io.bitcoinsv.bsvcl.net.protocol.serialization.common.DeserializerContext;
 import io.bitcoinsv.bsvcl.net.protocol.serialization.BlockHeaderMsgSerializer;
 import io.bitcoinsv.bsvcl.net.protocol.serialization.TxMsgSerializer;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReader;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReader;
 import org.slf4j.Logger;
 
 import java.time.Duration;

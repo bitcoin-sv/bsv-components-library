@@ -4,7 +4,7 @@ plugins {
 
 dependencies {
     implementation "io.bitcoinsv.bitcoinjsv:bitcoinj-base:$bitcoinJVersion"
-    implementation(project(":tools"))
+    implementation(project(":common"))
     implementation 'org.apache.commons:commons-collections4:4.4'
     implementation 'commons-io:commons-io:2.11.0'
 

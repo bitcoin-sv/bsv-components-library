@@ -1,7 +1,7 @@
 package io.bitcoinsv.bsvcl.net.network;
 
 
-import io.bitcoinsv.bsvcl.tools.files.CSVSerializable;
+import io.bitcoinsv.bsvcl.common.files.CSVSerializable;
 
 import java.io.Serializable;
 import java.net.InetAddress;

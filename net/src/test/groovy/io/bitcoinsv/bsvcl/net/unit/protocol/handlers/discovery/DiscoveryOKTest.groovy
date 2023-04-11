@@ -7,8 +7,8 @@ import io.bitcoinsv.bsvcl.net.protocol.handlers.blacklist.BlacklistHandler
 import io.bitcoinsv.bsvcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig
 import io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P
 import io.bitcoinsv.bsvcl.net.protocol.wrapper.P2PBuilder
-import io.bitcoinsv.bsvcl.tools.config.RuntimeConfig
-import io.bitcoinsv.bsvcl.tools.config.provided.RuntimeConfigDefault
+import io.bitcoinsv.bsvcl.common.config.RuntimeConfig
+import io.bitcoinsv.bsvcl.common.config.provided.RuntimeConfigDefault
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams
 import io.bitcoinsv.bitcoinjsv.params.Net
 import spock.lang.Specification

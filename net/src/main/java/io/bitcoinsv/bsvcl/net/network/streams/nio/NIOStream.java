@@ -3,8 +3,8 @@ package io.bitcoinsv.bsvcl.net.network.streams.nio;
 import io.bitcoinsv.bsvcl.net.network.PeerAddress;
 import io.bitcoinsv.bsvcl.net.network.config.NetworkConfig;
 import io.bitcoinsv.bsvcl.net.network.streams.PeerStreamImpl;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReader;
-import io.bitcoinsv.bsvcl.tools.config.RuntimeConfig;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReader;
+import io.bitcoinsv.bsvcl.common.config.RuntimeConfig;
 
 import java.nio.channels.SelectionKey;
 

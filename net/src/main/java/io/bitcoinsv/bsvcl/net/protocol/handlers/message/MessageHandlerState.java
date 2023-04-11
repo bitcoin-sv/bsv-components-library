@@ -2,7 +2,7 @@ package io.bitcoinsv.bsvcl.net.protocol.handlers.message;
 
 
 import io.bitcoinsv.bsvcl.net.protocol.handlers.message.streams.deserializer.DeserializerState;
-import io.bitcoinsv.bsvcl.tools.handlers.HandlerState;
+import io.bitcoinsv.bsvcl.common.handlers.HandlerState;
 
 import java.util.concurrent.atomic.AtomicLong;
 

@@ -3,7 +3,7 @@ package io.bitcoinsv.bsvcl.net.protocol.handlers.discovery;
 
 import io.bitcoinsv.bsvcl.net.network.PeerAddress;
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolBasicConfig;
-import io.bitcoinsv.bsvcl.tools.handlers.HandlerConfig;
+import io.bitcoinsv.bsvcl.common.handlers.HandlerConfig;
 import io.bitcoinsv.bitcoinjsv.params.NetworkParameters;
 
 import java.net.UnknownHostException;

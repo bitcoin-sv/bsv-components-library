@@ -8,8 +8,8 @@ import io.bitcoinsv.bsvcl.net.protocol.messages.ByteStreamMsg
 import io.bitcoinsv.bsvcl.net.protocol.serialization.ByteStreamMsgSerializer
 import io.bitcoinsv.bsvcl.net.protocol.serialization.common.DeserializerContext
 import io.bitcoinsv.bsvcl.net.protocol.serialization.common.SerializerContext
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayBuffer
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayWriter
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayBuffer
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayWriter
 import spock.lang.Specification
 
 /**

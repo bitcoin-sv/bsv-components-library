@@ -5,7 +5,7 @@ import com.google.common.base.Preconditions;
 import io.bitcoinsv.bsvcl.net.protocol.messages.HeaderMsg;
 import io.bitcoinsv.bsvcl.net.protocol.serialization.common.DeserializerContext;
 import io.bitcoinsv.bsvcl.net.protocol.serialization.RawTxBatchMsgSerializer;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReader;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReader;
 import org.slf4j.Logger;
 
 import java.util.concurrent.ExecutorService;

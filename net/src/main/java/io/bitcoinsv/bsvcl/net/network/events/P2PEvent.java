@@ -1,6 +1,6 @@
 package io.bitcoinsv.bsvcl.net.network.events;
 
-import io.bitcoinsv.bsvcl.tools.events.Event;
+import io.bitcoinsv.bsvcl.common.events.Event;
 
 /**
  * @author i.fernandez@nchain.com

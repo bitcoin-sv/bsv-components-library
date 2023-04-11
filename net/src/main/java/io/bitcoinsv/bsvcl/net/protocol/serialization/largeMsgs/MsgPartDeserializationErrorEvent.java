@@ -1,7 +1,7 @@
 package io.bitcoinsv.bsvcl.net.protocol.serialization.largeMsgs;
 
 
-import io.bitcoinsv.bsvcl.tools.events.Event;
+import io.bitcoinsv.bsvcl.common.events.Event;
 
 /**
  * @author i.fernandez@nchain.com

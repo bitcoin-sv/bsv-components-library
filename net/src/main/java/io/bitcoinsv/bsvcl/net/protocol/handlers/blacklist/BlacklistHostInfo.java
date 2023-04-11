@@ -2,8 +2,8 @@ package io.bitcoinsv.bsvcl.net.protocol.handlers.blacklist;
 
 
 import io.bitcoinsv.bsvcl.net.network.events.PeersBlacklistedEvent;
-import io.bitcoinsv.bsvcl.tools.files.CSVSerializable;
-import io.bitcoinsv.bsvcl.tools.util.DateTimeUtils;
+import io.bitcoinsv.bsvcl.common.files.CSVSerializable;
+import io.bitcoinsv.bsvcl.common.util.DateTimeUtils;
 import org.slf4j.Logger;
 
 import java.net.InetAddress;

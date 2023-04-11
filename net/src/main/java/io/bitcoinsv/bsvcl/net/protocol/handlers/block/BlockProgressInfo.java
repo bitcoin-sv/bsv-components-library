@@ -2,7 +2,7 @@ package io.bitcoinsv.bsvcl.net.protocol.handlers.block;
 
 import io.bitcoinsv.bsvcl.net.network.PeerAddress;
 import io.bitcoinsv.bsvcl.net.protocol.messages.BlockHeaderMsg;
-import io.bitcoinsv.bsvcl.tools.util.StringUtils;
+import io.bitcoinsv.bsvcl.common.util.StringUtils;
 
 import java.text.DecimalFormat;
 import java.time.Instant;

@@ -5,9 +5,9 @@ import io.bitcoinsv.bsvcl.net.protocol.serialization.common.DeserializerContext;
 import io.bitcoinsv.bsvcl.net.protocol.serialization.common.MessageSerializer;
 import io.bitcoinsv.bsvcl.net.protocol.serialization.common.SerializerContext;
 import io.bitcoinsv.bsvcl.net.protocol.messages.VarIntMsg;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReader;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayWriter;
-import io.bitcoinsv.bsvcl.tools.serialization.BitcoinSerializerUtils;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReader;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayWriter;
+import io.bitcoinsv.bsvcl.common.serialization.BitcoinSerializerUtils;
 
 /**
  * @author i.fernandez@nchain.com

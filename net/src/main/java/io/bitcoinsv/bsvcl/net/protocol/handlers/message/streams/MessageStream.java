@@ -13,8 +13,8 @@ import io.bitcoinsv.bsvcl.net.protocol.handlers.message.MessageHandlerConfig;
 
 
 import io.bitcoinsv.bsvcl.net.tools.LoggerUtil;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReader;
-import io.bitcoinsv.bsvcl.tools.config.RuntimeConfig;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReader;
+import io.bitcoinsv.bsvcl.common.config.RuntimeConfig;
 
 import java.util.concurrent.ExecutorService;
 

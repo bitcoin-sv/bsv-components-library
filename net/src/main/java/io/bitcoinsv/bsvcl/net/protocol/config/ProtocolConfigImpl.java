@@ -16,7 +16,7 @@ import io.bitcoinsv.bsvcl.net.protocol.handlers.pingPong.PingPongHandlerConfig;
 import io.bitcoinsv.bsvcl.net.protocol.messages.BlockHeaderMsg;
 import io.bitcoinsv.bsvcl.net.protocol.handlers.whitelist.WhitelistHandler;
 import io.bitcoinsv.bsvcl.net.protocol.handlers.whitelist.WhitelistHandlerConfig;
-import io.bitcoinsv.bsvcl.tools.handlers.HandlerConfig;
+import io.bitcoinsv.bsvcl.common.handlers.HandlerConfig;
 
 import java.util.HashMap;
 import java.util.Map;

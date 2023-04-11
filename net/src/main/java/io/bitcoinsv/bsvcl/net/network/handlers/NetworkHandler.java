@@ -3,7 +3,7 @@ package io.bitcoinsv.bsvcl.net.network.handlers;
 import io.bitcoinsv.bsvcl.net.network.PeerAddress;
 import io.bitcoinsv.bsvcl.net.network.events.DisconnectPeerRequest;
 import io.bitcoinsv.bsvcl.net.network.events.PeerDisconnectedEvent;
-import io.bitcoinsv.bsvcl.tools.handlers.Handler;
+import io.bitcoinsv.bsvcl.common.handlers.Handler;
 
 import java.util.List;
 import java.util.stream.Collectors;

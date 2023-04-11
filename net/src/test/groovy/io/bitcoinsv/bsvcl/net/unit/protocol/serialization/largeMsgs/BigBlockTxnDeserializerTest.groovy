@@ -1,7 +1,7 @@
 package io.bitcoinsv.bsvcl.net.unit.protocol.serialization.largeMsgs
 
 
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReader
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReader
 import io.bitcoinsv.bitcoinjsv.core.Utils
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams
 import io.bitcoinsv.bitcoinjsv.params.Net

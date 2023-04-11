@@ -4,9 +4,9 @@ package io.bitcoinsv.bsvcl.net.unit.protocol.handlers.block
 import io.bitcoinsv.bitcoinjsv.bitcoin.bean.base.HeaderBean
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
 import io.bitcoinsv.bitcoinjsv.params.RegTestParams
-import io.bitcoinsv.bsvcl.tools.common.TestingUtils
-import io.bitcoinsv.bsvcl.tools.config.RuntimeConfig
-import io.bitcoinsv.bsvcl.tools.config.provided.RuntimeConfigDefault
+import io.bitcoinsv.bsvcl.common.common.TestingUtils
+import io.bitcoinsv.bsvcl.common.config.RuntimeConfig
+import io.bitcoinsv.bsvcl.common.config.provided.RuntimeConfigDefault
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicReference

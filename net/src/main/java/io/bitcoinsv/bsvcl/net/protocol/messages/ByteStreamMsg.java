@@ -3,7 +3,7 @@ package io.bitcoinsv.bsvcl.net.protocol.messages;
 
 import com.google.common.base.Objects;
 import io.bitcoinsv.bsvcl.net.protocol.messages.common.BodyMessage;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayBuffer;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayBuffer;
 
 import java.io.Serializable;
 

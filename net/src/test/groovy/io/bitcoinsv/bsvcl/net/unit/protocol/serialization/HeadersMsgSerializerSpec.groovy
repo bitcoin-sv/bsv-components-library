@@ -12,8 +12,8 @@ import io.bitcoinsv.bsvcl.net.protocol.serialization.common.BitcoinMsgSerializer
 import io.bitcoinsv.bsvcl.net.protocol.serialization.common.BitcoinMsgSerializerImpl
 import io.bitcoinsv.bsvcl.net.protocol.serialization.common.DeserializerContext
 import io.bitcoinsv.bsvcl.net.protocol.serialization.common.SerializerContext
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReader
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayWriter
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReader
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayWriter
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
 import io.bitcoinsv.bitcoinjsv.core.Utils
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams

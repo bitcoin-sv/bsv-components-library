@@ -1,9 +1,9 @@
 package io.bitcoinsv.bsvcl.net.unit.protocol.tools;
 
 
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReader;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReaderRealTime;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayWriter;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReader;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReaderRealTime;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayWriter;
 
 
 public class ByteArrayArtificalStreamProducer {

@@ -8,7 +8,7 @@ import io.bitcoinsv.bsvcl.net.protocol.serialization.HashMsgSerializer;
 import io.bitcoinsv.bsvcl.net.protocol.serialization.TxMsgSerializer;
 import io.bitcoinsv.bsvcl.net.protocol.serialization.VarIntMsgSerializer;
 import io.bitcoinsv.bsvcl.net.protocol.serialization.common.DeserializerContext;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReader;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReader;
 
 import java.util.ArrayList;
 import java.util.List;

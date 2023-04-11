@@ -2,8 +2,8 @@ package io.bitcoinsv.bsvcl.net.performance
 
 import com.google.common.hash.HashFunction
 import com.google.common.hash.Hashing
-import io.bitcoinsv.bsvcl.tools.events.EventQueueProcessor
-import io.bitcoinsv.bsvcl.tools.thread.ThreadUtils
+import io.bitcoinsv.bsvcl.common.events.EventQueueProcessor
+import io.bitcoinsv.bsvcl.common.thread.ThreadUtils
 
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
 import io.bitcoinsv.bitcoinjsv.core.Utils

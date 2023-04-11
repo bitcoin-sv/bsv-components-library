@@ -1,8 +1,8 @@
 package io.bitcoinsv.bsvcl.net.unit.protocol.serialization
 
 
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReader
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayWriter
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReader
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayWriter
 import io.bitcoinsv.bitcoinjsv.core.Coin
 import io.bitcoinsv.bitcoinjsv.core.Utils
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams

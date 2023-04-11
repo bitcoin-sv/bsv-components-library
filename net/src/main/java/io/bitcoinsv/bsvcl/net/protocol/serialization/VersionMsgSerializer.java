@@ -8,8 +8,8 @@ import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolVersion;
 import io.bitcoinsv.bsvcl.net.protocol.messages.NetAddressMsg;
 import io.bitcoinsv.bsvcl.net.protocol.messages.VarStrMsg;
 import io.bitcoinsv.bsvcl.net.protocol.messages.VersionMsg;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReader;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayWriter;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReader;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayWriter;
 import io.bitcoinsv.bitcoinjsv.core.Utils;
 
 /**

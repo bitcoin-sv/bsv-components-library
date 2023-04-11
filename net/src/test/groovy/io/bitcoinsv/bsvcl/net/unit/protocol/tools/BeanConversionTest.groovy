@@ -2,9 +2,9 @@ package io.bitcoinsv.bsvcl.net.unit.protocol.tools
 
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.Tx
 import io.bitcoinsv.bitcoinjsv.bitcoin.bean.base.HeaderBean
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReader
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayWriter
-import io.bitcoinsv.bsvcl.tools.common.TestingUtils
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReader
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayWriter
+import io.bitcoinsv.bsvcl.common.common.TestingUtils
 import spock.lang.Specification
 
 /**

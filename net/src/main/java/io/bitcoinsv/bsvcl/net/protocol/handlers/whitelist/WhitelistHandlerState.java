@@ -2,7 +2,7 @@ package io.bitcoinsv.bsvcl.net.protocol.handlers.whitelist;
 
 
 import com.google.common.base.Objects;
-import io.bitcoinsv.bsvcl.tools.handlers.HandlerState;
+import io.bitcoinsv.bsvcl.common.handlers.HandlerState;
 
 import java.net.InetAddress;
 import java.util.HashSet;

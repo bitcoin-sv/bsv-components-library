@@ -9,7 +9,7 @@ import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolBasicConfig;
 
 import io.bitcoinsv.bsvcl.net.protocol.events.data.RawTxMsgReceivedEvent;
 import io.bitcoinsv.bsvcl.net.protocol.events.data.TxMsgReceivedEvent;
-import io.bitcoinsv.bsvcl.tools.handlers.HandlerConfig;
+import io.bitcoinsv.bsvcl.common.handlers.HandlerConfig;
 
 import java.util.HashMap;
 

@@ -5,7 +5,7 @@ import io.bitcoinsv.bsvcl.net.protocol.handlers.message.streams.deserializer.Des
 import io.bitcoinsv.bsvcl.net.protocol.messages.BlockMsg;
 import io.bitcoinsv.bsvcl.net.protocol.messages.HeaderMsg;
 import io.bitcoinsv.bsvcl.net.network.PeerAddress;
-import io.bitcoinsv.bsvcl.tools.util.StringUtils;
+import io.bitcoinsv.bsvcl.common.util.StringUtils;
 
 import java.text.DecimalFormat;
 import java.time.Duration;

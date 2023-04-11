@@ -6,7 +6,7 @@ import io.bitcoinsv.bsvcl.net.protocol.messages.TxInputMsg
 import io.bitcoinsv.bsvcl.net.protocol.messages.TxMsg
 import io.bitcoinsv.bsvcl.net.protocol.messages.TxOutPointMsg
 import io.bitcoinsv.bsvcl.net.protocol.messages.TxOutputMsg
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayWriter
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayWriter
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
 import io.bitcoinsv.bitcoinjsv.core.Utils
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams

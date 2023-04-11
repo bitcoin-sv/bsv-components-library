@@ -8,10 +8,10 @@ import io.bitcoinsv.bsvcl.net.protocol.messages.common.BitcoinMsg;
 import io.bitcoinsv.bsvcl.net.protocol.messages.common.BodyMessage;
 import io.bitcoinsv.bsvcl.net.protocol.messages.common.Message;
 import io.bitcoinsv.bsvcl.net.protocol.serialization.HeaderMsgSerializer;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayConfig;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReader;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayWriter;
-import io.bitcoinsv.bsvcl.tools.bytes.Sha256HashIncremental;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayConfig;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReader;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayWriter;
+import io.bitcoinsv.bsvcl.common.bytes.Sha256HashIncremental;
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 import io.bitcoinsv.bitcoinjsv.core.Utils;
 

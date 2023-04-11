@@ -12,10 +12,10 @@ import io.bitcoinsv.bsvcl.net.protocol.serialization.common.MsgSerializersFactor
 import io.bitcoinsv.bsvcl.net.protocol.serialization.largeMsgs.LargeMessageDeserializer;
 import io.bitcoinsv.bsvcl.net.protocol.serialization.largeMsgs.MsgPartDeserializationErrorEvent;
 import io.bitcoinsv.bsvcl.net.protocol.serialization.largeMsgs.MsgPartDeserializedEvent;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReader;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReaderOptimized;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReaderRealTime;
-import io.bitcoinsv.bsvcl.tools.config.RuntimeConfig;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReader;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReaderOptimized;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReaderRealTime;
+import io.bitcoinsv.bsvcl.common.config.RuntimeConfig;
 
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;

@@ -19,11 +19,11 @@ import io.bitcoinsv.bsvcl.net.network.streams.nio.NIOInputStream;
 import io.bitcoinsv.bsvcl.net.protocol.handlers.message.MessageHandlerConfig;
 import io.bitcoinsv.bsvcl.net.protocol.handlers.message.MessagePreSerializer;
 
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayBuffer;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayConfig;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReader;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayWriter;
-import io.bitcoinsv.bsvcl.tools.config.RuntimeConfig;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayBuffer;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayConfig;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReader;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayWriter;
+import io.bitcoinsv.bsvcl.common.config.RuntimeConfig;
 import io.bitcoinsv.bsvcl.net.tools.LoggerUtil;
 
 import java.io.UnsupportedEncodingException;

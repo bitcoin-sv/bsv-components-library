@@ -3,8 +3,8 @@ package io.bitcoinsv.bsvcl.net.unit.protocol.tools;
 
 import io.bitcoinsv.bsvcl.net.network.streams.StreamCloseEvent;
 import io.bitcoinsv.bsvcl.net.unit.network.streams.PeerStreamInOutSimulator;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayBuffer;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReader;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayBuffer;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReader;
 
 import java.time.Duration;
 import java.util.concurrent.ExecutorService;

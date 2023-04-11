@@ -2,7 +2,7 @@ package io.bitcoinsv.bsvcl.net.protocol.handlers.block;
 
 import io.bitcoinsv.bsvcl.net.network.PeerAddress;
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
-import io.bitcoinsv.bsvcl.tools.util.EventsHistory;
+import io.bitcoinsv.bsvcl.common.util.EventsHistory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

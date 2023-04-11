@@ -2,7 +2,7 @@ package io.bitcoinsv.bsvcl.net.protocol.handlers.handshake;
 
 
 import io.bitcoinsv.bsvcl.net.network.PeerAddress;
-import io.bitcoinsv.bsvcl.tools.handlers.HandlerState;
+import io.bitcoinsv.bsvcl.common.handlers.HandlerState;
 
 import java.math.BigInteger;
 import java.util.HashSet;

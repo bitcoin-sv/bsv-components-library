@@ -2,8 +2,8 @@ package io.bitcoinsv.bsvcl.net.protocol.handlers.discovery;
 
 
 import io.bitcoinsv.bsvcl.net.network.PeerAddress;
-import io.bitcoinsv.bsvcl.tools.files.FileUtils;
-import io.bitcoinsv.bsvcl.tools.util.StringUtils;
+import io.bitcoinsv.bsvcl.common.files.FileUtils;
+import io.bitcoinsv.bsvcl.common.util.StringUtils;
 import org.slf4j.Logger;
 
 import java.net.UnknownHostException;

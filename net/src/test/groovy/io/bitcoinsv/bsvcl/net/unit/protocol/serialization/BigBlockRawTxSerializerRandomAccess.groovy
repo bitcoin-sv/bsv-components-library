@@ -13,9 +13,9 @@ import io.bitcoinsv.bsvcl.net.protocol.serialization.TxMsgSerializer
 import io.bitcoinsv.bsvcl.net.protocol.serialization.common.DeserializerContext
 import io.bitcoinsv.bsvcl.net.protocol.serialization.common.SerializerContext
 import io.bitcoinsv.bsvcl.net.protocol.serialization.largeMsgs.RawBigBlockDeserializer
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReader
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReaderRealTime
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayWriter
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReader
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReaderRealTime
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayWriter
 import io.bitcoinsv.bitcoinjsv.core.Utils
 import spock.lang.Specification
 

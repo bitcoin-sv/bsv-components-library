@@ -1,8 +1,8 @@
 package io.bitcoinsv.bsvcl.net.network.streams.nio;
 
 import io.bitcoinsv.bsvcl.net.network.streams.IStreamHolder;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReader;
-import io.bitcoinsv.bsvcl.tools.writebuffer.WriteBuffer;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReader;
+import io.bitcoinsv.bsvcl.common.writebuffer.WriteBuffer;
 
 import java.io.IOException;
 

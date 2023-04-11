@@ -10,8 +10,8 @@ import io.bitcoinsv.bsvcl.net.protocol.handlers.handshake.HandshakeHandlerState;
 import io.bitcoinsv.bsvcl.net.protocol.handlers.message.MessageHandlerState;
 import io.bitcoinsv.bsvcl.net.protocol.handlers.pingPong.PingPongHandlerState;
 import io.bitcoinsv.bsvcl.net.network.handlers.NetworkHandlerState;
-import io.bitcoinsv.bsvcl.tools.events.EventBus;
-import io.bitcoinsv.bsvcl.tools.events.EventStreamer;
+import io.bitcoinsv.bsvcl.common.events.EventBus;
+import io.bitcoinsv.bsvcl.common.events.EventStreamer;
 
 import java.util.function.Consumer;
 import java.util.function.Predicate;

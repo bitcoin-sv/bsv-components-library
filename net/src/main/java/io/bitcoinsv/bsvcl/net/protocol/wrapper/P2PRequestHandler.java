@@ -8,8 +8,8 @@ import io.bitcoinsv.bsvcl.net.protocol.messages.common.BodyMessage;
 import io.bitcoinsv.bsvcl.net.protocol.messages.common.StreamRequest;
 import io.bitcoinsv.bsvcl.net.network.PeerAddress;
 import io.bitcoinsv.bsvcl.net.network.events.PeerDisconnectedEvent.DisconnectedReason;
-import io.bitcoinsv.bsvcl.tools.events.Event;
-import io.bitcoinsv.bsvcl.tools.events.EventBus;
+import io.bitcoinsv.bsvcl.common.events.Event;
+import io.bitcoinsv.bsvcl.common.events.EventBus;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

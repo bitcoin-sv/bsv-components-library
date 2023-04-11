@@ -24,8 +24,8 @@ import io.bitcoinsv.bsvcl.net.protocol.serialization.BlockMsgSerializer
 import io.bitcoinsv.bsvcl.net.protocol.serialization.common.SerializerContext
 import io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P
 import io.bitcoinsv.bsvcl.net.protocol.wrapper.P2PBuilder
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayWriter
-import io.bitcoinsv.bsvcl.tools.common.TestingUtils
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayWriter
+import io.bitcoinsv.bsvcl.common.common.TestingUtils
 
 import spock.lang.Specification
 

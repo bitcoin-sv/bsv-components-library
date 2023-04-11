@@ -2,7 +2,7 @@ package io.bitcoinsv.bsvcl.net.protocol.handlers.block.strategies;
 
 import io.bitcoinsv.bsvcl.net.network.PeerAddress;
 import io.bitcoinsv.bsvcl.net.protocol.handlers.block.BlockDownloaderHandlerConfig;
-import io.bitcoinsv.bsvcl.tools.events.EventBus;
+import io.bitcoinsv.bsvcl.common.events.EventBus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

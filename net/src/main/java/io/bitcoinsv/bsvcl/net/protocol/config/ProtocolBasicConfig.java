@@ -1,7 +1,7 @@
 package io.bitcoinsv.bsvcl.net.protocol.config;
 
 
-import io.bitcoinsv.bsvcl.tools.handlers.HandlerConfig;
+import io.bitcoinsv.bsvcl.common.handlers.HandlerConfig;
 
 import java.util.OptionalInt;
 

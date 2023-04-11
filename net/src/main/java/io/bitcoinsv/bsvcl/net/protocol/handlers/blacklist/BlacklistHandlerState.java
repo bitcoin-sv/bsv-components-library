@@ -3,7 +3,7 @@ package io.bitcoinsv.bsvcl.net.protocol.handlers.blacklist;
 
 import com.google.common.base.Objects;
 import io.bitcoinsv.bsvcl.net.network.events.PeersBlacklistedEvent;
-import io.bitcoinsv.bsvcl.tools.handlers.HandlerState;
+import io.bitcoinsv.bsvcl.common.handlers.HandlerState;
 
 import java.util.HashMap;
 import java.util.Map;

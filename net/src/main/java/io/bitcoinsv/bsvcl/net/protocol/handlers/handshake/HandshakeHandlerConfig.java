@@ -3,7 +3,7 @@ package io.bitcoinsv.bsvcl.net.protocol.handlers.handshake;
 
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolBasicConfig;
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolServices;
-import io.bitcoinsv.bsvcl.tools.handlers.HandlerConfig;
+import io.bitcoinsv.bsvcl.common.handlers.HandlerConfig;
 
 /**
  * @author i.fernandez@nchain.com

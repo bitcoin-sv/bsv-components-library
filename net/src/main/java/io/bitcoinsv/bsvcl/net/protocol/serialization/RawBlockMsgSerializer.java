@@ -8,10 +8,10 @@ import io.bitcoinsv.bsvcl.net.protocol.messages.BlockHeaderMsg;
 import io.bitcoinsv.bsvcl.net.protocol.messages.BlockMsg;
 import io.bitcoinsv.bsvcl.net.protocol.messages.RawBlockMsg;
 import io.bitcoinsv.bsvcl.net.protocol.messages.RawTxMsg;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayReader;
-import io.bitcoinsv.bsvcl.tools.bytes.ByteArrayWriter;
-import io.bitcoinsv.bsvcl.tools.bytes.IReader;
-import io.bitcoinsv.bsvcl.tools.serialization.TransactionSerializerUtils;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReader;
+import io.bitcoinsv.bsvcl.common.bytes.ByteArrayWriter;
+import io.bitcoinsv.bsvcl.common.bytes.IReader;
+import io.bitcoinsv.bsvcl.common.serialization.TransactionSerializerUtils;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;

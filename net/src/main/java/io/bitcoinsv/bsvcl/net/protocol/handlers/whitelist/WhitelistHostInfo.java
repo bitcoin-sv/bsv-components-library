@@ -1,7 +1,7 @@
 package io.bitcoinsv.bsvcl.net.protocol.handlers.whitelist;
 
 
-import io.bitcoinsv.bsvcl.tools.files.CSVSerializable;
+import io.bitcoinsv.bsvcl.common.files.CSVSerializable;
 import org.slf4j.Logger;
 import java.net.InetAddress;
 import java.time.LocalDateTime;

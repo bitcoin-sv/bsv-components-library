@@ -1,8 +1,8 @@
 package io.bitcoinsv.bsvcl.net.performance
 
 
-import io.bitcoinsv.bsvcl.tools.events.EventQueueProcessor
-import io.bitcoinsv.bsvcl.tools.thread.ThreadUtils
+import io.bitcoinsv.bsvcl.common.events.EventQueueProcessor
+import io.bitcoinsv.bsvcl.common.thread.ThreadUtils
 
 import spock.lang.Ignore
 import spock.lang.Specification
