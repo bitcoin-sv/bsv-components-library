@@ -98,7 +98,7 @@ class ProtocolMsgsTest extends Specification {
             client.REQUESTS.PEERS.connect(server.getPeerAddress()).submit()
 
             // We wait until the Handshake is done
-            rdyLatch.await(5, TimeUnit.SECONDS)
+            boolean hndshakeDone = rdyLatch.await(5, TimeUnit.SECONDS)
 
             // We send a few messages from the Client to the Server:
             BitcoinMsg<AddrMsg> msg = MsgTest.getAddrMsg()
@@ -107,11 +107,11 @@ class ProtocolMsgsTest extends Specification {
                 client.REQUESTS.MSGS.send(server.getPeerAddress(), msg).submit()
             }
 
-            msgsRecv.await(5, TimeUnit.SECONDS)
+            boolean msgsReceived = msgsRecv.await(30, TimeUnit.SECONDS)
 
             println(" >>> DISCONNECTING FROM THE SERVER...")
             client.REQUESTS.PEERS.disconnect(server.getPeerAddress()).submit()
-            disconnectedLatch.await(5, TimeUnit.SECONDS)
+            boolean disconDone = disconnectedLatch.await(5, TimeUnit.SECONDS)
 
             println(" >>> STOPPING...")
             server.stop()
@@ -119,6 +119,9 @@ class ProtocolMsgsTest extends Specification {
 
         then:
             // We check that the Events have been triggered right:
+            hndshakeDone
+            msgsReceived
+            disconDone
             numConnections.get() == 2
             numDisconnections.get() >= 2
             numMsgs.get() == NUM_MSGS
