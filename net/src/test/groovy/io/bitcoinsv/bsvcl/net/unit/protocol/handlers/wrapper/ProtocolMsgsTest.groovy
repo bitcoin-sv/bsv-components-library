@@ -106,7 +106,7 @@ class ProtocolMsgsTest extends Specification {
                 client.REQUESTS.MSGS.send(server.getPeerAddress(), msg).submit()
             }
 
-            rdyLatch.await(5, TimeUnit.SECONDS)
+            msgsRecv.await(5, TimeUnit.SECONDS)
 
             println(" >>> DISCONNECTING FROM THE SERVER...")
             client.REQUESTS.PEERS.disconnect(server.getPeerAddress()).submit()
