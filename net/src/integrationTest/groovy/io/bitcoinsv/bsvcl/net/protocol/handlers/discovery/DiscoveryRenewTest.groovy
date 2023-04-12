@@ -1,7 +1,14 @@
-package io.bitcoinsv.bsvcl.net.integration.protocol.handlers.discovery
+package io.bitcoinsv.bsvcl.net.protocol.handlers.discovery
 
 
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import io.bitcoinsv.bsvcl.net.network.PeerAddress
+import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig
+import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfigBuilder
+import io.bitcoinsv.bsvcl.net.protocol.handlers.blacklist.BlacklistHandler
+import io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P
+import io.bitcoinsv.bsvcl.net.protocol.wrapper.P2PBuilder
+import io.bitcoinsv.bsvcl.net.utils.IntegrationUtils
 import spock.lang.Ignore
 import spock.lang.Specification
 
@@ -36,25 +43,25 @@ class DiscoveryRenewTest extends Specification {
             final int MAX_PEERS = 6
 
             // We set up the configuration
-            io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig config = io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfigBuilder.get(new MainNetParams()).toBuilder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams()).toBuilder()
                     .minPeers(MIN_PEERS)
                     .maxPeers(MAX_PEERS)
                     .build()
 
             // We set up the frequency for the "pool" renewing Job and  disable the "handshake" renewing job:
-            io.bitcoinsv.bsvcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig discoveryConfig = config.getDiscoveryConfig().toBuilder()
+            DiscoveryHandlerConfig discoveryConfig = config.getDiscoveryConfig().toBuilder()
                 .ADDRFrequency(Optional.of(triggerTime))
                 .recoveryHandshakeFrequency(Optional.empty())
                 .build()
 
             // We extends the DiscoveryHandler Config, in case DNS's are not working properly:
-            discoveryConfig = io.bitcoinsv.bsvcl.net.integration.utils.IntegrationUtils.getDiscoveryHandlerConfigMainnet(discoveryConfig)
+            discoveryConfig = IntegrationUtils.getDiscoveryHandlerConfigMainnet(discoveryConfig)
 
-            io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P server = new io.bitcoinsv.bsvcl.net.protocol.wrapper.P2PBuilder("testing")
+        P2P server = new P2PBuilder("testing")
                     .config(config)
                     .config(discoveryConfig)
                     .serverPort(0) // Random Port
-                    .excludeHandler(io.bitcoinsv.bsvcl.net.protocol.handlers.blacklist.BlacklistHandler.HANDLER_ID)
+                    .excludeHandler(BlacklistHandler.HANDLER_ID)
                     .build()
 
             // We keep track of the GET_ADDR and ADDR messages exchanged:
@@ -121,27 +128,27 @@ class DiscoveryRenewTest extends Specification {
             final int MAX_PEERS = 6
 
             // We set up the configuration
-            io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig config = io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfigBuilder.get(new MainNetParams())
+            ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams())
 
             // We set up the "handshake" renewing process and we disable the "pool" renewing process:
-            io.bitcoinsv.bsvcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig discoveryConfig = config.getDiscoveryConfig().toBuilder()
+            DiscoveryHandlerConfig discoveryConfig = config.getDiscoveryConfig().toBuilder()
                     .recoveryHandshakeFrequency(Optional.of(jobFrequency))
                     .recoveryHandshakeThreshold(Optional.of(waitingtime))
                     .build()
 
-            io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P server = new io.bitcoinsv.bsvcl.net.protocol.wrapper.P2PBuilder("testing")
+            P2P server = new P2PBuilder("testing")
                     .config(config)
                     .config(discoveryConfig)
-                    .excludeHandler(io.bitcoinsv.bsvcl.net.protocol.handlers.blacklist.BlacklistHandler.HANDLER_ID)
+                    .excludeHandler(BlacklistHandler.HANDLER_ID)
                     .minPeers(MIN_PEERS)
                     .maxPeers(MAX_PEERS)
                     .build()
 
             // We keep track of the Peer Handshaked:
-            List<io.bitcoinsv.bsvcl.net.network.PeerAddress> peersHandshaked = new ArrayList<>()
+            List<PeerAddress> peersHandshaked = new ArrayList<>()
 
             // We keep track of the PEERs we send GET_ADDR msgs to:
-            List<io.bitcoinsv.bsvcl.net.network.PeerAddress> peersGetAddrSent = new ArrayList<>()
+            List<PeerAddress> peersGetAddrSent = new ArrayList<>()
 
 
             server.EVENTS.PEERS.HANDSHAKED.forEach({ e ->

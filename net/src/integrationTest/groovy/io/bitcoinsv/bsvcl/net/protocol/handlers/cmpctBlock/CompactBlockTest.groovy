@@ -1,4 +1,4 @@
-package io.bitcoinsv.bsvcl.net.integration.protocol.handlers.cmpctBlock
+package io.bitcoinsv.bsvcl.net.protocol.handlers.cmpctBlock
 
 
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams

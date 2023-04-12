@@ -6,6 +6,7 @@ plugins {
 allprojects {
     apply plugin: 'java'
     apply plugin: 'groovy'
+    apply plugin: 'jvm-test-suite'
     apply plugin: 'jacoco'
 
     bsvclGroup = "$bsvclGroup"
@@ -22,10 +23,6 @@ allprojects {
     sourceCompatibility = "17"
     targetCompatibility = "17"
 
-    test {
-        useJUnitPlatform()
-    }
-
     dependencies {
         implementation 'org.slf4j:slf4j-api:1.7.26'
 
@@ -34,6 +31,37 @@ allprojects {
         testImplementation 'org.apache.groovy:groovy'
         testImplementation 'org.spockframework:spock-core:2.3-groovy-4.0'
         testImplementation 'ch.qos.logback:logback-classic:1.2.9'
+    }
+
+    testing {
+        suites {
+            test {
+                useJUnitJupiter()
+            }
+
+            integrationTest(JvmTestSuite) {
+                dependencies {
+                    implementation project()
+                    implementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+                    runtimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+                    implementation 'org.apache.groovy:groovy'
+                    implementation 'org.spockframework:spock-core:2.3-groovy-4.0'
+                    implementation 'ch.qos.logback:logback-classic:1.2.9'
+                }
+
+                targets {
+                    all {
+                        testTask.configure {
+                            shouldRunAfter(test)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    tasks.named('check') {
+        dependsOn(testing.suites.integrationTest)
     }
 
     jacoco {

@@ -1,4 +1,4 @@
-package io.bitcoinsv.bsvcl.net.integration.utils;
+package io.bitcoinsv.bsvcl.net.utils;
 
 import io.bitcoinsv.bsvcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig;
 

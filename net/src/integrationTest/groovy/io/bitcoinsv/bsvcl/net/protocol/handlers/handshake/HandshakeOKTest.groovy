@@ -1,4 +1,4 @@
-package io.bitcoinsv.bsvcl.net.integration.protocol.handlers.handshake
+package io.bitcoinsv.bsvcl.net.protocol.handlers.handshake
 
 
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams

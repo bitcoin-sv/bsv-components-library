@@ -1,4 +1,4 @@
-package io.bitcoinsv.bsvcl.net.integration.protocol.wrapper.receivers
+package io.bitcoinsv.bsvcl.net.protocol.wrappers.receivers
 
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
 import io.bitcoinsv.bitcoinjsv.core.Utils

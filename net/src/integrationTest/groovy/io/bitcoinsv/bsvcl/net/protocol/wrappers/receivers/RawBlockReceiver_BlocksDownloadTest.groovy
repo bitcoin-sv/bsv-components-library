@@ -1,4 +1,4 @@
-package io.bitcoinsv.bsvcl.net.integration.protocol.wrapper.receivers
+package io.bitcoinsv.bsvcl.net.protocol.wrappers.receivers
 
 
 import io.bitcoinsv.bsvcl.common.bigObjects.BigCollectionChunk

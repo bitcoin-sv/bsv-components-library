@@ -1,4 +1,4 @@
-package io.bitcoinsv.bsvcl.net.integration.protocol.handlers.block
+package io.bitcoinsv.bsvcl.net.protocol.handlers.block
 
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
 import io.bitcoinsv.bitcoinjsv.core.Utils

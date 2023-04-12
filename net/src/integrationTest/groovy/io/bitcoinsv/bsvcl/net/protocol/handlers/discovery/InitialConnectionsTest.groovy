@@ -1,4 +1,4 @@
-package io.bitcoinsv.bsvcl.net.integration.protocol.handlers.discovery
+package io.bitcoinsv.bsvcl.net.protocol.handlers.discovery
 
 
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams
