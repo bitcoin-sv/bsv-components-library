@@ -1,4 +1,4 @@
-package io.bitcoinsv.bsvcl.net.performance
+package io.bitcoinsv.bsvcl.net
 
 
 import io.bitcoinsv.bsvcl.common.events.EventQueueProcessor

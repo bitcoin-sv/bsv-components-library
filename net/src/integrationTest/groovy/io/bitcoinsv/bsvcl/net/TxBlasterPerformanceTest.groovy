@@ -1,4 +1,4 @@
-package io.bitcoinsv.bsvcl.net.performance
+package io.bitcoinsv.bsvcl.net
 
 import com.google.common.hash.HashFunction
 import com.google.common.hash.Hashing
