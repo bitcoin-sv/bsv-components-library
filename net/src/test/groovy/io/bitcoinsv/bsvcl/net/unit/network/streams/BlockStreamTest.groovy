@@ -71,8 +71,9 @@ class BlockStreamTest extends Specification {
         when:
         server.startServer()
         client.start()
+        server.awaitStarted()
+        client.awaitStarted()
 
-        Thread.sleep(1000)
         client.REQUESTS.PEERS.connect(server.getPeerAddress()).submit()
         Thread.sleep(1000)
 
@@ -151,6 +152,8 @@ class BlockStreamTest extends Specification {
         //stop server as we no longer need it
         server.stop()
         client.stop()
+        server.awaitStopped()
+        client.awaitStopped()
 
         then:
         receivedBlockMsg != null

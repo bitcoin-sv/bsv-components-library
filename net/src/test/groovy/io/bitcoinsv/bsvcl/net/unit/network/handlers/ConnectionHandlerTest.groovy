@@ -88,7 +88,9 @@ class ConnectionHandlerTest extends Specification {
             Thread.sleep(1_000)
             server.stop()
             client.stop()
-            Thread.sleep(1_000)
+            server.awaitStopped()
+            client.awaitStopped()
+
         then:
             serverConnected.get()
             serverDisconnected.get()
