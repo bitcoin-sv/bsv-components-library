@@ -1,4 +1,4 @@
-# Perform tests on branches other than the main branch
+# Perform unit tests on branches other than the main branch
 name: Check non-main branches
 
 on:
@@ -27,6 +27,6 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
       - name: Run Unit Tests
-        run: ./gradlew check jacocoTestReport
+        run: ./gradlew test jacocoTestReport
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
