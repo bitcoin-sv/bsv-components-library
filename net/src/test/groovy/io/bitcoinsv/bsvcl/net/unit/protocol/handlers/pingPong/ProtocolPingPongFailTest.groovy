@@ -13,6 +13,7 @@ import io.bitcoinsv.bitcoinjsv.params.Net
 import spock.lang.Specification
 
 import java.time.Duration
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -92,21 +93,23 @@ class ProtocolPingPongFailTest extends Specification {
             // We start both and connect them:
             server.startServer()
             client.start()
+            server.awaitStarted(10, TimeUnit.SECONDS)
+            client.awaitStarted(10, TimeUnit.SECONDS)
 
-            Thread.sleep(100)
             println(" >>> CONNECTING TO THE SERVER...")
             // We connect both together. This will trigger the HANDSHAKE protocol automatically.
             client.REQUESTS.PEERS.connect(server.getPeerAddress()).submit()
             println(" >>> WAITING UNTIL PING/PONG TIMEOUT...")
             Thread.sleep(waitingTime.toMillis())
             // At this moment, the Ping/Pong protocol must have been triggered at least once by the Server, but the
-            // Client didn't replay to it, so the Server must have detected that the timeout has expired and therefore
+            // Client didn't reply to it, so the Server must have detected that the timeout has expired and therefore
             // requested a disconnection from this Client.
             Thread.sleep(5000)
             println(" >>> STOPPING...")
             server.stop()
             client.stop()
-            Thread.sleep(1000) // We make sure the Guava service is down...
+            server.awaitStopped()
+            client.awaitStopped()
 
         then:
             // We check that the Ping/Pong protocol has been triggered at LEAST ONCE by the Server.

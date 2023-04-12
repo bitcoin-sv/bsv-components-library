@@ -454,7 +454,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     }
 
     @Override
-    public void stop() {
+    public void stop() throws InterruptedException {
         try {
             logger.info("{} : Stopping...", this.id);
             // We save the Network Activity...
@@ -467,21 +467,20 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
             this.keep_connecting = false;
             List<PeerAddress> peersToDisconnect = this.activeConns.keySet().stream().collect(Collectors.toList());
             this.disconnect(peersToDisconnect);
-            Thread.sleep(100); // we wait a bit, so Disconnected Events can be triggered...
+            Thread.sleep(100); // todo: we wait a bit, so Disconnected Events can be triggered...
 
             mainSelector.wakeup();
             super.stopAsync();
-            super.awaitTerminated(5_000, TimeUnit.MILLISECONDS);
 
-            // We stop the Selectors:
             stopSelectorThreads();
-
-        } catch (TimeoutException te) {
-            //te.printStackTrace();
-            logger.error("{} : Timeout while Waiting for the Service to Stop. Stopping anyway...", this.id);
-        } catch (Exception e) {
-            logger.error("{} : Error stopping the service ", this.id, e);
+        } catch (InterruptedException e) {
+            logger.error("{} : InterruptedException stopping the service ", this.id, e);
+            throw e;
         }
+    }
+
+    public void awaitStopped() {
+        super.awaitTerminated();
     }
 
     // It saves the network activity into CSV files on disk. It saves the content of all of the List managed by this
@@ -866,7 +865,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
      * It performs a loop to handle the Selection Keys.
      */
     private void handleSelectorKeys(Selector selector) throws IOException, InterruptedException {
-        selector.select();
+        selector.select(100);   // we need a timeout, otherwise it will block forever...
         Iterator<SelectionKey> keyIterator = selector.selectedKeys().iterator();
         while (keyIterator.hasNext()) {
             SelectionKey key = keyIterator.next();
@@ -1125,7 +1124,8 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     }
 
     private void stopSelectorThreads() {
-        isRunning.keySet().forEach(selector ->
+        Set<Selector> selectors = new HashSet<>(isRunning.keySet());
+        selectors.forEach(selector ->
                 stopSelectorThread(selector, peerAddress, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL)
         );
         executorService.shutdown();

@@ -97,7 +97,8 @@ class ProtocolPingPongOKTest extends Specification {
             // At this moment, the Ping/Pong protocol must have been triggered at least once...
             server.stop()
             client.stop()
-            Thread.sleep(1000) // We make sure the Guava service is down...
+            server.awaitStopped()
+            client.awaitStopped()
         then:
             // NOTE: The PING/PONG Starts after a Period of inactivity. So in this case, if both Server and Client are inactive
             // after some time, the ping/pong is triggered. BUT... The Ping/Pong will always start first in one of them, say

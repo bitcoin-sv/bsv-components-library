@@ -12,6 +12,7 @@ import io.bitcoinsv.bitcoinjsv.params.MainNetParams
 import spock.lang.Specification
 
 import java.time.Instant
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -85,8 +86,9 @@ class ProtocolConnectionTest extends Specification {
         when:
             server.startServer()
             client.start()
+            server.awaitStarted(10, TimeUnit.SECONDS)
+            client.awaitStarted(10, TimeUnit.SECONDS)
 
-            Thread.sleep(100)
             client.REQUESTS.PEERS.connect(server.getPeerAddress()).submit()
 
             Thread.sleep(100)
@@ -96,6 +98,8 @@ class ProtocolConnectionTest extends Specification {
 
             server.stop()
             client.stop()
+            server.awaitStopped()
+            client.awaitStopped()
 
         then:
             // We check that the Events have been triggered right:

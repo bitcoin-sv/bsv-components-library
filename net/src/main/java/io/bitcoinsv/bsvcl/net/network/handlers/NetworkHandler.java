@@ -31,7 +31,12 @@ public interface NetworkHandler extends Handler {
 
     void start();
     void startServer();
-    void stop();
+
+    /** Tell the handler to stop. It does not wait until the handler is stopped. */
+    void stop() throws InterruptedException;
+
+    void awaitStopped();
+
     PeerAddress getPeerAddress();
 
     // By default, the NetworkHandler will ALWAYS connect to as many Peers as possible, until the "StopConnecting()"

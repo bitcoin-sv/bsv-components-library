@@ -147,7 +147,7 @@ public class WikiExamples {
         }
     }
     @Disabled
-    public void quickstart() {
+    public void quickstart() throws InterruptedException {
 
         P2P p2p = new P2PBuilder("testing").build();
         p2p.start();

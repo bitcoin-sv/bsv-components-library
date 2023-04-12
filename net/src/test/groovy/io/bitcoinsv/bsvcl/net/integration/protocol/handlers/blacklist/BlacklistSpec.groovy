@@ -129,6 +129,7 @@ class BlacklistSpec extends Specification {
 
             // And we are Done.
             server.stop()
+            server.awaitStopped()
 
         then:
             peersBlacklistedOK
