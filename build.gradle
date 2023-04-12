@@ -52,7 +52,7 @@ allprojects {
         finalizedBy jacocoTestReport
     }
 
-    sonarqube {
+    sonar {
         properties {
             property "sonar.projectKey", "bitcoin-sv_bsv-components-library"
             property "sonar.organization", "bitcoin-sv"
