@@ -1124,7 +1124,8 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     }
 
     private void stopSelectorThreads() {
-        isRunning.keySet().forEach(selector ->
+        Set<Selector> selectors = new HashSet<>(isRunning.keySet());
+        selectors.forEach(selector ->
                 stopSelectorThread(selector, peerAddress, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL)
         );
         executorService.shutdown();
