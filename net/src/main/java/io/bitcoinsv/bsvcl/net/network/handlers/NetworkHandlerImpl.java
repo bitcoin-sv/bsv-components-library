@@ -1,5 +1,8 @@
 package io.bitcoinsv.bsvcl.net.network.handlers;
 
+// @author i.fernandez@nchain.com
+// Copyright (c) 2018-2023 Bitcoin Association
+
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
 import io.bitcoinsv.bsvcl.net.network.PeerAddress;
 import io.bitcoinsv.bsvcl.net.network.config.NetworkConfig;
@@ -38,20 +41,14 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkState;
 
 /**
- * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 nChain Ltd
- *
  * Implementation of the NetworkHandler, based on Java-NIO (non blocking Input-Output)
  * - The class runs in a separate Thread, extending a guava Service
  * - the main loop is performed in a single Thread. This loop takes place in the "run()" method and basically
  *   loops over the Keys in our Selector, waiting for some event (a new peer connecting, new data coming, etc).
- * - Any time a new connection arrives, an isntance of a NIO Stream is linked to that Key, and an Event is
+ * - Any time a new connection arrives, an instance of a NIO Stream is linked to that Key, and an Event is
  *   triggered containing that Stream, that will be used to communicate with the remote Peer.
- *
- * - This class keeps different list ot keep track of the Pers to connect to or the ones to disconnect from. These
- *   lists are processed in another 2 different Threads, one each.
- *
- *
+ * - This class keeps different list to keep track of the peers to connect to or the ones to disconnect from. These
+ *   lists are processed in another 2 different threads, one for each list.
  */
 public class NetworkHandlerImpl extends AbstractExecutionThreadService implements NetworkHandler {
 
@@ -65,7 +62,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     /**
      * Inner class that is attached to each Key in the selector. It represents a connection with
      * one particular Peer:
-     * - when the connection is crated in the first place (but not fully established yet), the "peerAddress" stores the
+     * - when the connection is created in the first place (but not fully established yet), the "peerAddress" stores the
      *   peer we are trying to connect to
      * - When the connection is fully established, the "stream" is created and linked to this socket.
      */
@@ -78,7 +75,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
 
     /**
      * Inner class that represents a connection that is in progress: We managed to connect to the remote Peer, but we
-     * have not received a Confirmation from their end to establish the connection
+     * have not received a confirmation from their end to establish the connection
      */
     class InProgressConn {
         PeerAddress peerAddress;
@@ -99,19 +96,19 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     protected Selector mainSelector;
 
     // Main Lock, to preserve Thread safety and our mental sanity:
-    private ReadWriteLock lock = new ReentrantReadWriteLock();
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     // For logging:
-    private Logger logger = LoggerFactory.getLogger(NetworkHandlerImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(NetworkHandlerImpl.class);
 
     // Local Address of this Handler running:
     private PeerAddress peerAddress;
 
     // Indicates if we are running in SERVER_MODE (incoming connections allowed)
-    private boolean server_mode = false;
+    private boolean serverMode = false;
 
-    // Indicates if we can keep creating connections or we should stop:
-    private boolean keep_connecting = true;
+    // Indicates if we can keep creating connections or whether we should stop:
+    private boolean keepConnecting = true;
 
     // The EventBus used for event handling
     private EventBus eventBus;
@@ -131,11 +128,25 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     // pendingToClose:  List of Peers which connections we are closing
     // blacklist:       List of Peers blacklisted
 
-    private Map<PeerAddress, NIOStream> activeConns = new ConcurrentHashMap<>();
-    private Map<PeerAddress, InProgressConn> inProgressConns = new ConcurrentHashMap<>();
-    private BlockingQueue<PeerAddress> pendingToOpenConns = new LinkedBlockingQueue<>();
-    private BlockingQueue<DisconnectPeerRequest> pendingToCloseConns = new LinkedBlockingQueue<>();
-    private Set<PeerAddress> closedConns = ConcurrentHashMap.newKeySet();
+    private final Map<PeerAddress, NIOStream> activeConns = new ConcurrentHashMap<>();
+    private final Map<PeerAddress, InProgressConn> inProgressConns = new ConcurrentHashMap<>();
+    private final BlockingQueue<PeerAddress> pendingToOpenConns = new LinkedBlockingQueue<>();
+    private final BlockingQueue<DisconnectPeerRequest> pendingToCloseConns = new LinkedBlockingQueue<>();
+    private final Set<PeerAddress> closedConns = ConcurrentHashMap.newKeySet();
+    private final Set<InetAddress> blacklist = ConcurrentHashMap.newKeySet();
+    private final Set<PeerAddress> failedConns = ConcurrentHashMap.newKeySet();
+
+    // Other useful counters:
+    private final AtomicLong numConnsFailed = new AtomicLong();
+    private final AtomicLong numConnsInProgressExpired = new AtomicLong();
+    private int numConnsTried;  // reset after calling getState()
+
+    // Files to store info after the handler has stopped:
+    private static final String FILE_ACTIVE_CONN            = "networkHandler-activeConnections.csv";
+    private static final String FILE_IN_PROGRESS_CONN       = "networkHandler-inProgressConnections.csv";
+    private static final String FILE_PENDING_OPEN_CONN      = "networkHandler-pendingToOpenConnections.csv";
+    private static final String FILE_FAILED_CONN            = "networkHandler-failedConnections.csv";
+
     /**
      * Helper used to search if pendingToCloseConns contains a disconnect request for a specific peer
      */
@@ -151,29 +162,13 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
             return peerAddress.equals(other.getPeerAddress());
         }
     }
-    private Set<InetAddress> blacklist = ConcurrentHashMap.newKeySet();
-    private Set<PeerAddress> failedConns = ConcurrentHashMap.newKeySet();
 
-    // Other useful counters:
-    private AtomicLong numConnsFailed = new AtomicLong();
-    private AtomicLong numConnsInProgressExpired = new AtomicLong();
-    private int numConnsTried;  // reset after calling getState()
-
-    // Files to store info after the handler has stopped:
-    private static final String FILE_ACTIVE_CONN            = "networkHandler-activeConnections.csv";
-    private static final String FILE_IN_PROGRESS_CONN       = "networkHandler-inProgressConnections.csv";
-    private static final String FILE_PENDING_OPEN_CONN      = "networkHandler-pendingToOpenConnections.csv";
-    private static final String FILE_FAILED_CONN            = "networkHandler-failedConnections.csv";
-
-
-    /** Constructor */
     public NetworkHandlerImpl(String id, RuntimeConfig runtimeConfig, NetworkConfig netConfig, PeerAddress localAddress) {
         this.id = id;
         this.runtimeConfig = runtimeConfig;
         this.config = netConfig;
         this.peerAddress = localAddress;
         this.newConnsExecutor = ThreadUtils.getFixedThreadExecutorService("JclNetworkHandlerRemoteConn", netConfig.getMaxSocketConnectionsOpeningAtSameTime());
-
     }
 
     @Override
@@ -190,9 +185,9 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     @Override
     public void useEventBus(EventBus eventBus)      { this.eventBus = eventBus; }
     @Override
-    public void stopConnecting()                    { this.keep_connecting = false; }
+    public void stopConnecting()                    { this.keepConnecting = false; }
     @Override
-    public void resumeConnecting()                  { this.keep_connecting = true;}
+    public void resumeConnecting()                  { this.keepConnecting = true;}
 
     @Override
     public NetworkHandlerState getState() {
@@ -204,8 +199,8 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
                     .numInProgressConns(this.inProgressConns.size())
                     .numPendingToCloseConns(this.pendingToCloseConns.size())
                     .numPendingToOpenConns(this.pendingToOpenConns.size())
-                    .keep_connecting(this.keep_connecting)
-                    .server_mode(this.server_mode)
+                    .keep_connecting(this.keepConnecting)
+                    .server_mode(this.serverMode)
                     .numConnsFailed(this.numConnsFailed.get())
                     .numInProgressConnsExpired(this.numConnsInProgressExpired.get())
                     .numConnsTried(this.numConnsTried)
@@ -350,7 +345,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
             mainSelector = SelectorProvider.provider().openSelector();
 
             // if we run in Server-Mode, we configure the Socket to be listening to incoming requests:
-            if (server_mode) {
+            if (serverMode) {
                 SocketAddress serverSocketAddress = new InetSocketAddress(peerAddress.getIp(), peerAddress.getPort());
                 ServerSocketChannel serverSocket = ServerSocketChannel.open();
                 serverSocket.configureBlocking(false);
@@ -428,7 +423,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
 
     @Override
     public void startServer() {
-        this.server_mode = true;
+        this.serverMode = true;
         start();
     }
 
@@ -438,7 +433,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
      */
     @Override
     public void run() {
-        logger.info("{} : Starting in " + (server_mode? "SERVER" : "CLIENT") + " mode...", this.id);
+        logger.info("{} : Starting in " + (serverMode ? "SERVER" : "CLIENT") + " mode...", this.id);
         startConnectionsJobs();
         try {
             while (isRunning()) {
@@ -464,7 +459,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
             eventBus.publish(new NetStopEvent());
 
             // We close all our connections:
-            this.keep_connecting = false;
+            this.keepConnecting = false;
             List<PeerAddress> peersToDisconnect = this.activeConns.keySet().stream().collect(Collectors.toList());
             this.disconnect(peersToDisconnect);
             Thread.sleep(100); // todo: we wait a bit, so Disconnected Events can be triggered...
@@ -656,7 +651,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
                     // If any of these checks fail, we break the loop (we don't process any more peers)
 
                     if (!this.mainSelector.isOpen()) break;
-                    if (!keep_connecting) break;
+                    if (!keepConnecting) break;
 
                     if (inProgressConns.size() > config.getMaxSocketConnectionsOpeningAtSameTime()) break;
                     if ((limitNumConns.isPresent()) && (inProgressConns.size() + activeConns.size() >= limitNumConns.getAsInt())) break;
@@ -690,7 +685,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
 
                 // In case there are NO more connections pending to Open, We wait until the Queue of Pending
                 // connection has some content, or we are allowed to keep making  connections..
-                while (pendingToOpenConns.size() == 0 || !this.keep_connecting) Thread.sleep(1000);
+                while (pendingToOpenConns.size() == 0 || !this.keepConnecting) Thread.sleep(1000);
 
                 // A little wait between different execution mof this process:
                 Thread.sleep(1000);
@@ -901,7 +896,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
                 handleWrite(key);
                 return;
             }
-            if ((server_mode) && (key.isAcceptable())) {
+            if ((serverMode) && (key.isAcceptable())) {
                 //logger.trace("{} : Handling Acceptable Key {}: {}...", this.id, key.hashCode(), key);
                 handleAccept(key);
             }
@@ -937,7 +932,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
 
             OptionalInt limitNumConns = config.getMaxSocketConnections();
             if (pendingToCloseConns.contains( new PeerAddress2DisconnectPeerRequest_Comparator(keyConnection.peerAddress) ) ||
-                    (!keep_connecting) ||
+                    (!keepConnecting) ||
                     ((limitNumConns.isPresent()) && (inProgressConns.size() + activeConns.size() >= limitNumConns.getAsInt()))) {
                 closeKey(key, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL);
                 return;
@@ -1026,7 +1021,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
 
             // Check:
             // We accept the incoming conn only if the server is in "Accepting new connections" mode
-            if (!keep_connecting) {
+            if (!keepConnecting) {
                 logger.trace("{} : {} : discarding incoming connection (no more connections needed).", this.id, socket.getRemoteSocketAddress());
                 closeKey(key, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL);
                 return;
