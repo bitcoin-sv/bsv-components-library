@@ -27,13 +27,13 @@ class ProtocolPingPongOKTest extends Specification {
     def "Testing Ping-Pong OK"() {
         given:
             // This is the inactivity period well use in this test. It will be fed into the configuration of both
-            // the Serve and the client.
+            // the Server and the client.
             Duration inactivityTimeout = Duration.ofMillis(500)
 
             // This is the time we are going to artificially WAIT, to make sure that the "inactivity" timeout is reached
             // ad the Ping/Pong protocol actually starts. NOTE: If this time is not Long enough, the Ping/Pong protocol
             // might not start. If it's too LONG, it might be triggered more than once.
-            Duration waitingTime = Duration.ofMillis(inactivityTimeout.toMillis() * 5) // 3 times as much
+            Duration waitingTime = Duration.ofMillis(inactivityTimeout.toMillis() * 3) // 3 times as much
 
             // Server Definition:
             ProtocolConfig serverConfig = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET)).toBuilder().port(0).build()
@@ -87,13 +87,14 @@ class ProtocolPingPongOKTest extends Specification {
             // We start both and connect them:
             server.startServer()
             client.start()
+            server.awaitStarted()
+            client.awaitStarted()
 
-            Thread.sleep(100)
             // We connect both together. This will trigger the HANDSHAKE protocol automatically.
             client.REQUESTS.PEERS.connect(server.getPeerAddress()).submit()
             println("We wait for " + waitingTime.toMillis() + " milliseconds...")
             Thread.sleep(waitingTime.toMillis())
-            println("Waiting finished. Pings should have been triggered by now...");
+            println("Waiting finished. Pings should have been triggered by now...")
             // At this moment, the Ping/Pong protocol must have been triggered at least once...
             server.stop()
             client.stop()
