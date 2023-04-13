@@ -139,7 +139,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     // Other useful counters:
     private final AtomicLong numConnsFailed = new AtomicLong();
     private final AtomicLong numConnsInProgressExpired = new AtomicLong();
-    private int numConnsTried;  // reset after calling getState()
+    private long numConnsTried;
 
     // Files to store info after the handler has stopped:
     private static final String FILE_ACTIVE_CONN            = "networkHandler-activeConnections.csv";
@@ -205,7 +205,6 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
                     .numInProgressConnsExpired(this.numConnsInProgressExpired.get())
                     .numConnsTried(this.numConnsTried)
                     .build();
-            numConnsTried = 0; // aggregate value that is reset between calls to getState()
         } finally {
             lock.readLock().unlock();
         }
