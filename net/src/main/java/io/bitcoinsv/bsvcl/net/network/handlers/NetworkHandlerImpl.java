@@ -213,13 +213,11 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
 
     @Override
     public void connect(PeerAddress peerAddress) {
-        //System.out.println("Connecting to " + peerAddress + " peers...");
-        connect(Arrays.asList(peerAddress));
+        connect(Collections.singletonList(peerAddress));
     }
 
     @Override
     public synchronized void connect(List<PeerAddress> peerAddresses) {
-        //System.out.println("Connecting t0 " + peerAddresses.size() + " peers...");
         if (peerAddresses == null) return;
         if (super.isRunning()) {
             try {
@@ -235,7 +233,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
 
                 if (listToAdd.size() > 0) {
                     // Now we check that we are not breaking the limit in the Pending Socket Connections:
-                    // If there si no limit, we just include them all. If there is a limit, we only include them up
+                    // If there is no limit, we just include them all. If there is a limit, we only include them up
                     // to the limit.
 
                     List<PeerAddress> finalListToAdd = listToAdd;
@@ -260,7 +258,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
 
     @Override
     public void processDisconnectRequest(DisconnectPeerRequest request) {
-        processDisconnectRequests(Arrays.asList(request));
+        processDisconnectRequests(Collections.singletonList(request));
     }
 
     @Override
@@ -273,11 +271,11 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
                 List<DisconnectPeerRequest> newList = requests.stream()
                         .filter(r -> !pendingToCloseConns.contains( new PeerAddress2DisconnectPeerRequest_Comparator(r.getPeerAddress()) ))
                         .filter(r -> (activeConns.containsKey(r.getPeerAddress()) || pendingToOpenConns.contains(r.getPeerAddress())))
-                        .collect(Collectors.toList());
+                        .toList();
                 if (newList.size() > 0) {
                     logger.trace("{} : Registering " + newList.size() + " Peers for Disconnection...", this.id);
                     pendingToCloseConns.addAll(newList);
-                    pendingToOpenConns.removeAll(newList.stream().map(r -> r.getPeerAddress()).collect(Collectors.toList()));
+                    pendingToOpenConns.removeAll(newList.stream().map(DisconnectPeerRequest::getPeerAddress).toList());
                     mainSelector.wakeup();
                 }
             } finally {
@@ -431,7 +429,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
      * method.
      */
     @Override
-    public void run() {
+    public void run() throws IOException, InterruptedException {
         logger.info("{} : Starting in " + (serverMode ? "SERVER" : "CLIENT") + " mode...", this.id);
         startConnectionsJobs();
         try {
@@ -441,6 +439,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         } catch (Throwable e) {
             logger.error("{} : Error running the NetworkHandlerImpl", this.id, e);
             e.printStackTrace();
+            throw e;
         } finally {
             stopConnectionsJobs();
             closeAllKeys(mainSelector);
@@ -692,7 +691,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
             } // while...
         } catch (Throwable th) {
             th.printStackTrace();
-            //handlerLogger.error(th, th.getMessage());
+            throw new RuntimeException(th);
         }
 
     }
@@ -748,9 +747,6 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
                 }
                 Thread.sleep(2000); // avoid tight loops
             } // while...
-        } catch (InterruptedException ie) {
-            ie.printStackTrace();
-            throw new RuntimeException(ie);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e);
