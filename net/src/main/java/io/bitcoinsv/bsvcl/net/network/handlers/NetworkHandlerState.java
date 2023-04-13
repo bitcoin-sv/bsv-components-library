@@ -21,12 +21,12 @@ public final class NetworkHandlerState extends HandlerState {
     private final boolean server_mode;
     private final boolean keep_connecting;
 
-    private int numConnsTried;
+    private final long numConnsTried;
 
     NetworkHandlerState(int numActiveConns, int numInProgressConns, int numPendingToOpenConns, int numPendingToCloseConns,
                         boolean server_mode, boolean keep_connecting,
                         long numConnsFailed, long numInProgressConnsExpired,
-                        int numConnsTried) {
+                        long numConnsTried) {
         this.numActiveConns = numActiveConns;
         this.numInProgressConns = numInProgressConns;
         this.numPendingToOpenConns = numPendingToOpenConns;
@@ -63,7 +63,7 @@ public final class NetworkHandlerState extends HandlerState {
     public int getNumPendingToCloseConns()  { return this.numPendingToCloseConns; }
     public boolean isServer_mode()          { return this.server_mode; }
     public boolean isKeep_connecting()      { return this.keep_connecting; }
-    public int getNumCopnnsTried()          { return this.numConnsTried; }
+    public long getNumCopnnsTried()          { return this.numConnsTried; }
 
     public static NetworkHandlerStateBuilder builder() {
         return new NetworkHandlerStateBuilder();
@@ -93,7 +93,7 @@ public final class NetworkHandlerState extends HandlerState {
         private long numInProgressConnsExpired;
         private boolean server_mode;
         private boolean keep_connecting;
-        private int numConnsTried;
+        private long numConnsTried;
 
         NetworkHandlerStateBuilder() {}
 
@@ -137,7 +137,7 @@ public final class NetworkHandlerState extends HandlerState {
             return this;
         }
 
-        public NetworkHandlerState.NetworkHandlerStateBuilder numConnsTried(int numConnsTried) {
+        public NetworkHandlerState.NetworkHandlerStateBuilder numConnsTried(long numConnsTried) {
             this.numConnsTried = numConnsTried;
             return this;
         }
