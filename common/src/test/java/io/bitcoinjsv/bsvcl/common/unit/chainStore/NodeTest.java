@@ -15,7 +15,7 @@ public class NodeTest implements Node<String> {
     String title;
 
     /** Constructor */
-    NodeTest(String id, String title) {
+    public NodeTest(String id, String title) {
         this.id = id;
         this.title = title;
     }
