@@ -954,7 +954,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
 
         // If these bytes are the FIRST bytes coming from a Peer, we wait a bit JUST IN CASE, so we make sure that
         // all the events related to this Peer/Stream have been populated properly...
-        // todo: is this really necessary??
+        // todo: is this really necessary?? This shows to me that there is a problem with the way we handle the startup
         if (!keyConnection.started) {
             logger.warn(">>>> DATA COMING FROM NOT-INITIALIZED STREAM: {}", keyConnection.peerAddress);
             try { Thread.sleep(50);} catch (InterruptedException ie) {}
@@ -975,6 +975,9 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     protected void handleWrite(SelectionKey key) throws IOException {
         // Write the data to the Peer (through the Stream wrapped out around it) and run the callbacks:
         KeyConnectionAttach keyConnection = (KeyConnectionAttach) key.attachment();
+        // the checks below should not be necessary. They should be removed and the code allowed to create
+        // exceptions. But if I do that right now then the majority of tests will fail.
+        // There's something very messed up with the startup process that needs to be sorted out. todo
         if (keyConnection == null) {
             logger.warn(">>>> NULL ATTACHMENT: {}", key);
             return;
