@@ -363,16 +363,16 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         }
     }
 
-    // We register this calss to LISTEN for some Events that might be published by another Hndlers.
+    // We register this class to LISTEN for some events that might be published by other handlers.
     public void registerForEvents() {
-        eventBus.subscribe(DisconnectPeerRequest.class,             e -> onDisconnectPeerRequest((DisconnectPeerRequest) e));
+        eventBus.subscribe(DisconnectPeerRequest.class, e -> onDisconnectPeerRequest((DisconnectPeerRequest) e));
         eventBus.subscribe(ConnectPeerRequest.class, e -> onConnectPeerRequest((ConnectPeerRequest) e));
-        eventBus.subscribe(ConnectPeersRequest.class,               e -> onConnectPeersRequest((ConnectPeersRequest) e));
-        eventBus.subscribe(PeersBlacklistedEvent.class,             e -> onPeersBlacklisted((PeersBlacklistedEvent) e));
+        eventBus.subscribe(ConnectPeersRequest.class, e -> onConnectPeersRequest((ConnectPeersRequest) e));
+        eventBus.subscribe(PeersBlacklistedEvent.class, e -> onPeersBlacklisted((PeersBlacklistedEvent) e));
         eventBus.subscribe(PeersRemovedFromBlacklistEvent.class, e -> onPeersRemovedFromBlacklist((PeersRemovedFromBlacklistEvent) e));
         eventBus.subscribe(ResumeConnectingRequest.class, e -> onResumeConnecting((ResumeConnectingRequest) e));
-        eventBus.subscribe(StopConnectingRequest.class,             e -> onStopConnecting((StopConnectingRequest) e));
-        eventBus.subscribe(DisconnectPeersRequest.class,            e -> onDisconnectPeers((DisconnectPeersRequest) e));
+        eventBus.subscribe(StopConnectingRequest.class, e -> onStopConnecting((StopConnectingRequest) e));
+        eventBus.subscribe(DisconnectPeersRequest.class, e -> onDisconnectPeers((DisconnectPeersRequest) e));
     }
 
     // Event Handlers:
@@ -865,40 +865,35 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     }
 
     /**
-     * It handles each selection key from the selector. This logic is encapsualted in this method, so it can be
-     * override by a child class in case we don't want to habdle specific keys or handle new ones (like the
-     * ACCEPT key, which s not handled here, since the NetworkHandlerImpl does not accept incoming connections)
+     * It handles each selection key from the selector. This logic is encapsulated in this method, so it can be
+     * overridden by a child class in case we don't want to handle specific keys or handle new ones (like the
+     * ACCEPT key, which is not handled here since the NetworkHandlerImpl does not accept incoming connections)
      * @param key Key to handle
      */
     protected void handleKey(SelectionKey key) throws IOException {
-        try {
-            //logger.trace("Key : " + key);
-            if (!key.isValid()) {
-                handleInvalidKey(key);
-                return;
-            }
-            if (key.isConnectable()) {
-                //logger.trace("{} : Handling Connectable Key {}: {}...", this.id, key.hashCode(), key);
-                handleConnect(key);
-                return;
-            }
-            if (key.isReadable()) {
-                //logger.trace( "Handling Readable Key " + key + "...");
-                handleRead(key);
-            }
-            if (key.isWritable()) {
-                //logger.trace( "Handling Writable Key " + key + "...");
-                handleWrite(key);
-                return;
-            }
-            if ((serverMode) && (key.isAcceptable())) {
-                //logger.trace("{} : Handling Acceptable Key {}: {}...", this.id, key.hashCode(), key);
-                handleAccept(key);
-            }
-
-        } catch (Exception e) {
-            //handlerLogger.error(e, e.getMessage());
-            //e.printStackTrace();
+        logger.trace("Key : " + key);
+        if (!key.isValid()) {
+            handleInvalidKey(key);
+            return;
+        }
+        if (key.isConnectable()) {
+            logger.trace("{} : Handling Connectable Key {}: {}...", this.id, key.hashCode(), key);
+            handleConnect(key);
+            return;
+        }
+        if (key.isReadable()) {
+            logger.trace( "Handling Readable Key " + key + "...");
+            handleRead(key);
+            return;
+        }
+        if (key.isWritable()) {
+            logger.trace( "Handling Writable Key " + key + "...");
+            handleWrite(key);
+            return;
+        }
+        if ((serverMode) && (key.isAcceptable())) {
+            logger.trace("{} : Handling Acceptable Key {}: {}...", this.id, key.hashCode(), key);
+            handleAccept(key);
         }
     }
 
@@ -949,18 +944,17 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     }
 
     /**
-     * It handles a READ key, that is some data is ready to read from one Connection. Internally, the Stream
-     * representing this connection is used to read data from the Socket (and return it to the "client" by using
+     * It handles a READ key, that is some data is ready to read from one connection. Internally, the stream
+     * representing this connection is used to read data from the socket (and return it to the "client" by using
      * the "onData" method)
      */
     protected void handleRead(SelectionKey key) throws IOException {
         // We read the data from the Peer (through the Stream wrapped out around it) and we run the callbacks:
-        //handlerLogger.log(Level.TRACE, "read key...");
         KeyConnectionAttach keyConnection = (KeyConnectionAttach) key.attachment();
 
         // If these bytes are the FIRST bytes coming from a Peer, we wait a bit JUST IN CASE, so we make sure that
         // all the events related to this Peer/Stream have been populated properly...
-
+        // todo: is this really necessary??
         if (!keyConnection.started) {
             logger.warn(">>>> DATA COMING FROM NOT-INITIALIZED STREAM: {}", keyConnection.peerAddress);
             try { Thread.sleep(50);} catch (InterruptedException ie) {}
@@ -968,7 +962,6 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         }
 
         int numBytesRead = ((NIOInputStream)keyConnection.stream.input()).readFromSocket();
-        //logger.trace(numBytesRead + " read from " + ((NIOInputStream) keyConnection.stream.input()).getPeerAddress().toString());
         if (numBytesRead == -1) {
             logger.trace("{} : {} : Connection closed by the Remote Peer.", this.id, keyConnection.peerAddress);
             this.closeKey(key, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_REMOTE);
