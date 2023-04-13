@@ -12,6 +12,7 @@ import io.bitcoinsv.bitcoinjsv.params.MainNetParams
 import spock.lang.Specification
 
 import java.time.Instant
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -51,22 +52,28 @@ class ProtocolConnectionTest extends Specification {
             // we listen to the Connect/Disconnect Events:
             AtomicInteger numConnections = new AtomicInteger()
             AtomicInteger numDisconnections = new AtomicInteger()
+            CountDownLatch connectsLatch = new CountDownLatch(2)
+            CountDownLatch disconnectsLatch = new CountDownLatch(2)
 
             server.EVENTS.PEERS.CONNECTED.forEach({ e ->
                 println(Instant.now().toString() + " Server event: " + e)
                 numConnections.incrementAndGet()
+                connectsLatch.countDown()
             })
             client.EVENTS.PEERS.CONNECTED.forEach({ e ->
                 println(Instant.now().toString() + " Client event: " + e)
                 numConnections.incrementAndGet()
+                connectsLatch.countDown()
             })
             server.EVENTS.PEERS.DISCONNECTED.forEach({ e ->
                 println(Instant.now().toString() + " Server event: " + e)
                 numDisconnections.incrementAndGet()
+                disconnectsLatch.countDown()
             })
             client.EVENTS.PEERS.DISCONNECTED.forEach({ e ->
                 println(Instant.now().toString() + " Client event: " + e)
                 numDisconnections.incrementAndGet()
+                disconnectsLatch.countDown()
             })
 
             server.EVENTS.GENERAL.START.forEach({ e ->
@@ -90,11 +97,10 @@ class ProtocolConnectionTest extends Specification {
             client.awaitStarted(10, TimeUnit.SECONDS)
 
             client.REQUESTS.PEERS.connect(server.getPeerAddress()).submit()
+            var connectsDone = connectsLatch.await(10, TimeUnit.SECONDS)
 
-            Thread.sleep(100)
             client.REQUESTS.PEERS.disconnect(server.getPeerAddress()).submit()
-
-            Thread.sleep(100)
+            var disconnectsDone = disconnectsLatch.await(10, TimeUnit.SECONDS)
 
             server.stop()
             client.stop()
@@ -103,7 +109,9 @@ class ProtocolConnectionTest extends Specification {
 
         then:
             // We check that the Events have been triggered right:
+            connectsDone
             numConnections.get() == 2
+            disconnectsDone
             numDisconnections.get() == 2
     }
 }
