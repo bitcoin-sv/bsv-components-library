@@ -973,10 +973,17 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
      * is representing by a ByteArrayStream, so we use it to write the data through the channel.
      */
     protected void handleWrite(SelectionKey key) throws IOException {
-        // We write the data to the Peer (through the Stream wrapped out around it) and we run the callbacks:
+        // Write the data to the Peer (through the Stream wrapped out around it) and run the callbacks:
         KeyConnectionAttach keyConnection = (KeyConnectionAttach) key.attachment();
+        if (keyConnection == null) {
+            logger.warn(">>>> NULL ATTACHMENT: {}", key);
+            return;
+        }
+        if (keyConnection.stream == null) {
+            logger.warn(">>>> NULL STREAM: {}", keyConnection.peerAddress);
+            return;
+        }
         int numBytesWrite = ((NIOOutputStream) keyConnection.stream.output()).writeToSocket();
-        //logger.trace(numBytesWrite + " written to " + ((NIOOutputStream) keyConnection.stream.output()).getPeerAddress().toString());
     }
 
     /**
