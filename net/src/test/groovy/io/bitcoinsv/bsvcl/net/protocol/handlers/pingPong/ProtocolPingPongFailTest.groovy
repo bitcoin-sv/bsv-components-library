@@ -13,6 +13,7 @@ import io.bitcoinsv.bitcoinjsv.params.Net
 import spock.lang.Specification
 
 import java.time.Duration
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -28,17 +29,12 @@ class ProtocolPingPongFailTest extends Specification {
     def "Testing Ping-Pong Fail"() {
         given:
             // This is the inactivity period well use in this test. It will be fed into the configuration of both
-            // the Serve and the client.
+            // the server and the client.
             // After this inactivity time, the Ping/Pong protocol will start...
             Duration inactivityTimeout = Duration.ofMillis(100)
 
             // If a Peer does not reply to a Ping message after this response Time, the Ping/Pong will fail:
             Duration responseTimeout = Duration.ofMillis(1000)
-
-            // This is the time we are going to artificially WAIT, to make sure that the "inactivity" timeout is reached
-            // ad the Ping/Pong protocol actually starts. NOTE: If this time is not Long enough, the Ping/Pong protocol
-            // might not start. If it's too LONG, it might be triggered more than once.
-            Duration waitingTime = Duration.ofMillis(responseTimeout.toMillis() * 5) // 3 times as much
 
             // Server Definition:
             ProtocolConfig serverConfig = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
@@ -81,13 +77,16 @@ class ProtocolPingPongFailTest extends Specification {
 
             AtomicInteger numPingReceivedByClient = new AtomicInteger(0)
             AtomicInteger numPongReceivedByClient = new AtomicInteger(0)
+            CountDownLatch disconnectLatch = new CountDownLatch(1)
 
             server.EVENTS.MSGS.PING.forEach({ e -> numPingReceivedByServer.incrementAndGet()})
             server.EVENTS.MSGS.PONG.forEach({ e -> numPongReceivedByServer.incrementAndGet()})
             server.EVENTS.PEERS.PINGPONG_FAILED.forEach({ e -> pingPongFailed.set(true)})
+            server.EVENTS.PEERS.DISCONNECTED.forEach({ e -> disconnectLatch.countDown()})
 
             client.EVENTS.MSGS.PING.forEach({ e -> numPingReceivedByClient.incrementAndGet()})
             client.EVENTS.MSGS.PONG.forEach({ e -> numPongReceivedByClient.incrementAndGet()})
+            client.EVENTS.PEERS.DISCONNECTED.forEach({ e -> disconnectLatch.countDown()})
 
         when:
             // We start both and connect them:
@@ -99,12 +98,11 @@ class ProtocolPingPongFailTest extends Specification {
             println(" >>> CONNECTING TO THE SERVER...")
             // We connect both together. This will trigger the HANDSHAKE protocol automatically.
             client.REQUESTS.PEERS.connect(server.getPeerAddress()).submit()
-            println(" >>> WAITING UNTIL PING/PONG TIMEOUT...")
-            Thread.sleep(waitingTime.toMillis())
-            // At this moment, the Ping/Pong protocol must have been triggered at least once by the Server, but the
-            // Client didn't reply to it, so the Server must have detected that the timeout has expired and therefore
-            // requested a disconnection from this Client.
-            Thread.sleep(5000)
+
+            // The Ping/Pong protocol will be triggered at least once by the server, but the client won't reply to it,
+            // so the server will detect that the timeout has expired and therefore disconnect from this client.
+            var disconnected = disconnectLatch.await(10, TimeUnit.SECONDS)
+
             println(" >>> STOPPING...")
             server.stop()
             client.stop()
@@ -113,6 +111,7 @@ class ProtocolPingPongFailTest extends Specification {
 
         then:
             // We check that the Ping/Pong protocol has been triggered at LEAST ONCE by the Server.
+            disconnected
             numPingReceivedByServer.get() == 0
             numPongReceivedByServer.get() == 0
             numPingReceivedByClient.get() > 0

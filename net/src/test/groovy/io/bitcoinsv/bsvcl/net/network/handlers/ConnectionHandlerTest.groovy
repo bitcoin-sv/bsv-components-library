@@ -17,11 +17,11 @@ import groovy.util.logging.Slf4j
 import spock.lang.Ignore
 import spock.lang.Specification
 
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
 
 @Slf4j
-@Ignore("This test is not working yet. It needs to be fixed.")  // todo: fix this test
 class ConnectionHandlerTest extends Specification {
 
     /**
@@ -58,34 +58,40 @@ class ConnectionHandlerTest extends Specification {
             AtomicBoolean clientConnected = new AtomicBoolean(false)
             AtomicBoolean clientDisconnected = new AtomicBoolean(false)
 
+            CountDownLatch connectsLatch = new CountDownLatch(2)
+            CountDownLatch disconnectsLatch = new CountDownLatch(2)
+
             // We provide some callbacks for the Server...
             serverEventBus.subscribe(PeerConnectedEvent.class, {e ->
                 log.trace("EVENT > SERVER: CONNECTED TO " + e.getPeerAddress())
                 serverConnected.set(true)
+                connectsLatch.countDown()
             })
             serverEventBus.subscribe(PeerDisconnectedEvent.class, { e ->
                 log.trace("EVENT > SERVER: DISCONNECTED FROM " + e.getPeerAddress())
                 serverDisconnected.set(true)
+                disconnectsLatch.countDown()
             })
 
             // we provide some callbacks for the Client
             clientEventBus.subscribe(PeerConnectedEvent.class, {e ->
                 log.trace("EVENT > CLIENT: CONNECTED TO " + e.getPeerAddress())
                 clientConnected.set(true)
+                connectsLatch.countDown()
             })
             clientEventBus.subscribe(PeerDisconnectedEvent.class, { e ->
                 log.trace("EVENT > CLIENT: DISCONNECTED FROM " + e.getPeerAddress())
                 clientDisconnected.set(true)
+                disconnectsLatch.countDown()
             })
 
         when:
-            // TODO: NOTES ABOUT THE ADDRESSES
             server.startServer()
             client.start()
             client.connect(server.getPeerAddress())
-            Thread.sleep(1_000)
+            connectsLatch.await()
             client.disconnect(server.getPeerAddress())
-            Thread.sleep(1_000)
+            disconnectsLatch.await()
             server.stop()
             client.stop()
             server.awaitStopped()
@@ -119,20 +125,24 @@ class ConnectionHandlerTest extends Specification {
             // We keep track of the events in these variables:
 
             AtomicBoolean clientRejected= new AtomicBoolean(false)
+            CountDownLatch failureLatch = new CountDownLatch(1)
 
             // We provide some callbacks ...
             clientEventBus.subscribe(PeerRejectedEvent.class, { e ->
-                PeerRejectedEvent rejectedEvent = (PeerRejectedEvent) e;
+                PeerRejectedEvent rejectedEvent = (PeerRejectedEvent) e
                 println("EVENT > CLIENT: CONNECTION REJECTED FROM " + rejectedEvent.getPeerAddress())
                 if (rejectedEvent.getReason() == PeerRejectedEvent.RejectedReason.INTERNAL_ERROR) clientRejected.set(true)
+                failureLatch.countDown()
             })
 
         when:
 
             client.start()
             client.connect(PeerAddress.fromIp("127.0.0.1:8100")) // dummy port
-            Thread.sleep(1_000)
+            failureLatch.await()
             client.stop()
+            client.awaitStopped()
+
         then:
             clientRejected.get()
     }
