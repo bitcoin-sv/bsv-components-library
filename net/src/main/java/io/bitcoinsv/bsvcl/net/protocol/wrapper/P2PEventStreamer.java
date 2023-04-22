@@ -9,7 +9,7 @@ import io.bitcoinsv.bsvcl.net.protocol.handlers.discovery.DiscoveryHandlerState;
 import io.bitcoinsv.bsvcl.net.protocol.handlers.handshake.HandshakeHandlerState;
 import io.bitcoinsv.bsvcl.net.protocol.handlers.message.MessageHandlerState;
 import io.bitcoinsv.bsvcl.net.protocol.handlers.pingPong.PingPongHandlerState;
-import io.bitcoinsv.bsvcl.net.network.handlers.NetworkHandlerState;
+import io.bitcoinsv.bsvcl.net.network.NetworkControllerState;
 import io.bitcoinsv.bsvcl.common.events.EventBus;
 import io.bitcoinsv.bsvcl.common.events.EventStreamer;
 
@@ -158,7 +158,7 @@ public class P2PEventStreamer {
         }
 
         public final EventStreamer<HandlerStateEvent> ALL        = new EventStreamer<>(stateEventBus, HandlerStateEvent.class);
-        public final EventStreamer<HandlerStateEvent> NETWORK    = new EventStreamer<>(stateEventBus, HandlerStateEvent.class, getFilterForHandler(NetworkHandlerState.class));
+        public final EventStreamer<HandlerStateEvent> NETWORK    = new EventStreamer<>(stateEventBus, HandlerStateEvent.class, getFilterForHandler(NetworkControllerState.class));
         public final EventStreamer<HandlerStateEvent> MESSAGES   = new EventStreamer<>(stateEventBus, HandlerStateEvent.class, getFilterForHandler(MessageHandlerState.class));
         public final EventStreamer<HandlerStateEvent> HANDSHAKE  = new EventStreamer<>(stateEventBus, HandlerStateEvent.class, getFilterForHandler(HandshakeHandlerState.class));
         public final EventStreamer<HandlerStateEvent> PINGPONG   = new EventStreamer<>(stateEventBus, HandlerStateEvent.class, getFilterForHandler(PingPongHandlerState.class));

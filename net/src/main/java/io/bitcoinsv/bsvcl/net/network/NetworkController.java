@@ -1,10 +1,9 @@
-package io.bitcoinsv.bsvcl.net.network.handlers;
+package io.bitcoinsv.bsvcl.net.network;
 
 // @author i.fernandez@nchain.com
 // Copyright (c) 2018-2023 Bitcoin Association
 
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
-import io.bitcoinsv.bsvcl.net.network.PeerAddress;
 import io.bitcoinsv.bsvcl.net.network.config.NetworkConfig;
 import io.bitcoinsv.bsvcl.net.network.config.NetworkConfigImpl;
 import io.bitcoinsv.bsvcl.net.network.events.*;
@@ -50,7 +49,7 @@ import static com.google.common.base.Preconditions.checkState;
  * - This class keeps different list to keep track of the peers to connect to or the ones to disconnect from. These
  *   lists are processed in another 2 different threads, one for each list.
  */
-public class NetworkHandlerImpl extends AbstractExecutionThreadService {
+public class NetworkController extends AbstractExecutionThreadService {
 
     /** Subfolder to store local files in */
     private static final String NET_FOLDER = "net";
@@ -99,7 +98,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService {
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     // For logging:
-    private final Logger logger = LoggerFactory.getLogger(NetworkHandlerImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(NetworkController.class);
 
     // Local Address of this Handler running:
     private PeerAddress peerAddress;
@@ -119,7 +118,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService {
     ExecutorService newConnsExecutor;
 
     // General State:
-    private NetworkHandlerState state;
+    private NetworkControllerState state;
 
     // The following lists manage the different workingState the connections go though:
     // active:          The connection is established to a Remote Peer. Ready to send/receive data from it
@@ -163,7 +162,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService {
         }
     }
 
-    public NetworkHandlerImpl(String id, RuntimeConfig runtimeConfig, NetworkConfig netConfig, PeerAddress localAddress) {
+    public NetworkController(String id, RuntimeConfig runtimeConfig, NetworkConfig netConfig, PeerAddress localAddress) {
         this.id = id;
         this.runtimeConfig = runtimeConfig;
         this.config = netConfig;
@@ -188,11 +187,11 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService {
 
     public void resumeConnecting()                  { this.keepConnecting = true;}
 
-    public NetworkHandlerState getState() {
-        NetworkHandlerState result = null;
+    public NetworkControllerState getState() {
+        NetworkControllerState result = null;
         try {
             lock.readLock().lock();
-            result = NetworkHandlerState.builder()
+            result = NetworkControllerState.builder()
                     .numActiveConns(this.activeConns.size())
                     .numInProgressConns(this.inProgressConns.size())
                     .numPendingToCloseConns(this.pendingToCloseConns.size())
