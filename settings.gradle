@@ -1,5 +1,6 @@
 rootProject.name = 'bsvcl'
 
+include 'bsv'
 include 'net'
 include 'common'
 
