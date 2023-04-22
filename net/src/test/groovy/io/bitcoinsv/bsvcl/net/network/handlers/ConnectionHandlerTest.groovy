@@ -6,8 +6,6 @@ import io.bitcoinsv.bsvcl.net.network.config.provided.NetworkDefaultConfig
 import io.bitcoinsv.bsvcl.net.network.events.PeerConnectedEvent
 import io.bitcoinsv.bsvcl.net.network.events.PeerDisconnectedEvent
 import io.bitcoinsv.bsvcl.net.network.events.PeerRejectedEvent
-import io.bitcoinsv.bsvcl.net.network.handlers.NetworkHandler
-import io.bitcoinsv.bsvcl.net.network.handlers.NetworkHandlerImpl
 import io.bitcoinsv.bsvcl.common.config.RuntimeConfig
 import io.bitcoinsv.bsvcl.common.config.provided.RuntimeConfigDefault
 import io.bitcoinsv.bsvcl.common.events.EventBus
@@ -46,9 +44,9 @@ class ConnectionHandlerTest extends Specification {
             EventBus clientEventBus = EventBus.builder().executor(clientExecutor).build()
 
             // We initialize them:
-            NetworkHandler server = new NetworkHandlerImpl("server", runtimeConfig, networkConfig, PeerAddress.localhost(0))
+            NetworkHandlerImpl server = new NetworkHandlerImpl("server", runtimeConfig, networkConfig, PeerAddress.localhost(0))
             server.useEventBus(serverEventBus)
-            NetworkHandler client = new NetworkHandlerImpl("client", runtimeConfig, networkConfig, PeerAddress.localhost(0))
+            NetworkHandlerImpl client = new NetworkHandlerImpl("client", runtimeConfig, networkConfig, PeerAddress.localhost(0))
             client.useEventBus(clientEventBus)
 
             // We keep track of the events in these variables:
@@ -113,7 +111,7 @@ class ConnectionHandlerTest extends Specification {
             EventBus clientEventBus = EventBus.builder().executor(clientExecutor).build()
 
             // We initialize it:
-            NetworkHandler client = new NetworkHandlerImpl("client", runtimeConfig, networkConfig, PeerAddress.localhost(0))
+            NetworkHandlerImpl client = new NetworkHandlerImpl("client", runtimeConfig, networkConfig, PeerAddress.localhost(0))
             client.useEventBus(clientEventBus)
 
             // We keep track of the events in these variables:
