@@ -12,7 +12,8 @@ import java.util.OptionalInt;
  * An implementation of the NetConfig Interface.
  */
 public class NetworkConfigImpl extends HandlerConfig implements NetworkConfig {
-    private int port;
+    private int defaultPort;
+    private int listeningPort;
     private OptionalInt maxSocketConnections;
     private OptionalInt maxSocketPendingConnections;
     private OptionalInt timeoutSocketConnection;
@@ -25,7 +26,7 @@ public class NetworkConfigImpl extends HandlerConfig implements NetworkConfig {
     private int maxMessageSizeAvgInBytes;
     private boolean blockingOnListeners;
 
-    public NetworkConfigImpl(int port,
+    public NetworkConfigImpl(int defaultPort, int listeningPort,
                              OptionalInt maxSocketConnections,
                              OptionalInt maxSocketPendingConnections,
                              OptionalInt timeoutSocketConnection,
@@ -37,7 +38,8 @@ public class NetworkConfigImpl extends HandlerConfig implements NetworkConfig {
                              int nioBufferSizeUpgrade,
                              int maxMessageSizeAvgInBytes,
                              boolean blockingOnListeners) {
-        this.port = port;
+        this.defaultPort = defaultPort;
+        this.listeningPort = listeningPort;
         this.maxSocketConnections = maxSocketConnections;
         this.maxSocketPendingConnections = maxSocketPendingConnections;
         this.timeoutSocketConnection = timeoutSocketConnection;
@@ -53,7 +55,8 @@ public class NetworkConfigImpl extends HandlerConfig implements NetworkConfig {
 
     public static NetworkConfigImplBuilder builder()        { return new NetworkConfigImplBuilder(); }
 
-    public int getPort()                                    { return this.port; }
+    public int getDefaultPort()                             { return this.defaultPort; }
+    public int getListeningPort()                           { return this.listeningPort; }
     public OptionalInt getMaxSocketConnections()            { return this.maxSocketConnections; }
     public OptionalInt getMaxSocketPendingConnections()     { return this.maxSocketPendingConnections; }
     public OptionalInt getTimeoutSocketConnection()         { return this.timeoutSocketConnection; }
@@ -67,7 +70,8 @@ public class NetworkConfigImpl extends HandlerConfig implements NetworkConfig {
 
     public NetworkConfigImplBuilder toBuilder() {
         return new NetworkConfigImplBuilder()
-                .port(this.port)
+                .defaultPort(this.defaultPort)
+                .listeningPort(this.listeningPort)
                 .maxSocketConnections(this.maxSocketConnections)
                 .maxSocketPendingConnections(this.maxSocketPendingConnections)
                 .maxSocketConnectionsOpeningAtSameTime(this.maxSocketConnectionsOpeningAtSameTime)
@@ -85,7 +89,8 @@ public class NetworkConfigImpl extends HandlerConfig implements NetworkConfig {
      * Builder.
      */
     public static class NetworkConfigImplBuilder {
-        private int port;
+        private int defaultPort;
+        private int listeningPort;
         private OptionalInt maxSocketConnections;
         private OptionalInt maxSocketPendingConnections;
         private OptionalInt timeoutSocketConnection;
@@ -100,8 +105,13 @@ public class NetworkConfigImpl extends HandlerConfig implements NetworkConfig {
 
         NetworkConfigImplBuilder() {}
 
-        public NetworkConfigImpl.NetworkConfigImplBuilder port(int port) {
-            this.port = port;
+        public NetworkConfigImpl.NetworkConfigImplBuilder defaultPort(int defaultPort) {
+            this.defaultPort = defaultPort;
+            return this;
+        }
+
+        public NetworkConfigImpl.NetworkConfigImplBuilder listeningPort(int listeningPort) {
+            this.listeningPort = listeningPort;
             return this;
         }
 
@@ -162,7 +172,8 @@ public class NetworkConfigImpl extends HandlerConfig implements NetworkConfig {
 
         public NetworkConfigImpl build() {
             return new NetworkConfigImpl(
-                    port,
+                    defaultPort,
+                    listeningPort,
                     maxSocketConnections,
                     maxSocketPendingConnections,
                     timeoutSocketConnection,

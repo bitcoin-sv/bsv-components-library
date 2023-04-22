@@ -1,5 +1,6 @@
 package io.bitcoinsv.bsvcl.net.protocol.handlers.discovery
 
+import io.bitcoinsv.bsvcl.net.network.config.provided.NetworkDefaultConfig
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfigBuilder
 import io.bitcoinsv.bsvcl.net.protocol.events.control.InitialPeersLoadedEvent
@@ -77,7 +78,7 @@ class DiscoveryOKTest extends Specification {
             P2P server = new P2PBuilder("testing")
                     .config(config)
                     .config(discoveryConfig)
-                    .serverPort(0) // Random Port
+                    .config(new NetworkDefaultConfig().toBuilder().listeningPort(0).build())
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
                     .build()
 
