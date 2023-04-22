@@ -1,7 +1,7 @@
 package io.bitcoinsv.bsvcl.net.protocol.handlers.wrapper
 
 import io.bitcoinsv.bsvcl.net.network.config.provided.NetworkDefaultConfig
-import io.bitcoinsv.bsvcl.net.network.handlers.NetworkHandler
+
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfigBuilder
 import io.bitcoinsv.bsvcl.net.protocol.handlers.blacklist.BlacklistHandler
@@ -37,7 +37,7 @@ class ProtocolStateTest extends Specification {
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
-                    .publishState(NetworkHandler.HANDLER_ID, Duration.ofMillis(500))
+//                    .publishState(NetworkHandler.HANDLER_ID, Duration.ofMillis(500))
                     .publishState(MessageHandler.HANDLER_ID, Duration.ofMillis(100))
                     .build()
             // We disable the Handlers we dont need for this Test:

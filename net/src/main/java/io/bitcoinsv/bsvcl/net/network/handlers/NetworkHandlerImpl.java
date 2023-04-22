@@ -50,7 +50,7 @@ import static com.google.common.base.Preconditions.checkState;
  * - This class keeps different list to keep track of the peers to connect to or the ones to disconnect from. These
  *   lists are processed in another 2 different threads, one for each list.
  */
-public class NetworkHandlerImpl extends AbstractExecutionThreadService implements NetworkHandler {
+public class NetworkHandlerImpl extends AbstractExecutionThreadService {
 
     /** Subfolder to store local files in */
     private static final String NET_FOLDER = "net";
@@ -171,25 +171,23 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         this.newConnsExecutor = ThreadUtils.getFixedThreadExecutorService("JclNetworkHandlerRemoteConn", netConfig.getMaxSocketConnectionsOpeningAtSameTime());
     }
 
-    @Override
     public HandlerConfig getConfig() {
         return (NetworkConfigImpl) config;
     }
-    @Override
+
     public synchronized void updateConfig(HandlerConfig config) {
         if (!(config instanceof NetworkConfig)) {
             throw new RuntimeException("config class is NOT correct for this Handler");
         }
         this.config = (NetworkConfig) config;
     }
-    @Override
+
     public void useEventBus(EventBus eventBus)      { this.eventBus = eventBus; }
-    @Override
+
     public void stopConnecting()                    { this.keepConnecting = false; }
-    @Override
+
     public void resumeConnecting()                  { this.keepConnecting = true;}
 
-    @Override
     public NetworkHandlerState getState() {
         NetworkHandlerState result = null;
         try {
@@ -211,12 +209,10 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         return result;
     }
 
-    @Override
     public void connect(PeerAddress peerAddress) {
         connect(Collections.singletonList(peerAddress));
     }
 
-    @Override
     // todo: method is synchronized and takes a writelock
     public synchronized void connect(List<PeerAddress> peerAddresses) {
         if (peerAddresses == null) return;
@@ -257,12 +253,10 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
 
 
 
-    @Override
     public void processDisconnectRequest(DisconnectPeerRequest request) {
         processDisconnectRequests(Collections.singletonList(request));
     }
 
-    @Override
     public void processDisconnectRequests(List<DisconnectPeerRequest> requests) {
         if (requests == null) return;
 
@@ -285,7 +279,6 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         }
     }
 
-    @Override
     public void disconnectAllExcept(List<PeerAddress> peerAddresses) {
         try {
             lock.writeLock().lock();
@@ -404,7 +397,6 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         }
     }
 
-    @Override
     public void start() {
         checkState(!super.isRunning(), "The Service is already Running");
         try {
@@ -419,7 +411,6 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         }
     }
 
-    @Override
     public void startServer() {
         this.serverMode = true;
         start();
@@ -447,7 +438,6 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         }
     }
 
-    @Override
     public void stop() throws InterruptedException {
         try {
             logger.info("{} : Stopping...", this.id);
@@ -1077,12 +1067,6 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         }
     }
 
-    // Used by the Guava Service. Provides the name for the Thread running this Handler
-    @Override
-    protected String serviceName() {
-        return HANDLER_ID+ "-main";
-    }
-
 
     // =============================================================================================================
     // LOGIC TO ADD MULTI-THREAD AT SELECTOR LEVEL
@@ -1133,4 +1117,16 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         isRunning.get(selector).set(false);
         selector.wakeup();
     }
+
+    void disconnect(PeerAddress peerAddress) {
+        processDisconnectRequest(new DisconnectPeerRequest(peerAddress, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL));
+    }
+
+    void disconnect(List<PeerAddress> peerAddressList) {
+        processDisconnectRequests(peerAddressList
+                .stream()
+                .map(p -> new DisconnectPeerRequest(p, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL))
+                .collect(Collectors.toList()));
+    }
+
 }
