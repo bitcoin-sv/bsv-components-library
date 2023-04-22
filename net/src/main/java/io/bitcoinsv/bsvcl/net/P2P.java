@@ -28,12 +28,20 @@ import java.util.*;
 import java.util.concurrent.*;
 
 /**
- * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 nChain Ltd
+ * The P2P class is the controller for accessing the Bitcoin P2P network.
+ * <p>
+ * Once started, a P2P object will start connecting to the Bitcoin P2P network in accordance with the
+ * configuration with which it was created.
+ * <p>
+ * Events from the network will be streamed to the relevant Event Buses
+ * <p>
+ * BELOW IS THE PLAN, NOT IMPLEMENTED YET
+ * The net packages use Java NIO to create connections. Java NIO uses asynchronous patterns to manage network
+ * connections, with the Selector managing the connections. Our pattern is to instantiate as many threads as there
+ * are cores in the system with a Selector for each thread. Connections are distributed across the Selectors. Each
+ * Selector (with thread) is managed in the NetworkHandlerImpl.
  *
- * This class is a wrapper over all the P2P and Network Handlers needed to connect to the P2P Network and
- * run the Bitcoin P2P. It provides convenience classes for subscribing to a Stream of Events, and for
- * send Request/Orders/Messages.
+ * @author i.fernandez@nchain.com
  */
 public class P2P {
     // Id, for logging purposes mostly:

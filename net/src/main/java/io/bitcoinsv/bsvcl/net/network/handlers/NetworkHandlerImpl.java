@@ -217,6 +217,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     }
 
     @Override
+    // todo: method is synchronized and takes a writelock
     public synchronized void connect(List<PeerAddress> peerAddresses) {
         if (peerAddresses == null) return;
         if (super.isRunning()) {
