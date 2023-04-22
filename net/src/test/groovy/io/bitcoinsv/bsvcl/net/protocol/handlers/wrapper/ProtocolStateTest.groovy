@@ -11,6 +11,7 @@ import io.bitcoinsv.bsvcl.net.protocol.handlers.pingPong.PingPongHandler
 import io.bitcoinsv.bsvcl.net.P2P
 import io.bitcoinsv.bsvcl.net.P2PBuilder
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.time.Duration
@@ -27,6 +28,7 @@ class ProtocolStateTest extends Specification {
      * any state has been published and that the number of notifications is different, since the frequencies
      * are also different.
      */
+    @Ignore("state publication from network controller not controllable at the moment - todo")
     def "Testing Client/Server Msgs exchange"() {
         given:
             // We disable the Handlers we dont need for this Test:

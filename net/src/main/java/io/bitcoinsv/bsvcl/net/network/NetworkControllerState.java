@@ -1,4 +1,4 @@
-package io.bitcoinsv.bsvcl.net.network.handlers;
+package io.bitcoinsv.bsvcl.net.network;
 
 import io.bitcoinsv.bsvcl.common.handlers.HandlerState;
 
@@ -10,7 +10,7 @@ import io.bitcoinsv.bsvcl.common.handlers.HandlerState;
  * physical and low-level connection to a remote Peers, and handles all the incoming/outcoming data between
  * the 2 parties.
  */
-public final class NetworkHandlerState extends HandlerState {
+public final class NetworkControllerState extends HandlerState {
     private final int numActiveConns;
     private final int numInProgressConns;
     private final int numPendingToOpenConns;
@@ -23,10 +23,10 @@ public final class NetworkHandlerState extends HandlerState {
 
     private final long numConnsTried;
 
-    NetworkHandlerState(int numActiveConns, int numInProgressConns, int numPendingToOpenConns, int numPendingToCloseConns,
-                        boolean server_mode, boolean keep_connecting,
-                        long numConnsFailed, long numInProgressConnsExpired,
-                        long numConnsTried) {
+    NetworkControllerState(int numActiveConns, int numInProgressConns, int numPendingToOpenConns, int numPendingToCloseConns,
+                           boolean server_mode, boolean keep_connecting,
+                           long numConnsFailed, long numInProgressConnsExpired,
+                           long numConnsTried) {
         this.numActiveConns = numActiveConns;
         this.numInProgressConns = numInProgressConns;
         this.numPendingToOpenConns = numPendingToOpenConns;
@@ -97,53 +97,53 @@ public final class NetworkHandlerState extends HandlerState {
 
         NetworkHandlerStateBuilder() {}
 
-        public NetworkHandlerState.NetworkHandlerStateBuilder numActiveConns(int numActiveConns) {
+        public NetworkControllerState.NetworkHandlerStateBuilder numActiveConns(int numActiveConns) {
             this.numActiveConns = numActiveConns;
             return this;
         }
 
-        public NetworkHandlerState.NetworkHandlerStateBuilder numInProgressConns(int numInProgressConns) {
+        public NetworkControllerState.NetworkHandlerStateBuilder numInProgressConns(int numInProgressConns) {
             this.numInProgressConns = numInProgressConns;
             return this;
         }
 
-        public NetworkHandlerState.NetworkHandlerStateBuilder numPendingToOpenConns(int numPendingToOpenConns) {
+        public NetworkControllerState.NetworkHandlerStateBuilder numPendingToOpenConns(int numPendingToOpenConns) {
             this.numPendingToOpenConns = numPendingToOpenConns;
             return this;
         }
 
-        public NetworkHandlerState.NetworkHandlerStateBuilder numPendingToCloseConns(int numPendingToCloseConns) {
+        public NetworkControllerState.NetworkHandlerStateBuilder numPendingToCloseConns(int numPendingToCloseConns) {
             this.numPendingToCloseConns = numPendingToCloseConns;
             return this;
         }
 
-        public NetworkHandlerState.NetworkHandlerStateBuilder numConnsFailed(long numConnsFailed) {
+        public NetworkControllerState.NetworkHandlerStateBuilder numConnsFailed(long numConnsFailed) {
             this.numConnsFailed = numConnsFailed;
             return this;
         }
 
-        public NetworkHandlerState.NetworkHandlerStateBuilder numInProgressConnsExpired(long numInProgressConnsExpired) {
+        public NetworkControllerState.NetworkHandlerStateBuilder numInProgressConnsExpired(long numInProgressConnsExpired) {
             this.numInProgressConnsExpired = numInProgressConnsExpired;
             return this;
         }
 
-        public NetworkHandlerState.NetworkHandlerStateBuilder server_mode(boolean server_mode) {
+        public NetworkControllerState.NetworkHandlerStateBuilder server_mode(boolean server_mode) {
             this.server_mode = server_mode;
             return this;
         }
 
-        public NetworkHandlerState.NetworkHandlerStateBuilder keep_connecting(boolean keep_connecting) {
+        public NetworkControllerState.NetworkHandlerStateBuilder keep_connecting(boolean keep_connecting) {
             this.keep_connecting = keep_connecting;
             return this;
         }
 
-        public NetworkHandlerState.NetworkHandlerStateBuilder numConnsTried(long numConnsTried) {
+        public NetworkControllerState.NetworkHandlerStateBuilder numConnsTried(long numConnsTried) {
             this.numConnsTried = numConnsTried;
             return this;
         }
 
-        public NetworkHandlerState build() {
-            return new NetworkHandlerState(numActiveConns, numInProgressConns, numPendingToOpenConns, numPendingToCloseConns, server_mode, keep_connecting,
+        public NetworkControllerState build() {
+            return new NetworkControllerState(numActiveConns, numInProgressConns, numPendingToOpenConns, numPendingToCloseConns, server_mode, keep_connecting,
                     numConnsFailed, numInProgressConnsExpired, numConnsTried);
         }
     }

@@ -8,7 +8,7 @@ import io.bitcoinsv.bsvcl.net.network.PeerAddress;
 import io.bitcoinsv.bsvcl.net.network.config.NetworkConfig;
 import io.bitcoinsv.bsvcl.net.network.config.provided.NetworkDefaultConfig;
 import io.bitcoinsv.bsvcl.net.network.events.HandlerStateEvent;
-import io.bitcoinsv.bsvcl.net.network.handlers.NetworkHandlerImpl;
+import io.bitcoinsv.bsvcl.net.network.NetworkController;
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig;
 import io.bitcoinsv.bsvcl.net.protocol.config.provided.ProtocolBSVMainConfig;
 import io.bitcoinsv.bsvcl.common.config.RuntimeConfig;
@@ -64,7 +64,7 @@ public class P2P {
     private final EventBus stateEventBus;
 
     // The network controllers. At the moment we only have one.
-    private final NetworkHandlerImpl networkController;
+    private final NetworkController networkController;
 
     // Map of all the message handlers
     private final Map<String, Handler> handlers = new ConcurrentHashMap<>();
@@ -95,7 +95,7 @@ public class P2P {
 
             // set up the network controllers, at the moment we only have one
             String serverIp = "0.0.0.0:" + networkConfig.getListeningPort();
-            this.networkController = new NetworkHandlerImpl(id, runtimeConfig, networkConfig, PeerAddress.fromIp(serverIp));
+            this.networkController = new NetworkController(id, runtimeConfig, networkConfig, PeerAddress.fromIp(serverIp));
 
             // EventBus for the Internal Handles within the P2P Service:
             this.eventBus = EventBus.builder().build();

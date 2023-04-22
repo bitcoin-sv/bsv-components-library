@@ -1,5 +1,6 @@
-package io.bitcoinsv.bsvcl.net.network.handlers
+package io.bitcoinsv.bsvcl.net.network
 
+import io.bitcoinsv.bsvcl.net.network.NetworkController
 import io.bitcoinsv.bsvcl.net.network.PeerAddress
 import io.bitcoinsv.bsvcl.net.network.config.NetworkConfig
 import io.bitcoinsv.bsvcl.net.network.config.provided.NetworkDefaultConfig
@@ -44,9 +45,9 @@ class ConnectionHandlerTest extends Specification {
             EventBus clientEventBus = EventBus.builder().executor(clientExecutor).build()
 
             // We initialize them:
-            NetworkHandlerImpl server = new NetworkHandlerImpl("server", runtimeConfig, networkConfig, PeerAddress.localhost(0))
+        NetworkController server = new NetworkController("server", runtimeConfig, networkConfig, PeerAddress.localhost(0))
             server.useEventBus(serverEventBus)
-            NetworkHandlerImpl client = new NetworkHandlerImpl("client", runtimeConfig, networkConfig, PeerAddress.localhost(0))
+            NetworkController client = new NetworkController("client", runtimeConfig, networkConfig, PeerAddress.localhost(0))
             client.useEventBus(clientEventBus)
 
             // We keep track of the events in these variables:
@@ -111,7 +112,7 @@ class ConnectionHandlerTest extends Specification {
             EventBus clientEventBus = EventBus.builder().executor(clientExecutor).build()
 
             // We initialize it:
-            NetworkHandlerImpl client = new NetworkHandlerImpl("client", runtimeConfig, networkConfig, PeerAddress.localhost(0))
+            NetworkController client = new NetworkController("client", runtimeConfig, networkConfig, PeerAddress.localhost(0))
             client.useEventBus(clientEventBus)
 
             // We keep track of the events in these variables:
