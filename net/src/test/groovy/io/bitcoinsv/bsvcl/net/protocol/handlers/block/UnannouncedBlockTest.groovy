@@ -7,6 +7,8 @@ import io.bitcoinsv.bitcoinjsv.params.RegTestParams
 import io.bitcoinsv.bsvcl.common.common.TestingUtils
 import io.bitcoinsv.bsvcl.common.config.RuntimeConfig
 import io.bitcoinsv.bsvcl.common.config.provided.RuntimeConfigDefault
+import io.bitcoinsv.bsvcl.net.P2P
+import io.bitcoinsv.bsvcl.net.P2PBuilder
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicReference
@@ -69,7 +71,7 @@ class UnannouncedBlockTest extends Specification {
         io.bitcoinsv.bsvcl.net.protocol.handlers.message.MessageHandlerConfig msgConfig = config.getMessageConfig().toBuilder()
                 .allowBigMsgFromAllPeers(true)
                 .build()
-        io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P server = new io.bitcoinsv.bsvcl.net.protocol.wrapper.P2PBuilder("server")
+        P2P server = new P2PBuilder("server")
                 .config(runtimeConfig)                              // "Big" Msgs workaround
                 .config(config)
                 .config(msgConfig)                                  // Allow "Big" msgs from ALL Peers
@@ -77,7 +79,7 @@ class UnannouncedBlockTest extends Specification {
                 .excludeHandler(io.bitcoinsv.bsvcl.net.protocol.handlers.blacklist.BlacklistHandler.HANDLER_ID)        // No blacklist functionality
                 .excludeHandler(io.bitcoinsv.bsvcl.net.protocol.handlers.discovery.DiscoveryHandler.HANDLER_ID)        // No Discovery functionality
                 .build()
-        io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P client = new io.bitcoinsv.bsvcl.net.protocol.wrapper.P2PBuilder("client")
+        P2P client = new P2PBuilder("client")
                 .config(config)
                 .serverPort(0)                            // random port
                 .excludeHandler(io.bitcoinsv.bsvcl.net.protocol.handlers.blacklist.BlacklistHandler.HANDLER_ID)        // No blacklist functionality

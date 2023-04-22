@@ -1,6 +1,8 @@
 package io.bitcoinsv.bsvcl.net.protocol.handlers.whitelist
 
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import io.bitcoinsv.bsvcl.net.P2P
+import io.bitcoinsv.bsvcl.net.P2PBuilder
 import spock.lang.Ignore
 import spock.lang.Specification
 
@@ -37,7 +39,7 @@ class WhitelistSpec extends Specification {
             // We extends the DiscoveryHandler Config, in case DNS's are not working properly:
             io.bitcoinsv.bsvcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig discoveryConfig = io.bitcoinsv.bsvcl.net.integration.utils.IntegrationUtils.getDiscoveryHandlerConfigMainnet(config.getDiscoveryConfig())
 
-            io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P server = new io.bitcoinsv.bsvcl.net.protocol.wrapper.P2PBuilder("testing")
+        P2P server = new P2PBuilder("testing")
                     .config(config)
                     .config(discoveryConfig)
                     .serverPort(0) // Random Port

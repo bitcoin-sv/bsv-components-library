@@ -22,8 +22,8 @@ import io.bitcoinsv.bsvcl.net.protocol.messages.TxOutputMsg
 import io.bitcoinsv.bsvcl.net.protocol.messages.common.StreamRequest
 import io.bitcoinsv.bsvcl.net.protocol.serialization.BlockMsgSerializer
 import io.bitcoinsv.bsvcl.net.protocol.serialization.common.SerializerContext
-import io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P
-import io.bitcoinsv.bsvcl.net.protocol.wrapper.P2PBuilder
+import io.bitcoinsv.bsvcl.net.P2P
+import io.bitcoinsv.bsvcl.net.P2PBuilder
 import io.bitcoinsv.bsvcl.common.bytes.ByteArrayWriter
 import io.bitcoinsv.bsvcl.common.common.TestingUtils
 

@@ -1,4 +1,4 @@
-package io.bitcoinsv.bsvcl.net.protocol.wrapper;
+package io.bitcoinsv.bsvcl.net;
 
 
 import io.bitcoinsv.bsvcl.net.protocol.handlers.blacklist.BlacklistHandler;
@@ -16,6 +16,8 @@ import io.bitcoinsv.bsvcl.common.config.RuntimeConfig;
 import io.bitcoinsv.bsvcl.common.config.provided.RuntimeConfigDefault;
 import io.bitcoinsv.bsvcl.common.events.EventBus;
 import io.bitcoinsv.bsvcl.common.handlers.Handler;
+import io.bitcoinsv.bsvcl.net.protocol.wrapper.P2PEventStreamer;
+import io.bitcoinsv.bsvcl.net.protocol.wrapper.P2PRequestHandler;
 import io.bitcoinsv.bsvcl.net.tools.LoggerUtil;
 import io.bitcoinsv.bsvcl.common.handlers.HandlerConfig;
 import io.bitcoinsv.bsvcl.common.thread.ThreadUtils;

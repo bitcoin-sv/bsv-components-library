@@ -6,6 +6,8 @@ import io.bitcoinsv.bsvcl.common.config.provided.RuntimeConfigDefault
 import io.bitcoinsv.bsvcl.common.thread.ThreadUtils
 import io.bitcoinsv.bitcoinjsv.core.Utils
 import io.bitcoinsv.bsvcl.common.util.EventsHistory
+import io.bitcoinsv.bsvcl.net.P2P
+import io.bitcoinsv.bsvcl.net.P2PBuilder
 import spock.lang.Ignore
 import spock.lang.Specification
 
@@ -152,7 +154,7 @@ class BlockDownloadTest extends Specification {
                 .build()
 
             // We configure the P2P Service:
-            io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P p2p = new io.bitcoinsv.bsvcl.net.protocol.wrapper.P2PBuilder("testing")
+        P2P p2p = new P2PBuilder("testing")
                 .config(runtimeConfig)
                 .config(networkConfig)
                 .config(config)

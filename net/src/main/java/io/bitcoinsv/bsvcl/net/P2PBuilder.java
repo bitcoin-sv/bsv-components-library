@@ -1,4 +1,4 @@
-package io.bitcoinsv.bsvcl.net.protocol.wrapper;
+package io.bitcoinsv.bsvcl.net;
 
 import io.bitcoinsv.bsvcl.net.protocol.handlers.blacklist.BlacklistHandler;
 import io.bitcoinsv.bsvcl.net.protocol.handlers.blacklist.BlacklistHandlerConfig;

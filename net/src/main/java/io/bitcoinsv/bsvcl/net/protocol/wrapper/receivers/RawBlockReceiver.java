@@ -11,7 +11,7 @@ import io.bitcoinsv.bsvcl.net.protocol.serialization.RawTxMsgSerializer;
 import io.bitcoinsv.bsvcl.net.protocol.serialization.common.DeserializerContext;
 import io.bitcoinsv.bsvcl.net.protocol.serialization.common.SerializerContext;
 import io.bitcoinsv.bsvcl.common.bigObjects.receivers.*;
-import io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P;
+import io.bitcoinsv.bsvcl.net.P2P;
 import io.bitcoinsv.bsvcl.common.bigObjects.BigCollectionChunk;
 import io.bitcoinsv.bsvcl.common.bigObjects.BigCollectionChunkImpl;
 import io.bitcoinsv.bsvcl.common.bigObjects.stores.ObjectSerializer;
