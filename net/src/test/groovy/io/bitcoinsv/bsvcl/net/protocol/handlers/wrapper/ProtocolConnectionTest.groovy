@@ -6,8 +6,8 @@ import io.bitcoinsv.bsvcl.net.protocol.handlers.blacklist.BlacklistHandler
 import io.bitcoinsv.bsvcl.net.protocol.handlers.discovery.DiscoveryHandler
 import io.bitcoinsv.bsvcl.net.protocol.handlers.handshake.HandshakeHandler
 import io.bitcoinsv.bsvcl.net.protocol.handlers.pingPong.PingPongHandler
-import io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P
-import io.bitcoinsv.bsvcl.net.protocol.wrapper.P2PBuilder
+import io.bitcoinsv.bsvcl.net.P2P
+import io.bitcoinsv.bsvcl.net.P2PBuilder
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams
 import spock.lang.Specification
 

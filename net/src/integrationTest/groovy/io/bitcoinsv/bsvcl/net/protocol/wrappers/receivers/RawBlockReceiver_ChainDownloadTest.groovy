@@ -6,6 +6,8 @@ import io.bitcoinsv.bsvcl.common.bigObjects.BigCollectionChunk
 import io.bitcoinsv.bsvcl.common.bigObjects.receivers.events.BigObjectReceivedEvent
 import io.bitcoinsv.bsvcl.common.config.RuntimeConfig
 import io.bitcoinsv.bsvcl.common.config.provided.RuntimeConfigDefault
+import io.bitcoinsv.bsvcl.net.P2P
+import io.bitcoinsv.bsvcl.net.P2PBuilder
 import spock.lang.Ignore
 import spock.lang.Specification
 
@@ -33,7 +35,7 @@ class RawBlockReceiver_ChainDownloadTest extends Specification {
     private static final Duration TEST_TIME_LIMIT = Duration.ofMinutes(10);
 
     // Net work Configuration, P2P & BLOCK RECEIVER
-    private io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P p2p;
+    private P2P p2p;
     private io.bitcoinsv.bsvcl.net.protocol.wrapper.receivers.RawBlockReceiver receiver
 
     // Multi-Threads mental health:
@@ -169,7 +171,7 @@ class RawBlockReceiver_ChainDownloadTest extends Specification {
         io.bitcoinsv.bsvcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig discoveryConfig = io.bitcoinsv.bsvcl.net.integration.utils.IntegrationUtils.getDiscoveryHandlerConfigMainnet(config.getDiscoveryConfig())
 
         // We configure the P2P Service:
-        p2p = new io.bitcoinsv.bsvcl.net.protocol.wrapper.P2PBuilder("testing")
+        p2p = new P2PBuilder("testing")
                 .config(runtimeConfig)
                 .config(protocolConfig)
                 .config(basicConfig)

@@ -128,7 +128,7 @@ class TxBlasterPerformanceTest extends Specification {
         println(" Tx " + txHash + " [ " + numTxs.get() + " txs, " + Thread.activeCount() + " threads ], memory: " + memorySummary)
     }
 
-    private void blastTxs(String threadId, io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P txBlaster, io.bitcoinsv.bsvcl.net.network.PeerAddress serverAddress, List<io.bitcoinsv.bsvcl.net.protocol.messages.common.BitcoinMsg<?>> msgs, int txSecRate) {
+    private void blastTxs(String threadId, P2P txBlaster, io.bitcoinsv.bsvcl.net.network.PeerAddress serverAddress, List<io.bitcoinsv.bsvcl.net.protocol.messages.common.BitcoinMsg<?>> msgs, int txSecRate) {
         int numBatchsToSend = txSecRate / NUM_TX_BATCH
         int waitingTime = (1000 / numBatchsToSend)
         int waitingTimelusBuffer = waitingTime - MILLISECS_PROCESSING_BATCH
@@ -171,7 +171,7 @@ class TxBlasterPerformanceTest extends Specification {
                                                         .maxPeers(OptionalInt.of(18))
                                                         .build()
             // We build the P2P SERVER:
-            io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P server = new io.bitcoinsv.bsvcl.net.protocol.wrapper.P2PBuilder("server")
+            P2P server = new P2PBuilder("server")
                             .config(protocolConfig)
                             .config(messageConfig)
                             .config(handshakeConfig)
@@ -191,7 +191,7 @@ class TxBlasterPerformanceTest extends Specification {
             server.EVENTS.MSGS.TX_RAW.forEach({ e -> txProcessor.addEvent(e)})
 
             // We build the P2P SERVER:
-            io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P txBlaster = new io.bitcoinsv.bsvcl.net.protocol.wrapper.P2PBuilder("txBlaster")
+            P2P txBlaster = new P2PBuilder("txBlaster")
                     .config(protocolConfig)
                     .config(handshakeConfig)
                     .config(basicConfig)

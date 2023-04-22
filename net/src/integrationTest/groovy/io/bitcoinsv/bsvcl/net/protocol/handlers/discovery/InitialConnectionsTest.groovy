@@ -2,6 +2,8 @@ package io.bitcoinsv.bsvcl.net.protocol.handlers.discovery
 
 
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import io.bitcoinsv.bsvcl.net.P2P
+import io.bitcoinsv.bsvcl.net.P2PBuilder
 import spock.lang.Ignore
 import spock.lang.Specification
 
@@ -69,7 +71,7 @@ class InitialConnectionsTest extends Specification {
                 .addInitialConnections(initialPeers)
                 .build()
 
-            io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P server = new io.bitcoinsv.bsvcl.net.protocol.wrapper.P2PBuilder("testing")
+        P2P server = new P2PBuilder("testing")
                     .config(config)
                     .config(discoveryConfig)
                     .serverPort(0) // Random Port

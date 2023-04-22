@@ -46,7 +46,7 @@ class IncomingTxPerformanceTest extends Specification {
      * is done this way because someties we cannot waut ofr the current Node.Discovery algorithm to find them in a
      * reasonable time.
      */
-    private void connectPeersManually(io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P p2p) {
+    private void connectPeersManually(P2P p2p) {
 
         String netId = p2p.getProtocolConfig().getId()
         if (netId.equalsIgnoreCase(io.bitcoinsv.bsvcl.net.protocol.config.provided.ProtocolBSVMainConfig.id) || netId.equalsIgnoreCase(MainNetParams.get().getId())) {
@@ -125,7 +125,7 @@ class IncomingTxPerformanceTest extends Specification {
      * It process each incoming INV: It just sends a GET_DATA message back to the Peer, aasking for ALL the Txs
      * announcement in the INV.
      */
-    private void processINV(io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P p2p, io.bitcoinsv.bsvcl.net.protocol.events.data.InvMsgReceivedEvent event) {
+    private void processINV(P2P p2p, io.bitcoinsv.bsvcl.net.protocol.events.data.InvMsgReceivedEvent event) {
         List<io.bitcoinsv.bsvcl.net.protocol.messages.InventoryVectorMsg> newTxsInvItems =  event.btcMsg.body.invVectorList;
         if (MIN_PEERS == null || numPeersHandshaked >= MIN_PEERS) {
 
@@ -143,13 +143,13 @@ class IncomingTxPerformanceTest extends Specification {
     /**
      * It process any incoming TX We just keep track and log it
      */
-    private void processTX(io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P p2p, io.bitcoinsv.bsvcl.net.protocol.events.data.TxMsgReceivedEvent event) {
+    private void processTX(P2P p2p, io.bitcoinsv.bsvcl.net.protocol.events.data.TxMsgReceivedEvent event) {
         if (firstTxInstant == null) firstTxInstant = Instant.now()
         lastTxInstant = Instant.now()
         numTxs.incrementAndGet()
     }
 
-    private void processRawTX(io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P p2p, io.bitcoinsv.bsvcl.net.protocol.events.data.RawTxMsgReceivedEvent event) {
+    private void processRawTX(P2P p2p, io.bitcoinsv.bsvcl.net.protocol.events.data.RawTxMsgReceivedEvent event) {
         if (firstTxInstant == null) firstTxInstant = Instant.now()
         lastTxInstant = Instant.now()
         numTxs.incrementAndGet()
@@ -195,7 +195,7 @@ class IncomingTxPerformanceTest extends Specification {
                                                         .maxPeers(OptionalInt.of(30))
                                                         .build()
             // We build the P2P Service:
-            io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P p2p = new io.bitcoinsv.bsvcl.net.protocol.wrapper.P2PBuilder("performance")
+            P2P p2p = new P2PBuilder("performance")
                             .config(protocolConfig)
                             .config(pingPongConfig)
                             .config(messageConfig)
