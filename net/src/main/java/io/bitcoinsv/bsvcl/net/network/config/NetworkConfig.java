@@ -11,8 +11,11 @@ import java.util.OptionalInt;
  */
 public interface NetworkConfig {
 
-    /** Listening port for Peers in the Blockchain Network */
-    int getPort();
+    /** Default port for peers in the Blockchain Network */
+    int getDefaultPort();
+
+    /** Our listening port */
+    int getListeningPort();
 
     /** Maximum Socket connections that can be open simultaneously open to the network */
     OptionalInt getMaxSocketConnections();

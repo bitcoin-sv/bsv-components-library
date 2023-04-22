@@ -9,6 +9,17 @@ import io.bitcoinsv.bsvcl.common.config.RuntimeConfig
 import io.bitcoinsv.bsvcl.common.config.provided.RuntimeConfigDefault
 import io.bitcoinsv.bsvcl.net.P2P
 import io.bitcoinsv.bsvcl.net.P2PBuilder
+import io.bitcoinsv.bsvcl.net.network.config.provided.NetworkDefaultConfig
+import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig
+import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfigBuilder
+import io.bitcoinsv.bsvcl.net.protocol.handlers.blacklist.BlacklistHandler
+import io.bitcoinsv.bsvcl.net.protocol.handlers.discovery.DiscoveryHandler
+import io.bitcoinsv.bsvcl.net.protocol.handlers.message.MessageHandlerConfig
+import io.bitcoinsv.bsvcl.net.protocol.messages.BlockHeaderMsg
+import io.bitcoinsv.bsvcl.net.protocol.messages.BlockMsg
+import io.bitcoinsv.bsvcl.net.protocol.messages.TxMsg
+import io.bitcoinsv.bsvcl.net.protocol.messages.common.BitcoinMsg
+import io.bitcoinsv.bsvcl.net.protocol.messages.common.BitcoinMsgBuilder
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicReference
@@ -23,20 +34,20 @@ import java.util.stream.IntStream
 class UnannouncedBlockTest extends Specification {
 
     // It creates a DUMMY BLOCK:
-    private io.bitcoinsv.bsvcl.net.protocol.messages.common.BitcoinMsg<io.bitcoinsv.bsvcl.net.protocol.messages.BlockMsg> createDummyBlock(io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig protocolConfig, int numTxs) {
-        HeaderBean blockHeader = TestingUtils.buildBlock()
-        io.bitcoinsv.bsvcl.net.protocol.messages.BlockHeaderMsg blockHeaderMsg = io.bitcoinsv.bsvcl.net.protocol.messages.BlockHeaderMsg.fromBean(blockHeader, numTxs);
-        List<io.bitcoinsv.bsvcl.net.protocol.messages.TxMsg> txsMsg = IntStream.range(0, numTxs)
+    private BitcoinMsg<BlockMsg> createDummyBlock(ProtocolConfig protocolConfig, int numTxs) {
+        HeaderBean blockHeader = TestingUtils.buildBlock() as HeaderBean
+        BlockHeaderMsg blockHeaderMsg = BlockHeaderMsg.fromBean(blockHeader, numTxs);
+        List<TxMsg> txsMsg = IntStream.range(0, numTxs)
                 .mapToObj({i -> TestingUtils.buildTx()})
-                .map({ tx -> io.bitcoinsv.bsvcl.net.protocol.messages.TxMsg.fromBean(tx)})
+                .map({ tx -> TxMsg.fromBean(tx)})
                 .collect(Collectors.toList())
 
-        io.bitcoinsv.bsvcl.net.protocol.messages.BlockMsg blockMsg = io.bitcoinsv.bsvcl.net.protocol.messages.BlockMsg.builder()
+        BlockMsg blockMsg = BlockMsg.builder()
                 .blockHeader(blockHeaderMsg)
                 .transactionMsgs(txsMsg)
                 .build()
 
-        io.bitcoinsv.bsvcl.net.protocol.messages.common.BitcoinMsg<io.bitcoinsv.bsvcl.net.protocol.messages.BlockMsg> result = new io.bitcoinsv.bsvcl.net.protocol.messages.common.BitcoinMsgBuilder<>(protocolConfig.basicConfig, blockMsg).build()
+        BitcoinMsg<BlockMsg> result = new BitcoinMsgBuilder<>(protocolConfig.basicConfig, blockMsg).build()
         return result;
     }
 
@@ -54,7 +65,7 @@ class UnannouncedBlockTest extends Specification {
      *                                      hash of the block received.
      */
     private void sendBlockFromClientToServer(int minBytesForRealTimeProcessing,
-                                             io.bitcoinsv.bsvcl.net.protocol.messages.common.BitcoinMsg<io.bitcoinsv.bsvcl.net.protocol.messages.BlockMsg> blockMsg,
+                                             BitcoinMsg<BlockMsg> blockMsg,
                                              AtomicReference<Sha256Hash> hashBlockReceived) {
         // RuntimeConfig
         RuntimeConfig runtimeConfig = new RuntimeConfigDefault().toBuilder()
@@ -62,28 +73,28 @@ class UnannouncedBlockTest extends Specification {
                 .build()
 
         // We set up the Protocol configuration
-        io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig config = io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfigBuilder.get(new RegTestParams()).toBuilder()
+        ProtocolConfig config = ProtocolConfigBuilder.get(new RegTestParams()).toBuilder()
                 .minPeers(1)
                 .maxPeers(1)
                 .build()
 
         // For the "server", we allow ALL the Peers to send "Big" Messages:
-        io.bitcoinsv.bsvcl.net.protocol.handlers.message.MessageHandlerConfig msgConfig = config.getMessageConfig().toBuilder()
+        MessageHandlerConfig msgConfig = config.getMessageConfig().toBuilder()
                 .allowBigMsgFromAllPeers(true)
                 .build()
         P2P server = new P2PBuilder("server")
                 .config(runtimeConfig)                              // "Big" Msgs workaround
                 .config(config)
                 .config(msgConfig)                                  // Allow "Big" msgs from ALL Peers
-                .serverPort(0)                            // random port
-                .excludeHandler(io.bitcoinsv.bsvcl.net.protocol.handlers.blacklist.BlacklistHandler.HANDLER_ID)        // No blacklist functionality
-                .excludeHandler(io.bitcoinsv.bsvcl.net.protocol.handlers.discovery.DiscoveryHandler.HANDLER_ID)        // No Discovery functionality
+                .config(new NetworkDefaultConfig().toBuilder().listeningPort(0).build())
+                .excludeHandler(BlacklistHandler.HANDLER_ID)        // No blacklist functionality
+                .excludeHandler(DiscoveryHandler.HANDLER_ID)        // No Discovery functionality
                 .build()
         P2P client = new P2PBuilder("client")
                 .config(config)
-                .serverPort(0)                            // random port
-                .excludeHandler(io.bitcoinsv.bsvcl.net.protocol.handlers.blacklist.BlacklistHandler.HANDLER_ID)        // No blacklist functionality
-                .excludeHandler(io.bitcoinsv.bsvcl.net.protocol.handlers.discovery.DiscoveryHandler.HANDLER_ID)        // No Discovery functionality
+                .config(new NetworkDefaultConfig().toBuilder().listeningPort(0).build())
+                .excludeHandler(BlacklistHandler.HANDLER_ID)        // No blacklist functionality
+                .excludeHandler(DiscoveryHandler.HANDLER_ID)        // No Discovery functionality
                 .build()
 
 
@@ -125,7 +136,7 @@ class UnannouncedBlockTest extends Specification {
     def "Testing Regular Block"() {
         given:
             // Protocol Config:
-            io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig config = io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfigBuilder.get(new RegTestParams()).toBuilder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new RegTestParams()).toBuilder()
                 .minPeers(1)
                 .maxPeers(1)
                 .build()
@@ -133,7 +144,7 @@ class UnannouncedBlockTest extends Specification {
             // Num of Tx in the Block:
             final int NUM_TXS_IN_BLOCK = 10
             final int NUM_BYTES_BIG_MSGS = 50000
-            io.bitcoinsv.bsvcl.net.protocol.messages.common.BitcoinMsg<io.bitcoinsv.bsvcl.net.protocol.messages.BlockMsg> blockMsg = createDummyBlock(config, NUM_TXS_IN_BLOCK)
+            BitcoinMsg<BlockMsg> blockMsg = createDummyBlock(config, NUM_TXS_IN_BLOCK)
             AtomicReference<Sha256Hash> hashBlockReceived = new AtomicReference<>()
         when:
             sendBlockFromClientToServer(NUM_BYTES_BIG_MSGS, blockMsg, hashBlockReceived)
@@ -147,7 +158,7 @@ class UnannouncedBlockTest extends Specification {
     def "Testing Big Block"() {
         given:
             // Protocol Config:
-            io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig config = io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfigBuilder.get(new RegTestParams()).toBuilder()
+            ProtocolConfig config = ProtocolConfigBuilder.get(new RegTestParams()).toBuilder()
                     .minPeers(1)
                     .maxPeers(1)
                     .build()
@@ -155,7 +166,7 @@ class UnannouncedBlockTest extends Specification {
             // Num of Tx in the Block:
             final int NUM_TXS_IN_BLOCK = 10
             final int NUM_BYTES_BIG_MSGS = 500
-            io.bitcoinsv.bsvcl.net.protocol.messages.common.BitcoinMsg<io.bitcoinsv.bsvcl.net.protocol.messages.BlockMsg> blockMsg = createDummyBlock(config, NUM_TXS_IN_BLOCK)
+            BitcoinMsg<BlockMsg> blockMsg = createDummyBlock(config, NUM_TXS_IN_BLOCK)
             AtomicReference<Sha256Hash> hashBlockReceived = new AtomicReference<>()
         when:
             sendBlockFromClientToServer(NUM_BYTES_BIG_MSGS, blockMsg, hashBlockReceived)

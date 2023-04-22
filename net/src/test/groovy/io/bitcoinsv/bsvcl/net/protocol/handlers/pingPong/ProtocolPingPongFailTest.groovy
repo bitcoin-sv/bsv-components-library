@@ -1,5 +1,6 @@
 package io.bitcoinsv.bsvcl.net.protocol.handlers.pingPong
 
+import io.bitcoinsv.bsvcl.net.network.config.provided.NetworkDefaultConfig
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfigBuilder
 import io.bitcoinsv.bsvcl.net.protocol.handlers.blacklist.BlacklistHandler
@@ -48,7 +49,7 @@ class ProtocolPingPongFailTest extends Specification {
                     .config(serverConfig)
                     .config(serverPingConfig)
                     .useLocalhost()
-                    .serverPort(0) // Random Port
+                    .config(new NetworkDefaultConfig().toBuilder().listeningPort(0).build())
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
                     .build()
@@ -62,7 +63,7 @@ class ProtocolPingPongFailTest extends Specification {
             P2P client = new P2PBuilder("client")
                     .config(clientConfig)
                     .useLocalhost()
-                    .serverPort(0) // Random Port
+                    .config(new NetworkDefaultConfig().toBuilder().listeningPort(0).build())
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
