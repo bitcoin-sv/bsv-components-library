@@ -1,5 +1,6 @@
 package io.bitcoinsv.bsvcl.net.protocol.handlers.handshake
 
+import io.bitcoinsv.bsvcl.net.network.config.provided.NetworkDefaultConfig
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolBasicConfig
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfigBuilder
@@ -8,8 +9,8 @@ import io.bitcoinsv.bsvcl.net.protocol.events.control.MinHandshakedPeersReachedE
 import io.bitcoinsv.bsvcl.net.protocol.handlers.blacklist.BlacklistHandler
 import io.bitcoinsv.bsvcl.net.protocol.handlers.discovery.DiscoveryHandler
 import io.bitcoinsv.bsvcl.net.protocol.handlers.pingPong.PingPongHandler
-import io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P
-import io.bitcoinsv.bsvcl.net.protocol.wrapper.P2PBuilder
+import io.bitcoinsv.bsvcl.net.P2P
+import io.bitcoinsv.bsvcl.net.P2PBuilder
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams
 import io.bitcoinsv.bitcoinjsv.params.Net
 import spock.lang.Ignore
@@ -34,7 +35,7 @@ class ProtocolHandshakeOKTest extends Specification {
             // We disable all the Handlers we don't need for this Test:
             P2P server = new P2PBuilder("server")
                     .config(config)
-                    .serverPort(0) // Random Port
+                    .config(new NetworkDefaultConfig().toBuilder().listeningPort(0).build())
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
@@ -96,7 +97,7 @@ class ProtocolHandshakeOKTest extends Specification {
             P2P server = new P2PBuilder("server")
                     .config(protocolConfig)
                     .config(basicConfig)
-                    .serverPort(0) // Random Port
+                    .config(new NetworkDefaultConfig().toBuilder().listeningPort(0).build())
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
                     .excludeHandler(BlacklistHandler.HANDLER_ID)

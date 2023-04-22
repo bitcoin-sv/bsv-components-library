@@ -1,4 +1,4 @@
-package io.bitcoinsv.bsvcl.net.protocol.wrapper;
+package io.bitcoinsv.bsvcl.net;
 
 import io.bitcoinsv.bitcoinjsv.params.Net;
 import io.bitcoinsv.bitcoinjsv.params.RegTestParams;

@@ -1,4 +1,4 @@
-package io.bitcoinsv.bsvcl.net.protocol.wrapper;
+package io.bitcoinsv.bsvcl.net;
 
 
 import io.bitcoinsv.bsvcl.net.protocol.handlers.blacklist.BlacklistHandler;
@@ -8,14 +8,15 @@ import io.bitcoinsv.bsvcl.net.network.PeerAddress;
 import io.bitcoinsv.bsvcl.net.network.config.NetworkConfig;
 import io.bitcoinsv.bsvcl.net.network.config.provided.NetworkDefaultConfig;
 import io.bitcoinsv.bsvcl.net.network.events.HandlerStateEvent;
-import io.bitcoinsv.bsvcl.net.network.handlers.NetworkHandler;
-import io.bitcoinsv.bsvcl.net.network.handlers.NetworkHandlerImpl;
+import io.bitcoinsv.bsvcl.net.network.NetworkController;
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig;
 import io.bitcoinsv.bsvcl.net.protocol.config.provided.ProtocolBSVMainConfig;
 import io.bitcoinsv.bsvcl.common.config.RuntimeConfig;
 import io.bitcoinsv.bsvcl.common.config.provided.RuntimeConfigDefault;
 import io.bitcoinsv.bsvcl.common.events.EventBus;
 import io.bitcoinsv.bsvcl.common.handlers.Handler;
+import io.bitcoinsv.bsvcl.net.protocol.wrapper.P2PEventStreamer;
+import io.bitcoinsv.bsvcl.net.protocol.wrapper.P2PRequestHandler;
 import io.bitcoinsv.bsvcl.net.tools.LoggerUtil;
 import io.bitcoinsv.bsvcl.common.handlers.HandlerConfig;
 import io.bitcoinsv.bsvcl.common.thread.ThreadUtils;
@@ -26,38 +27,51 @@ import java.util.*;
 import java.util.concurrent.*;
 
 /**
- * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 nChain Ltd
+ * The P2P class is the controller for accessing the Bitcoin P2P network.
+ * <p>
+ * Once started, a P2P object will start connecting to the Bitcoin P2P network in accordance with the
+ * configuration with which it was created.
+ * <p>
+ * Events from the network will be streamed to the relevant Event Buses
+ * <p>
+ * Only one P2P object is expected to be instantiated.
+ * <p>
+ * BELOW IS THE PLAN, NOT IMPLEMENTED YET
+ * The net packages use Java NIO to create connections. Java NIO uses asynchronous patterns to manage network
+ * connections, with the Selector managing the connections. Our pattern is to instantiate as many threads as there
+ * are cores in the system with a Selector for each thread. Connections are distributed across the Selectors. Each
+ * Selector (with thread) is managed in the NetworkHandlerImpl.
  *
- * This class is a wrapper over all the P2P and Network Handlers needed to connect to the P2P Network and
- * run the Bitcoin P2P. It provides convenience classes for subscribing to a Stream of Events, and for
- * send Request/Orders/Messages.
+ * @author i.fernandez@nchain.com
  */
 public class P2P {
-    // Id, for logging purposes mostly:
-    private String id;
+    // id, for logging purposes mostly:
+    private final String id;
 
-    private LoggerUtil logger;
+    private final LoggerUtil logger;
 
     // Configurations:
-    private RuntimeConfig runtimeConfig;
-    private NetworkConfig networkConfig;
-    private ProtocolConfig protocolConfig;
+    private final RuntimeConfig runtimeConfig;
+    private final NetworkConfig networkConfig;
+    private final ProtocolConfig protocolConfig;
 
     // Event Bus that will be used to "link" all the Handlers together
-    private EventBus eventBus;
+    private final EventBus eventBus;
 
     // Specific EventBus to trigger Handler States. We use a dedicated Handler for triggering the Handlers States, so
     // we make sure that the states are always triggered even when the system is under a heavy load and all the
     // "regular" eventBus is too busy:
-    private EventBus stateEventBus;
+    private final EventBus stateEventBus;
 
-    // Map of all the Handlers included in this wrapper:
-    private Map<String, Handler> handlers = new ConcurrentHashMap<>();
+    // The network controllers. At the moment we only have one.
+    private final NetworkController networkController;
+
+    // Map of all the message handlers
+    private final Map<String, Handler> handlers = new ConcurrentHashMap<>();
 
     // Map storing the different Frequencies at which the States of the different Handlers are published into
     // the Bus
-    private Map<String, Duration> stateRefreshFrequencies = new HashMap<>();
+    private final Map<String, Duration> stateRefreshFrequencies = new HashMap<>();
 
     // A ExecutorService, to trigger the Thread to call the getStatus() on the Handlers:
     private ScheduledExecutorService executor;
@@ -71,23 +85,23 @@ public class P2P {
     // Request Handler:
     public final P2PRequestHandler REQUESTS;
 
-    /** Constructor */
     public P2P(String id, RuntimeConfig runtimeConfig, NetworkConfig networkConfig, ProtocolConfig protocolConfig) {
         try {
             this.id = id;
-            this.logger = new LoggerUtil(id, "P2P Service", this.getClass());
-            // We update the Configurations
+            this.logger = new LoggerUtil(id, "P2P Controller", this.getClass());
             this.runtimeConfig = runtimeConfig;
             this.networkConfig = networkConfig;
             this.protocolConfig = protocolConfig;
 
+            // set up the network controllers, at the moment we only have one
+            String serverIp = "0.0.0.0:" + networkConfig.getListeningPort();
+            this.networkController = new NetworkController(id, runtimeConfig, networkConfig, PeerAddress.fromIp(serverIp));
+
             // EventBus for the Internal Handles within the P2P Service:
-            this.eventBus = EventBus.builder()
-                    .build();
+            this.eventBus = EventBus.builder().build();
 
             // EventBus for Handlers State Publishing:
-            this.stateEventBus = EventBus.builder()
-                    .build();
+            this.stateEventBus = EventBus.builder().build();
 
             // Event Streamer:
             EVENTS = new P2PEventStreamer(this.eventBus, this.stateEventBus);
@@ -95,14 +109,15 @@ public class P2P {
             // Requests Handlers:
             REQUESTS = new P2PRequestHandler(this.eventBus);
 
+            this.networkController.useEventBus(this.eventBus);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
     }
-    /** Constructor with Default values */
+
     public P2P() {
-        this("protocolHandler", new RuntimeConfigDefault(), new NetworkDefaultConfig(), new ProtocolBSVMainConfig());
+        this("p2pController", new RuntimeConfigDefault(), new NetworkDefaultConfig(), new ProtocolBSVMainConfig());
     }
 
     protected void addHandler(Handler handler) {
@@ -157,19 +172,15 @@ public class P2P {
 
     public void start() {
         logger.info("Starting...");
-        NetworkHandler handler = (NetworkHandler) handlers.get(NetworkHandlerImpl.HANDLER_ID);
-        if (handler == null) throw new RuntimeException("No Network Handler Found. Impossible to Start without it...");
         init();
-        handler.start();
+        this.networkController.start();
         startedLatch.countDown();
     }
 
     public void startServer() {
         logger.info("Starting (server mode)...");
-        NetworkHandler handler = (NetworkHandler) handlers.get(NetworkHandlerImpl.HANDLER_ID);
-        if (handler == null) throw new RuntimeException("No Network Handler Found. Impossible to Start without it...");
         init();
-        handler.startServer();
+        this.networkController.startServer();
         startedLatch.countDown();
     }
 
@@ -197,9 +208,7 @@ public class P2P {
 
     /** Initiate a graceful shutdown of the P2P. */
     public void stop() throws InterruptedException {
-        NetworkHandler handler = (NetworkHandler) handlers.get(NetworkHandlerImpl.HANDLER_ID);
-        if (handler == null) throw new RuntimeException("No Network Handler Found. Impossible to Stop without it...");
-        handler.stop();
+        this.networkController.stop();
         if (this.executor != null) this.executor.shutdownNow();
         logger.info("Stopping ...");
     }
@@ -208,9 +217,7 @@ public class P2P {
      * Wait for the P2P to be stopped.
      */
     public void awaitStopped() {
-        NetworkHandler handler = (NetworkHandler) handlers.get(NetworkHandlerImpl.HANDLER_ID);
-        if (handler == null) throw new RuntimeException("No Network Handler Found. Impossible to Stop without it...");
-        handler.awaitStopped();
+        this.networkController.awaitStopped();
     }
 
     // convenience method to return the PeerAddress for this ProtocolHandler. It assumes that there is a NetworkHandler
@@ -220,12 +227,10 @@ public class P2P {
             // means its listening in all network adapters. We need the local IP, which we obtain by using directly
             // the Local Inet4Address and we get the port from NetworkHandlerImpl...
 
-            NetworkHandler handler = (NetworkHandler) handlers.get(NetworkHandlerImpl.HANDLER_ID);
-            if (handler == null) throw new RuntimeException("No Network Handler Found. Impossible to getPeerAddress without it...");
 // This way of getting local IP address might cause issues if the host has several network interfaces:
 //            PeerAddress result = PeerAddress.fromIp(
 //                    Inet4Address.getLocalHost().getHostAddress() + ":" + handler.getPeerAddress().getPort());
-            PeerAddress result = PeerAddress.fromIp(("127.0.0.1") + ":" + handler.getPeerAddress().getPort());
+            PeerAddress result = PeerAddress.fromIp(("127.0.0.1") + ":" + this.networkController.getPeerAddress().getPort());
             return result;
         } catch (UnknownHostException e) {
             logger.error("Error getting P2P Address");
@@ -261,7 +266,7 @@ public class P2P {
         logger.info("Handler " + handlerId + " Config Updated.");
     }
 
-    // Convenience method to deserialize a reference to a P2PBuilder
+    // Convenience method to get a reference to a P2PBuilder
     public static P2PBuilder builder(String id) {
         return new P2PBuilder(id);
     }

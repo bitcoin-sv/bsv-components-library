@@ -13,7 +13,8 @@ import java.util.OptionalInt;
  */
 public class NetworkDefaultConfig extends NetworkConfigImpl {
 
-    private static final int port = 8333;
+    private static final int defaultPort = 8333;
+    private static final int listeningPort = 8333;
     private static final OptionalInt maxSocketConnections = OptionalInt.of(1000);
     private static final OptionalInt maxSocketPendingConnections = OptionalInt.of(5000);
     private static final OptionalInt timeoutSocketConnection = OptionalInt.of(500);
@@ -29,7 +30,8 @@ public class NetworkDefaultConfig extends NetworkConfigImpl {
     /** Constructor */
     public NetworkDefaultConfig() {
         super(
-                port,
+                defaultPort,
+                listeningPort,
                 maxSocketConnections,
                 maxSocketPendingConnections,
                 timeoutSocketConnection,

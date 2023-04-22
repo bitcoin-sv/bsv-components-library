@@ -6,8 +6,8 @@ import io.bitcoinsv.bsvcl.net.network.PeerAddress
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfigBuilder
 import io.bitcoinsv.bsvcl.net.protocol.handlers.blacklist.BlacklistHandler
-import io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P
-import io.bitcoinsv.bsvcl.net.protocol.wrapper.P2PBuilder
+import io.bitcoinsv.bsvcl.net.P2P
+import io.bitcoinsv.bsvcl.net.P2PBuilder
 import io.bitcoinsv.bsvcl.net.utils.IntegrationUtils
 import spock.lang.Ignore
 import spock.lang.Specification

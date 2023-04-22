@@ -4,9 +4,8 @@ import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfigBuilder
 import io.bitcoinsv.bsvcl.net.protocol.events.control.InitialPeersLoadedEvent
 import io.bitcoinsv.bsvcl.net.protocol.handlers.blacklist.BlacklistHandler
-import io.bitcoinsv.bsvcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig
-import io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P
-import io.bitcoinsv.bsvcl.net.protocol.wrapper.P2PBuilder
+import io.bitcoinsv.bsvcl.net.P2P
+import io.bitcoinsv.bsvcl.net.P2PBuilder
 import io.bitcoinsv.bsvcl.common.config.RuntimeConfig
 import io.bitcoinsv.bsvcl.common.config.provided.RuntimeConfigDefault
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams

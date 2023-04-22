@@ -3,6 +3,8 @@ package io.bitcoinsv.bsvcl.net.protocol.handlers.block
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash
 import io.bitcoinsv.bitcoinjsv.core.Utils
 import io.bitcoinsv.bitcoinjsv.params.Net
+import io.bitcoinsv.bsvcl.net.P2P
+import io.bitcoinsv.bsvcl.net.P2PBuilder
 import spock.lang.Ignore
 import spock.lang.Specification
 
@@ -88,7 +90,7 @@ class ChainDownloadTest extends Specification {
             io.bitcoinsv.bsvcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig discoveryConfig = io.bitcoinsv.bsvcl.net.integration.utils.IntegrationUtils.getDiscoveryHandlerConfigMainnet(config.getDiscoveryConfig())
 
             // We configure the P2P Service:
-            io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P p2p = new io.bitcoinsv.bsvcl.net.protocol.wrapper.P2PBuilder("testing")
+        P2P p2p = new P2PBuilder("testing")
                     .config(networkConfig)
                     .config(config)
                     .config(basicConfig)

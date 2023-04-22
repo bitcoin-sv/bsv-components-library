@@ -3,6 +3,8 @@ package io.bitcoinsv.bsvcl.net.protocol.handlers.cmpctBlock
 
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams
 import io.bitcoinsv.bitcoinjsv.params.Net
+import io.bitcoinsv.bsvcl.net.P2P
+import io.bitcoinsv.bsvcl.net.P2PBuilder
 import spock.lang.Ignore
 import spock.lang.Specification
 
@@ -29,7 +31,7 @@ class CompactBlockTest extends Specification {
             // We extends the DiscoveryHandler Config, in case DNS's are not working properly:
             io.bitcoinsv.bsvcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig discoveryConfig = io.bitcoinsv.bsvcl.net.integration.utils.IntegrationUtils.getDiscoveryHandlerConfigMainnet(config.getDiscoveryConfig())
 
-            io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P p2p = new io.bitcoinsv.bsvcl.net.protocol.wrapper.P2PBuilder("testing")
+        P2P p2p = new P2PBuilder("testing")
                 .config(config)
                 .config(discoveryConfig)
                 .config(basicConfig)
@@ -269,7 +271,7 @@ class CompactBlockTest extends Specification {
             // We extends the DiscoveryHandler Config, in case DNS's are not working properly:
             io.bitcoinsv.bsvcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig discoveryConfig = io.bitcoinsv.bsvcl.net.integration.utils.IntegrationUtils.getDiscoveryHandlerConfigMainnet(config.getDiscoveryConfig())
 
-            io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P p2p = new io.bitcoinsv.bsvcl.net.protocol.wrapper.P2PBuilder("testing")
+            P2P p2p = new P2PBuilder("testing")
                 .config(config)
                 .config(discoveryConfig)
                 .config(basicConfig)

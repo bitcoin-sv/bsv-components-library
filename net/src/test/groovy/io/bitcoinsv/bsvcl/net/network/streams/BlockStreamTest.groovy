@@ -5,6 +5,7 @@ import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.Tx
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.TxOutPoint
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams
 import io.bitcoinsv.bitcoinjsv.params.Net
+import io.bitcoinsv.bsvcl.net.network.config.provided.NetworkDefaultConfig
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolBasicConfig
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfigBuilder
@@ -22,8 +23,8 @@ import io.bitcoinsv.bsvcl.net.protocol.messages.TxOutputMsg
 import io.bitcoinsv.bsvcl.net.protocol.messages.common.StreamRequest
 import io.bitcoinsv.bsvcl.net.protocol.serialization.BlockMsgSerializer
 import io.bitcoinsv.bsvcl.net.protocol.serialization.common.SerializerContext
-import io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P
-import io.bitcoinsv.bsvcl.net.protocol.wrapper.P2PBuilder
+import io.bitcoinsv.bsvcl.net.P2P
+import io.bitcoinsv.bsvcl.net.P2PBuilder
 import io.bitcoinsv.bsvcl.common.bytes.ByteArrayWriter
 import io.bitcoinsv.bsvcl.common.common.TestingUtils
 
@@ -52,7 +53,7 @@ class BlockStreamTest extends Specification {
 
         P2P server = new P2PBuilder("server")
                 .config(protocolConfig)
-                .serverPort(0) // Random Port
+                .config(new NetworkDefaultConfig().toBuilder().listeningPort(0).build())
                 .excludeHandler(PingPongHandler.HANDLER_ID)
                 .excludeHandler(DiscoveryHandler.HANDLER_ID)
                 .excludeHandler(BlacklistHandler.HANDLER_ID)

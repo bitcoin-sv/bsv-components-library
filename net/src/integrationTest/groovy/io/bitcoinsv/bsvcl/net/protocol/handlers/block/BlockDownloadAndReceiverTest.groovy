@@ -12,6 +12,8 @@ import io.bitcoinsv.bsvcl.common.bytes.ByteArrayWriter
 import io.bitcoinsv.bsvcl.common.config.RuntimeConfig
 import io.bitcoinsv.bsvcl.common.config.provided.RuntimeConfigDefault
 import io.bitcoinsv.bsvcl.common.serialization.BitcoinSerializerUtils
+import io.bitcoinsv.bsvcl.net.P2P
+import io.bitcoinsv.bsvcl.net.P2PBuilder
 import org.apache.commons.io.FileUtils
 import spock.lang.Ignore
 import spock.lang.Specification
@@ -140,7 +142,7 @@ class BlockDownloadAndReceiverTest extends Specification {
         io.bitcoinsv.bsvcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig discoveryConfig = io.bitcoinsv.bsvcl.net.integration.utils.IntegrationUtils.getDiscoveryHandlerConfigMainnet(config.getDiscoveryConfig())
 
         // We configure the P2P Service:
-        io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P p2p = new io.bitcoinsv.bsvcl.net.protocol.wrapper.P2PBuilder("testing")
+        P2P p2p = new P2PBuilder("testing")
                 .config(config)
                 .config(runtimeConfig)
                 .config(networkConfig)

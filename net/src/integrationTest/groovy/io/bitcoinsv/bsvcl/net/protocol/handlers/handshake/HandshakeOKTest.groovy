@@ -2,6 +2,8 @@ package io.bitcoinsv.bsvcl.net.protocol.handlers.handshake
 
 
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import io.bitcoinsv.bsvcl.net.P2P
+import io.bitcoinsv.bsvcl.net.P2PBuilder
 import spock.lang.Ignore
 import spock.lang.Specification
 
@@ -47,7 +49,7 @@ class HandshakeOKTest extends Specification {
             io.bitcoinsv.bsvcl.net.protocol.handlers.discovery.DiscoveryHandlerConfig discoveryConfig = io.bitcoinsv.bsvcl.net.integration.utils.IntegrationUtils.getDiscoveryHandlerConfigMainnet(config.getDiscoveryConfig())
 
             // We disable the Handlers we do NOT need for this test
-            io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P server = new io.bitcoinsv.bsvcl.net.protocol.wrapper.P2PBuilder("testing")
+        P2P server = new P2PBuilder("testing")
                     .config(config)
                     .config(discoveryConfig)
                     .serverPort(0) // Random Port

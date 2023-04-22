@@ -3,8 +3,8 @@ package io.bitcoinsv.bsvcl.net.protocol.handlers.message
 import io.bitcoinsv.bsvcl.net.network.PeerAddress
 import io.bitcoinsv.bsvcl.net.network.config.NetworkConfig
 import io.bitcoinsv.bsvcl.net.network.config.provided.NetworkDefaultConfig
-import io.bitcoinsv.bsvcl.net.network.handlers.NetworkHandler
-import io.bitcoinsv.bsvcl.net.network.handlers.NetworkHandlerImpl
+
+import io.bitcoinsv.bsvcl.net.network.NetworkController
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfigBuilder
 import io.bitcoinsv.bsvcl.net.protocol.events.data.MsgReceivedEvent
@@ -64,7 +64,7 @@ class MessageHandlerTest extends Specification {
             EventBus serverBus = new EventBus(serverExecutor)
             serverBus.subscribe(MsgReceivedEvent.class, {e -> msgs.add(e.getBtcMsg())})
 
-            NetworkHandler serverNetworkHandler = new NetworkHandlerImpl(serverID, runtimeConfig, networkConfig,
+            NetworkController serverNetworkHandler = new NetworkController(serverID, runtimeConfig, networkConfig,
                 PeerAddress.localhost(0))
             serverNetworkHandler.useEventBus(serverBus)
 
@@ -81,7 +81,7 @@ class MessageHandlerTest extends Specification {
             ExecutorService clientExecutor = ThreadUtils.getSingleThreadExecutorService("ClientBus")
             EventBus clientBus = new EventBus(clientExecutor)
 
-            NetworkHandler clientNetworkHandler = new NetworkHandlerImpl(clientID, runtimeConfig, networkConfig,
+            NetworkController clientNetworkHandler = new NetworkController(clientID, runtimeConfig, networkConfig,
                 PeerAddress.localhost(0))
             clientNetworkHandler.useEventBus(clientBus)
 

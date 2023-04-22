@@ -1,4 +1,4 @@
-package io.bitcoinsv.bsvcl.net.protocol.wrapper;
+package io.bitcoinsv.bsvcl.net;
 
 import io.bitcoinsv.bsvcl.net.protocol.handlers.blacklist.BlacklistHandler;
 import io.bitcoinsv.bsvcl.net.protocol.handlers.blacklist.BlacklistHandlerConfig;
@@ -18,11 +18,8 @@ import io.bitcoinsv.bsvcl.net.protocol.handlers.message.MessageHandlerImpl;
 import io.bitcoinsv.bsvcl.net.protocol.handlers.pingPong.PingPongHandler;
 import io.bitcoinsv.bsvcl.net.protocol.handlers.pingPong.PingPongHandlerConfig;
 import io.bitcoinsv.bsvcl.net.protocol.handlers.pingPong.PingPongHandlerImpl;
-import io.bitcoinsv.bsvcl.net.network.PeerAddress;
 import io.bitcoinsv.bsvcl.net.network.config.NetworkConfig;
-import io.bitcoinsv.bsvcl.net.network.config.NetworkConfigImpl;
 import io.bitcoinsv.bsvcl.net.network.config.provided.NetworkDefaultConfig;
-import io.bitcoinsv.bsvcl.net.network.handlers.NetworkHandlerImpl;
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolBasicConfig;
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig;
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfigImpl;
@@ -57,8 +54,6 @@ public class P2PBuilder {
     // tests with multiple P2P instances connecting to each other in localhost, use the "useLocalhost()" method
     // instead, that will set the address to "127.0.0.1" which is more efficient.
     private String serverAddress = "0.0.0.0";
-    private Integer serverPort; // when running in Server Mode and it might be different for the rest of the network ports
-
 
     // Map to store all the Configurations of all the P2P Handlers included in the P2P Wrapper
     //  - The Base Configuration used for ALL of them is stored here:
@@ -93,11 +88,6 @@ public class P2PBuilder {
         return this;
     }
 
-    public P2PBuilder serverPort(Integer serverPort) {
-        this.serverPort = serverPort;
-        return this;
-    }
-
     public P2PBuilder config(ProtocolConfig protocolConfig) {
         checkState((this.handlerConfigs.isEmpty()) && (this.basicConfig == null),
                 "The global Configuration must be injected BEFORE any custom Handler or basic configuration");
@@ -115,7 +105,6 @@ public class P2PBuilder {
 
         // We also overwrite the port number on the Network Config:
         setUpNetworkConfigIfNull();
-        this.networkConfig = ((NetworkConfigImpl) this.networkConfig).toBuilder().port(basicConfig.getPort()).build();
         return this;
     }
 
@@ -181,14 +170,6 @@ public class P2PBuilder {
         try {
 
             // We add different built-in handlers:
-
-            // Network Handler...
-            // IMPORTANT: We use 0.0.0.0 to allow connections from anywhere
-
-            if (this.serverPort == null) this.serverPort = networkConfig.getPort();
-            String serverIp = "0.0.0.0:" + this.serverPort;
-            Handler networkHandler = new NetworkHandlerImpl(id, runtimeConfig, networkConfig, PeerAddress.fromIp(serverIp));
-            result.put(networkHandler.getId(), networkHandler);
 
             // P2P Handlers:
             // All the configuration for these default protocol handlers are supposed to have been already set up by

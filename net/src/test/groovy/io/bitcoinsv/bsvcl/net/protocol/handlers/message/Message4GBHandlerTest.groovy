@@ -6,14 +6,13 @@ import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfigBuilder
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolVersion
 import io.bitcoinsv.bsvcl.net.protocol.handlers.block.BlockDownloaderHandler
 import io.bitcoinsv.bsvcl.net.protocol.handlers.block.BlockDownloaderHandlerConfig
-import io.bitcoinsv.bsvcl.net.protocol.handlers.message.MessageHandlerConfig
 import io.bitcoinsv.bsvcl.net.protocol.handlers.message.streams.deserializer.DeserializerConfig
 import io.bitcoinsv.bsvcl.net.protocol.messages.BlockHeaderMsg
 import io.bitcoinsv.bsvcl.net.protocol.messages.TxInputMsg
 import io.bitcoinsv.bsvcl.net.protocol.messages.TxOutPointMsg
 import io.bitcoinsv.bsvcl.net.protocol.messages.TxOutputMsg
-import io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P
-import io.bitcoinsv.bsvcl.net.protocol.wrapper.P2PBuilder
+import io.bitcoinsv.bsvcl.net.P2P
+import io.bitcoinsv.bsvcl.net.P2PBuilder
 import io.bitcoinsv.bsvcl.common.config.RuntimeConfig
 import io.bitcoinsv.bsvcl.common.config.provided.RuntimeConfigDefault
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash

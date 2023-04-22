@@ -1,5 +1,6 @@
 package io.bitcoinsv.bsvcl.net.protocol.handlers.wrapper
 
+import io.bitcoinsv.bsvcl.net.network.config.provided.NetworkDefaultConfig
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfigBuilder
 import io.bitcoinsv.bsvcl.net.protocol.handlers.blacklist.BlacklistHandler
@@ -8,8 +9,8 @@ import io.bitcoinsv.bsvcl.net.protocol.handlers.pingPong.PingPongHandler
 import io.bitcoinsv.bsvcl.net.protocol.messages.AddrMsg
 import io.bitcoinsv.bsvcl.net.protocol.messages.common.BitcoinMsg
 import io.bitcoinsv.bsvcl.net.protocol.tools.MsgTest
-import io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P
-import io.bitcoinsv.bsvcl.net.protocol.wrapper.P2PBuilder
+import io.bitcoinsv.bsvcl.net.P2P
+import io.bitcoinsv.bsvcl.net.P2PBuilder
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams
 import spock.lang.Specification
 
@@ -33,7 +34,7 @@ class ProtocolMsgsTest extends Specification {
             P2P server = new P2PBuilder("server")
                     .config(config)
                     .useLocalhost()
-                    .serverPort(0) // Random Port
+                    .config(new NetworkDefaultConfig().toBuilder().listeningPort(0).build())
                     //.excludeHandler(HandshakeHandler.HANDLER_ID)
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
