@@ -3,6 +3,8 @@ package io.bitcoinsv.bsvcl.net;
 //  @author i.fernandez@nchain.com
 //  Copyright (c) 2018-2023 nChain Ltd
 
+import io.bitcoinsv.bsvcl.bsv.Network;
+import io.bitcoinsv.bsvcl.bsv.NetworkParams;
 import io.bitcoinsv.bsvcl.common.handlers.HandlerConfig;
 
 import java.util.OptionalInt;
@@ -11,7 +13,7 @@ import java.util.OptionalInt;
  * Configurations needed by the P2P package.
  */
 public class P2PConfig {
-    private final int defaultPort;
+    private final NetworkParams networkParams;
     private final int listeningPort;
     private final int maxSocketConnections;
     private final int maxSocketPendingConnections;
@@ -25,7 +27,7 @@ public class P2PConfig {
     private final int maxMessageSizeAvgInBytes;
     private final boolean blockingOnListeners;
 
-    public P2PConfig(int defaultPort, int listeningPort,
+    public P2PConfig(Network network, int listeningPort,
                      int maxSocketConnections,
                      int maxSocketPendingConnections,
                      int timeoutSocketConnection,
@@ -37,7 +39,7 @@ public class P2PConfig {
                      int nioBufferSizeUpgrade,
                      int maxMessageSizeAvgInBytes,
                      boolean blockingOnListeners) {
-        this.defaultPort = defaultPort;
+        this.networkParams = NetworkParams.fromNetwork(network);
         this.listeningPort = listeningPort;
         this.maxSocketConnections = maxSocketConnections;
         this.maxSocketPendingConnections = maxSocketPendingConnections;
@@ -54,8 +56,11 @@ public class P2PConfig {
 
     public static NetworkConfigImplBuilder builder()        { return new NetworkConfigImplBuilder(); }
 
+    /** Blockchain network parameters */
+    public NetworkParams getNetworkParams()                 { return this.networkParams; }
+
     /** Default port for peers in the Blockchain Network */
-    public int getDefaultPort()                             { return this.defaultPort; }
+    public int getDefaultPort()                             { return this.networkParams.defaultPort; }
 
     /** Our listening port */
     public int getListeningPort()                           { return this.listeningPort; }
@@ -103,7 +108,7 @@ public class P2PConfig {
 
     public NetworkConfigImplBuilder toBuilder() {
         return new NetworkConfigImplBuilder()
-                .defaultPort(this.defaultPort)
+                .network(this.networkParams.network)
                 .listeningPort(this.listeningPort)
                 .maxSocketConnections(this.maxSocketConnections)
                 .maxSocketPendingConnections(this.maxSocketPendingConnections)
@@ -119,8 +124,8 @@ public class P2PConfig {
     }
 
     public static class NetworkConfigImplBuilder {
-        private int defaultPort = 8333;
-        private int listeningPort = 8333;
+        private Network network = Network.MAINNET;
+        private int listeningPort = NetworkParams.fromNetwork(Network.MAINNET).defaultPort;
         private int maxSocketConnections = 1000;
         private int maxSocketPendingConnections = 5000;
         private int timeoutSocketConnection = 500;
@@ -135,8 +140,8 @@ public class P2PConfig {
 
         NetworkConfigImplBuilder() {}
 
-        public P2PConfig.NetworkConfigImplBuilder defaultPort(int defaultPort) {
-            this.defaultPort = defaultPort;
+        public P2PConfig.NetworkConfigImplBuilder network(Network network) {
+            this.network = network;
             return this;
         }
 
@@ -202,7 +207,7 @@ public class P2PConfig {
 
         public P2PConfig build() {
             return new P2PConfig(
-                    defaultPort,
+                    network,
                     listeningPort,
                     maxSocketConnections,
                     maxSocketPendingConnections,
