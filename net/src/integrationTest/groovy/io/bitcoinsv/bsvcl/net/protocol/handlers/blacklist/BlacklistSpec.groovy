@@ -130,7 +130,7 @@ class BlacklistSpec extends Specification {
             boolean blacklistCleared =  peersToBlacklist.stream().allMatch({ p -> peersRemovedFromBlacklist.contains(p.ip)})
 
             // And we are Done.
-            server.stop()
+            server.initiateStop()
             server.awaitStopped()
 
         then:

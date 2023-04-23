@@ -102,7 +102,7 @@ public class NetworkController extends AbstractExecutionThreadService {
     private PeerAddress peerAddress;
 
     // Indicates if we are running in SERVER_MODE (incoming connections allowed)
-    private boolean serverMode = false;
+    private boolean serverMode;
 
     // Indicates if we can keep creating connections or whether we should stop:
     private boolean keepConnecting = true;
@@ -160,11 +160,12 @@ public class NetworkController extends AbstractExecutionThreadService {
         }
     }
 
-    public NetworkController(String id, RuntimeConfig runtimeConfig, P2PConfig netConfig, PeerAddress localAddress) {
+    public NetworkController(String id, RuntimeConfig runtimeConfig, P2PConfig netConfig, PeerAddress localAddress, boolean serverMode) {
         this.id = id;
         this.runtimeConfig = runtimeConfig;
         this.config = netConfig;
         this.peerAddress = localAddress;
+        this.serverMode = serverMode;
         this.newConnsExecutor = ThreadUtils.getFixedThreadExecutorService("JclNetworkHandlerRemoteConn", netConfig.getMaxSocketConnectionsOpeningAtSameTime());
     }
 
@@ -403,6 +404,7 @@ public class NetworkController extends AbstractExecutionThreadService {
         }
     }
 
+    @Deprecated
     public void startServer() {
         this.serverMode = true;
         start();

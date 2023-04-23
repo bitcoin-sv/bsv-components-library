@@ -15,6 +15,7 @@ import java.util.OptionalInt;
 public class P2PConfig {
     private final NetworkParams networkParams;
     private final int listeningPort;
+    private final boolean listening;
     private final int maxSocketConnections;
     private final int maxSocketPendingConnections;
     private final int timeoutSocketConnection;
@@ -27,7 +28,7 @@ public class P2PConfig {
     private final int maxMessageSizeAvgInBytes;
     private final boolean blockingOnListeners;
 
-    public P2PConfig(Network network, int listeningPort,
+    public P2PConfig(Network network, int listeningPort, boolean listening,
                      int maxSocketConnections,
                      int maxSocketPendingConnections,
                      int timeoutSocketConnection,
@@ -41,6 +42,7 @@ public class P2PConfig {
                      boolean blockingOnListeners) {
         this.networkParams = NetworkParams.fromNetwork(network);
         this.listeningPort = listeningPort;
+        this.listening = listening;
         this.maxSocketConnections = maxSocketConnections;
         this.maxSocketPendingConnections = maxSocketPendingConnections;
         this.timeoutSocketConnection = timeoutSocketConnection;
@@ -64,6 +66,9 @@ public class P2PConfig {
 
     /** Our listening port */
     public int getListeningPort()                           { return this.listeningPort; }
+
+    /** Whether we should listen for incoming connections or not */
+    public boolean isListening()                            { return this.listening; }
 
     /** Maximum number of socket connections that can be open simultaneously */
     public int getMaxSocketConnections()            { return this.maxSocketConnections; }
@@ -110,6 +115,7 @@ public class P2PConfig {
         return new NetworkConfigImplBuilder()
                 .network(this.networkParams.network)
                 .listeningPort(this.listeningPort)
+                .listening(this.listening)
                 .maxSocketConnections(this.maxSocketConnections)
                 .maxSocketPendingConnections(this.maxSocketPendingConnections)
                 .maxSocketConnectionsOpeningAtSameTime(this.maxSocketConnectionsOpeningAtSameTime)
@@ -126,6 +132,7 @@ public class P2PConfig {
     public static class NetworkConfigImplBuilder {
         private Network network = Network.MAINNET;
         private int listeningPort = NetworkParams.fromNetwork(Network.MAINNET).defaultPort;
+        private boolean listening = false;
         private int maxSocketConnections = 1000;
         private int maxSocketPendingConnections = 5000;
         private int timeoutSocketConnection = 500;
@@ -147,6 +154,11 @@ public class P2PConfig {
 
         public P2PConfig.NetworkConfigImplBuilder listeningPort(int listeningPort) {
             this.listeningPort = listeningPort;
+            return this;
+        }
+
+        public P2PConfig.NetworkConfigImplBuilder listening(boolean listening) {
+            this.listening = listening;
             return this;
         }
 
@@ -209,6 +221,7 @@ public class P2PConfig {
             return new P2PConfig(
                     network,
                     listeningPort,
+                    listening,
                     maxSocketConnections,
                     maxSocketPendingConnections,
                     timeoutSocketConnection,

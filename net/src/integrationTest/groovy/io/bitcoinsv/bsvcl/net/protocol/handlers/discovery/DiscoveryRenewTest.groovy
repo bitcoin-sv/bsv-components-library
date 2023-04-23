@@ -2,6 +2,7 @@ package io.bitcoinsv.bsvcl.net.protocol.handlers.discovery
 
 
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import io.bitcoinsv.bsvcl.net.P2PConfig
 import io.bitcoinsv.bsvcl.net.network.PeerAddress
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfigBuilder
@@ -60,7 +61,7 @@ class DiscoveryRenewTest extends Specification {
         P2P server = new P2PBuilder("testing")
                     .config(config)
                     .config(discoveryConfig)
-                    .serverPort(0) // Random Port
+                    .config(P2PConfig.builder().listeningPort(0).build())
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
                     .build()
 
@@ -93,7 +94,7 @@ class DiscoveryRenewTest extends Specification {
             Thread.sleep(10000)
             // At this moment the Renewing process must have been triggered, so some GET_ADDR should have been
             // sent to some Peers, asking for new addresses...
-            server.stop()
+            server.initiateStop()
             server.awaitStopped()
 
         then:
@@ -179,7 +180,7 @@ class DiscoveryRenewTest extends Specification {
             // At this moment the Renewing process must have been triggered, so some GET_ADDR should have been
             // sent to some Peers, asking for new addresses...
             println(" >> STOPPING...")
-            server.stop()
+            server.initiateStop()
 
         then:
             // We check that GET_ADDR messages have sent out (after we reset the counter) , so that means that

@@ -18,7 +18,7 @@ class P2PTest {
                 .build();
         p2p.start();
         p2p.awaitStarted();
-        p2p.stop();
+        p2p.initiateStop();
         p2p.awaitStopped();
     }
 }

@@ -32,17 +32,19 @@ import java.util.concurrent.*;
  * <p>
  * Events from the network will be streamed to the relevant Event Buses
  * <p>
- * Only one P2P object is expected to be instantiated.
+ * Only one P2P object is expected to be instantiated but having more is useful for testing purposes.
  * <p>
  * BELOW IS THE PLAN, NOT IMPLEMENTED YET
  * The net packages use Java NIO to create connections. Java NIO uses asynchronous patterns to manage network
  * connections, with the Selector managing the connections. Our pattern is to instantiate as many threads as there
  * are cores in the system with a Selector for each thread. Connections are distributed across the Selectors. Each
- * Selector (with thread) is managed in the NetworkHandlerImpl.
+ * Selector (with thread) is managed in the NetworkController.
+ * <p>
+ * Since the P2P object is responsible for distributing the connections across the Selectors, it needs its own thread.
  *
  * @author i.fernandez@nchain.com
  */
-public class P2P {
+public class P2P extends Thread {
     // id, for logging purposes mostly:
     private final String id;
 
@@ -50,7 +52,7 @@ public class P2P {
 
     // Configurations:
     private final RuntimeConfig runtimeConfig;
-    private final P2PConfig networkConfig;
+    private P2PConfig networkConfig;
     private final ProtocolConfig protocolConfig;
 
     // Event Bus that will be used to "link" all the Handlers together
@@ -62,7 +64,7 @@ public class P2P {
     private final EventBus stateEventBus;
 
     // The network controllers. At the moment we only have one.
-    private final NetworkController networkController;
+    private NetworkController networkController = null;
 
     // Map of all the message handlers
     private final Map<String, Handler> handlers = new ConcurrentHashMap<>();
@@ -76,6 +78,8 @@ public class P2P {
 
     // Latch that is released when start has finished.
     private final CountDownLatch startedLatch = new CountDownLatch(1);
+    // Latch that is released when P2P should stop
+    private final CountDownLatch stopLatch = new CountDownLatch(1);
 
     // Event Stream Managers Definition:
     public final P2PEventStreamer EVENTS;
@@ -91,10 +95,6 @@ public class P2P {
             this.networkConfig = networkConfig;
             this.protocolConfig = protocolConfig;
 
-            // set up the network controllers, at the moment we only have one
-            String serverIp = "0.0.0.0:" + networkConfig.getListeningPort();
-            this.networkController = new NetworkController(id, runtimeConfig, networkConfig, PeerAddress.fromIp(serverIp));
-
             // EventBus for the Internal Handles within the P2P Service:
             this.eventBus = EventBus.builder().build();
 
@@ -107,7 +107,6 @@ public class P2P {
             // Requests Handlers:
             REQUESTS = new P2PRequestHandler(this.eventBus);
 
-            this.networkController.useEventBus(this.eventBus);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -132,16 +131,22 @@ public class P2P {
         this.stateRefreshFrequencies.put(handlerId, frequency);
     }
 
-    private void init() {
+    public void run() {
         try {
+            // set up the network controllers, at the moment we only have one
+            String serverIp = "0.0.0.0:" + networkConfig.getListeningPort();
+            this.networkController = new NetworkController(id, runtimeConfig, networkConfig, PeerAddress.fromIp(serverIp), networkConfig.isListening());
+            this.networkController.useEventBus(this.eventBus);
+            this.networkController.start();
+
             // If specified, we trigger a new Thread that will publish the status of the Handlers into the
             // Bus. The Map contains a duration for each Handler Class, so we can set up a different frequency for each
             // State notification...
 
-            if (stateRefreshFrequencies != null && stateRefreshFrequencies.size() > 0) {
+            if (stateRefreshFrequencies.size() > 0) {
                 this.executor = ThreadUtils.getSingleThreadScheduledExecutorService(id + "-HandlerStatusRefresh");
                 for (Handler handler : handlers.values()) {
-                    if (stateRefreshFrequencies.keySet().contains(handler.getId())) {
+                    if (stateRefreshFrequencies.containsKey(handler.getId())) {
                         Duration frequency = stateRefreshFrequencies.get(handler.getId());
                         this.executor.scheduleAtFixedRate(() -> this.refreshStatusJob(handler), frequency.toMillis(),
                                 frequency.toMillis(), TimeUnit.MILLISECONDS);
@@ -165,21 +170,26 @@ public class P2P {
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e);
+        } finally {
+            startedLatch.countDown();
+        }
+
+        // will be extended soon
+        try {
+            stopLatch.await();
+            networkController.stop();
+            if (this.executor != null) this.executor.shutdownNow();
+            logger.info("Stopping ...");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
-    public void start() {
-        logger.info("Starting...");
-        init();
-        this.networkController.start();
-        startedLatch.countDown();
-    }
-
+    @Deprecated
     public void startServer() {
         logger.info("Starting (server mode)...");
-        init();
-        this.networkController.startServer();
-        startedLatch.countDown();
+        networkConfig = networkConfig.toBuilder().listening(true).build();
+        start();
     }
 
     /**
@@ -205,10 +215,8 @@ public class P2P {
     }
 
     /** Initiate a graceful shutdown of the P2P. */
-    public void stop() throws InterruptedException {
-        this.networkController.stop();
-        if (this.executor != null) this.executor.shutdownNow();
-        logger.info("Stopping ...");
+    public void initiateStop() {
+        stopLatch.countDown();
     }
 
     /**
@@ -221,6 +229,7 @@ public class P2P {
     // convenience method to return the PeerAddress for this ProtocolHandler. It assumes that there is a NetworkHandler
     public PeerAddress getPeerAddress() {
         try {
+
             // The localAddress used by NetworkHandlerImpl doesn't work, since most probably will be "0.0.0.0", which
             // means its listening in all network adapters. We need the local IP, which we obtain by using directly
             // the Local Inet4Address and we get the port from NetworkHandlerImpl...

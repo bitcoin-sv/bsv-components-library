@@ -2,14 +2,13 @@ package io.bitcoinsv.bsvcl.net.protocol.handlers.discovery
 
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams
 import io.bitcoinsv.bitcoinjsv.params.Net
-import io.bitcoinsv.bsvcl.common.config.RuntimeConfig
-import io.bitcoinsv.bsvcl.common.config.provided.RuntimeConfigDefault
+import io.bitcoinsv.bsvcl.net.P2PConfig
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfigBuilder
 import io.bitcoinsv.bsvcl.net.protocol.events.control.InitialPeersLoadedEvent
 import io.bitcoinsv.bsvcl.net.protocol.handlers.blacklist.BlacklistHandler
-import io.bitcoinsv.bsvcl.net.protocol.wrapper.P2P
-import io.bitcoinsv.bsvcl.net.protocol.wrapper.P2PBuilder
+import io.bitcoinsv.bsvcl.net.P2P
+import io.bitcoinsv.bsvcl.net.P2PBuilder
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicReference
@@ -32,7 +31,7 @@ class DiscoverySeedTest extends Specification {
             P2P server = new P2PBuilder("testing")
                     .config(config)
                     .config(discoveryConfig)
-                    .serverPort(0) // Random Port
+                    .config(P2PConfig.builder().listeningPort(0).build())
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
                     .build()
 
@@ -49,7 +48,7 @@ class DiscoverySeedTest extends Specification {
                 server.startServer()
                 Thread.sleep(30000) // Raise this timeout if the DNS are poor and take long to find peers
                 println("P2P Stopping...")
-                server.stop()
+                server.initiateStop()
                 server.awaitStopped()
                 println("P2P Stopped.")
             } catch (Throwable e) {

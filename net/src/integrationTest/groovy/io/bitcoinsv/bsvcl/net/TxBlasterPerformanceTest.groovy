@@ -234,7 +234,7 @@ class TxBlasterPerformanceTest extends Specification {
             Thread.sleep(TEST_DURATION.toMillis())
             Instant endTime = Instant.now()
 
-            server.stop()
+            server.initiateStop()
             txProcessor.stop()
             executor.shutdownNow()
 

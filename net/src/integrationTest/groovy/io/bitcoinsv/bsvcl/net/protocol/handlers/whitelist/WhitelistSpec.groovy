@@ -150,7 +150,7 @@ class WhitelistSpec extends Specification {
 
 
             // And we are Done.
-            server.stop()
+            server.initiateStop()
             server.awaitStopped()
 
         then:

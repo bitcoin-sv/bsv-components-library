@@ -25,6 +25,7 @@ import spock.lang.Specification
 import java.util.concurrent.atomic.AtomicReference
 import java.util.stream.Collectors
 import java.util.stream.IntStream
+import java.util.concurrent.TimeUnit
 
 /**
  * Test scenario where 2 instances of JCL-Net connect to each other and exchange a Block, WITHOUT requesting that
@@ -107,11 +108,11 @@ class UnannouncedBlockTest extends Specification {
         // We start Server and Client and connect each other:
         server.startServer()
         client.start()
+        server.awaitStarted(1, TimeUnit.SECONDS)
+        client.awaitStarted(1, TimeUnit.SECONDS)
         println(" > Client started: " + client.getPeerAddress())
         println(" > Server started: " + server.getPeerAddress())
 
-        // We wait a bit and connect each other:
-        Thread.sleep(500)
         println("> Client Connecting to Server...")
         client.REQUESTS.PEERS.connect(server.getPeerAddress()).submit()
 
@@ -124,8 +125,8 @@ class UnannouncedBlockTest extends Specification {
         Thread.sleep(1000)
 
         // And we stop
-        client.stop()
-        server.stop()
+        client.initiateStop()
+        server.initiateStop()
 
     }
 

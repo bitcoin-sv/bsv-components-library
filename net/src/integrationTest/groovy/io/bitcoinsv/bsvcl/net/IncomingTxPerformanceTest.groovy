@@ -256,7 +256,7 @@ class IncomingTxPerformanceTest extends Specification {
             // we let it running for some time, and then we measure times in order to calculate statistics:
             Thread.sleep(TEST_DURATION.toMillis())
 
-            p2p.stop()
+            p2p.initiateStop()
             txProcessor.stop()
             invProcessor.stop()
 
