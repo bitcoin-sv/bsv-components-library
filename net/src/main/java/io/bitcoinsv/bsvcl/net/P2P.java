@@ -44,7 +44,7 @@ import java.util.concurrent.*;
  *
  * @author i.fernandez@nchain.com
  */
-public class P2P {
+public class P2P extends Thread {
     // id, for logging purposes mostly:
     private final String id;
 
@@ -78,6 +78,8 @@ public class P2P {
 
     // Latch that is released when start has finished.
     private final CountDownLatch startedLatch = new CountDownLatch(1);
+    // Latch that is released when P2P should stop
+    private final CountDownLatch stopLatch = new CountDownLatch(1);
 
     // Event Stream Managers Definition:
     public final P2PEventStreamer EVENTS;
@@ -129,7 +131,7 @@ public class P2P {
         this.stateRefreshFrequencies.put(handlerId, frequency);
     }
 
-    private void run() {
+    public void run() {
         try {
             // set up the network controllers, at the moment we only have one
             String serverIp = "0.0.0.0:" + networkConfig.getListeningPort();
@@ -171,10 +173,16 @@ public class P2P {
         } finally {
             startedLatch.countDown();
         }
-    }
 
-    public void start() {
-        run();
+        // will be extended soon
+        try {
+            stopLatch.await();
+            networkController.stop();
+            if (this.executor != null) this.executor.shutdownNow();
+            logger.info("Stopping ...");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     @Deprecated
@@ -207,10 +215,8 @@ public class P2P {
     }
 
     /** Initiate a graceful shutdown of the P2P. */
-    public void initiateStop() throws InterruptedException {
-        this.networkController.stop();
-        if (this.executor != null) this.executor.shutdownNow();
-        logger.info("Initiated stop ...");
+    public void initiateStop() {
+        stopLatch.countDown();
     }
 
     /**
@@ -223,6 +229,7 @@ public class P2P {
     // convenience method to return the PeerAddress for this ProtocolHandler. It assumes that there is a NetworkHandler
     public PeerAddress getPeerAddress() {
         try {
+
             // The localAddress used by NetworkHandlerImpl doesn't work, since most probably will be "0.0.0.0", which
             // means its listening in all network adapters. We need the local IP, which we obtain by using directly
             // the Local Inet4Address and we get the port from NetworkHandlerImpl...
