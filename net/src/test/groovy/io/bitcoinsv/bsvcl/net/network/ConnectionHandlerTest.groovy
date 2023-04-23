@@ -41,9 +41,9 @@ class ConnectionHandlerTest extends Specification {
             EventBus clientEventBus = EventBus.builder().executor(clientExecutor).build()
 
             // We initialize them:
-        NetworkController server = new NetworkController("server", runtimeConfig, networkConfig, PeerAddress.localhost(0))
+            NetworkController server = new NetworkController("server", runtimeConfig, networkConfig, PeerAddress.localhost(0), true)
             server.useEventBus(serverEventBus)
-            NetworkController client = new NetworkController("client", runtimeConfig, networkConfig, PeerAddress.localhost(0))
+            NetworkController client = new NetworkController("client", runtimeConfig, networkConfig, PeerAddress.localhost(0), false)
             client.useEventBus(clientEventBus)
 
             // We keep track of the events in these variables:
@@ -114,7 +114,7 @@ class ConnectionHandlerTest extends Specification {
             EventBus clientEventBus = EventBus.builder().executor(clientExecutor).build()
 
             // We initialize it:
-            NetworkController client = new NetworkController("client", runtimeConfig, networkConfig, PeerAddress.localhost(0))
+            NetworkController client = new NetworkController("client", runtimeConfig, networkConfig, PeerAddress.localhost(0), false)
             client.useEventBus(clientEventBus)
 
             // We keep track of the events in these variables:

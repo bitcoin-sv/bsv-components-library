@@ -65,7 +65,7 @@ class MessageHandlerTest extends Specification {
             serverBus.subscribe(MsgReceivedEvent.class, {e -> msgs.add(e.getBtcMsg())})
 
             NetworkController serverNetworkHandler = new NetworkController(serverID, runtimeConfig, networkConfig,
-                PeerAddress.localhost(0))
+                PeerAddress.localhost(0), true)
             serverNetworkHandler.useEventBus(serverBus)
 
             MessageHandlerConfig serverMsgConfig = serverConfig.getMessageConfig()
@@ -82,7 +82,7 @@ class MessageHandlerTest extends Specification {
             EventBus clientBus = new EventBus(clientExecutor)
 
             NetworkController clientNetworkHandler = new NetworkController(clientID, runtimeConfig, networkConfig,
-                PeerAddress.localhost(0))
+                PeerAddress.localhost(0), false)
             clientNetworkHandler.useEventBus(clientBus)
 
             MessageHandlerConfig clientMsgConfig = clientConfig.getMessageConfig()
