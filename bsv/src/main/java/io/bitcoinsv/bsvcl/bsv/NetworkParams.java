@@ -14,7 +14,7 @@ public abstract class NetworkParams {
         this.netMagic = netMagic;
     }
 
-    public static NetworkParams getParams(Network network) {
+    public static NetworkParams fromNetwork(Network network) {
         return switch (network) {
             case MAINNET -> new MainnetParams();
             case TESTNET -> new TestnetParams();

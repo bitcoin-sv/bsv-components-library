@@ -1,8 +1,6 @@
 package io.bitcoinsv.bsvcl.net.protocol.handlers.handshake
 
-import io.bitcoinsv.bsvcl.net.network.config.NetworkConfig
-import io.bitcoinsv.bsvcl.net.network.config.NetworkConfigImpl
-import io.bitcoinsv.bsvcl.net.network.config.provided.NetworkDefaultConfig
+import io.bitcoinsv.bsvcl.net.P2PConfig
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfigBuilder
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfigImpl
@@ -37,7 +35,7 @@ class ProtocolHandshakeFailedTest extends Specification {
             // We disable all the Handlers we don't need for this Test:
             P2P server = new P2PBuilder("server")
                     .config(protocolConfig)
-                    .config(new NetworkDefaultConfig().toBuilder().listeningPort(0).build())
+                    .config(P2PConfig.builder().listeningPort(0).build())
                     .useLocalhost()
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
@@ -106,7 +104,7 @@ class ProtocolHandshakeFailedTest extends Specification {
             P2P server = new P2PBuilder("server")
                     .config(protocolConfig)
                     .useLocalhost()
-                    .config(new NetworkDefaultConfig().toBuilder().listeningPort(0).build())
+                    .config(P2PConfig.builder().listeningPort(0).build())
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
@@ -169,7 +167,7 @@ class ProtocolHandshakeFailedTest extends Specification {
             P2P server = new P2PBuilder("server")
                     .config(protocolConfig)
                     .useLocalhost()
-                    .config(new NetworkDefaultConfig().toBuilder().listeningPort(0).build())
+                    .config(P2PConfig.builder().listeningPort(0).build())
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
                     .excludeHandler(BlacklistHandler.HANDLER_ID)

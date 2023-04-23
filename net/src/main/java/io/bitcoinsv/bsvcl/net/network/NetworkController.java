@@ -4,8 +4,7 @@ package io.bitcoinsv.bsvcl.net.network;
 // Copyright (c) 2018-2023 Bitcoin Association
 
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
-import io.bitcoinsv.bsvcl.net.network.config.NetworkConfig;
-import io.bitcoinsv.bsvcl.net.network.config.NetworkConfigImpl;
+import io.bitcoinsv.bsvcl.net.P2PConfig;
 import io.bitcoinsv.bsvcl.net.network.events.*;
 
 import io.bitcoinsv.bsvcl.net.network.streams.StreamCloseEvent;
@@ -15,7 +14,6 @@ import io.bitcoinsv.bsvcl.net.network.streams.nio.NIOStream;
 import io.bitcoinsv.bsvcl.common.config.RuntimeConfig;
 import io.bitcoinsv.bsvcl.common.events.EventBus;
 import io.bitcoinsv.bsvcl.common.files.FileUtils;
-import io.bitcoinsv.bsvcl.common.handlers.HandlerConfig;
 import io.bitcoinsv.bsvcl.common.thread.ThreadUtils;
 import io.bitcoinsv.bsvcl.common.thread.TimeoutTask;
 import io.bitcoinsv.bsvcl.common.thread.TimeoutTaskBuilder;
@@ -91,7 +89,7 @@ public class NetworkController extends AbstractExecutionThreadService {
     // Basic Attributes:
     protected String id;
     protected RuntimeConfig runtimeConfig;
-    protected NetworkConfig config;
+    protected P2PConfig config;
     protected Selector mainSelector;
 
     // Main Lock, to preserve Thread safety and our mental sanity:
@@ -162,7 +160,7 @@ public class NetworkController extends AbstractExecutionThreadService {
         }
     }
 
-    public NetworkController(String id, RuntimeConfig runtimeConfig, NetworkConfig netConfig, PeerAddress localAddress) {
+    public NetworkController(String id, RuntimeConfig runtimeConfig, P2PConfig netConfig, PeerAddress localAddress) {
         this.id = id;
         this.runtimeConfig = runtimeConfig;
         this.config = netConfig;
@@ -170,15 +168,12 @@ public class NetworkController extends AbstractExecutionThreadService {
         this.newConnsExecutor = ThreadUtils.getFixedThreadExecutorService("JclNetworkHandlerRemoteConn", netConfig.getMaxSocketConnectionsOpeningAtSameTime());
     }
 
-    public HandlerConfig getConfig() {
-        return (NetworkConfigImpl) config;
+    public P2PConfig getConfig() {
+        return config;
     }
 
-    public synchronized void updateConfig(HandlerConfig config) {
-        if (!(config instanceof NetworkConfig)) {
-            throw new RuntimeException("config class is NOT correct for this Handler");
-        }
-        this.config = (NetworkConfig) config;
+    public synchronized void updateConfig(P2PConfig config) {
+        this.config = config;
     }
 
     public void useEventBus(EventBus eventBus)      { this.eventBus = eventBus; }
@@ -234,13 +229,11 @@ public class NetworkController extends AbstractExecutionThreadService {
 
                     List<PeerAddress> finalListToAdd = listToAdd;
 
-                    if (config.getMaxSocketPendingConnections().isPresent()) {
-                        int limit = config.getMaxSocketPendingConnections().getAsInt();
-                        int numItemsToAdd = Math.min(finalListToAdd.size(), limit - pendingToOpenConns.size());
-                        if (numItemsToAdd > 0)
-                            finalListToAdd = listToAdd.subList(0, numItemsToAdd);
-                        else finalListToAdd = new ArrayList<>(); // empty List
-                    }
+                    int limit = config.getMaxSocketPendingConnections();
+                    int numItemsToAdd = Math.min(finalListToAdd.size(), limit - pendingToOpenConns.size());
+                    if (numItemsToAdd > 0)
+                        finalListToAdd = listToAdd.subList(0, numItemsToAdd);
+                    else finalListToAdd = new ArrayList<>(); // empty List
                     pendingToOpenConns.addAll(finalListToAdd);
                     mainSelector.wakeup();
                 } // if...
@@ -631,7 +624,7 @@ public class NetworkController extends AbstractExecutionThreadService {
             while (true) {
                 // We set the limit of connections (Sockets), if any. the number of "inProgress" + "active" connections
                 // cannot be higher than this value.
-                OptionalInt limitNumConns = config.getMaxSocketConnections();
+                int limitNumConns = config.getMaxSocketConnections();
 
                 // Second loop level: We loop over the pending Connections...
                 while (true) {
@@ -642,7 +635,7 @@ public class NetworkController extends AbstractExecutionThreadService {
                     if (!keepConnecting) break;
 
                     if (inProgressConns.size() > config.getMaxSocketConnectionsOpeningAtSameTime()) break;
-                    if ((limitNumConns.isPresent()) && (inProgressConns.size() + activeConns.size() >= limitNumConns.getAsInt())) break;
+                    if (inProgressConns.size() + activeConns.size() >= limitNumConns) break;
 
                     PeerAddress peerAddress = this.pendingToOpenConns.take();
 
@@ -658,7 +651,7 @@ public class NetworkController extends AbstractExecutionThreadService {
                     TimeoutTask connectPeerTask = TimeoutTaskBuilder.newTask()
                             .threadsHandledBy(newConnsExecutor)
                             .execute(() -> handleConnectionToOpen(peerAddress))
-                            .waitFor(config.getTimeoutSocketConnection().getAsInt())
+                            .waitFor(config.getTimeoutSocketConnection())
                             .ifTimeoutThenExecute(() -> {
                                         processConnectionFailed(peerAddress, PeerRejectedEvent.RejectedReason.TIMEOUT,"connection timeout");
                                         //System.out.println("<<<<< CONNECTION TIMEOUT " + peerAddress.toString() + ", " + Thread.activeCount() + " Threads");
@@ -721,7 +714,7 @@ public class NetworkController extends AbstractExecutionThreadService {
                     lock.writeLock().lock();
                     for (PeerAddress peerAddress : this.inProgressConns.keySet()) {
                         InProgressConn inProgressConn = this.inProgressConns.get(peerAddress);
-                        if (inProgressConn.hasExpired(this.config.getTimeoutSocketRemoteConfirmation().getAsInt())) {
+                        if (inProgressConn.hasExpired(this.config.getTimeoutSocketRemoteConfirmation())) {
                             inProgressConnsToRemove.add(peerAddress);
                         }
                     } // for...
@@ -910,10 +903,10 @@ public class NetworkController extends AbstractExecutionThreadService {
             // we accept the connection, unless this Peer is already register for disconnection, or the Handler
             // does not accept new connections anymore, or we've reached the Maximum Connections limit already:
 
-            OptionalInt limitNumConns = config.getMaxSocketConnections();
+            int limitNumConns = config.getMaxSocketConnections();
             if (pendingToCloseConns.contains( new PeerAddress2DisconnectPeerRequest_Comparator(keyConnection.peerAddress) ) ||
                     (!keepConnecting) ||
-                    ((limitNumConns.isPresent()) && (inProgressConns.size() + activeConns.size() >= limitNumConns.getAsInt()))) {
+                    (inProgressConns.size() + activeConns.size() >= limitNumConns)) {
                 closeKey(key, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL);
                 return;
             }
@@ -1028,9 +1021,8 @@ public class NetworkController extends AbstractExecutionThreadService {
             // Check:
             // We haven't broken the "Maximum Socket connections" limit:
 
-            if ((!config.getMaxSocketConnections().isEmpty()) &&
-                    (activeConns.size() >= config.getMaxSocketConnections().getAsInt())) {
-                logger.trace("{} : {} : no more connections allowed ({})", this.id, socket.getRemoteSocketAddress(), config.getMaxSocketConnections().getAsInt());
+            if (activeConns.size() >= config.getMaxSocketConnections()) {
+                logger.trace("{} : {} : no more connections allowed ({})", this.id, socket.getRemoteSocketAddress(), config.getMaxSocketConnections());
                 closeKey(key, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL);
                 return;
             }

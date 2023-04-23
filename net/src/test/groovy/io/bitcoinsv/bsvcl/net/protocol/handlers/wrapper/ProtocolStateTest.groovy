@@ -1,7 +1,6 @@
 package io.bitcoinsv.bsvcl.net.protocol.handlers.wrapper
 
-import io.bitcoinsv.bsvcl.net.network.config.provided.NetworkDefaultConfig
-
+import io.bitcoinsv.bsvcl.net.P2PConfig
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfigBuilder
 import io.bitcoinsv.bsvcl.net.protocol.handlers.blacklist.BlacklistHandler
@@ -35,7 +34,7 @@ class ProtocolStateTest extends Specification {
             ProtocolConfig config = ProtocolConfigBuilder.get(new MainNetParams())
             P2P server = new P2PBuilder("server")
                     .config(config)
-                    .config(new NetworkDefaultConfig().toBuilder().listeningPort(0).build())
+                    .config(P2PConfig.builder().listeningPort(0).build())
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
                     .excludeHandler(BlacklistHandler.HANDLER_ID)

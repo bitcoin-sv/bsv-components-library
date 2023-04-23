@@ -5,8 +5,6 @@ import io.bitcoinsv.bsvcl.net.protocol.handlers.blacklist.BlacklistHandler;
 import io.bitcoinsv.bsvcl.net.protocol.handlers.blacklist.BlacklistHandlerImpl;
 import io.bitcoinsv.bsvcl.net.protocol.handlers.handshake.HandshakeHandler;
 import io.bitcoinsv.bsvcl.net.network.PeerAddress;
-import io.bitcoinsv.bsvcl.net.network.config.NetworkConfig;
-import io.bitcoinsv.bsvcl.net.network.config.provided.NetworkDefaultConfig;
 import io.bitcoinsv.bsvcl.net.network.events.HandlerStateEvent;
 import io.bitcoinsv.bsvcl.net.network.NetworkController;
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig;
@@ -52,7 +50,7 @@ public class P2P {
 
     // Configurations:
     private final RuntimeConfig runtimeConfig;
-    private final NetworkConfig networkConfig;
+    private final P2PConfig networkConfig;
     private final ProtocolConfig protocolConfig;
 
     // Event Bus that will be used to "link" all the Handlers together
@@ -85,7 +83,7 @@ public class P2P {
     // Request Handler:
     public final P2PRequestHandler REQUESTS;
 
-    public P2P(String id, RuntimeConfig runtimeConfig, NetworkConfig networkConfig, ProtocolConfig protocolConfig) {
+    public P2P(String id, RuntimeConfig runtimeConfig, P2PConfig networkConfig, ProtocolConfig protocolConfig) {
         try {
             this.id = id;
             this.logger = new LoggerUtil(id, "P2P Controller", this.getClass());
@@ -117,7 +115,7 @@ public class P2P {
     }
 
     public P2P() {
-        this("p2pController", new RuntimeConfigDefault(), new NetworkDefaultConfig(), new ProtocolBSVMainConfig());
+        this("p2pController", new RuntimeConfigDefault(), P2PConfig.builder().build(), new ProtocolBSVMainConfig());
     }
 
     protected void addHandler(Handler handler) {
@@ -272,7 +270,7 @@ public class P2P {
     }
 
     public RuntimeConfig getRuntimeConfig()     { return this.runtimeConfig; }
-    public NetworkConfig getNetworkConfig()     { return this.networkConfig; }
+    public P2PConfig getNetworkConfig()     { return this.networkConfig; }
     public ProtocolConfig getProtocolConfig()   { return this.protocolConfig; }
     public EventBus getEventBus()               { return this.eventBus;}
 }

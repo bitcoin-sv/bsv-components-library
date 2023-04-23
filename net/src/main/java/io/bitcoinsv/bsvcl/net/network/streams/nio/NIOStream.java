@@ -1,7 +1,7 @@
 package io.bitcoinsv.bsvcl.net.network.streams.nio;
 
 import io.bitcoinsv.bsvcl.net.network.PeerAddress;
-import io.bitcoinsv.bsvcl.net.network.config.NetworkConfig;
+import io.bitcoinsv.bsvcl.net.P2PConfig;
 import io.bitcoinsv.bsvcl.net.network.streams.PeerStreamImpl;
 import io.bitcoinsv.bsvcl.common.bytes.ByteArrayReader;
 import io.bitcoinsv.bsvcl.common.config.RuntimeConfig;
@@ -19,14 +19,14 @@ import java.nio.channels.SelectionKey;
 public class NIOStream extends PeerStreamImpl<ByteArrayReader, ByteArrayReader> {
 
     private RuntimeConfig runtimeConfig;
-    private NetworkConfig networkConfig;
+    private P2PConfig networkConfig;
     private PeerAddress peerAddress;
     private SelectionKey key;
 
     public NIOStream(
             PeerAddress peerAddress,
             RuntimeConfig runtimeConfig,
-            NetworkConfig networkConfig,
+            P2PConfig networkConfig,
             SelectionKey key
     ) {
         super(peerAddress, null);
