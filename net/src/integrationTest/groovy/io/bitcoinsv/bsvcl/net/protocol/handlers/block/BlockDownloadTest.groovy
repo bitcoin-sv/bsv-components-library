@@ -8,6 +8,8 @@ import io.bitcoinsv.bitcoinjsv.core.Utils
 import io.bitcoinsv.bsvcl.common.util.EventsHistory
 import io.bitcoinsv.bsvcl.net.P2P
 import io.bitcoinsv.bsvcl.net.P2PBuilder
+import io.bitcoinsv.bsvcl.net.P2PConfig
+import io.bitcoinsv.bsvcl.net.tools.P2PDefaultConfig
 import spock.lang.Ignore
 import spock.lang.Specification
 
@@ -122,7 +124,7 @@ class BlockDownloadTest extends Specification {
                 .build()
 
             // Network Config:
-            io.bitcoinsv.bsvcl.net.network.config.NetworkConfig networkConfig = new io.bitcoinsv.bsvcl.net.network.config.provided.NetworkDefaultConfig().toBuilder()
+            P2PConfig networkConfig = new P2PDefaultConfig().toBuilder()
                 .maxSocketConnectionsOpeningAtSameTime(50)
                 .build();
 

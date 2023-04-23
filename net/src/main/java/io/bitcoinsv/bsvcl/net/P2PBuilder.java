@@ -18,8 +18,7 @@ import io.bitcoinsv.bsvcl.net.protocol.handlers.message.MessageHandlerImpl;
 import io.bitcoinsv.bsvcl.net.protocol.handlers.pingPong.PingPongHandler;
 import io.bitcoinsv.bsvcl.net.protocol.handlers.pingPong.PingPongHandlerConfig;
 import io.bitcoinsv.bsvcl.net.protocol.handlers.pingPong.PingPongHandlerImpl;
-import io.bitcoinsv.bsvcl.net.network.config.NetworkConfig;
-import io.bitcoinsv.bsvcl.net.network.config.provided.NetworkDefaultConfig;
+import io.bitcoinsv.bsvcl.net.tools.P2PDefaultConfig;
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolBasicConfig;
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig;
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfigImpl;
@@ -49,7 +48,7 @@ public class P2PBuilder {
 
     // Configurations:
     private RuntimeConfig runtimeConfig;
-    private NetworkConfig networkConfig;
+    private P2PConfig networkConfig;
     // the server Address is 0.0.0.0 by default, which allows for connections from everywhere. If you are running
     // tests with multiple P2P instances connecting to each other in localhost, use the "useLocalhost()" method
     // instead, that will set the address to "127.0.0.1" which is more efficient.
@@ -83,7 +82,7 @@ public class P2PBuilder {
         return this;
     }
     /** Sets up the NetworkConfig, just one */
-    public P2PBuilder config(NetworkConfig networkConfig) {
+    public P2PBuilder config(P2PConfig networkConfig) {
         this.networkConfig = networkConfig;
         return this;
     }
@@ -162,10 +161,10 @@ public class P2PBuilder {
     }
 
     private void setUpNetworkConfigIfNull() {
-        if (this.networkConfig == null) { this.networkConfig = new NetworkDefaultConfig(); }
+        if (this.networkConfig == null) { this.networkConfig = new P2PDefaultConfig(); }
     }
 
-    private Map<String, Handler> createBuiltInHandlers(RuntimeConfig runtimeConfig, NetworkConfig networkConfig, Map<String, HandlerConfig> handlerConfigs) {
+    private Map<String, Handler> createBuiltInHandlers(RuntimeConfig runtimeConfig, P2PConfig networkConfig, Map<String, HandlerConfig> handlerConfigs) {
         Map<String, Handler> result = new HashMap<>();
         try {
 

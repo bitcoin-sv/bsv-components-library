@@ -1,6 +1,6 @@
-package io.bitcoinsv.bsvcl.net.network.config.provided;
+package io.bitcoinsv.bsvcl.net.tools;
 
-import io.bitcoinsv.bsvcl.net.network.config.NetworkConfigImpl;
+import io.bitcoinsv.bsvcl.net.P2PConfig;
 
 import java.util.OptionalInt;
 
@@ -11,7 +11,7 @@ import java.util.OptionalInt;
  * A Simple NetWork configuration that is supposed to work fine in a local Development
  * Environment, like a regular laptop with at least 8GB of RAM.
  */
-public class NetworkDefaultConfig extends NetworkConfigImpl {
+public class P2PDefaultConfig extends P2PConfig {
 
     private static final int defaultPort = 8333;
     private static final int listeningPort = 8333;
@@ -28,7 +28,7 @@ public class NetworkDefaultConfig extends NetworkConfigImpl {
     private static final boolean blockingOnListeners = false;
 
     /** Constructor */
-    public NetworkDefaultConfig() {
+    public P2PDefaultConfig() {
         super(
                 defaultPort,
                 listeningPort,

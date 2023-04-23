@@ -9,7 +9,7 @@ import io.bitcoinsv.bsvcl.common.config.RuntimeConfig
 import io.bitcoinsv.bsvcl.common.config.provided.RuntimeConfigDefault
 import io.bitcoinsv.bsvcl.net.P2P
 import io.bitcoinsv.bsvcl.net.P2PBuilder
-import io.bitcoinsv.bsvcl.net.network.config.provided.NetworkDefaultConfig
+import io.bitcoinsv.bsvcl.net.tools.P2PDefaultConfig
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfigBuilder
 import io.bitcoinsv.bsvcl.net.protocol.handlers.blacklist.BlacklistHandler
@@ -86,13 +86,13 @@ class UnannouncedBlockTest extends Specification {
                 .config(runtimeConfig)                              // "Big" Msgs workaround
                 .config(config)
                 .config(msgConfig)                                  // Allow "Big" msgs from ALL Peers
-                .config(new NetworkDefaultConfig().toBuilder().listeningPort(0).build())
+                .config(new P2PDefaultConfig().toBuilder().listeningPort(0).build())
                 .excludeHandler(BlacklistHandler.HANDLER_ID)        // No blacklist functionality
                 .excludeHandler(DiscoveryHandler.HANDLER_ID)        // No Discovery functionality
                 .build()
         P2P client = new P2PBuilder("client")
                 .config(config)
-                .config(new NetworkDefaultConfig().toBuilder().listeningPort(0).build())
+                .config(new P2PDefaultConfig().toBuilder().listeningPort(0).build())
                 .excludeHandler(BlacklistHandler.HANDLER_ID)        // No blacklist functionality
                 .excludeHandler(DiscoveryHandler.HANDLER_ID)        // No Discovery functionality
                 .build()

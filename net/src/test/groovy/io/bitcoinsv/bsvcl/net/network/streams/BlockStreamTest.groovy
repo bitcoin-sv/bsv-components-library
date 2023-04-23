@@ -5,7 +5,7 @@ import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.Tx
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.TxOutPoint
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams
 import io.bitcoinsv.bitcoinjsv.params.Net
-import io.bitcoinsv.bsvcl.net.network.config.provided.NetworkDefaultConfig
+import io.bitcoinsv.bsvcl.net.tools.P2PDefaultConfig
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolBasicConfig
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfigBuilder
@@ -53,7 +53,7 @@ class BlockStreamTest extends Specification {
 
         P2P server = new P2PBuilder("server")
                 .config(protocolConfig)
-                .config(new NetworkDefaultConfig().toBuilder().listeningPort(0).build())
+                .config(new P2PDefaultConfig().toBuilder().listeningPort(0).build())
                 .excludeHandler(PingPongHandler.HANDLER_ID)
                 .excludeHandler(DiscoveryHandler.HANDLER_ID)
                 .excludeHandler(BlacklistHandler.HANDLER_ID)

@@ -1,8 +1,9 @@
 package io.bitcoinsv.bsvcl.net.protocol.handlers.message
 
 import io.bitcoinsv.bsvcl.net.network.PeerAddress
-import io.bitcoinsv.bsvcl.net.network.config.NetworkConfig
-import io.bitcoinsv.bsvcl.net.network.config.provided.NetworkDefaultConfig
+
+import io.bitcoinsv.bsvcl.net.P2PConfig
+import io.bitcoinsv.bsvcl.net.tools.P2PDefaultConfig
 
 import io.bitcoinsv.bsvcl.net.network.NetworkController
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig
@@ -56,7 +57,7 @@ class MessageHandlerTest extends Specification {
             ProtocolConfig serverConfig = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET)).toBuilder().port(0).build()
             ProtocolConfig clientConfig = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET)).toBuilder().port(0).build()
 
-            NetworkConfig networkConfig = new NetworkDefaultConfig()
+            P2PConfig networkConfig = new P2PDefaultConfig()
 
             // Server Configuration:
             String serverID = "server"

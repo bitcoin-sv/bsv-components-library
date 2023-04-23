@@ -4,8 +4,7 @@ package io.bitcoinsv.bsvcl.net.network;
 // Copyright (c) 2018-2023 Bitcoin Association
 
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
-import io.bitcoinsv.bsvcl.net.network.config.NetworkConfig;
-import io.bitcoinsv.bsvcl.net.network.config.NetworkConfigImpl;
+import io.bitcoinsv.bsvcl.net.P2PConfig;
 import io.bitcoinsv.bsvcl.net.network.events.*;
 
 import io.bitcoinsv.bsvcl.net.network.streams.StreamCloseEvent;
@@ -15,7 +14,6 @@ import io.bitcoinsv.bsvcl.net.network.streams.nio.NIOStream;
 import io.bitcoinsv.bsvcl.common.config.RuntimeConfig;
 import io.bitcoinsv.bsvcl.common.events.EventBus;
 import io.bitcoinsv.bsvcl.common.files.FileUtils;
-import io.bitcoinsv.bsvcl.common.handlers.HandlerConfig;
 import io.bitcoinsv.bsvcl.common.thread.ThreadUtils;
 import io.bitcoinsv.bsvcl.common.thread.TimeoutTask;
 import io.bitcoinsv.bsvcl.common.thread.TimeoutTaskBuilder;
@@ -91,7 +89,7 @@ public class NetworkController extends AbstractExecutionThreadService {
     // Basic Attributes:
     protected String id;
     protected RuntimeConfig runtimeConfig;
-    protected NetworkConfig config;
+    protected P2PConfig config;
     protected Selector mainSelector;
 
     // Main Lock, to preserve Thread safety and our mental sanity:
@@ -162,7 +160,7 @@ public class NetworkController extends AbstractExecutionThreadService {
         }
     }
 
-    public NetworkController(String id, RuntimeConfig runtimeConfig, NetworkConfig netConfig, PeerAddress localAddress) {
+    public NetworkController(String id, RuntimeConfig runtimeConfig, P2PConfig netConfig, PeerAddress localAddress) {
         this.id = id;
         this.runtimeConfig = runtimeConfig;
         this.config = netConfig;
@@ -170,15 +168,12 @@ public class NetworkController extends AbstractExecutionThreadService {
         this.newConnsExecutor = ThreadUtils.getFixedThreadExecutorService("JclNetworkHandlerRemoteConn", netConfig.getMaxSocketConnectionsOpeningAtSameTime());
     }
 
-    public HandlerConfig getConfig() {
-        return (NetworkConfigImpl) config;
+    public P2PConfig getConfig() {
+        return config;
     }
 
-    public synchronized void updateConfig(HandlerConfig config) {
-        if (!(config instanceof NetworkConfig)) {
-            throw new RuntimeException("config class is NOT correct for this Handler");
-        }
-        this.config = (NetworkConfig) config;
+    public synchronized void updateConfig(P2PConfig config) {
+        this.config = config;
     }
 
     public void useEventBus(EventBus eventBus)      { this.eventBus = eventBus; }

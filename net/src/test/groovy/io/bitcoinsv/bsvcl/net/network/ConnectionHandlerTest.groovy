@@ -1,9 +1,7 @@
 package io.bitcoinsv.bsvcl.net.network
 
-import io.bitcoinsv.bsvcl.net.network.NetworkController
-import io.bitcoinsv.bsvcl.net.network.PeerAddress
-import io.bitcoinsv.bsvcl.net.network.config.NetworkConfig
-import io.bitcoinsv.bsvcl.net.network.config.provided.NetworkDefaultConfig
+import io.bitcoinsv.bsvcl.net.P2PConfig
+import io.bitcoinsv.bsvcl.net.tools.P2PDefaultConfig
 import io.bitcoinsv.bsvcl.net.network.events.PeerConnectedEvent
 import io.bitcoinsv.bsvcl.net.network.events.PeerDisconnectedEvent
 import io.bitcoinsv.bsvcl.net.network.events.PeerRejectedEvent
@@ -13,7 +11,6 @@ import io.bitcoinsv.bsvcl.common.events.EventBus
 import io.bitcoinsv.bsvcl.common.files.FileUtilsBuilder
 import io.bitcoinsv.bsvcl.common.thread.ThreadUtils
 import groovy.util.logging.Slf4j
-import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.util.concurrent.CountDownLatch
@@ -38,7 +35,7 @@ class ConnectionHandlerTest extends Specification {
             runtimeConfig = runtimeConfig.toBuilder()
                     .fileUtils(new FileUtilsBuilder().build())
                     .build()
-            NetworkConfig networkConfig = new NetworkDefaultConfig()
+        P2PConfig networkConfig = new P2PDefaultConfig()
 
             // Each one has its own Event-Bus, for events and callbacks handling...
             EventBus serverEventBus = EventBus.builder().executor(serverExecutor).build()
@@ -112,7 +109,7 @@ class ConnectionHandlerTest extends Specification {
 
             // Basic Configuration...
             RuntimeConfig runtimeConfig = new RuntimeConfigDefault()
-            NetworkConfig networkConfig = new NetworkDefaultConfig()
+            P2PConfig networkConfig = new P2PDefaultConfig()
 
             // Event-Bus, for events and callbacks handling...
             EventBus clientEventBus = EventBus.builder().executor(clientExecutor).build()

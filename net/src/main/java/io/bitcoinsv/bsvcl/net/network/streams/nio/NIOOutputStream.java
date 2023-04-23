@@ -1,7 +1,7 @@
 package io.bitcoinsv.bsvcl.net.network.streams.nio;
 
 import io.bitcoinsv.bsvcl.net.network.PeerAddress;
-import io.bitcoinsv.bsvcl.net.network.config.NetworkConfig;
+import io.bitcoinsv.bsvcl.net.P2PConfig;
 import io.bitcoinsv.bsvcl.net.network.streams.PeerOutputStream;
 import io.bitcoinsv.bsvcl.net.network.streams.PeerOutputStreamImpl;
 import io.bitcoinsv.bsvcl.net.network.streams.IStreamHolder;
@@ -46,7 +46,7 @@ public class NIOOutputStream extends PeerOutputStreamImpl<ByteArrayReader, ByteA
     private static final Logger log = LoggerFactory.getLogger(NIOOutputStream.class);
     // Configuration:
     private RuntimeConfig runtimeConfig;
-    private NetworkConfig networkConfig;
+    private P2PConfig networkConfig;
     private PeerAddress peerAddress;
     // The Selection Key and the Sockets linked to the physical connection to the remote Peer
     private SelectionKey key;
@@ -58,7 +58,7 @@ public class NIOOutputStream extends PeerOutputStreamImpl<ByteArrayReader, ByteA
     public NIOOutputStream(
         PeerAddress peerAddress,
         RuntimeConfig runtimeConfig,
-        NetworkConfig networkConfig,
+        P2PConfig networkConfig,
         SelectionKey key
     ) {
         super(peerAddress, null);
