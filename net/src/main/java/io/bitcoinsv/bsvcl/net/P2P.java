@@ -379,7 +379,7 @@ public class P2P extends Thread {
 
     // Event Handlers:
     private void onDisconnectPeerRequest(DisconnectPeerRequest request) {
-        logger.info("DisconnectPeerRequest received: " + request.getPeerAddress());
+        logger.trace("DisconnectPeerRequest received: {}", request.getPeerAddress());
         this.disconnect(request.getPeerAddress());
     }
 
