@@ -15,6 +15,7 @@ import spock.lang.Specification
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.TimeUnit
 
 @Slf4j
 class ConnectionHandlerTest extends Specification {
@@ -83,16 +84,19 @@ class ConnectionHandlerTest extends Specification {
         when:
             server.startServer()
             client.start()
-            client.connect(server.getPeerAddress())
-            connectsLatch.await()
-            client.disconnect(server.getPeerAddress())
-            disconnectsLatch.await()
+
+            client.openConnection(server.getPeerAddress())
+            boolean connected = connectsLatch.await(1, TimeUnit.SECONDS)
+            client.closeConnection(server.getPeerAddress())
+            boolean disconnected = disconnectsLatch.await(1, TimeUnit.SECONDS)
             server.stop()
             client.stop()
             server.awaitStopped()
             client.awaitStopped()
 
         then:
+            connected
+            disconnected
             serverConnected.get()
             serverDisconnected.get()
             clientConnected.get()
@@ -133,7 +137,7 @@ class ConnectionHandlerTest extends Specification {
         when:
 
             client.start()
-            client.connect(PeerAddress.fromIp("127.0.0.1:8100")) // dummy port
+            client.openConnection(PeerAddress.fromIp("127.0.0.1:8100")) // dummy port
             failureLatch.await()
             client.stop()
             client.awaitStopped()

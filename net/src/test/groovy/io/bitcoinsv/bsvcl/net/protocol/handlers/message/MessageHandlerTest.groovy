@@ -99,7 +99,7 @@ class MessageHandlerTest extends Specification {
             serverNetworkHandler.startServer()
             clientNetworkHandler.start()
 
-            clientNetworkHandler.connect(serverNetworkHandler.getPeerAddress())
+            clientNetworkHandler.openConnection(serverNetworkHandler.getPeerAddress())
 
             // We wait a little bit, to make sure we have captured both Streams. now, we use one of them to send one
             // Message to the other...

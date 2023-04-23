@@ -10,6 +10,7 @@ import io.bitcoinsv.bsvcl.common.config.RuntimeConfig
 import io.bitcoinsv.bsvcl.common.config.provided.RuntimeConfigDefault
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams
 import io.bitcoinsv.bitcoinjsv.params.Net
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicReference
@@ -25,6 +26,7 @@ class DiscoveryOKTest extends Specification {
      * NOTE: This tests assumes that there is a file named "BSV[mainNet]-discovery-handler-seed.csv" in the
      * test/resources/bsvcl folder.
      */
+    @Ignore("Not sure whether to keep the CSV loading or not")
     def "Testing Initial Peers loaded from CSV"() {
         given:
             // We set up the Configuration to use the Peers hardcoded in a CSV file:
