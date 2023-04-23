@@ -154,8 +154,7 @@ public class P2P extends Thread {
                 }
             }
 
-            // We log some useful info...
-
+            // log some useful info...
             logger.info("JCL-Net Configuration:");
             logger.info(" - " + protocolConfig.toString() + " configuration");
             logger.info(" - working dir: " + runtimeConfig.getFileUtils().getRootPath().toAbsolutePath());
@@ -167,20 +166,16 @@ public class P2P extends Thread {
             }
             logger.info("Thread Pool used: " + (runtimeConfig.useCachedThreadPoolForP2P()? "Cached" : "Fixed") + ", MaxThreads: " + runtimeConfig.getMaxNumThreadsForP2P());
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        } finally {
-            startedLatch.countDown();
-        }
+            startedLatch.countDown();   // the P2P is started
 
-        // will be extended soon
-        try {
+            // main processing, to be extended
             stopLatch.await();
+
+            // shutdown
+            logger.info("Stopping ...");
             networkController.stop();
             if (this.executor != null) this.executor.shutdownNow();
-            logger.info("Stopping ...");
-        } catch (InterruptedException e) {
+        } catch (InterruptedException | UnknownHostException e) {
             e.printStackTrace();
         }
     }
