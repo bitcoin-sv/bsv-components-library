@@ -129,7 +129,7 @@ public class P2P {
         this.stateRefreshFrequencies.put(handlerId, frequency);
     }
 
-    private void init() {
+    private void run() {
         try {
             // set up the network controllers, at the moment we only have one
             String serverIp = "0.0.0.0:" + networkConfig.getListeningPort();
@@ -141,10 +141,10 @@ public class P2P {
             // Bus. The Map contains a duration for each Handler Class, so we can set up a different frequency for each
             // State notification...
 
-            if (stateRefreshFrequencies != null && stateRefreshFrequencies.size() > 0) {
+            if (stateRefreshFrequencies.size() > 0) {
                 this.executor = ThreadUtils.getSingleThreadScheduledExecutorService(id + "-HandlerStatusRefresh");
                 for (Handler handler : handlers.values()) {
-                    if (stateRefreshFrequencies.keySet().contains(handler.getId())) {
+                    if (stateRefreshFrequencies.containsKey(handler.getId())) {
                         Duration frequency = stateRefreshFrequencies.get(handler.getId());
                         this.executor.scheduleAtFixedRate(() -> this.refreshStatusJob(handler), frequency.toMillis(),
                                 frequency.toMillis(), TimeUnit.MILLISECONDS);
@@ -168,21 +168,20 @@ public class P2P {
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e);
+        } finally {
+            startedLatch.countDown();
         }
     }
 
     public void start() {
-        logger.info("Starting...");
-        init();
-        startedLatch.countDown();
+        run();
     }
 
     @Deprecated
     public void startServer() {
         logger.info("Starting (server mode)...");
         networkConfig = networkConfig.toBuilder().listening(true).build();
-        init();
-        startedLatch.countDown();
+        start();
     }
 
     /**
