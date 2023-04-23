@@ -119,19 +119,19 @@ public class P2PConfig {
     }
 
     public static class NetworkConfigImplBuilder {
-        private int defaultPort;
-        private int listeningPort;
-        private int maxSocketConnections;
-        private int maxSocketPendingConnections;
-        private int timeoutSocketConnection;
-        private int timeoutSocketRemoteConfirmation;
-        private int timeoutSocketIdle;
-        private int maxSocketConnectionsOpeningAtSameTime;
-        private int nioBufferSizeLowerBound;
-        private int nioBufferSizeUpperBound;
-        private int nioBufferSizeUpgrade;
-        private int maxMessageSizeAvgInBytes;
-        private boolean blockingOnListeners;
+        private int defaultPort = 8333;
+        private int listeningPort = 8333;
+        private int maxSocketConnections = 1000;
+        private int maxSocketPendingConnections = 5000;
+        private int timeoutSocketConnection = 500;
+        private int timeoutSocketRemoteConfirmation = 500;
+        private int timeoutSocketIdle = 5*60*1000;  // 5 minutes
+        private int maxSocketConnectionsOpeningAtSameTime = 50;
+        private int nioBufferSizeLowerBound = 4096;
+        private int nioBufferSizeUpperBound = 65536;
+        private int nioBufferSizeUpgrade = 10_000_000;
+        private int maxMessageSizeAvgInBytes = 1000;
+        private boolean blockingOnListeners = false;
 
         NetworkConfigImplBuilder() {}
 

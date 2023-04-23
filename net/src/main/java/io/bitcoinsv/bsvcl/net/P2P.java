@@ -5,7 +5,6 @@ import io.bitcoinsv.bsvcl.net.protocol.handlers.blacklist.BlacklistHandler;
 import io.bitcoinsv.bsvcl.net.protocol.handlers.blacklist.BlacklistHandlerImpl;
 import io.bitcoinsv.bsvcl.net.protocol.handlers.handshake.HandshakeHandler;
 import io.bitcoinsv.bsvcl.net.network.PeerAddress;
-import io.bitcoinsv.bsvcl.net.tools.P2PDefaultConfig;
 import io.bitcoinsv.bsvcl.net.network.events.HandlerStateEvent;
 import io.bitcoinsv.bsvcl.net.network.NetworkController;
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig;
@@ -116,7 +115,7 @@ public class P2P {
     }
 
     public P2P() {
-        this("p2pController", new RuntimeConfigDefault(), new P2PDefaultConfig(), new ProtocolBSVMainConfig());
+        this("p2pController", new RuntimeConfigDefault(), P2PConfig.builder().build(), new ProtocolBSVMainConfig());
     }
 
     protected void addHandler(Handler handler) {

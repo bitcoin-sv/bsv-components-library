@@ -1,7 +1,6 @@
 package io.bitcoinsv.bsvcl.net.network
 
 import io.bitcoinsv.bsvcl.net.P2PConfig
-import io.bitcoinsv.bsvcl.net.tools.P2PDefaultConfig
 import io.bitcoinsv.bsvcl.net.network.events.PeerConnectedEvent
 import io.bitcoinsv.bsvcl.net.network.events.PeerDisconnectedEvent
 import io.bitcoinsv.bsvcl.net.network.events.PeerRejectedEvent
@@ -35,7 +34,7 @@ class ConnectionHandlerTest extends Specification {
             runtimeConfig = runtimeConfig.toBuilder()
                     .fileUtils(new FileUtilsBuilder().build())
                     .build()
-        P2PConfig networkConfig = new P2PDefaultConfig()
+            P2PConfig networkConfig = P2PConfig.builder().build()
 
             // Each one has its own Event-Bus, for events and callbacks handling...
             EventBus serverEventBus = EventBus.builder().executor(serverExecutor).build()
@@ -109,7 +108,7 @@ class ConnectionHandlerTest extends Specification {
 
             // Basic Configuration...
             RuntimeConfig runtimeConfig = new RuntimeConfigDefault()
-            P2PConfig networkConfig = new P2PDefaultConfig()
+            P2PConfig networkConfig = P2PConfig.builder().build()
 
             // Event-Bus, for events and callbacks handling...
             EventBus clientEventBus = EventBus.builder().executor(clientExecutor).build()

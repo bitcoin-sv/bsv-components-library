@@ -18,7 +18,6 @@ import io.bitcoinsv.bsvcl.net.protocol.handlers.message.MessageHandlerImpl;
 import io.bitcoinsv.bsvcl.net.protocol.handlers.pingPong.PingPongHandler;
 import io.bitcoinsv.bsvcl.net.protocol.handlers.pingPong.PingPongHandlerConfig;
 import io.bitcoinsv.bsvcl.net.protocol.handlers.pingPong.PingPongHandlerImpl;
-import io.bitcoinsv.bsvcl.net.tools.P2PDefaultConfig;
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolBasicConfig;
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig;
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfigImpl;
@@ -161,7 +160,7 @@ public class P2PBuilder {
     }
 
     private void setUpNetworkConfigIfNull() {
-        if (this.networkConfig == null) { this.networkConfig = new P2PDefaultConfig(); }
+        if (this.networkConfig == null) { this.networkConfig = P2PConfig.builder().build(); }
     }
 
     private Map<String, Handler> createBuiltInHandlers(RuntimeConfig runtimeConfig, P2PConfig networkConfig, Map<String, HandlerConfig> handlerConfigs) {

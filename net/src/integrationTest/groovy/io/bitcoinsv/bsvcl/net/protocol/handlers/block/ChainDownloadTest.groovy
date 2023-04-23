@@ -6,7 +6,6 @@ import io.bitcoinsv.bitcoinjsv.params.Net
 import io.bitcoinsv.bsvcl.net.P2P
 import io.bitcoinsv.bsvcl.net.P2PBuilder
 import io.bitcoinsv.bsvcl.net.P2PConfig
-import io.bitcoinsv.bsvcl.net.tools.P2PDefaultConfig
 import spock.lang.Ignore
 import spock.lang.Specification
 
@@ -67,10 +66,10 @@ class ChainDownloadTest extends Specification {
             io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig config = io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfigBuilder.get(Net.MAINNET.params())
 
             // Network Config:
-            P2PConfig networkConfig = new P2PDefaultConfig().toBuilder()
+            P2PConfig networkConfig = P2PConfig.builder()
                 .maxSocketConnectionsOpeningAtSameTime(100)
-                .timeoutSocketConnection(OptionalInt.of(100))       // 100 millisecs
-                .timeoutSocketRemoteConfirmation(OptionalInt.of(1000))  // 1 sec
+                .timeoutSocketConnection(100)       // 100 millisecs
+                .timeoutSocketRemoteConfirmation(1000)  // 1 sec
                 .build()
 
 
