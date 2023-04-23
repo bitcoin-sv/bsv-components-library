@@ -10,27 +10,27 @@ import java.util.OptionalInt;
 /**
  * Configurations needed by the P2P package.
  */
-public class P2PConfig extends HandlerConfig {
-    private int defaultPort;
-    private int listeningPort;
-    private OptionalInt maxSocketConnections;
-    private OptionalInt maxSocketPendingConnections;
-    private OptionalInt timeoutSocketConnection;
-    private OptionalInt timeoutSocketRemoteConfirmation;
-    private OptionalInt timeoutSocketIdle;
-    private int maxSocketConnectionsOpeningAtSameTime;
-    private int nioBufferSizeLowerBound;
-    private int nioBufferSizeUpperBound;
-    private int nioBufferSizeUpgrade;
-    private int maxMessageSizeAvgInBytes;
-    private boolean blockingOnListeners;
+public class P2PConfig {
+    private final int defaultPort;
+    private final int listeningPort;
+    private final int maxSocketConnections;
+    private final int maxSocketPendingConnections;
+    private final int timeoutSocketConnection;
+    private final int timeoutSocketRemoteConfirmation;
+    private final int timeoutSocketIdle;
+    private final int maxSocketConnectionsOpeningAtSameTime;
+    private final int nioBufferSizeLowerBound;
+    private final int nioBufferSizeUpperBound;
+    private final int nioBufferSizeUpgrade;
+    private final int maxMessageSizeAvgInBytes;
+    private final boolean blockingOnListeners;
 
     public P2PConfig(int defaultPort, int listeningPort,
-                     OptionalInt maxSocketConnections,
-                     OptionalInt maxSocketPendingConnections,
-                     OptionalInt timeoutSocketConnection,
-                     OptionalInt timeoutSocketRemoteConfirmation,
-                     OptionalInt timeoutSocketIdle,
+                     int maxSocketConnections,
+                     int maxSocketPendingConnections,
+                     int timeoutSocketConnection,
+                     int timeoutSocketRemoteConfirmation,
+                     int timeoutSocketIdle,
                      int maxSocketConnectionsOpeningAtSameTime,
                      int nioBufferSizeLowerBound,
                      int nioBufferSizeUpperBound,
@@ -61,19 +61,19 @@ public class P2PConfig extends HandlerConfig {
     public int getListeningPort()                           { return this.listeningPort; }
 
     /** Maximum number of socket connections that can be open simultaneously */
-    public OptionalInt getMaxSocketConnections()            { return this.maxSocketConnections; }
+    public int getMaxSocketConnections()            { return this.maxSocketConnections; }
 
     /** Maximum number of connections that can wait to be opened */
-    public OptionalInt getMaxSocketPendingConnections()     { return this.maxSocketPendingConnections; }
+    public int getMaxSocketPendingConnections()     { return this.maxSocketPendingConnections; }
 
     /** Maximum number of millisecs to wait for a socket to connect to a remote port*/
-    public OptionalInt getTimeoutSocketConnection()         { return this.timeoutSocketConnection; }
+    public int getTimeoutSocketConnection()         { return this.timeoutSocketConnection; }
 
     /** Maximum number of millisecs to wait for a remote socket to confirm the connection */
-    public OptionalInt getTimeoutSocketRemoteConfirmation() { return this.timeoutSocketRemoteConfirmation;}
+    public int getTimeoutSocketRemoteConfirmation() { return this.timeoutSocketRemoteConfirmation;}
 
     /** Maximum number of millisecs to wait for an idle socket before the connection is closed */
-    public OptionalInt getTimeoutSocketIdle()               { return this.timeoutSocketIdle; }
+    public int getTimeoutSocketIdle()               { return this.timeoutSocketIdle; }
 
 
     /**
@@ -118,17 +118,14 @@ public class P2PConfig extends HandlerConfig {
                 .blockingOnListeners(this.blockingOnListeners);
     }
 
-    /**
-     * Builder.
-     */
     public static class NetworkConfigImplBuilder {
         private int defaultPort;
         private int listeningPort;
-        private OptionalInt maxSocketConnections;
-        private OptionalInt maxSocketPendingConnections;
-        private OptionalInt timeoutSocketConnection;
-        private OptionalInt timeoutSocketRemoteConfirmation;
-        private OptionalInt timeoutSocketIdle;
+        private int maxSocketConnections;
+        private int maxSocketPendingConnections;
+        private int timeoutSocketConnection;
+        private int timeoutSocketRemoteConfirmation;
+        private int timeoutSocketIdle;
         private int maxSocketConnectionsOpeningAtSameTime;
         private int nioBufferSizeLowerBound;
         private int nioBufferSizeUpperBound;
@@ -148,27 +145,27 @@ public class P2PConfig extends HandlerConfig {
             return this;
         }
 
-        public P2PConfig.NetworkConfigImplBuilder maxSocketConnections(OptionalInt maxSocketConnections) {
+        public P2PConfig.NetworkConfigImplBuilder maxSocketConnections(int maxSocketConnections) {
             this.maxSocketConnections = maxSocketConnections;
             return this;
         }
 
-        public P2PConfig.NetworkConfigImplBuilder maxSocketPendingConnections(OptionalInt maxSocketPendingConnections) {
+        public P2PConfig.NetworkConfigImplBuilder maxSocketPendingConnections(int maxSocketPendingConnections) {
             this.maxSocketPendingConnections = maxSocketPendingConnections;
             return this;
         }
 
-        public P2PConfig.NetworkConfigImplBuilder timeoutSocketConnection(OptionalInt timeoutSocketConnection) {
+        public P2PConfig.NetworkConfigImplBuilder timeoutSocketConnection(int timeoutSocketConnection) {
             this.timeoutSocketConnection = timeoutSocketConnection;
             return this;
         }
 
-        public P2PConfig.NetworkConfigImplBuilder timeoutSocketRemoteConfirmation(OptionalInt timeoutSocketRemoteConfirmation) {
+        public P2PConfig.NetworkConfigImplBuilder timeoutSocketRemoteConfirmation(int timeoutSocketRemoteConfirmation) {
             this.timeoutSocketRemoteConfirmation = timeoutSocketRemoteConfirmation;
             return this;
         }
 
-        public P2PConfig.NetworkConfigImplBuilder timeoutSocketIdle(OptionalInt timeoutSocketIdle) {
+        public P2PConfig.NetworkConfigImplBuilder timeoutSocketIdle(int timeoutSocketIdle) {
             this.timeoutSocketIdle = timeoutSocketIdle;
             return this;
         }

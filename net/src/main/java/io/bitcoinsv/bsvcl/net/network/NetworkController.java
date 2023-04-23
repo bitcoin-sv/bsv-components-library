@@ -229,13 +229,11 @@ public class NetworkController extends AbstractExecutionThreadService {
 
                     List<PeerAddress> finalListToAdd = listToAdd;
 
-                    if (config.getMaxSocketPendingConnections().isPresent()) {
-                        int limit = config.getMaxSocketPendingConnections().getAsInt();
-                        int numItemsToAdd = Math.min(finalListToAdd.size(), limit - pendingToOpenConns.size());
-                        if (numItemsToAdd > 0)
-                            finalListToAdd = listToAdd.subList(0, numItemsToAdd);
-                        else finalListToAdd = new ArrayList<>(); // empty List
-                    }
+                    int limit = config.getMaxSocketPendingConnections();
+                    int numItemsToAdd = Math.min(finalListToAdd.size(), limit - pendingToOpenConns.size());
+                    if (numItemsToAdd > 0)
+                        finalListToAdd = listToAdd.subList(0, numItemsToAdd);
+                    else finalListToAdd = new ArrayList<>(); // empty List
                     pendingToOpenConns.addAll(finalListToAdd);
                     mainSelector.wakeup();
                 } // if...
@@ -626,7 +624,7 @@ public class NetworkController extends AbstractExecutionThreadService {
             while (true) {
                 // We set the limit of connections (Sockets), if any. the number of "inProgress" + "active" connections
                 // cannot be higher than this value.
-                OptionalInt limitNumConns = config.getMaxSocketConnections();
+                int limitNumConns = config.getMaxSocketConnections();
 
                 // Second loop level: We loop over the pending Connections...
                 while (true) {
@@ -637,7 +635,7 @@ public class NetworkController extends AbstractExecutionThreadService {
                     if (!keepConnecting) break;
 
                     if (inProgressConns.size() > config.getMaxSocketConnectionsOpeningAtSameTime()) break;
-                    if ((limitNumConns.isPresent()) && (inProgressConns.size() + activeConns.size() >= limitNumConns.getAsInt())) break;
+                    if (inProgressConns.size() + activeConns.size() >= limitNumConns) break;
 
                     PeerAddress peerAddress = this.pendingToOpenConns.take();
 
@@ -653,7 +651,7 @@ public class NetworkController extends AbstractExecutionThreadService {
                     TimeoutTask connectPeerTask = TimeoutTaskBuilder.newTask()
                             .threadsHandledBy(newConnsExecutor)
                             .execute(() -> handleConnectionToOpen(peerAddress))
-                            .waitFor(config.getTimeoutSocketConnection().getAsInt())
+                            .waitFor(config.getTimeoutSocketConnection())
                             .ifTimeoutThenExecute(() -> {
                                         processConnectionFailed(peerAddress, PeerRejectedEvent.RejectedReason.TIMEOUT,"connection timeout");
                                         //System.out.println("<<<<< CONNECTION TIMEOUT " + peerAddress.toString() + ", " + Thread.activeCount() + " Threads");
@@ -716,7 +714,7 @@ public class NetworkController extends AbstractExecutionThreadService {
                     lock.writeLock().lock();
                     for (PeerAddress peerAddress : this.inProgressConns.keySet()) {
                         InProgressConn inProgressConn = this.inProgressConns.get(peerAddress);
-                        if (inProgressConn.hasExpired(this.config.getTimeoutSocketRemoteConfirmation().getAsInt())) {
+                        if (inProgressConn.hasExpired(this.config.getTimeoutSocketRemoteConfirmation())) {
                             inProgressConnsToRemove.add(peerAddress);
                         }
                     } // for...
@@ -905,10 +903,10 @@ public class NetworkController extends AbstractExecutionThreadService {
             // we accept the connection, unless this Peer is already register for disconnection, or the Handler
             // does not accept new connections anymore, or we've reached the Maximum Connections limit already:
 
-            OptionalInt limitNumConns = config.getMaxSocketConnections();
+            int limitNumConns = config.getMaxSocketConnections();
             if (pendingToCloseConns.contains( new PeerAddress2DisconnectPeerRequest_Comparator(keyConnection.peerAddress) ) ||
                     (!keepConnecting) ||
-                    ((limitNumConns.isPresent()) && (inProgressConns.size() + activeConns.size() >= limitNumConns.getAsInt()))) {
+                    (inProgressConns.size() + activeConns.size() >= limitNumConns)) {
                 closeKey(key, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL);
                 return;
             }
@@ -1023,9 +1021,8 @@ public class NetworkController extends AbstractExecutionThreadService {
             // Check:
             // We haven't broken the "Maximum Socket connections" limit:
 
-            if ((!config.getMaxSocketConnections().isEmpty()) &&
-                    (activeConns.size() >= config.getMaxSocketConnections().getAsInt())) {
-                logger.trace("{} : {} : no more connections allowed ({})", this.id, socket.getRemoteSocketAddress(), config.getMaxSocketConnections().getAsInt());
+            if (activeConns.size() >= config.getMaxSocketConnections()) {
+                logger.trace("{} : {} : no more connections allowed ({})", this.id, socket.getRemoteSocketAddress(), config.getMaxSocketConnections());
                 closeKey(key, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL);
                 return;
             }
