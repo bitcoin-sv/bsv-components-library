@@ -225,7 +225,7 @@ class RawBlockReceiver_ChainDownloadTest extends Specification {
         // We wait until the TIME_LIMIT has expired
         while (Duration.between(timestampBegin, Instant.now()).compareTo(TEST_TIME_LIMIT) < 0) { Thread.sleep(1000)}
 
-        p2p.stop()
+        p2p.initiateStop()
         receiver.destroy()
         then:
         true

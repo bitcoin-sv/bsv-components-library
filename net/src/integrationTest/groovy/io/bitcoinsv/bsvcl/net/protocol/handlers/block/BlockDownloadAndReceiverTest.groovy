@@ -243,7 +243,7 @@ class BlockDownloadAndReceiverTest extends Specification {
         processBlockDownloaded(txStore, HASH)
 
         // We are done:
-        p2p.stop()
+        p2p.initiateStop()
         txStore.stop()
 
         then:

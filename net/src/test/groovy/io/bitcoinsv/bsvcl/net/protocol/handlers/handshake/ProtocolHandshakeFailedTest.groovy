@@ -77,8 +77,8 @@ class ProtocolHandshakeFailedTest extends Specification {
             Thread.sleep(100)
             client.REQUESTS.PEERS.connect(server.getPeerAddress()).submit()
             Thread.sleep(1000)
-            server.stop()
-            client.stop()
+            server.initiateStop()
+            client.initiateStop()
             println("CLIENT THREAD INFO:")
             println(client.getEventBus().getStatus())
             println("SERVER THREAD INFO:")
@@ -142,8 +142,8 @@ class ProtocolHandshakeFailedTest extends Specification {
             Thread.sleep(100)
             client.REQUESTS.PEERS.connect(server.getPeerAddress()).submit()
             Thread.sleep(1000)
-            server.stop()
-            client.stop()
+            server.initiateStop()
+            client.initiateStop()
 
         then:
             // We check that each there has been no handshake
@@ -199,8 +199,8 @@ class ProtocolHandshakeFailedTest extends Specification {
             // Now we send and additional VersionAck Msg, which will cause the handshake to be rejected
             client.REQUESTS.MSGS.send(server.getPeerAddress(), MsgTest.getVersionAckMsg()).submit()
             Thread.sleep(100)
-            server.stop()
-            client.stop()
+            server.initiateStop()
+            client.initiateStop()
 
         then:
             // We check that each on of them (Server and client) have received and triggered a Handshake)

@@ -124,8 +124,8 @@ class UnannouncedBlockTest extends Specification {
         Thread.sleep(1000)
 
         // And we stop
-        client.stop()
-        server.stop()
+        client.initiateStop()
+        server.initiateStop()
 
     }
 

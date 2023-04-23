@@ -115,8 +115,8 @@ class ProtocolMsgsTest extends Specification {
             boolean disconDone = disconnectedLatch.await(60, TimeUnit.SECONDS)
 
             println(" >>> STOPPING...")
-            server.stop()
-            client.stop()
+            server.initiateStop()
+            client.initiateStop()
             server.awaitStopped()
             client.awaitStopped()
 

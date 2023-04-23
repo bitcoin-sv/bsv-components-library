@@ -113,7 +113,7 @@ class HandshakeOKTest extends Specification {
             // Peers handshaked remains at MAX_PEER.
             println(" >>> CHECKING NUMBER OF PEERS HANDSHAKED: " + numPeersCurrentlyHandshaked.get())
             println(" >>> STOPPING...")
-            server.stop()
+            server.initiateStop()
         then:
             // We check that at some pint in time, we've reached the MIN and MAX Peers to handshake:
             minHandshakedReachedEvent.get() != null

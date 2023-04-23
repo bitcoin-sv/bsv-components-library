@@ -103,8 +103,8 @@ class ProtocolPingPongFailTest extends Specification {
             var disconnected = disconnectLatch.await(10, TimeUnit.SECONDS)
 
             println(" >>> STOPPING...")
-            server.stop()
-            client.stop()
+            server.initiateStop()
+            client.initiateStop()
             server.awaitStopped()
             client.awaitStopped()
 

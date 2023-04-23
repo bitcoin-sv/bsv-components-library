@@ -225,7 +225,7 @@ class ChainDownloadTest extends Specification {
                 }
 
             }
-            p2p.stop()
+            p2p.initiateStop()
             Duration testDuration = Duration.between(startTime, Instant.now())
             println("It took " + testDuration.toSeconds() + " seconds to finish the Test.")
             if (timeoutBroken) println("Test Timeout BROKEN!")

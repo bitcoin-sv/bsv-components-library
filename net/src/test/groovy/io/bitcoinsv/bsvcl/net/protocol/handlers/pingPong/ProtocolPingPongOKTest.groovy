@@ -96,8 +96,8 @@ class ProtocolPingPongOKTest extends Specification {
             Thread.sleep(waitingTime.toMillis())
             println("Waiting finished. Pings should have been triggered by now...")
             // At this moment, the Ping/Pong protocol must have been triggered at least once...
-            server.stop()
-            client.stop()
+            server.initiateStop()
+            client.initiateStop()
             server.awaitStopped()
             client.awaitStopped()
         then:

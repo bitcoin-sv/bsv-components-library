@@ -107,7 +107,7 @@ class InitialConnectionsTest extends Specification {
             if (percentageOfInitialPeers >= PERCENTAGE_SUCCESS) {
                 testSuccess.set(true);
             }
-            server.stop()
+            server.initiateStop()
 
         then:
             testSuccess.get()

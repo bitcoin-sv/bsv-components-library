@@ -167,7 +167,7 @@ class RawBlockReceiver_BlocksDownloadTest extends Specification {
         }
 
         // We Stop & clear everything:
-        p2p.stop()
+        p2p.initiateStop()
         receiver.destroy()
 
         then:

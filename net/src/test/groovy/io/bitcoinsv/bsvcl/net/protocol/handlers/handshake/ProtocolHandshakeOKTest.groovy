@@ -63,8 +63,8 @@ class ProtocolHandshakeOKTest extends Specification {
             client.REQUESTS.PEERS.connect(server.getPeerAddress()).submit()
             Thread.sleep(1000)
 
-            server.stop()
-            client.stop()
+            server.initiateStop()
+            client.initiateStop()
 
         then:
             // We check that each on of them (Server and client) have received and triggered a Handshake)
@@ -169,10 +169,10 @@ class ProtocolHandshakeOKTest extends Specification {
             // Now we stop them all
             println(" >> STOPPING ALL CLIENTS...")
             for (P2P client : clients) {
-                client.stop()
+                client.initiateStop()
             }
             Thread.sleep(100)
-            server.stop()
+            server.initiateStop()
         then:
             numLostEvents.get() == 2
             numReachedEvents.get() == 2

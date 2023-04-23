@@ -262,7 +262,7 @@ class BlockDownloadTest extends Specification {
                 testDuration = Duration.between(startTime, Instant.now())
                 timeoutBroken = testDuration.compareTo(TIMEOUT) > 0
             }
-            p2p.stop()
+            p2p.initiateStop()
             println("It took " + testDuration.toSeconds() + " seconds to finish the Test.")
             if (timeoutBroken) println("Test Timeout BROKEN!")
 

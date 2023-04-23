@@ -151,8 +151,8 @@ class BlockStreamTest extends Specification {
         Thread.sleep(6000)
 
         //stop server as we no longer need it
-        server.stop()
-        client.stop()
+        server.initiateStop()
+        client.initiateStop()
         server.awaitStopped()
         client.awaitStopped()
 

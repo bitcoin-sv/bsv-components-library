@@ -67,8 +67,8 @@ class ProtocolStateTest extends Specification {
 
             Thread.sleep(1000)
 
-            server.stop()
-            client.stop()
+            server.initiateStop()
+            client.initiateStop()
 
             Thread.sleep(1000)
         then:

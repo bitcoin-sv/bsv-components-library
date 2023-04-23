@@ -103,8 +103,8 @@ class ProtocolConnectionTest extends Specification {
             client.REQUESTS.PEERS.disconnect(server.getPeerAddress()).submit()
             var disconnectsDone = disconnectsLatch.await(10, TimeUnit.SECONDS)
 
-            server.stop()
-            client.stop()
+            server.initiateStop()
+            client.initiateStop()
             server.awaitStopped()
             client.awaitStopped()
 

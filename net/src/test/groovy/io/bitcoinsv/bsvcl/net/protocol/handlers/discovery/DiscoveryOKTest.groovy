@@ -55,7 +55,7 @@ class DiscoveryOKTest extends Specification {
             server.startServer()
             server.awaitStarted()
             println("P2P Stopping...")
-            server.stop()
+            server.initiateStop()
             server.awaitStopped()
             println("P2P Stopped.")
         then:

@@ -247,7 +247,7 @@ class CompactBlockTest extends Specification {
                 Thread.sleep(1000)
             }
 
-            p2p.stop()
+            p2p.initiateStop()
 
         then:
             numOfHandshakes.get() > 0
@@ -469,7 +469,7 @@ class CompactBlockTest extends Specification {
                 Thread.sleep(1000)
             }
 
-            p2p.stop()
+            p2p.initiateStop()
 
         then:
             numOfHandshakes.get() > 0

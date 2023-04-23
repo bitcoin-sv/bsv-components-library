@@ -207,10 +207,10 @@ public class P2P {
     }
 
     /** Initiate a graceful shutdown of the P2P. */
-    public void stop() throws InterruptedException {
+    public void initiateStop() throws InterruptedException {
         this.networkController.stop();
         if (this.executor != null) this.executor.shutdownNow();
-        logger.info("Stopping ...");
+        logger.info("Initiated stop ...");
     }
 
     /**
