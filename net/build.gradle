@@ -20,6 +20,7 @@ testing {
             dependencies {
                 implementation "io.bitcoinsv.bitcoinjsv:bitcoinj-base:$bitcoinJVersion"
                 implementation(project(":common"))
+                implementation(project(":bsv"))
                 implementation 'org.apache.commons:commons-collections4:4.4'
                 implementation 'commons-io:commons-io:2.11.0'
                 implementation "com.google.guava:guava:31.1-jre"

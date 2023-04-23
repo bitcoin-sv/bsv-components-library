@@ -2,6 +2,7 @@ package io.bitcoinsv.bsvcl.net.protocol.handlers.discovery
 
 
 import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import io.bitcoinsv.bsvcl.net.P2PConfig
 import io.bitcoinsv.bsvcl.net.network.PeerAddress
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfigBuilder
@@ -60,7 +61,7 @@ class DiscoveryRenewTest extends Specification {
         P2P server = new P2PBuilder("testing")
                     .config(config)
                     .config(discoveryConfig)
-                    .serverPort(0) // Random Port
+                    .config(P2PConfig.builder().listeningPort(0).build())
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
                     .build()
 
