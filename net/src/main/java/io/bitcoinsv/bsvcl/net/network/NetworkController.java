@@ -328,7 +328,7 @@ public class NetworkController extends AbstractExecutionThreadService {
             mainSelector = SelectorProvider.provider().openSelector();
 
             // if we run in Server-Mode, we configure the Socket to be listening to incoming requests:
-            if (serverMode) {
+            if (serverMode || config.isListening()) {
                 SocketAddress serverSocketAddress = new InetSocketAddress(peerAddress.getIp(), peerAddress.getPort());
                 ServerSocketChannel serverSocket = ServerSocketChannel.open();
                 serverSocket.configureBlocking(false);
@@ -414,7 +414,7 @@ public class NetworkController extends AbstractExecutionThreadService {
      */
     @Override
     public void run() throws IOException, InterruptedException {
-        logger.info("{} : Starting in " + (serverMode ? "SERVER" : "CLIENT") + " mode...", this.id);
+        logger.info("{} : Starting in " + ((serverMode || config.isListening()) ? "SERVER" : "CLIENT") + " mode...", this.id);
         startConnectionsJobs();
         try {
             while (isRunning()) {
