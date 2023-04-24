@@ -87,7 +87,7 @@ class UnannouncedBlockTest extends Specification {
                 .config(runtimeConfig)                              // "Big" Msgs workaround
                 .config(config)
                 .config(msgConfig)                                  // Allow "Big" msgs from ALL Peers
-                .config(P2PConfig.builder().listeningPort(0).build())
+                .config(P2PConfig.builder().listeningPort(0).listening(true).build())
                 .excludeHandler(BlacklistHandler.HANDLER_ID)        // No blacklist functionality
                 .excludeHandler(DiscoveryHandler.HANDLER_ID)        // No Discovery functionality
                 .build()
@@ -106,7 +106,7 @@ class UnannouncedBlockTest extends Specification {
         })
 
         // We start Server and Client and connect each other:
-        server.startServer()
+        server.start()
         client.start()
         server.awaitStarted(1, TimeUnit.SECONDS)
         client.awaitStarted(1, TimeUnit.SECONDS)

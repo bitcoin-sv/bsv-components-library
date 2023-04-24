@@ -105,19 +105,13 @@ public class NetworkController extends AbstractExecutionThreadService {
     ExecutorService jobExecutor = ThreadUtils.getCachedThreadExecutorService("JclNetworkHandler");
     // An executor for triggering new Connections to remote Peers:
     ExecutorService newConnsExecutor;
-    // the connections that are being opened
-    private final Map<PeerAddress, NetworkController.InProgressConn> inProgressConns = new ConcurrentHashMap<>();
     // General State:
     private NetworkControllerState state;
 
-    // The following lists manage the different workingState the connections go though:
     // active:          The connection is established to a Remote Peer. Ready to send/receive data from it
-    // inProgress:      The connection is yet to be confirmed by the Remote Peer
-    // pendingToOpen:   List of new Connections we are opening to more Remote Peers
-    // pendingToClose:  List of Peers which connections we are closing
-    // blacklist:       List of Peers blacklisted
-
     private final Map<PeerAddress, NIOStream> activeConns = new ConcurrentHashMap<>();
+    // the connections that are being opened
+    private final Map<PeerAddress, NetworkController.InProgressConn> inProgressConns = new ConcurrentHashMap<>();
 
     // Other useful counters:
     private final AtomicLong numConnsFailed = new AtomicLong();
@@ -176,6 +170,29 @@ public class NetworkController extends AbstractExecutionThreadService {
                     }
                 }
             }
+        }
+    }
+
+    /** accept an incoming connection */
+    public void acceptConnection(PeerAddress peerAddress, SocketChannel channel) {
+        try {
+            lock.writeLock().lock();
+            logger.debug("{} : {} : Accepting connection...", this.id, peerAddress);
+            inProgressConns.put(peerAddress, new InProgressConn(peerAddress));
+
+            var selector = SelectorProvider.provider().openSelector();
+            registerAndRunSelector(peerAddress, selector);
+
+            SelectionKey key = channel.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+            key.attach(new KeyConnectionAttach(peerAddress));
+
+            logger.trace("{} : {} : Connected, establishing connection...", this.id, peerAddress);
+            startPeerConnection(key);
+        } catch (Exception e) {
+            e.printStackTrace();
+            processConnectionFailed(peerAddress, PeerRejectedEvent.RejectedReason.INTERNAL_ERROR, e.getMessage());
+        } finally {
+            lock.writeLock().unlock();
         }
     }
 

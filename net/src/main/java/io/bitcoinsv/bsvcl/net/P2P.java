@@ -4,6 +4,7 @@ package io.bitcoinsv.bsvcl.net;
 import com.google.common.util.concurrent.Service;
 import io.bitcoinsv.bsvcl.common.thread.TimeoutTask;
 import io.bitcoinsv.bsvcl.common.thread.TimeoutTaskBuilder;
+import io.bitcoinsv.bsvcl.net.network.NetworkListener;
 import io.bitcoinsv.bsvcl.net.network.events.*;
 import io.bitcoinsv.bsvcl.net.network.streams.nio.NIOStream;
 import io.bitcoinsv.bsvcl.net.protocol.handlers.blacklist.BlacklistHandler;
@@ -23,9 +24,11 @@ import io.bitcoinsv.bsvcl.net.tools.LoggerUtil;
 import io.bitcoinsv.bsvcl.common.handlers.HandlerConfig;
 import io.bitcoinsv.bsvcl.common.thread.ThreadUtils;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.channels.SelectionKey;
+import java.nio.channels.SocketChannel;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
@@ -73,7 +76,8 @@ public class P2P extends Thread {
 
     // The network controllers. At the moment we only have one.
     private NetworkController networkController = null;
-
+    // the network listener
+    private final NetworkListener networkListener;
     // Map of all the message handlers
     private final Map<String, Handler> handlers = new ConcurrentHashMap<>();
 
@@ -116,8 +120,9 @@ public class P2P extends Thread {
             this.runtimeConfig = runtimeConfig;
             this.networkConfig = networkConfig;
             this.protocolConfig = protocolConfig;
-
-            // EventBus for the Internal Handles within the P2P Service:
+            String serverIp = "0.0.0.0:" + networkConfig.getListeningPort();
+            this.networkListener = new NetworkListener(id, this, PeerAddress.fromIp(serverIp));
+            // EventBus for the internal handlers within the P2P sub-system
             this.eventBus = EventBus.builder().build();
 
             // EventBus for Handlers State Publishing:
@@ -220,6 +225,44 @@ public class P2P extends Thread {
         ipAddresses.forEach(blacklist::remove);
     }
 
+    /** Called by the listener when a new connection is accepted. */
+    public void acceptConnection(PeerAddress peerAddress, SocketChannel channel) {
+        // this has concurrency issues that I will deal with soon
+        // check for duplicate connection
+        if (activeConns.containsKey(peerAddress)) {
+            try {
+                channel.close();
+            } catch (IOException e) {
+                logger.error("Error closing duplicate connection from {}", peerAddress, e);
+            }
+            return;
+        }
+        // check the blacklist
+        if (blacklist.contains(peerAddress.getIp())) {
+            logger.trace("{} : {} : discarding incoming connection (blacklisted).", this.id, peerAddress.getIp());
+            try {
+                channel.close();
+            } catch (IOException e) {
+                logger.error("Error closing blacklisted connection from {}", peerAddress, e);
+            }
+            return;
+        }
+        // check the max connections
+        if (activeConns.size() >= networkConfig.getMaxSocketConnections()) {
+            logger.trace("{} : {} : no more connections allowed ({})", this.id, peerAddress, networkConfig.getMaxSocketConnections());
+            try {
+                channel.close();
+            } catch (IOException e) {
+                logger.error("Error closing connection when exceeded max from {}", peerAddress, e);
+            }
+            return;
+        }
+        // send the connection to a NetworkController
+        // at the moment we only have one NetworkController
+        networkController.acceptConnection(peerAddress, channel);
+        activeConns.put(peerAddress, networkController);
+    }
+
     public void run() {
         try {
             // register for events first, so we don't miss any
@@ -227,9 +270,13 @@ public class P2P extends Thread {
 
             // set up the network controllers, at the moment we only have one
             String serverIp = "0.0.0.0:" + networkConfig.getListeningPort();
-            this.networkController = new NetworkController(id, runtimeConfig, networkConfig, PeerAddress.fromIp(serverIp), networkConfig.isListening());
+            this.networkController = new NetworkController(id, runtimeConfig, networkConfig, PeerAddress.fromIp(serverIp), false);
             this.networkController.useEventBus(this.eventBus);
             this.networkController.start();
+
+            if (networkConfig.isListening()) {
+                this.networkListener.start();
+            }
 
             // If specified, we trigger a new Thread that will publish the status of the Handlers into the
             // Bus. The Map contains a duration for each Handler Class, so we can set up a different frequency for each
@@ -318,18 +365,15 @@ public class P2P extends Thread {
     }
 
     // convenience method to return the PeerAddress for this ProtocolHandler. It assumes that there is a NetworkHandler
-    public PeerAddress getPeerAddress() {
+    // todo: rename this
+    public PeerAddress getPeerAddress() throws InterruptedException {
         try {
-
-            // The localAddress used by NetworkHandlerImpl doesn't work, since most probably will be "0.0.0.0", which
-            // means its listening in all network adapters. We need the local IP, which we obtain by using directly
-            // the Local Inet4Address and we get the port from NetworkHandlerImpl...
-
-// This way of getting local IP address might cause issues if the host has several network interfaces:
-//            PeerAddress result = PeerAddress.fromIp(
-//                    Inet4Address.getLocalHost().getHostAddress() + ":" + handler.getPeerAddress().getPort());
-            PeerAddress result = PeerAddress.fromIp(("127.0.0.1") + ":" + this.networkController.getPeerAddress().getPort());
-            return result;
+            if (networkConfig.isListening()) {
+                networkListener.awaitInitialization();
+                    return PeerAddress.fromIp(("127.0.0.1") + ":" + this.networkListener.getListenAddress().getPort());
+            } else {
+                return PeerAddress.fromIp("127.0.0.1:0");
+            }
         } catch (UnknownHostException e) {
             logger.error("Error getting P2P Address");
             throw new RuntimeException(e);
