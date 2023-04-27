@@ -141,7 +141,7 @@ class ConnectionHandlerTest extends Specification {
             client.start()
             client.openConnection(PeerAddress.fromIp("127.0.0.1:8100")) // dummy port
             failureLatch.await()
-            client.stop()
+            client.initiateStop()
             client.awaitStopped()
 
         then:
