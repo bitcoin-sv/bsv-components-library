@@ -94,9 +94,6 @@ public class NetworkController extends AbstractExecutionThreadService {
     // Local Address of this Handler running:
     private PeerAddress peerAddress;
 
-    // Indicates if we are running in SERVER_MODE (incoming connections allowed)
-    private boolean serverMode;
-
     // Indicates if we can keep creating connections or whether we should stop:
     private boolean keepConnecting = true;
     // The EventBus used for event handling
@@ -124,12 +121,11 @@ public class NetworkController extends AbstractExecutionThreadService {
     private static final String FILE_PENDING_OPEN_CONN      = "networkHandler-pendingToOpenConnections.csv";
     private static final String FILE_FAILED_CONN            = "networkHandler-failedConnections.csv";
 
-    public NetworkController(String id, RuntimeConfig runtimeConfig, P2PConfig netConfig, PeerAddress localAddress, boolean serverMode) {
+    public NetworkController(String id, RuntimeConfig runtimeConfig, P2PConfig netConfig, PeerAddress localAddress) {
         this.id = id;
         this.runtimeConfig = runtimeConfig;
         this.config = netConfig;
         this.peerAddress = localAddress;
-        this.serverMode = serverMode;
         this.newConnsExecutor = ThreadUtils.getFixedThreadExecutorService("JclNetworkHandlerRemoteConn", netConfig.getMaxSocketConnectionsOpeningAtSameTime());
     }
 
@@ -203,7 +199,6 @@ public class NetworkController extends AbstractExecutionThreadService {
             result = NetworkControllerState.builder()
                     .numActiveConns(this.activeConns.size())
                     .keep_connecting(this.keepConnecting)
-                    .server_mode(this.serverMode)
                     .numConnsFailed(this.numConnsFailed.get())
                     .numInProgressConnsExpired(this.numConnsInProgressExpired.get())
                     .numConnsTried(this.numConnsTried)
@@ -216,26 +211,7 @@ public class NetworkController extends AbstractExecutionThreadService {
 
     public void init() {
         try {
-            // We initialize the Handler:
             mainSelector = SelectorProvider.provider().openSelector();
-
-            // if we run in Server-Mode, we configure the Socket to be listening to incoming requests:
-            if (serverMode) {
-                SocketAddress serverSocketAddress = new InetSocketAddress(peerAddress.getIp(), peerAddress.getPort());
-                ServerSocketChannel serverSocket = ServerSocketChannel.open();
-                serverSocket.configureBlocking(false);
-                serverSocket.socket().setReuseAddress(true);
-                serverSocket.socket().bind(serverSocketAddress);
-                serverSocket.register(mainSelector, SelectionKey.OP_ACCEPT );
-
-                // In case the local getPort is ZERO, that means that the system will pick one up for us, so we need to
-                // update it after it's been assigned:
-                if (peerAddress.getPort() == 0)
-                    peerAddress = new PeerAddress(peerAddress.getIp(), serverSocket.socket().getLocalPort());
-            }
-
-            // Finally, we register for Events in the EventBus:
-//            registerForEvents();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -256,19 +232,13 @@ public class NetworkController extends AbstractExecutionThreadService {
         }
     }
 
-    @Deprecated
-    public void startServer() {
-        this.serverMode = true;
-        start();
-    }
-
     /**
      * Main Loop of this class. It keeps running in the background until the instance is stopped by calling the "stop"
      * method.
      */
     @Override
     public void run() throws IOException, InterruptedException {
-        logger.info("{} : Starting in " + (serverMode ? "SERVER" : "CLIENT") + " mode...", this.id);
+        logger.info("{} : Starting...", this.id);
         startConnectionsJobs();
         try {
             while (isRunning()) {
@@ -558,10 +528,6 @@ public class NetworkController extends AbstractExecutionThreadService {
             handleWrite(key);
             return;
         }
-        if ((serverMode) && (key.isAcceptable())) {
-            logger.trace("{} : Handling Acceptable Key {}: {}...", this.id, key.hashCode(), key);
-            handleAccept(key);
-        }
     }
 
     /**
@@ -660,70 +626,6 @@ public class NetworkController extends AbstractExecutionThreadService {
      */
     protected void handleInvalidKey(SelectionKey key) throws IOException {
         closeKey(key, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_REMOTE);
-    }
-
-    /**
-     * It handles a new incoming Connection from a Remote Peer. The logic to here is similar as with an outcoming
-     * connection: We create a Stream that wraps up the connection and we attach it to this key, so it can be used
-     * later to send/receive data from/to this peer.
-     */
-    private void handleAccept(SelectionKey key) throws IOException {
-
-        try {
-            lock.writeLock().lock();
-            ServerSocketChannel serverChannel = (ServerSocketChannel) key.channel();
-            SocketChannel channel = serverChannel.accept();
-            channel.configureBlocking(false);
-            Socket socket = channel.socket();
-            PeerAddress peerAddress = new PeerAddress(socket.getInetAddress(), socket.getPort());
-
-            logger.trace("{} : {} : [ACCEPT Key] incoming Connection...", this.id, socket.getRemoteSocketAddress());
-
-            if (checkDuplicatedConnection(key, peerAddress)) {
-                return;
-            }
-
-            // Check:
-            // We accept the incoming conn only if the server is in "Accepting new connections" mode
-            if (!keepConnecting) {
-                logger.trace("{} : {} : discarding incoming connection (no more connections needed).", this.id, socket.getRemoteSocketAddress());
-                closeKey(key, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL);
-                return;
-            }
-
-            // Check:
-            // We accept the incoming connection only if the Host is NOT Blacklisted
-            // todo: we need to make sure this is implemented in the future
-//            InetAddress peerIP = ((InetSocketAddress) socket.getRemoteSocketAddress()).getAddress();
-//            if (blacklist.contains(peerIP)) {
-//                logger.trace("{} : {} : discarding incoming connection (blacklisted).", this.id, socket.getRemoteSocketAddress());
-//                closeKey(key, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL);
-//                return;
-//            }
-
-            // Check:
-            // We haven't broken the "Maximum Socket connections" limit:
-
-            if (activeConns.size() >= config.getMaxSocketConnections()) {
-                logger.trace("{} : {} : no more connections allowed ({})", this.id, socket.getRemoteSocketAddress(), config.getMaxSocketConnections());
-                closeKey(key, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL);
-                return;
-            }
-
-            // IF we reach this far, we accept the incoming connection:
-
-            logger.trace("{} : {} : accepting Connection...", this.id, socket.getRemoteSocketAddress());
-
-            var selector = SelectorProvider.provider().openSelector();
-            registerAndRunSelector(peerAddress, selector);
-            SelectionKey clientKey = channel.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
-            clientKey.attach(new KeyConnectionAttach(peerAddress));
-
-            // We activate the Connection straight away:
-            startPeerConnection(clientKey);
-        } finally {
-            lock.writeLock().unlock();
-        }
     }
 
     /**

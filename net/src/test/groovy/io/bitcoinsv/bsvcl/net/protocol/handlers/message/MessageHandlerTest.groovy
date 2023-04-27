@@ -1,5 +1,6 @@
 package io.bitcoinsv.bsvcl.net.protocol.handlers.message
 
+import io.bitcoinsv.bsvcl.net.P2P
 import io.bitcoinsv.bsvcl.net.network.PeerAddress
 
 import io.bitcoinsv.bsvcl.net.P2PConfig
@@ -52,7 +53,6 @@ class MessageHandlerTest extends Specification {
             // so the number is picked up randomly...
             RuntimeConfig runtimeConfig = new RuntimeConfigDefault()
 
-
             ProtocolConfig serverConfig = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET)).toBuilder().port(0).build()
             ProtocolConfig clientConfig = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET)).toBuilder().port(0).build()
 
@@ -60,13 +60,10 @@ class MessageHandlerTest extends Specification {
 
             // Server Configuration:
             String serverID = "server"
-            ExecutorService serverExecutor = ThreadUtils.getSingleThreadExecutorService("ServerBus")
-            EventBus serverBus = new EventBus(serverExecutor)
-            serverBus.subscribe(MsgReceivedEvent.class, {e -> msgs.add(e.getBtcMsg())})
 
-            NetworkController serverNetworkHandler = new NetworkController(serverID, runtimeConfig, networkConfig,
-                PeerAddress.localhost(0), true)
-            serverNetworkHandler.useEventBus(serverBus)
+            P2P server = new P2P(serverID, runtimeConfig, networkConfig.toBuilder().listening(true).build(), serverConfig)
+            EventBus serverBus = server.getEventBus()
+            serverBus.subscribe(MsgReceivedEvent.class, {e -> msgs.add(e.getBtcMsg())})
 
             MessageHandlerConfig serverMsgConfig = serverConfig.getMessageConfig()
             MessageHandler serverMsgHandler = new MessageHandlerImpl(serverID, runtimeConfig, serverMsgConfig)
@@ -78,12 +75,8 @@ class MessageHandlerTest extends Specification {
 
             // Client Configuration:
             String clientID = "client"
-            ExecutorService clientExecutor = ThreadUtils.getSingleThreadExecutorService("ClientBus")
-            EventBus clientBus = new EventBus(clientExecutor)
-
-            NetworkController clientNetworkHandler = new NetworkController(clientID, runtimeConfig, networkConfig,
-                PeerAddress.localhost(0), false)
-            clientNetworkHandler.useEventBus(clientBus)
+            P2P client = new P2P(clientID, runtimeConfig, networkConfig, clientConfig)
+            EventBus clientBus = client.getEventBus()
 
             MessageHandlerConfig clientMsgConfig = clientConfig.getMessageConfig()
             MessageHandler clientMsgHandler = new MessageHandlerImpl(clientID, runtimeConfig, clientMsgConfig)
@@ -96,10 +89,12 @@ class MessageHandlerTest extends Specification {
         when:
             // We start both and we connect them together...
 
-            serverNetworkHandler.startServer()
-            clientNetworkHandler.start()
+            server.start()
+            client.start()
+            server.awaitStarted()
+            client.awaitStarted()
 
-            clientNetworkHandler.openConnection(serverNetworkHandler.getPeerAddress())
+            client.connect(server.getPeerAddress())
 
             // We wait a little bit, to make sure we have captured both Streams. now, we use one of them to send one
             // Message to the other...
@@ -107,13 +102,15 @@ class MessageHandlerTest extends Specification {
 
             // We send a Message from the client to the Server...
             BitcoinMsg<AddrMsg> msg = MsgTest.getAddrMsg()
-            clientMsgHandler.send(serverNetworkHandler.getPeerAddress(), msg)
+            clientMsgHandler.send(server.getPeerAddress(), msg)
 
             Thread.sleep(1000)
 
             // We are Done...
-            serverNetworkHandler.stop()
-            clientNetworkHandler.stop()
+            server.initiateStop()
+            client.initiateStop()
+            server.awaitStopped()
+            client.awaitStopped()
 
         then:
             // We check that the Message has been captured, and its the same (After Deserialization) as the original
