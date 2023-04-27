@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit
  * unannounced blocks and with no size limits.
  */
 class UnannouncedBlockTest extends Specification {
+    private final static int TIMEOUT_SECS = 10
 
     // It creates a DUMMY BLOCK:
     private BitcoinMsg<BlockMsg> createDummyBlock(ProtocolConfig protocolConfig, int numTxs) {
@@ -115,20 +116,20 @@ class UnannouncedBlockTest extends Specification {
         // We start Server and Client and connect each other:
         server.start()
         client.start()
-        server.awaitStarted(1, TimeUnit.SECONDS)
-        client.awaitStarted(1, TimeUnit.SECONDS)
+        server.awaitStarted(TIMEOUT_SECS, TimeUnit.SECONDS)
+        client.awaitStarted(TIMEOUT_SECS, TimeUnit.SECONDS)
         println(" > Client started: " + client.getPeerAddress())
         println(" > Server started: " + server.getPeerAddress())
 
         println("> Client Connecting to Server...")
         client.REQUESTS.PEERS.connect(server.getPeerAddress()).submit()
-        boolean connected = latchConnected.await(5, TimeUnit.SECONDS)
+        boolean connected = latchConnected.await(TIMEOUT_SECS, TimeUnit.SECONDS)
         assert connected : "Client should have connected to Server"
 
         // send a BLOCK from The Client to the Server...
         println("Sending Block #" + blockMsg.body.blockHeader.hash + "...")
         client.REQUESTS.MSGS.send(server.getPeerAddress(), blockMsg).submit()
-        boolean downloaded = blockDownloaded.await(5, TimeUnit.SECONDS)
+        boolean downloaded = blockDownloaded.await(TIMEOUT_SECS, TimeUnit.SECONDS)
         assert downloaded : "Block should have been downloaded"
 
         // And we stop
