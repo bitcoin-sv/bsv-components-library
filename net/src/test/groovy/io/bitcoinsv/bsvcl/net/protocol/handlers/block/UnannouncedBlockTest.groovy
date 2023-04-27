@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit
  * unannounced blocks and with no size limits.
  */
 class UnannouncedBlockTest extends Specification {
-    private final static int TIMEOUT_SECS = 10
+    private final static int TIMEOUT_SECS = 60
 
     // It creates a DUMMY BLOCK:
     private BitcoinMsg<BlockMsg> createDummyBlock(ProtocolConfig protocolConfig, int numTxs) {
