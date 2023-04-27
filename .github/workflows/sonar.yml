@@ -11,7 +11,7 @@ on:
 jobs:
   sonar-check:
     timeout-minutes: 20
-    runs-on: [linux, ubuntu-latest]
+    runs-on: linux, ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v3
