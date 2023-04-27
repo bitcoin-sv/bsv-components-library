@@ -1,6 +1,8 @@
 # Perform unit tests on branches other than the main branch
 name: Check non-main branches
-
+permissions:
+  checks: write
+  pull-requests: write
 on:
   push:
     branches:
