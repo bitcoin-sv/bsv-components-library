@@ -1,6 +1,8 @@
 # Perform all tests on pull requests and the main branch
 name: Check PR
-
+permissions:
+  checks: write
+  pull-requests: write
 on:
   push:
     branches: [main]
@@ -30,3 +32,9 @@ jobs:
         run: ./gradlew test integrationTest jacocoTestReport
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: |
+            **/test-results/**/*.xml
