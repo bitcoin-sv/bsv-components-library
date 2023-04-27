@@ -36,7 +36,7 @@ jobs:
         if: success() || failure()
         with:
           name: 'Test Report'
-          files: '**/test-results/*.xml'
+          path: '**/test-results/*.xml'
           fail-on-error: true
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: ' java-junit'
 
