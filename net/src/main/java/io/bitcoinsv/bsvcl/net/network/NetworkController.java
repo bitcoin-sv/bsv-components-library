@@ -3,7 +3,7 @@ package io.bitcoinsv.bsvcl.net.network;
 // @author i.fernandez@nchain.com
 // Copyright (c) 2018-2023 Bitcoin Association
 
-import com.google.common.util.concurrent.AbstractExecutionThreadService;
+import io.bitcoinsv.bsvcl.common.ServiceState;
 import io.bitcoinsv.bsvcl.net.P2PConfig;
 import io.bitcoinsv.bsvcl.net.network.events.*;
 
@@ -40,7 +40,7 @@ import static com.google.common.base.Preconditions.checkState;
  * - This class keeps different list to keep track of the peers to connect to or the ones to disconnect from. These
  *   lists are processed in another 2 different threads, one for each list.
  */
-public class NetworkController extends AbstractExecutionThreadService {
+public class NetworkController extends Thread {
 
     /** Subfolder to store local files in */
     private static final String NET_FOLDER = "net";
@@ -83,6 +83,10 @@ public class NetworkController extends AbstractExecutionThreadService {
     protected String id;
     protected RuntimeConfig runtimeConfig;
     protected P2PConfig config;
+    private ServiceState serviceState = ServiceState.CREATED;
+    private final CountDownLatch startLatch = new CountDownLatch(1);  // Triggered when service has finished starting.
+    private final CountDownLatch stopLatch = new CountDownLatch(1);   // Triggered when service has finished stopping.
+
     protected Selector mainSelector;
 
     // Main Lock, to preserve Thread safety and our mental sanity:
@@ -102,8 +106,6 @@ public class NetworkController extends AbstractExecutionThreadService {
     ExecutorService jobExecutor = ThreadUtils.getCachedThreadExecutorService("JclNetworkHandler");
     // An executor for triggering new Connections to remote Peers:
     ExecutorService newConnsExecutor;
-    // General State:
-    private NetworkControllerState state;
 
     // active:          The connection is established to a Remote Peer. Ready to send/receive data from it
     private final Map<PeerAddress, NIOStream> activeConns = new ConcurrentHashMap<>();
@@ -192,7 +194,7 @@ public class NetworkController extends AbstractExecutionThreadService {
         }
     }
 
-    public NetworkControllerState getState() {
+    public NetworkControllerState getStatus() {
         NetworkControllerState result = null;
         try {
             lock.readLock().lock();
@@ -209,70 +211,61 @@ public class NetworkController extends AbstractExecutionThreadService {
         return result;
     }
 
-    public void init() {
-        try {
-            mainSelector = SelectorProvider.provider().openSelector();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-
-    public void start() {
-        checkState(!super.isRunning(), "The Service is already Running");
-        try {
-            init();
-            super.startAsync();
-            super.awaitRunning();
-            // We publish the event so you can notified when the Network stuff is started:
-            eventBus.publish(new NetStartEvent(this.peerAddress));
-        } catch (Exception e) {
-            e.printStackTrace();
-            logger.error("{} : Error starting the service", this.id);
-        }
-    }
-
     /**
      * Main Loop of this class. It keeps running in the background until the instance is stopped by calling the "stop"
      * method.
      */
     @Override
-    public void run() throws IOException, InterruptedException {
+    public void run() {
+        serviceState = ServiceState.STARTING;
         logger.info("{} : Starting...", this.id);
-        startConnectionsJobs();
         try {
-            while (isRunning()) {
+            mainSelector = SelectorProvider.provider().openSelector();
+            startConnectionsJobs();
+            serviceState = ServiceState.RUNNING;
+            startLatch.countDown();
+            eventBus.publish(new NetStartEvent(this.peerAddress));
+
+            while (serviceState.isRunning() || serviceState.isPaused()) {
                 handleSelectorKeys(mainSelector);
             }
         } catch (Throwable e) {
-            logger.error("{} : Error running the NetworkHandlerImpl", this.id, e);
+            logger.error("{} : Error running the NetworkController", this.id, e);
             e.printStackTrace();
-            throw e;
         } finally {
+            serviceState = ServiceState.STOPPING;
+            eventBus.publish(new NetStopEvent());
             stopConnectionsJobs();
             closeAllKeys(mainSelector);
+            stopSelectorThreads();
+        }
+        serviceState = ServiceState.STOPPED;
+        stopLatch.countDown();
+        logger.info("{} : Stopped", this.id);
+    }
+
+    /** wait until it has started */
+    public void awaitStarted() {
+        try {
+            startLatch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
-    public void stop() throws InterruptedException {
-        logger.info("{} : Stopping...", this.id);
-
-        // We publish the event so you can notified when the Network stuff is stopped:
-        eventBus.publish(new NetStopEvent());
-
-        // We close all our connections:
-        this.keepConnecting = false;
-        for(PeerAddress peerAddress : this.activeConns.keySet())
-            this.closeConnection(peerAddress);
-
-        mainSelector.wakeup();
-        super.stopAsync();
-
-        stopSelectorThreads();
+    /** initiate shutdown */
+    public void initiateStop() {
+        serviceState = ServiceState.STOPPING;
+        if (mainSelector != null) { mainSelector.wakeup(); }
     }
 
+    /** wait until it has stopped */
     public void awaitStopped() {
-        super.awaitTerminated();
+        try {
+            stopLatch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     /** Processes the pending Connections in a separate Thread */

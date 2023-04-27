@@ -315,7 +315,7 @@ public class P2P extends Thread {
 
             // shutdown
             logger.info("Stopping ...");
-            networkController.stop();
+            networkController.initiateStop();
             if (this.executor != null) this.executor.shutdownNow();
         } catch (InterruptedException | UnknownHostException e) {
             e.printStackTrace();
@@ -335,6 +335,7 @@ public class P2P extends Thread {
     public void awaitStarted() {
         try {
             startedLatch.await();
+            networkController.awaitStarted();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
