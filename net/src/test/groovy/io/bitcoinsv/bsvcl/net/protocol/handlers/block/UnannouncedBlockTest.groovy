@@ -22,6 +22,7 @@ import io.bitcoinsv.bsvcl.net.protocol.messages.common.BitcoinMsg
 import io.bitcoinsv.bsvcl.net.protocol.messages.common.BitcoinMsgBuilder
 import spock.lang.Specification
 
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicReference
 import java.util.stream.Collectors
 import java.util.stream.IntStream
@@ -37,7 +38,7 @@ class UnannouncedBlockTest extends Specification {
     // It creates a DUMMY BLOCK:
     private BitcoinMsg<BlockMsg> createDummyBlock(ProtocolConfig protocolConfig, int numTxs) {
         HeaderBean blockHeader = TestingUtils.buildBlock() as HeaderBean
-        BlockHeaderMsg blockHeaderMsg = BlockHeaderMsg.fromBean(blockHeader, numTxs);
+        BlockHeaderMsg blockHeaderMsg = BlockHeaderMsg.fromBean(blockHeader, numTxs)
         List<TxMsg> txsMsg = IntStream.range(0, numTxs)
                 .mapToObj({i -> TestingUtils.buildTx()})
                 .map({ tx -> TxMsg.fromBean(tx)})
@@ -49,7 +50,7 @@ class UnannouncedBlockTest extends Specification {
                 .build()
 
         BitcoinMsg<BlockMsg> result = new BitcoinMsgBuilder<>(protocolConfig.basicConfig, blockMsg).build()
-        return result;
+        return result
     }
 
 
@@ -98,11 +99,17 @@ class UnannouncedBlockTest extends Specification {
                 .excludeHandler(DiscoveryHandler.HANDLER_ID)        // No Discovery functionality
                 .build()
 
+        CountDownLatch latchConnected = new CountDownLatch(1)
+        client.EVENTS.PEERS.HANDSHAKED.forEach({e ->
+            latchConnected.countDown()
+        })
 
         // Event handler: Triggered when a Whole block has been downloaded by the Server
+        CountDownLatch blockDownloaded = new CountDownLatch(1)
         server.EVENTS.BLOCKS.BLOCK_DOWNLOADED.forEach({ e ->
             println("Block downloaded #" + e.blockHeader.hash)
             hashBlockReceived.set(e.blockHeader.hash)
+            blockDownloaded.countDown()
         })
 
         // We start Server and Client and connect each other:
@@ -115,14 +122,14 @@ class UnannouncedBlockTest extends Specification {
 
         println("> Client Connecting to Server...")
         client.REQUESTS.PEERS.connect(server.getPeerAddress()).submit()
+        boolean connected = latchConnected.await(5, TimeUnit.SECONDS)
+        assert connected : "Client should have connected to Server"
 
-        // We Wait a bit and send a BLOCK from The Client to the Server...
-        Thread.sleep(1000)
+        // send a BLOCK from The Client to the Server...
         println("Sending Block #" + blockMsg.body.blockHeader.hash + "...")
         client.REQUESTS.MSGS.send(server.getPeerAddress(), blockMsg).submit()
-
-        // We Wait a bit an check the Events have been propagated properly...
-        Thread.sleep(1000)
+        boolean downloaded = blockDownloaded.await(5, TimeUnit.SECONDS)
+        assert downloaded : "Block should have been downloaded"
 
         // And we stop
         client.initiateStop()
