@@ -108,7 +108,7 @@ public class NetworkController extends Thread {
     ExecutorService newConnsExecutor;
 
     // active:          The connection is established to a Remote Peer. Ready to send/receive data from it
-    private final Map<PeerAddress, NIOStream> activeConns = new ConcurrentHashMap<>();
+    private final Map<PeerAddress, SelectionKey> activeConns = new ConcurrentHashMap<>();
     // the connections that are being opened
     private final Map<PeerAddress, NetworkController.InProgressConn> inProgressConns = new ConcurrentHashMap<>();
 
@@ -156,32 +156,32 @@ public class NetworkController extends Thread {
 
     /** close a connection to the peer */
     public void closeConnection(PeerAddress peerAddress, PeerDisconnectedEvent.DisconnectedReason reason) {
-        if (selectorMap.containsKey(peerAddress)) {
-            Iterator<SelectionKey> selectorKeys = selectorMap.get(peerAddress).keys().iterator();
-            while (selectorKeys.hasNext()) {
-                SelectionKey key = selectorKeys.next();
-                if (key.attachment() != null) {
-                    KeyConnectionAttach keyAttach = (KeyConnectionAttach) key.attachment();
-                    if (peerAddress.equals(keyAttach.peerAddress)) {
-                        logger.trace("{} : {} : Removing Key [specific selector]... ", this.id, peerAddress);
-                        closeKey(key, reason);
-                    }
-                }
+        try {
+            lock.writeLock().lock();
+            logger.debug("{} : {} : Closing connection...", this.id, peerAddress);
+            SelectionKey key = activeConns.get(peerAddress);
+            if (key != null) {
+                closeKey(key, reason);
             }
+        } catch (Exception e) {
+            logger.error("{} : {} : Error closing connection: {}", this.id, peerAddress, e.getMessage());
+        } finally {
+            lock.writeLock().unlock();
         }
     }
 
     /** accept an incoming connection */
     public void acceptConnection(PeerAddress peerAddress, SocketChannel channel) {
+        if (serviceState != ServiceState.STARTING && serviceState != ServiceState.RUNNING) {
+            throw new RuntimeException("Cannot accept connection, service is not running");
+        }
         try {
+            startLatch.await();
             lock.writeLock().lock();
             logger.debug("{} : {} : Accepting connection...", this.id, peerAddress);
             inProgressConns.put(peerAddress, new InProgressConn(peerAddress));
 
-            var selector = SelectorProvider.provider().openSelector();
-            registerAndRunSelector(peerAddress, selector);
-
-            SelectionKey key = channel.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+            SelectionKey key = channel.register(mainSelector, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
             key.attach(new KeyConnectionAttach(peerAddress));
 
             logger.trace("{} : {} : Connected, establishing connection...", this.id, peerAddress);
@@ -237,7 +237,6 @@ public class NetworkController extends Thread {
             eventBus.publish(new NetStopEvent());
             stopConnectionsJobs();
             closeAllKeys(mainSelector);
-            stopSelectorThreads();
         }
         serviceState = ServiceState.STOPPED;
         stopLatch.countDown();
@@ -339,7 +338,7 @@ public class NetworkController extends Thread {
 
             // We add this connection to the list of active ones (not "in Progress" anymore):
             inProgressConns.remove(keyAttach.peerAddress);
-            activeConns.put(keyAttach.peerAddress, stream);
+            activeConns.put(keyAttach.peerAddress, key);
             logger.trace("{} : {} : Socket connection established.", this.id, keyAttach.peerAddress);
 
             // We trigger the callbacks, sending the Stream back to the client:
@@ -362,29 +361,29 @@ public class NetworkController extends Thread {
      */
     private void handleConnectionToOpen(PeerAddress peerAddress) {
         try {
+            if (serviceState != ServiceState.RUNNING && serviceState != ServiceState.STARTING) {
+                throw new RuntimeException("Attempted to open connection while NetworkController is not running");
+            }
+            startLatch.await();
             lock.writeLock().lock();
             numConnsTried++;
             logger.debug("{} : {} : Connecting...", this.id, peerAddress);
             inProgressConns.put(peerAddress, new InProgressConn(peerAddress));
 
-            SocketAddress socketAddress = new InetSocketAddress(peerAddress.getIp(), peerAddress.getPort());
             SocketChannel socketChannel = SocketChannel.open();
             socketChannel.configureBlocking(false);
-
+            SocketAddress socketAddress = new InetSocketAddress(peerAddress.getIp(), peerAddress.getPort());
             boolean isConnected = socketChannel.connect(socketAddress);
-            var selector = SelectorProvider.provider().openSelector();
-            registerAndRunSelector(peerAddress, selector);
 
             SelectionKey key = (isConnected)
-                    ? socketChannel.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE)
-                    : socketChannel.register(selector, SelectionKey.OP_CONNECT);
+                    ? socketChannel.register(mainSelector, SelectionKey.OP_READ | SelectionKey.OP_WRITE)
+                    : socketChannel.register(mainSelector, SelectionKey.OP_CONNECT);
 
             key.attach(new KeyConnectionAttach(peerAddress));
 
             if (isConnected) {
                 logger.trace("{} : {} : Connected, establishing connection...", this.id, peerAddress);
                 startPeerConnection(key);
-
             } else {
                 logger.trace("{} : {} : Connected, waiting for remote confirmation...", this.id, peerAddress);
             }
@@ -417,9 +416,9 @@ public class NetworkController extends Thread {
         } // for...
         // we remove the expired connections...
         if (!inProgressConnsToRemove.isEmpty()) {
-            logger.trace("{} : Removing in-progress expired connections", this.id, inProgressConnsToRemove.size());
+            logger.trace("{} : Removing {} in-progress expired connections", this.id, inProgressConnsToRemove.size());
             numConnsInProgressExpired.addAndGet(inProgressConnsToRemove.size());
-            inProgressConnsToRemove.forEach(p -> inProgressConns.remove(p));
+            inProgressConnsToRemove.forEach(inProgressConns::remove);
             inProgressConnsToRemove.clear();
         }
     }
@@ -634,56 +633,5 @@ public class NetworkController extends Thread {
             ioe.printStackTrace();
             logger.error("{} : Error closing Selector", this.id, ioe);
         }
-    }
-
-
-    // =============================================================================================================
-    // LOGIC TO ADD MULTI-THREAD AT SELECTOR LEVEL
-    // =============================================================================================================
-    // Holds map between connected peer and selector
-    private final Map<PeerAddress, Selector> selectorMap = new HashMap<>();
-    // Holds map between selector and its running state. Setting it to false will shut down listening thread.
-    private final Map<Selector, AtomicBoolean> isRunning = new HashMap<>();
-    // ExecutionService used for handling peer selectors.
-    private final ExecutorService executorService = ThreadUtils.getFixedThreadExecutorService("Peer-Connection", 50);
-
-    private void registerAndRunSelector(PeerAddress peerAddress, Selector selector) {
-
-        selectorMap.put(peerAddress, selector);
-        var bool = new AtomicBoolean(true);
-        isRunning.put(selector, bool);
-
-        executorService.execute(() -> {
-            try {
-                while (bool.get()) {
-                    handleSelectorKeys(selector);
-                }
-            } catch (InterruptedException | IOException e) {
-                logger.error("Selector listener crashed!", e);
-                throw new RuntimeException(e);
-            } catch (ClosedSelectorException e) {
-                // connection closed in between of execution
-            } finally {
-                isRunning.remove(selector);
-                selectorMap.remove(peerAddress);
-            }
-        });
-    }
-
-    private void stopSelectorThreads() {
-        Set<Selector> selectors = new HashSet<>(isRunning.keySet());
-        selectors.forEach(selector ->
-                stopSelectorThread(selector, peerAddress, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL)
-        );
-        executorService.shutdown();
-    }
-
-    private void stopSelectorThread(Selector selector, PeerAddress peerAddress, PeerDisconnectedEvent.DisconnectedReason reason) {
-        if (selector == this.mainSelector) {
-            return;
-        }
-        notifyPeerDisconnection(peerAddress, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL);
-        isRunning.get(selector).set(false);
-        selector.wakeup();
     }
 }
