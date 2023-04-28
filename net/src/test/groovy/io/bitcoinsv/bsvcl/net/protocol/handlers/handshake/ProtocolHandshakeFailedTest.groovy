@@ -117,7 +117,7 @@ class ProtocolHandshakeFailedTest extends Specification {
             P2P server = new P2PBuilder("server")
                     .config(protocolConfig)
                     .useLocalhost()
-                    .config(P2PConfig.builder().listeningPort(0).build())
+                    .config(P2PConfig.builder().listeningPort(0).listening(true).build())
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
@@ -144,25 +144,35 @@ class ProtocolHandshakeFailedTest extends Specification {
             AtomicBoolean serverHandshaked = new AtomicBoolean()
             AtomicBoolean clientHandshaked = new AtomicBoolean()
             AtomicReference<PeerHandshakeRejectedEvent> clientRejectedEvent   = new AtomicReference<>()
+            CountDownLatch latchRejected = new CountDownLatch(1)
 
             server.EVENTS.PEERS.HANDSHAKED.forEach({ e -> serverHandshaked.set(true)})
-            server.EVENTS.PEERS.HANDSHAKED_REJECTED.forEach({ e -> clientRejectedEvent.set(e)})
+            server.EVENTS.PEERS.HANDSHAKED_REJECTED.forEach({ e -> {
+                clientRejectedEvent.set(e)
+                latchRejected.countDown()
+            }})
             client.EVENTS.PEERS.HANDSHAKED.forEach({ e -> clientHandshaked.set(true)})
 
         when:
-            server.startServer()
+            server.start()
             client.start()
-            Thread.sleep(100)
+            server.awaitStarted()
+            client.awaitStarted()
+
             client.REQUESTS.PEERS.connect(server.getPeerAddress()).submit()
-            Thread.sleep(1000)
+            boolean rejected = latchRejected.await(5, TimeUnit.SECONDS)
+
             server.initiateStop()
             client.initiateStop()
+            server.awaitStopped()
+            client.awaitStopped()
 
         then:
             // We check that each there has been no handshake
             !serverHandshaked.get()
             !clientHandshaked.get()
             // we check that the Server has rejected the handshake proposed by the client, with the right reason
+            rejected
             clientRejectedEvent.get() != null
             clientRejectedEvent.get().reason == PeerHandshakeRejectedEvent.HandshakedRejectedReason.WRONG_USER_AGENT
     }
