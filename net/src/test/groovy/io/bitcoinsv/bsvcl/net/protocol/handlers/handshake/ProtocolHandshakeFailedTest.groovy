@@ -34,10 +34,10 @@ class ProtocolHandshakeFailedTest extends Specification {
             // Server Definition:
             ProtocolConfig protocolConfig = ProtocolConfigBuilder.get(new MainNetParams(Net.MAINNET))
 
-            // We disable all the Handlers we don't need for this Test:
+            // Disable all the Handlers we don't need for this Test:
             P2P server = new P2PBuilder("server")
                     .config(protocolConfig)
-                    .config(P2PConfig.builder().listeningPort(0).build())
+                    .config(P2PConfig.builder().listeningPort(0).listening(true).build())
                     .useLocalhost()
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
@@ -55,7 +55,7 @@ class ProtocolHandshakeFailedTest extends Specification {
                 .basicConfig(protocolConfig.getBasicConfig().toBuilder().protocolVersion(0).build())
                 .build()
 
-            // We disable all the Handlers we don't need for this Test:
+            // Disable all the Handlers we don't need for this Test:
             P2P client = new P2PBuilder("client")
                     .config(wrongConfig)
                     .useLocalhost()
@@ -64,32 +64,43 @@ class ProtocolHandshakeFailedTest extends Specification {
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
                     .build()
 
-            // we Define the Listener for the events and keep track of them:
+            // Define the Listener for the events and keep track of them:
             AtomicBoolean serverHandshaked = new AtomicBoolean()
             AtomicBoolean clientHandshaked = new AtomicBoolean()
             AtomicReference<PeerHandshakeRejectedEvent> clientRejectedEvent   = new AtomicReference<>()
+            CountDownLatch latchRejected = new CountDownLatch(1)
 
             server.EVENTS.PEERS.HANDSHAKED.forEach({ e -> serverHandshaked.set(true)})
-            server.EVENTS.PEERS.HANDSHAKED_REJECTED.forEach({ e -> clientRejectedEvent.set(e)})
+            server.EVENTS.PEERS.HANDSHAKED_REJECTED.forEach({ e -> {
+                clientRejectedEvent.set(e)
+                latchRejected.countDown()
+            }})
             client.EVENTS.PEERS.HANDSHAKED.forEach({ e -> clientHandshaked.set(true)})
 
         when:
-            server.startServer()
+            server.start()
             client.start()
-            Thread.sleep(100)
+            server.awaitStarted()
+            client.awaitStarted()
+
             client.REQUESTS.PEERS.connect(server.getPeerAddress()).submit()
-            Thread.sleep(1000)
+            boolean rejected = latchRejected.await(5, TimeUnit.SECONDS)
+
             server.initiateStop()
             client.initiateStop()
+            server.awaitStopped()
+            client.awaitStopped()
+
             println("CLIENT THREAD INFO:")
             println(client.getEventBus().getStatus())
             println("SERVER THREAD INFO:")
             println(server.getEventBus().getStatus())
         then:
-            // We check that each there has been no handshake
+            // Check that each there has been no handshake
             !serverHandshaked.get()
             !clientHandshaked.get()
-            // we check that the Server has rejected the handshake proposed by the client, with the right reason
+            // Check that the Server has rejected the handshake proposed by the client, with the right reason
+            rejected
             clientRejectedEvent.get() != null
             clientRejectedEvent.get().reason == PeerHandshakeRejectedEvent.HandshakedRejectedReason.WRONG_VERSION
     }
