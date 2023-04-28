@@ -338,20 +338,11 @@ public class NetworkController extends Thread {
             SocketChannel socketChannel = SocketChannel.open();
             socketChannel.configureBlocking(false);
             SocketAddress socketAddress = new InetSocketAddress(peerAddress.getIp(), peerAddress.getPort());
-            boolean isConnected = socketChannel.connect(socketAddress);
+            socketChannel.connect(socketAddress);
 
-            SelectionKey key = (isConnected)
-                    ? socketChannel.register(mainSelector, SelectionKey.OP_READ | SelectionKey.OP_WRITE)
-                    : socketChannel.register(mainSelector, SelectionKey.OP_CONNECT);
-
+            SelectionKey key = socketChannel.register(mainSelector, SelectionKey.OP_CONNECT);
             key.attach(new KeyConnectionAttach(peerAddress));
-
-            if (isConnected) {
-                logger.trace("{} : {} : Connected, establishing connection...", this.id, peerAddress);
-                startPeerConnection(key);
-            } else {
-                logger.trace("{} : {} : Connected, waiting for remote confirmation...", this.id, peerAddress);
-            }
+            logger.trace("{} : {} : Connected, waiting for remote confirmation...", this.id, peerAddress);
         } catch (Exception e) {
             e.printStackTrace();
             processConnectionFailed(peerAddress, PeerRejectedEvent.RejectedReason.INTERNAL_ERROR, e.getMessage());
@@ -366,7 +357,12 @@ public class NetworkController extends Thread {
      * connections and remove those that are expired based on our config (timeoutSocketRemoteConfirmation)
      * NOTE: An expired and remove connection from there might still confirm later on, sending a CONNECT signal to us. In
      * that case, the connection is still accepted and inserted into the "active" connections.
-     * todo: make sure that the P2P parent is notified of any disconnects.
+     *
+     * todo:
+     *   * make sure that the P2P parent is notified of any disconnects
+     *   * this handles the case where a connection is established and then handshake doesn't complete
+     *   * this method takes up an entire Thread
+     *   * there doesn't appear to be any waiting - it appears to be a busy loop
      */
     private void handleInProgressConnections() {
         // We keep a temporary list where we keep a reference to those In-Progress Connections that need to be removed
