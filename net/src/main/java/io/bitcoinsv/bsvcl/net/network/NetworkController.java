@@ -118,7 +118,7 @@ public class NetworkController extends Thread {
      * If the NetworkController is still starting up, then it will wait for it be Running.
      */
     public void openConnection(PeerAddress peerAddress) throws InterruptedException {
-        if (serviceState.isStarting()) { startLatch.await(); }
+        if (serviceState.isStarting() || serviceState.isCreated()) { startLatch.await(); }
         handleConnectionToOpen(peerAddress);
     }
 

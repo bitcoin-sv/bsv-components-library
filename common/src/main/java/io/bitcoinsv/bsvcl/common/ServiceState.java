@@ -17,6 +17,10 @@ public enum ServiceState {
     /** service is paused */
     PAUSED;
 
+    public boolean isCreated() { return this == CREATED; }
+
+    public boolean isStarting() { return this == STARTING; }
+
     public boolean isRunning() {
         return this == RUNNING;
     }
@@ -29,6 +33,6 @@ public enum ServiceState {
         return this == STOPPED;
     }
 
-    public boolean isStarting() { return this == STARTING; }
+
 }
 
