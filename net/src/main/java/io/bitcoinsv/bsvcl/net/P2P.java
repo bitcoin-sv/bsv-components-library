@@ -270,8 +270,8 @@ public class P2P extends Thread {
 
             // set up the network controllers, at the moment we only have one
             String serverIp = "0.0.0.0:" + networkConfig.getListeningPort();
-            this.networkController = new NetworkController(id, runtimeConfig, networkConfig, PeerAddress.fromIp(serverIp));
-            this.networkController.useEventBus(this.eventBus);
+            this.networkController = new NetworkController(id, runtimeConfig, networkConfig, PeerAddress.fromIp(serverIp),
+                    eventBus);
             this.networkController.start();
 
             if (networkConfig.isListening()) {

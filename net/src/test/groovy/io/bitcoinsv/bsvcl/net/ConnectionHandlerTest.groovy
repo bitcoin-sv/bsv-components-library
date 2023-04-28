@@ -119,16 +119,15 @@ class ConnectionHandlerTest extends Specification {
             // Event-Bus, for events and callbacks handling...
             EventBus clientEventBus = EventBus.builder().executor(clientExecutor).build()
 
-            // We initialize it:
-            NetworkController client = new NetworkController("client", runtimeConfig, networkConfig, PeerAddress.localhost(0))
-            client.useEventBus(clientEventBus)
+            // Initialize it:
+            NetworkController client = new NetworkController("client", runtimeConfig, networkConfig, PeerAddress.localhost(0),
+                                                                clientEventBus)
 
-            // We keep track of the events in these variables:
-
+            // Keep track of the events in these variables:
             AtomicBoolean clientRejected= new AtomicBoolean(false)
             CountDownLatch failureLatch = new CountDownLatch(1)
 
-            // We provide some callbacks ...
+            // Provide some callbacks ...
             clientEventBus.subscribe(PeerRejectedEvent.class, { e ->
                 PeerRejectedEvent rejectedEvent = (PeerRejectedEvent) e
                 println("EVENT > CLIENT: CONNECTION REJECTED FROM " + rejectedEvent.getPeerAddress())
