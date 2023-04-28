@@ -31,6 +31,10 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * Implementation of the NetworkHandler, based on Java-NIO (non blocking Input-Output)
  * - Each object of this class contains a single NIO Selector that is used to manage many connections
  * - The main loop is performed in a single thread and loops over the keys in the selector, waiting for an event
+ * <p>
+ * This class is thread-safe but it does not prevent indeterminate behaviour by callers. For example, if one thread calls
+ * openConnection at the same time as another thread calls closeConnection for the same PeerAddress, then the result is
+ * indeterminable.
  */
 public class NetworkController extends Thread {
 
@@ -81,10 +85,10 @@ public class NetworkController extends Thread {
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     // Local Address of this Handler running:
-    private PeerAddress peerAddress;
+    private final PeerAddress peerAddress;
 
     // The EventBus used for event handling
-    private EventBus eventBus;
+    private final EventBus eventBus;
     // An executor Service, to trigger jobs in MultiThread...
     ExecutorService jobExecutor = ThreadUtils.getCachedThreadExecutorService("JclNetworkHandler");
 
@@ -104,17 +108,17 @@ public class NetworkController extends Thread {
     private static final String FILE_PENDING_OPEN_CONN      = "networkHandler-pendingToOpenConnections.csv";
     private static final String FILE_FAILED_CONN            = "networkHandler-failedConnections.csv";
 
-    public NetworkController(String id, RuntimeConfig runtimeConfig, P2PConfig netConfig, PeerAddress localAddress) {
+    public NetworkController(String id, RuntimeConfig runtimeConfig, P2PConfig netConfig, PeerAddress localAddress,
+                             EventBus eventBus) {
         this.id = id;
         this.runtimeConfig = runtimeConfig;
         this.config = netConfig;
         this.peerAddress = localAddress;
+        this.eventBus = eventBus;
     }
 
-    public void useEventBus(EventBus eventBus)      { this.eventBus = eventBus; }
-
     /** open a connection to the peer
-     *
+     * <p>
      * If the NetworkController is still starting up, then it will wait for it be Running.
      */
     public void openConnection(PeerAddress peerAddress) throws InterruptedException {
