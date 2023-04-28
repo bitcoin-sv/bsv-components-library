@@ -48,7 +48,6 @@ public class NetworkController extends Thread {
     static class KeyConnectionAttach {
         PeerAddress peerAddress;
         NIOStream stream;
-        boolean started; // set to TRUE when we have received already some bytes from this Peer
         public KeyConnectionAttach(PeerAddress peerAddress) { this.peerAddress = peerAddress;}
     }
 
@@ -536,18 +535,8 @@ public class NetworkController extends Thread {
      * the "onData" method)
      */
     private void handleRead(SelectionKey key) throws IOException {
-        // We read the data from the Peer (through the Stream wrapped out around it) and we run the callbacks:
+        // Read the data from the Peer (through the Stream wrapped out around it) and run the callbacks:
         KeyConnectionAttach keyConnection = (KeyConnectionAttach) key.attachment();
-
-        // If these bytes are the FIRST bytes coming from a Peer, we wait a bit JUST IN CASE, so we make sure that
-        // all the events related to this Peer/Stream have been populated properly...
-        // todo: is this really necessary?? This shows to me that there is a problem with the way we handle the startup
-        if (!keyConnection.started) {
-            logger.warn(">>>> DATA COMING FROM NOT-INITIALIZED STREAM: {}", keyConnection.peerAddress);
-            try { Thread.sleep(50);} catch (InterruptedException ie) {}
-            keyConnection.started = true;
-        }
-
         int numBytesRead = ((NIOInputStream)keyConnection.stream.input()).readFromSocket();
         if (numBytesRead == -1) {
             logger.trace("{} : {} : Connection closed by the Remote Peer.", this.id, keyConnection.peerAddress);
