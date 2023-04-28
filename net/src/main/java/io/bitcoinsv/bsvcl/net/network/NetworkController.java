@@ -23,37 +23,25 @@ import java.nio.channels.*;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
+    import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import static com.google.common.base.Preconditions.checkState;
-
 /**
  * Implementation of the NetworkHandler, based on Java-NIO (non blocking Input-Output)
- * - The class runs in a separate Thread, extending a guava Service
- * - the main loop is performed in a single Thread. This loop takes place in the "run()" method and basically
- *   loops over the Keys in our Selector, waiting for some event (a new peer connecting, new data coming, etc).
- * - Any time a new connection arrives, an instance of a NIO Stream is linked to that Key, and an Event is
- *   triggered containing that Stream, that will be used to communicate with the remote Peer.
- * - This class keeps different list to keep track of the peers to connect to or the ones to disconnect from. These
- *   lists are processed in another 2 different threads, one for each list.
+ * - Each object of this class contains a single NIO Selector that is used to manage many connections
+ * - The main loop is performed in a single thread and loops over the keys in the selector, waiting for an event
  */
 public class NetworkController extends Thread {
 
     /** Subfolder to store local files in */
     private static final String NET_FOLDER = "net";
-
-    public PeerAddress getPeerAddress() {
-        return this.peerAddress;
-    }
+    private final Logger logger = LoggerFactory.getLogger(NetworkController.class);
 
     /**
-     * Inner class that is attached to each Key in the selector. It represents a connection with
-     * one particular Peer:
+     * Attached to each key in the selector. It represents a connection with a Peer:
      * - when the connection is created in the first place (but not fully established yet), the "peerAddress" stores the
-     *   peer we are trying to connect to
+     *   peer we are trying to connect to.
      * - When the connection is fully established, the "stream" is created and linked to this socket.
      */
     class KeyConnectionAttach {
@@ -87,32 +75,25 @@ public class NetworkController extends Thread {
     private final CountDownLatch startLatch = new CountDownLatch(1);  // Triggered when service has finished starting.
     private final CountDownLatch stopLatch = new CountDownLatch(1);   // Triggered when service has finished stopping.
 
-    protected Selector mainSelector;
+    private Selector mainSelector;
 
     // Main Lock, to preserve Thread safety and our mental sanity:
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
-    // For logging:
-    private final Logger logger = LoggerFactory.getLogger(NetworkController.class);
-
     // Local Address of this Handler running:
     private PeerAddress peerAddress;
 
-    // Indicates if we can keep creating connections or whether we should stop:
-    private boolean keepConnecting = true;
     // The EventBus used for event handling
     private EventBus eventBus;
     // An executor Service, to trigger jobs in MultiThread...
     ExecutorService jobExecutor = ThreadUtils.getCachedThreadExecutorService("JclNetworkHandler");
-    // An executor for triggering new Connections to remote Peers:
-    ExecutorService newConnsExecutor;
 
-    // active:          The connection is established to a Remote Peer. Ready to send/receive data from it
+    // active connections
     private final Map<PeerAddress, SelectionKey> activeConns = new ConcurrentHashMap<>();
     // the connections that are being opened
     private final Map<PeerAddress, NetworkController.InProgressConn> inProgressConns = new ConcurrentHashMap<>();
 
-    // Other useful counters:
+    // Some useful counters
     private final AtomicLong numConnsFailed = new AtomicLong();
     private final AtomicLong numConnsInProgressExpired = new AtomicLong();
     private long numConnsTried;
@@ -128,22 +109,9 @@ public class NetworkController extends Thread {
         this.runtimeConfig = runtimeConfig;
         this.config = netConfig;
         this.peerAddress = localAddress;
-        this.newConnsExecutor = ThreadUtils.getFixedThreadExecutorService("JclNetworkHandlerRemoteConn", netConfig.getMaxSocketConnectionsOpeningAtSameTime());
-    }
-
-    public P2PConfig getConfig() {
-        return config;
-    }
-
-    public synchronized void updateConfig(P2PConfig config) {
-        this.config = config;
     }
 
     public void useEventBus(EventBus eventBus)      { this.eventBus = eventBus; }
-
-    public void stopConnecting()                    { this.keepConnecting = false; }
-
-    public void resumeConnecting()                  { this.keepConnecting = true;}
 
     /** open a connection to the peer */
     public void openConnection(PeerAddress peerAddress) {
@@ -200,7 +168,6 @@ public class NetworkController extends Thread {
             lock.readLock().lock();
             result = NetworkControllerState.builder()
                     .numActiveConns(this.activeConns.size())
-                    .keep_connecting(this.keepConnecting)
                     .numConnsFailed(this.numConnsFailed.get())
                     .numInProgressConnsExpired(this.numConnsInProgressExpired.get())
                     .numConnsTried(this.numConnsTried)
@@ -429,8 +396,8 @@ public class NetworkController extends Thread {
     }
 
     /**
-     * It closes a Selection Key. It triggers the "onClose" method in the Stream that wrapps up this connections, so
-     * the client os notified, and then it cancels this selection Key.
+     * It closes a Selection Key. It triggers the "onClose" method in the Stream that wraps up the connection, so
+     * the client is notified, and then it cancels this selection Key.
      */
     private void closeKey(SelectionKey key, PeerDisconnectedEvent.DisconnectedReason reason) {
         KeyConnectionAttach keyConnection = (KeyConnectionAttach) key.attachment();
@@ -476,7 +443,6 @@ public class NetworkController extends Thread {
 
             return true;
         }
-
         return false;
     }
 
@@ -499,7 +465,7 @@ public class NetworkController extends Thread {
      * ACCEPT key, which is not handled here since the NetworkHandlerImpl does not accept incoming connections)
      * @param key Key to handle
      */
-    protected void handleKey(SelectionKey key) throws IOException {
+    private void handleKey(SelectionKey key) throws IOException {
         logger.trace("Key : " + key);
         if (!key.isValid()) {
             handleInvalidKey(key);
@@ -518,14 +484,13 @@ public class NetworkController extends Thread {
         if (key.isWritable()) {
             logger.trace( "Handling Writable Key " + key + "...");
             handleWrite(key);
-            return;
         }
     }
 
     /**
      * It handles a CONNECT key, that is a confirmation that a connection to a remote Peer is successful.
      */
-    protected void handleConnect(SelectionKey key) throws IOException {
+    private void handleConnect(SelectionKey key) throws IOException {
         try {
             lock.writeLock().lock();
             KeyConnectionAttach keyConnection = (KeyConnectionAttach) key.attachment();
@@ -546,8 +511,7 @@ public class NetworkController extends Thread {
             // does not accept new connections anymore, or we've reached the Maximum Connections limit already:
 
             int limitNumConns = config.getMaxSocketConnections();
-            if ((!keepConnecting) ||
-                    (inProgressConns.size() + activeConns.size() >= limitNumConns)) {
+            if (inProgressConns.size() + activeConns.size() >= limitNumConns) {
                 closeKey(key, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL);
                 return;
             }
@@ -572,7 +536,7 @@ public class NetworkController extends Thread {
      * representing this connection is used to read data from the socket (and return it to the "client" by using
      * the "onData" method)
      */
-    protected void handleRead(SelectionKey key) throws IOException {
+    private void handleRead(SelectionKey key) throws IOException {
         // We read the data from the Peer (through the Stream wrapped out around it) and we run the callbacks:
         KeyConnectionAttach keyConnection = (KeyConnectionAttach) key.attachment();
 
@@ -596,7 +560,7 @@ public class NetworkController extends Thread {
      * It handles a WRITE key, that is writing some data to the socket implementing that connection. Each connections
      * is representing by a ByteArrayStream, so we use it to write the data through the channel.
      */
-    protected void handleWrite(SelectionKey key) throws IOException {
+    private void handleWrite(SelectionKey key) throws IOException {
         // Write the data to the Peer (through the Stream wrapped out around it) and run the callbacks:
         KeyConnectionAttach keyConnection = (KeyConnectionAttach) key.attachment();
         // the checks below should not be necessary. They should be removed and the code allowed to create
@@ -616,7 +580,7 @@ public class NetworkController extends Thread {
     /**
      * It handles an invalid key, closing it.
      */
-    protected void handleInvalidKey(SelectionKey key) throws IOException {
+    private void handleInvalidKey(SelectionKey key) throws IOException {
         closeKey(key, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_REMOTE);
     }
 
@@ -633,5 +597,12 @@ public class NetworkController extends Thread {
             ioe.printStackTrace();
             logger.error("{} : Error closing Selector", this.id, ioe);
         }
+    }
+
+    public PeerAddress getPeerAddress() {
+        return this.peerAddress;
+    }
+    public P2PConfig getConfig() {
+        return config;
     }
 }
