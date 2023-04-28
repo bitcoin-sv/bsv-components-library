@@ -1,6 +1,11 @@
-package io.bitcoinsv.bsvcl.net.network
+package io.bitcoinsv.bsvcl.net
 
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams
+import io.bitcoinsv.bitcoinjsv.params.Net
+import io.bitcoinsv.bitcoinjsv.params.RegTestParams
 import io.bitcoinsv.bsvcl.net.P2PConfig
+import io.bitcoinsv.bsvcl.net.network.NetworkController
+import io.bitcoinsv.bsvcl.net.network.PeerAddress
 import io.bitcoinsv.bsvcl.net.network.events.PeerConnectedEvent
 import io.bitcoinsv.bsvcl.net.network.events.PeerDisconnectedEvent
 import io.bitcoinsv.bsvcl.net.network.events.PeerRejectedEvent
@@ -10,11 +15,14 @@ import io.bitcoinsv.bsvcl.common.events.EventBus
 import io.bitcoinsv.bsvcl.common.files.FileUtilsBuilder
 import io.bitcoinsv.bsvcl.common.thread.ThreadUtils
 import groovy.util.logging.Slf4j
+import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig
+import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfigBuilder
 import spock.lang.Specification
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.TimeUnit
 
 @Slf4j
 class ConnectionHandlerTest extends Specification {
@@ -34,17 +42,12 @@ class ConnectionHandlerTest extends Specification {
             runtimeConfig = runtimeConfig.toBuilder()
                     .fileUtils(new FileUtilsBuilder().build())
                     .build()
-            P2PConfig networkConfig = P2PConfig.builder().build()
-
-            // Each one has its own Event-Bus, for events and callbacks handling...
-            EventBus serverEventBus = EventBus.builder().executor(serverExecutor).build()
-            EventBus clientEventBus = EventBus.builder().executor(clientExecutor).build()
+            P2PConfig networkConfig = P2PConfig.builder().listeningPort(0).build()
+            ProtocolConfig protocolConfig = ProtocolConfigBuilder.get(new RegTestParams(Net.REGTEST))
 
             // We initialize them:
-            NetworkController server = new NetworkController("server", runtimeConfig, networkConfig, PeerAddress.localhost(0), true)
-            server.useEventBus(serverEventBus)
-            NetworkController client = new NetworkController("client", runtimeConfig, networkConfig, PeerAddress.localhost(0), false)
-            client.useEventBus(clientEventBus)
+            P2P server = new P2P("server", runtimeConfig, networkConfig.toBuilder().listening(true).build(), protocolConfig)
+            P2P client = new P2P("client", runtimeConfig, networkConfig, protocolConfig)
 
             // We keep track of the events in these variables:
             AtomicBoolean serverConnected = new AtomicBoolean(false)
@@ -57,42 +60,45 @@ class ConnectionHandlerTest extends Specification {
             CountDownLatch disconnectsLatch = new CountDownLatch(2)
 
             // We provide some callbacks for the Server...
-            serverEventBus.subscribe(PeerConnectedEvent.class, {e ->
+            server.eventBus.subscribe(PeerConnectedEvent.class, {e ->
                 log.trace("EVENT > SERVER: CONNECTED TO " + e.getPeerAddress())
                 serverConnected.set(true)
                 connectsLatch.countDown()
             })
-            serverEventBus.subscribe(PeerDisconnectedEvent.class, { e ->
+            server.eventBus.subscribe(PeerDisconnectedEvent.class, { e ->
                 log.trace("EVENT > SERVER: DISCONNECTED FROM " + e.getPeerAddress())
                 serverDisconnected.set(true)
                 disconnectsLatch.countDown()
             })
 
             // we provide some callbacks for the Client
-            clientEventBus.subscribe(PeerConnectedEvent.class, {e ->
+            client.eventBus.subscribe(PeerConnectedEvent.class, {e ->
                 log.trace("EVENT > CLIENT: CONNECTED TO " + e.getPeerAddress())
                 clientConnected.set(true)
                 connectsLatch.countDown()
             })
-            clientEventBus.subscribe(PeerDisconnectedEvent.class, { e ->
+            client.eventBus.subscribe(PeerDisconnectedEvent.class, { e ->
                 log.trace("EVENT > CLIENT: DISCONNECTED FROM " + e.getPeerAddress())
                 clientDisconnected.set(true)
                 disconnectsLatch.countDown()
             })
 
         when:
-            server.startServer()
+            server.start()
             client.start()
+
             client.connect(server.getPeerAddress())
-            connectsLatch.await()
+            boolean connected = connectsLatch.await(1, TimeUnit.SECONDS)
             client.disconnect(server.getPeerAddress())
-            disconnectsLatch.await()
-            server.stop()
-            client.stop()
+            boolean disconnected = disconnectsLatch.await(1, TimeUnit.SECONDS)
+            server.initiateStop()
+            client.initiateStop()
             server.awaitStopped()
             client.awaitStopped()
 
         then:
+            connected
+            disconnected
             serverConnected.get()
             serverDisconnected.get()
             clientConnected.get()
@@ -114,7 +120,7 @@ class ConnectionHandlerTest extends Specification {
             EventBus clientEventBus = EventBus.builder().executor(clientExecutor).build()
 
             // We initialize it:
-            NetworkController client = new NetworkController("client", runtimeConfig, networkConfig, PeerAddress.localhost(0), false)
+            NetworkController client = new NetworkController("client", runtimeConfig, networkConfig, PeerAddress.localhost(0))
             client.useEventBus(clientEventBus)
 
             // We keep track of the events in these variables:
@@ -133,9 +139,9 @@ class ConnectionHandlerTest extends Specification {
         when:
 
             client.start()
-            client.connect(PeerAddress.fromIp("127.0.0.1:8100")) // dummy port
+            client.openConnection(PeerAddress.fromIp("127.0.0.1:8100")) // dummy port
             failureLatch.await()
-            client.stop()
+            client.initiateStop()
             client.awaitStopped()
 
         then:

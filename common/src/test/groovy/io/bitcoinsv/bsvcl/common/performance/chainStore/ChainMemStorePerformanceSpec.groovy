@@ -4,6 +4,7 @@ package io.bitcoinsv.bsvcl.common.performance.chainStore
 import io.bitcoinjsv.bsvcl.common.unit.chainStore.NodeTest
 import io.bitcoinsv.bsvcl.common.chainStore.ChainMemStore
 import io.bitcoinsv.bsvcl.common.chainStore.ChainPath
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.time.Duration
@@ -12,6 +13,7 @@ import java.time.Instant
 /**
  * Performance tests for ChainMemStore.
  */
+@Ignore("Performance Test, dont work well in Github CI, no control over environment")
 class ChainMemStorePerformanceSpec extends Specification {
 
     /**

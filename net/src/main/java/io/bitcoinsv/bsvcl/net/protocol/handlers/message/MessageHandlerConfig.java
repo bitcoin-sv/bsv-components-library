@@ -17,8 +17,8 @@ import java.util.HashMap;
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
  *
- * It soes the configuration variables needed by the Message Handler.
- * This handler is the handler responsable for the message Serialization/Deserialization
+ * It does the configuration variables needed by the Message Handler.
+ * This handler is the handler responsible for the message Serialization/Deserialization
  */
 public final class MessageHandlerConfig extends HandlerConfig {
 
@@ -55,7 +55,7 @@ public final class MessageHandlerConfig extends HandlerConfig {
     /**
      * A Testing Property.
      * If True, then ALL Peers are allowed by default to send BIG Messages to us
-     * IT MUST BE DISABLED IN A PRODUCTION ENV
+     * IT MUST BE DISABLED IN A PRODUCTION ENV - todo: this is doomed to fail
      */
     private boolean allowBigMsgFromAllPeers = false;
 

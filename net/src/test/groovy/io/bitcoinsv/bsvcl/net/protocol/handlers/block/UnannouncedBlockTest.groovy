@@ -22,6 +22,7 @@ import io.bitcoinsv.bsvcl.net.protocol.messages.common.BitcoinMsg
 import io.bitcoinsv.bsvcl.net.protocol.messages.common.BitcoinMsgBuilder
 import spock.lang.Specification
 
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicReference
 import java.util.stream.Collectors
 import java.util.stream.IntStream
@@ -33,11 +34,12 @@ import java.util.concurrent.TimeUnit
  * unannounced blocks and with no size limits.
  */
 class UnannouncedBlockTest extends Specification {
+    private final static int TIMEOUT_SECS = 60
 
     // It creates a DUMMY BLOCK:
     private BitcoinMsg<BlockMsg> createDummyBlock(ProtocolConfig protocolConfig, int numTxs) {
         HeaderBean blockHeader = TestingUtils.buildBlock() as HeaderBean
-        BlockHeaderMsg blockHeaderMsg = BlockHeaderMsg.fromBean(blockHeader, numTxs);
+        BlockHeaderMsg blockHeaderMsg = BlockHeaderMsg.fromBean(blockHeader, numTxs)
         List<TxMsg> txsMsg = IntStream.range(0, numTxs)
                 .mapToObj({i -> TestingUtils.buildTx()})
                 .map({ tx -> TxMsg.fromBean(tx)})
@@ -49,16 +51,16 @@ class UnannouncedBlockTest extends Specification {
                 .build()
 
         BitcoinMsg<BlockMsg> result = new BitcoinMsgBuilder<>(protocolConfig.basicConfig, blockMsg).build()
-        return result;
+        return result
     }
 
 
     /**
-     * this configures 2 instances of JCL: A Server and a CLIENT, connect them together and then send a DUMMY BLOCK
-     * from the client ot the Server. When the Block is received at the Server end, we save the reference to its hash
+     * this configures 2 instances of P2P: A Server and a CLIENT, connect them together and then send a DUMMY BLOCK
+     * from the client to the Server. When the Block is received at the Server end, we save the reference to its hash
      * and we return it when the method ends.
      *
-     * The parameters allows ut to control if we want the Block to be considered a "Big" Block or a "regular" block.
+     * The parameters allows us to control if we want the Block to be considered a "Big" Block or a "regular" block.
      *
      * @param minBytesForRealTimeProcessing threshold above which MSgs are treated as "Big" messages
      * @param blockMsg                      Dummy Block sent from the client to the Server
@@ -68,18 +70,16 @@ class UnannouncedBlockTest extends Specification {
     private void sendBlockFromClientToServer(int minBytesForRealTimeProcessing,
                                              BitcoinMsg<BlockMsg> blockMsg,
                                              AtomicReference<Sha256Hash> hashBlockReceived) {
-        // RuntimeConfig
         RuntimeConfig runtimeConfig = new RuntimeConfigDefault().toBuilder()
                 .msgSizeInBytesForRealTimeProcessing(minBytesForRealTimeProcessing)
                 .build()
-
-        // We set up the Protocol configuration
         ProtocolConfig config = ProtocolConfigBuilder.get(new RegTestParams()).toBuilder()
                 .minPeers(1)
                 .maxPeers(1)
                 .build()
 
         // For the "server", we allow ALL the Peers to send "Big" Messages:
+        // todo: what is this? whats the default?
         MessageHandlerConfig msgConfig = config.getMessageConfig().toBuilder()
                 .allowBigMsgFromAllPeers(true)
                 .build()
@@ -87,7 +87,7 @@ class UnannouncedBlockTest extends Specification {
                 .config(runtimeConfig)                              // "Big" Msgs workaround
                 .config(config)
                 .config(msgConfig)                                  // Allow "Big" msgs from ALL Peers
-                .config(P2PConfig.builder().listeningPort(0).build())
+                .config(P2PConfig.builder().listeningPort(0).listening(true).build())
                 .excludeHandler(BlacklistHandler.HANDLER_ID)        // No blacklist functionality
                 .excludeHandler(DiscoveryHandler.HANDLER_ID)        // No Discovery functionality
                 .build()
@@ -98,36 +98,43 @@ class UnannouncedBlockTest extends Specification {
                 .excludeHandler(DiscoveryHandler.HANDLER_ID)        // No Discovery functionality
                 .build()
 
+        CountDownLatch latchConnected = new CountDownLatch(1)
+        client.EVENTS.PEERS.HANDSHAKED.forEach({e ->
+            latchConnected.countDown()
+        })
 
         // Event handler: Triggered when a Whole block has been downloaded by the Server
+        CountDownLatch blockDownloaded = new CountDownLatch(1)
         server.EVENTS.BLOCKS.BLOCK_DOWNLOADED.forEach({ e ->
             println("Block downloaded #" + e.blockHeader.hash)
             hashBlockReceived.set(e.blockHeader.hash)
+            blockDownloaded.countDown()
         })
 
         // We start Server and Client and connect each other:
-        server.startServer()
+        server.start()
         client.start()
-        server.awaitStarted(1, TimeUnit.SECONDS)
-        client.awaitStarted(1, TimeUnit.SECONDS)
+        server.awaitStarted(TIMEOUT_SECS, TimeUnit.SECONDS)
+        client.awaitStarted(TIMEOUT_SECS, TimeUnit.SECONDS)
         println(" > Client started: " + client.getPeerAddress())
         println(" > Server started: " + server.getPeerAddress())
 
         println("> Client Connecting to Server...")
         client.REQUESTS.PEERS.connect(server.getPeerAddress()).submit()
+        boolean connected = latchConnected.await(TIMEOUT_SECS, TimeUnit.SECONDS)
+        assert connected : "Client should have connected to Server"
 
-        // We Wait a bit and send a BLOCK from The Client to the Server...
-        Thread.sleep(1000)
+        // send a BLOCK from The Client to the Server...
         println("Sending Block #" + blockMsg.body.blockHeader.hash + "...")
         client.REQUESTS.MSGS.send(server.getPeerAddress(), blockMsg).submit()
-
-        // We Wait a bit an check the Events have been propagated properly...
-        Thread.sleep(1000)
+        boolean downloaded = blockDownloaded.await(TIMEOUT_SECS, TimeUnit.SECONDS)
+        assert downloaded : "Block should have been downloaded"
 
         // And we stop
         client.initiateStop()
         server.initiateStop()
-
+        client.awaitStopped()
+        server.awaitStopped()
     }
 
 
@@ -154,11 +161,10 @@ class UnannouncedBlockTest extends Specification {
     }
 
     /**
-     * We test that we can send an UNANNOUNCED "Big" block to JCL
+     * We test that we can send an UNANNOUNCED "Big" block to BSVCL
      */
     def "Testing Big Block"() {
         given:
-            // Protocol Config:
             ProtocolConfig config = ProtocolConfigBuilder.get(new RegTestParams()).toBuilder()
                     .minPeers(1)
                     .maxPeers(1)

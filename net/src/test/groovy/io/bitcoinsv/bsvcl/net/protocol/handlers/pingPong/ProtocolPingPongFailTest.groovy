@@ -91,8 +91,8 @@ class ProtocolPingPongFailTest extends Specification {
             // We start both and connect them:
             server.startServer()
             client.start()
-            server.awaitStarted(10, TimeUnit.SECONDS)
-            client.awaitStarted(10, TimeUnit.SECONDS)
+            server.awaitStarted(1, TimeUnit.SECONDS)
+            client.awaitStarted(1, TimeUnit.SECONDS)
 
             println(" >>> CONNECTING TO THE SERVER...")
             // We connect both together. This will trigger the HANDSHAKE protocol automatically.
