@@ -28,5 +28,7 @@ public enum ServiceState {
     public boolean isStopped() {
         return this == STOPPED;
     }
+
+    public boolean isStarting() { return this == STARTING; }
 }
 

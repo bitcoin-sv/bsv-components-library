@@ -485,7 +485,7 @@ public class P2P extends Thread {
      * Handle the pending connections to open. For each PeerAddress, it tries to open a Socket channel. If
      * there is a limit in the maximum number of connections and we reach it, it does nothing.
      */
-    private void handlePendingToOpenConnections() {
+    private void handlePendingToOpenConnections() throws InterruptedException {
         // loop over the pending Connections...
         while (true) {
             if (activeConns.size() >= networkConfig.getMaxSocketConnections()) break;
@@ -515,7 +515,7 @@ public class P2P extends Thread {
     /**
      * Find a NetworkController to open and handle the connection.
      */
-    private void openConnection(PeerAddress peerAddress) {
+    private void openConnection(PeerAddress peerAddress) throws InterruptedException {
         // at the moment we only have one NetworkController
         networkController.openConnection(peerAddress);
         activeConns.put(peerAddress, networkController);

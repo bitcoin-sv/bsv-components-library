@@ -113,8 +113,12 @@ public class NetworkController extends Thread {
 
     public void useEventBus(EventBus eventBus)      { this.eventBus = eventBus; }
 
-    /** open a connection to the peer */
-    public void openConnection(PeerAddress peerAddress) {
+    /** open a connection to the peer
+     *
+     * If the NetworkController is still starting up, then it will wait for it be Running.
+     */
+    public void openConnection(PeerAddress peerAddress) throws InterruptedException {
+        if (serviceState.isStarting()) { startLatch.await(); }
         handleConnectionToOpen(peerAddress);
     }
 
