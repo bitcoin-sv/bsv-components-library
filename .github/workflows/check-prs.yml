@@ -32,6 +32,7 @@ jobs:
         run: ./gradlew test integrationTest jacocoTestReport
       - name: Upload Test Data
         uses: actions/upload-artifact@v3
+        if: always()
         with:
           name: test-results
           path: '**/test-results/**/*.xml'
