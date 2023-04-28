@@ -37,9 +37,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * indeterminable.
  */
 public class NetworkController extends Thread {
-
-    /** Subfolder to store local files in */
-    private static final String NET_FOLDER = "net";
     private final Logger logger = LoggerFactory.getLogger(NetworkController.class);
 
     /**
@@ -101,12 +98,6 @@ public class NetworkController extends Thread {
     private final AtomicLong numConnsFailed = new AtomicLong();
     private final AtomicLong numConnsInProgressExpired = new AtomicLong();
     private long numConnsTried;
-
-    // Files to store info after the handler has stopped:
-    private static final String FILE_ACTIVE_CONN            = "networkHandler-activeConnections.csv";
-    private static final String FILE_IN_PROGRESS_CONN       = "networkHandler-inProgressConnections.csv";
-    private static final String FILE_PENDING_OPEN_CONN      = "networkHandler-pendingToOpenConnections.csv";
-    private static final String FILE_FAILED_CONN            = "networkHandler-failedConnections.csv";
 
     public NetworkController(String id, RuntimeConfig runtimeConfig, P2PConfig netConfig, PeerAddress localAddress,
                              EventBus eventBus) {
