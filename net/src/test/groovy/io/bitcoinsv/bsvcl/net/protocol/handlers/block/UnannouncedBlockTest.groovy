@@ -56,11 +56,11 @@ class UnannouncedBlockTest extends Specification {
 
 
     /**
-     * this configures 2 instances of JCL: A Server and a CLIENT, connect them together and then send a DUMMY BLOCK
-     * from the client ot the Server. When the Block is received at the Server end, we save the reference to its hash
+     * this configures 2 instances of P2P: A Server and a CLIENT, connect them together and then send a DUMMY BLOCK
+     * from the client to the Server. When the Block is received at the Server end, we save the reference to its hash
      * and we return it when the method ends.
      *
-     * The parameters allows ut to control if we want the Block to be considered a "Big" Block or a "regular" block.
+     * The parameters allows us to control if we want the Block to be considered a "Big" Block or a "regular" block.
      *
      * @param minBytesForRealTimeProcessing threshold above which MSgs are treated as "Big" messages
      * @param blockMsg                      Dummy Block sent from the client to the Server
@@ -70,18 +70,16 @@ class UnannouncedBlockTest extends Specification {
     private void sendBlockFromClientToServer(int minBytesForRealTimeProcessing,
                                              BitcoinMsg<BlockMsg> blockMsg,
                                              AtomicReference<Sha256Hash> hashBlockReceived) {
-        // RuntimeConfig
         RuntimeConfig runtimeConfig = new RuntimeConfigDefault().toBuilder()
                 .msgSizeInBytesForRealTimeProcessing(minBytesForRealTimeProcessing)
                 .build()
-
-        // We set up the Protocol configuration
         ProtocolConfig config = ProtocolConfigBuilder.get(new RegTestParams()).toBuilder()
                 .minPeers(1)
                 .maxPeers(1)
                 .build()
 
         // For the "server", we allow ALL the Peers to send "Big" Messages:
+        // todo: what is this? whats the default?
         MessageHandlerConfig msgConfig = config.getMessageConfig().toBuilder()
                 .allowBigMsgFromAllPeers(true)
                 .build()
@@ -163,11 +161,10 @@ class UnannouncedBlockTest extends Specification {
     }
 
     /**
-     * We test that we can send an UNANNOUNCED "Big" block to JCL
+     * We test that we can send an UNANNOUNCED "Big" block to BSVCL
      */
     def "Testing Big Block"() {
         given:
-            // Protocol Config:
             ProtocolConfig config = ProtocolConfigBuilder.get(new RegTestParams()).toBuilder()
                     .minPeers(1)
                     .maxPeers(1)
