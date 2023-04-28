@@ -45,7 +45,7 @@ public class NetworkController extends Thread {
      *   peer we are trying to connect to.
      * - When the connection is fully established, the "stream" is created and linked to this socket.
      */
-    class KeyConnectionAttach {
+    static class KeyConnectionAttach {
         PeerAddress peerAddress;
         NIOStream stream;
         boolean started; // set to TRUE when we have received already some bytes from this Peer
@@ -56,7 +56,7 @@ public class NetworkController extends Thread {
      * Inner class that represents a connection that is in progress: We managed to connect to the remote Peer, but we
      * have not received a confirmation from their end to establish the connection
      */
-    class InProgressConn {
+    static class InProgressConn {
         PeerAddress peerAddress;
         long connTimestamp; // timestamp when the connection was triggered from our end
         public InProgressConn(PeerAddress peerAddress) {
@@ -162,7 +162,7 @@ public class NetworkController extends Thread {
     }
 
     public NetworkControllerState getStatus() {
-        NetworkControllerState result = null;
+        NetworkControllerState result;
         try {
             lock.readLock().lock();
             result = NetworkControllerState.builder()
@@ -285,7 +285,7 @@ public class NetworkController extends Thread {
      * triggering the callback, sending back the reference to that stream back to the client.
      * @param key       SelectionKey related to this Socket/Channel
      */
-    private void startPeerConnection(SelectionKey key) throws IOException {
+    private void startPeerConnection(SelectionKey key) {
 
         try {
             lock.writeLock().lock();
@@ -448,7 +448,7 @@ public class NetworkController extends Thread {
     /**
      * It performs a loop to handle the Selection Keys.
      */
-    private void handleSelectorKeys(Selector selector) throws IOException, InterruptedException {
+    private void handleSelectorKeys(Selector selector) throws IOException {
         selector.select(100);   // we need a timeout, otherwise it will block forever...
         Iterator<SelectionKey> keyIterator = selector.selectedKeys().iterator();
         while (keyIterator.hasNext()) {
@@ -579,7 +579,7 @@ public class NetworkController extends Thread {
     /**
      * It handles an invalid key, closing it.
      */
-    private void handleInvalidKey(SelectionKey key) throws IOException {
+    private void handleInvalidKey(SelectionKey key) {
         closeKey(key, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_REMOTE);
     }
 
