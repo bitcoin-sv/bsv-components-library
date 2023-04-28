@@ -1,5 +1,6 @@
 package io.bitcoinsv.bsvcl.net.protocol.handlers.discovery
 
+import io.bitcoinsv.bsvcl.net.P2PConfig
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfigBuilder
 import io.bitcoinsv.bsvcl.net.protocol.events.control.InitialPeersLoadedEvent
@@ -41,7 +42,7 @@ class DiscoveryOKTest extends Specification {
                     .discoveryMethod(DiscoveryHandlerConfig.DiscoveryMethod.PEERS)
                     .build()
 
-            P2P server = new P2PBuilder("testing")
+            P2P client = new P2PBuilder("testing")
                     .config(runtimeConfig)
                     .config(config)
                     .config(discoveryConfig)
@@ -50,15 +51,15 @@ class DiscoveryOKTest extends Specification {
 
             // We store the Event triggered when the initial Peers are loaded:
             AtomicReference<InitialPeersLoadedEvent> event = new AtomicReference<>()
-            server.EVENTS.PEERS.INITIAL_PEERS_LOADED.forEach({ e -> event.set(e)})
+            client.EVENTS.PEERS.INITIAL_PEERS_LOADED.forEach({ e -> event.set(e)})
 
         when:
             println("Starting P2P ...")
-            server.startServer()
-            server.awaitStarted()
+            client.start()
+            client.awaitStarted()
             println("P2P Stopping...")
-            server.initiateStop()
-            server.awaitStopped()
+            client.initiateStop()
+            client.awaitStopped()
             println("P2P Stopped.")
         then:
             event.get() != null
