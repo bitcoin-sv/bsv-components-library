@@ -149,7 +149,9 @@ public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeer
         }
     }
 
-    // Event Handler:
+    /** When the connection has been established at a network level, this handler initiates the application level
+    /*  handshake process.
+    */
     private void onPeerMsgReady(PeerMsgReadyEvent event) {
         try {
             lock.lock();
@@ -158,6 +160,7 @@ public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeer
             // For some strange reasons, sometimes this event is triggered several times, so in order to
             // prevent from starting the same handshake twice, we check if there is already a handshake in progress
             // with this Peer...
+            // todo: investigate why this might happen
             if (handlerInfo.get(peerAddress) == null) {
                 HandshakePeerInfo peerInfo = new HandshakePeerInfo(peerAddress);
                 handlerInfo.put(peerAddress, peerInfo);

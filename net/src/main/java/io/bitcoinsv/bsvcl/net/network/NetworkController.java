@@ -347,9 +347,11 @@ public class NetworkController extends Thread {
      *
      * todo:
      *   * make sure that the P2P parent is notified of any disconnects
-     *   * this handles the case where a connection is established and then handshake doesn't complete
+     *   * this handles the case where a connection is started and then times out
+     *   * this handles connection attempts before the network level connection has been fully established
      *   * this method takes up an entire Thread
-     *   * there doesn't appear to be any waiting - it appears to be a busy loop
+     *   * there doesn't appear to be any waiting - it appears to be a busy loop - this is my fault
+     *   * this is only run once - this is my fault
      */
     private void handleInProgressConnections() {
         // We keep a temporary list where we keep a reference to those In-Progress Connections that need to be removed
