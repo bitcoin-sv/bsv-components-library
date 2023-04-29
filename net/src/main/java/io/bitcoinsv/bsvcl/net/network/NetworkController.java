@@ -134,26 +134,6 @@ public class NetworkController extends Thread {
         }
     }
 
-    public void closeConnection(PeerAddress peerAddress) {
-        closeConnection(peerAddress, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL);
-    }
-
-    /** close a connection to the peer */
-    public void closeConnection(PeerAddress peerAddress, PeerDisconnectedEvent.DisconnectedReason reason) {
-        try {
-            lock.writeLock().lock();
-            logger.debug("{} : {} : Closing connection...", this.id, peerAddress);
-            SelectionKey key = activeConns.get(peerAddress);
-            if (key != null) {
-                closeKey(key, reason);
-            }
-        } catch (Exception e) {
-            logger.error("{} : {} : Error closing connection: {}", this.id, peerAddress, e.getMessage());
-        } finally {
-            lock.writeLock().unlock();
-        }
-    }
-
     /** accept an incoming connection */
     public void acceptConnection(PeerAddress peerAddress, SocketChannel channel) {
         if (serviceState != ServiceState.STARTING && serviceState != ServiceState.RUNNING) {
@@ -173,6 +153,26 @@ public class NetworkController extends Thread {
         } catch (Exception e) {
             e.printStackTrace();
             processConnectionFailed(peerAddress, PeerRejectedEvent.RejectedReason.INTERNAL_ERROR, e.getMessage());
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    public void closeConnection(PeerAddress peerAddress) {
+        closeConnection(peerAddress, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL);
+    }
+
+    /** close a connection to the peer */
+    public void closeConnection(PeerAddress peerAddress, PeerDisconnectedEvent.DisconnectedReason reason) {
+        try {
+            lock.writeLock().lock();
+            logger.debug("{} : {} : Closing connection...", this.id, peerAddress);
+            SelectionKey key = activeConns.get(peerAddress);
+            if (key != null) {
+                closeKey(key, reason);
+            }
+        } catch (Exception e) {
+            logger.error("{} : {} : Error closing connection: {}", this.id, peerAddress, e.getMessage());
         } finally {
             lock.writeLock().unlock();
         }
