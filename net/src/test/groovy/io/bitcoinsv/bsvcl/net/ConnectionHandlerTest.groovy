@@ -33,10 +33,6 @@ class ConnectionHandlerTest extends Specification {
      */
     def "testing Server-Client Connection OK"() {
         given:
-            // Each Connection Handler will run on one specific Thread.
-            ExecutorService serverExecutor = ThreadUtils.getSingleThreadExecutorService("Server-EventBus-")
-            ExecutorService clientExecutor = ThreadUtils.getSingleThreadExecutorService("Client-EventBus-")
-
             // Basic Configuration is the same for both of them...
             RuntimeConfig runtimeConfig = new RuntimeConfigDefault()
             runtimeConfig = runtimeConfig.toBuilder()
@@ -139,11 +135,12 @@ class ConnectionHandlerTest extends Specification {
 
             client.start()
             client.openConnection(PeerAddress.fromIp("127.0.0.1:8100")) // dummy port
-            failureLatch.await()
+            boolean failed = failureLatch.await(5, TimeUnit.SECONDS)
             client.initiateStop()
             client.awaitStopped()
 
         then:
+            failed
             clientRejected.get()
     }
 
