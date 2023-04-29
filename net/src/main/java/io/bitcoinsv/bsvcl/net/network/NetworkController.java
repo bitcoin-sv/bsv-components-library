@@ -332,28 +332,35 @@ public class NetworkController extends Thread {
      * NOTE: An expired and remove connection from there might still confirm later on, sending a CONNECT signal to us. In
      * that case, the connection is still accepted and inserted into the "active" connections.
      * <p>
+     * We need to lock here to prevent a potential race condition with openConnection()
+     * <p>
      * todo:
      *   * is this necessary? isnt there a capability built-in to the NIO package for this?
      *   * do we have a test for this case?
      *   * make sure that the P2P parent is notified of any disconnects
      */
     private void handleInProgressConnections() {
-        // We keep a temporary list where we keep a reference to those In-Progress Connections that need to be removed
-        // because they have expired...
-        List<PeerAddress> inProgressConnsToRemove = new ArrayList<>();
-        // loop over the InProgress Connections...
-        for (PeerAddress peerAddress : this.inProgressConns.keySet()) {
-            NetworkController.InProgressConn inProgressConn = this.inProgressConns.get(peerAddress);
-            if (inProgressConn.hasExpired(this.config.getTimeoutSocketRemoteConfirmation())) {
-                inProgressConnsToRemove.add(peerAddress);
+        try {
+            lock.writeLock().lock();
+            // We keep a temporary list where we keep a reference to those In-Progress Connections that need to be removed
+            // because they have expired...
+            List<PeerAddress> inProgressConnsToRemove = new ArrayList<>();
+            // loop over the InProgress Connections...
+            for (PeerAddress peerAddress : this.inProgressConns.keySet()) {
+                NetworkController.InProgressConn inProgressConn = this.inProgressConns.get(peerAddress);
+                if (inProgressConn.hasExpired(this.config.getTimeoutSocketRemoteConfirmation())) {
+                    inProgressConnsToRemove.add(peerAddress);
+                }
+            } // for...
+            // we remove the expired connections...
+            if (!inProgressConnsToRemove.isEmpty()) {
+                logger.trace("{} : Removing {} in-progress expired connections", this.id, inProgressConnsToRemove.size());
+                numConnsInProgressExpired.addAndGet(inProgressConnsToRemove.size());
+                inProgressConnsToRemove.forEach(inProgressConns::remove);
+                inProgressConnsToRemove.clear();
             }
-        } // for...
-        // we remove the expired connections...
-        if (!inProgressConnsToRemove.isEmpty()) {
-            logger.trace("{} : Removing {} in-progress expired connections", this.id, inProgressConnsToRemove.size());
-            numConnsInProgressExpired.addAndGet(inProgressConnsToRemove.size());
-            inProgressConnsToRemove.forEach(inProgressConns::remove);
-            inProgressConnsToRemove.clear();
+        } finally {
+            lock.writeLock().unlock();
         }
     }
 
@@ -415,6 +422,9 @@ public class NetworkController extends Thread {
 
     /**
      * It performs a loop to handle the Selection Keys.
+     * <p>
+     * This method is only called by the object thread. It will therefore not conflict with other methods
+     * that are also only called by the object thread.
      */
     private void handleSelectorKeys(Selector selector) throws IOException {
         selector.select(100);   // we need a timeout, otherwise it will block forever...
@@ -431,6 +441,9 @@ public class NetworkController extends Thread {
      * overridden by a child class in case we don't want to handle specific keys or handle new ones (like the
      * ACCEPT key, which is not handled here since the NetworkHandlerImpl does not accept incoming connections)
      * @param key Key to handle
+     * <p>
+     * This method is only called by the object thread. It will therefore not conflict with other methods
+     * that are also only called by the object thread.
      */
     private void handleKey(SelectionKey key) throws IOException {
         logger.trace("Key : " + key);
@@ -456,6 +469,11 @@ public class NetworkController extends Thread {
 
     /**
      * It handles a CONNECT key, that is a confirmation that a connection to a remote Peer is successful.
+     * <p>
+     * We need a lock here to prevent a potential race condition with openConnection().
+     * <p>
+     * This method is only called by the object thread. It will therefore not conflict with other methods
+     * that are also only called by the object thread.
      */
     private void handleConnect(SelectionKey key) throws IOException {
         try {
@@ -502,6 +520,9 @@ public class NetworkController extends Thread {
      * It handles a READ key, that is some data is ready to read from one connection. Internally, the stream
      * representing this connection is used to read data from the socket (and return it to the "client" by using
      * the "onData" method)
+     * <p>
+     * This method is only called by the object thread. It will therefore not conflict with other methods
+     * that are also only called by the object thread.
      */
     private void handleRead(SelectionKey key) throws IOException {
         // Read the data from the Peer (through the Stream wrapped out around it) and run the callbacks:
@@ -516,6 +537,9 @@ public class NetworkController extends Thread {
     /**
      * It handles a WRITE key, that is writing some data to the socket implementing that connection. Each connections
      * is representing by a ByteArrayStream, so we use it to write the data through the channel.
+     * <p>
+     * This method is only called by the object thread. It will therefore not conflict with other methods
+     * that are also only called by the object thread.
      */
     private void handleWrite(SelectionKey key) throws IOException {
         // Write the data to the Peer (through the Stream wrapped out around it) and run the callbacks:
