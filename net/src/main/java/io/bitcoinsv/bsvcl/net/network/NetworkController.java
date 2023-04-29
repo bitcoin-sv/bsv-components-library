@@ -85,8 +85,6 @@ public class NetworkController extends Thread {
 
     // The EventBus used for event handling
     private final EventBus eventBus;
-    // An executor Service, to trigger jobs in MultiThread...
-    ExecutorService jobExecutor = ThreadUtils.getCachedThreadExecutorService("JclNetworkHandler");
 
     // active connections
     private final Map<PeerAddress, SelectionKey> activeConns = new ConcurrentHashMap<>();
@@ -206,13 +204,13 @@ public class NetworkController extends Thread {
         logger.info("{} : Starting...", this.id);
         try {
             mainSelector = SelectorProvider.provider().openSelector();
-            startConnectionsJobs();
             serviceState = ServiceState.RUNNING;
             startLatch.countDown();
             eventBus.publish(new NetStartEvent(this.peerAddress));
 
             while (serviceState.isRunning() || serviceState.isPaused()) {
-                handleSelectorKeys(mainSelector);
+                handleInProgressConnections();
+                handleSelectorKeys(mainSelector);   // this call has a blocking wait
             }
         } catch (Throwable e) {
             logger.error("{} : Error running the NetworkController", this.id, e);
@@ -220,7 +218,6 @@ public class NetworkController extends Thread {
         } finally {
             serviceState = ServiceState.STOPPING;
             eventBus.publish(new NetStopEvent());
-            stopConnectionsJobs();
             closeAllKeys(mainSelector);
         }
         serviceState = ServiceState.STOPPED;
@@ -250,16 +247,6 @@ public class NetworkController extends Thread {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-    }
-
-    /** Processes the pending Connections in a separate Thread */
-    private void startConnectionsJobs() {
-        jobExecutor.submit(this::handleInProgressConnections);
-    }
-
-    /** Stops the processing of pending Connections (running in a separate Thread) */
-    private void stopConnectionsJobs() {
-        if (jobExecutor != null) jobExecutor.shutdown();
     }
 
     /**
@@ -344,14 +331,11 @@ public class NetworkController extends Thread {
      * connections and remove those that are expired based on our config (timeoutSocketRemoteConfirmation)
      * NOTE: An expired and remove connection from there might still confirm later on, sending a CONNECT signal to us. In
      * that case, the connection is still accepted and inserted into the "active" connections.
-     *
+     * <p>
      * todo:
+     *   * is this necessary? isnt there a capability built-in to the NIO package for this?
+     *   * do we have a test for this case?
      *   * make sure that the P2P parent is notified of any disconnects
-     *   * this handles the case where a connection is started and then times out
-     *   * this handles connection attempts before the network level connection has been fully established
-     *   * this method takes up an entire Thread
-     *   * there doesn't appear to be any waiting - it appears to be a busy loop - this is my fault
-     *   * this is only run once - this is my fault
      */
     private void handleInProgressConnections() {
         // We keep a temporary list where we keep a reference to those In-Progress Connections that need to be removed
