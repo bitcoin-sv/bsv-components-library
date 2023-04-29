@@ -162,6 +162,7 @@ class UnannouncedBlockTest extends Specification {
 
     /**
      * We test that we can send an UNANNOUNCED "Big" block to BSVCL
+     * todo: test (or code) in unstable
      */
     def "Testing Big Block"() {
         given:
