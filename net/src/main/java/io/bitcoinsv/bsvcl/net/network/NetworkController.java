@@ -113,7 +113,27 @@ public class NetworkController extends Thread {
      */
     public void openConnection(PeerAddress peerAddress) throws InterruptedException {
         if (serviceState.isStarting() || serviceState.isCreated()) { startLatch.await(); }
-        handleConnectionToOpen(peerAddress);
+        try {
+            lock.writeLock().lock();
+            SocketChannel socketChannel = SocketChannel.open();
+            socketChannel.configureBlocking(false);
+            SocketAddress socketAddress = new InetSocketAddress(peerAddress.getIp(), peerAddress.getPort());
+            socketChannel.connect(socketAddress);
+
+            // potential for race condition here: as soon as we add it to inProgressConns it may get handled
+            // but it has not been registered with mainSelector yet - so we need the writeLock
+            inProgressConns.put(peerAddress, new InProgressConn(peerAddress));
+            // note: we ignore the returned key - if the connection attempt is successful, then the
+            // key is added to activeConns by handleConnect()
+            socketChannel.register(mainSelector, SelectionKey.OP_CONNECT, new KeyConnectionAttach(peerAddress));
+            numConnsTried++;
+            logger.debug("{} : {} : Connecting...", this.id, peerAddress);
+        } catch (Exception e) {
+            e.printStackTrace();
+            processConnectionFailed(peerAddress, PeerRejectedEvent.RejectedReason.INTERNAL_ERROR, e.getMessage());
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
     public void closeConnection(PeerAddress peerAddress) {
@@ -313,39 +333,6 @@ public class NetworkController extends Thread {
 
             // From now moving forward, this key is ready to READ data:
             key.interestOps((key.interestOps() | SelectionKey.OP_READ | SelectionKey.OP_WRITE) & ~SelectionKey.OP_CONNECT);
-        } finally {
-            lock.writeLock().unlock();
-        }
-    }
-
-    /**
-     * It handles one of the "pendingToOpen" connections. It opens the connection and registers the Key in the
-     * selector. If the connection process takes longer than the limit workingState in the configuration, then we discard
-     * this Peer.
-     * @param peerAddress Peer to connect to
-     */
-    private void handleConnectionToOpen(PeerAddress peerAddress) {
-        try {
-            if (serviceState != ServiceState.RUNNING && serviceState != ServiceState.STARTING) {
-                throw new RuntimeException("Attempted to open connection while NetworkController is not running");
-            }
-            startLatch.await();
-            lock.writeLock().lock();
-            numConnsTried++;
-            logger.debug("{} : {} : Connecting...", this.id, peerAddress);
-            inProgressConns.put(peerAddress, new InProgressConn(peerAddress));
-
-            SocketChannel socketChannel = SocketChannel.open();
-            socketChannel.configureBlocking(false);
-            SocketAddress socketAddress = new InetSocketAddress(peerAddress.getIp(), peerAddress.getPort());
-            socketChannel.connect(socketAddress);
-
-            SelectionKey key = socketChannel.register(mainSelector, SelectionKey.OP_CONNECT);
-            key.attach(new KeyConnectionAttach(peerAddress));
-            logger.trace("{} : {} : Connected, waiting for remote confirmation...", this.id, peerAddress);
-        } catch (Exception e) {
-            e.printStackTrace();
-            processConnectionFailed(peerAddress, PeerRejectedEvent.RejectedReason.INTERNAL_ERROR, e.getMessage());
         } finally {
             lock.writeLock().unlock();
         }
