@@ -145,9 +145,8 @@ public class NetworkController extends Thread {
             logger.debug("{} : {} : Accepting connection...", this.id, peerAddress);
             inProgressConns.put(peerAddress, new InProgressConn(peerAddress));
 
-            SelectionKey key = channel.register(mainSelector, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
-            key.attach(new KeyConnectionAttach(peerAddress));
-
+            SelectionKey key = channel.register(mainSelector, SelectionKey.OP_READ | SelectionKey.OP_WRITE,
+                    new KeyConnectionAttach(peerAddress));
             logger.trace("{} : {} : Connected, establishing connection...", this.id, peerAddress);
             startPeerConnection(key);
         } catch (Exception e) {
@@ -544,16 +543,9 @@ public class NetworkController extends Thread {
     private void handleWrite(SelectionKey key) throws IOException {
         // Write the data to the Peer (through the Stream wrapped out around it) and run the callbacks:
         KeyConnectionAttach keyConnection = (KeyConnectionAttach) key.attachment();
-        // the checks below should not be necessary. They should be removed and the code allowed to create
-        // exceptions. But if I do that right now then the majority of tests will fail.
-        // There's something very messed up with the startup process that needs to be sorted out. todo
-        if (keyConnection == null) {
-            logger.warn(">>>> NULL ATTACHMENT: {}", key);
-            return;
-        }
-        if (keyConnection.stream == null) {
-            logger.warn(">>>> NULL STREAM: {}", keyConnection.peerAddress);
-            return;
+        if (keyConnection == null || keyConnection.stream == null) {
+            logger.warn(">>>> key attachment or stream is null");
+            throw new RuntimeException("key attachment or stream is null");
         }
         int numBytesWrite = ((NIOOutputStream) keyConnection.stream.output()).writeToSocket();
     }
