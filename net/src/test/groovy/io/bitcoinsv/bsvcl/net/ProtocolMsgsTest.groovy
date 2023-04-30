@@ -1,4 +1,4 @@
-package io.bitcoinsv.bsvcl.net.protocol.handlers.wrapper
+package io.bitcoinsv.bsvcl.net
 
 import io.bitcoinsv.bsvcl.net.P2PConfig
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig
@@ -27,7 +27,6 @@ class ProtocolMsgsTest extends Specification {
     /**
      * We test that 2 different P2P Handlers can connect and exchange a message, and the events are triggered properly
      */
-    @Ignore("todo: This will take a long time to fix, its in progress")
     def "Testing Client/Server Msgs exchange"() {
         given:
             // Server and client configuration:
@@ -36,7 +35,7 @@ class ProtocolMsgsTest extends Specification {
             P2P server = new P2PBuilder("server")
                     .config(config)
                     .useLocalhost()
-                    .config(P2PConfig.builder().listeningPort(0).build())
+                    .config(P2PConfig.builder().listeningPort(0).listening(true).build())
                     //.excludeHandler(HandshakeHandler.HANDLER_ID)
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
@@ -93,7 +92,7 @@ class ProtocolMsgsTest extends Specification {
             })
 
         when:
-            server.startServer()
+            server.start()
             client.start()
             server.awaitStarted(60, TimeUnit.SECONDS)
             client.awaitStarted(60, TimeUnit.SECONDS)
@@ -119,8 +118,8 @@ class ProtocolMsgsTest extends Specification {
             println(" >>> STOPPING...")
             server.initiateStop()
             client.initiateStop()
-            server.awaitStopped()
-            client.awaitStopped()
+            server.join()
+            client.join()
 
         then:
             // We check that the Events have been triggered right:
