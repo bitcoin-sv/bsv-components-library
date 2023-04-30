@@ -1,4 +1,4 @@
-package io.bitcoinsv.bsvcl.net.protocol.handlers.wrapper
+package io.bitcoinsv.bsvcl.net
 
 import io.bitcoinsv.bsvcl.net.P2PConfig
 import io.bitcoinsv.bsvcl.net.protocol.config.ProtocolConfig
@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * Testing class using the P2P "wrapper", that includes all the network and protocol handlers within.
+ * Testing class using the P2P, that includes all the network and protocol handlers within.
  */
 class ProtocolConnectionTest extends Specification {
 
@@ -33,7 +33,7 @@ class ProtocolConnectionTest extends Specification {
             P2P server = new P2PBuilder("server")
                     .config(config)
                     .useLocalhost()
-                    .config(P2PConfig.builder().listeningPort(0).build())
+                    .config(P2PConfig.builder().listeningPort(0).listening(true).build())
                     .excludeHandler(HandshakeHandler.HANDLER_ID)
                     .excludeHandler(PingPongHandler.HANDLER_ID)
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
@@ -92,7 +92,7 @@ class ProtocolConnectionTest extends Specification {
 
 
         when:
-            server.startServer()
+            server.start()
             client.start()
             server.awaitStarted(10, TimeUnit.SECONDS)
             client.awaitStarted(10, TimeUnit.SECONDS)
@@ -105,8 +105,8 @@ class ProtocolConnectionTest extends Specification {
 
             server.initiateStop()
             client.initiateStop()
-            server.awaitStopped()
-            client.awaitStopped()
+            server.join()
+            client.join()
 
         then:
             // We check that the Events have been triggered right:
