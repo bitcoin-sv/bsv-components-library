@@ -95,7 +95,7 @@ class DiscoveryRenewTest extends Specification {
             // At this moment the Renewing process must have been triggered, so some GET_ADDR should have been
             // sent to some Peers, asking for new addresses...
             server.initiateStop()
-            server.awaitStopped()
+            server.join()
 
         then:
             // We check that GET_ADDR messages have sent out (after we reset the counter) , so that means that

@@ -31,7 +31,7 @@ class DiscoverySeedTest extends Specification {
             P2P server = new P2PBuilder("testing")
                     .config(config)
                     .config(discoveryConfig)
-                    .config(P2PConfig.builder().listeningPort(0).build())
+                    .config(P2PConfig.builder().listeningPort(0).listening(true).build())
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
                     .build()
 
@@ -45,11 +45,11 @@ class DiscoverySeedTest extends Specification {
         when:
             try {
                 println("Starting P2P ...")
-                server.startServer()
+                server.start()
                 Thread.sleep(30000) // Raise this timeout if the DNS are poor and take long to find peers
                 println("P2P Stopping...")
                 server.initiateStop()
-                server.awaitStopped()
+                server.join()
                 println("P2P Stopped.")
             } catch (Throwable e) {
                 e.printStackTrace()

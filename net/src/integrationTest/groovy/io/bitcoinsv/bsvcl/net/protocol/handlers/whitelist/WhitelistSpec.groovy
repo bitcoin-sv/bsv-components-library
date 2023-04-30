@@ -151,7 +151,7 @@ class WhitelistSpec extends Specification {
 
             // And we are Done.
             server.initiateStop()
-            server.awaitStopped()
+            server.join()
 
         then:
             peersBlacklistedOK

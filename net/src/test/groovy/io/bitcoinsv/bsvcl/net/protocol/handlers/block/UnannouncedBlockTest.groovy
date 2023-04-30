@@ -133,8 +133,8 @@ class UnannouncedBlockTest extends Specification {
         // And we stop
         client.initiateStop()
         server.initiateStop()
-        client.awaitStopped()
-        server.awaitStopped()
+        client.join()
+        server.join()
     }
 
 

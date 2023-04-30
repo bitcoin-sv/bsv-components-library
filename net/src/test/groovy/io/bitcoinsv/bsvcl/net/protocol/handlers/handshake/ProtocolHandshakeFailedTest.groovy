@@ -88,8 +88,8 @@ class ProtocolHandshakeFailedTest extends Specification {
 
             server.initiateStop()
             client.initiateStop()
-            server.awaitStopped()
-            client.awaitStopped()
+            server.join()
+            client.join()
 
             println("CLIENT THREAD INFO:")
             println(client.getEventBus().getStatus())
@@ -164,8 +164,8 @@ class ProtocolHandshakeFailedTest extends Specification {
 
             server.initiateStop()
             client.initiateStop()
-            server.awaitStopped()
-            client.awaitStopped()
+            server.join()
+            client.join()
 
         then:
             // We check that each there has been no handshake
@@ -231,8 +231,8 @@ class ProtocolHandshakeFailedTest extends Specification {
 
             server.initiateStop()
             client.initiateStop()
-            server.awaitStopped()
-            client.awaitStopped()
+            server.join()
+            client.join()
 
         then:
             // We check that each on of them (Server and client) have received and triggered a Handshake)

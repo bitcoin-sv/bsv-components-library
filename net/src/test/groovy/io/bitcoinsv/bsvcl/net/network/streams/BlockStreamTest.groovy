@@ -153,8 +153,8 @@ class BlockStreamTest extends Specification {
         //stop server as we no longer need it
         server.initiateStop()
         client.initiateStop()
-        server.awaitStopped()
-        client.awaitStopped()
+        server.join()
+        client.join()
 
         then:
         receivedBlockMsg != null

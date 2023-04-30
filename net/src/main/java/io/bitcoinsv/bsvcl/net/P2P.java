@@ -317,6 +317,7 @@ public class P2P extends Thread {
             logger.info("Stopping ...");
             networkController.initiateStop();
             if (this.executor != null) this.executor.shutdownNow();
+            networkController.join();
         } catch (InterruptedException | UnknownHostException e) {
             e.printStackTrace();
         }
@@ -356,13 +357,6 @@ public class P2P extends Thread {
     public void initiateStop() {
         stopLatch.countDown();
         eventsToProcess.release();
-    }
-
-    /**
-     * Wait for the P2P to be stopped.
-     */
-    public void awaitStopped() {
-        this.networkController.awaitStopped();
     }
 
     // convenience method to return the PeerAddress for this ProtocolHandler. It assumes that there is a NetworkHandler

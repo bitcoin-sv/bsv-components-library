@@ -105,8 +105,8 @@ class ProtocolPingPongFailTest extends Specification {
             println(" >>> STOPPING...")
             server.initiateStop()
             client.initiateStop()
-            server.awaitStopped()
-            client.awaitStopped()
+            server.join()
+            client.join()
 
         then:
             // We check that the Ping/Pong protocol has been triggered at LEAST ONCE by the Server.

@@ -73,7 +73,6 @@ public class NetworkController extends Thread {
     protected P2PConfig config;
     private ServiceState serviceState = ServiceState.CREATED;
     private final CountDownLatch startLatch = new CountDownLatch(1);  // Triggered when service has finished starting.
-    private final CountDownLatch stopLatch = new CountDownLatch(1);   // Triggered when service has finished stopping.
 
     private Selector mainSelector;
 
@@ -220,7 +219,6 @@ public class NetworkController extends Thread {
             closeAllKeys(mainSelector);
         }
         serviceState = ServiceState.STOPPED;
-        stopLatch.countDown();
         logger.info("{} : Stopped", this.id);
     }
 
@@ -237,15 +235,6 @@ public class NetworkController extends Thread {
     public void initiateStop() {
         serviceState = ServiceState.STOPPING;
         if (mainSelector != null) { mainSelector.wakeup(); }
-    }
-
-    /** wait until it has stopped */
-    public void awaitStopped() {
-        try {
-            stopLatch.await();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
     /**

@@ -89,8 +89,8 @@ class ConnectionHandlerTest extends Specification {
             boolean disconnected = disconnectsLatch.await(1, TimeUnit.SECONDS)
             server.initiateStop()
             client.initiateStop()
-            server.awaitStopped()
-            client.awaitStopped()
+            server.join()
+            client.join()
 
         then:
             connected
@@ -137,7 +137,7 @@ class ConnectionHandlerTest extends Specification {
             client.openConnection(PeerAddress.fromIp("127.0.0.1:8100")) // dummy port
             boolean failed = failureLatch.await(5, TimeUnit.SECONDS)
             client.initiateStop()
-            client.awaitStopped()
+            client.join()
 
         then:
             failed

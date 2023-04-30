@@ -48,7 +48,7 @@ class ProtocolPingPongOKTest extends Specification {
                     .config(serverConfig)
                     .config(serverPingConfig)
                     .useLocalhost()
-                    .config(P2PConfig.builder().listeningPort(0).build())
+                    .config(P2PConfig.builder().listeningPort(0).listening(true).build())
                     .excludeHandler(DiscoveryHandler.HANDLER_ID)
                     .excludeHandler(BlacklistHandler.HANDLER_ID)
                     .build()
@@ -85,7 +85,7 @@ class ProtocolPingPongOKTest extends Specification {
         when:
 
             // We start both and connect them:
-            server.startServer()
+            server.start()
             client.start()
             server.awaitStarted()
             client.awaitStarted()
@@ -98,8 +98,8 @@ class ProtocolPingPongOKTest extends Specification {
             // At this moment, the Ping/Pong protocol must have been triggered at least once...
             server.initiateStop()
             client.initiateStop()
-            server.awaitStopped()
-            client.awaitStopped()
+            server.join()
+            client.join()
         then:
             // NOTE: The PING/PONG Starts after a Period of inactivity. So in this case, if both Server and Client are inactive
             // after some time, the ping/pong is triggered. BUT... The Ping/Pong will always start first in one of them, say
