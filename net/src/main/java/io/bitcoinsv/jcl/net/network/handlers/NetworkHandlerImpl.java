@@ -518,7 +518,11 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
             failedConns.add(peerAddress);
             inProgressConns.remove(peerAddress);
             numConnsFailed.incrementAndGet();
-            blacklist(peerAddress.getIp(), PeersBlacklistedEvent.BlacklistReason.CONNECTION_REJECTED);
+
+            // In order to avoid running out of connections, we do NOT blacklist the Peer and we put it back to
+            // the pending pool:
+            //blacklist(peerAddress.getIp(), PeersBlacklistedEvent.BlacklistReason.CONNECTION_REJECTED);
+            this.pendingToOpenConns.offer(peerAddress);
 
             // We publish the event
             eventBus.publish(new PeerRejectedEvent(peerAddress, reason, detail));
