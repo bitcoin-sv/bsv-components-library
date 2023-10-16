@@ -40,13 +40,13 @@ public class ByteArrayReaderRealTime extends ByteArrayReaderOptimized {
     private static final Duration WAITING_INTERVAL = Duration.ofMillis(50);
 
     // If we are in FIXED_WAIT mode, the waitingTime will take this value for the next bytes to read (no matter how many bytes)
-    private static final Duration FIXED_WAIT_TIMEOUT = Duration.ofMillis(5000); // 5 sec
+    private static final Duration FIXED_WAIT_TIMEOUT = Duration.ofMillis(20000); // 20 sec
 
     // In DYNAMIC_MODE, this is the default speed that will determine the waitingTime
     // NOTE: This is a VERY LOW SPEED, but in practice some Peers seems to get idle sometimes and then they burst into
     // sending data like crazy. So this speed is just something we use so we don´´ run into a deadlock waiting for
     // bytes...
-    public static final int DEFAULT_SPEED_BYTES_PER_SECOND = 10; // 10 bytes/sec
+    public static final int DEFAULT_SPEED_BYTES_PER_SECOND = 100; // 100 bytes/sec
 
     // Current Speed expected by this reader when in DYNAMIC_MODE:
     private int speedBytesPerSec = DEFAULT_SPEED_BYTES_PER_SECOND;
