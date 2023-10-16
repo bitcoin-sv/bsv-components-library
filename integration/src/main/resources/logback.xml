@@ -8,27 +8,37 @@
         </encoder>
     </appender>
 
-    <!--
+
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-        <file> log-Tera-J.txt </file>
+        <file>download.log</file>
         <append>true</append>
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%-25thread] %-5level  - %msg%n</pattern>
         </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <fileNamePattern>download.%i.log.zip</fileNamePattern>
+            <minIndex>1</minIndex>
+            <maxIndex>3</maxIndex>
+        </rollingPolicy>
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <maxFileSize>5MB</maxFileSize>
+        </triggeringPolicy>
     </appender>
-    -->
+
 
     <logger name="io.bitcoinsv.jcl.integration" additivity="false">
         <level value="INFO" />
         <appender-ref ref="STDOUT" />
+        <appender-ref ref="FILE" />
     </logger>
 
-    <!--
-    <logger name="io.bitcoinsv.jcl.net.protocol.handlers" additivity="false">
-        <level value="INFO" />
+
+    <logger name="io.bitcoinsv.jcl.net.protocol.handlers.block" additivity="false">
+        <level value="TRACE" />
         <appender-ref ref="STDOUT" />
+        <appender-ref ref="FILE" />
     </logger>
-    -->
+
 
     <root level="error">
         <appender-ref ref="STDOUT" />
