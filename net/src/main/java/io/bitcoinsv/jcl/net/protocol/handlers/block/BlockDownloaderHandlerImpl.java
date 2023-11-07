@@ -527,14 +527,19 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
         return result;
     }
 
+    /*
+     * It gets the Hash of the Msg given, assuming the MSg is a Block (a whole Block or a Partial piece),
+     * and it can be either in Raw format or deserialized.
+     */
     private String getHashFromMsg(BitcoinMsg<?> msg) {
-        String blockHash = (msg.is(BlockMsg.MESSAGE_TYPE))
+        Class msgBodyClass = msg.getBody().getClass();
+        String blockHash = (msgBodyClass.equals(BlockMsg.class))
                 ? Utils.HEX.encode(((BlockMsg)msg.getBody()).getBlockHeader().getHash().getBytes())
-                : (msg.is(RawBlockMsg.MESSAGE_TYPE))
+                : (msgBodyClass.equals(RawBlockMsg.class))
                 ? Utils.HEX.encode(((RawBlockMsg) msg.getBody()).getBlockHeader().getHash().getBytes())
-                : (msg.is(PartialBlockHeaderMsg.MESSAGE_TYPE))
+                : (msgBodyClass.equals(PartialBlockHeaderMsg.class))
                 ? Utils.HEX.encode(((PartialBlockHeaderMsg) msg.getBody()).getBlockHeader().getHash().getBytes())
-                : (msg.is(PartialBlockTXsMsg.MESSAGE_TYPE))
+                : (msgBodyClass.equals(PartialBlockTXsMsg.class))
                 ? Utils.HEX.encode(((PartialBlockTXsMsg) msg.getBody()).getBlockHeader().getHash().getBytes())
                 : Utils.HEX.encode(((PartialBlockRawTxMsg) msg.getBody()).getBlockHeader().getHash().getBytes());
         return blockHash;
