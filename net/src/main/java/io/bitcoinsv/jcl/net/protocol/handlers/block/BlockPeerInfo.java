@@ -203,6 +203,14 @@ public class BlockPeerInfo {
     }
 
     /**
+     * It updates the Peer to reflect that it's back to downloading State
+     * (for example, if it seemed to stop in the past, was put into Limbo and now it has resumed sending data
+     */
+    protected void resumeDownloading() {
+        this.workingState = PeerWorkingState.PROCESSING;
+    }
+
+    /**
      * It triggers and update the value of the BytesDownloaded and the BytesTotal values of this class, taking that
      * information from the underlying NIOInputStream that the DeserializerStream is connected to
      */
@@ -223,8 +231,8 @@ public class BlockPeerInfo {
                 // update "bytesTotal" if the Stream is SEEKING a BODY, which means that the Stream has already parsed
                 // the new Header...
 
-               if (stream.getState().getProcessState() == DeserializerStreamState.ProcessingBytesState.SEEIKING_BODY ||
-                    stream.getState().getProcessState() == DeserializerStreamState.ProcessingBytesState.DESERIALIZING_BODY) {
+                if (stream.getState().getProcessState() == DeserializerStreamState.ProcessingBytesState.SEEIKING_BODY ||
+                        stream.getState().getProcessState() == DeserializerStreamState.ProcessingBytesState.DESERIALIZING_BODY) {
                     currentBlockInfo.bytesTotal = currentHeaderMsg.getMsgLength();
                 }
 

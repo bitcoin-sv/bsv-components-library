@@ -17,6 +17,7 @@ public final class NetworkHandlerState extends HandlerState {
     private final int numPendingToCloseConns;
     private final long numConnsFailed;
     private final long numInProgressConnsExpired;
+    private final int numPeersBlacklisted;
 
     private final boolean server_mode;
     private final boolean keep_connecting;
@@ -26,6 +27,7 @@ public final class NetworkHandlerState extends HandlerState {
     NetworkHandlerState(int numActiveConns, int numInProgressConns, int numPendingToOpenConns, int numPendingToCloseConns,
                         boolean server_mode, boolean keep_connecting,
                         long numConnsFailed, long numInProgressConnsExpired,
+                        int numPeersBlacklisted,
                         int numConnsTried) {
         this.numActiveConns = numActiveConns;
         this.numInProgressConns = numInProgressConns;
@@ -35,6 +37,7 @@ public final class NetworkHandlerState extends HandlerState {
         this.keep_connecting = keep_connecting;
         this.numConnsFailed = numConnsFailed;
         this.numInProgressConnsExpired = numInProgressConnsExpired;
+        this.numPeersBlacklisted = numPeersBlacklisted;
         this.numConnsTried = numConnsTried;
     }
 
@@ -46,6 +49,7 @@ public final class NetworkHandlerState extends HandlerState {
         result.append("Connections: ");
         result.append(numActiveConns).append(" active, ");
         result.append(numInProgressConns).append(" in progress, ");
+        result.append(numPeersBlacklisted).append(" blacklisted, ");
         result.append(numConnsTried).append(" tried since last state, ");
         result.append(numPendingToOpenConns).append( " pending to Open, ");
         result.append(numPendingToCloseConns).append(" pending to Close, ");
@@ -61,6 +65,7 @@ public final class NetworkHandlerState extends HandlerState {
     public int getNumInProgressConns()      { return this.numInProgressConns; }
     public int getNumPendingToOpenConns()   { return this.numPendingToOpenConns; }
     public int getNumPendingToCloseConns()  { return this.numPendingToCloseConns; }
+    public int getNumPeersBlacklisted()     { return this.numPeersBlacklisted;}
     public boolean isServer_mode()          { return this.server_mode; }
     public boolean isKeep_connecting()      { return this.keep_connecting; }
     public int getNumCopnnsTried()          { return this.numConnsTried; }
@@ -91,6 +96,7 @@ public final class NetworkHandlerState extends HandlerState {
         private int numPendingToCloseConns;
         private long numConnsFailed;
         private long numInProgressConnsExpired;
+        private int numPeersBlacklisted;
         private boolean server_mode;
         private boolean keep_connecting;
         private int numConnsTried;
@@ -127,6 +133,11 @@ public final class NetworkHandlerState extends HandlerState {
             return this;
         }
 
+        public NetworkHandlerState.NetworkHandlerStateBuilder numPeersBlacklisted(int numPeersBlacklisted) {
+            this.numPeersBlacklisted = numPeersBlacklisted;
+            return this;
+        }
+
         public NetworkHandlerState.NetworkHandlerStateBuilder server_mode(boolean server_mode) {
             this.server_mode = server_mode;
             return this;
@@ -143,8 +154,17 @@ public final class NetworkHandlerState extends HandlerState {
         }
 
         public NetworkHandlerState build() {
-            return new NetworkHandlerState(numActiveConns, numInProgressConns, numPendingToOpenConns, numPendingToCloseConns, server_mode, keep_connecting,
-                    numConnsFailed, numInProgressConnsExpired, numConnsTried);
+            return new NetworkHandlerState(
+                    numActiveConns,
+                    numInProgressConns,
+                    numPendingToOpenConns,
+                    numPendingToCloseConns,
+                    server_mode,
+                    keep_connecting,
+                    numConnsFailed,
+                    numInProgressConnsExpired,
+                    numPeersBlacklisted,
+                    numConnsTried);
         }
     }
 }
