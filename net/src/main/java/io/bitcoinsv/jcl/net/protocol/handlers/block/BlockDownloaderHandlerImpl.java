@@ -146,6 +146,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
     private boolean allowedToRunByClient = true;
     private boolean allowedToRunByInternalState = false;
 
+    private final int MAX_BLOCK_DOWNLOADED_HASHES_TO_KEEP = 1000;
+
     /** Constructor */
     public BlockDownloaderHandlerImpl(String id, RuntimeConfig runtimeConfig, BlockDownloaderHandlerConfig config) {
         super(id, runtimeConfig);
@@ -331,7 +333,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
         try {
             lock.lock();
             // First we add the list of Block Hashes to the Pending Pool:
-            logger.debug("Adding " + blockHashes.size() + " blocks to download (priority: " + withPriority +": ");
+            logger.debug("Adding " + blockHashes.size() + " blocks to download (priority: " + withPriority +")");
 
             // We filter out those blocks cancelled, etc...
             List<String> blockHashesToAdd =  blockHashes.stream()
@@ -776,6 +778,9 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
             peerInfo.getStream().resetBufferSize();
 
             blocksDownloaded.add(blockHash);
+            while (blocksDownloaded.size() > MAX_BLOCK_DOWNLOADED_HASHES_TO_KEEP) {
+                blocksDownloaded.remove(0);
+            }
             blocksPendingManager.registerBlockDownloaded(blockHash);
             blocksInLimbo.remove(blockHash);
             bigBlocksHeaders.remove(blockHash);
@@ -937,6 +942,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                         // We manage it based on its state:
                         switch (peerWorkingState) {
                             case IDLE: {
+                                logger.trace(peerAddress, "Processing peerWorkingState == IDLE");
+
                                 // SANITY CHECK: WE check if more downloads are allowed:
                                 int numPeersWorking = getCurrentPeersDownloading();
                                 long totalMBbeingDownloaded = getCurrentDownloadingBlocksSize() / 1_000_000; // convert to MB
@@ -953,6 +960,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                                 // this Peer to download:
 
                                 if (isPausedAndBlocksInProcess || (isRunning() && moreDownloadsAllowed)) {
+                                    logger.trace(peerAddress, "Determining most suitable block for download");
 
                                     // In order to be efficient, the BlocksPendingManager also needs to know
                                     // about all the peers available for Download (EXCLUDING THIS ONE):
@@ -981,6 +989,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                             }
 
                             case PROCESSING: {
+                                logger.trace(peerAddress, "Processing peerWorkingState == PROCESSING");
+
                                 // we update the Progress of this Peer:
                                 peerInfo.updateBytesProgress();
 
@@ -1025,11 +1035,14 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                     List<String> blocksToReTry = new ArrayList<>();
                     for (String hashDiscarded: blocksDiscarded.keySet()) {
                         if (Duration.between(blocksDiscarded.get(hashDiscarded), Instant.now())
-                                .compareTo(config.getRetryDiscardedBlocksTimeout()) > 0) blocksToReTry.add(hashDiscarded);
+                                .compareTo(config.getRetryDiscardedBlocksTimeout()) > 0) {
+                            blocksToReTry.add(hashDiscarded);
+                        }
                     }
 
                     if (blocksToReTry.size() > 0) {
                         for (String hashToRetry : blocksToReTry) {
+                            logger.trace("Retrying block download " + hashToRetry);
                             blocksDiscarded.remove(hashToRetry);
                             blocksDownloadHistory.register(hashToRetry, "Block picked up again to re-attempt download...");
                             blocksPendingManager.addWithPriority(hashToRetry); // blocks to retry have preference...
@@ -1043,14 +1056,24 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
             } // while true...
         } catch (InterruptedException ie) {
             // We do nothing, most probably, it fails due to the main service being stopped...
+            logger.error("Error during jobProcessCheckDownloadingProcess ", ie);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Error during jobProcessCheckDownloadingProcess ", e);
         } catch (Throwable th) {
-            th.printStackTrace();
+            logger.error("Error during jobProcessCheckDownloadingProcess ", th);
         }
     }
 
     public BlockDownloaderHandlerConfig getConfig() {
         return this.config;
+    }
+
+    @Override
+    public List<BlockPeerInfo> getPeers() {
+        List<BlockPeerInfo> peersOrdered =  handlerInfo.values().stream()
+            .filter(p -> p.isHandshaked())
+            .collect(Collectors.toList());
+        Collections.sort(peersOrdered, BlockPeerInfo.SPEED_COMPARATOR);
+        return peersOrdered;
     }
 }

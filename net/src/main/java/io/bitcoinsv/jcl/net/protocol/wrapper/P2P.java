@@ -7,12 +7,16 @@ import io.bitcoinsv.jcl.net.network.config.provided.NetworkDefaultConfig;
 import io.bitcoinsv.jcl.net.network.events.HandlerStateEvent;
 import io.bitcoinsv.jcl.net.network.handlers.NetworkHandler;
 import io.bitcoinsv.jcl.net.network.handlers.NetworkHandlerImpl;
+import io.bitcoinsv.jcl.net.network.streams.nio.NIOStream;
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig;
 import io.bitcoinsv.jcl.net.protocol.config.provided.ProtocolBSVMainConfig;
 import io.bitcoinsv.jcl.net.protocol.handlers.blacklist.BlacklistHandler;
 import io.bitcoinsv.jcl.net.protocol.handlers.blacklist.BlacklistHandlerImpl;
 import io.bitcoinsv.jcl.net.protocol.handlers.blacklist.BlacklistHostInfo;
 import io.bitcoinsv.jcl.net.protocol.handlers.blacklist.BlacklistView;
+import io.bitcoinsv.jcl.net.protocol.handlers.block.BlockDownloaderHandler;
+import io.bitcoinsv.jcl.net.protocol.handlers.block.BlockDownloaderHandlerImpl;
+import io.bitcoinsv.jcl.net.protocol.handlers.block.BlockPeerInfo;
 import io.bitcoinsv.jcl.net.protocol.handlers.handshake.HandshakeHandler;
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig;
 import io.bitcoinsv.jcl.tools.config.provided.RuntimeConfigDefault;
@@ -206,6 +210,7 @@ public class P2P {
         try {
             //System.out.println("----> Trying to Publish State for " + handler.getId() + "...");
             HandlerStateEvent event = new HandlerStateEvent(handler.getState());
+            logger.debug("Handler ID: {}, state: {}", handler.getId(), event.toString());
             stateEventBus.publish(event);
             //System.out.println("----> State for " + handler.getId() + " Published.");
         } catch (Exception e) {
@@ -223,4 +228,16 @@ public class P2P {
     public NetworkConfig getNetworkConfig()     { return this.networkConfig; }
     public ProtocolConfig getProtocolConfig()   { return this.protocolConfig; }
     public EventBus getEventBus()               { return this.eventBus;}
+
+    // Returns all active connections (for debug and other purposes)
+    public Map<PeerAddress, NIOStream> getActiveConnections() {
+        NetworkHandler handler = (NetworkHandler) handlers.get(NetworkHandlerImpl.HANDLER_ID);
+        return handler.getActiveConns();
+    }
+
+    // Returns all block downloader handler peers (for debug and other purposes)
+    public List<BlockPeerInfo> getBlockDownloaderHandlerPeers() {
+        BlockDownloaderHandler handler = (BlockDownloaderHandler) handlers.get(BlockDownloaderHandlerImpl.HANDLER_ID);
+        return handler.getPeers();
+    }
 }
