@@ -3,9 +3,11 @@ package io.bitcoinsv.jcl.net.network.handlers;
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.network.events.DisconnectPeerRequest;
 import io.bitcoinsv.jcl.net.network.events.PeerDisconnectedEvent;
+import io.bitcoinsv.jcl.net.network.streams.nio.NIOStream;
 import io.bitcoinsv.jcl.tools.handlers.Handler;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -61,4 +63,6 @@ public interface NetworkHandler extends Handler {
     }
 
     void disconnectAllExcept(List<PeerAddress> peerAddresses);
+
+    Map<PeerAddress, NIOStream> getActiveConns();
 }

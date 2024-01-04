@@ -29,4 +29,5 @@ public interface BlockDownloaderHandler extends Handler {
      */
     void cancelDownload(List<String> blockHashes);
 
+    List<BlockPeerInfo> getPeers();
 }

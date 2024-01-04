@@ -6,7 +6,6 @@ import io.bitcoinsv.jcl.net.network.config.NetworkConfig;
 import io.bitcoinsv.jcl.net.network.config.NetworkConfigImpl;
 import io.bitcoinsv.jcl.net.network.events.*;
 
-import io.bitcoinsv.jcl.net.network.events.*;
 import io.bitcoinsv.jcl.net.network.streams.StreamCloseEvent;
 import io.bitcoinsv.jcl.net.network.streams.nio.NIOInputStream;
 import io.bitcoinsv.jcl.net.network.streams.nio.NIOOutputStream;
@@ -1026,4 +1025,8 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         return HANDLER_ID+ "-main";
     }
 
+    // Returns all active connections (for debug and other purposes)
+    public Map<PeerAddress, NIOStream> getActiveConns() {
+        return activeConns;
+    }
 }

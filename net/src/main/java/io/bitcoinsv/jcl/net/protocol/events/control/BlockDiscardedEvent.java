@@ -47,6 +47,6 @@ public final class BlockDiscardedEvent extends P2PEvent {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(super.hashCode(), hash, hashCode());
+        return Objects.hashCode(super.hashCode(), hash);
     }
 }

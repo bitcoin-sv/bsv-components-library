@@ -1,6 +1,6 @@
 plugins {
-    id 'org.springframework.boot' version '2.1.9.RELEASE'
-    id 'io.spring.dependency-management' version '1.0.8.RELEASE'
+    id 'org.springframework.boot' version '3.1.0'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
     id 'java'
     id 'groovy'
     id 'java-library'
@@ -31,7 +31,7 @@ dependencies {
     implementation "io.bitcoinsv.bitcoinjsv:bitcoinj-base:$bitcoinJVersion"
     implementation 'org.slf4j:slf4j-api:1.7.26'
     implementation 'com.madgag.spongycastle:core:1.51.0.0'
-    implementation 'net.openhft:chronicle-map:3.20.80'
+    implementation 'net.openhft:chronicle-map:3.20.84.1'
 
     // Testing
     testImplementation 'org.codehaus.groovy:groovy'
@@ -46,6 +46,7 @@ bootJar {
 
 jar {
     enabled = true
+    archiveClassifier = '' // avoid "-plain.jar" suffix in JAR file
 }
 
 java {

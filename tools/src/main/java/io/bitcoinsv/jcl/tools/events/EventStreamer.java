@@ -1,6 +1,8 @@
 package io.bitcoinsv.jcl.tools.events;
 
 import io.bitcoinsv.jcl.tools.thread.ThreadUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +28,7 @@ import java.util.function.Predicate;
  * "original" Events and the Threads streamed by this class are different.
  */
 public class EventStreamer<E extends Event> {
+    private static final Logger log = LoggerFactory.getLogger(EventStreamer.class);
 
     private static final int DEFAULT_NUM_THREADS = 1;
 
@@ -92,13 +95,19 @@ public class EventStreamer<E extends Event> {
                     try {
                         this.eventHandlers.forEach( handler -> this.eventExecutor.execute(() -> handler.accept(event)));
                     } catch (RejectedExecutionException e) {
-                        e.printStackTrace();
+                        log.error("Error while processing events: ", e);
+                        NUM_MSGS_LOST.incrementAndGet();
+                    } catch (Exception e) {
+                        log.error("Error while processing events: ", e);
                         NUM_MSGS_LOST.incrementAndGet();
                     }
                 }
             } // while...
         } catch (InterruptedException ie) {
+            log.error("Error while processing events: ", ie);
             throw new RuntimeException(ie);
+        } catch (Exception e) {
+            log.error("Error while processing events: ", e);
         }
     }
 
