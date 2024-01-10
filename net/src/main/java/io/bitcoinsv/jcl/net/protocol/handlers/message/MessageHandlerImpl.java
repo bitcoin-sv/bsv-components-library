@@ -3,9 +3,11 @@ package io.bitcoinsv.jcl.net.protocol.handlers.message;
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.network.events.*;
+import io.bitcoinsv.jcl.net.network.streams.StreamCorruptedDataEvent;
 import io.bitcoinsv.jcl.net.network.streams.StreamDataEvent;
 import io.bitcoinsv.jcl.net.network.streams.StreamErrorEvent;
 
+import io.bitcoinsv.jcl.net.network.streams.StreamMessageErrorEvent;
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolVersion;
 import io.bitcoinsv.jcl.net.protocol.events.control.*;
 import io.bitcoinsv.jcl.net.protocol.events.data.MsgReceivedBatchEvent;
@@ -186,6 +188,8 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
 
         msgStream.input().onClose( e -> onStreamClosed(peerAddress));
         msgStream.input().onError(e -> onStreamError(peerAddress, e));
+        msgStream.input().onCorruptedData(e -> onCorruptedData(peerAddress, e));
+        msgStream.input().onMessageError(e -> onMessageError(peerAddress, e));
         // if a Pre-Serializer has been set, we inject it into this Stream:
         if (config.getPreSerializer() != null)
             ((DeserializerStream) msgStream.input()).setPreSerializer(config.getPreSerializer());
@@ -240,6 +244,18 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
         // We request a Disconnection from this Peer...
         logger.trace(peerAddress, "Error detected in Stream, requesting disconnection... ");
         super.eventBus.publish(new DisconnectPeerRequest(peerAddress));
+    }
+
+    private void onCorruptedData(PeerAddress peerAddress, StreamCorruptedDataEvent event) {
+        logger.trace(peerAddress, "Data corruption/error detected in Stream, requesting disconnection... ");
+        super.eventBus.publish(event); //re-publish the event to event bus (to allow further consumption & processing)
+        super.eventBus.publish(new DisconnectPeerRequest(peerAddress)); //also request to disconnect the peer - we probably do not want to keep p2p connection open with it since it sent corrupted data
+    }
+
+    private void onMessageError(PeerAddress peerAddress, StreamMessageErrorEvent event) {
+        logger.trace(peerAddress, "Message error detected in Stream");
+        super.eventBus.publish(event); //re-publish the event to event bus (to allow further consumption & processing)
+        //think about peer disconnection here - one instance of this event is used as a warning and the p2p message is just meant to be ignored (see DeserializerStreamState::processSeekingHead)
     }
 
     // Event Handler:

@@ -30,5 +30,7 @@ public interface PeerInputStream<T> {
     void onData(Consumer<? extends StreamDataEvent<T>> eventHandler);
     void onClose(Consumer<? extends StreamCloseEvent> eventHandler);
     void onError(Consumer<? extends StreamErrorEvent> eventHandler);
+    void onCorruptedData(Consumer<? extends StreamCorruptedDataEvent> eventHandler);
+    void onMessageError(Consumer<? extends StreamMessageErrorEvent> eventHandler);
     void close(StreamCloseEvent event);
 }

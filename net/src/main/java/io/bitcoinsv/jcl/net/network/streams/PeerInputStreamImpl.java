@@ -93,6 +93,16 @@ public abstract class PeerInputStreamImpl<I,R> implements PeerInputStream<R> {
     }
 
     @Override
+    public void onCorruptedData(Consumer<? extends StreamCorruptedDataEvent> eventHandler)  {
+        eventBus.subscribe(StreamCorruptedDataEvent.class, eventHandler);
+    }
+
+    @Override
+    public void onMessageError(Consumer<? extends StreamMessageErrorEvent> eventHandler)  {
+        eventBus.subscribe(StreamMessageErrorEvent.class, eventHandler);
+    }
+
+    @Override
     public void close(StreamCloseEvent event) {
         eventBus.publish(new StreamCloseEvent());
     }
