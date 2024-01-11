@@ -2,6 +2,7 @@ package io.bitcoinsv.jcl.net.network.streams;
 
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
+import io.bitcoinsv.jcl.net.protocol.serialization.largeMsgs.MsgPartDeserializationErrorEvent;
 import io.bitcoinsv.jcl.tools.events.EventBus;
 
 
@@ -103,6 +104,11 @@ public abstract class PeerInputStreamImpl<I,R> implements PeerInputStream<R> {
     }
 
     @Override
+    public void onMsgPartDeserializationError(Consumer<? extends MsgPartDeserializationErrorEvent> eventHandler)  {
+        eventBus.subscribe(MsgPartDeserializationErrorEvent.class, eventHandler);
+    }
+
+    @Override
     public void close(StreamCloseEvent event) {
         eventBus.publish(new StreamCloseEvent());
     }
@@ -112,7 +118,7 @@ public abstract class PeerInputStreamImpl<I,R> implements PeerInputStream<R> {
             List<StreamDataEvent<R>> dataTransformed = transform(dataEvent);
             if (dataTransformed != null) dataTransformed.forEach(e -> eventBus.publish(e));
         } catch (Throwable e) {
-            eventBus.publish(new StreamErrorEvent(e));
+            eventBus.publish(new StreamErrorEvent(getPeerAddress(), e));
         }
     }
 

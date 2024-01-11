@@ -19,6 +19,7 @@ import io.bitcoinsv.jcl.net.protocol.serialization.common.MsgSerializersFactory;
 import io.bitcoinsv.jcl.net.protocol.handlers.message.streams.MessageStream;
 import io.bitcoinsv.jcl.net.protocol.handlers.message.streams.deserializer.Deserializer;
 import io.bitcoinsv.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerStream;
+import io.bitcoinsv.jcl.net.protocol.serialization.largeMsgs.MsgPartDeserializationErrorEvent;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayBuffer;
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig;
 import io.bitcoinsv.jcl.tools.events.Event;
@@ -190,6 +191,7 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
         msgStream.input().onError(e -> onStreamError(peerAddress, e));
         msgStream.input().onCorruptedData(e -> onCorruptedData(peerAddress, e));
         msgStream.input().onMessageError(e -> onMessageError(peerAddress, e));
+        msgStream.input().onMsgPartDeserializationError(e -> onMsgPartDeserializationError(peerAddress, e));
         // if a Pre-Serializer has been set, we inject it into this Stream:
         if (config.getPreSerializer() != null)
             ((DeserializerStream) msgStream.input()).setPreSerializer(config.getPreSerializer());
@@ -256,6 +258,12 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
         logger.trace(peerAddress, "Message error detected in Stream");
         super.eventBus.publish(event); //re-publish the event to event bus (to allow further consumption & processing)
         //think about peer disconnection here - one instance of this event is used as a warning and the p2p message is just meant to be ignored (see DeserializerStreamState::processSeekingHead)
+    }
+
+    private void onMsgPartDeserializationError(PeerAddress peerAddress, MsgPartDeserializationErrorEvent event) {
+        logger.trace(peerAddress, "Msg part deserialization error detected");
+        super.eventBus.publish(new MsgPartDeserializationErrorEvent(peerAddress, event.getException())); //re-construct (to include peer address) and publish the event to event bus (to allow further consumption & processing)
+        //previously, there were no instances of peer disconnection when this event was created - peer disconnection request probably not required here
     }
 
     // Event Handler:

@@ -175,10 +175,10 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Mes
         if (!streamClosed) {
             logger.error((e.getMessage() != null)? e.getMessage() : e.getCause().getMessage());
             // We notify the parent about this Error and return:
-            super.eventBus.publish(new StreamErrorEvent(e));
+            super.eventBus.publish(new StreamErrorEvent(getPeerAddress(), e));
         } else {
             super.eventBus.publish(new StreamCorruptedDataEvent(
-                this.peerAddress,
+                getPeerAddress(),
                 getCurrentMessageCommand(),
                 messageBytes));
         }

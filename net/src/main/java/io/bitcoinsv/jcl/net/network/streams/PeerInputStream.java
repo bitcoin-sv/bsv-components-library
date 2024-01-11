@@ -1,5 +1,6 @@
 package io.bitcoinsv.jcl.net.network.streams;
 import io.bitcoinsv.jcl.net.network.PeerAddress;
+import io.bitcoinsv.jcl.net.protocol.serialization.largeMsgs.MsgPartDeserializationErrorEvent;
 
 
 import java.util.function.Consumer;
@@ -32,5 +33,6 @@ public interface PeerInputStream<T> {
     void onError(Consumer<? extends StreamErrorEvent> eventHandler);
     void onCorruptedData(Consumer<? extends StreamCorruptedDataEvent> eventHandler);
     void onMessageError(Consumer<? extends StreamMessageErrorEvent> eventHandler);
+    void onMsgPartDeserializationError(Consumer<? extends MsgPartDeserializationErrorEvent> eventHandler);
     void close(StreamCloseEvent event);
 }
