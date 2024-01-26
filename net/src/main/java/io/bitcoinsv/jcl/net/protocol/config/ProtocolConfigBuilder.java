@@ -29,34 +29,23 @@ public class ProtocolConfigBuilder {
     private static final int MIN_PEERS_DEFAULT = 10;
     private static final int MAX_PEERS_DEFAULT = 15;
 
-    /*
-        In BitcoinJ, the magic package is specified using a different Order than in JCL.
-        for example, the magic package field in the messages headers is specified this way:
-            - 0xe8f3e1e3L in JCL (same order as is sent over the wire)
-            - 0xe3e1f3e8L in BitcoinJ
-
-        This function translates the value from BitcoinJ into the equivalente representation using JCL
-     */
-    private static long convertMagicPackageFronBitcoinJ(long magic) {
-        byte[] result = new byte[8];
-        Utils.uint32ToByteArrayBE(magic, result, 0);
-        return Longs.fromByteArray(Utils.reverseBytes(result));
-    }
-
     /**
      * It takes a NetworkParams class from BitcoinJ specifying network parameters, and returns a ProtocolConfiguration
-     * class, which also defines parmeters of the network but also adds more detail and some fine-grained
+     * class, which also defines parameters of the network but also adds more detail and some fine-grained
      * configurations, like specific configurations for controlling the Handshake, Ping/Pong, Discovery Algorithm, etc.
      */
     public static ProtocolConfig get(NetworkParameters params) {
-        // We define each one the different Handlers Configurations:
+        return get(params, 0);
+    }
 
+    public static ProtocolConfig get(NetworkParameters params, long overrideMagicPacket) {
+        // We define each one the different Handlers Configurations:
         // Basic configuration:
         ProtocolBasicConfig basicConfig = ProtocolBasicConfig.builder()
                 .minPeers(OptionalInt.of(MIN_PEERS_DEFAULT))
                 .maxPeers(OptionalInt.of(MAX_PEERS_DEFAULT))
                 .id(params.getId())
-                .magicPackage(convertMagicPackageFronBitcoinJ(params.getPacketMagic()))
+                .magicPackage(overrideMagicPacket != 0 ? overrideMagicPacket : params.getPacketMagic())
                 .port(params.getPort())
                 .build();
 
