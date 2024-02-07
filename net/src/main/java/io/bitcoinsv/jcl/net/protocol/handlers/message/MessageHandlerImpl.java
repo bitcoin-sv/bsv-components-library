@@ -240,7 +240,7 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
             }
 
         } else {
-            // If the Msg is Incorrect, we disconnect from this Peer
+            // If the Msg is Incorrect, report an invalid message error
             logger.error(peerAddress, "ERROR In incoming " + msgType + " msg :: " + validationError);
             super.eventBus.publish(new InvalidMessageErrorEvent(peerAddress, validationError));
         }
