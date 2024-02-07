@@ -109,6 +109,11 @@ public abstract class PeerInputStreamImpl<I,R> implements PeerInputStream<R> {
     }
 
     @Override
+    public void onInvalidMessageError(Consumer<? extends InvalidMessageErrorEvent> eventHandler)  {
+        eventBus.subscribe(InvalidMessageErrorEvent.class, eventHandler);
+    }
+
+    @Override
     public void close(StreamCloseEvent event) {
         eventBus.publish(new StreamCloseEvent());
     }

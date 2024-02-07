@@ -34,5 +34,6 @@ public interface PeerInputStream<T> {
     void onCorruptedData(Consumer<? extends StreamCorruptedDataEvent> eventHandler);
     void onMessageError(Consumer<? extends StreamMessageErrorEvent> eventHandler);
     void onMsgPartDeserializationError(Consumer<? extends MsgPartDeserializationErrorEvent> eventHandler);
+    void onInvalidMessageError(Consumer<? extends InvalidMessageErrorEvent> eventHandler);
     void close(StreamCloseEvent event);
 }

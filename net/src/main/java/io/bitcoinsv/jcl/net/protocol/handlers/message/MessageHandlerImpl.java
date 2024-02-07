@@ -121,6 +121,12 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
         super.eventBus.subscribe(BroadcastMsgBodyHandshakedRequest.class, e -> onBroadcastMsgBodyHandshaked((BroadcastMsgBodyHandshakedRequest) e));
         super.eventBus.subscribe(SendMsgListHandshakeRequest.class,     e -> onSendMsgListHandshakeReq((SendMsgListHandshakeRequest) e));
         this.eventBus.subscribe(SendMsgStreamHandshakeRequest.class,    e -> onSendMsgStreamHandshakeRequest((SendMsgStreamHandshakeRequest) e));
+
+        super.eventBus.subscribe(StreamErrorEvent.class,                e -> onStreamError((StreamErrorEvent) e));
+        super.eventBus.subscribe(StreamCorruptedDataEvent.class,        e -> onCorruptedData((StreamCorruptedDataEvent) e));
+        super.eventBus.subscribe(StreamMessageErrorEvent.class,         e -> onMessageError((StreamMessageErrorEvent) e));
+        super.eventBus.subscribe(MsgPartDeserializationErrorEvent.class, e -> onMsgPartDeserializationError((MsgPartDeserializationErrorEvent) e));
+        super.eventBus.subscribe(InvalidMessageErrorEvent.class,        e -> onInvalidMessageError((InvalidMessageErrorEvent) e));
     }
 
     // Event Handler:
@@ -189,10 +195,12 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
         });
 
         msgStream.input().onClose( e -> onStreamClosed(peerAddress));
-        msgStream.input().onError(e -> onStreamError(peerAddress, e));
-        msgStream.input().onCorruptedData(e -> onCorruptedData(peerAddress, e));
-        msgStream.input().onMessageError(e -> onMessageError(peerAddress, e));
-        msgStream.input().onMsgPartDeserializationError(e -> onMsgPartDeserializationError(peerAddress, e));
+        //report/forward deserializer's errors to the event bus
+        msgStream.input().onError(e -> this.eventBus.publish(e));
+        msgStream.input().onCorruptedData(e -> this.eventBus.publish(e));
+        msgStream.input().onMessageError(e -> this.eventBus.publish(e));
+        msgStream.input().onMsgPartDeserializationError(e -> this.eventBus.publish(e));
+        msgStream.input().onInvalidMessageError(e -> this.eventBus.publish(e));
         // if a Pre-Serializer has been set, we inject it into this Stream:
         if (config.getPreSerializer() != null)
             ((DeserializerStream) msgStream.input()).setPreSerializer(config.getPreSerializer());
@@ -243,25 +251,24 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
     }
 
     // Event Handler:
-    private void onStreamError(PeerAddress peerAddress, StreamErrorEvent event) {
-        // We request a Disconnection from this Peer...
-        logger.trace(peerAddress, "Error detected in Stream");
-        super.eventBus.publish(event); //re-publish the event to event bus (to allow further consumption & processing)
+    private void onStreamError(StreamErrorEvent event) {
+        logger.trace(event.getPeerAddress(), "Error detected in Stream");
     }
 
-    private void onCorruptedData(PeerAddress peerAddress, StreamCorruptedDataEvent event) {
-        logger.trace(peerAddress, "Data corruption/error detected in Stream");
-        super.eventBus.publish(event); //re-publish the event to event bus (to allow further consumption & processing)
+    private void onCorruptedData(StreamCorruptedDataEvent event) {
+        logger.trace(event.getPeerAddress(), "Data corruption/error detected in Stream");
     }
 
-    private void onMessageError(PeerAddress peerAddress, StreamMessageErrorEvent event) {
-        logger.trace(peerAddress, "Message error detected in Stream");
-        super.eventBus.publish(event); //re-publish the event to event bus (to allow further consumption & processing)
+    private void onMessageError(StreamMessageErrorEvent event) {
+        logger.trace(event.getPeerAddress(), "Message error detected in Stream");
     }
 
-    private void onMsgPartDeserializationError(PeerAddress peerAddress, MsgPartDeserializationErrorEvent event) {
-        logger.trace(peerAddress, "Msg part deserialization error detected");
-        super.eventBus.publish(new MsgPartDeserializationErrorEvent(peerAddress, event.getException())); //re-construct (to include peer address) and publish the event to event bus (to allow further consumption & processing)
+    private void onMsgPartDeserializationError(MsgPartDeserializationErrorEvent event) {
+        logger.trace(event.getPeerAddress(), "Msg part deserialization error detected");
+    }
+
+    private void onInvalidMessageError(InvalidMessageErrorEvent event) {
+        logger.trace(event.getPeerAddress(), "Invalid message error detected");
     }
 
     // Event Handler:
