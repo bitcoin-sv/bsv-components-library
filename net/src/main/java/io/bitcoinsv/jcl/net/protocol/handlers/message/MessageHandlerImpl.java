@@ -3,9 +3,12 @@ package io.bitcoinsv.jcl.net.protocol.handlers.message;
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.network.events.*;
+import io.bitcoinsv.jcl.net.network.streams.InvalidMessageErrorEvent;
+import io.bitcoinsv.jcl.net.network.streams.StreamCorruptedDataEvent;
 import io.bitcoinsv.jcl.net.network.streams.StreamDataEvent;
 import io.bitcoinsv.jcl.net.network.streams.StreamErrorEvent;
 
+import io.bitcoinsv.jcl.net.network.streams.StreamMessageErrorEvent;
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolVersion;
 import io.bitcoinsv.jcl.net.protocol.events.control.*;
 import io.bitcoinsv.jcl.net.protocol.events.data.MsgReceivedBatchEvent;
@@ -17,6 +20,7 @@ import io.bitcoinsv.jcl.net.protocol.serialization.common.MsgSerializersFactory;
 import io.bitcoinsv.jcl.net.protocol.handlers.message.streams.MessageStream;
 import io.bitcoinsv.jcl.net.protocol.handlers.message.streams.deserializer.Deserializer;
 import io.bitcoinsv.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerStream;
+import io.bitcoinsv.jcl.net.protocol.serialization.largeMsgs.MsgPartDeserializationErrorEvent;
 import io.bitcoinsv.jcl.tools.bytes.ByteArrayBuffer;
 import io.bitcoinsv.jcl.tools.config.RuntimeConfig;
 import io.bitcoinsv.jcl.tools.events.Event;
@@ -117,6 +121,12 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
         super.eventBus.subscribe(BroadcastMsgBodyHandshakedRequest.class, e -> onBroadcastMsgBodyHandshaked((BroadcastMsgBodyHandshakedRequest) e));
         super.eventBus.subscribe(SendMsgListHandshakeRequest.class,     e -> onSendMsgListHandshakeReq((SendMsgListHandshakeRequest) e));
         this.eventBus.subscribe(SendMsgStreamHandshakeRequest.class,    e -> onSendMsgStreamHandshakeRequest((SendMsgStreamHandshakeRequest) e));
+
+        super.eventBus.subscribe(StreamErrorEvent.class,                e -> onStreamError((StreamErrorEvent) e));
+        super.eventBus.subscribe(StreamCorruptedDataEvent.class,        e -> onCorruptedData((StreamCorruptedDataEvent) e));
+        super.eventBus.subscribe(StreamMessageErrorEvent.class,         e -> onMessageError((StreamMessageErrorEvent) e));
+        super.eventBus.subscribe(MsgPartDeserializationErrorEvent.class, e -> onMsgPartDeserializationError((MsgPartDeserializationErrorEvent) e));
+        super.eventBus.subscribe(InvalidMessageErrorEvent.class,        e -> onInvalidMessageError((InvalidMessageErrorEvent) e));
     }
 
     // Event Handler:
@@ -185,7 +195,12 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
         });
 
         msgStream.input().onClose( e -> onStreamClosed(peerAddress));
-        msgStream.input().onError(e -> onStreamError(peerAddress, e));
+        //report/forward deserializer's errors to the event bus
+        msgStream.input().onError(e -> this.eventBus.publish(e));
+        msgStream.input().onCorruptedData(e -> this.eventBus.publish(e));
+        msgStream.input().onMessageError(e -> this.eventBus.publish(e));
+        msgStream.input().onMsgPartDeserializationError(e -> this.eventBus.publish(e));
+        msgStream.input().onInvalidMessageError(e -> this.eventBus.publish(e));
         // if a Pre-Serializer has been set, we inject it into this Stream:
         if (config.getPreSerializer() != null)
             ((DeserializerStream) msgStream.input()).setPreSerializer(config.getPreSerializer());
@@ -225,9 +240,9 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
             }
 
         } else {
-            // If the Msg is Incorrect, we disconnect from this Peer
+            // If the Msg is Incorrect, report an invalid message error
             logger.error(peerAddress, "ERROR In incoming " + msgType + " msg :: " + validationError);
-            super.eventBus.publish(new DisconnectPeerRequest(peerAddress, validationError));
+            super.eventBus.publish(new InvalidMessageErrorEvent(peerAddress, validationError));
         }
     }
     // Event Handler:
@@ -236,10 +251,24 @@ public class MessageHandlerImpl extends HandlerImpl<PeerAddress, MessagePeerInfo
     }
 
     // Event Handler:
-    private void onStreamError(PeerAddress peerAddress, StreamErrorEvent event) {
-        // We request a Disconnection from this Peer...
-        logger.trace(peerAddress, "Error detected in Stream, requesting disconnection... ");
-        super.eventBus.publish(new DisconnectPeerRequest(peerAddress));
+    private void onStreamError(StreamErrorEvent event) {
+        logger.trace(event.getPeerAddress(), "Error detected in Stream");
+    }
+
+    private void onCorruptedData(StreamCorruptedDataEvent event) {
+        logger.trace(event.getPeerAddress(), "Data corruption/error detected in Stream");
+    }
+
+    private void onMessageError(StreamMessageErrorEvent event) {
+        logger.trace(event.getPeerAddress(), "Message error detected in Stream");
+    }
+
+    private void onMsgPartDeserializationError(MsgPartDeserializationErrorEvent event) {
+        logger.trace(event.getPeerAddress(), "Msg part deserialization error detected");
+    }
+
+    private void onInvalidMessageError(InvalidMessageErrorEvent event) {
+        logger.trace(event.getPeerAddress(), "Invalid message error detected");
     }
 
     // Event Handler:

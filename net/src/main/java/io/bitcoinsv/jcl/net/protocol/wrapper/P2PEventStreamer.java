@@ -1,6 +1,10 @@
 package io.bitcoinsv.jcl.net.protocol.wrapper;
 
 import io.bitcoinsv.jcl.net.network.events.*;
+import io.bitcoinsv.jcl.net.network.streams.InvalidMessageErrorEvent;
+import io.bitcoinsv.jcl.net.network.streams.StreamCorruptedDataEvent;
+import io.bitcoinsv.jcl.net.network.streams.StreamErrorEvent;
+import io.bitcoinsv.jcl.net.network.streams.StreamMessageErrorEvent;
 import io.bitcoinsv.jcl.net.protocol.events.control.*;
 import io.bitcoinsv.jcl.net.protocol.events.data.*;
 import io.bitcoinsv.jcl.net.network.events.*;
@@ -13,6 +17,7 @@ import io.bitcoinsv.jcl.net.protocol.handlers.discovery.DiscoveryHandlerState;
 import io.bitcoinsv.jcl.net.protocol.handlers.handshake.HandshakeHandlerState;
 import io.bitcoinsv.jcl.net.protocol.handlers.message.MessageHandlerState;
 import io.bitcoinsv.jcl.net.protocol.handlers.pingPong.PingPongHandlerState;
+import io.bitcoinsv.jcl.net.protocol.serialization.largeMsgs.MsgPartDeserializationErrorEvent;
 import io.bitcoinsv.jcl.tools.events.EventBus;
 import io.bitcoinsv.jcl.tools.events.EventStreamer;
 
@@ -37,6 +42,7 @@ public class P2PEventStreamer {
     private static final int DEFAULT_NUM_THREADS_GENERIC    = 50; // ONLY FOR TESTING
     private static final int DEFAULT_NUM_THREADS_PEERS      = 10;
     private static final int DEFAULT_NUM_THREADS_MSGS       = 10;
+    private static final int DEFAULT_NUM_THREADS_ERRORS     = 10;
     private static final int DEFAULT_NUM_THREADS_STATE      = 1;
     private static final int DEFAULT_NUM_THREADS_BLOCK      = 5;
 
@@ -147,6 +153,18 @@ public class P2PEventStreamer {
     }
 
     /**
+     * Provides EventStreamers for different kind of errors related to data stream/message issues.
+     */
+    public class ErrorEventStreamer extends BaseEventStreamer {
+        public ErrorEventStreamer(int numThreads) { super(numThreads);}
+        public final EventStreamer<StreamErrorEvent>                 STREAM_ERROR                   = new EventStreamer<>(eventBus, StreamErrorEvent.class, numThreads);
+        public final EventStreamer<StreamMessageErrorEvent>          STREAM_MSG_ERROR               = new EventStreamer<>(eventBus, StreamMessageErrorEvent.class, numThreads);
+        public final EventStreamer<StreamCorruptedDataEvent>         STREAM_CORRUPTED_DATA          = new EventStreamer<>(eventBus, StreamCorruptedDataEvent.class, numThreads);
+        public final EventStreamer<InvalidMessageErrorEvent>         INVALID_MSG_ERROR              = new EventStreamer<>(eventBus, InvalidMessageErrorEvent.class, numThreads);
+        public final EventStreamer<MsgPartDeserializationErrorEvent> MSG_PART_DESERIALIZATION_ERROR = new EventStreamer<>(eventBus, MsgPartDeserializationErrorEvent.class, numThreads);
+    }
+
+    /**
      * A convenience class that provides EventStreamer for the States returned by the different Handlers used by the
      * P2P Class.
      */
@@ -209,6 +227,7 @@ public class P2PEventStreamer {
     public final MsgsEventStreamer      MSGS;
     public final StateEventStreamer     STATE;
     public final BlockEventStreamer     BLOCKS ;
+    public final ErrorEventStreamer     ERRORS;
 
     /** It allows to subscribe to any Event specified as a parameter */
     public void forEach(Class<? extends P2PEvent> eventClass, Consumer<? extends P2PEvent> eventHandler) {
@@ -227,5 +246,6 @@ public class P2PEventStreamer {
         this.MSGS       = new MsgsEventStreamer(DEFAULT_NUM_THREADS_MSGS);
         this.STATE      = new StateEventStreamer(DEFAULT_NUM_THREADS_STATE);
         this.BLOCKS     = new BlockEventStreamer(DEFAULT_NUM_THREADS_BLOCK);
+        this.ERRORS     = new ErrorEventStreamer(DEFAULT_NUM_THREADS_ERRORS);
     }
 }
