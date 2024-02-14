@@ -2,7 +2,6 @@ package io.bitcoinsv.jcl.net.protocol.handlers.message.streams.deserializer;
 
 
 import io.bitcoinsv.jcl.net.network.streams.*;
-import io.bitcoinsv.jcl.net.network.streams.*;
 import io.bitcoinsv.jcl.net.network.streams.nio.NIOInputStream;
 import io.bitcoinsv.jcl.net.protocol.handlers.message.MessageHandlerConfig;
 import io.bitcoinsv.jcl.net.protocol.handlers.message.MessagePreSerializer;
@@ -113,6 +112,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Mes
     // If this Stream is closed by the remote Peer, we activate this FLAG:
     private boolean streamClosed = false;
 
+    private StreamDataEvent<ByteArrayReader> currentStreamDataEvent;
 
     /** Constructor */
     public DeserializerStream(ExecutorService eventBusExecutor,
@@ -158,15 +158,29 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Mes
         super.onClose(eventHandler);
         this.streamClosed = true;
     }
+
     /**
      * It updates the state of this class to reflect that an error has been thrown. The new State is returned.
      */
     private DeserializerStreamState processError(boolean isThisADedicatedThread, Throwable e, DeserializerStreamState state) {
+        return processError(isThisADedicatedThread, e, state, null);
+    }
+
+    /**
+     * It updates the state of this class to reflect that an error has been thrown. The new State is returned.
+     * Accepts byte input for event purposes.
+     */
+    private DeserializerStreamState processError(boolean isThisADedicatedThread, Throwable e, DeserializerStreamState state, byte[] messageBytes) {
         logger.error(this.peerAddress, "Error Deserializing", e.getMessage(),(streamClosed? "Stream was previously closed" : "Stream still open"));
         if (!streamClosed) {
             logger.error((e.getMessage() != null)? e.getMessage() : e.getCause().getMessage());
             // We notify the parent about this Error and return:
-            super.eventBus.publish(new StreamErrorEvent(e));
+            super.eventBus.publish(new StreamErrorEvent(getPeerAddress(), e));
+        } else {
+            super.eventBus.publish(new StreamCorruptedDataEvent(
+                getPeerAddress(),
+                getCurrentMessageCommand(),
+                messageBytes));
         }
         return state.toBuilder()
                 .processState(DeserializerStreamState.ProcessingBytesState.CORRUPTED)
@@ -199,6 +213,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Mes
     @Override
     public synchronized List<StreamDataEvent<Message>> transform(StreamDataEvent<ByteArrayReader> dataEvent) {
         try {
+            currentStreamDataEvent = dataEvent; //keep data event to temporarily hold received bytes
             // If some error has occurred already, we don't process any more data...
             if (state.getProcessState().isCorrupted() || dataEvent == null || dataEvent.getData() == null) return null;
 
@@ -220,6 +235,8 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Mes
 
         } catch (Throwable e) {
             e.printStackTrace();
+        } finally {
+            currentStreamDataEvent = null; //we don't need the data event anymore
         }
         // always return NULL. The parent will be notified directly through the "processOK()" and "processError()" methods
         return null;
@@ -358,7 +375,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Mes
         } catch (Exception e) {
             logger.error("Error Deserializing from " + this.peerAddress, e);
             if (!streamClosed) { e.printStackTrace();}
-            return processError(isThisADedicatedThread, e, state);
+            return processError(isThisADedicatedThread, e, state, currentStreamDataEvent.getData().getFullContent());
         }
     }
 
@@ -376,7 +393,9 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Mes
                 byte[] commandBytes = Arrays.copyOfRange(buffer.get(16), 4, 15);
                 String command = new String(commandBytes, "UTF-8");
                 result = (!command.equalsIgnoreCase(HeaderMsg.EXT_COMMAND) && (buffer.size() >= HeaderMsg.MESSAGE_LENGTH));
-            } catch (UnsupportedEncodingException e) { throw new RuntimeException(e); }
+            } catch (UnsupportedEncodingException e) {
+                throw new RuntimeException(e);
+            }
         }
         return result;
     }
@@ -437,6 +456,7 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Mes
             // If the next Step is TO IGNORE the incoming Body, we initialize the variable that will help us keep track of
             // how many bytes we still need to ignore (they might come in different batches)
             if (ignoreMsg) {
+                super.eventBus.publish(new StreamMessageErrorEvent(getPeerAddress(), "No deserializer found, command \"" + headerMsg.getMsgCommand() + "\" is ignored"));
                 this.logger.warm(this.peerAddress, "No Deserializer found for msg " + headerMsg.getMsgCommand().toUpperCase() + ". Ignoring msg...");
                 trace(isThisADedicatedThread, "Ignoring BODY for " + headerMsg.getMsgCommand() + "...");
                 result.reminingBytestoIgnore(headerMsg.getMsgLength());
@@ -629,5 +649,16 @@ public class DeserializerStream extends PeerInputStreamImpl<ByteArrayReader, Mes
 
     public void setPreSerializer(MessagePreSerializer preSerializer) {
         this.preSerializer = preSerializer;
+    }
+
+    /**
+     * @return Command name (by checking this {@link #state}'s {@link HeaderMsg}) if itss present, otherwise {@code null}
+     */
+    private String getCurrentMessageCommand() {
+        var streamState = getState();
+
+        return streamState != null && streamState.getCurrentHeaderMsg() != null ?
+            streamState.getCurrentHeaderMsg().getCommand() :
+            null;
     }
 }

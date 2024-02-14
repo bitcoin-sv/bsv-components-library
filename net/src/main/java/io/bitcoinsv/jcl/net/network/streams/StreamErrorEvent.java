@@ -1,5 +1,7 @@
 package io.bitcoinsv.jcl.net.network.streams;
 
+import io.bitcoinsv.jcl.net.network.PeerAddress;
+
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
@@ -8,7 +10,15 @@ package io.bitcoinsv.jcl.net.network.streams;
  * the transformation function.
  */
 public class StreamErrorEvent extends StreamEvent {
-    Throwable exception;
-    public StreamErrorEvent(Throwable exception)    { this.exception = exception; }
+    private final PeerAddress peerAddress; //might help if we need to identify the peer that caused the error
+    private final Throwable exception;
+
+    public StreamErrorEvent(PeerAddress peerAddress, Throwable exception) {
+        this.peerAddress = peerAddress;
+        this.exception = exception;
+    }
+
+    public StreamErrorEvent(Throwable exception)    { this(null, exception); }
+    public PeerAddress getPeerAddress()             { return this.peerAddress; }
     public Throwable getException()                 { return this.exception; }
 }
