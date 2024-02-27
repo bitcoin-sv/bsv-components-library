@@ -966,7 +966,8 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         // We accept the incoming conn only if the server is in "Accepting new connections" mode
         if (!keep_connecting) {
             logger.trace(socket.getRemoteSocketAddress(), "discarding incoming connection (no more connections needed).");
-            closeKey(key, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL);
+            // NOTE: avoid closing "key"! it can close the listening socket and prevent incoming connections from being established
+            closeKey(registerChannel(channel), PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL);
             return;
         }
 
@@ -976,7 +977,8 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         InetAddress peerIP = ((InetSocketAddress) socket.getRemoteSocketAddress()).getAddress();
         if (blacklist.contains(peerIP)) {
             logger.trace(socket.getRemoteSocketAddress(), "discarding incoming connection (blacklisted).");
-            closeKey(key, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL);
+            // NOTE: avoid closing "key"! it can close the listening socket and prevent incoming connections from being established
+            closeKey(registerChannel(channel), PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL);
             return;
         }
 
@@ -987,7 +989,8 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
                 (activeConns.size() >= config.getMaxSocketConnections().getAsInt())) {
             logger.trace(socket.getRemoteSocketAddress(), "no more connections allowed ("
                     + config.getMaxSocketConnections().getAsInt() + ")");
-            closeKey(key, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL);
+            // NOTE: avoid closing "key"! it can close the listening socket and prevent incoming connections from being established
+            closeKey(registerChannel(channel), PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL);
             return;
         }
 
@@ -995,13 +998,22 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
 
         logger.trace(socket.getRemoteSocketAddress(), "accepting Connection...");
 
-        SelectionKey clientKey = channel.register(this.selector, SelectionKey.OP_READ );
+        SelectionKey clientKey = registerChannel(channel);
         PeerAddress peerAddress = new PeerAddress(socket.getInetAddress(), socket.getPort());
         clientKey.attach(new KeyConnectionAttach(peerAddress));
 
         // We activate the Connection straight away:
         startPeerConnection(clientKey);
 
+    }
+
+    /**
+     * @param channel {@link SocketChannel} to register with {@link #selector}.
+     * @return Registered {@link SelectionKey} for the given {@link SocketChannel} and current {@link #selector}.
+     * @throws IOException If an I/O error occurs in {@link java.nio.channels.SelectableChannel#register(Selector, int)}
+     */
+    private SelectionKey registerChannel(SocketChannel channel) throws IOException {
+        return channel.register(this.selector, SelectionKey.OP_READ);
     }
 
     /**
