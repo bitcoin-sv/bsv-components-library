@@ -127,6 +127,7 @@ public class P2PEventStreamer {
         public final EventStreamer<TxsBatchMsgReceivedEvent>                    TX_BATCH            = new EventStreamer<>(eventBus, TxsBatchMsgReceivedEvent.class, numThreads);
         public final EventStreamer<RawTxsBatchMsgReceivedEvent>                 TX_RAW_BATCH        = new EventStreamer<>(eventBus, RawTxsBatchMsgReceivedEvent.class, numThreads);
         public final EventStreamer<DsDetectedMsgReceivedEvent>                  DSDETECTED          = new EventStreamer<>(eventBus, DsDetectedMsgReceivedEvent.class, numThreads);
+        public final EventStreamer<DatarefTxMsgReceivedEvent>                   DATAREFTX           = new EventStreamer<>(eventBus, DatarefTxMsgReceivedEvent.class, numThreads);
 
         public final EventStreamer<MsgSentEvent>                                ALL_SENT            = new EventStreamer<>(eventBus, MsgSentEvent.class, numThreads);
         public final EventStreamer<VersionMsgSentEvent>                         VERSION_SENT        = new EventStreamer<>(eventBus, VersionMsgSentEvent.class, numThreads);
@@ -152,6 +153,7 @@ public class P2PEventStreamer {
         public final EventStreamer<MempoolMsgSentEvent>                         MEMPOOL_SENT        = new EventStreamer<>(eventBus, MempoolMsgSentEvent.class, numThreads);
         public final EventStreamer<GetHeadersEnMsgSentEvent>                    GETHEADERSEN_SENT   = new EventStreamer<>(eventBus, GetHeadersEnMsgSentEvent.class, numThreads);
         public final EventStreamer<DsDetectedMsgSentEvent>                      DSDETECTED_SENT     = new EventStreamer<>(eventBus, DsDetectedMsgSentEvent.class, numThreads);
+        public final EventStreamer<DatarefTxMsgSentEvent>                       DATAREFTX_SENT      = new EventStreamer<>(eventBus, DatarefTxMsgSentEvent.class, numThreads);
     }
 
     /**

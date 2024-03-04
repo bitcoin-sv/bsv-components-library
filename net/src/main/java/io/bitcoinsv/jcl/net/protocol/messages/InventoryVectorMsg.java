@@ -42,7 +42,10 @@ public final class InventoryVectorMsg extends Message implements Serializable {
 
         MSG_CMPCT_BLOCK(4),
 
-        OTHER( 5);
+        // hash is related to a dataref transaction
+        MSG_DATAREF_TX( 5),
+
+        OTHER( 6);
 
         int code;
 
