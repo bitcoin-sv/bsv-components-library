@@ -7,7 +7,7 @@ import java.util.List;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 nChain Ltd
+ * Copyright (c) 2018-2024 nChain Ltd
  *
  * Blacklist Handler.
  * This handler takes care of blacklisting those Hosts tat missbehave based on some criteria.
@@ -18,4 +18,5 @@ public interface BlacklistHandler extends Handler {
     @Override
     default String getId() { return HANDLER_ID; }
     List<BlacklistView> getBlacklistedHosts();
+    BlacklistTracker getBlacklistTracker();
 }

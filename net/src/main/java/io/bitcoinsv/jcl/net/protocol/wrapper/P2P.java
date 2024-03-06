@@ -12,8 +12,6 @@ import io.bitcoinsv.jcl.net.protocol.config.ProtocolConfig;
 import io.bitcoinsv.jcl.net.protocol.config.provided.ProtocolBSVMainConfig;
 import io.bitcoinsv.jcl.net.protocol.handlers.blacklist.BlacklistHandler;
 import io.bitcoinsv.jcl.net.protocol.handlers.blacklist.BlacklistHandlerImpl;
-import io.bitcoinsv.jcl.net.protocol.handlers.blacklist.BlacklistHostInfo;
-import io.bitcoinsv.jcl.net.protocol.handlers.blacklist.BlacklistView;
 import io.bitcoinsv.jcl.net.protocol.handlers.block.BlockDownloaderHandler;
 import io.bitcoinsv.jcl.net.protocol.handlers.block.BlockDownloaderHandlerImpl;
 import io.bitcoinsv.jcl.net.protocol.handlers.block.BlockPeerInfo;
@@ -34,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 nChain Ltd
+ * Copyright (c) 2018-2024 nChain Ltd
  *
  * This class is a wrapper over all the P2P and Network Handlers needed to connect to the P2P Network and
  * run the Bitcoin P2P. It provides convenience classes for subscribing to a Stream of Events, and for
@@ -145,6 +143,13 @@ public class P2P {
                                 frequency.toMillis(), TimeUnit.MILLISECONDS);
                     }
                 }
+            }
+
+            // share BlacklistHandler's blacklist tracker with P2PRequestHandler - both share the evidence of tracked peer blacklist counter(s)
+            var blacklistHandler = (BlacklistHandler) handlers.get(BlacklistHandler.HANDLER_ID);
+
+            if (blacklistHandler != null) {
+                REQUESTS.setBlacklistTracker(blacklistHandler.getBlacklistTracker());
             }
 
             // We log some useful info...
