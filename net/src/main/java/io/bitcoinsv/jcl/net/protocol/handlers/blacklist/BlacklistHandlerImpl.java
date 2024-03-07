@@ -165,7 +165,7 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
         InetAddress ip = event.getAddress();
         BlacklistHostInfo hostInfo = this.handlerInfo.get(ip);
         if (hostInfo != null) {
-            blacklist(hostInfo, event.getReason());
+            blacklist(hostInfo, event.getReason(), event.getDuration());
         }
     }
 
@@ -218,19 +218,37 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
 
     /**
      * It blacklists the Host given for the reason specified.
-     * NOTE: The "duration" specified the duration of the blacklist, overriding the one defined in the reason itself.
      */
     private void blacklist(BlacklistHostInfo hostInfo, PeersBlacklistedEvent.BlacklistReason reason) {
+        this.blacklist(hostInfo, reason, null); // null Optional is intentional
+    }
+
+    /**
+     * It blacklists the Host given for the reason specified.<br>
+     * The duration is optional and can be used in the following way:
+     * <ul>
+     *     <li>{@code null} - the duration will be calculated using {@link #blacklistTracker}</li>
+     *     <li>{@link Optional#empty()} - the duration is infinite</li>
+     *     <li>Value contained in {@link Optional} - the duration is applied using the contained value</li>
+     * </ul>
+     *
+     * @param hostInfo Host to blacklist
+     * @param reason Reason for blacklisting
+     * @param duration Duration of the blacklist entry (see possible values above)
+     */
+    private void blacklist(BlacklistHostInfo hostInfo, PeersBlacklistedEvent.BlacklistReason reason, Optional<Duration> duration) {
         var ip = hostInfo.getIp();
-        var existingReasonCount = blacklistTracker.findExistingReasonCount(ip, reason);
-        var duration = blacklistTracker.findConfiguredDuration(reason, existingReasonCount);
+        var existingReasonCount = blacklistTracker.findReasonCount(ip, reason);
+        var durationToUse = duration != null ?
+            duration :
+            blacklistTracker.findConfiguredDuration(reason, existingReasonCount);
 
         logger.trace(format("IP Blacklisted: %s, reason=%s, duration=%s ms, existing count=%s",
             ip,
             reason,
-            duration.map(value -> String.valueOf(value.toMillis())).orElse("undefined"),
+            durationToUse.map(value -> String.valueOf(value.toMillis())).orElse("undefined"),
             existingReasonCount != null ? existingReasonCount.toString() : "none"));
-        hostInfo.blacklist(reason, duration);
+        hostInfo.blacklist(reason, durationToUse);
         // We trigger an Event:
         var event = new PeersBlacklistedEvent(ip, reason);
 

@@ -4,6 +4,7 @@ import io.bitcoinsv.jcl.net.network.events.PeersBlacklistedEvent;
 
 import java.net.InetAddress;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -20,25 +21,26 @@ import java.util.concurrent.ConcurrentHashMap;
 public class BlacklistTracker {
 
     private final Map<InetAddress, Map<PeersBlacklistedEvent.BlacklistReason, Long>> blacklistReasonCounters = new ConcurrentHashMap<>();
-    private final BlacklistHandlerConfig config;
+    private final List<BlacklistHandlerConfig.BlacklistEntryConfiguration> blacklistEntryConfigurations;
 
     private BlacklistTracker() { //hidden
         this(null);
     }
 
     public BlacklistTracker(BlacklistHandlerConfig config) {
-        this.config = config;
+        this.blacklistEntryConfigurations = config != null ?
+            config.getBlacklistEntryConfigurations() :
+            BlacklistHandlerConfig.DEFAULT_BLACKLIST_ENTRY_CONFIGURATIONS;
     }
 
-    public Long findExistingReasonCount(InetAddress inetAddress, PeersBlacklistedEvent.BlacklistReason reason) {
+    public Long findReasonCount(InetAddress inetAddress, PeersBlacklistedEvent.BlacklistReason reason) {
         return blacklistReasonCounters.computeIfAbsent(inetAddress, key -> new ConcurrentHashMap<>()) //get or create a new reason-counter map for given IP address
             .get(reason);
     }
 
     /**
-     * Inspects {@link #config}'s {@link io.bitcoinsv.jcl.net.protocol.handlers.blacklist.BlacklistHandlerConfig.BlacklistEntryConfiguration}s
-     * to find duration configured for the given reason and number of times the peer has been blacklisted.<br>
-     * If no configuration is provided, the default values ({@link BlacklistHandlerConfig#DEFAULT_BLACKLIST_ENTRY_CONFIGURATIONS}) will be used.
+     * Inspects {@link io.bitcoinsv.jcl.net.protocol.handlers.blacklist.BlacklistHandlerConfig.BlacklistEntryConfiguration}s
+     * to find duration configured for the given reason and number of times the peer has been blacklisted.
      *
      * @param reason           {@link PeersBlacklistedEvent.BlacklistReason} to match
      * @param timesBlacklisted Number of times the peer has been blacklisted
@@ -46,13 +48,8 @@ public class BlacklistTracker {
      */
     public Optional<Duration> findConfiguredDuration(PeersBlacklistedEvent.BlacklistReason reason, Long timesBlacklisted) {
         var counter = timesBlacklisted != null ? timesBlacklisted : 1L;
-        var configurationsToCheck = BlacklistHandlerConfig.DEFAULT_BLACKLIST_ENTRY_CONFIGURATIONS;
 
-        if (config != null && config.getBlacklistEntryConfigurations() != null) {
-            configurationsToCheck = config.getBlacklistEntryConfigurations();
-        }
-
-        return configurationsToCheck.stream()
+        return blacklistEntryConfigurations.stream()
             .filter(entryConfig -> Objects.equals(entryConfig.getReason(), reason))
             .findAny()
             .map(entryConfig -> { //compare soft threshold (if it exists), otherwise default to normal/full duration

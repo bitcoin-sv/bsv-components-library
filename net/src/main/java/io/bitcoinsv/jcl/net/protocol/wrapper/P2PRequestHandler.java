@@ -5,8 +5,6 @@ import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.network.events.*;
 import io.bitcoinsv.jcl.net.network.events.PeerDisconnectedEvent.DisconnectedReason;
 import io.bitcoinsv.jcl.net.protocol.events.control.*;
-import io.bitcoinsv.jcl.net.protocol.handlers.blacklist.BlacklistHandlerConfig;
-import io.bitcoinsv.jcl.net.protocol.handlers.blacklist.BlacklistTracker;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BodyMessage;
 import io.bitcoinsv.jcl.net.protocol.messages.common.StreamRequest;
@@ -39,22 +37,9 @@ public class P2PRequestHandler {
 
     // The same EventBus that is used by the underlying P2P
     private EventBus eventBus;
-    private BlacklistTracker blacklistTracker; //required to help obtain durations for blacklist reasons
-
-
-    public P2PRequestHandler(EventBus eventBus, BlacklistTracker blacklistTracker) {
-        this.eventBus = eventBus;
-        this.blacklistTracker = blacklistTracker;
-    }
 
     public P2PRequestHandler(EventBus eventBus) {
-        //NOTE: default blacklist tracker created here - it will have its own evidence of blacklist counters
-        this(eventBus, new BlacklistTracker( null));
-    }
-
-    // we can override the blacklist tracker instance if we want to have a shared evidence of blacklist counters
-    public void setBlacklistTracker(BlacklistTracker blacklistTracker) {
-        this.blacklistTracker = blacklistTracker;
+        this.eventBus = eventBus;
     }
 
     /**
@@ -117,25 +102,17 @@ public class P2PRequestHandler {
             this.duration = duration;
         }
 
-        public BlacklistPeerRequestBuilder(InetAddress peerAddress, BlacklistReason reason, Duration duration) {
-            this (peerAddress, reason, Optional.ofNullable(duration));
-        }
-
         public BlacklistPeerRequestBuilder(InetAddress peerAddress, Duration duration) {
-            this(peerAddress, BlacklistReason.CLIENT, duration);
+            this(peerAddress, BlacklistReason.CLIENT, Optional.ofNullable(duration));
         }
 
         public BlacklistPeerRequestBuilder(InetAddress peerAddress, BlacklistReason reason) {
-            this(peerAddress, reason, blacklistTracker.findConfiguredDuration(reason, blacklistTracker.findExistingReasonCount(peerAddress, reason)));
+            // null duration - will be calculated by BlacklistHandlerImpl
+            this(peerAddress, reason, null);
         }
 
         public BlacklistPeerRequestBuilder(InetAddress peerAddress) {
-            this(
-                peerAddress,
-                BlacklistReason.CLIENT,
-                blacklistTracker.findConfiguredDuration(
-                    BlacklistReason.CLIENT,
-                    blacklistTracker.findExistingReasonCount(peerAddress, BlacklistReason.CLIENT)));
+            this(peerAddress, BlacklistReason.CLIENT);
         }
 
         public BlacklistPeerRequest buildRequest() {

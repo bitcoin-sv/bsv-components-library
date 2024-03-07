@@ -145,13 +145,6 @@ public class P2P {
                 }
             }
 
-            // share BlacklistHandler's blacklist tracker with P2PRequestHandler - both share the evidence of tracked peer blacklist counter(s)
-            var blacklistHandler = (BlacklistHandler) handlers.get(BlacklistHandler.HANDLER_ID);
-
-            if (blacklistHandler != null) {
-                REQUESTS.setBlacklistTracker(blacklistHandler.getBlacklistTracker());
-            }
-
             // We log some useful info...
 
             logger.info("JCL-Net Configuration:");
