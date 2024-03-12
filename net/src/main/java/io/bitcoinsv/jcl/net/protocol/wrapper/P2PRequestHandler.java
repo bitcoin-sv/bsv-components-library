@@ -17,11 +17,12 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
+
+import static io.bitcoinsv.jcl.net.network.events.PeersBlacklistedEvent.*;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 nChain Ltd
+ * Copyright (c) 2018-2024 nChain Ltd
  *
  * A "Request" in this context is an Order that we want to execute. It could be to connect to a Peer, to
  * whitelist a Peer, or to send a message. Creating REQUESt is not a common operation, since all the
@@ -36,7 +37,6 @@ public class P2PRequestHandler {
 
     // The same EventBus that is used by the underlying P2P
     private EventBus eventBus;
-
 
     public P2PRequestHandler(EventBus eventBus) {
         this.eventBus = eventBus;
@@ -93,31 +93,26 @@ public class P2PRequestHandler {
     /** A Builder for BlacklistPeerRequest */
     public class BlacklistPeerRequestBuilder extends RequestBuilder {
         private InetAddress address;
-        private PeersBlacklistedEvent.BlacklistReason reason;
+        private BlacklistReason reason;
         private Optional<Duration> duration;
 
-        public BlacklistPeerRequestBuilder(InetAddress peerAddress, PeersBlacklistedEvent.BlacklistReason reason, Optional<Duration> duration) {
+        public BlacklistPeerRequestBuilder(InetAddress peerAddress, BlacklistReason reason, Optional<Duration> duration) {
             this.address = peerAddress;
             this.reason = reason;
             this.duration = duration;
         }
 
-        public BlacklistPeerRequestBuilder(InetAddress peerAddress, PeersBlacklistedEvent.BlacklistReason reason, Duration duration) {
-            this (peerAddress, reason, Optional.ofNullable(duration));
-        }
-
         public BlacklistPeerRequestBuilder(InetAddress peerAddress, Duration duration) {
-            this(peerAddress, PeersBlacklistedEvent.BlacklistReason.CLIENT, duration);
+            this(peerAddress, BlacklistReason.CLIENT, Optional.ofNullable(duration));
         }
 
-        public BlacklistPeerRequestBuilder(InetAddress peerAddress, PeersBlacklistedEvent.BlacklistReason reason) {
-            this(peerAddress, reason, reason.getExpirationTime());
+        public BlacklistPeerRequestBuilder(InetAddress peerAddress, BlacklistReason reason) {
+            // null duration - will be calculated by BlacklistHandlerImpl
+            this(peerAddress, reason, null);
         }
 
         public BlacklistPeerRequestBuilder(InetAddress peerAddress) {
-            this.address = peerAddress;
-            this.reason = PeersBlacklistedEvent.BlacklistReason.CLIENT;
-            this.duration = PeersBlacklistedEvent.BlacklistReason.CLIENT.getExpirationTime();
+            this(peerAddress, BlacklistReason.CLIENT);
         }
 
         public BlacklistPeerRequest buildRequest() {
@@ -198,7 +193,7 @@ public class P2PRequestHandler {
         public DisablePingPongRequestBuilder disablePingPong(PeerAddress peerAddress) {
             return new DisablePingPongRequestBuilder(peerAddress);
         }
-        public BlacklistPeerRequestBuilder blacklist(PeerAddress peerAddress, PeersBlacklistedEvent.BlacklistReason reason) {
+        public BlacklistPeerRequestBuilder blacklist(PeerAddress peerAddress, BlacklistReason reason) {
             return new BlacklistPeerRequestBuilder(peerAddress.getIp(), reason);
         }
         public BlacklistPeerRequestBuilder blacklist(PeerAddress peerAddress, Duration duration) {
@@ -207,7 +202,7 @@ public class P2PRequestHandler {
         public BlacklistPeerRequestBuilder blacklist(PeerAddress peerAddress) {
             return new BlacklistPeerRequestBuilder(peerAddress.getIp());
         }
-        public BlacklistPeerRequestBuilder blacklist(InetAddress address, PeersBlacklistedEvent.BlacklistReason reason) {
+        public BlacklistPeerRequestBuilder blacklist(InetAddress address, BlacklistReason reason) {
             return new BlacklistPeerRequestBuilder(address, reason);
         }
         public BlacklistPeerRequestBuilder blacklist(InetAddress address,Duration duration) {

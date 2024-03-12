@@ -22,6 +22,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static java.lang.String.format;
+
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
@@ -39,22 +41,30 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
 
     // An executor, to run jobs in parallel:
     private final ScheduledExecutorService executor;
+    private final BlacklistTracker blacklistTracker;
 
     private BlacklistHandlerState state = BlacklistHandlerState.builder().build();
 
     /**
      * Constructor
      */
-    public BlacklistHandlerImpl(String id, RuntimeConfig runtimeConfig, BlacklistHandlerConfig config) {
+    public BlacklistHandlerImpl(String id, RuntimeConfig runtimeConfig, BlacklistHandlerConfig config, BlacklistTracker blacklistTracker) {
         super(id, runtimeConfig);
         this.config = config;
         this.logger = new LoggerUtil(id, HANDLER_ID, this.getClass());
         this.executor = ThreadUtils.getScheduledExecutorService("JclBlacklistHandler-Whitelist");
+        this.blacklistTracker = blacklistTracker;
+    }
+
+    /**
+     * Constructor
+     */
+    public BlacklistHandlerImpl(String id, RuntimeConfig runtimeConfig, BlacklistHandlerConfig config) {
+        this(id, runtimeConfig, config, new BlacklistTracker(config));
     }
 
     public void registerForEvents() {
         super.eventBus.subscribe(NetStartEvent.class, e -> onNetStart((NetStartEvent) e));
-        ;
         super.eventBus.subscribe(NetStopEvent.class, e -> onNetStop((NetStopEvent) e));
         super.eventBus.subscribe(PeerConnectedEvent.class, e -> onPeerConnected((PeerConnectedEvent) e));
         super.eventBus.subscribe(PeerRejectedEvent.class, e -> onPeerRejected((PeerRejectedEvent) e));
@@ -78,8 +88,41 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
         super.eventBus.publish(new PeersBlacklistedEvent(hostsToBlacklist));
 
         // We start the Job to look over the Blacklist IPs and whitelist them if needed:
+        // rate is determined from the shortest duration in order to accommodate it
+        var shortestDurationMs = findShortestDurationMs();
 
-        executor.scheduleAtFixedRate(this::jobCheckBlacklist, 0, 1L, TimeUnit.MINUTES);
+        logger.trace(format("Blacklist check job scheduled at a rate of %s milliseconds...", shortestDurationMs));
+        executor.scheduleAtFixedRate(this::jobCheckBlacklist, 0, shortestDurationMs, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * Attempts to find the lowest possible duration from blacklist configuration. If no duration is configured,
+     * a default value of 1 minute will be used. The returned value is always in milliseconds.
+     * <br><br>
+     * <i>NOTE: {@code null} values are supported for legacy purposes</i>
+     *
+     * @return The lowest possible duration in milliseconds
+     */
+    private Long findShortestDurationMs() {
+        var possibleSoftDuration = config.getBlacklistEntryConfigurations().stream()
+            .map(BlacklistHandlerConfig.BlacklistEntryConfiguration::getSoftDuration)
+            .min(Comparator.nullsLast(Comparator.naturalOrder()))
+            .orElse(null);
+        var possibleDuration = config.getBlacklistEntryConfigurations().stream()
+            .map(BlacklistHandlerConfig.BlacklistEntryConfiguration::getDuration)
+            .min(Comparator.nullsLast(Comparator.naturalOrder()))
+            .orElse(null);
+        var duration = Duration.ofMinutes(1).toMillis(); // 1 minute by default (legacy)
+
+        if (possibleSoftDuration != null && possibleDuration != null) {
+            duration = Math.min(possibleSoftDuration, possibleDuration);
+        } else if (possibleSoftDuration != null) {
+            duration = possibleSoftDuration;
+        } else if (possibleDuration != null) {
+            duration = possibleDuration;
+        }
+
+        return duration;
     }
 
     // Event Handler:
@@ -120,10 +163,12 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
     // Event Handler:
     private void onBlacklistPeerRequest(BlacklistPeerRequest event) {
         InetAddress ip = event.getAddress();
-        BlacklistHostInfo hostInfo = this.handlerInfo.get(ip);
-        if (hostInfo != null) {
-            blacklist(hostInfo, event.getReason(), event.getDuration());
-        }
+        BlacklistHostInfo hostInfo = this.handlerInfo.putIfAbsent(ip, new BlacklistHostInfo(ip)); // add new host info if not present
+
+        blacklist(
+            hostInfo != null ? hostInfo : this.handlerInfo.get(ip), // if host info is null, get the new value
+            event.getReason(),
+            event.getDuration());
     }
 
     // Event Handler:
@@ -175,32 +220,57 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
 
     /**
      * It blacklists the Host given for the reason specified.
-     * NOTE: The "duration" specified the duration of the blacklist, overriding the one defined in the reason itself.
      */
-    private void blacklist(BlacklistHostInfo hostInfo, PeersBlacklistedEvent.BlacklistReason reason, Optional<Duration> duration) {
-        logger.trace(hostInfo.getIp(), "IP Blacklisted", reason);
-        hostInfo.blacklist(reason, duration);
-        // We trigger an Event:
-        PeersBlacklistedEvent event = new PeersBlacklistedEvent(hostInfo.getIp(), reason);
-        super.eventBus.publish(event);
-        updateState(reason);
+    private void blacklist(BlacklistHostInfo hostInfo, PeersBlacklistedEvent.BlacklistReason reason) {
+        this.blacklist(hostInfo, reason, null); // null Optional is intentional
     }
 
     /**
-     * It blacklists the Host given for the reason specified.
+     * It blacklists the Host given for the reason specified.<br>
+     * The duration is optional and can be used in the following way:
+     * <ul>
+     *     <li>{@code null} - the duration will be calculated using {@link #blacklistTracker}</li>
+     *     <li>{@link Optional#empty()} - the duration is infinite</li>
+     *     <li>Value contained in {@link Optional} - the duration is applied using the contained value</li>
+     * </ul>
+     *
+     * @param hostInfo Host to blacklist
+     * @param reason Reason for blacklisting
+     * @param duration Duration of the blacklist entry (see possible values above)
      */
-    private void blacklist(BlacklistHostInfo hostInfo, PeersBlacklistedEvent.BlacklistReason reason) {
-        blacklist(hostInfo, reason, reason.getExpirationTime());
+    private void blacklist(BlacklistHostInfo hostInfo, PeersBlacklistedEvent.BlacklistReason reason, Optional<Duration> duration) {
+        var ip = hostInfo.getIp();
+        var existingReasonCount = blacklistTracker.findReasonCount(ip, reason);
+        var durationToUse = duration != null ?
+            duration :
+            blacklistTracker.findConfiguredDuration(reason, existingReasonCount);
+
+        logger.trace(format("IP Blacklisted: %s, reason=%s, duration=%s ms, existing count=%s",
+            ip,
+            reason,
+            durationToUse.map(value -> String.valueOf(value.toMillis())).orElse("undefined"),
+            existingReasonCount != null ? existingReasonCount.toString() : "none"));
+        hostInfo.blacklist(reason, durationToUse);
+        // We trigger an Event:
+        var event = new PeersBlacklistedEvent(ip, reason);
+
+        super.eventBus.publish(event);
+        updateState(reason);
+        blacklistTracker.increaseBlacklistReasonCounter(ip, reason, existingReasonCount);
     }
 
     /**
      * It whitelists the Host given, making it eligible again for connection
      */
     private void whitelist(List<BlacklistHostInfo> hostInfos) {
-        logger.trace("Whitelisting {} Ips...", hostInfos.size());
-        hostInfos.forEach(h -> h.whitelist());
-        // We publish the event to the Bus:
-        super.eventBus.publish(new PeersWhitelistedEvent(hostInfos.stream().map(h -> h.getIp()).collect(Collectors.toList())));
+        if (!hostInfos.isEmpty()) {
+            logger.trace(format("Whitelisting %s IPs...", hostInfos.size()));
+            hostInfos.forEach(h -> h.whitelist());
+            // We publish the event to the Bus:
+            super.eventBus.publish(new PeersWhitelistedEvent(hostInfos.stream().map(h -> h.getIp()).collect(Collectors.toList())));
+        } else {
+            logger.trace("No IPs to whitelist...");
+        }
     }
 
     /**
@@ -287,6 +357,10 @@ public class BlacklistHandlerImpl extends HandlerImpl<InetAddress, BlacklistHost
                     p.getExpirationTime()))
             );
         return blacklistedPeers;
+    }
+
+    public BlacklistTracker getBlacklistTracker() {
+        return this.blacklistTracker;
     }
 }
 

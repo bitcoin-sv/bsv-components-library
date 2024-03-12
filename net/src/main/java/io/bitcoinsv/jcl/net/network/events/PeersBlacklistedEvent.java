@@ -10,7 +10,7 @@ import java.util.Optional;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 nChain Ltd
+ * Copyright (c) 2018-2024 nChain Ltd
  *
  * Event triggered when a set of Nodes is blacklisted. (Whole IP address is blacklisted,
  * no matter the port number).
@@ -24,17 +24,11 @@ public final class PeersBlacklistedEvent extends P2PEvent {
      * time this peer will remain Blacklisted (empty = forever)
      */
     public enum BlacklistReason {
-        CONNECTION_REJECTED (Optional.of(Duration.ofDays(1))),
-        SERIALIZATION_ERROR (Optional.empty()),
-        FAILED_HANDSHAKE    (Optional.empty()),
-        PINGPONG_TIMEOUT    (Optional.of(Duration.ofMinutes(40))),
-        CLIENT              (Optional.empty()) // Blacklisted by the Client of JCL
-        ;
-
-        private Optional<Duration> expirationTime;
-
-        private BlacklistReason(Optional<Duration> expirationTime)  { this.expirationTime = expirationTime; }
-        public Optional<Duration> getExpirationTime()               { return this.expirationTime; }
+        CONNECTION_REJECTED,
+        SERIALIZATION_ERROR,
+        FAILED_HANDSHAKE,
+        PINGPONG_TIMEOUT,
+        CLIENT // Blacklisted by the Client of JCL
     }
 
     private final Map<InetAddress, BlacklistReason> inetAddresses;
