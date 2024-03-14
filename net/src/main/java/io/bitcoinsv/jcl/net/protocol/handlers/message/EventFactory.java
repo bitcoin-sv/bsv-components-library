@@ -51,6 +51,7 @@ public class EventFactory {
         else if (body instanceof BlockTxnMsg)           result = new BlockTxnMsgReceivedEvent(peerAddress, (BitcoinMsg<BlockTxnMsg>) btcMsg);
         else if (body instanceof PartialBlockTxnMsg)    result = new PartialBlockTxnDownloadedEvent(peerAddress, (BitcoinMsg<PartialBlockTxnMsg>) btcMsg);
         else if (body instanceof DsDetectedMsg)         result = new DsDetectedMsgReceivedEvent(peerAddress, (BitcoinMsg<DsDetectedMsg>) btcMsg);
+        else if (body instanceof DatarefTxMsg)          result = new DatarefTxMsgReceivedEvent(peerAddress, (BitcoinMsg<DatarefTxMsg>) btcMsg);
 
         return result;
     }
@@ -83,6 +84,7 @@ public class EventFactory {
         else if (body instanceof GetBlockTxnMsg)        result = new GetBlockTxnMsgSentEvent(peerAddress, (BitcoinMsg<GetBlockTxnMsg>) btcMsg);
         else if (body instanceof BlockTxnMsg)           result = new BlockTxnMsgSentEvent(peerAddress, (BitcoinMsg<BlockTxnMsg>) btcMsg);
         else if (body instanceof DsDetectedMsg)         result = new DsDetectedMsgSentEvent(peerAddress, (BitcoinMsg<DsDetectedMsg>) btcMsg);
+        else if (body instanceof DatarefTxMsg)          result = new DatarefTxMsgSentEvent(peerAddress, (BitcoinMsg<DatarefTxMsg>) btcMsg);
 
         return result;
     }
