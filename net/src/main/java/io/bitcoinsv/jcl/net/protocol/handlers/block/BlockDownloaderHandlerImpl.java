@@ -32,8 +32,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
-import static java.lang.String.format;
-
 /**
  * @author i.fernandez@nchain.com
  * Copyright (c) 2018-2020 nChain Ltd
@@ -905,7 +903,6 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
             // We send the message
             super.eventBus.publish(new SendMsgRequest(peerInfo.getPeerAddress(), btcMsg));
         } catch (Exception e) {
-            peerInfo.discard();
           logger.error(e, "Download block start failed");
         } finally {
             lock.unlock();
