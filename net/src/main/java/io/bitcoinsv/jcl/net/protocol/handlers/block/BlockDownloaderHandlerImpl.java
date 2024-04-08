@@ -786,6 +786,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
             bigBlocksHeaders.remove(blockHash);
             bigBlocksCurrentTxs.remove(blockHash);
             blocksPendingToCancel.remove(blockHash);
+        } catch (Exception e) {
+            logger.error(e, "Error while processDownloadSuccess.");
         } finally {
             lock.unlock();
         }
