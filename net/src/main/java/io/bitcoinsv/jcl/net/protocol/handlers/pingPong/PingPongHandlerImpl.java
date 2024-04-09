@@ -262,9 +262,6 @@ public class PingPongHandlerImpl extends HandlerImpl<PeerAddress, PingPongPeerIn
         } catch (InterruptedException ie) {
             // In case of an interrupted exception we do nothing, since this will be caused most probably by this
             // handlers stopping (when it stops, it kills all the Threads it launched).
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException();
         }
     }
 

@@ -9,8 +9,6 @@ import io.bitcoinsv.jcl.net.network.events.PeerDisconnectedEvent;
 import io.bitcoinsv.jcl.net.protocol.events.control.*;
 import io.bitcoinsv.jcl.net.protocol.events.data.*;
 import io.bitcoinsv.jcl.net.protocol.messages.*;
-import io.bitcoinsv.jcl.net.protocol.events.control.*;
-import io.bitcoinsv.jcl.net.protocol.events.data.*;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsg;
 import io.bitcoinsv.jcl.net.protocol.messages.common.BitcoinMsgBuilder;
 import io.bitcoinsv.jcl.net.protocol.handlers.message.streams.deserializer.DeserializerStream;
@@ -20,7 +18,6 @@ import io.bitcoinsv.jcl.net.tools.LoggerUtil;
 import io.bitcoinsv.jcl.tools.thread.ThreadUtils;
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 import io.bitcoinsv.bitcoinjsv.core.Utils;
-import io.bitcoinsv.jcl.net.protocol.messages.*;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -128,7 +125,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
     // a block have been deserialized, we mark it as finished.
 
     private Map<String, PartialBlockHeaderMsg>   bigBlocksHeaders       = new ConcurrentHashMap<>();
-    private Map<String, Long>                    bigBlocksCurrentTxs    = new ConcurrentHashMap();
+    private Map<String, Long>                    bigBlocksCurrentTxs    = new ConcurrentHashMap<>();
 
     // And A block might be downloaded in RAW Format, that means that each Batch of Txs contains a byte array of Txs. In
     // this case, we detect that we got the whole block when we received the total number of Bytes.
@@ -795,7 +792,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
 
     private void cancelDownload(String blockHash) {
         try {
-            lock.tryLock();
+            lock.lock();
 
             // If this block has not been cancelled previously, we record it:
             if (!blocksPendingToCancel.contains(blockHash) && !blocksCancelled.contains(blockHash)) {
@@ -913,7 +910,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
 
     // On each execution of this Job, we perform 2 actions:
     // - Update download progress and re-assign block downloads:
-    // - check interrumpted downloads
+    // - check interrupted downloads
     // - check Discarded Blocks
 
     private void jobProcessCheckDownloadingProcess() {
@@ -950,8 +947,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
 
                                 // SANITY CHECK: WE check if more downloads are allowed:
                                 int numPeersWorking = getCurrentPeersDownloading();
-                                long totalMBbeingDownloaded = getCurrentDownloadingBlocksSize() / 1_000_000; // convert to MB
-                                this.bandwidthRestricted = totalMBbeingDownloaded >= config.getMaxMBinParallel();
+                                long totalMbBeingDownloaded = getCurrentDownloadingBlocksSize() / 1_000_000; // convert to MB
+                                this.bandwidthRestricted = totalMbBeingDownloaded >= config.getMaxMBinParallel();
                                 this.moreDownloadsAllowed = (numPeersWorking == 0)
                                         || ((numPeersWorking < config.getMaxBlocksInParallel()) && !bandwidthRestricted);
 
@@ -969,14 +966,14 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                                     // In order to be efficient, the BlocksPendingManager also needs to know
                                     // about all the peers available for Download (EXCLUDING THIS ONE):
 
-                                    List availablePeers = peersOrdered.stream()
+                                    List<PeerAddress> availablePeers = peersOrdered.stream()
                                             .filter(i -> !i.getPeerAddress().equals(peerAddress))
                                             .filter(i -> i.isHandshaked())
                                             .filter(i -> i.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.IDLE))
                                             .map( i -> i.getPeerAddress())
                                             .collect(Collectors.toList());
 
-                                    List notAvailablePeers = peersOrdered.stream()
+                                    List<PeerAddress> notAvailablePeers = peersOrdered.stream()
                                             .filter(i -> !i.getPeerAddress().equals(peerAddress))
                                             .filter(i -> i.isHandshaked())
                                             .filter(i -> i.getWorkingState().equals(BlockPeerInfo.PeerWorkingState.PROCESSING))
@@ -1018,7 +1015,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                         } // Switch...
                     } // white it. next...
 
-                    // CHECK INTERRUMPTED DOWNLOADS (BLOCKS IN "LIMBO")
+                    // CHECK INTERRUPTED DOWNLOADS (BLOCKS IN "LIMBO")
                     // We look over the "blocksInLimbo" set, and check if those blocks are still "alive"
                     // (we are still receiving data from them, although we've been already notified about the peers
                     //  disconnecting), or those blocks are actually "broken", in this case we re-assign or discard them
@@ -1052,6 +1049,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                             blocksPendingManager.addWithPriority(hashToRetry); // blocks to retry have preference...
                         }
                     }
+                } catch (Exception e) {
+                    logger.error("Error during jobProcessCheckDownloadingProcess ", e);
                 } finally {
                     lock.unlock();
                 }
@@ -1060,11 +1059,6 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
             } // while true...
         } catch (InterruptedException ie) {
             // We do nothing, most probably, it fails due to the main service being stopped...
-            logger.error("Error during jobProcessCheckDownloadingProcess ", ie);
-        } catch (Exception e) {
-            logger.error("Error during jobProcessCheckDownloadingProcess ", e);
-        } catch (Throwable th) {
-            logger.error("Error during jobProcessCheckDownloadingProcess ", th);
         }
     }
 

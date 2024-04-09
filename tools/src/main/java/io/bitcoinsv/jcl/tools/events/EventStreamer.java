@@ -106,8 +106,6 @@ public class EventStreamer<E extends Event> {
         } catch (InterruptedException ie) {
             log.error("Error while processing events: ", ie);
             throw new RuntimeException(ie);
-        } catch (Exception e) {
-            log.error("Error while processing events: ", e);
         }
     }
 
