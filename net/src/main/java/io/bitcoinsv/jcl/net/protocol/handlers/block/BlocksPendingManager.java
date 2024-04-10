@@ -98,7 +98,10 @@ public class BlocksPendingManager {
     // REGISTER OF EVENTS:
     public void registerNewDownloadAttempt(String blockHash)            { blocksNumDownloadAttempts.merge(blockHash, 1, (o, n) -> o + n); }
     public void registerBlockDownloaded(String blockHash)               { blocksNumDownloadAttempts.remove(blockHash); }
-    public void registerBlockDiscarded(String blockHash)                { blocksNumDownloadAttempts.remove(blockHash); }
+    public void registerBlockDiscarded(String blockHash)                {
+        blocksNumDownloadAttempts.remove(blockHash);
+        pendingBlocks.remove(blockHash);
+    }
     public void registerBlockCancelled(String blockHash)                {
         blocksNumDownloadAttempts.remove(blockHash);
         pendingBlocks.remove(blockHash);
