@@ -941,11 +941,6 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                             // If the Peer is NOT HANDSHAKED, we skip it...
                             if (!peerInfo.isHandshaked()) continue;
 
-                            if (peerInfo.getStream() == null) {
-                                logger.error("Cannot get peer's stream {}.", peerInfo.getPeerAddress());
-                                continue;
-                            }
-
                             // We manage it based on its state:
                             switch (peerWorkingState) {
                                 case IDLE: {
@@ -989,6 +984,12 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                                         // We finally request a Peer to assign and download from this Peer, if any has been found:
                                         Optional<String> blockHashToDownload = blocksPendingManager.extractMostSuitableBlockForDownload(peerAddress, availablePeers, notAvailablePeers);
                                         if (blockHashToDownload.isPresent()) {
+                                            if (peerInfo.getStream() == null) {
+                                                logger.error("Cannot get peer's stream {}.", peerInfo.getPeerAddress());
+                                                peerInfo.discard();
+                                                continue;
+                                            }
+
                                             startDownloading(peerInfo, blockHashToDownload.get());
                                         }
                                     }
