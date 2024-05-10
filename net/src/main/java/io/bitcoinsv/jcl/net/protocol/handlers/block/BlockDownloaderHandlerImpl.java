@@ -986,8 +986,11 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                                         if (blockHashToDownload.isPresent()) {
                                             if (peerInfo.getStream() == null) {
                                                 logger.error("Cannot get peer's stream {}.", peerInfo.getPeerAddress());
+                                                blocksDownloadHistory.register(peerInfo.getCurrentBlockInfo().hash, peerInfo.getPeerAddress(), "Download Issue detected : Cannot get peer's stream");
+                                                blocksInLimbo.add(peerInfo.getCurrentBlockInfo().hash);
                                                 peerInfo.discard();
-                                                continue;
+                                                super.eventBus.publish(new DisconnectPeerRequest(peerInfo.getPeerAddress(), PeerDisconnectedEvent.DisconnectedReason.UNDEFINED, null));
+                                                break;
                                             }
 
                                             startDownloading(peerInfo, blockHashToDownload.get());
