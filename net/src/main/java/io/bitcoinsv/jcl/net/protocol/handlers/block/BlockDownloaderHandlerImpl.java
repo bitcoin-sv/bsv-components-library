@@ -877,7 +877,10 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
             // We update the Peer Info
             int numAttempts = blocksPendingManager.getNumDownloadAttempts(blockHash) + 1;
             peerInfo.startDownloading(blockHash, numAttempts);
-            peerInfo.getStream().upgradeBufferSize();
+            DeserializerStream peerStream = peerInfo.getStream();
+            if (peerStream != null) {
+                peerStream.upgradeBufferSize();
+            }
 
             // We disable the Ping/Pong monitor process on it, since it might be busy during the block downloading
             super.eventBus.publish(new DisablePingPongRequest(peerInfo.getPeerAddress()));
@@ -902,7 +905,7 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
             // We send the message
             super.eventBus.publish(new SendMsgRequest(peerInfo.getPeerAddress(), btcMsg));
         } catch (Exception e) {
-          logger.error(e, "Download block start failed");
+            logger.error(e, "Download block start failed");
         } finally {
             lock.unlock();
         }
@@ -984,15 +987,6 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
                                         // We finally request a Peer to assign and download from this Peer, if any has been found:
                                         Optional<String> blockHashToDownload = blocksPendingManager.extractMostSuitableBlockForDownload(peerAddress, availablePeers, notAvailablePeers);
                                         if (blockHashToDownload.isPresent()) {
-                                            if (peerInfo.getStream() == null) {
-                                                logger.error("Cannot get peer's stream {}.", peerInfo.getPeerAddress());
-                                                blocksDownloadHistory.register(peerInfo.getCurrentBlockInfo().hash, peerInfo.getPeerAddress(), "Download Issue detected : Cannot get peer's stream");
-                                                blocksInLimbo.add(peerInfo.getCurrentBlockInfo().hash);
-                                                peerInfo.discard();
-                                                super.eventBus.publish(new DisconnectPeerRequest(peerInfo.getPeerAddress(), PeerDisconnectedEvent.DisconnectedReason.UNDEFINED, null));
-                                                break;
-                                            }
-
                                             startDownloading(peerInfo, blockHashToDownload.get());
                                         }
                                     }
@@ -1082,8 +1076,8 @@ public class BlockDownloaderHandlerImpl extends HandlerImpl<PeerAddress, BlockPe
     @Override
     public List<BlockPeerInfo> getPeers() {
         List<BlockPeerInfo> peersOrdered =  handlerInfo.values().stream()
-            .filter(p -> p.isHandshaked())
-            .collect(Collectors.toList());
+                .filter(p -> p.isHandshaked())
+                .collect(Collectors.toList());
         Collections.sort(peersOrdered, BlockPeerInfo.SPEED_COMPARATOR);
         return peersOrdered;
     }
