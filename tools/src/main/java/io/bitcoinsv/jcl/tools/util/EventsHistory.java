@@ -263,7 +263,7 @@ public class EventsHistory<I, E,S>{
                 // Delay between cleans...
                 Thread.sleep(10_000);
             }
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
             // Probably its just the system shutting down...
         }
     }

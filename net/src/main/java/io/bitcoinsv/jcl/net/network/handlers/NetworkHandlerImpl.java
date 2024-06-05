@@ -673,9 +673,9 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
                 Thread.sleep(1000);
 
             } // while...
-        } catch (Throwable th) {
-            th.printStackTrace();
-            //handlerLogger.error(th, th.getMessage());
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
         }
 
     }
@@ -718,9 +718,6 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
         } catch (InterruptedException ie) {
             ie.printStackTrace();
             throw new RuntimeException(ie);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
         }
     }
     /**
