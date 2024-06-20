@@ -30,6 +30,8 @@ public class DiscoveryHandlerConfig extends HandlerConfig {
     public static final OptionalInt DEFAULT_RELAY_MIN_ADDRESSES = OptionalInt.of(500);
     public static final Optional<Duration> DEFAULT_HANDSHAKE_RECOVERY_FREQ = Optional.of(Duration.ofMinutes(15));
     public static final Optional<Duration> DEFAULT_HANDSHAKE_RECOVERY_THRESHOLD = Optional.of(Duration.ofMinutes(15));
+    public static final Optional<Duration> DEFAULT_ADDR_BROADCAST_FREQ = Optional.of(Duration.ofDays(1)); //advertise itself every day by default
+    public static final Optional<String> DEFAULT_ADVERTISED_IP = Optional.empty(); //no address to advertise by default - should be set manually
 
     // Node Discovery Configuration:
     public enum DiscoveryMethod {
@@ -53,6 +55,14 @@ public class DiscoveryHandlerConfig extends HandlerConfig {
     private OptionalInt minVersion = DEFAULT_MIN_VERSION;
     /** (documentation pending) */
     private OptionalInt relayMinAddresses = DEFAULT_RELAY_MIN_ADDRESSES;
+    /**
+     * How often should JCL advertise its own address in an ADDR message
+     */
+    private Optional<Duration> addrBroadcastFrequency = DEFAULT_ADDR_BROADCAST_FREQ;
+    /**
+     * Address to include in the periodic advertisement (ADDR message)
+     */
+    private Optional<String> advertisedIp = DEFAULT_ADVERTISED_IP;
     /** frequency of the job that reconnects to those peers that used to be handshaked but are now disconnected */
     private Optional<Duration> recoveryHandshakeFrequency = DEFAULT_HANDSHAKE_RECOVERY_FREQ;
     /**
@@ -76,7 +86,9 @@ public class DiscoveryHandlerConfig extends HandlerConfig {
                                   Optional<Duration> recoveryHandshakeFrequency,
                                   Optional<Duration> recoveryHandshakeThreshold,
                                   boolean checkingPeerReachability,
-                                  List<PeerAddress> initialConnections) {
+                                  List<PeerAddress> initialConnections,
+                                  Optional<Duration> addrBroadcastFrequency,
+                                  Optional<String> advertisedIp) {
         this.basicConfig = basicConfig;
         this.dns = dns;
         if (discoveryMethod != null)            this.discoveryMethod = discoveryMethod;
@@ -87,6 +99,8 @@ public class DiscoveryHandlerConfig extends HandlerConfig {
         if (relayMinAddresses != null)          this.relayMinAddresses = relayMinAddresses;
         if (recoveryHandshakeFrequency != null) this.recoveryHandshakeFrequency = recoveryHandshakeFrequency;
         if (recoveryHandshakeThreshold != null) this.recoveryHandshakeThreshold = recoveryHandshakeThreshold;
+        if (addrBroadcastFrequency != null)     this.addrBroadcastFrequency = addrBroadcastFrequency;
+        if (advertisedIp != null)               this.advertisedIp = advertisedIp;
         this.checkingPeerReachability = checkingPeerReachability;
         this.initialConnections = initialConnections;
     }
@@ -105,6 +119,8 @@ public class DiscoveryHandlerConfig extends HandlerConfig {
     public Optional<Duration> getRecoveryHandshakeThreshold()   { return this.recoveryHandshakeThreshold; }
     public boolean isCheckingPeerReachability()                 { return this.checkingPeerReachability; }
     public List<PeerAddress> getInitialConnections()            { return this.initialConnections;}
+    public Optional<Duration> getAddrBroadcastFrequency()       { return this.addrBroadcastFrequency; }
+    public Optional<String> getAdvertisedIp()                   { return this.advertisedIp; }
 
     public DiscoveryHandlerConfigBuilder toBuilder() {
         return new DiscoveryHandlerConfigBuilder().basicConfig(this.basicConfig)
@@ -118,7 +134,9 @@ public class DiscoveryHandlerConfig extends HandlerConfig {
                 .recoveryHandshakeFrequency(this.recoveryHandshakeFrequency)
                 .recoveryHandshakeThreshold(this.recoveryHandshakeThreshold)
                 .checkingPeerReachability(this.checkingPeerReachability)
-                .addInitialConnections(this.initialConnections);
+                .addInitialConnections(this.initialConnections)
+                .addrBroadcastFrequency(this.addrBroadcastFrequency)
+                .advertisedIp(this.advertisedIp);
     }
 
     public static DiscoveryHandlerConfigBuilder builder() {
@@ -141,6 +159,8 @@ public class DiscoveryHandlerConfig extends HandlerConfig {
         private Optional<Duration> recoveryHandshakeThreshold;
         private boolean checkingPeerReachability;
         private List<PeerAddress> initialConnections = new ArrayList<>();
+        private Optional<Duration> addrBroadcastFrequency;
+        private Optional<String> advertisedIp;
 
         DiscoveryHandlerConfigBuilder() { }
 
@@ -223,6 +243,16 @@ public class DiscoveryHandlerConfig extends HandlerConfig {
             return this;
         }
 
+        public DiscoveryHandlerConfig.DiscoveryHandlerConfigBuilder addrBroadcastFrequency(Optional<Duration> addrBroadcastFrequency) {
+            this.addrBroadcastFrequency = addrBroadcastFrequency;
+            return this;
+        }
+
+        public DiscoveryHandlerConfig.DiscoveryHandlerConfigBuilder advertisedIp(Optional<String> advertisedIp){
+            this.advertisedIp = advertisedIp;
+            return this;
+        }
+
         public DiscoveryHandlerConfig build() {
             return new DiscoveryHandlerConfig(basicConfig,
                     dns,
@@ -235,7 +265,9 @@ public class DiscoveryHandlerConfig extends HandlerConfig {
                     recoveryHandshakeFrequency,
                     recoveryHandshakeThreshold,
                     checkingPeerReachability,
-                    initialConnections);
+                    initialConnections,
+                    addrBroadcastFrequency,
+                    advertisedIp);
         }
     }
 }
