@@ -318,7 +318,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
         logger.debug(peerInfo.getPeerAddress(), "Processing incoming GET_ADDR...");
         // We check that we have enough of them to send them out:
         if (config.getRelayMinAddresses().isPresent() && (handlerInfo.size() < config.getRelayMinAddresses().getAsInt())) {
-            logger.debug(peerInfo.getPeerAddress(), "GETADDR Ignored (not enough Addresses to send");
+            logger.warm(peerInfo.getPeerAddress(), "GETADDR Ignored (not enough Addresses to send");
             return;
         }
 
@@ -581,7 +581,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
 
                 peersHandshaked.forEach(peerAddr -> super.eventBus.publish(new SendMsgRequest(peerAddr, btcMsg)));
             } else {
-                logger.debug("Unable to broadcast own addr to peers - advertised address is not configured");
+                logger.warm("Unable to broadcast own addr to peers - advertised address is not configured");
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
