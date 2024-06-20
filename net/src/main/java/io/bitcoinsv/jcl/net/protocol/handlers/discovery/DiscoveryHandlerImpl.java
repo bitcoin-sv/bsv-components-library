@@ -118,7 +118,16 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
                     TimeUnit.MILLISECONDS);
         }
 
+        var addrBroadcastFrequency = config.getAddrBroadcastFrequency();
 
+        if (addrBroadcastFrequency.isPresent() && addrBroadcastFrequency.get().toSeconds() != 0L) {
+            var frequencyPeriod = addrBroadcastFrequency.get();
+
+            logger.debug("Scheduling job to self-advertise (as ADDR message broadcast) every {} seconds.", frequencyPeriod.toSeconds());
+            executor.scheduleAtFixedRate(this::jobBroadcastOwnAddrMsg,
+                    frequencyPeriod.toMillis(),
+                    frequencyPeriod.toMillis(), TimeUnit.MILLISECONDS);
+        }
     }
 
     private void registerForEvents() {
@@ -308,7 +317,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
         if (peerInfo == null) return;
         logger.debug(peerInfo.getPeerAddress(), "Processing incoming GET_ADDR...");
         // We check that we have enough of them to send them out:
-        if (config.getRelayMinAddresses().isPresent() && (handlerInfo.size() > config.getRelayMinAddresses().getAsInt())) {
+        if (config.getRelayMinAddresses().isPresent() && (handlerInfo.size() < config.getRelayMinAddresses().getAsInt())) {
             logger.debug(peerInfo.getPeerAddress(), "GETADDR Ignored (not enough Addresses to send");
             return;
         }
@@ -553,5 +562,30 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
 
     public DiscoveryHandlerState getState() {
         return this.state;
+    }
+
+    private void jobBroadcastOwnAddrMsg() {
+        Optional<String> advertisedIp = config.getAdvertisedIp();
+
+        try {
+            if (advertisedIp.isPresent()) {
+                logger.debug( "Broadcasting own addr to peers...");
+                NetAddressMsg netAddrMsg = NetAddressMsg.builder()
+                    .address(PeerAddress.fromIp(advertisedIp.get()))
+                    .timestamp(System.currentTimeMillis())
+                    .build();
+                AddrMsg addrMsg = AddrMsg.builder()
+                    .addrList(List.of(netAddrMsg))
+                    .build();
+                BitcoinMsg<AddrMsg> btcMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), addrMsg).build();
+
+                peersHandshaked.forEach(peerAddr -> super.eventBus.publish(new SendMsgRequest(peerAddr, btcMsg)));
+            } else {
+                logger.debug("Unable to broadcast own addr to peers - advertised address is not configured");
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            e.printStackTrace();
+        }
     }
 }
