@@ -3,7 +3,7 @@ package io.bitcoinsv.jcl.net.protocol.handlers.discovery;
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.network.events.*;
-import io.bitcoinsv.jcl.net.network.events.*;
+import io.bitcoinsv.jcl.net.protocol.config.ProtocolServices;
 import io.bitcoinsv.jcl.net.protocol.events.data.AddrMsgReceivedEvent;
 import io.bitcoinsv.jcl.net.protocol.events.data.GetAddrMsgReceivedEvent;
 import io.bitcoinsv.jcl.net.protocol.events.control.InitialPeersLoadedEvent;
@@ -27,11 +27,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author i.fernandez@nchain.com
@@ -59,6 +62,8 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
 
     // P2P ADDR Max Content
     private static final int MAX_ADDR_ADDRESSES = 1000;
+    // P2P ADDR Max Content for GETADDR response
+    private static final int MAX_ADDR_ADDRESSES_GETADDR = 2500;
 
     private LoggerUtil logger;
     private DiscoveryHandlerConfig config;
@@ -184,7 +189,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
             if (Files.exists(csvPath)) {
                 poolPeers = runtimeConfig.getFileUtils().readCV(csvPath, () -> new DiscoveryPeerInfo()).stream()
                         .map(d -> d.getPeerAddress())
-                        .collect(Collectors.toList());
+                        .collect(toList());
                 logger.debug(poolPeers.size() + " peers loaded from file.");
             } else logger.debug(" No file found.");
 
@@ -213,7 +218,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
     private void savePoolToDisk() {
         List<DiscoveryPeerInfo> hqPeers = handlerInfo.values().stream()
                 .filter(p -> peersHandshaked.contains(p.getPeerAddress()))
-                .collect(Collectors.toList());
+                .collect(toList());
         String csvFileName = StringUtils.fileNamingFriendly(config.getBasicConfig().getId()) + FILE_POOL_SUFFIX;
         Path csvPath = Paths.get(runtimeConfig.getFileUtils().getRootPath().toString(), NET_FOLDER, csvFileName);
         super.runtimeConfig.getFileUtils().writeCSV(csvPath, hqPeers);
@@ -256,7 +261,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
 
         DiscoveryPeerInfo peerInfo = handlerInfo.get(peerAddress);
         if (peerInfo == null) {
-            peerInfo = new DiscoveryPeerInfo(peerAddress);
+            peerInfo = new DiscoveryPeerInfo(peerAddress, System.currentTimeMillis(), event.getVersionMsg().getServices());
             boolean addedOK = addToPool(peerInfo);
             if (!addedOK) {
                 Optional<PeerAddress> peerAddressToReplace = handlerInfo.values().stream()
@@ -284,7 +289,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
         // We remove from the Pool all the Peers using this IP:
         List<PeerAddress> toRemoveFromMainPool = handlerInfo.keySet().stream()
                 .filter(p -> event.getInetAddresses().keySet().contains(p.getIp()))
-                .collect(Collectors.toList());
+                .collect(toList());
 
         for (PeerAddress peerAddress : toRemoveFromMainPool) {
             removeFromPool(peerAddress);
@@ -308,43 +313,50 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
     // Event Handler:
     /**
      * It process the incoming GETADDR Message,a according to the Rules defined in the Bitcoin P2P.
-     * The business logic of processing incoming ADDR is implemented as it's described in the Satoshi client:
-     * https://en.bitcoin.it/wiki/Satoshi_Client_Node_Discovery#Ongoing_.22addr.22_advertisements
+     * The business logic of processing incoming GETADDR is implemented as it's described in the Satoshi client:
+     * <a href="https://en.bitcoin.it/wiki/Satoshi_Client_Node_Discovery">Satoshi Client Node Discovery</a>,
+     * section {@code Handling Message "getaddr"}.
      */
     private void onGetAddrMsg(GetAddrMsgReceivedEvent event) {
+        PeerAddress peerAddress = event.getPeerAddress();
 
-        DiscoveryPeerInfo peerInfo = getOrWaitForHandlerInfo(event.getPeerAddress());
-        if (peerInfo == null) return;
-        logger.debug(peerInfo.getPeerAddress(), "Processing incoming GET_ADDR...");
+        if (!peersHandshaked.contains(event.getPeerAddress())) return; //only prepare/send ADDR if peer is handshaked
+
+        logger.debug(peerAddress, "Processing incoming GET_ADDR...");
         // We check that we have enough of them to send them out:
         if (config.getRelayMinAddresses().isPresent() && (handlerInfo.size() < config.getRelayMinAddresses().getAsInt())) {
-            logger.warm(peerInfo.getPeerAddress(), "GETADDR Ignored (not enough Addresses to send");
+            logger.warm(peerAddress, "GETADDR Ignored (not enough Addresses to send");
             return;
         }
 
         // If we reach this far, we prepare the ADDR Message in reply to this GET_ADDR and send it out:
-        // We only add those Addr which Timestamps is within the last Hour.
+        // We only add those Addr which Timestamps is within the last 3 Hours.
         // List of addresses:
-        List<NetAddressMsg> netAddressMsgs = new ArrayList<NetAddressMsg>() ;
+        List<NetAddressMsg> netAddressMsgs = new ArrayList<>();
+        //we are interested in recent peer/addr infos - only those from last 3 hours
+        List<DiscoveryPeerInfo> recentAddrInfos = handlerInfo.values().stream()
+            .filter(addrInfo -> addrInfo.getTimestamp() >= System.currentTimeMillis() - Duration.ofHours(3).toMillis())
+            .collect(Collectors.toList());
 
-        int numAddrToAdd = 0;
-        NetAddressMsg netAddrMsg;
-        for (DiscoveryPeerInfo addrInfo : handlerInfo.values()) {
-            Long within1Hour = System.currentTimeMillis() - Duration.ofHours(1).toMillis();
-
-            if (addrInfo.getTimestamp() >= within1Hour && netAddressMsgs.size() < MAX_ADDR_ADDRESSES) {
-                netAddrMsg = NetAddressMsg.builder().address(addrInfo.getPeerAddress()).timestamp(addrInfo.getTimestamp()).build();
-                netAddressMsgs.add(netAddrMsg);
-                numAddrToAdd++;
-            }
+        //if the max addr addresses limit (for GETADDR response) is exceeded, we use the limit and randomly select recent addresses
+        if (recentAddrInfos.size() > MAX_ADDR_ADDRESSES_GETADDR) {
+            Collections.shuffle(recentAddrInfos);
+            recentAddrInfos = recentAddrInfos.subList(0, MAX_ADDR_ADDRESSES_GETADDR - 1);
         }
+
+        recentAddrInfos.forEach(addrinfo -> netAddressMsgs.add(
+            NetAddressMsg.builder()
+                .address(addrinfo.getPeerAddress())
+                .timestamp(Instant.ofEpochMilli(addrinfo.getTimestamp()).getEpochSecond()) //note: must be in epoch seconds!
+                .services(addrinfo.getServices())
+                .build()));
 
         // We only send the Message if we have collected a minimum Set of Addresses.
         if ((config.getRelayMinAddresses().isEmpty()) ||
-                (numAddrToAdd >= (config.getRelayMinAddresses().getAsInt()))) {
+                (netAddressMsgs.size() >= (config.getRelayMinAddresses().getAsInt()))) {
             AddrMsg addrMsg = AddrMsg.builder().addrList(netAddressMsgs).build();
             BitcoinMsg<AddrMsg> btcMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), addrMsg).build();
-            super.eventBus.publish(new SendMsgRequest(peerInfo.getPeerAddress(), btcMsg));
+            super.eventBus.publish(new SendMsgRequest(peerAddress, btcMsg));
         }
     }
 
@@ -392,7 +404,11 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
             // If we reach this far, we add the Addresses to the Main Pool and request a connection Request:
             List<PeerAddress> peersToConnect = new ArrayList<>();
             for (NetAddressMsg netAddressMsg : msg.getAddrList()) {
-                DiscoveryPeerInfo addPeerInfo = new DiscoveryPeerInfo(netAddressMsg.getAddress(), netAddressMsg.getTimestamp());
+                DiscoveryPeerInfo addPeerInfo = new DiscoveryPeerInfo(
+                    netAddressMsg.getAddress(),
+                    //note: timestamp in NetAddressMsg arrives in epoch seconds! We must first convert it to epoch milliseconds to avoid comparison errors later on!
+                    Instant.ofEpochSecond(netAddressMsg.getTimestamp()).toEpochMilli(),
+                    netAddressMsg.getServices());
                 addToPool(addPeerInfo);
                 peersToConnect.add(addPeerInfo.getPeerAddress());
             }
@@ -515,7 +531,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
             List<DiscoveryPeerInfo> peersToAsk = this.handlerInfo.values().stream()
                     .filter( p -> peersHandshaked.contains(p.getPeerAddress()))
                     .filter( p -> (new Random().nextInt(100) <= config.getADDRPercentage().getAsInt()))
-                    .collect(Collectors.toList());
+                    .collect(toList());
             if (peersToAsk != null && peersToAsk.size() > 0) {
                 logger.debug("Renewing Pool of Address, asking " + peersToAsk.size() + " peers for new Addresses...");
                 Collections.shuffle(peersToAsk);
@@ -541,7 +557,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
                     .filter(p -> p.getLastHandshakeTime() != null)
                     .filter(p -> peersHandshaked.contains(p.getPeerAddress()))
                     .filter(p -> Duration.between(p.getLastHandshakeTime(), DateTimeUtils.nowDateTimeUTC()).compareTo(waitingDuration) > 0)
-                    .collect(Collectors.toList());
+                    .collect(toList());
 
             // For each of them we request a connection:
             handshakesToRecover.forEach(p -> super.eventBus.publish(new ConnectPeerRequest(p.getPeerAddress())));
@@ -572,7 +588,8 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
                 logger.debug( "Broadcasting own addr to peers...");
                 NetAddressMsg netAddrMsg = NetAddressMsg.builder()
                     .address(PeerAddress.fromIp(advertisedIp.get()))
-                    .timestamp(System.currentTimeMillis())
+                    .services(ProtocolServices.NODE_NETWORK.getProtocolServices())
+                    .timestamp(Instant.now().getEpochSecond()) //note: epoch seconds!
                     .build();
                 AddrMsg addrMsg = AddrMsg.builder()
                     .addrList(List.of(netAddrMsg))
