@@ -22,6 +22,8 @@ public class DiscoveryPeerInfo implements CSVSerializable {
     private PeerAddress peerAddress;
     // Timestamps as it will be sent in a ADDR messages to other Peers
     private Long timestamp;
+    // Services to include in ADDR messages to other Peers
+    private Long services;
 
     // Variables set when this Peer is handsahked, and set to null when the connection to it is lost (but this record
     // is kept).
@@ -29,14 +31,10 @@ public class DiscoveryPeerInfo implements CSVSerializable {
     private LocalDateTime lastHandshakeTime;
 
     /** Constructor */
-    public DiscoveryPeerInfo(PeerAddress peerAddress) {
-        this(peerAddress, System.currentTimeMillis());
-    }
-
-    /** Constructor */
-    public DiscoveryPeerInfo(PeerAddress peerAddress, Long timestamp) {
+    public DiscoveryPeerInfo(PeerAddress peerAddress, Long timestamp, Long services) {
         this.peerAddress = peerAddress;
         this.timestamp = timestamp;
+        this.services = services;
     }
 
     public DiscoveryPeerInfo() {}
@@ -44,6 +42,7 @@ public class DiscoveryPeerInfo implements CSVSerializable {
     public void reset() {
         //this.timestamp = null;
         this.versionMsg = null;
+        this.services = 0L;
     }
 
     public void updateHandshake(VersionMsg versionMsg) {
@@ -63,7 +62,8 @@ public class DiscoveryPeerInfo implements CSVSerializable {
     public String toCSVLine() {
         StringBuffer result = new StringBuffer();
         result.append(peerAddress).append(CSVSerializable.SEPARATOR);
-        result.append(timestamp);
+        result.append(timestamp).append(CSVSerializable.SEPARATOR);
+        result.append(services);
         return result.toString();
     }
 
@@ -75,6 +75,7 @@ public class DiscoveryPeerInfo implements CSVSerializable {
             StringTokenizer tokens = new StringTokenizer(line, CSVSerializable.SEPARATOR);
             this.peerAddress = PeerAddress.fromIp(tokens.nextToken());
             this.timestamp = Long.parseLong(tokens.nextToken());
+            this.services = Long.parseLong(tokens.nextToken());
         } catch (Exception e) {
             log.error("Error Parsing line for CSV: " + line);
             throw new RuntimeException(e);
@@ -83,6 +84,7 @@ public class DiscoveryPeerInfo implements CSVSerializable {
 
     public PeerAddress getPeerAddress()         { return this.peerAddress; }
     public Long getTimestamp()                  { return this.timestamp; }
+    public Long getServices()                   { return this.services; }
     public VersionMsg getVersionMsg()           { return this.versionMsg; }
     public LocalDateTime getLastHandshakeTime() { return this.lastHandshakeTime; }
 }
