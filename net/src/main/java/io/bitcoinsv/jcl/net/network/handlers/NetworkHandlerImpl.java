@@ -41,7 +41,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 nChain Ltd
+ * Copyright (c) 2018-2024 nChain Ltd
  *
  * Implementation of the NetworkHandler, based on Java-NIO (non blocking Input-Output)
  * - The class runs in a separate Thread, extending a guava Service
@@ -531,11 +531,21 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
     }
 
     /**
-     * It initializes a new connection to one Peer, creating a ByteArrayStream representing that connection and
-     * triggering the callback, sending back the reference to that stream back to the client.
-     * @param key       SelectionKey related to this Socket/Channel
+     * @param key SelectionKey related to this Socket/Channel
+     * @see #startPeerConnection(SelectionKey, boolean)
      */
     protected void startPeerConnection(SelectionKey key) throws IOException {
+        startPeerConnection(key, false);
+    }
+
+    /**
+     * It initializes a new connection to one Peer, creating a ByteArrayStream representing that connection and
+     * triggering the callback, sending back the reference to that stream back to the client.
+     *
+     * @param key        SelectionKey related to this Socket/Channel
+     * @param isOutgoing Flag that determines whether the connection was initiated by us
+     */
+    protected void startPeerConnection(SelectionKey key, boolean isOutgoing) throws IOException {
 
         try {
             lock.writeLock().lock();
@@ -558,7 +568,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
             logger.trace(keyAttach.peerAddress, "Socket connection established.");
 
             // We trigger the callbacks, sending the Stream back to the client:
-            eventBus.publish(new PeerConnectedEvent(keyAttach.peerAddress));
+            eventBus.publish(new PeerConnectedEvent(keyAttach.peerAddress, isOutgoing));
 
             eventBus.publish(new PeerNIOStreamConnectedEvent(stream));
 
@@ -596,7 +606,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
 
             if (isConnected) {
                 logger.trace(peerAddress, "Connected, establishing connection...");
-                startPeerConnection(key);
+                startPeerConnection(key, true);
 
             } else {
                 logger.trace(peerAddress, "Connected, waiting for remote confirmation...");
@@ -889,7 +899,7 @@ public class NetworkHandlerImpl extends AbstractExecutionThreadService implement
             // If we reach this far, we accept the connection:
             SocketChannel socketChannel = (SocketChannel) key.channel();
             if (socketChannel.finishConnect()) {
-                startPeerConnection(key);
+                startPeerConnection(key, true);
             } else closeKey(key, PeerDisconnectedEvent.DisconnectedReason.DISCONNECTED_BY_LOCAL);
 
         } catch (ConnectException e) {

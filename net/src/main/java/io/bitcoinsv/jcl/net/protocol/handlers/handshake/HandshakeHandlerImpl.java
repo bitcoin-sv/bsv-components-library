@@ -26,9 +26,11 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
+import static java.time.Instant.now;
+
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 nChain Ltd
+ * Copyright (c) 2018-2024 nChain Ltd
  */
 public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeerInfo> implements HandshakeHandler {
 
@@ -450,11 +452,11 @@ public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeer
         VarStrMsg userAgentMsg = VarStrMsg.builder().str( config.getUserAgent()).build();
         NetAddressMsg addr_from = NetAddressMsg.builder()
                 .address(localAddress)
-                .timestamp(System.currentTimeMillis())
+                .timestamp(now().getEpochSecond())
                 .build();
         NetAddressMsg addr_recv = NetAddressMsg.builder()
                 .address(peerInfo.getPeerAddress())
-                .timestamp(System.currentTimeMillis())
+                .timestamp(now().getEpochSecond())
                 .build();
         VersionMsg versionMsg = VersionMsg.builder()
                 .user_agent(userAgentMsg)
@@ -465,7 +467,7 @@ public class HandshakeHandlerImpl extends HandlerImpl<PeerAddress, HandshakePeer
                 .addr_recv(addr_recv)
                 .start_height(config.getBlock_height())
                 .nonce(NonceUtils.newOnce())
-                .timestamp(System.currentTimeMillis())
+                .timestamp(now().getEpochSecond())
                 .build();
         BitcoinMsg<VersionMsg> btcVersionMsg = new BitcoinMsgBuilder<VersionMsg>(config.getBasicConfig(), versionMsg).build();
         super.eventBus.publish(new SendMsgRequest(peerInfo.getPeerAddress(), btcVersionMsg));

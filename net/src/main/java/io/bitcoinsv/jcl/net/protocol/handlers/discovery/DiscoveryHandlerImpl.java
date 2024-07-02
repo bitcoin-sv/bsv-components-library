@@ -3,7 +3,6 @@ package io.bitcoinsv.jcl.net.protocol.handlers.discovery;
 
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.network.events.*;
-import io.bitcoinsv.jcl.net.protocol.config.ProtocolServices;
 import io.bitcoinsv.jcl.net.protocol.events.data.AddrMsgReceivedEvent;
 import io.bitcoinsv.jcl.net.protocol.events.data.GetAddrMsgReceivedEvent;
 import io.bitcoinsv.jcl.net.protocol.events.control.InitialPeersLoadedEvent;
@@ -38,7 +37,7 @@ import static java.util.stream.Collectors.toList;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 nChain Ltd
+ * Copyright (c) 2018-2024 nChain Ltd
  *
  * Implementation of the Discovery Handler, which implements the Node-Discovery protocol.
  * The Node Discovery P2P works like this:
@@ -75,6 +74,12 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
 
     // Ww keep track of all the Peers that have been Blacklisted:
     private Set<InetAddress> peersBlacklisted = ConcurrentHashMap.newKeySet();
+
+    /**
+     * Holds peer addresses for which and outgoing connection was made.<br>
+     * Primarily used here to determine whether we initiated a connection and need to self-advertise upon receiving a VERSION msg.
+     */
+    private Set<PeerAddress> peersOutgoing = ConcurrentHashMap.newKeySet();
 
     // TRUE when NetStopEvent is detected
     private boolean isStopping = false;
@@ -123,15 +128,15 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
                     TimeUnit.MILLISECONDS);
         }
 
-        var addrBroadcastFrequency = config.getAddrBroadcastFrequency();
+        if (isSelfAdvertisementAvailable(true)) {
+            var frequencyPeriod = config.getAddrBroadcastFrequency().get();
 
-        if (addrBroadcastFrequency.isPresent() && addrBroadcastFrequency.get().toSeconds() != 0L) {
-            var frequencyPeriod = addrBroadcastFrequency.get();
-
-            logger.debug("Scheduling job to self-advertise (as ADDR message broadcast) every {} seconds.", frequencyPeriod.toSeconds());
+            logger.debug(String.format("Scheduling job to self-advertise (as ADDR message broadcast) every %s seconds.", frequencyPeriod.toSeconds()));
             executor.scheduleAtFixedRate(this::jobBroadcastOwnAddrMsg,
                     frequencyPeriod.toMillis(),
                     frequencyPeriod.toMillis(), TimeUnit.MILLISECONDS);
+        } else {
+            logger.warm("Cannot schedule self-advertisement job - unsatisfied configuration");
         }
     }
 
@@ -140,6 +145,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
         this.eventQueueProcessor.addProcessor(NetStartEvent.class, e -> this.onStart((NetStartEvent)e));
         this.eventQueueProcessor.addProcessor(NetStopEvent.class, e -> this.onStop((NetStopEvent)e));
         this.eventQueueProcessor.addProcessor(PeerHandshakedEvent.class, e -> this.onPeerHandshaked((PeerHandshakedEvent) e));
+        this.eventQueueProcessor.addProcessor(PeerConnectedEvent.class, e -> this.onPeerConnected((PeerConnectedEvent) e));
         this.eventQueueProcessor.addProcessor(PeersBlacklistedEvent.class, e -> this.onPeerBlacklisted((PeersBlacklistedEvent) e));
         this.eventQueueProcessor.addProcessor(PeerDisconnectedEvent.class, e -> this.onPeerDisconnected((PeerDisconnectedEvent) e));
         this.eventQueueProcessor.addProcessor(GetAddrMsgReceivedEvent.class, e -> this.onGetAddrMsg((GetAddrMsgReceivedEvent) e));
@@ -150,6 +156,7 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
         super.eventBus.subscribe(NetStartEvent.class, e -> this.eventQueueProcessor.addEvent(e));
         super.eventBus.subscribe(NetStopEvent.class, e -> this.eventQueueProcessor.addEvent(e));
         super.eventBus.subscribe(PeerHandshakedEvent.class, e -> this.eventQueueProcessor.addEvent(e));
+        super.eventBus.subscribe(PeerConnectedEvent.class, e -> this.eventQueueProcessor.addEvent(e));
         super.eventBus.subscribe(PeersBlacklistedEvent.class, e -> this.eventQueueProcessor.addEvent(e));
         super.eventBus.subscribe(PeerDisconnectedEvent.class, e -> this.eventQueueProcessor.addEvent(e));
         super.eventBus.subscribe(GetAddrMsgReceivedEvent.class, e -> this.eventQueueProcessor.addEvent(e));
@@ -278,10 +285,28 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
         peerInfo.updateHandshake(event.getVersionMsg());
         logger.trace(peerAddress, "Handshaked Peer added to the Pool", "(" + handlerInfo.size() + " peers currently in pool)");
 
+        // at this point, the version msg appears to be accepted - now try to advertise own address to the node
+        // conditions: self-advertisement must be configured and we started the peer connection
+        if (isSelfAdvertisementAvailable(false) && peersOutgoing.contains(peerAddress)) {
+            advertiseOwnAddrMsg(peerAddress);
+        }
         // We start the Discovery protocol....
         if (!isStopping && isAccceptingConnections) startDiscovery(peerInfo);
 
     }
+
+    /**
+     * Convenient listen method for {@link PeerConnectedEvent}s that hold information about whether a connection is
+     * outgoing or incoming.
+     *
+     * @param event {@link PeerConnectedEvent} to inspect
+     */
+    public void onPeerConnected(PeerConnectedEvent event) {
+        if (event.isOutgoingConnection()) {
+            peersOutgoing.add(event.getPeerAddress());
+        }
+    }
+
     // Event Handler:
     public void onPeerBlacklisted(PeersBlacklistedEvent event) {
         this.peersBlacklisted.addAll(event.getInetAddresses().keySet());
@@ -580,29 +605,69 @@ public class DiscoveryHandlerImpl extends HandlerImpl<PeerAddress, DiscoveryPeer
         return this.state;
     }
 
+    /**
+     * Performs a self-advertisement to all handshaked peers.
+     */
     private void jobBroadcastOwnAddrMsg() {
+        peersHandshaked.forEach(this::advertiseOwnAddrMsg);
+    }
+
+    /**
+     * Advertises own address in a form of {@link AddrMsg} to the target peer.<br>
+     * If the advertised IP is not configured, a warning will be logged instead. Additionally, if the advertised IP
+     * is misconfigured, the {@link PeerAddress#fromIp(String)} method will raise an exception which will be logged - if
+     * this happens, no self-advertisement is done.
+     *
+     * @param peerAddress Target {@link PeerAddress} to send the self-advertisement to
+     */
+    private void advertiseOwnAddrMsg(PeerAddress peerAddress) {
         Optional<String> advertisedIp = config.getAdvertisedIp();
 
         try {
-            if (advertisedIp.isPresent()) {
-                logger.debug( "Broadcasting own addr to peers...");
-                NetAddressMsg netAddrMsg = NetAddressMsg.builder()
-                    .address(PeerAddress.fromIp(advertisedIp.get()))
-                    .services(ProtocolServices.NODE_NETWORK.getProtocolServices())
-                    .timestamp(Instant.now().getEpochSecond()) //note: epoch seconds!
-                    .build();
-                AddrMsg addrMsg = AddrMsg.builder()
-                    .addrList(List.of(netAddrMsg))
-                    .build();
-                BitcoinMsg<AddrMsg> btcMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), addrMsg).build();
+            logger.debug("Broadcasting own addr to peer...", peerAddress);
+            NetAddressMsg netAddrMsg = NetAddressMsg.builder()
+                .address(PeerAddress.fromIp(advertisedIp.get()))
+                .services(config.getAdvertisedServices().get())
+                .timestamp(Instant.now().getEpochSecond()) //note: epoch seconds!
+                .build();
+            AddrMsg addrMsg = AddrMsg.builder()
+                .addrList(List.of(netAddrMsg))
+                .build();
+            BitcoinMsg<AddrMsg> btcMsg = new BitcoinMsgBuilder<>(config.getBasicConfig(), addrMsg).build();
 
-                peersHandshaked.forEach(peerAddr -> super.eventBus.publish(new SendMsgRequest(peerAddr, btcMsg)));
-            } else {
-                logger.warm("Unable to broadcast own addr to peers - advertised address is not configured");
-            }
+            super.eventBus.publish(new SendMsgRequest(peerAddress, btcMsg));
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-            e.printStackTrace();
+            logger.error(e, e.getMessage());
         }
+    }
+
+    /**
+     * Checks if self-advertisement is available/allowed. The following conditions are checked:
+     * <ul>
+     *     <li>Advertised IP is configured</li>
+     *     <li>Advertised IP is NOT blank</li>
+     *     <li>(with doCheckBroadcastFrequency) Broadcast frequency is configured</li>
+     *     <li>(with doCheckBroadcastFrequency) Broadcast frequency is greater than 0 seconds</li>
+     * </ul>
+     *
+     * @param doCheckBroadcastFrequency Flag that determines if broadcast frequency should be included in the check
+     * @return {@code true} if self-advertisement is available according to the config, otherwise {@code false}
+     */
+    private boolean isSelfAdvertisementAvailable(boolean doCheckBroadcastFrequency) {
+        var advertisedIp = config.getAdvertisedIp();
+        var isAdvertisementAllowed = advertisedIp.isPresent(); //primary condition: advertised IP value must be present first
+
+        if (isAdvertisementAllowed) { //if the advertised IP value is present, we want to ensure the value is not a blank string
+            isAdvertisementAllowed = !advertisedIp.get().isBlank();
+        } else {
+            logger.warm("Self-advertisement not possible - advertised address is not configured or missing");
+        }
+        if (doCheckBroadcastFrequency) {
+            var addrBroadcastFrequency = config.getAddrBroadcastFrequency();
+
+            return isAdvertisementAllowed && addrBroadcastFrequency.isPresent() && addrBroadcastFrequency.get().toSeconds() != 0L;
+        }
+
+        return isAdvertisementAllowed;
     }
 }

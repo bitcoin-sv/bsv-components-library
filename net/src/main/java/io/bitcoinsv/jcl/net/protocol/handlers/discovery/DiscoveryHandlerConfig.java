@@ -1,10 +1,11 @@
 package io.bitcoinsv.jcl.net.protocol.handlers.discovery;
 
 
+import io.bitcoinsv.bitcoinjsv.params.NetworkParameters;
 import io.bitcoinsv.jcl.net.network.PeerAddress;
 import io.bitcoinsv.jcl.net.protocol.config.ProtocolBasicConfig;
+import io.bitcoinsv.jcl.net.protocol.config.ProtocolServices;
 import io.bitcoinsv.jcl.tools.handlers.HandlerConfig;
-import io.bitcoinsv.bitcoinjsv.params.NetworkParameters;
 
 import java.net.UnknownHostException;
 import java.time.Duration;
@@ -15,7 +16,7 @@ import java.util.OptionalInt;
 
 /**
  * @author i.fernandez@nchain.com
- * Copyright (c) 2018-2020 nChain Ltd
+ * Copyright (c) 2018-2024 nChain Ltd
  *
  * It stores the Configuration variables needed by the Discovery Handler.
  */
@@ -32,6 +33,7 @@ public class DiscoveryHandlerConfig extends HandlerConfig {
     public static final Optional<Duration> DEFAULT_HANDSHAKE_RECOVERY_THRESHOLD = Optional.of(Duration.ofMinutes(15));
     public static final Optional<Duration> DEFAULT_ADDR_BROADCAST_FREQ = Optional.of(Duration.ofDays(1)); //advertise itself every day by default
     public static final Optional<String> DEFAULT_ADVERTISED_IP = Optional.empty(); //no address to advertise by default - should be set manually
+    public static final Optional<Long> DEFAULT_ADVERTISED_SERVICES = Optional.of((long) ProtocolServices.NODE_BLOOM.getProtocolServices()); //NODE_BLOOM services as default, just like HandshakeHandlerConfig's default servicesSupported value
 
     // Node Discovery Configuration:
     public enum DiscoveryMethod {
@@ -63,6 +65,10 @@ public class DiscoveryHandlerConfig extends HandlerConfig {
      * Address to include in the periodic advertisement (ADDR message)
      */
     private Optional<String> advertisedIp = DEFAULT_ADVERTISED_IP;
+    /**
+     * Services to include in the periodic advertisement (ADDR message)
+     */
+    private Optional<Long> advertisedServices = DEFAULT_ADVERTISED_SERVICES;
     /** frequency of the job that reconnects to those peers that used to be handshaked but are now disconnected */
     private Optional<Duration> recoveryHandshakeFrequency = DEFAULT_HANDSHAKE_RECOVERY_FREQ;
     /**
@@ -88,7 +94,8 @@ public class DiscoveryHandlerConfig extends HandlerConfig {
                                   boolean checkingPeerReachability,
                                   List<PeerAddress> initialConnections,
                                   Optional<Duration> addrBroadcastFrequency,
-                                  Optional<String> advertisedIp) {
+                                  Optional<String> advertisedIp,
+                                  Optional<Long> advertisedServices) {
         this.basicConfig = basicConfig;
         this.dns = dns;
         if (discoveryMethod != null)            this.discoveryMethod = discoveryMethod;
@@ -101,6 +108,7 @@ public class DiscoveryHandlerConfig extends HandlerConfig {
         if (recoveryHandshakeThreshold != null) this.recoveryHandshakeThreshold = recoveryHandshakeThreshold;
         if (addrBroadcastFrequency != null)     this.addrBroadcastFrequency = addrBroadcastFrequency;
         if (advertisedIp != null)               this.advertisedIp = advertisedIp;
+        if (advertisedServices != null)         this.advertisedServices = advertisedServices;
         this.checkingPeerReachability = checkingPeerReachability;
         this.initialConnections = initialConnections;
     }
@@ -121,6 +129,7 @@ public class DiscoveryHandlerConfig extends HandlerConfig {
     public List<PeerAddress> getInitialConnections()            { return this.initialConnections;}
     public Optional<Duration> getAddrBroadcastFrequency()       { return this.addrBroadcastFrequency; }
     public Optional<String> getAdvertisedIp()                   { return this.advertisedIp; }
+    public Optional<Long> getAdvertisedServices()               { return this.advertisedServices; }
 
     public DiscoveryHandlerConfigBuilder toBuilder() {
         return new DiscoveryHandlerConfigBuilder().basicConfig(this.basicConfig)
@@ -136,7 +145,8 @@ public class DiscoveryHandlerConfig extends HandlerConfig {
                 .checkingPeerReachability(this.checkingPeerReachability)
                 .addInitialConnections(this.initialConnections)
                 .addrBroadcastFrequency(this.addrBroadcastFrequency)
-                .advertisedIp(this.advertisedIp);
+                .advertisedIp(this.advertisedIp)
+                .advertisedServices(this.advertisedServices);
     }
 
     public static DiscoveryHandlerConfigBuilder builder() {
@@ -161,6 +171,7 @@ public class DiscoveryHandlerConfig extends HandlerConfig {
         private List<PeerAddress> initialConnections = new ArrayList<>();
         private Optional<Duration> addrBroadcastFrequency;
         private Optional<String> advertisedIp;
+        private Optional<Long> advertisedServices;
 
         DiscoveryHandlerConfigBuilder() { }
 
@@ -253,6 +264,11 @@ public class DiscoveryHandlerConfig extends HandlerConfig {
             return this;
         }
 
+        public DiscoveryHandlerConfig.DiscoveryHandlerConfigBuilder advertisedServices(Optional<Long> advertisedServices){
+            this.advertisedServices = advertisedServices;
+            return this;
+        }
+
         public DiscoveryHandlerConfig build() {
             return new DiscoveryHandlerConfig(basicConfig,
                     dns,
@@ -267,7 +283,8 @@ public class DiscoveryHandlerConfig extends HandlerConfig {
                     checkingPeerReachability,
                     initialConnections,
                     addrBroadcastFrequency,
-                    advertisedIp);
+                    advertisedIp,
+                    advertisedServices);
         }
     }
 }
